@@ -5,23 +5,24 @@
 
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// The certificate request type.
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum CertificateRequestType {
 
         /// <summary>
         /// Signing request
         /// </summary>
+        [EnumMember]
         SigningRequest,
 
         /// <summary>
         /// Key pair request
         /// </summary>
+        [EnumMember]
         KeyPairRequest,
     }
 }

@@ -9,6 +9,7 @@
 /**/*.log
 /**/*.err
 /**/*.sdf
+/**/*.rsa
 /**/*.opendb
 /**/*.opensdf
 /**/*.vc.db
@@ -31,3 +32,6 @@
 *.crt
 *.key
 *.user
+CodeCoverage
+coverage.cobertura.xml
+

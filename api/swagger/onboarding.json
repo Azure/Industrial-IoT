@@ -1,0 +1,460 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Opc-Onboarding-Service",
+    "description": "Azure Industrial IoT OPC UA Onboarding Service",
+    "contact": {
+      "url": "https://www.github.com/Azure/Industrial-IoT"
+    },
+    "license": {
+      "name": "MIT LICENSE",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "v2"
+  },
+  "host": "localhost:9080",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/onboarding/v2/discovery": {
+      "post": {
+        "tags": [
+          "Discovery"
+        ],
+        "summary": "Process discovery results",
+        "description": "Bulk processes discovery events and onboards new entities to the application registry",
+        "operationId": "ProcessDiscoveryResults",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "discovererId",
+            "description": "",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Discovery event list model",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DiscoveryResultListApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "SecurityMode": {
+      "description": "Security mode of endpoint",
+      "enum": [
+        "Best",
+        "Sign",
+        "SignAndEncrypt",
+        "None"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "SecurityMode",
+        "modelAsString": false
+      }
+    },
+    "EndpointActivationFilterApiModel": {
+      "description": "Endpoint Activation Filter model",
+      "type": "object",
+      "properties": {
+        "trustLists": {
+          "description": "Certificate trust list identifiers to use for\r\nactivation, if null, all certificates are\r\ntrusted.  If empty list, no certificates are\r\ntrusted which is equal to no filter.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "securityPolicies": {
+          "description": "Endpoint security policies to filter against.\r\nIf set to null, all policies are in scope.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "securityMode": {
+          "$ref": "#/definitions/SecurityMode"
+        }
+      }
+    },
+    "DiscoveryConfigApiModel": {
+      "description": "Discovery configuration api model",
+      "type": "object",
+      "properties": {
+        "addressRangesToScan": {
+          "description": "Address ranges to scan (null == all wired nics)",
+          "type": "string"
+        },
+        "networkProbeTimeout": {
+          "format": "date-span",
+          "description": "Network probe timeout",
+          "type": "string"
+        },
+        "maxNetworkProbes": {
+          "format": "int32",
+          "description": "Max network probes that should ever run.",
+          "type": "integer"
+        },
+        "portRangesToScan": {
+          "description": "Port ranges to scan (null == all unassigned)",
+          "type": "string"
+        },
+        "portProbeTimeout": {
+          "format": "date-span",
+          "description": "Port probe timeout",
+          "type": "string"
+        },
+        "maxPortProbes": {
+          "format": "int32",
+          "description": "Max port probes that should ever run.",
+          "type": "integer"
+        },
+        "minPortProbesPercent": {
+          "format": "int32",
+          "description": "Probes that must always be there as percent of max.",
+          "type": "integer"
+        },
+        "idleTimeBetweenScans": {
+          "format": "date-span",
+          "description": "Delay time between discovery sweeps",
+          "type": "string"
+        },
+        "discoveryUrls": {
+          "description": "List of preset discovery urls to use",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "locales": {
+          "description": "List of locales to filter with during discovery",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "activationFilter": {
+          "$ref": "#/definitions/EndpointActivationFilterApiModel"
+        }
+      }
+    },
+    "RegistryOperationApiModel": {
+      "description": "Registry operation log model",
+      "type": "object",
+      "properties": {
+        "authorityId": {
+          "description": "Operation User",
+          "type": "string"
+        },
+        "time": {
+          "format": "date-time",
+          "description": "Operation time",
+          "type": "string"
+        }
+      }
+    },
+    "DiscoveryResultApiModel": {
+      "description": "Discovery result model",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Id of discovery request",
+          "type": "string"
+        },
+        "discoveryConfig": {
+          "$ref": "#/definitions/DiscoveryConfigApiModel"
+        },
+        "registerOnly": {
+          "description": "If true, only register, do not unregister based\r\non these events.",
+          "type": "boolean"
+        },
+        "diagnostics": {
+          "description": "If discovery failed, result information",
+          "type": "string"
+        },
+        "context": {
+          "$ref": "#/definitions/RegistryOperationApiModel"
+        }
+      }
+    },
+    "EndpointApiModel": {
+      "description": "Endpoint model",
+      "type": "object",
+      "properties": {
+        "url": {
+          "description": "Endpoint url to use to connect with",
+          "type": "string"
+        },
+        "alternativeUrls": {
+          "description": "Alternative endpoint urls that can be used for\r\naccessing and validating the server",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "securityMode": {
+          "$ref": "#/definitions/SecurityMode"
+        },
+        "securityPolicy": {
+          "description": "Security policy uri to use for communication\r\ndefault to best.",
+          "type": "string"
+        },
+        "certificate": {
+          "description": "Endpoint certificate thumbprint",
+          "type": "string"
+        }
+      }
+    },
+    "CredentialType": {
+      "description": "Type of credential to use for serverauth",
+      "enum": [
+        "None",
+        "UserName",
+        "X509Certificate",
+        "JwtToken"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "CredentialType",
+        "modelAsString": false
+      }
+    },
+    "AuthenticationMethodApiModel": {
+      "description": "Authentication Method model",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Method id",
+          "type": "string"
+        },
+        "credentialType": {
+          "$ref": "#/definitions/CredentialType"
+        },
+        "securityPolicy": {
+          "description": "Security policy to use when passing credential.",
+          "type": "string"
+        },
+        "configuration": {
+          "description": "Method specific configuration",
+          "type": "string"
+        }
+      }
+    },
+    "EndpointRegistrationApiModel": {
+      "description": "Endpoint registration model",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Registered identifier of the endpoint",
+          "type": "string"
+        },
+        "endpointUrl": {
+          "description": "Original endpoint url of the endpoint",
+          "type": "string"
+        },
+        "siteId": {
+          "description": "Registered site of the endpoint",
+          "type": "string"
+        },
+        "supervisorId": {
+          "description": "Supervisor that can manage the endpoint.",
+          "type": "string"
+        },
+        "discovererId": {
+          "description": "Discoverer that registered the endpoint",
+          "type": "string"
+        },
+        "endpoint": {
+          "$ref": "#/definitions/EndpointApiModel"
+        },
+        "securityLevel": {
+          "format": "int32",
+          "description": "Security level of the endpoint",
+          "type": "integer"
+        },
+        "authenticationMethods": {
+          "description": "Supported authentication methods that can be selected to\r\nobtain a credential and used to interact with the endpoint.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AuthenticationMethodApiModel"
+          }
+        }
+      }
+    },
+    "ApplicationType": {
+      "description": "Application type",
+      "enum": [
+        "Server",
+        "Client",
+        "ClientAndServer",
+        "DiscoveryServer"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "ApplicationType",
+        "modelAsString": false
+      }
+    },
+    "ApplicationInfoApiModel": {
+      "description": "Application info model",
+      "type": "object",
+      "properties": {
+        "applicationId": {
+          "description": "Unique application id",
+          "type": "string"
+        },
+        "applicationType": {
+          "$ref": "#/definitions/ApplicationType"
+        },
+        "applicationUri": {
+          "description": "Unique application uri",
+          "type": "string"
+        },
+        "productUri": {
+          "description": "Product uri",
+          "type": "string"
+        },
+        "applicationName": {
+          "description": "Default name of application",
+          "type": "string"
+        },
+        "locale": {
+          "description": "Locale of default name - defaults to \"en\"",
+          "type": "string"
+        },
+        "localizedNames": {
+          "description": "Localized Names of application keyed on locale",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "capabilities": {
+          "description": "The capabilities advertised by the server.",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "discoveryUrls": {
+          "description": "Discovery urls of the server",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "discoveryProfileUri": {
+          "description": "Discovery profile uri",
+          "type": "string"
+        },
+        "gatewayServerUri": {
+          "description": "Gateway server uri",
+          "type": "string"
+        },
+        "hostAddresses": {
+          "description": "Host addresses of server application or null",
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "siteId": {
+          "description": "Site of the application",
+          "type": "string",
+          "example": "productionlineA"
+        },
+        "discovererId": {
+          "description": "Discoverer that registered the application",
+          "type": "string"
+        },
+        "notSeenSince": {
+          "format": "date-time",
+          "description": "Last time application was seen",
+          "type": "string"
+        },
+        "created": {
+          "$ref": "#/definitions/RegistryOperationApiModel"
+        },
+        "updated": {
+          "$ref": "#/definitions/RegistryOperationApiModel"
+        }
+      }
+    },
+    "DiscoveryEventApiModel": {
+      "description": "Discovery event",
+      "type": "object",
+      "properties": {
+        "timeStamp": {
+          "format": "date-time",
+          "description": "Timestamp of the discovery sweep.",
+          "type": "string"
+        },
+        "index": {
+          "format": "int32",
+          "description": "Index in the batch with same timestamp.",
+          "type": "integer"
+        },
+        "registration": {
+          "$ref": "#/definitions/EndpointRegistrationApiModel"
+        },
+        "application": {
+          "$ref": "#/definitions/ApplicationInfoApiModel"
+        }
+      }
+    },
+    "DiscoveryResultListApiModel": {
+      "description": "Discovery results",
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/DiscoveryResultApiModel"
+        },
+        "events": {
+          "description": "Events",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DiscoveryEventApiModel"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "oauth2": {
+      "type": "oauth2",
+      "flow": "implicit",
+      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
+      "description": "Implicit oauth2 token flow."
+    }
+  },
+  "tags": [
+    {
+      "name": "Discovery",
+      "description": "Handle discovery events and onboard applications"
+    }
+  ]
+}

@@ -6,10 +6,14 @@
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
     public enum RegionType {
+        USEast,
         USEast2,
+        USWest,
         USWest2,
+        USCentral,
         EuropeNorth,
         EuropeWest,
-        AsiaSouthEast
+        AsiaSouthEast,
+        AustraliaEast
     }
 }

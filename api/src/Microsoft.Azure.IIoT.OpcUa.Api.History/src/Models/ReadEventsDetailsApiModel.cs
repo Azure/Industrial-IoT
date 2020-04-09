@@ -4,40 +4,42 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Read event data
     /// </summary>
+    [DataContract]
     public class ReadEventsDetailsApiModel {
 
         /// <summary>
         /// Start time to read from
         /// </summary>
-        [JsonProperty(PropertyName = "startTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "startTime", Order = 0,
+            EmitDefaultValue = false)]
         public DateTime? StartTime { get; set; }
 
         /// <summary>
         /// End time to read to
         /// </summary>
-        [JsonProperty(PropertyName = "endTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "endTime", Order = 1,
+            EmitDefaultValue = false)]
         public DateTime? EndTime { get; set; }
 
         /// <summary>
         /// Number of events to read
         /// </summary>
-        [JsonProperty(PropertyName = "numEvents",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "numEvents", Order = 2,
+            EmitDefaultValue = false)]
         public uint? NumEvents { get; set; }
 
         /// <summary>
         /// The filter to use to select the event fields
         /// </summary>
-        [JsonProperty(PropertyName = "filter",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "filter", Order = 3,
+            EmitDefaultValue = false)]
         public EventFilterApiModel Filter { get; set; }
     }
 }

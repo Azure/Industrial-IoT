@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                     new VariantEncoderFactory(), _server.Logger),
                 new EndpointModel {
                     Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                    Certificate = _server.Certificate?.RawData
+                    Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }
 
@@ -100,6 +100,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         [Fact]
         public async Task NodeBrowseStaticArrayVariablesTestAsync() {
             await GetTests().NodeBrowseStaticArrayVariablesTestAsync();
+        }
+
+        [Fact]
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter1Async() {
+            await GetTests().NodeBrowseStaticScalarVariablesTestWithFilter1Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter2Async() {
+            await GetTests().NodeBrowseStaticScalarVariablesTestWithFilter2Async();
         }
 
         [Fact]

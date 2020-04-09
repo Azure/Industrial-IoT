@@ -4,28 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using System;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
-    using System.ComponentModel;
+    using System;
 
     /// <summary>
     /// Discovery configuration api model
     /// </summary>
+    [DataContract]
     public class DiscoveryConfigApiModel {
 
         /// <summary>
         /// Address ranges to scan (null == all wired nics)
         /// </summary>
-        [JsonProperty(PropertyName = "addressRangesToScan",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "addressRangesToScan", Order = 0,
+            EmitDefaultValue = false)]
         public string AddressRangesToScan { get; set; }
 
         /// <summary>
         /// Network probe timeout
         /// </summary>
-        [JsonIgnore]
+        [IgnoreDataMember]
         [Obsolete("Use NetworkProbeTimeout")]
         public int? NetworkProbeTimeoutMs {
             get => (int?)NetworkProbeTimeout?.TotalMilliseconds;
@@ -36,30 +35,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Network probe timeout
         /// </summary>
-        [JsonProperty(PropertyName = "networkProbeTimeout",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "networkProbeTimeout", Order = 1,
+            EmitDefaultValue = false)]
         public TimeSpan? NetworkProbeTimeout { get; set; }
 
         /// <summary>
         /// Max network probes that should ever run.
         /// </summary>
-        [JsonProperty(PropertyName = "maxNetworkProbes",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "maxNetworkProbes", Order = 2,
+            EmitDefaultValue = false)]
         public int? MaxNetworkProbes { get; set; }
 
         /// <summary>
         /// Port ranges to scan (null == all unassigned)
         /// </summary>
-        [JsonProperty(PropertyName = "portRangesToScan",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "portRangesToScan", Order = 3,
+            EmitDefaultValue = false)]
         public string PortRangesToScan { get; set; }
 
         /// <summary>
         /// Port probe timeout
         /// </summary>
-        [JsonIgnore]
+        [IgnoreDataMember]
         [Obsolete("Use PortProbeTimeout")]
         public int? PortProbeTimeoutMs {
             get => (int?)PortProbeTimeout?.TotalMilliseconds;
@@ -70,30 +67,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Port probe timeout
         /// </summary>
-        [JsonProperty(PropertyName = "portProbeTimeout",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "portProbeTimeout", Order = 4,
+            EmitDefaultValue = false)]
         public TimeSpan? PortProbeTimeout { get; set; }
 
         /// <summary>
         /// Max port probes that should ever run.
         /// </summary>
-        [JsonProperty(PropertyName = "maxPortProbes",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "maxPortProbes", Order = 5,
+            EmitDefaultValue = false)]
         public int? MaxPortProbes { get; set; }
 
         /// <summary>
         /// Probes that must always be there as percent of max.
         /// </summary>
-        [JsonProperty(PropertyName = "minPortProbesPercent",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "minPortProbesPercent", Order = 6,
+            EmitDefaultValue = false)]
         public int? MinPortProbesPercent { get; set; }
 
         /// <summary>
         /// Delay time between discovery sweeps in seconds
         /// </summary>
-        [JsonIgnore]
+        [IgnoreDataMember]
         [Obsolete("Use IdleTimeBetweenScans")]
         public int? IdleTimeBetweenScansSec {
             get => (int?)IdleTimeBetweenScans?.TotalSeconds;
@@ -104,32 +99,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Delay time between discovery sweeps
         /// </summary>
-        [JsonProperty(PropertyName = "idleTimeBetweenScans",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "idleTimeBetweenScans", Order = 7,
+            EmitDefaultValue = false)]
         public TimeSpan? IdleTimeBetweenScans { get; set; }
 
         /// <summary>
         /// List of preset discovery urls to use
         /// </summary>
-        [JsonProperty(PropertyName = "discoveryUrls",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "discoveryUrls", Order = 8,
+            EmitDefaultValue = false)]
         public List<string> DiscoveryUrls { get; set; }
 
         /// <summary>
         /// List of locales to filter with during discovery
         /// </summary>
-        [JsonProperty(PropertyName = "locales",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "locales", Order = 9,
+            EmitDefaultValue = false)]
         public List<string> Locales { get; set; }
 
         /// <summary>
         /// Activate all twins with this filter during onboarding.
         /// </summary>
-        [JsonProperty(PropertyName = "activationFilter",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "activationFilter", Order = 10,
+            EmitDefaultValue = false)]
         public EndpointActivationFilterApiModel ActivationFilter { get; set; }
     }
 }

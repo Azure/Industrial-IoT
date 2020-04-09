@@ -4,19 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Insert historic data
     /// </summary>
+    [DataContract]
     public class InsertValuesDetailsApiModel {
 
         /// <summary>
         /// Values to insert
         /// </summary>
-        [JsonProperty(PropertyName = "values")]
+        [DataMember(Name = "values", Order = 0)]
         [Required]
         public List<HistoricValueApiModel> Values { get; set; }
     }

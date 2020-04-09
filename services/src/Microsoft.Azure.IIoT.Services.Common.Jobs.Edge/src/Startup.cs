@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Auth;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.AspNetCore.Authentication;
@@ -26,11 +27,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
     using Autofac;
+    using Prometheus;
     using Autofac.Extensions.DependencyInjection;
     using System;
     using ILogger = Serilog.ILogger;
-    using Newtonsoft.Json;
-    using Prometheus;
 
     /// <summary>
     /// Webservice startup
@@ -105,13 +105,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
                     "DeviceTokenAuth", null);
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers()
-                .AddNewtonsoftJson(options => {
-                    options.SerializerSettings.Formatting = Formatting.Indented;
-                    options.SerializerSettings.Converters.Add(new ExceptionConverter(
-                        Environment.IsDevelopment()));
-                    options.SerializerSettings.MaxDepth = 10;
-                });
+            services.AddControllers().AddSerializers();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -159,8 +153,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}", ServiceInfo.Name,
-                Uptime.ProcessId);
+            log.Information("{service} web service started with id {id}",
+                ServiceInfo.Name, ServiceInfo.Id);
         }
 
         /// <summary>
@@ -176,6 +170,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<MessagePackModule>();
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
@@ -206,8 +202,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TwinIdentityTokenStore>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JobOrchestratorEndpointSync>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Activate all hosts

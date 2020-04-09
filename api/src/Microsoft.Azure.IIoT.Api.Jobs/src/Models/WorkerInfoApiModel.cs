@@ -4,40 +4,41 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Worker info
     /// </summary>
+    [DataContract]
     public class WorkerInfoApiModel {
 
         /// <summary>
         /// Identifier of the worker instance
         /// </summary>
-        [JsonProperty(PropertyName = "workerId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "workerId", Order = 0,
+            EmitDefaultValue = false)]
         public string WorkerId { get; set; }
 
         /// <summary>
         /// Identifier of the agent
         /// </summary>
-        [JsonProperty(PropertyName = "agentId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "agentId", Order = 1,
+            EmitDefaultValue = false)]
         public string AgentId { get; set; }
 
         /// <summary>
         /// Worker status
         /// </summary>
-        [JsonProperty(PropertyName = "status",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "status", Order = 2,
+            EmitDefaultValue = false)]
         public WorkerStatus Status { get; set; }
 
         /// <summary>
         /// Last seen
         /// </summary>
-        [JsonProperty(PropertyName = "lastSeen",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "lastSeen", Order = 3,
+            EmitDefaultValue = false)]
         public DateTime LastSeen { get; set; }
     }
 }

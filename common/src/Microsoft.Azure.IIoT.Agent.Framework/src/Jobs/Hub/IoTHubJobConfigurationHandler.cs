@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
     using System;
     using System.Threading.Tasks;
     using Serilog;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// IoT hub based job event handler
@@ -35,27 +34,21 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
         /// <inheritdoc/>
         public async Task OnJobCreatingAsync(IJobService manager, JobInfoModel job) {
-            var jobDeviceId = GetJobDeviceId(job);
+            if (job.JobConfiguration?.IsObject != true) {
+                return;
+            }
             try {
-                var deviceTwin = await _ioTHubTwinServices.GetAsync(jobDeviceId);
+                var jobDeviceId = GetJobDeviceId(job);
+                var deviceTwin = await _ioTHubTwinServices.FindAsync(jobDeviceId);
                 if (deviceTwin == null) {
                     deviceTwin = new DeviceTwinModel {
                         Id = jobDeviceId
                     };
-                    await _ioTHubTwinServices.CreateAsync(deviceTwin);
+                    await _ioTHubTwinServices.CreateAsync(deviceTwin, true);
                 }
                 var cs = await _ioTHubTwinServices.GetConnectionStringAsync(deviceTwin.Id);
-                if (job.JobConfiguration?.Type == JTokenType.Object &&
-                    job.JobConfiguration is JObject o) {
-                    var connectionString = JToken.FromObject(cs.ToString());
-                    if (o.ContainsKey(TwinProperties.ConnectionString)) {
-                        o[TwinProperties.ConnectionString] = connectionString;
-                    }
-                    else {
-                        o.Add(TwinProperties.ConnectionString, connectionString);
-                    }
-                    _logger.Debug("Added connection string to job {id}", jobDeviceId);
-                }
+                job.JobConfiguration[TwinProperties.ConnectionString].AssignValue(cs.ToString());
+                _logger.Debug("Added connection string to job {id}", jobDeviceId);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error while creating IoT Device.");

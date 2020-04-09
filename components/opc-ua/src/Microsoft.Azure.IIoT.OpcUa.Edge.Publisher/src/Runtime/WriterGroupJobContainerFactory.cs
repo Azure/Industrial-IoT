@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Serializers;
     using Autofac;
     using System;
 
@@ -28,11 +29,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime {
         }
 
         /// <inheritdoc/>
-        public Action<ContainerBuilder> GetJobContainerScope(string agentId, string jobId) {
+        public Action<ContainerBuilder> GetJobContainerScope(string agentId, string publisherId) {
             return builder => {
                 // Register job configuration
-                builder.RegisterInstance(_jobConfig.ToWriterGroupJobConfiguration(jobId))
+                builder.RegisterInstance(_jobConfig.ToWriterGroupJobConfiguration(publisherId))
                     .AsImplementedInterfaces();
+
+                // Register default serializers...
+                builder.RegisterModule<NewtonSoftJsonModule>();
 
                 // Register processing engine - trigger, transform, sink
                 builder.RegisterType<DataFlowProcessingEngine>()

@@ -6,12 +6,13 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Object node vertex - note that isabstract is always null
     /// </summary>
     [Label(AddressSpaceElementNames.Object)]
+    [DataContract]
     public class ObjectNodeVertexModel : ObjectTypeNodeVertexModel {
 
         /// <summary>
@@ -19,8 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// to subscribe to.
         /// (default: no events supported)
         /// </summary>
-        [JsonProperty(PropertyName = "eventNotifier",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "eventNotifier",
+            EmitDefaultValue = false)]
         public NodeEventNotifier? EventNotifier { get; set; }
     }
 }

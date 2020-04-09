@@ -14,9 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
     using System.IO;
 
     /// <summary>
-    /// Certificate CRL Distribution Point and Authority
-    /// Information Access
-    /// services.
+    /// Certificate CRL Distribution Point and Authority Information Access services.
     /// </summary>
     [ExceptionsFilter]
     [ApiVersion("2")]
@@ -51,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
                     await _services.GetIssuerCertificateChainAsync(serialNumber);
                 using (var stream = new MemoryStream()) {
                     foreach (var certificate in certificates.Chain) {
-                        stream.Write(certificate.ToRawData());
+                        stream.Write(certificate.Certificate);
                     }
                     return new FileContentResult(stream.ToArray(),
                         ContentMimeType.Cert) {

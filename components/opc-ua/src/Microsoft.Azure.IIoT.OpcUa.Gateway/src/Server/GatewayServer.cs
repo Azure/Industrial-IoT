@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using System.Text;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Gateway server controller implementation
@@ -776,7 +776,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             BrowseResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
-            var elevation = GetRemoteCredentialsFromContext(context);
+            var codec = _codec.Create(context.Session.MessageContext);
+            var elevation = GetRemoteCredentialsFromContext(context, codec.Serializer);
             for (var i = 0; i < nodesToBrowse.Count; i++) {
                 try {
                     // Call service
@@ -802,8 +803,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         });
 
                     // Update results
-                    diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                        diagnostics, context.Session.MessageContext, out var statusCode);
+                    diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                        diagnostics, out var statusCode);
 
                     // Get references
                     var references = response.References?
@@ -856,7 +857,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
-            var elevation = GetRemoteCredentialsFromContext(context);
+            var codec = _codec.Create(context.Session.MessageContext);
+            var elevation = GetRemoteCredentialsFromContext(context, codec.Serializer);
             for (var i = 0; i < continuationPoints.Count; i++) {
                 try {
                     // Call service
@@ -872,8 +874,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         });
 
                     // Update results
-                    diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                        diagnostics, context.Session.MessageContext, out var statusCode);
+                    diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                        diagnostics, out var statusCode);
 
                     // Get references
                     var references = response.References?
@@ -924,7 +926,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             BrowsePathResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
-            var elevation = GetRemoteCredentialsFromContext(context);
+            var codec = _codec.Create(context.Session.MessageContext);
+            var elevation = GetRemoteCredentialsFromContext(context, codec.Serializer);
             for (var i = 0; i < browsePaths.Count; i++) {
                 try {
                     // Call service
@@ -944,8 +947,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         });
 
                     // Update results
-                    diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                        diagnostics, context.Session.MessageContext, out var statusCode);
+                    diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                        diagnostics, out var statusCode);
 
                     // Get targets
                     var targets = response.Targets
@@ -985,8 +988,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             CallMethodResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
-            var elevation = GetRemoteCredentialsFromContext(context);
             var codec = _codec.Create(context.Session.MessageContext);
+            var elevation = GetRemoteCredentialsFromContext(context, codec.Serializer);
             for (var i = 0; i < methodsToCall.Count; i++) {
                 try {
                     // Convert input arguments
@@ -1012,8 +1015,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         });
 
                     // Update results
-                    diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                        diagnostics, context.Session.MessageContext, out var statusCode);
+                    diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                        diagnostics, out var statusCode);
 
                     // Convert output arguments
                     var outputs = response.Results?
@@ -1052,8 +1055,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
-            var elevation = GetRemoteCredentialsFromContext(context);
             var codec = _codec.Create(context.Session.MessageContext);
+            var elevation = GetRemoteCredentialsFromContext(context, codec.Serializer);
 
             var batch = new ReadRequestModel {
                 Attributes = new List<AttributeReadRequestModel>(),
@@ -1081,8 +1084,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             });
 
                         // Update results
-                        diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                            diagnostics, context.Session.MessageContext, out var statusCode);
+                        diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                            diagnostics, out var statusCode);
 
                         var value = codec.Decode(response.Value, response.DataType);
                         results[i] = new DataValue(value, statusCode,
@@ -1128,8 +1131,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     for (var i = 0; i < nodesToRead.Count; i++) {
                         if (!nodesToRead[i].Processed) {
                             var response = batchResponse.Results[index++];
-                            diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                                diagnostics, context.Session.MessageContext, out var statusCode);
+                            diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                                diagnostics, out var statusCode);
                             var value = codec.Decode(response.Value,
                                 AttributeMap.GetBuiltInType(nodesToRead[i].AttributeId));
                             results[i] = new DataValue(value, statusCode, DateTime.MinValue,
@@ -1167,8 +1170,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             StatusCodeCollection results, DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
-            var elevation = GetRemoteCredentialsFromContext(context);
             var codec = _codec.Create(context.Session.MessageContext);
+            var elevation = GetRemoteCredentialsFromContext(context, codec.Serializer);
 
             var batch = new WriteRequestModel {
                 Attributes = new List<AttributeWriteRequestModel>(),
@@ -1199,8 +1202,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             });
 
                         // Update results
-                        diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                            diagnostics, context.Session.MessageContext, out var statusCode);
+                        diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                            diagnostics, out var statusCode);
                         results[i] = statusCode;
                     }
                     catch (Exception ex) {
@@ -1240,8 +1243,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     for (var i = 0; i < nodesToWrite.Count; i++) {
                         if (!nodesToWrite[i].Processed) {
                             var response = batchResponse.Results[index++];
-                            diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                                diagnostics, context.Session.MessageContext, out var statusCode);
+                            diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                                diagnostics, out var statusCode);
                             results[i] = statusCode;
                         }
                     }
@@ -1278,14 +1281,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             HistoryReadResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
-            var elevation = GetRemoteCredentialsFromContext(context);
             var codec = _codec.Create(context.Session.MessageContext);
+            var elevation = GetRemoteCredentialsFromContext(context, codec.Serializer);
             for (var i = 0; i < nodesToRead.Count; i++) {
                 try {
                     if (nodesToRead[i].ContinuationPoint == null) {
                         // Call read first
                         var response = await _historian.HistoryReadAsync(endpointId,
-                            new HistoryReadRequestModel<JToken> {
+                            new HistoryReadRequestModel<VariantValue> {
                                 NodeId = nodesToRead[i].NodeId
                                     .AsString(context.Session.MessageContext),
                                 IndexRange = nodesToRead[i].IndexRange,
@@ -1298,8 +1301,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             });
 
                         // Update results
-                        diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                            diagnostics, context.Session.MessageContext, out var statusCode);
+                        diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                            diagnostics, out var statusCode);
 
                         // Collect response
                         results[i] = new HistoryReadResult {
@@ -1323,8 +1326,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             });
 
                         // Update results
-                        diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                            diagnostics, context.Session.MessageContext, out var statusCode);
+                        diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                            diagnostics, out var statusCode);
 
                         // Collect response
                         results[i] = new HistoryReadResult {
@@ -1360,13 +1363,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             HistoryUpdateResultCollection results, DiagnosticInfoCollection diagnosticInfos) {
             var endpointId = ToEndpointId(context.ChannelContext.EndpointDescription);
             var diagnostics = requestHeader.ToServiceModel();
-            var elevation = GetRemoteCredentialsFromContext(context);
             var codec = _codec.Create(context.Session.MessageContext);
+            var elevation = GetRemoteCredentialsFromContext(context, codec.Serializer);
             for (var i = 0; i < historyUpdateDetails.Count; i++) {
                 try {
                     // Call service
                     var response = await _historian.HistoryUpdateAsync(endpointId,
-                        new HistoryUpdateRequestModel<JToken> {
+                        new HistoryUpdateRequestModel<VariantValue> {
                             Details = historyUpdateDetails == null ? null :
                                 codec.Encode(new Variant(historyUpdateDetails), out var tmp),
                             Header = new RequestHeaderModel {
@@ -1376,8 +1379,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         });
 
                     // Update results
-                    diagnosticInfos[i] = response.ErrorInfo.ToDiagnosticsInfo(
-                        diagnostics, context.Session.MessageContext, out var statusCode);
+                    diagnosticInfos[i] = codec.Decode(response.ErrorInfo,
+                            diagnostics, out var statusCode);
 
                     // Collect response
                     results[i] = new HistoryUpdateResult {
@@ -1402,15 +1405,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// Get remote credential from top of the identities stack if any.
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
         private static CredentialModel GetRemoteCredentialsFromContext(
-            RequestContextModel context) {
+            RequestContextModel context, IJsonSerializer serializer) {
             if (!context.Session.Identities.Any()) {
                 return null; // no credential - anonymous access - throw?
             }
             if (context.Session.Identities.Count > 1) {
                 // This is remote credential
-                return context.Session.Identities[1].ToServiceModel();
+                return context.Session.Identities[1].ToServiceModel(serializer);
             }
             return null;
         }
@@ -1916,7 +1920,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             }
                         },
                         Header = new RequestHeaderModel {
-                            Elevation = args.Token.ToServiceModel()
+                            Elevation = args.Token.ToServiceModel(_codec.Default.Serializer)
                         }
                     }).Result;
                 if ((batchResponse.Results?.Count ?? 0) != 1) {

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Crypto.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography;
@@ -141,20 +141,11 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
         }
 
         /// <summary>
-        /// Key to json
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static JToken ToJToken(this Key key) {
-            return JToken.FromObject(key);
-        }
-
-        /// <summary>
         /// Json to key
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public static Key ToKey(this JToken token) {
+        public static Key ToKey(this VariantValue token) {
             var type = token.GetValueOrDefault<KeyType>(nameof(Key.Type));
             switch (type) {
                 case KeyType.RSA:

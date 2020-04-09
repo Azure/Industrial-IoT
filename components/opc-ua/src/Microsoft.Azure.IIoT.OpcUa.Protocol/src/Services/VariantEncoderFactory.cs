@@ -4,27 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Text;
 
     /// <summary>
     /// Json variant codec
     /// </summary>
     public class VariantEncoderFactory : IVariantEncoderFactory {
 
+        /// <summary>
+        /// Create encoder
+        /// </summary>
+        /// <param name="serializer"></param>
+        public VariantEncoderFactory(IJsonSerializer serializer = null) {
+            _serializer = serializer ?? new NewtonSoftJsonSerializer();
+        }
+
         /// <inheritdoc/>
-        public IVariantEncoder Default => new JsonVariantEncoder(new ServiceMessageContext());
+        public IVariantEncoder Default =>
+            new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
 
         /// <inheritdoc/>
         public IVariantEncoder Create(ServiceMessageContext context) {
-            return new JsonVariantEncoder(context);
+            return new JsonVariantEncoder(context, _serializer);
         }
 
         /// <summary>
@@ -35,76 +44,77 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public ServiceMessageContext Context { get; }
 
+            /// <inheritdoc/>
+            public IJsonSerializer Serializer { get; }
+
             /// <summary>
             /// Create encoder
             /// </summary>
             /// <param name="context"></param>
-            internal JsonVariantEncoder(ServiceMessageContext context) {
+            /// <param name="serializer"></param>
+            internal JsonVariantEncoder(ServiceMessageContext context, IJsonSerializer serializer) {
                 Context = context ?? throw new ArgumentNullException(nameof(context));
+                Serializer = serializer ?? new NewtonSoftJsonSerializer();
             }
 
             /// <inheritdoc/>
-            public JToken Encode(Variant value, out BuiltInType builtinType) {
-
-                if (value == Variant.Null) {
+            public VariantValue Encode(Variant? value, out BuiltInType builtinType) {
+                if (value == null || value == Variant.Null) {
                     builtinType = BuiltInType.Null;
-                    return JValue.CreateNull();
+                    return VariantValue.Null;
                 }
                 using (var stream = new MemoryStream()) {
                     using (var encoder = new JsonEncoderEx(stream, Context) {
                         UseAdvancedEncoding = true
                     }) {
-                        encoder.WriteVariant(nameof(value), value);
+                        encoder.WriteVariant(nameof(value), value.Value);
                     }
-                    var json = Encoding.UTF8.GetString(stream.ToArray());
-                    try {
-                        var token = JToken.Parse(json);
-                        Enum.TryParse((string)token.SelectToken("value.Type"),
-                            true, out builtinType);
-                        return token.SelectToken("value.Body");
-                    }
-                    catch (JsonReaderException jre) {
-                        throw new FormatException($"Failed to parse '{json}'. " +
-                            "See inner exception for more details.", jre);
-                    }
+                    var token = Serializer.Parse(stream.ToArray());
+                    Enum.TryParse((string)token.GetByPath("value.Type"),
+                        true, out builtinType);
+                    return token.GetByPath("value.Body");
                 }
             }
 
             /// <inheritdoc/>
-            public Variant Decode(JToken value, BuiltInType builtinType) {
+            public Variant Decode(VariantValue value, BuiltInType builtinType) {
+
+                if (VariantValueEx.IsNull(value)) {
+                    return Variant.Null;
+                }
 
                 //
                 // Sanitize json input from user
                 //
                 value = Sanitize(value, builtinType == BuiltInType.String);
 
-                JObject json;
+                VariantValue json;
                 if (builtinType == BuiltInType.Null ||
-                    (builtinType == BuiltInType.Variant && value is JObject)) {
-                        //
-                        // Let the decoder try and decode the json variant.
-                        //
-                        json = new JObject {
-                        { nameof(value), value }
-                    };
+                    (builtinType == BuiltInType.Variant &&
+                        value.IsObject)) {
+                    //
+                    // Let the decoder try and decode the json variant.
+                    //
+                    json = Serializer.FromObject(new { value });
                 }
                 else {
                     //
                     // Give decoder a hint as to the type to use to decode.
                     //
-                    json = new JObject {
-                        { nameof(value), new JObject {
-                                { "Body", value },
-                                { "Type", (byte)builtinType }
-                            }
+                    json = Serializer.FromObject(new {
+                        value = new {
+                            Body = value,
+                            Type = (byte)builtinType
                         }
-                    };
+                    });
                 }
 
                 //
                 // Decode json to a real variant
                 //
-                using (var decoder = new JsonDecoderEx(json, Context)) {
+                using (var text = new StringReader(Serializer.SerializeToString(json)))
+                using (var reader = new Newtonsoft.Json.JsonTextReader(text))
+                using (var decoder = new JsonDecoderEx(reader, Context)) {
                     return decoder.ReadVariant(nameof(value));
                 }
             }
@@ -119,21 +129,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <param name="value"></param>
             /// <param name="isString"></param>
             /// <returns></returns>
-            internal static JToken Sanitize(JToken value, bool isString) {
-                if (value == null || value.Type == JTokenType.Null) {
+            internal VariantValue Sanitize(VariantValue value, bool isString) {
+                if (VariantValueEx.IsNull(value)) {
                     return value;
                 }
 
-                var asString = value.Type == JTokenType.String ?
-                    (string)value : value.ToString(Formatting.None);
+                if (!value.TryGetString(out var asString, true)) {
+                    asString = Serializer.SerializeToString(value);
+                }
 
-                if (value is JValue val) {
-                    if (value.Type != JTokenType.String) {
-                        //
-                        // If this should be a string - return as such
-                        //
-                        return isString ? new JValue(asString) : value;
-                    }
+                if (!value.IsObject && !value.IsListOfValues && !value.IsString) {
+                    //
+                    // If this should be a string - return as such
+                    //
+                    return isString ? asString : value;
                 }
 
                 if (string.IsNullOrWhiteSpace(asString)) {
@@ -143,15 +152,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 //
                 // Try to parse string as json
                 //
-                if (value.Type != JTokenType.String) {
+                if (!value.IsString) {
                     asString = asString.Replace("\\\"", "\"");
                 }
-                var token = Try.Op(() => JToken.Parse(asString));
-                if (token != null) {
+                var token = Try.Op(() => Serializer.Parse(asString));
+                if (!(token is null)) {
                     value = token;
                 }
 
-                if (value.Type == JTokenType.String) {
+                if (value.IsString) {
 
                     //
                     // try to split the string as comma seperated list
@@ -163,7 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         // string array
                         //
                         if (elements.Length > 1) {
-                            var array = new JArray();
+                            var array = new List<string>();
                             foreach (var element in elements) {
                                 var trimmed = element.Trim().TrimQuotes();
                                 if (trimmed == element) {
@@ -172,7 +181,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 }
                                 array.Add(trimmed);
                             }
-                            return array; // No need to sanitize contents
+                            // No need to sanitize contents
+                            return Serializer.FromObject(array);
                         }
                     }
                     else {
@@ -181,10 +191,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         //
                         if (elements.Length > 1) {
                             //
-                            // Parse all contained elements and return as array
+                            // Parse as array
                             //
-                            value = new JArray(elements
-                                .Select(s => s.Trim()));
+                            var trimmed = elements.Select(e => e.TrimQuotes()).ToArray();
+                            try {
+                                value = Serializer.Parse(
+                                    "[" + trimmed.Aggregate((x, y) => x + "," + y) + "]");
+                            }
+                            catch {
+                                value = Serializer.Parse(
+                                    "[\"" + trimmed.Aggregate((x, y) => x + "\",\"" + y) + "\"]");
+                            }
                         }
                         else {
                             //
@@ -198,14 +215,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
 
-                if (value is JArray arr) {
+                if (value.IsListOfValues) {
                     //
                     // Sanitize each element accordingly
                     //
-                    return new JArray(arr.Select(t => Sanitize(t, isString)));
+                    return Serializer.FromObject(value.Values
+                        .Select(t => Sanitize(t, isString)));
                 }
                 return value;
             }
         }
+
+        private readonly IJsonSerializer _serializer;
     }
 }

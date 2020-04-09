@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// The certificate request type.
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum CertificateRequestType {
 
         /// <summary>

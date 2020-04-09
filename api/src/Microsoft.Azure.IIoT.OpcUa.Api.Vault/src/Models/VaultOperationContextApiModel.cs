@@ -4,25 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
 
     /// <summary>
     /// Vault operation log model
     /// </summary>
+    [DataContract]
     public class VaultOperationContextApiModel {
 
         /// <summary>
         /// User
         /// </summary>
-        [JsonProperty(PropertyName = "authorityId")]
+        [DataMember(Name = "authorityId", Order = 0)]
         public string AuthorityId { get; set; }
 
         /// <summary>
         /// Operation time
         /// </summary>
-        [JsonProperty(PropertyName = "time")]
+        [DataMember(Name = "time", Order = 1)]
         public DateTime Time { get; set; }
     }
 }

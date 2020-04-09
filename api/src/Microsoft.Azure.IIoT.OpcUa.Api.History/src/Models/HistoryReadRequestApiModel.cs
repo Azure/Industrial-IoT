@@ -4,25 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Request node history read
     /// </summary>
+    [DataContract]
     public class HistoryReadRequestApiModel<T> {
 
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// An optional path from NodeId instance to
         /// the actual node.
         /// </summary>
-        [JsonProperty(PropertyName = "browsePath",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "browsePath", Order = 1,
+            EmitDefaultValue = false)]
         public string[] BrowsePath { get; set; }
 
         /// <summary>
@@ -30,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// encoded in json and containing the tunneled
         /// Historian reader request.
         /// </summary>
-        [JsonProperty(PropertyName = "details")]
+        [DataMember(Name = "details", Order = 2)]
         public T Details { get; set; }
 
         /// <summary>
@@ -39,15 +41,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// an array, string or bytestring.
         /// See 7.22 of part 4: NumericRange.
         /// </summary>
-        [JsonProperty(PropertyName = "indexRange",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "indexRange", Order = 3,
+            EmitDefaultValue = false)]
         public string IndexRange { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "header",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "header", Order = 4,
+            EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

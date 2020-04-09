@@ -4,67 +4,68 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Endpoint registration model
     /// </summary>
+    [DataContract]
     public class EndpointRegistrationApiModel {
 
         /// <summary>
         /// Registered identifier of the endpoint
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id", Order = 0)]
         public string Id { get; set; }
 
         /// <summary>
         /// Original endpoint url of the endpoint
         /// </summary>
-        [JsonProperty(PropertyName = "endpointUrl",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "endpointUrl", Order = 1,
+            EmitDefaultValue = false)]
         public string EndpointUrl { get; set; }
 
         /// <summary>
         /// Registered site of the endpoint
         /// </summary>
-        [JsonProperty(PropertyName = "siteId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "siteId", Order = 2,
+            EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
         /// Supervisor that can manage the endpoint.
         /// </summary>
-        [JsonProperty(PropertyName = "supervisorId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "supervisorId", Order = 3,
+            EmitDefaultValue = false)]
         public string SupervisorId { get; set; }
 
         /// <summary>
         /// Discoverer that registered the endpoint
         /// </summary>
-        [JsonProperty(PropertyName = "discovererId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "discovererId", Order = 4,
+            EmitDefaultValue = false)]
         public string DiscovererId { get; set; }
 
         /// <summary>
         /// Endpoint information of the registration
         /// </summary>
-        [JsonProperty(PropertyName = "endpoint")]
+        [DataMember(Name = "endpoint", Order = 5)]
         public EndpointApiModel Endpoint { get; set; }
 
         /// <summary>
         /// Security level of the endpoint
         /// </summary>
-        [JsonProperty(PropertyName = "securityLevel",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "securityLevel", Order = 6,
+            EmitDefaultValue = false)]
         public int? SecurityLevel { get; set; }
 
         /// <summary>
         /// Supported authentication methods that can be selected to
         /// obtain a credential and used to interact with the endpoint.
         /// </summary>
-        [JsonProperty(PropertyName = "authenticationMethods",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "authenticationMethods", Order = 7,
+            EmitDefaultValue = false)]
         public List<AuthenticationMethodApiModel> AuthenticationMethods { get; set; }
     }
 }

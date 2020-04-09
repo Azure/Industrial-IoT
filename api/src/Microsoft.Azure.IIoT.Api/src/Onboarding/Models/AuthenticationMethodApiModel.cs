@@ -4,39 +4,40 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using System.Runtime.Serialization;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Authentication Method model
     /// </summary>
+    [DataContract]
     public class AuthenticationMethodApiModel {
 
         /// <summary>
         /// Method id
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id", Order = 0)]
         public string Id { get; set; }
 
         /// <summary>
         /// Type of credential
         /// </summary>
-        [JsonProperty(PropertyName = "credentialType",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "credentialType", Order = 1,
+            EmitDefaultValue = false)]
         public CredentialType? CredentialType { get; set; }
 
         /// <summary>
         /// Security policy to use when passing credential.
         /// </summary>
-        [JsonProperty(PropertyName = "securityPolicy",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "securityPolicy", Order = 2,
+            EmitDefaultValue = false)]
         public string SecurityPolicy { get; set; }
 
         /// <summary>
         /// Method specific configuration
         /// </summary>
-        [JsonProperty(PropertyName = "configuration",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Configuration { get; set; }
+        [DataMember(Name = "configuration", Order = 3,
+            EmitDefaultValue = false)]
+        public VariantValue Configuration { get; set; }
     }
 }

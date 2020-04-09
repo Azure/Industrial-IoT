@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Text;
     using Xunit;
@@ -24,15 +25,15 @@ namespace Microsoft.Azure.IIoT.Module {
 
             var expectedMethod = fixture.Create<string>();
             var expectedContentType = fixture.Create<string>();
-            var expectedRequest = JsonConvertEx.SerializeObject(new {
+            var expectedRequest = _serializer.SerializeToString(new {
                 test1 = fixture.Create<string>(),
                 test2 = fixture.Create<long>()
             });
-            var expectedResponse = JsonConvertEx.SerializeObject(new {
+            var expectedResponse = _serializer.SerializeToString(new {
                 test1 = fixture.Create<byte[]>(),
                 test2 = fixture.Create<string>()
             });
-            var server = new TestChunkServer(chunkSize, (method, buffer, type) => {
+            var server = new TestChunkServer(_serializer, chunkSize, (method, buffer, type) => {
                 Assert.Equal(expectedMethod, method);
                 Assert.Equal(expectedContentType, type);
                 Assert.Equal(expectedRequest, Encoding.UTF8.GetString(buffer));
@@ -66,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Module {
             var expectedResponse = new byte[300000];
             kR.NextBytes(expectedResponse);
 
-            var server = new TestChunkServer(chunkSize, (method, buffer, type) => {
+            var server = new TestChunkServer(_serializer, chunkSize, (method, buffer, type) => {
                 Assert.Equal(expectedMethod, method);
                 Assert.Equal(expectedContentType, type);
                 Assert.Equal(expectedRequest, buffer);
@@ -79,5 +80,6 @@ namespace Microsoft.Azure.IIoT.Module {
         }
 
         private static readonly Random kR = new Random();
+        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

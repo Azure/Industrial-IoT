@@ -4,12 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Method invocation messaging model.
     /// </summary>
+    [DataContract]
     public class MethodChunkModel {
 
         /// <summary>
@@ -17,16 +18,16 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// and last response, assigned by server for the
         /// duration of the invocation.
         /// </summary>
-        [JsonProperty(PropertyName = "handle",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "handle", Order = 0,
+            EmitDefaultValue = false)]
         public string Handle { get; set; }
 
         /// <summary>
         /// Real method name to call - only needed on
         /// first request
         /// </summary>
-        [JsonProperty(PropertyName = "method",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "method", Order = 1,
+            EmitDefaultValue = false)]
         public string MethodName { get; set; }
 
         /// <summary>
@@ -34,47 +35,47 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// other than application/json.  Only send in
         /// first request and first response.
         /// </summary>
-        [JsonProperty(PropertyName = "contentType",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "contentType", Order = 2,
+            EmitDefaultValue = false)]
         public string ContentType { get; set; }
 
         /// <summary>
         /// Total Content length to be sent.  Sent in
         /// first request and first response.
         /// </summary>
-        [JsonProperty(PropertyName = "length",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "length", Order = 3,
+            EmitDefaultValue = false)]
         public int? ContentLength { get; set; }
 
         /// <summary>
         /// Payload chunk or null for upload responses and
         /// response continuation requests.
         /// </summary>
-        [JsonProperty(PropertyName = "payload",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "payload", Order = 4,
+            EmitDefaultValue = false)]
         public byte[] Payload { get; set; }
 
         /// <summary>
         /// Status code of call - in first response chunk.
         /// </summary>
-        [JsonProperty(PropertyName = "status",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "status", Order = 5,
+            EmitDefaultValue = false)]
         public int? Status { get; set; }
 
         /// <summary>
         /// Timeout of the operation on the server sent in
         /// first request.
         /// </summary>
-        [JsonProperty(PropertyName = "timeout",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "timeout", Order = 6,
+            EmitDefaultValue = false)]
         public TimeSpan? Timeout { get; set; }
 
         /// <summary>
         /// Client accepted max chunk length sent in first
         /// request by client.
         /// </summary>
-        [JsonProperty(PropertyName = "acceptedSize",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "acceptedSize", Order = 7,
+            EmitDefaultValue = false)]
         public int? MaxChunkLength { get; set; }
     }
 }

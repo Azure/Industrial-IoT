@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Services.Default {
-    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
-    using Newtonsoft.Json;
     using Serilog;
     using System;
     using System.Text;
@@ -25,8 +25,11 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Services.Default {
         /// Create test telemetry publisher
         /// </summary>
         /// <param name="events"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public TestTelemetry(IEventClient events, ILogger logger) {
+        public TestTelemetry(IEventClient events, IJsonSerializer serializer,
+            ILogger logger) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -78,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Services.Default {
         private async Task PublishAsync(CancellationToken ct) {
             _logger.Information("Starting to publish...");
             for (var index = 0; !ct.IsCancellationRequested; index++) {
-                var message = JsonConvertEx.SerializeObjectPretty(new {
+                var message = _serializer.SerializePretty(new {
                     GeneratedAt = DateTime.UtcNow,
                     Index = index
                 });
@@ -94,6 +97,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Services.Default {
 
         private readonly IEventClient _events;
         private readonly ILogger _logger;
+        private readonly IJsonSerializer _serializer;
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private CancellationTokenSource _cts;
         private Task _task;

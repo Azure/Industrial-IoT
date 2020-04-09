@@ -4,19 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Crl chain model
     /// </summary>
+    [DataContract]
     public sealed class X509CrlChainApiModel {
 
         /// <summary>
         /// Chain
         /// </summary>
-        [JsonProperty(PropertyName = "chain",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "chain", Order = 0,
+            EmitDefaultValue = false)]
         public List<X509CrlApiModel> Chain { get; set; }
     }
 }

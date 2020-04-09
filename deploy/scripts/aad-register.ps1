@@ -31,8 +31,17 @@ Function Select-Context() {
     if ($context) {
         return $context
     }
-    $contextFile = Join-Path $script:ScriptDir ".user"
+
+    $rootDir = Get-RootFolder $script:ScriptDir
+    $contextFile = Join-Path $rootDir ".user"
     if (Test-Path $contextFile) {
+        # Migrate .user file into root (next to .env)
+        if (!(Test-Path $contextFile)) {
+            $oldFile = Join-Path $script:ScriptDir ".user"
+            if (Test-Path $oldFile) {
+                Move-Item -Path $oldFile -Destination $contextFile
+            }
+        }
         $profile = Import-AzContext -Path $contextFile
         if ($profile.Context) {
             return $profile.Context
@@ -52,6 +61,23 @@ Function Select-Context() {
     catch {
         throw "The login to the Azure account was not successful."
     }
+}
+
+#******************************************************************************
+# find the top most folder with solution in it
+#******************************************************************************
+Function Get-RootFolder() {
+    param(
+        $startDir
+    )
+    $cur = $startDir
+    while (![string]::IsNullOrEmpty($cur)) {
+        if (Test-Path -Path (Join-Path $cur "Industrial-IoT.sln") -PathType Leaf) {
+            return $cur
+        }
+        $cur = Split-Path $cur
+    }
+    return $startDir
 }
 
 #*******************************************************************************************************

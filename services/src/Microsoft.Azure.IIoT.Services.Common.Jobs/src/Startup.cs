@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -23,7 +24,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
     using Microsoft.OpenApi.Models;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Newtonsoft.Json;
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
@@ -106,13 +106,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers()
-                .AddNewtonsoftJson(options => {
-                    options.SerializerSettings.Formatting = Formatting.Indented;
-                    options.SerializerSettings.Converters.Add(new ExceptionConverter(
-                        Environment.IsDevelopment()));
-                    options.SerializerSettings.MaxDepth = 10;
-                });
+            services.AddControllers().AddSerializers();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -160,8 +154,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}", ServiceInfo.Name,
-                Uptime.ProcessId);
+            log.Information("{service} web service started with id {id}",
+                ServiceInfo.Name, ServiceInfo.Id);
         }
 
         /// <summary>
@@ -180,6 +174,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<MessagePackModule>();
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()

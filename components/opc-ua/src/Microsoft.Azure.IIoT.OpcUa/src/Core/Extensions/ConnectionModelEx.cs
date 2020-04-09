@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
 
     /// <summary>
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             if (that.Diagnostics?.AuditId != model.Diagnostics?.AuditId) {
                 return false;
             }
-            if (!JToken.DeepEquals(that.User?.Value, model.User?.Value)) {
+            if (!VariantValue.DeepEquals(that.User?.Value, model.User?.Value)) {
                 return false;
             }
             return true;
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             hashCode = (hashCode * -1521134295) +
                 model.Endpoint.CreateConsistentHash();
             hashCode = (hashCode * -1521134295) +
-                JToken.EqualityComparer.GetHashCode(model.User?.Value);
+                EqualityComparer<VariantValue>.Default.GetHashCode(model.User?.Value);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(model.Diagnostics?.AuditId);
             return hashCode;

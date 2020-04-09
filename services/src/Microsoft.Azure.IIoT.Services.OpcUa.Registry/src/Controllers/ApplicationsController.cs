@@ -6,12 +6,10 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -25,7 +23,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/applications")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
     [ApiController]
     public class ApplicationsController : ControllerBase {
@@ -35,10 +32,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// </summary>
         /// <param name="applications"></param>
         /// <param name="onboarding"></param>
-        /// <param name="events"></param>
         public ApplicationsController(IApplicationRegistry applications,
-            IOnboardingServices onboarding, IGroupRegistration events) {
-            _events = events;
+            IOnboardingServices onboarding) {
             _applications = applications;
             _onboarding = onboarding;
         }
@@ -347,41 +342,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
             return result.ToApiModel();
         }
 
-        /// <summary>
-        /// Subscribe for application events
-        /// </summary>
-        /// <remarks>
-        /// Register a client to receive application events through SignalR.
-        /// </remarks>
-        /// <param name="userId">The user that will receive application
-        /// events.</param>
-        /// <returns></returns>
-        [HttpPut("events")]
-        public async Task SubscribeAsync([FromBody]string userId) {
-            if (string.IsNullOrEmpty(userId)) {
-                throw new ArgumentNullException(nameof(userId));
-            }
-            await _events.SubscribeAsync("applications", userId);
-        }
-
-        /// <summary>
-        /// Unsubscribe from application events
-        /// </summary>
-        /// <remarks>
-        /// Unregister a user and stop it from receiving events.
-        /// </remarks>
-        /// <param name="userId">The user id that will not receive
-        /// any more events</param>
-        /// <returns></returns>
-        [HttpDelete("events/{userId}")]
-        public async Task UnsubscribeAsync(string userId) {
-            if (string.IsNullOrEmpty(userId)) {
-                throw new ArgumentNullException(nameof(userId));
-            }
-            await _events.UnsubscribeAsync("applications", userId);
-        }
-
-        private readonly IGroupRegistration _events;
         private readonly IApplicationRegistry _applications;
         private readonly IOnboardingServices _onboarding;
     }

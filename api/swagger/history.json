@@ -30,10 +30,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -82,10 +86,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -134,10 +142,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -186,10 +198,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -238,10 +254,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -257,7 +277,7 @@
             "description": "The history read request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/JTokenHistoryReadRequestApiModel"
+              "$ref": "#/definitions/VariantValueHistoryReadRequestApiModel"
             }
           }
         ],
@@ -265,7 +285,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/JTokenHistoryReadResponseApiModel"
+              "$ref": "#/definitions/VariantValueHistoryReadResponseApiModel"
             }
           }
         },
@@ -290,10 +310,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -317,7 +341,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/JTokenHistoryReadNextResponseApiModel"
+              "$ref": "#/definitions/VariantValueHistoryReadNextResponseApiModel"
             }
           }
         },
@@ -342,10 +366,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -361,7 +389,7 @@
             "description": "The history update request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/JTokenHistoryUpdateRequestApiModel"
+              "$ref": "#/definitions/VariantValueHistoryUpdateRequestApiModel"
             }
           }
         ],
@@ -394,10 +422,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -446,10 +478,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -498,10 +534,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -550,10 +590,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -602,10 +646,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -654,10 +702,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -706,10 +758,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -758,10 +814,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -810,10 +870,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -862,10 +926,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -914,10 +982,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -995,7 +1067,8 @@
           "$ref": "#/definitions/CredentialType"
         },
         "value": {
-          "description": "Value to pass to server"
+          "description": "Value to pass to server",
+          "type": "string"
         }
       }
     },
@@ -1091,7 +1164,8 @@
           "type": "string"
         },
         "diagnostics": {
-          "description": "Additional diagnostics information"
+          "description": "Additional diagnostics information",
+          "type": "string"
         }
       }
     },
@@ -1238,7 +1312,7 @@
         }
       }
     },
-    "JTokenHistoryReadRequestApiModel": {
+    "VariantValueHistoryReadRequestApiModel": {
       "description": "Request node history read",
       "type": "object",
       "properties": {
@@ -1254,7 +1328,8 @@
           }
         },
         "details": {
-          "description": "The HistoryReadDetailsType extension object\r\nencoded in json and containing the tunneled\r\nHistorian reader request."
+          "description": "The HistoryReadDetailsType extension object\r\nencoded in json and containing the tunneled\r\nHistorian reader request.",
+          "type": "string"
         },
         "indexRange": {
           "description": "Index range to read, e.g. 1:2,0:1 for 2 slices\r\nout of a matrix or 0:1 for the first item in\r\nan array, string or bytestring.\r\nSee 7.22 of part 4: NumericRange.",
@@ -1265,12 +1340,13 @@
         }
       }
     },
-    "JTokenHistoryReadResponseApiModel": {
+    "VariantValueHistoryReadResponseApiModel": {
       "description": "History read results",
       "type": "object",
       "properties": {
         "history": {
-          "description": "History as json encoded extension object"
+          "description": "History as json encoded extension object",
+          "type": "string"
         },
         "continuationToken": {
           "description": "Continuation token if more results pending.",
@@ -1294,7 +1370,6 @@
         },
         "abort": {
           "description": "Abort reading after this read",
-          "default": false,
           "type": "boolean"
         },
         "header": {
@@ -1302,12 +1377,13 @@
         }
       }
     },
-    "JTokenHistoryReadNextResponseApiModel": {
+    "VariantValueHistoryReadNextResponseApiModel": {
       "description": "History read continuation result",
       "type": "object",
       "properties": {
         "history": {
-          "description": "History as json encoded extension object"
+          "description": "History as json encoded extension object",
+          "type": "string"
         },
         "continuationToken": {
           "description": "Continuation token if more results pending.",
@@ -1318,7 +1394,7 @@
         }
       }
     },
-    "JTokenHistoryUpdateRequestApiModel": {
+    "VariantValueHistoryUpdateRequestApiModel": {
       "description": "Request node history update",
       "required": [
         "details"
@@ -1337,7 +1413,8 @@
           }
         },
         "details": {
-          "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address."
+          "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address.",
+          "type": "string"
         },
         "header": {
           "$ref": "#/definitions/RequestHeaderApiModel"
@@ -1381,7 +1458,8 @@
       "type": "object",
       "properties": {
         "value": {
-          "description": ",\r\n            The value of data value."
+          "description": ",\r\n            The value of data value.",
+          "type": "string"
         },
         "statusCode": {
           "format": "int64",
@@ -1552,7 +1630,8 @@
           "type": "integer"
         },
         "value": {
-          "description": "Variant value if operand is a literal"
+          "description": "Variant value if operand is a literal",
+          "type": "string"
         },
         "nodeId": {
           "description": "Type definition node id if operand is\r\nsimple or full attribute operand.",
@@ -1630,7 +1709,10 @@
         "eventFields": {
           "description": "The selected fields of the event",
           "type": "array",
-          "items": { }
+          "items": {
+            "description": "Represents primitive or structurally complex value",
+            "type": "string"
+          }
         }
       }
     },

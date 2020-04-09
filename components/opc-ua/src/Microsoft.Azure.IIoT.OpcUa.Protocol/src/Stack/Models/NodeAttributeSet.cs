@@ -335,6 +335,17 @@ namespace Opc.Ua.Models {
                 null : new DataValue(value.Value));
         }
 
+        /// <inheritdoc/>
+        public DataValue DataValue {
+            get {
+                if (_attributes.TryGetValue(Attributes.Value, out var value) &&
+                    value != null) {
+                    return value;
+                }
+                return null;
+            }
+        }
+
         /// <summary>
         /// Get references
         /// </summary>

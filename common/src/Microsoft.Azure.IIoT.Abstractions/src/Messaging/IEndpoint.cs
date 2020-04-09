@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services {
+namespace Microsoft.Azure.IIoT.Messaging {
+    using Microsoft.Azure.IIoT.Auth;
     using System;
 
     /// <summary>
-    /// Endpoint lookup
+    /// Hub Endpoint lookup
     /// </summary>
-    public interface IEndpoint {
+    public interface IEndpoint<THub> : IIdentityTokenGenerator {
 
         /// <summary>
         /// Resource name

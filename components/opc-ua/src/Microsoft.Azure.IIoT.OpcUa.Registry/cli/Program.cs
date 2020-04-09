@@ -10,21 +10,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Net.Scanner;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport.Probe;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
-    using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json;
     using Opc.Ua;
     using System;
@@ -32,7 +30,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
     using System.Diagnostics;
     using System.Linq;
     using System.Net;
-    using System.Runtime.Loader;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -43,7 +40,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
     public class Program {
         private enum Op {
             None,
-            RunEventListener,
             TestOpcUaDiscoveryService,
             TestOpcUaServerScanner,
             TestNetworkScanner,
@@ -66,12 +62,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {
-                        case "--events":
-                            if (op != Op.None) {
-                                throw new ArgumentException("Operations are mutually exclusive");
-                            }
-                            op = Op.RunEventListener;
-                            break;
                         case "--stress":
                             stress = true;
                             break;
@@ -169,7 +159,6 @@ Operations (Mutually exclusive):
     --clear-registry        Clear device registry content.
     --clear-supervisors     Clear supervisors in device registry.
 
-    --events                Listen for events
     --scan-net              Tests network scanning.
     --scan-ports            Tests port scanning.
     --scan-servers          Tests opc server scanning on single machine.
@@ -183,9 +172,6 @@ Operations (Mutually exclusive):
             try {
                 Console.WriteLine($"Running {op}...");
                 switch (op) {
-                    case Op.RunEventListener:
-                        RunEventListenerAsync().Wait();
-                        break;
                     case Op.TestNetworkScanner:
                         TestNetworkScannerAsync().Wait();
                         break;
@@ -221,30 +207,13 @@ Operations (Mutually exclusive):
         }
 
         /// <summary>
-        /// Run listener
-        /// </summary>
-        private static async Task RunEventListenerAsync() {
-            var logger = ConsoleLogger.Create();
-            var bus = new ServiceBusEventBus(new ServiceBusClientFactory(
-                new ServiceBusConfig(null)), logger);
-            var listener = new ConsoleListener();
-            using (var subscriber1 = new ApplicationEventBusSubscriber(bus, listener.YieldReturn()))
-            using (var subscriber2 = new EndpointEventBusSubscriber(bus, listener.YieldReturn())) {
-                var tcs = new TaskCompletionSource<bool>();
-                AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-                await tcs.Task;
-            }
-        }
-
-        /// <summary>
         /// Create supervisor module identity in device registry
         /// </summary>
         private static async Task MakeSupervisorAsync(string deviceId, string moduleId) {
             var logger = ConsoleOutLogger.Create();
             var config = new IoTHubConfig(null);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
-
+                config, new NewtonSoftJsonSerializer(), logger);
 
             await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
@@ -268,7 +237,7 @@ Operations (Mutually exclusive):
             var logger = ConsoleOutLogger.Create();
             var config = new IoTHubConfig(null);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
 
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}'";
@@ -296,7 +265,7 @@ Operations (Mutually exclusive):
             var logger = ConsoleOutLogger.Create();
             var config = new IoTHubConfig(null);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
 
             var result = await registry.QueryAllDeviceTwinsAsync(
                 "SELECT * from devices where IS_DEFINED(tags.DeviceType)");
@@ -348,7 +317,7 @@ Operations (Mutually exclusive):
             using (var logger = StackLogger.Create(ConsoleLogger.Create()))
             using (var client = new ClientServices(logger.Logger, new TestClientServicesConfig()))
             using (var scanner = new DiscoveryServices(client, new ConsoleEmitter(),
-                logger.Logger)) {
+                new NewtonSoftJsonSerializer(), logger.Logger)) {
                 var rand = new Random();
                 while (true) {
                     var configuration = new DiscoveryConfigModel {
@@ -387,7 +356,7 @@ Operations (Mutually exclusive):
                 var json = Encoding.UTF8.GetString(data);
                 var o = JsonConvert.DeserializeObject(json);
                 Console.WriteLine(contentType);
-                Console.WriteLine(JsonConvertEx.SerializeObjectPretty(o));
+                Console.WriteLine(_serializer.SerializePretty(o));
                 return Task.CompletedTask;
             }
 
@@ -400,18 +369,20 @@ Operations (Mutually exclusive):
             }
 
             /// <inheritdoc/>
-            public Task ReportAsync(string propertyId, dynamic value) {
+            public Task ReportAsync(string propertyId, VariantValue value) {
                 Console.WriteLine($"{propertyId}={value}");
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc/>
-            public Task ReportAsync(IEnumerable<KeyValuePair<string, dynamic>> properties) {
+            public Task ReportAsync(IEnumerable<KeyValuePair<string, VariantValue>> properties) {
                 foreach (var prop in properties) {
                     Console.WriteLine($"{prop.Key}={prop.Value}");
                 }
                 return Task.CompletedTask;
             }
+
+            private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
         }
 
         /// <inheritdoc/>
@@ -420,8 +391,8 @@ Operations (Mutually exclusive):
 
             /// <inheritdoc/>
             public Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
-                ApplicationInfoModel application) {
-                Console.WriteLine($"Deleted {application.ApplicationId}");
+                string applicationId, ApplicationInfoModel application) {
+                Console.WriteLine($"Deleted {applicationId}");
                 return Task.CompletedTask;
             }
 
@@ -469,8 +440,8 @@ Operations (Mutually exclusive):
 
             /// <inheritdoc/>
             public Task OnEndpointDeletedAsync(RegistryOperationContextModel context,
-                EndpointInfoModel endpoint) {
-                Console.WriteLine($"Deleted {endpoint.Registration.Id}");
+                string endpointId, EndpointInfoModel endpoint) {
+                Console.WriteLine($"Deleted {endpointId}");
                 return Task.CompletedTask;
             }
 

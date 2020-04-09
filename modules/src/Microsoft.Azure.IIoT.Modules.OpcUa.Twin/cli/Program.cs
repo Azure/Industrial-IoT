@@ -9,9 +9,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using Newtonsoft.Json.Linq;
     using Serilog;
     using Serilog.Events;
     using System;
@@ -297,7 +299,7 @@ Options:
             IIoTHubConfig config, string deviceId, string moduleId) {
             var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
             Console.WriteLine(cs);
         }
@@ -309,7 +311,7 @@ Options:
             string deviceId, string moduleId) {
             var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
             await ResetAsync(registry, await registry.GetAsync(deviceId, moduleId,
                 CancellationToken.None));
         }
@@ -321,7 +323,7 @@ Options:
             string deviceId, string moduleId) {
             var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
             await registry.DeleteAsync(deviceId, moduleId, null, CancellationToken.None);
         }
 
@@ -331,7 +333,7 @@ Options:
         private static async Task ListAsync(IIoTHubConfig config) {
             var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
 
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}'";
@@ -347,7 +349,7 @@ Options:
         private static async Task ResetAllAsync(IIoTHubConfig config) {
             var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
 
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}'";
@@ -365,7 +367,7 @@ Options:
             bool includeSupervisors) {
             var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
             var result = await registry.QueryAllDeviceTwinsAsync(
                 "SELECT * from devices where IS_DEFINED(tags.DeviceType)");
             foreach (var item in result) {
@@ -424,20 +426,30 @@ Options:
             string deviceId, string moduleId) {
             var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
-            await registry.CreateAsync(new DeviceTwinModel {
-                Id = deviceId,
-                Tags = new Dictionary<string, JToken> {
-                    [TwinProperty.Type] = IdentityType.Gateway
-                },
-                Capabilities = new DeviceCapabilitiesModel {
-                    IotEdge = true
-                }
-            }, true, CancellationToken.None);
-            await registry.CreateAsync(new DeviceTwinModel {
-                Id = deviceId,
-                ModuleId = moduleId
-            }, true, CancellationToken.None);
+                config, new NewtonSoftJsonSerializer(), logger);
+            try {
+                await registry.CreateAsync(new DeviceTwinModel {
+                    Id = deviceId,
+                    Tags = new Dictionary<string, VariantValue> {
+                        [TwinProperty.Type] = IdentityType.Gateway
+                    },
+                    Capabilities = new DeviceCapabilitiesModel {
+                        IotEdge = true
+                    }
+                }, false, CancellationToken.None);
+            }
+            catch (ConflictingResourceException) {
+                logger.Information("Gateway {deviceId} exists.", deviceId);
+            }
+            try {
+                await registry.CreateAsync(new DeviceTwinModel {
+                    Id = deviceId,
+                    ModuleId = moduleId
+                }, false, CancellationToken.None);
+            }
+            catch (ConflictingResourceException) {
+                logger.Information("Module {moduleId} exists...", moduleId);
+            }
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
             return cs;
         }

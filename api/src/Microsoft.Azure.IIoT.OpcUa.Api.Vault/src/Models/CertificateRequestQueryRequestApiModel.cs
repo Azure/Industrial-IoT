@@ -4,25 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Certificate request query model
     /// </summary>
+    [DataContract]
     public sealed class CertificateRequestQueryRequestApiModel {
 
         /// <summary>
         /// The entity id to filter with
         /// </summary>
-        [JsonProperty(PropertyName = "entityId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "entityId", Order = 0,
+            EmitDefaultValue = false)]
         public string EntityId { get; set; }
 
         /// <summary>
         /// The certificate request state
         /// </summary>
-        [JsonProperty(PropertyName = "state",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "state", Order = 1,
+            EmitDefaultValue = false)]
         public CertificateRequestState? State { get; set; }
     }
 }

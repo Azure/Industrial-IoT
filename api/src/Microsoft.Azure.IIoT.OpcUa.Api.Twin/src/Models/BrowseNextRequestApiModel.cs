@@ -4,20 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Request node browsing continuation
     /// </summary>
+    [DataContract]
     public class BrowseNextRequestApiModel {
 
         /// <summary>
         /// Continuation token from previews browse request.
         /// (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "continuationToken")]
+        [DataMember(Name = "continuationToken", Order = 0)]
         [Required]
         public string ContinuationToken { get; set; }
 
@@ -25,9 +26,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Whether to abort browse and release.
         /// (default: false)
         /// </summary>
-        [JsonProperty(PropertyName = "abort",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(false)]
+        [DataMember(Name = "abort", Order = 1,
+            EmitDefaultValue = false)]
         public bool? Abort { get; set; }
 
         /// <summary>
@@ -36,25 +36,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// information.
         /// (default is false)
         /// </summary>
-        [JsonProperty(PropertyName = "targetNodesOnly",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(false)]
+        [DataMember(Name = "targetNodesOnly", Order = 2,
+            EmitDefaultValue = false)]
         public bool? TargetNodesOnly { get; set; }
 
         /// <summary>
         /// Whether to read variable values on target nodes.
         /// (default is false)
         /// </summary>
-        [JsonProperty(PropertyName = "readVariableValues",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(false)]
+        [DataMember(Name = "readVariableValues", Order = 3,
+            EmitDefaultValue = false)]
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "header",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "header", Order = 4,
+            EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

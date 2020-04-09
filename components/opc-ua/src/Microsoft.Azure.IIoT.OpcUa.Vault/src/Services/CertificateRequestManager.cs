@@ -6,11 +6,11 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Certificate request management
@@ -22,9 +22,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
         /// </summary>
         /// <param name="repo"></param>
         /// <param name="broker"></param>
+        /// <param name="serializer"></param>
         public CertificateRequestManager(IRequestRepository repo,
-            ICertificateRequestEventBroker broker) {
+            ICertificateRequestEventBroker broker, IJsonSerializer serializer) {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+			_serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _broker = broker ?? throw new ArgumentNullException(nameof(broker));
         }
 
@@ -122,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
                     case CertificateRequestState.Approved:
                     case CertificateRequestState.Rejected:
                         request.Record.State = CertificateRequestState.Failure;
-                        request.Record.ErrorInfo = JToken.FromObject(errorInfo);
+                        request.Record.ErrorInfo = _serializer.FromObject(errorInfo);
                         return true;
                     case CertificateRequestState.Failure:
                     case CertificateRequestState.Accepted:
@@ -198,6 +200,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
         }
 
         private readonly IRequestRepository _repo;
+		private readonly IJsonSerializer _serializer;
         private readonly ICertificateRequestEventBroker _broker;
     }
 }

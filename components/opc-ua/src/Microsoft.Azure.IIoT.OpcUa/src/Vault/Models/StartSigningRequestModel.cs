@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Signing request
@@ -24,6 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
         /// <summary>
         /// DER raw or PEM formated certificate signing request
         /// </summary>
-        public JToken CertificateRequest { get; set; }
+        public VariantValue CertificateRequest { get; set; }
     }
 }

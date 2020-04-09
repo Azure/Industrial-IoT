@@ -4,15 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using System;
 
     /// <summary>
     /// Data set message content
     /// </summary>
     [Flags]
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum DataSetContentMask {
 
         /// <summary>

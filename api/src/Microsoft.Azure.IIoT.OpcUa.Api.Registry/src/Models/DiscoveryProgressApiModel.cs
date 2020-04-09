@@ -4,88 +4,89 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Discovery progress
     /// </summary>
+    [DataContract]
     public class DiscoveryProgressApiModel {
 
         /// <summary>
         /// Id of discovery request
         /// </summary>
-        [JsonProperty(PropertyName = "requestId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "requestId", Order = 0,
+            EmitDefaultValue = false)]
         public string RequestId { get; set; }
 
         /// <summary>
         /// Event type
         /// </summary>
-        [JsonProperty(PropertyName = "eventType")]
+        [DataMember(Name = "eventType", Order = 1)]
         public DiscoveryProgressType EventType { get; set; }
 
         /// <summary>
         /// Discoverer that registered the application
         /// </summary>
-        [JsonProperty(PropertyName = "discovererId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "discovererId", Order = 2,
+            EmitDefaultValue = false)]
         public string DiscovererId { get; set; }
 
         /// <summary>
         /// Additional request information as per event
         /// </summary>
-        [JsonProperty(PropertyName = "requestDetails",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "requestDetails", Order = 3,
+            EmitDefaultValue = false)]
         public Dictionary<string, string> RequestDetails { get; set; }
 
         /// <summary>
         /// Timestamp of the message
         /// </summary>
-        [JsonProperty(PropertyName = "timeStamp")]
+        [DataMember(Name = "timeStamp", Order = 4)]
         public DateTime TimeStamp { get; set; }
 
         /// <summary>
         /// Number of workers running
         /// </summary>
-        [JsonProperty(PropertyName = "workers",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "workers", Order = 5,
+            EmitDefaultValue = false)]
         public int? Workers { get; set; }
 
         /// <summary>
         /// Progress
         /// </summary>
-        [JsonProperty(PropertyName = "progress",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "progress", Order = 6,
+            EmitDefaultValue = false)]
         public int? Progress { get; set; }
 
         /// <summary>
         /// Total
         /// </summary>
-        [JsonProperty(PropertyName = "total",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "total", Order = 7,
+            EmitDefaultValue = false)]
         public int? Total { get; set; }
 
         /// <summary>
         /// Number of items discovered
         /// </summary>
-        [JsonProperty(PropertyName = "discovered",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "discovered", Order = 8,
+            EmitDefaultValue = false)]
         public int? Discovered { get; set; }
 
         /// <summary>
         /// Discovery result
         /// </summary>
-        [JsonProperty(PropertyName = "result",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "result", Order = 9,
+            EmitDefaultValue = false)]
         public string Result { get; set; }
 
         /// <summary>
         /// Discovery result details
         /// </summary>
-        [JsonProperty(PropertyName = "resultDetails",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "resultDetails", Order = 10,
+            EmitDefaultValue = false)]
         public Dictionary<string, string> ResultDetails { get; set; }
     }
 }

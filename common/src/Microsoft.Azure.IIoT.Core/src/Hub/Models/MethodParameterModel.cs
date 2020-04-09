@@ -4,38 +4,39 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Twin services method params
     /// </summary>
+    [DataContract]
     public class MethodParameterModel {
 
         /// <summary>
         /// Name of method
         /// </summary>
-        [JsonProperty(PropertyName = "name")]
+        [DataMember(Name = "name")]
         public string Name { get; set; }
 
         /// <summary>
         /// Response timeout
         /// </summary>
-        [JsonProperty(PropertyName = "responseTimeout",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "responseTimeout",
+            EmitDefaultValue = false)]
         public TimeSpan? ResponseTimeout { get; set; }
 
         /// <summary>
         /// Connection timeout
         /// </summary>
-        [JsonProperty(PropertyName = "connectionTimeout",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "connectionTimeout",
+            EmitDefaultValue = false)]
         public TimeSpan? ConnectionTimeout { get; set; }
 
         /// <summary>
         /// Json payload of the method request
         /// </summary>
-        [JsonProperty(PropertyName = "jsonPayload")]
+        [DataMember(Name = "jsonPayload")]
         public string JsonPayload { get; set; }
     }
 }

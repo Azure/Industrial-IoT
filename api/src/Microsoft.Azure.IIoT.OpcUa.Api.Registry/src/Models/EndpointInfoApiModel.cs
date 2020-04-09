@@ -4,67 +4,63 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
-    using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Endpoint registration model
     /// </summary>
+    [DataContract]
     public class EndpointInfoApiModel {
 
         /// <summary>
         /// Endpoint registration
         /// </summary>
-        [JsonProperty(PropertyName = "registration")]
+        [DataMember(Name = "registration", Order = 0)]
         [Required]
         public EndpointRegistrationApiModel Registration { get; set; }
 
         /// <summary>
         /// Application id endpoint is registered under.
         /// </summary>
-        [JsonProperty(PropertyName = "applicationId")]
+        [DataMember(Name = "applicationId", Order = 1)]
         [Required]
         public string ApplicationId { get; set; }
 
         /// <summary>
         /// Activation state of endpoint
         /// </summary>
-        [JsonProperty(PropertyName = "activationState",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null), ReadOnly(true)]
+        [DataMember(Name = "activationState", Order = 2,
+            EmitDefaultValue = false)]
         public EndpointActivationState? ActivationState { get; set; }
 
         /// <summary>
         /// Last state of the activated endpoint
         /// </summary>
-        [JsonProperty(PropertyName = "endpointState",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null), ReadOnly(true)]
+        [DataMember(Name = "endpointState", Order = 3,
+            EmitDefaultValue = false)]
         public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync
         /// </summary>
-        [JsonProperty(PropertyName = "outOfSync",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null), ReadOnly(true)]
+        [DataMember(Name = "outOfSync", Order = 4,
+            EmitDefaultValue = false)]
         public bool? OutOfSync { get; set; }
 
         /// <summary>
         /// Last time endpoint was seen
         /// </summary>
-        [JsonProperty(PropertyName = "notSeenSince",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "notSeenSince", Order = 5,
+            EmitDefaultValue = false)]
         public DateTime? NotSeenSince { get; set; }
 
         /// <summary>
         /// Legacy activation state
         /// </summary>
         [Obsolete("Use ActivationState")]
-        [JsonIgnore]
+        [IgnoreDataMember]
         public bool? Activated =>
             ActivationState == EndpointActivationState.Activated || Connected == true;
 
@@ -72,7 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Legacy connectivity state
         /// </summary>
         [Obsolete("Use ActivationState")]
-        [JsonIgnore]
+        [IgnoreDataMember]
         public bool? Connected =>
             ActivationState == EndpointActivationState.ActivatedAndConnected;
     }

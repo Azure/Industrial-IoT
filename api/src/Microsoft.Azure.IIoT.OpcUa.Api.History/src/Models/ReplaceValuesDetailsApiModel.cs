@@ -4,19 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Replace historic data
     /// </summary>
+    [DataContract]
     public class ReplaceValuesDetailsApiModel {
 
         /// <summary>
         /// Values to replace
         /// </summary>
-        [JsonProperty(PropertyName = "values")]
+        [DataMember(Name = "values", Order = 0)]
         [Required]
         public List<HistoricValueApiModel> Values { get; set; }
     }

@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Crypto;
     using System.Collections.Generic;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
     /// Manage trust relationships

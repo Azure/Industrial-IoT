@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
                     codec, _server.Logger), codec),
                 new EndpointModel {
                     Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                    Certificate = _server.Certificate?.RawData
+                    Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }
 

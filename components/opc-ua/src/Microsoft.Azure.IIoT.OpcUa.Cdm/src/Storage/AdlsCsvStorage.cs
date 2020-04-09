@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
 
     /// <inheritdoc/>
     public class AdlsCsvStorage : IAdlsStorage {
+
         /// <summary>
         /// CDM Azure Data lake storage handler
         /// </summary>
@@ -45,10 +46,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                     else{
                         var payload = prop.GetValue(data[0]) as Dictionary<string, DataValueModel>;
                         foreach(var node in payload.OrderBy(i => i.Key)) {
-                            AddAddValueToCsvStringBuilder($"{ node.Key}_value", separator, sb);
-                            AddAddValueToCsvStringBuilder($"{ node.Key}_typeId", separator, sb);
-                            AddAddValueToCsvStringBuilder($"{ node.Key}_status", separator, sb);
-                            AddAddValueToCsvStringBuilder($"{ node.Key}_timestamp", separator, sb);
+                            AddAddValueToCsvStringBuilder($"{node.Key}_value", separator, sb);
+                            AddAddValueToCsvStringBuilder($"{node.Key}_status", separator, sb);
+                            AddAddValueToCsvStringBuilder($"{node.Key}_sourceTimestamp", separator, sb);
+                            AddAddValueToCsvStringBuilder($"{node.Key}_serverTimestamp", separator, sb);
                         }
                     }
                 }
@@ -75,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             return sb.ToString();
         }
 
-        private void AddAddValueToCsvStringBuilder(object value, 
+        private void AddAddValueToCsvStringBuilder(object value,
             string separator, StringBuilder sb) {
 
             if (value != null) {
@@ -108,7 +109,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         /// <param name="data"></param>
         /// <param name="separator"></param>
         /// <returns></returns>
-        public async Task WriteInCsvPartition<T>(string partitionUrl,
+        public async Task<bool> WriteInCsvPartition<T>(string partitionUrl,
             List<T> data, string separator) {
             try {
                 // check if partition exists
@@ -127,26 +128,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 else {
                     content = BuildCsvData(data, separator, false);
                 }
+
                 // append the the content to the partition
                 if (content != string.Empty) {
                     request = _httpClient.NewRequest(
                         $"{partitionUrl}?action=append&position={contentPosition}", kResource);
-                    byte[] contentBuffer = Encoding.UTF8.GetBytes(content);
-                    request.SetContent(contentBuffer, ContentMimeType.Binary);
+                    var contentBuffer = Encoding.UTF8.GetBytes(content);
+                    request.SetByteArrayContent(contentBuffer,
+                        ContentMimeType.Binary);
                     response = await _httpClient.PatchAsync(request);
-                    //  TODO check for errors
+                    if (response.IsError()) {
+                        return false;
+                    }
                     contentPosition += contentBuffer.Length;
-                    request = _httpClient.NewRequest
-                        ($"{partitionUrl}?action=flush&position={contentPosition}",
-                        kResource);
+                    request = _httpClient.NewRequest(
+                        $"{partitionUrl}?action=flush&position={contentPosition}", kResource);
                     response = await _httpClient.PatchAsync(request);
-                    //  todo, handle the errors
+                    if (response.IsError()) {
+                        return false;
+                    }
                 }
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to write data in the csv partition");
                 throw ex;
             }
+            return true;
         }
 
         /// <summary>
@@ -156,7 +163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         /// <param name="blobName"></param>
         /// <param name="rootFolder"></param>
         /// <returns></returns>
-        public async Task CreateBlobRoot(string hostName, string blobName, string rootFolder) {
+        public async Task<bool> CreateBlobRoot(string hostName, string blobName, string rootFolder) {
             var url = $"https://{hostName}";
             var request = _httpClient.NewRequest($"{url}/{blobName}?resource=filesystem", kResource);
             var response = await _httpClient.HeadAsync(request);
@@ -165,13 +172,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 response = await _httpClient.PutAsync(request);
                 if (response.IsError()) {
                     // failed to create or get the filesystem, give up
-                    return;
+                    return false;
                 }
                 request = _httpClient.NewRequest($"{url}/{blobName}/{rootFolder}?resource=directory", kResource);
                 response = await _httpClient.PutAsync(request);
                 if (response.IsError()) {
                     // failed to create or get the root folder, give up
-                    return;
+                    return false;
                 }
             }
             else {
@@ -182,10 +189,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                     response = await _httpClient.PutAsync(request);
                     if (response.IsError()) {
                         // failed to create or get the root folder, give up
-                        return;
+                        return false;
                     }
                 }
             }
+            return true;
         }
 
         /// <inheritdoc/>

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging {
-    using Microsoft.Azure.IIoT.Hub;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;

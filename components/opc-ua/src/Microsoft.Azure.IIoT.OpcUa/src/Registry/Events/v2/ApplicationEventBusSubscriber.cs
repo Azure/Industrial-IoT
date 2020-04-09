@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models;
     using Microsoft.Azure.IIoT.Messaging;
-    using System;
     using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Linq;
@@ -14,23 +13,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     /// <summary>
     /// Application registry change listener
     /// </summary>
-    public class ApplicationEventBusSubscriber : IEventHandler<ApplicationEventModel>, IDisposable {
+    public class ApplicationEventBusSubscriber : IEventHandler<ApplicationEventModel>{
 
         /// <summary>
         /// Create event subscriber
         /// </summary>
-        /// <param name="bus"></param>
         /// <param name="listeners"></param>
-        public ApplicationEventBusSubscriber(IEventBus bus,
-            IEnumerable<IApplicationRegistryListener> listeners) {
-            _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+        public ApplicationEventBusSubscriber(IEnumerable<IApplicationRegistryListener> listeners) {
             _listeners = listeners?.ToList() ?? new List<IApplicationRegistryListener>();
-            _token = _bus.RegisterAsync(this).Result;
-        }
-
-        /// <inheritdoc/>
-        public void Dispose() {
-            _bus.UnregisterAsync(_token).Wait();
         }
 
         /// <inheritdoc/>
@@ -63,14 +53,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
                 case ApplicationEventType.Deleted:
                     await Task.WhenAll(_listeners
                         .Select(l => l.OnApplicationDeletedAsync(
-                            eventData.Context, eventData.Application)
+                            eventData.Context, eventData.Id, eventData.Application)
                         .ContinueWith(t => Task.CompletedTask)));
                     break;
             }
         }
 
-        private readonly IEventBus _bus;
         private readonly List<IApplicationRegistryListener> _listeners;
-        private readonly string _token;
     }
 }

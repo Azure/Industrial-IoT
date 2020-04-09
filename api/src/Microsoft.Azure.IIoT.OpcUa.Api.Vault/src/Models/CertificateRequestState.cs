@@ -5,43 +5,48 @@
 
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// The certificate request states.
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum CertificateRequestState {
 
         /// <summary>
         /// The request is new.
         /// </summary>
+        [EnumMember]
         New,
 
         /// <summary>
         /// The request was approved.
         /// </summary>
+        [EnumMember]
         Approved,
 
         /// <summary>
         /// The request was rejected.
         /// </summary>
+        [EnumMember]
         Rejected,
 
         /// <summary>
         /// The request failed
         /// </summary>
+        [EnumMember]
         Failure,
 
         /// <summary>
         /// The request is finished.
         /// </summary>
+        [EnumMember]
         Completed,
 
         /// <summary>
         /// The client has accepted result
         /// </summary>
+        [EnumMember]
         Accepted
     }
 }

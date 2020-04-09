@@ -4,33 +4,34 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Read modified data
     /// </summary>
+    [DataContract]
     public class ReadModifiedValuesDetailsApiModel {
 
         /// <summary>
         /// The start time to read from
         /// </summary>
-        [JsonProperty(PropertyName = "startTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "startTime", Order = 0,
+            EmitDefaultValue = false)]
         public DateTime? StartTime { get; set; }
 
         /// <summary>
         /// The end time to read to
         /// </summary>
-        [JsonProperty(PropertyName = "endTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "endTime", Order = 1,
+            EmitDefaultValue = false)]
         public DateTime? EndTime { get; set; }
 
         /// <summary>
         /// The number of values to read
         /// </summary>
-        [JsonProperty(PropertyName = "numValues",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "numValues", Order = 2,
+            EmitDefaultValue = false)]
         public uint? NumValues { get; set; }
     }
 }

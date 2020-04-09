@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
 
     /// <summary>
@@ -15,6 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <summary>
         /// The selected fields of the event
         /// </summary>
-        public List<JToken> EventFields { get; set; } // TODO: Update to concrete type
+        public List<VariantValue> EventFields { get; set; } // TODO: Update to concrete type
     }
 }

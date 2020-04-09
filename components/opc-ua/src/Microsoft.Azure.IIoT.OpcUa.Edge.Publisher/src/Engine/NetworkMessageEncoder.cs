@@ -47,8 +47,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             foreach (var networkMessage in GetNetworkMessages(message.YieldReturn())) {
                 using (var writer = new StringWriter()) {
                     using (var encoder = new JsonEncoderEx(writer, message.ServiceMessageContext) {
-                        // TODO: Configure encoding further
-                        UseUriEncoding = false
+                        UseAdvancedEncoding = true,
+                        UseUriEncoding = true,
+                        UseReversibleEncoding = false
                     }) {
                         networkMessage.Encode(encoder);
                     }
@@ -101,6 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     MessageContentMask = message.WriterGroup.MessageSettings.NetworkMessageContentMask
                         .ToStackType(message.WriterGroup?.MessageType),
                     PublisherId = message.PublisherId,
+                    DataSetClassId = message.Writer?.DataSet?.DataSetMetaData?.DataSetClassId.ToString(),
                     MessageId = message.SequenceNumber.ToString()
                 };
                 var notificationQueues = message.Notifications.GroupBy(m => m.NodeId)

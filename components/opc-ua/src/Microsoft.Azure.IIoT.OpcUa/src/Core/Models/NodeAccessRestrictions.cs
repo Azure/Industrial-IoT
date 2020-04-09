@@ -5,15 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
     using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// Flags that can be read or written in the
     /// AccessRestrictions attribute.
     /// </summary>
     [Flags]
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum NodeAccessRestrictions {
 
         /// <summary>

@@ -82,5 +82,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Aggregate filter
         /// </summary>
         public AggregateFilterModel AggregateFilter { get; set; }
+
+        /// <summary>
+        /// heartbeat interval not present if zero
+        /// </summary>
+        public TimeSpan? HeartbeatInterval { get; set; }
     }
 }

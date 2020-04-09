@@ -14,15 +14,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
-    using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -32,7 +34,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.OpenApi.Models;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Newtonsoft.Json;
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
@@ -117,13 +118,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers()
-                .AddNewtonsoftJson(options => {
-                    options.SerializerSettings.Formatting = Formatting.Indented;
-                    options.SerializerSettings.Converters.Add(new ExceptionConverter(
-                        Environment.IsDevelopment()));
-                    options.SerializerSettings.MaxDepth = 10;
-                });
+            services.AddControllers().AddSerializers();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -172,8 +167,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}", ServiceInfo.Name,
-                Uptime.ProcessId);
+            log.Information("{service} web service started with id {id}",
+                ServiceInfo.Name, ServiceInfo.Id);
         }
 
         /// <summary>
@@ -192,6 +187,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<MessagePackModule>();
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
@@ -205,28 +202,20 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             builder.RegisterType<PassThroughTokenProvider>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // And signalr host for api registration
-            builder.RegisterType<SignalRServiceHost>()
-                .AsImplementedInterfaces().SingleInstance();
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
-                .AsImplementedInterfaces().SingleInstance();
-
             // Twin services for browsing and tag selection ...
-            builder.RegisterType<TwinAdapter>()
+            builder.RegisterType<TwinServicesApiAdapter>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TwinServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Registry services to lookup endpoints.
-            builder.RegisterType<RegistryAdapter>()
+            builder.RegisterType<RegistryServicesApiAdapter>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<RegistryServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Create Publish jobs using ...
-            builder.RegisterType<PublisherJobClient>()
+            builder.RegisterType<PublisherJobService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherJobSerializer>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -244,6 +233,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             builder.RegisterType<IoTHubJobConfigurationHandler>()
                 .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceHttpClient>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterType<IoTHubConfigurationClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubPublisherDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
         }
     }

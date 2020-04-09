@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Models;
     using Microsoft.Azure.IIoT.Crypto.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
 
     /// <summary>
@@ -14,17 +14,30 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
     /// </summary>
     public class KeyVaultKeyHandleSerializer : IKeyHandleSerializer {
 
+        /// <summary>
+        /// Create serializer
+        /// </summary>
+        /// <param name="serializer"></param>
+        public KeyVaultKeyHandleSerializer(IJsonSerializer serializer) {
+            _serializer = serializer;
+        }
+
         /// <inheritdoc/>
-        public JToken SerializeHandle(KeyHandle handle) {
+        public byte[] SerializeHandle(KeyHandle handle) {
             if (handle is KeyVaultKeyHandle id) {
-                return JToken.FromObject(id);
+                return _serializer.SerializeToBytes(id).ToArray();
             }
             throw new ArgumentException("Bad handle type");
         }
 
         /// <inheritdoc/>
-        public KeyHandle DeserializeHandle(JToken token) {
-            return token.ToObject<KeyVaultKeyHandle>();
+        public KeyHandle DeserializeHandle(byte[] token) {
+            if (token == null) {
+                return null;
+            }
+            return _serializer.Deserialize<KeyVaultKeyHandle>(token);
         }
+
+        private readonly IJsonSerializer _serializer;
     }
 }

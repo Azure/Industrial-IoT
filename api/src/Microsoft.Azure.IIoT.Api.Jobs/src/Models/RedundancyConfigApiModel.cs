@@ -4,25 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Redundancy configuration
     /// </summary>
+    [DataContract]
     public class RedundancyConfigApiModel {
 
         /// <summary>
         /// Number of desired active agents
         /// </summary>
-        [JsonProperty(PropertyName = "desiredActiveAgents",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "desiredActiveAgents", Order = 0,
+            EmitDefaultValue = false)]
         public int DesiredActiveAgents { get; set; }
 
         /// <summary>
         /// Number of passive agents
         /// </summary>
-        [JsonProperty(PropertyName = "desiredPassiveAgents",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "desiredPassiveAgents", Order = 1,
+            EmitDefaultValue = false)]
         public int DesiredPassiveAgents { get; set; }
     }
 }

@@ -5,27 +5,28 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Method node vertex
     /// </summary>
     [Label(AddressSpaceElementNames.Method)]
+    [DataContract]
     public class MethodNodeVertexModel : BaseNodeVertexModel {
 
         /// <summary>
         /// If method node class, whether method can be called.
         /// </summary>
-        [JsonProperty(PropertyName = "executable",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "executable",
+            EmitDefaultValue = false)]
         public bool? Executable { get; set; }
 
         /// <summary>
         /// If method node class, whether method can be called
         /// by user.
         /// </summary>
-        [JsonProperty(PropertyName = "userExecutable",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "userExecutable",
+            EmitDefaultValue = false)]
         public bool? UserExecutable { get; set; }
     }
 }

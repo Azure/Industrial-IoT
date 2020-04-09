@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using Autofac;
 
     /// <summary>
-    /// Injected module framework module
+    /// Injected http tunnel handler
     /// </summary>
     public sealed class HttpTunnelClient : Module {
 
@@ -17,12 +17,13 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// </summary>
         /// <param name="builder"></param>
         protected override void Load(ContainerBuilder builder) {
-            // Http tunnel client services ...
-            builder.RegisterType<HttpClient>().SingleInstance()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpTunnelHandlerFactory>().SingleInstance()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HttpClientFactory>().SingleInstance()
+            builder.RegisterModule<HttpClientModule>();
+
+            //
+            // Override default factory with configurable http tunnel
+            // client handler factory.
+            //
+            builder.RegisterType<HttpTunnelConfigurableFactory>().SingleInstance()
                 .AsImplementedInterfaces();
         }
     }

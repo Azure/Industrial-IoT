@@ -5,9 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Linq;
@@ -24,10 +26,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
+        /// <param name="broker"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public PublisherRegistry(IIoTHubTwinServices iothub, ILogger logger) {
+        public PublisherRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
+            IRegistryEventBroker<IPublisherRegistryListener> broker, ILogger logger) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
+            _broker = broker ?? throw new ArgumentNullException(nameof(broker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         /// <inheritdoc/>
@@ -83,7 +90,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             return registration.ToServiceModel();
         }
-
 
         /// <inheritdoc/>
         public async Task UpdatePublisherAsync(string publisherId,
@@ -154,8 +160,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         }
                     }
                     // Patch
-                    await _iothub.PatchAsync(registration.Patch(
-                        patched.ToPublisherRegistration()), false, ct);
+                    twin = await _iothub.PatchAsync(registration.Patch(
+                        patched.ToPublisherRegistration(), _serializer), false, ct);
+
+                    // Send update to through broker
+                    registration = twin.ToEntityRegistration(true) as PublisherRegistration;
+                    await _broker.NotifyAllAsync(l => l.OnPublisherUpdatedAsync(null,
+                        registration.ToServiceModel()));
                     return;
                 }
                 catch (ResourceOutOfDateException ex) {
@@ -192,7 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // If site id provided, include it in search
                 query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
                     $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}')";
+                    $"'{model.SiteId}' OR deviceId = '{model.SiteId}') ";
             }
 
             if (model?.Connected != null) {
@@ -218,6 +229,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         private readonly IIoTHubTwinServices _iothub;
+        private readonly IJsonSerializer _serializer;
+        private readonly IRegistryEventBroker<IPublisherRegistryListener> _broker;
         private readonly ILogger _logger;
     }
 }

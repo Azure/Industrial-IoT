@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Utils;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Threading;
@@ -22,10 +22,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         /// </summary>
         /// <param name="twins"></param>
         /// <param name="endpoint"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public JobOrchestratorEndpointSync(IIoTHubTwinServices twins,
-            IJobOrchestratorEndpoint endpoint, ILogger logger) {
+            IJobOrchestratorEndpoint endpoint, IJsonSerializer serializer, ILogger logger) {
             _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _twins = twins ?? throw new ArgumentNullException(nameof(twins));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _updateTimer = new Timer(OnUpdateTimerFiredAsync);
@@ -98,7 +100,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                 foreach (var moduleTwin in response.Items) {
                     try {
                         moduleTwin.Properties.Desired[TwinProperties.JobOrchestratorUrl] =
-                            JToken.FromObject(url);
+                            _serializer.FromObject(url);
                         await _twins.PatchAsync(moduleTwin, false, ct);
                     }
                     catch (Exception ex) {
@@ -114,6 +116,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         }
 
         private readonly IJobOrchestratorEndpoint _endpoint;
+        private readonly IJsonSerializer _serializer;
         private readonly IIoTHubTwinServices _twins;
         private readonly ILogger _logger;
         private readonly Timer _updateTimer;

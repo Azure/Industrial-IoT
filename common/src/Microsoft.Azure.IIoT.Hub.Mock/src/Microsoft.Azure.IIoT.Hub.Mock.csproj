@@ -19,5 +19,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Hub.Service.Client\src\Microsoft.Azure.IIoT.Hub.Service.Client.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Hub.Module.Framework\src\Microsoft.Azure.IIoT.Hub.Module.Framework.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Serializers.NewtonSoft\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft.csproj" />
   </ItemGroup>
 </Project>

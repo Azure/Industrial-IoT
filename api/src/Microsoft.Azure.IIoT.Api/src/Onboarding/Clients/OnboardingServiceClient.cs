@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading.Tasks;
     using System.Threading;
@@ -20,9 +21,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
-        public OnboardingServiceClient(IHttpClient httpClient, IOnboardingConfig config) :
-            this(httpClient, config.OpcUaOnboardingServiceUrl,
-                config.OpcUaOnboardingServiceResourceId) {
+        /// <param name="serializer"></param>
+        public OnboardingServiceClient(IHttpClient httpClient, IOnboardingConfig config,
+            ISerializer serializer) : this(httpClient, config.OpcUaOnboardingServiceUrl,
+                config.OpcUaOnboardingServiceResourceId, serializer) {
         }
 
         /// <summary>
@@ -31,15 +33,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
         /// <param name="resourceId"></param>
+        /// <param name="serializer"></param>
         public OnboardingServiceClient(IHttpClient httpClient, string serviceUri,
-            string resourceId) {
+            string resourceId, ISerializer serializer) {
             if (string.IsNullOrEmpty(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the onboarding micro service.");
             }
             _serviceUri = serviceUri;
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _resourceId = resourceId;
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
 
         /// <inheritdoc/>
@@ -66,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
                 Query = $"discovererId={discovererId}"
             };
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
-            request.SetContent(content);
+            _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -74,5 +78,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
         private readonly IHttpClient _httpClient;
         private readonly string _serviceUri;
         private readonly string _resourceId;
+        private readonly ISerializer _serializer;
     }
 }

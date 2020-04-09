@@ -24,13 +24,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
         /// Create certificate request
         /// </summary>
         /// <param name="applications"></param>
+        /// <param name="publishers"></param>
         /// <param name="supervisors"></param>
         /// <param name="endpoints"></param>
         /// <param name="groups"></param>
-        public EntityInfoResolver(IApplicationRegistry applications,
-            ISupervisorRegistry supervisors, IEndpointRegistry endpoints,
-            IGroupRepository groups) {
+        public EntityInfoResolver(IApplicationRegistry applications, IPublisherRegistry publishers,
+            ISupervisorRegistry supervisors, IEndpointRegistry endpoints, IGroupRepository groups) {
             _applications = applications ?? throw new ArgumentNullException(nameof(applications));
+            _publishers = publishers ?? throw new ArgumentNullException(nameof(publishers));
             _supervisors = supervisors ?? throw new ArgumentNullException(nameof(supervisors));
             _endpoints = endpoints ?? throw new ArgumentNullException(nameof(endpoints));
             _groups = groups ?? throw new ArgumentNullException(nameof(groups));
@@ -179,6 +180,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
         }
 
         /// <summary>
+        /// Resolve publisher
+        /// </summary>
+        /// <param name="publisherId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task<EntityInfoModel> FindPublisherAsync(string publisherId,
+            CancellationToken ct) {
+            var publisher = await _publishers.FindPublisherAsync(publisherId, ct);
+            if (publisher == null) {
+                return null;
+            }
+            return new EntityInfoModel {
+                Name = publisherId,
+                Uris = new List<string> { $"urn:publisher:{publisher.SiteId}:{publisherId}" },
+                Id = publisherId,
+                Role = EntityRoleType.Client,
+                Type = EntityType.Publisher,
+                Addresses = new List<string>(),
+                SubjectName = null
+            };
+        }
+
+        /// <summary>
         /// Resolve group
         /// </summary>
         /// <param name="groupId"></param>
@@ -200,28 +224,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
             };
         }
 
-        /// <summary>
-        /// Resolve publisher
-        /// </summary>
-        /// <param name="publisherId"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private Task<EntityInfoModel> FindPublisherAsync(string publisherId,
-#pragma warning disable RECS0154 // Parameter is never used
-#pragma warning disable IDE0060 // Remove unused parameter
-            CancellationToken ct) {
-#pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RECS0154 // Parameter is never used
-            if (publisherId == null) {
-                throw new ArgumentNullException(nameof(publisherId));
-            }
-
-            return Task.FromResult<EntityInfoModel>(null); // TODO:
-        }
-
         private readonly IApplicationRegistry _applications;
         private readonly IEndpointRegistry _endpoints;
         private readonly IGroupRepository _groups;
         private readonly ISupervisorRegistry _supervisors;
+        private readonly IPublisherRegistry _publishers;
     }
 }

@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.AspNetCore.Authorization;
@@ -21,7 +20,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/discovery")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanOnboard)]
     [ApiController]
     public class DiscoveryController : ControllerBase {

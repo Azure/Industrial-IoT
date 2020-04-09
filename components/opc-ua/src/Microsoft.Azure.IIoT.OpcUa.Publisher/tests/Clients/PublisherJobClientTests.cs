@@ -4,17 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.Default;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.Serializers;
     using Moq;
     using Autofac.Extras.Moq;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -22,20 +25,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Sdk;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Autofac;
 
     public class PublisherJobClientTests {
 
         [Fact]
         public async Task StartPublishTest1Async() {
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                Setup(mock, (v, q) => {
-                    throw new AssertActualExpectedException(null, q, "Query");
-                });
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
 
-                IPublishServices<string> service = mock.Create<PublisherJobClient>();
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
 
                 // Run
                 var result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
@@ -64,13 +65,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         [Fact]
         public async Task StartPublishTest2Async() {
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                Setup(mock, (v, q) => {
-                    throw new AssertActualExpectedException(null, q, "Query");
-                });
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
 
-                IPublishServices<string> service = mock.Create<PublisherJobClient>();
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
 
                 // Run
                 var result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
@@ -97,13 +96,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         [Fact]
         public async Task StartStopPublishTestAsync() {
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                Setup(mock, (v, q) => {
-                    throw new AssertActualExpectedException(null, q, "Query");
-                });
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
 
-                IPublishServices<string> service = mock.Create<PublisherJobClient>();
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
 
                 // Run
                 var result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
@@ -134,13 +131,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         [Fact]
         public async Task StartTwicePublishTest1Async() {
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                Setup(mock, (v, q) => {
+            using (var mock = Setup((v, q) => {
                     throw new AssertActualExpectedException(null, q, "Query");
-                });
+                })) {
 
-                IPublishServices<string> service = mock.Create<PublisherJobClient>();
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
 
                 // Run
                 var result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
@@ -177,13 +172,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         [Fact]
         public async Task StartTwicePublishTest2Async() {
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                Setup(mock, (v, q) => {
+            using (var mock = Setup((v, q) => {
                     throw new AssertActualExpectedException(null, q, "Query");
-                });
+                })) {
 
-                IPublishServices<string> service = mock.Create<PublisherJobClient>();
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
 
                 // Run
                 var result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
@@ -219,13 +212,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         [Fact]
         public async Task StartTwicePublishTest3Async() {
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                Setup(mock, (v, q) => {
+            using (var mock = Setup((v, q) => {
                     throw new AssertActualExpectedException(null, q, "Query");
-                });
+                })) {
 
-                IPublishServices<string> service = mock.Create<PublisherJobClient>();
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
 
                 // Run
                 var result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
@@ -261,13 +252,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         [Fact]
         public async Task StartStopMultiplePublishTestAsync() {
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                Setup(mock, (v, q) => {
+            using (var mock = Setup((v, q) => {
                     throw new AssertActualExpectedException(null, q, "Query");
-                });
+                })) {
 
-                IPublishServices<string> service = mock.Create<PublisherJobClient>();
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
 
                 // Run
                 for (var i = 0; i < 100; i++) {
@@ -330,23 +319,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         /// </summary>
         /// <param name="mock"></param>
         /// <param name="provider"></param>
-        private static void Setup(AutoMock mock, Func<IEnumerable<IDocumentInfo<JObject>>,
-            string, IEnumerable<IDocumentInfo<JObject>>> provider) {
-            mock.Provide<IQueryEngine>(new QueryEngineAdapter(provider));
-            mock.Provide<IDatabaseServer, MemoryDatabase>();
-            mock.Provide<IJobDatabaseConfig, MockConfig>();
-            mock.Provide<IJobRepository, JobDatabase>();
-            mock.Provide<IJobScheduler, DefaultJobService>();
-            mock.Provide<IJobSerializer, PublisherJobSerializer>();
-            mock.Mock<IEndpointRegistry>()
-                .Setup(e => e.GetEndpointAsync(It.IsAny<string>(), false, CancellationToken.None))
-                .Returns(Task.FromResult(new EndpointInfoModel {
-                    Registration = new EndpointRegistrationModel {
-                        EndpointUrl = "fakeurl",
-                        Id = "endpoint1"
-                    }
-                }));
-            mock.Provide<IPublishServices<string>, PublisherJobClient>();
+        private static AutoMock Setup(Func<IEnumerable<IDocumentInfo<VariantValue>>,
+            string, IEnumerable<IDocumentInfo<VariantValue>>> provider) {
+            var mock = AutoMock.GetLoose(builder => {
+
+                builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
+                builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
+                builder.RegisterInstance(new QueryEngineAdapter(provider)).As<IQueryEngine>();
+                builder.RegisterType<MemoryDatabase>().SingleInstance().As<IDatabaseServer>();
+                builder.RegisterType<MockConfig>().As<IJobDatabaseConfig>();
+                builder.RegisterType<JobDatabase>().As<IJobRepository>();
+                builder.RegisterType<DefaultJobService>().As<IJobScheduler>();
+                builder.RegisterType<PublisherJobSerializer>().As<IJobSerializer>();
+                var registry = new Mock<IEndpointRegistry>();
+                registry
+                    .Setup(e => e.GetEndpointAsync(It.IsAny<string>(), false, CancellationToken.None))
+                    .Returns(Task.FromResult(new EndpointInfoModel {
+                        Registration = new EndpointRegistrationModel {
+                            EndpointUrl = "fakeurl",
+                            Id = "endpoint1"
+                        }
+                    }));
+                builder.RegisterMock(registry);
+                builder.RegisterType<PublisherJobService>().As<IPublishServices<string>>();
+            });
+            return mock;
         }
 
         /// <summary>
@@ -367,6 +364,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             }
 
             public Task<EndpointInfoModel> GetEndpointAsync(string endpointId, bool onlyServerState = false, CancellationToken ct = default) {
+                throw new NotImplementedException();
+            }
+
+            public Task<X509CertificateChainModel> GetEndpointCertificateAsync(string endpointId, CancellationToken ct = default) {
                 throw new NotImplementedException();
             }
 

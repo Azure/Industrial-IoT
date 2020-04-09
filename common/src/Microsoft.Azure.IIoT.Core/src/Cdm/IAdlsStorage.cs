@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Cdm {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// CDM's ADLS g2 storage interface
+    /// CDM's ADLSg2 storage interface
     /// </summary>
     public interface IAdlsStorage : IDisposable {
 
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Cdm {
         /// <param name="data"></param>
         /// <param name="separator"></param>
         /// <returns></returns>
-        Task WriteInCsvPartition<T>(string partitionUrl, List<T> data, string separator);
+        Task<bool> WriteInCsvPartition<T>(string partitionUrl, List<T> data, string separator);
 
         /// <summary>
         /// creates the storage root folder if not already existing 
@@ -29,6 +29,6 @@ namespace Microsoft.Azure.IIoT.Cdm {
         /// <param name="blobName"></param>
         /// <param name="rootFolder"></param>
         /// <returns></returns>
-        Task CreateBlobRoot(string hostName, string blobName, string rootFolder);
+        Task<bool> CreateBlobRoot(string hostName, string blobName, string rootFolder);
     }
 }

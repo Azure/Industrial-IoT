@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Services {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System.Collections.Generic;
     public class ListNode {
@@ -23,6 +23,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         public string Value { get; set; }
         public string DataType { get; set; }
+        public string Status { get; set; }
+        public string Timestamp { get; set; }
 
         public List<string> ParentIdList { get; set; }
 

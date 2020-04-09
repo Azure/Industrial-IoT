@@ -5,7 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Prometheus;
     using Serilog;
@@ -31,7 +34,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="metrics"></param>
         public ApplicationRegistry(IApplicationRepository database,
             IApplicationEndpointRegistry endpoints, IEndpointBulkProcessor bulk,
-            IApplicationEventBroker broker, ILogger logger, IMetricsLogger metrics) {
+            IRegistryEventBroker<IApplicationRegistryListener> broker,
+            ILogger logger, IMetricsLogger metrics) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
@@ -113,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 return;
             }
 
-            await _broker.NotifyAllAsync(l => l.OnApplicationDeletedAsync(context, app));
+            await _broker.NotifyAllAsync(l => l.OnApplicationDeletedAsync(context, applicationId, app));
         }
 
         /// <inheritdoc/>
@@ -148,7 +152,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 Endpoints = endpoints
                     .Select(ep => ep.Registration)
                     .ToList()
-            }.SetSecurityAssessment();
+            };
         }
 
         /// <inheritdoc/>
@@ -185,7 +189,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             continue;
                         }
                         await _broker.NotifyAllAsync(
-                            l => l.OnApplicationDeletedAsync(context, app));
+                            l => l.OnApplicationDeletedAsync(context, app.ApplicationId, app));
                     }
                     catch (Exception ex) {
                         _logger.Error(ex, "Exception purging application {id} - continue",
@@ -416,9 +420,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 _metrics.TrackValue("applicationsAdded", added);
                 _metrics.TrackValue("applicationsUpdated", updated);
                 _metrics.TrackValue("applicationsUnchanged", unchanged);
-                _appsAdded.Set(added);
-                _appsUpdated.Set(updated);
-                _appsUnchanged.Set(unchanged);
+                kAppsAdded.Set(added);
+                kAppsUpdated.Set(updated);
+                kAppsUnchanged.Set(unchanged);
             }
         }
 
@@ -427,12 +431,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private readonly IMetricsLogger _metrics;
         private readonly IEndpointBulkProcessor _bulk;
         private readonly IApplicationEndpointRegistry _endpoints;
-        private readonly IApplicationEventBroker _broker;
-        private static readonly Gauge _appsAdded = Metrics
+        private readonly IRegistryEventBroker<IApplicationRegistryListener> _broker;
+        private static readonly Gauge kAppsAdded = Metrics
             .CreateGauge("iiot_registry_applicationAdded", "Number of applications added ");
-        private static readonly Gauge _appsUpdated = Metrics
+        private static readonly Gauge kAppsUpdated = Metrics
             .CreateGauge("iiot_registry_applicationsUpdated", "Number of applications updated ");
-        private static readonly Gauge _appsUnchanged = Metrics
+        private static readonly Gauge kAppsUnchanged = Metrics
             .CreateGauge("iiot_registry_applicationUnchanged", "Number of applications unchanged ");
     }
 }

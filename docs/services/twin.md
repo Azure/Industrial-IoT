@@ -2,6 +2,8 @@
 
 [Home](readme.md)
 
+Namespace: Microsoft.Azure.IIoT.Services.OpcUa.Twin
+
 ## Overview
 
 The following diagram shows the twin service in relationship to the other components.

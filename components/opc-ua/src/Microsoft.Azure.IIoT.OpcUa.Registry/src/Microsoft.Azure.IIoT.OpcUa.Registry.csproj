@@ -5,9 +5,7 @@
     <Description>Azure Industrial IoT OPC UA Registry component</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
 </Project>

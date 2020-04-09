@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
 
     /// <summary>
@@ -14,14 +14,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     public class ValueReadResultModel {
 
         /// <summary>
-        /// Node id
-        /// </summary>
-        public string NodeId { get; set; }
-
-        /// <summary>
         /// Value read
         /// </summary>
-        public JToken Value { get; set; }
+        public VariantValue Value { get; set; }
 
         /// <summary>
         /// Built in data type of the value read.
