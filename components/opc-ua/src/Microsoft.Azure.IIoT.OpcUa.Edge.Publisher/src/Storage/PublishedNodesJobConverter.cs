@@ -155,7 +155,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         DataSetMessageContentMask =
                                             (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Timestamp : 0) |
                                             DataSetContentMask.MetaDataVersion |
-                                            DataSetContentMask.Status |
+                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Status : 0) |
                                             DataSetContentMask.DataSetWriterId |
                                             DataSetContentMask.MajorVersion |
                                             DataSetContentMask.MinorVersion |
