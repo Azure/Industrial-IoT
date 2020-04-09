@@ -66,6 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (notifications.Count() == 0) {
                 yield break;
             }
+            var encodingContext = messages.First().ServiceMessageContext;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
@@ -75,8 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var messageCompleted = false;
                 if (notification != null) {
                     var helperWriter = new StringWriter();
-                    var helperEncoder = new JsonEncoderEx(helperWriter,
-                        messages.First().ServiceMessageContext) {
+                    var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
                         UseReversibleEncoding = false
@@ -94,8 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 if (!processing || messageCompleted) {
                     var writer = new StringWriter();
-                    var encoder = new JsonEncoderEx(writer,
-                        messages.First().ServiceMessageContext,
+                    var encoder = new JsonEncoderEx(writer, encodingContext,
                         JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
@@ -111,8 +110,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.UaJson,
-                        // Todo, check what would make sense
-                        // MessageId = message.SequenceNumber.ToString(),
                         MessageSchema = MessageSchemaTypes.NetworkMessageJson
                     };
                     yield return encoded;
@@ -132,6 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (notifications.Count() == 0) {
                 yield break;
             }
+            var encodingContext = messages.First().ServiceMessageContext;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
@@ -140,7 +138,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var notification = current.Current;
                 var messageCompleted = false;
                 if (notification != null) {
-                    var helperEncoder = new BinaryEncoder(messages.First().ServiceMessageContext);
+                    var helperEncoder = new BinaryEncoder(encodingContext);
                     helperEncoder.WriteEncodeable(null, notification);
                     var notificationSize = helperEncoder.CloseAndReturnBuffer().Length;
                     messageCompleted = MaxMessageBodySize < (messageSize + notificationSize);
@@ -152,7 +150,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                 }
                 if (!processing || messageCompleted) {
-                    var encoder = new BinaryEncoder(messages.First().ServiceMessageContext);
+                    var encoder = new BinaryEncoder(encodingContext);
                     encoder.WriteBoolean(null, true); // is Batch
                     encoder.WriteEncodeableArray(null, chunk);
                     chunk.Clear();
@@ -161,8 +159,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Body = encoder.CloseAndReturnBuffer(),
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.Uadp,
-                        // Todo, check what would make sense
-                        // MessageId = message.SequenceNumber.ToString(),
                         MessageSchema = MessageSchemaTypes.NetworkMessageUadp
                     };
                     yield return encoded;
@@ -182,10 +178,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (notifications.Count() == 0) {
                 yield break;
             }
+            var encodingContext = messages.First().ServiceMessageContext;
             foreach (var networkMessage in notifications) {
                 var writer = new StringWriter();
-                var encoder = new JsonEncoderEx(writer,
-                    messages.First().ServiceMessageContext) {
+                var encoder = new JsonEncoderEx(writer, encodingContext) {
                     UseAdvancedEncoding = true,
                     UseUriEncoding = true,
                     UseReversibleEncoding = false
@@ -197,7 +193,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     ContentEncoding = "utf-8",
                     Timestamp = DateTime.UtcNow,
                     ContentType = ContentMimeType.Json,
-                    MessageId = networkMessage.MessageId,
                     MessageSchema = MessageSchemaTypes.NetworkMessageJson
                 };
                 yield return encoded;
@@ -215,8 +210,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (notifications.Count() == 0) {
                 yield break;
             }
+            var encodingContext = messages.First().ServiceMessageContext;
             foreach (var networkMessage in notifications) {
-                var encoder = new BinaryEncoder(messages.First().ServiceMessageContext);
+                var encoder = new BinaryEncoder(encodingContext);
                 encoder.WriteBoolean(null, false); // is Batch
                 encoder.WriteEncodeable(null, networkMessage);
                 networkMessage.Encode(encoder);
@@ -224,7 +220,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Body = encoder.CloseAndReturnBuffer(),
                     Timestamp = DateTime.UtcNow,
                     ContentType = ContentMimeType.Uadp,
-                    MessageId = networkMessage.MessageId,
                     MessageSchema = MessageSchemaTypes.NetworkMessageUadp
                 };
                 yield return encoded;
