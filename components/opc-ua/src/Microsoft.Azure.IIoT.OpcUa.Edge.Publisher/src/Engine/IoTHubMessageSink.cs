@@ -57,6 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Debug("Message counter has been reset to prevent overflow. " +
                         "So far, {SentMessagesCount} messages has been sent to IoT Hub.",
                         SentMessagesCount);
+                    _messagesSent.Set(SentMessagesCount);
                     SentMessagesCount = 0;
                 }
                 using(_sendingDuration.NewTimer()) {
@@ -118,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
         private readonly ILogger _logger;
         private readonly IClientAccessor _clientAccessor;
-        private static readonly Gauge _messagesSent = Metrics.CreateGauge("iiot_edge_publisher_messagesdSent", "Number of messages sent to IotHub");
+        private static readonly Gauge _messagesSent = Metrics.CreateGauge("iiot_edge_publisher_messages_sent", "Number of messages sent to IotHub");
         private static readonly Histogram _sendingDuration = Metrics.CreateHistogram("iiot_edge_publisher_messages_sent_duration_seconds", "Histogram of message sending durations");
     }
 }

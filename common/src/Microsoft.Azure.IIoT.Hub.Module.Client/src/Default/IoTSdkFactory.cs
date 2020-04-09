@@ -601,7 +601,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     new GaugeConfiguration {
                         LabelNames = new[] { "device" }
                     });
-            private static readonly Gauge _disconnectionStatus = Metrics.CreateGauge("iiot_edge_device_disconnected", "reconnected count",
+            private static readonly Gauge _disconnectionStatus = Metrics.CreateGauge("iiot_edge_device_disconnected", "disconnected count",
                 new GaugeConfiguration {
                     LabelNames = new[] { "device" }
                 });
