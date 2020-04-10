@@ -72,5 +72,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Diagnostics
         /// </summary>
         public DiagnosticInfo DiagnosticInfo { get; set; }
+
+        /// <summary>
+        /// Is heartbeat?
+        /// </summary>
+        public bool IsHeartbeat { get; set; }
     }
 }
