@@ -17,7 +17,10 @@ infrastructure resources necessary to run Azure Industrial IoT Platform and how 
 Kubernetes cluster:
 
 - For `0.1.0` version of the Chart: [Azure Industrial IoT Helm Chart v0.1.0](https://github.com/Azure/Industrial-IoT/blob/helm%2F0.1.0/deploy/helm/azure-industrial-iot/README.md)
-- For `0.2.0` version of the Chart: [Azure Industrial IoT Helm Chart v0.2.0](../../deploy/helm/azure-industrial-iot/README.md)
+- For `0.2.0` version of the Chart: [Azure Industrial IoT Helm Chart v0.2.0](https://github.com/Azure/Industrial-IoT/blob/helm%2F0.2.0/deploy/helm/azure-industrial-iot/README.md)
+
+For latest documentation and chart sources please check [deploy/helm/azure-industrial-iot/](../../deploy/helm/azure-industrial-iot/)
+directory.
 
 ## Helm Repositories
 
