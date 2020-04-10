@@ -26,7 +26,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// </summary>
     public class NetworkMessageEncoder : IMessageEncoder {
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Perform DataSetMessageModel to single message NetworkMessageModel
+        /// </summary>
+        /// <param name="messages"></param>
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
             IEnumerable<DataSetMessageModel> messages) {
             try {
@@ -40,12 +43,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Perform DataSetMessageModel to batch NetworkMessageModel
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <param name="maxMessageSize"></param>
         public Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync(
-            IEnumerable<DataSetMessageModel> messages) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
             try {
-                var resultJson = EncodeBatchAsJson(messages);
-                var resultUadp = EncodeBatchAsUadp(messages);
+                var resultJson = EncodeBatchAsJson(messages, maxMessageSize);
+                var resultUadp = EncodeBatchAsUadp(messages, maxMessageSize);
                 var result = resultJson.Concat(resultUadp);
                 return Task.FromResult(result);
             }
@@ -58,9 +65,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// DataSetMessage to NetworkMessage Json batched encoding
         /// </summary>
         /// <param name="messages"></param>
+        /// <param name="maxMessageSize"></param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeBatchAsJson(
-            IEnumerable<DataSetMessageModel> messages) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json);
             if (notifications.Count() == 0) {
@@ -70,6 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
+            maxMessageSize -= 2048; // reserve 2k for header
             var chunk = new Collection<NetworkMessage>();
             while (processing) {
                 var notification = current.Current;
@@ -84,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
                     var notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
-                    messageCompleted = MaxMessageBodySize < (messageSize + notificationSize);
+                    messageCompleted = maxMessageSize < (messageSize + notificationSize);
 
                     if (!messageCompleted) {
                         chunk.Add(notification);
@@ -121,9 +130,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// DataSetMessage to NetworkMessage binary batched encoding
         /// </summary>
         /// <param name="messages"></param>
+        /// <param name="maxMessageSize"></param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeBatchAsUadp(
-            IEnumerable<DataSetMessageModel> messages) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
             var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp);
             if (notifications.Count() == 0) {
@@ -133,6 +143,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
+            maxMessageSize -= 2048; // reserve 2k for header
             var chunk = new Collection<NetworkMessage>();
             while (processing) {
                 var notification = current.Current;
@@ -141,7 +152,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperEncoder = new BinaryEncoder(encodingContext);
                     helperEncoder.WriteEncodeable(null, notification);
                     var notificationSize = helperEncoder.CloseAndReturnBuffer().Length;
-                    messageCompleted = MaxMessageBodySize < (messageSize + notificationSize);
+                    messageCompleted = maxMessageSize < (messageSize + notificationSize);
 
                     if (!messageCompleted) {
                         chunk.Add(notification);
@@ -165,7 +176,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
         }
-
 
         /// <summary>
         /// Perform json encoding
@@ -213,7 +223,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.First().ServiceMessageContext;
             foreach (var networkMessage in notifications) {
                 var encoder = new BinaryEncoder(encodingContext);
-                encoder.WriteBoolean(null, false); // is Batch
+                encoder.WriteBoolean(null, false); // is not Batch
                 encoder.WriteEncodeable(null, networkMessage);
                 networkMessage.Encode(encoder);
                 var encoded = new NetworkMessageModel {
@@ -282,8 +292,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
         }
-
-        //  reserve 2K for header
-        private readonly int MaxMessageBodySize = 254 * 1024;
     }
 }

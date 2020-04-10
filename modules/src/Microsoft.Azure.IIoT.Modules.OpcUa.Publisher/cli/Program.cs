@@ -165,7 +165,6 @@ Options:
                 var arguments = args.ToList();
                 arguments.Add($"--ec={cs}");
                 arguments.Add($"--si=0");
-                arguments.Add($"--ms=0");
                 if (acceptAll) {
                     arguments.Add("--aa");
                 }

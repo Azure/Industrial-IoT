@@ -131,7 +131,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         MessagingMode = legacyCliModel.MessagingMode,
                         Engine = _config == null ? null : new EngineConfigurationModel {
                             BatchSize = _config.BatchSize,
-                            DiagnosticsInterval = _config.DiagnosticsInterval
+                            DiagnosticsInterval = _config.DiagnosticsInterval,
+                            MaxMessageSize = _config.MaxMessageSize
                         },
                         WriterGroup = new WriterGroupModel {
                             MessageType = MessageEncoding.Json,

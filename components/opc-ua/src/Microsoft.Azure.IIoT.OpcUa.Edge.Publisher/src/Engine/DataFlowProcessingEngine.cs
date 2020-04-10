@@ -51,8 +51,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     (int)engineConfiguration.DiagnosticsInterval.Value.TotalMilliseconds);
             }
 
-            if (engineConfiguration.BatchSize.HasValue && engineConfiguration.BatchSize.Value > 1) {
+            if (engineConfiguration.BatchSize.HasValue && 
+                engineConfiguration.BatchSize.Value > 1) {
                 _dataSetMessageBufferSize = engineConfiguration.BatchSize.Value;
+            }
+            if (engineConfiguration.MaxMessageSize.HasValue &&
+                engineConfiguration.MaxMessageSize.Value > 0) {
+                _maxEncodedMessageSize = engineConfiguration.MaxMessageSize.Value;
             }
         }
 
@@ -84,7 +89,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     async input =>
                         (_dataSetMessageBufferSize == 1)
                             ? await _messageEncoder.EncodeAsync(input)
-                            : await _messageEncoder.EncodeBatchAsync(input),
+                            : await _messageEncoder.EncodeBatchAsync(input, _maxEncodedMessageSize),
                     new ExecutionDataflowBlockOptions {
                         CancellationToken = cancellationToken
                     });
@@ -155,6 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private readonly int _dataSetMessageBufferSize = 1;
         private readonly int _networkMessageBufferSize = 1;
+        private readonly int _maxEncodedMessageSize = 256 * 1024;
         private readonly Timer _diagnosticsOutputTimer;
         private readonly IMessageSink _messageSink;
         private readonly IMessageEncoder _messageEncoder;

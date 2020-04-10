@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     public interface IMessageEncoder {
 
         /// <summary>
-        /// Encodes the message
+        /// Encodes the list of messages into single message NetworkMessageModel list
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
@@ -22,11 +22,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
             IEnumerable<DataSetMessageModel> message);
 
         /// <summary>
-        /// Encode a list of messages
+        /// Encodes the list of messages into batched NetworkMessageModel list
         /// </summary>
         /// <param name="messages"></param>
+        /// <param name="maxMessageSize"></param>
         /// <returns></returns>
         Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync
-            (IEnumerable<DataSetMessageModel> messages);
+            (IEnumerable<DataSetMessageModel> messages, int maxMessageSize);
     }
 }

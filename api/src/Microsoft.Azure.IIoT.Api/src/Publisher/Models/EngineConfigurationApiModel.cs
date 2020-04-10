@@ -26,5 +26,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "diagnosticsInterval", Order = 1,
             EmitDefaultValue = false)]
         public TimeSpan? DiagnosticsInterval { get; set; }
+
+        /// <summary>
+        /// Buffer size
+        /// </summary>
+        [DataMember(Name = "maxMessageSize", Order = 2,
+            EmitDefaultValue = false)]
+        public int? MaxMessageSize { get; set; }
+
     }
 }
