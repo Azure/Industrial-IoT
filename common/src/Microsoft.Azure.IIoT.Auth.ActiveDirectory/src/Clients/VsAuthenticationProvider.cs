@@ -4,17 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
+    using Serilog;
 
     /// <summary>
     /// Uses developer tool authentication
     /// </summary>
     public class VsAuthenticationProvider : AppAuthenticationProvider {
 
-        /// <summary>
-        /// Create auth provider
-        /// </summary>
-        public VsAuthenticationProvider(IOAuthClientConfig config = null) :
-            base(config) {
+        /// <inheritdoc/>
+        public VsAuthenticationProvider(ILogger logger) :
+            base(logger) {
+        }
+
+        /// <inheritdoc/>
+        public VsAuthenticationProvider(IClientAuthConfig config, ILogger logger) :
+            base(config, logger) {
         }
 
         /// <inheritdoc/>

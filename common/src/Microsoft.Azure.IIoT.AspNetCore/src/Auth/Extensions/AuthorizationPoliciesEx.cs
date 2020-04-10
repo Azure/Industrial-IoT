@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Linq;
 
@@ -37,28 +38,44 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="configure"></param>
         /// <returns></returns>
         public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services,
-            Action<string, AuthorizationPolicyBuilder, IServiceProvider> configure,
+            Func<string, AuthorizationPolicyBuilder, IServiceProvider, AuthorizationPolicyBuilder> configure,
             params string[] policies) {
 
             services.TryAddTransient<IServerAuthConfig, ServiceAuthAggregateConfig>();
-            var provider = services.BuildServiceProvider();
-            var environment = provider.GetRequiredService<IWebHostEnvironment>();
-            var auth = provider.GetService<IServerAuthConfig>();
-            var schemes = auth?.JwtBearerSchemes
-                .Select(s => s.GetSchemeName())
-                .Distinct()
-                .ToArray() ?? new string[0];
-            if (!schemes.Any() || auth.AllowAnonymousAccess) {
-                // No schemes configured - require nothing in terms of authorization
-                configure = (n, builder, p) => builder.RequireAssertion(ctx => true);
-            }
-            return services.AddAuthorization(options => {
-                foreach (var policy in policies) {
-                    var policyBuilder = new AuthorizationPolicyBuilder(schemes);
-                    configure(policy, policyBuilder, provider);
-                    options.AddPolicy(policy, policyBuilder.Build());
+            services.AddAuthorization();
+
+            services.AddTransient<IConfigureOptions<AuthorizationOptions>>(provider => {
+                var environment = provider.GetRequiredService<IWebHostEnvironment>();
+                var auth = provider.GetService<IServerAuthConfig>();
+
+                // Only enable configured schemes for authorization (see authentication extensions)
+                var schemes = auth?.JwtBearerSchemes
+                    .Select(s => s.GetSchemeName())
+                    .Distinct()
+                    .ToArray() ?? new string[0];
+                if (auth.AllowAnonymousAccess) {
+                    // No schemes configured - require nothing in terms of authorization
+                    configure = (n, builder, p) => builder.RequireAssertion(ctx => true);
                 }
+                else if (configure == null) {
+                    configure = (n, builder, p) => builder.RequireAuthenticatedUser();
+                }
+
+                return new ConfigureNamedOptions<AuthorizationOptions>(Options.DefaultName, options => {
+                    // Set default policy
+                    var policyBuilder = new AuthorizationPolicyBuilder(schemes);
+                    policyBuilder = configure(string.Empty, policyBuilder, provider);
+                    options.DefaultPolicy = policyBuilder.Build();
+
+                    // Add custom policies
+                    foreach (var policy in policies) {
+                        policyBuilder = new AuthorizationPolicyBuilder(schemes);
+                        configure(policy, policyBuilder, provider);
+                        options.AddPolicy(policy, policyBuilder.Build());
+                    }
+                });
             });
+            return services;
         }
 
         /// <summary>
@@ -71,12 +88,15 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services,
             Func<string, Func<AuthorizationHandlerContext, bool>> roles, params string[] policies) {
             return services.AddAuthorizationPolicies(
-                (n, builder, p) => {
-                    builder = builder.RequireAuthenticatedUser();
-                    var rights = roles(n);
-                    if (rights == null) {
-                        builder.RequireAssertion(rights);
+                (n, builder, provider) => {
+                    var config = provider.GetService<IRoleConfig>();
+                    if (config?.UseRoles == true) {
+                        var rights = roles(n);
+                        if (rights != null) {
+                            return builder.RequireAuthenticatedUser().RequireAssertion(rights);
+                        }
                     }
+                    return builder.RequireAuthenticatedUser();
                 }, policies);
         }
 

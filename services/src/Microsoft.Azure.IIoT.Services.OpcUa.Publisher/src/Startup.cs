@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
@@ -93,14 +94,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            services.AddLogging(o => o.AddConsole().AddDebug());
+            // services.AddLogging(o => o.AddConsole().AddDebug());
 
             services.AddHeaderForwarding();
             services.AddCors();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
+
             services.AddHttpsRedirect();
-            services.AddJwtBearerAuthentication();
+            services.AddAuthentication()
+                .AddJwtBearerScheme(AuthScheme.Aad)
+                .AddJwtBearerScheme(AuthScheme.AuthService);
             services.AddAuthorizationPolicies(
                 Policies.RoleMapping,
                 Policies.CanBrowse,

@@ -34,6 +34,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Correlation {
 #pragma warning disable IDE1006 // Naming Styles
         public async Task Invoke(HttpContext context) {
 #pragma warning restore IDE1006 // Naming Styles
+            if (context.Response.HasStarted) {
+                return;
+            }
             string correlationId = null;
             var key = context.Request.Headers.Keys.FirstOrDefault(n => n.Equals("Request-Id"));
             if (!string.IsNullOrWhiteSpace(key)) {

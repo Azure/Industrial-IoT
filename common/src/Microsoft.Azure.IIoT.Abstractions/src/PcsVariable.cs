@@ -98,7 +98,7 @@ namespace Microsoft.Azure.IIoT {
         public const string PCS_KEYVAULT_KEY_DATAPROTECTION =
             "PCS_KEYVAULT_KEY_DATAPROTECTION";
         /// <summary> Aad Auth tenant </summary>
-        public const string PCS_AAD_TENANT =
+        public const string PCS_AUTH_TENANT =
             "PCS_AUTH_TENANT";
         /// <summary> Aad Instance </summary>
         public const string PCS_AAD_INSTANCE =
@@ -133,6 +133,12 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Client application secret </summary>
         public const string PCS_AAD_CLIENT_SECRET =
             "PCS_AUTH_CLIENT_SECRET";
+        /// <summary> Built in Auth server service application id </summary>
+        public const string PCS_AUTH_SERVICE_CLIENT_APPID =
+            "PCS_AUTH_SERVICE_CLIENT_APPID";
+        /// <summary> Built in Auth server service secret </summary>
+        public const string PCS_AUTH_SERVICE_CLIENT_SECRET =
+            "PCS_AUTH_SERVICE_CLIENT_SECRET";
         /// <summary> Whether to use role based access </summary>
         public const string PCS_AUTH_ROLES =
             "PCS_AUTH_ROLES";

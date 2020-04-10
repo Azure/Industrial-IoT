@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -105,6 +106,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
 
             // register diagnostics
             builder.AddDiagnostics(config);
+            builder.RegisterModule<DefaultServiceAuthProviders>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Event processor services for onboarding consumer

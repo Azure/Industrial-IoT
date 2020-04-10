@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Clients;
     using Microsoft.Azure.IIoT.Crypto.Storage;
@@ -98,15 +99,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            services.AddLogging(o => o.AddConsole().AddDebug());
+            // services.AddLogging(o => o.AddConsole().AddDebug());
 
             services.AddHeaderForwarding();
             services.AddCors();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
             services.AddAzureDataProtection(Config.Configuration);
+
             services.AddHttpsRedirect();
-            services.AddJwtBearerAuthentication();
+            services.AddAuthentication()
+                .AddJwtBearerScheme(AuthScheme.Aad)
+                .AddJwtBearerScheme(AuthScheme.AuthService);
             services.AddAuthorizationPolicies(
                 Policies.RoleMapping,
                 Policies.CanRead,

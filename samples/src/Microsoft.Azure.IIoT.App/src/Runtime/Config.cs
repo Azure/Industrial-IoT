@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Runtime {
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
@@ -21,6 +21,8 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         IWebHostConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
+        public string Scheme => _client.Scheme;
+        /// <inheritdoc/>
         public string AppId => _client.AppId;
         /// <inheritdoc/>
         public string AppSecret => _client.AppSecret;
@@ -28,6 +30,8 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         public string TenantId => _client.TenantId;
         /// <inheritdoc/>
         public string InstanceUrl => _client.InstanceUrl;
+        /// <summary>Audience</summary>
+        public string Audience => _client.Audience;
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;

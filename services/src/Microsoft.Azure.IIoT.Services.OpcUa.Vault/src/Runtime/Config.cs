@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
@@ -25,19 +26,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Web service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IIoTHubConfig, ICorsConfig,
-        IOpenApiConfig, IVaultConfig, ICosmosDbConfig, IItemContainerConfig,
-        IKeyVaultConfig, IServiceBusConfig, IRegistryConfig,
+    public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
+        ICorsConfig, IOpenApiConfig, IVaultConfig, ICosmosDbConfig, IRoleConfig,
+        IItemContainerConfig, IKeyVaultConfig, IServiceBusConfig, IRegistryConfig,
         IForwardedHeadersConfig {
 
-        /// <summary>
-        /// Whether to use role based access
-        /// </summary>
+        /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>

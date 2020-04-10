@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Runtime {
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
 
@@ -21,6 +20,11 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_TenantIdKey = "Auth:TenantId";
         private const string kAuth_InstanceUrlKey = "Auth:InstanceUrl";
 
+        /// <summary>Scheme</summary>
+        public string Scheme => AuthScheme.Aad;
+        /// <summary>Audience</summary>
+        public string Audience => null;
+
         /// <summary>Application id</summary>
         public string AppId => GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_CLIENT_APPID,
@@ -31,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
             () => GetStringOrDefault("PCS_APPLICATION_SECRET")))?.Trim();
         /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
-            () => GetStringOrDefault(PcsVariable.PCS_AAD_TENANT,
+            () => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
             () => GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT",
                 () => "common")))?.Trim();
         /// <summary>Aad instance url</summary>

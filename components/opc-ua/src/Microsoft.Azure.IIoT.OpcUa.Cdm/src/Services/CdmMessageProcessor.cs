@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Serializers;
@@ -31,9 +32,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         /// Create the cdm message processor
         /// </summary>
         /// <param name="config"></param>
+        /// <param name="auth"></param>
         /// <param name="logger"></param>
         /// <param name="storage"></param>
-        public CdmMessageProcessor(ICdmClientConfig config,
+        public CdmMessageProcessor(ICdmClientConfig config, IClientAuthConfig auth,
             ILogger logger, IAdlsStorage storage) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -69,9 +71,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 }
             });
 
+            var authConfig = auth?.ClientSchemes?.FirstOrDefault(s =>
+                s.Scheme == AuthScheme.Aad && !string.IsNullOrEmpty(s.AppSecret));
+            if (authConfig == null) {
+                throw new ArgumentNullException("Missing service principal configuration");
+            }
+
             _adapter = new ADLSAdapter($"{config.ADLSg2HostName}",
                 $"/{config.ADLSg2ContainerName}/{config.RootFolder}",
-                config.TenantId, config.AppId, config.AppSecret);
+                authConfig.TenantId, authConfig.AppId, authConfig.AppSecret);
             _cdmCorpus.Storage.Mount("adls", _adapter);
             var gitAdapter = new GithubAdapter();
             _cdmCorpus.Storage.Mount("cdm", gitAdapter);

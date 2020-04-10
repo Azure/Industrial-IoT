@@ -15,6 +15,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
@@ -36,7 +38,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Autofac.Extensions.DependencyInjection;
     using Prometheus;
     using System;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
 
     /// <summary>
     /// Webservice startup
@@ -92,14 +93,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            services.AddLogging(o => o.AddConsole().AddDebug());
+            // services.AddLogging(o => o.AddConsole().AddDebug());
 
             services.AddHeaderForwarding();
             services.AddCors();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
+
             services.AddHttpsRedirect();
-            services.AddJwtBearerAuthentication();
+            services.AddAuthentication()
+                .AddJwtBearerScheme(AuthScheme.Aad)
+                .AddJwtBearerScheme(AuthScheme.AuthService);
             services.AddAuthorizationPolicies(
                 Policies.RoleMapping,
                 Policies.CanRead,

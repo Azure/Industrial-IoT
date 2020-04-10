@@ -21,5 +21,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// Handle authentication error
         /// </summary>
         void Handle(HttpContext context, AuthenticationException ex);
+
+        /// <summary>
+        /// Handle invalidate
+        /// </summary>
+        /// <param name="context"></param>
+        void Invalidate(HttpContext context);
     }
 }

@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
     /// <summary>
     /// Configuration extensions
     /// </summary>
-    public static class AuthSchemeConfigEx {
+    public static class OAuthServerConfigEx {
 
         /// <summary>
         /// Url of the token issuing instance.  E.g. the JWT bearer
@@ -22,14 +22,12 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
         public static string GetAuthorityUrl(this IOAuthServerConfig config) {
             var authorityUrl = config?.InstanceUrl?.TrimEnd('/');
 
-            if (string.IsNullOrEmpty(authorityUrl)) {
-                // Default to aad
-                authorityUrl = kDefaultAuthorityUrl;
-            }
-
             var tenantId = config?.TenantId;
-            if (authorityUrl.Equals(kDefaultAuthorityUrl,
-                StringComparison.InvariantCultureIgnoreCase)) {
+            if (config.GetSchemeName() == AuthScheme.Aad) {
+                if (string.IsNullOrEmpty(authorityUrl)) {
+                    // Default to aad
+                    authorityUrl = kDefaultAuthorityUrl;
+                }
 
                 // use v2.0 endpoint of AAD with tenant if set
                 if (string.IsNullOrEmpty(tenantId)) {
@@ -38,8 +36,11 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
                 return authorityUrl + "/" + tenantId + "/v2.0";
             }
 
+            if (string.IsNullOrEmpty(authorityUrl)) {
+                throw new ArgumentNullException(nameof(config.InstanceUrl));
+            }
             // Non aad e.g. identity server with optional tenant id.
-            if (string.IsNullOrEmpty(tenantId)) {
+            if (!string.IsNullOrEmpty(tenantId)) {
                 authorityUrl += "/" + tenantId;
             }
             return authorityUrl;
@@ -53,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
         public static string GetSchemeName(this IOAuthServerConfig config) {
             var name = config.Scheme;
             if (string.IsNullOrEmpty(name)) {
-                return "Bearer";
+                return AuthScheme.Unknown;
             }
             return name;
         }

@@ -34,33 +34,30 @@ namespace Microsoft.Azure.IIoT.Auth.IdentityServer4.Services {
             try {
                 if (_config.Clients != null) {
                     foreach (var client in _config.Clients) {
-                        await _clients.CreateAsync(client);
+                        await _clients.CreateOrUpdateAsync(client);
                     }
                 }
             }
-            catch (ConflictingResourceException) { }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to add root user");
             }
             try {
                 if (_config.Ids != null) {
                     foreach (var resource in _config.Ids) {
-                        await _resources.CreateAsync(resource);
+                        await _resources.CreateOrUpdateAsync(resource);
                     }
                 }
             }
-            catch (ConflictingResourceException) { }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to add identity resources");
             }
             try {
                 if (_config.Apis != null) {
                     foreach (var resource in _config.Apis) {
-                        await _resources.CreateAsync(resource);
+                        await _resources.CreateOrUpdateAsync(resource);
                     }
                 }
             }
-            catch (ConflictingResourceException) { }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to add root user");
             }

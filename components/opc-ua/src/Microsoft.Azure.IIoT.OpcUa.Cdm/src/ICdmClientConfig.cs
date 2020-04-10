@@ -4,12 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm {
-    using Microsoft.Azure.IIoT.Auth.Clients;
 
     /// <summary>
     /// configuration for the CDM storage handler
     /// </summary>
-    public interface ICdmClientConfig : IOAuthClientConfig {
+    public interface ICdmClientConfig {
 
         /// <summary>
         /// ADLSg2 connection host name

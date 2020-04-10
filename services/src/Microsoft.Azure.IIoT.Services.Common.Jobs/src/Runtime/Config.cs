@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
@@ -13,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
@@ -22,9 +24,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IIoTHubConfig,
+    public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
         ICorsConfig, IOpenApiConfig, ICosmosDbConfig, IJobDatabaseConfig,
-        IWorkerDatabaseConfig, IForwardedHeadersConfig {
+        IWorkerDatabaseConfig, IForwardedHeadersConfig, IRoleConfig {
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
@@ -65,9 +67,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
         /// <inheritdoc/>
         public string IoTHubResourceId => _hub.IoTHubResourceId;
 
-        /// <summary>
-        /// Whether to use role based access
-        /// </summary>
+        /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>

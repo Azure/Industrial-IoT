@@ -8,6 +8,8 @@ namespace Microsoft.Extensions.DependencyInjection {
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Builder;
     using System;
+    using Microsoft.Extensions.Options;
+    using Microsoft.AspNetCore.HttpsPolicy;
 
     /// <summary>
     /// Configure http redirection and hsts
@@ -53,22 +55,22 @@ namespace Microsoft.Extensions.DependencyInjection {
         /// </summary>
         /// <param name="services"></param>
         public static void AddHttpsRedirect(this IServiceCollection services) {
-
-            var config = services.BuildServiceProvider().GetService<IWebHostConfig>();
-            if (config == null) {
-                throw new InvalidOperationException("Must have configured web host context");
-            }
-            if (config.HttpsRedirectPort > 0) {
-                services.AddHsts(options => {
-                    options.Preload = true;
-                    options.IncludeSubDomains = true;
-                    options.MaxAge = TimeSpan.FromDays(60);
-                });
-                services.AddHttpsRedirection(options => {
+            services.AddHsts(options => {
+                options.Preload = true;
+                options.IncludeSubDomains = true;
+                options.MaxAge = TimeSpan.FromDays(60);
+            });
+            services.AddHttpsRedirection(options => options.HttpsPort = 0);
+            services.AddTransient<IConfigureOptions<HttpsRedirectionOptions>>(services => {
+                var config = services.GetService<IWebHostConfig>();
+                if (config == null) {
+                    throw new InvalidOperationException("Must have configured web host context");
+                }
+                return new ConfigureNamedOptions<HttpsRedirectionOptions>(Options.DefaultName, options => {
                     options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
                     options.HttpsPort = config.HttpsRedirectPort;
                 });
-            }
+            });
         }
     }
 }

@@ -6,12 +6,14 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
+    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
@@ -19,8 +21,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IIoTHubConfig,
-        ICorsConfig, IOpenApiConfig, IForwardedHeadersConfig {
+    public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
+        ICorsConfig, IOpenApiConfig, IForwardedHeadersConfig, IRoleConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -52,9 +54,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
         /// <inheritdoc/>
         public string OpenApiServerHost => _openApi.OpenApiServerHost;
 
-        /// <summary>
-        /// Whether to use role based access
-        /// </summary>
+        /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>

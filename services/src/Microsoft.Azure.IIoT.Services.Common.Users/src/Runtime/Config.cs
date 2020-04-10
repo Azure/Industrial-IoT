@@ -8,12 +8,14 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Runtime;
+    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
@@ -22,9 +24,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, ICorsConfig, IOpenApiConfig,
-        IRootUserConfig, IItemContainerConfig, ICosmosDbConfig,
-        IForwardedHeadersConfig {
+    public class Config : DiagnosticsConfig, IWebHostConfig, ICorsConfig,
+        IOpenApiConfig, IRootUserConfig, IItemContainerConfig, ICosmosDbConfig,
+        IForwardedHeadersConfig, IRoleConfig {
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
@@ -65,9 +67,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
         /// <inheritdoc/>
         public string DatabaseName => "iiot_opc";
 
-        /// <summary>
-        /// Whether to use role based access
-        /// </summary>
+        /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>

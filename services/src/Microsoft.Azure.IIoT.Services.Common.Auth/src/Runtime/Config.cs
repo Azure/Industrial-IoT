@@ -4,10 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Common.Auth.Runtime {
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
@@ -16,8 +18,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth.Runtime {
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IItemContainerConfig, ICosmosDbConfig,
-        IForwardedHeadersConfig /*IIdentityServerConfig*/ {
+    public class Config : DiagnosticsConfig, IWebHostConfig, IItemContainerConfig,
+        ICosmosDbConfig, IForwardedHeadersConfig, IRoleConfig {
 
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
@@ -34,9 +36,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth.Runtime {
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_JOBS_SERVICE_PATH_BASE, () => _host.ServicePathBase);
 
-        /// <summary>
-        /// Whether to use role based access
-        /// </summary>
+        /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>
@@ -45,55 +45,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth.Runtime {
         /// <inheritdoc/>
         public int AspNetCoreForwardedHeadersForwardLimit =>
             _fh.AspNetCoreForwardedHeadersForwardLimit;
-
-     //   /// <inheritdoc/>
-     //   public IEnumerable<Client> Clients => new List<Client> {
-     //       new Client {
-     //           ClientId = "cli",
-     //           ClientName = "Command line interface",
-     //           // no interactive user, use the clientid/secret for authentication
-     //           AllowedGrantTypes = GrantTypes.ClientCredentials,
-     //           // secret for authentication
-     //           ClientSecrets = {
-     //               new Secret(GetStringOrDefault("PCS_CLI_CLIENT_SECRET", () => "cli".Sha256()))
-     //           },
-     //           // scopes that client has access to
-     //           AllowedScopes = {
-     //               _auth.Audience
-     //           }
-     //       },
-     //       new Client {
-     //           ClientId = "frontend",
-     //           ClientName = "Engineering tool",
-     //           ClientUri = "http://identityserver.io",
-     //           AllowedGrantTypes = GrantTypes.Hybrid,
-     //           AllowOfflineAccess = true,
-     //           ClientSecrets = {
-     //               new Secret(GetStringOrDefault("PCS_CLI_CLIENT_SECRET", () => "cli".Sha256()))
-     //           },
-     //           RedirectUris = {
-     //               "http://localhost:21402/signin-oidc"
-     //           },
-     //           PostLogoutRedirectUris = {
-     //               "http://localhost:21402/"
-     //           },
-     //           FrontChannelLogoutUri = "http://localhost:21402/signout-oidc",
-     //           AllowedScopes = {
-     //               IdentityServerConstants.StandardScopes.OpenId,
-     //               IdentityServerConstants.StandardScopes.Profile,
-     //               IdentityServerConstants.StandardScopes.Email,
-     //               _auth.Audience
-     //           },
-     //       }
-     //   };
-     //
-     //   /// <inheritdoc/>
-     //   public IEnumerable<ApiResource> Apis => new List<ApiResource> {
-     //       new ApiResource(_auth.Audience, _auth.Audience)
-     //   };
-     //
-     //   /// <inheritdoc/>
-     //   public IEnumerable<IdentityResource> Ids => null;
 
         /// <summary>
         /// Configuration constructor

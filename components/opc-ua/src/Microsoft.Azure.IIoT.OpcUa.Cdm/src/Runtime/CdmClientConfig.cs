@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm.Runtime {
-    using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
@@ -13,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
     /// <summary>
     /// CDM storage configuration
     /// </summary>
-    public class CdmClientConfig : DiagnosticsConfig, ICdmClientConfig, IOAuthClientConfig {
+    public class CdmClientConfig : DiagnosticsConfig, ICdmClientConfig {
 
         /// <summary>
         /// CDM's ADLSg2 configuration
@@ -37,22 +35,12 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
             () => GetStringOrDefault(PcsVariable.PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER,
             () => GetStringOrDefault("PCS_CDM_ROOTFOLDER", () => "IIoTDataFlow")));
 
-        /// <inheritdoc/>
-        public string AppId => _client.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _client.AppSecret;
-        /// <inheritdoc/>
-        public string TenantId => _client.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _client.InstanceUrl;
-
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
         public CdmClientConfig(IConfiguration configuration) :
             base(configuration) {
-            _client = new AadServicePrincipalClientConfig(configuration);
         }
 
         /// <summary>
@@ -64,7 +52,5 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
             var cs = GetStringOrDefault(variable, () => null);
             return cs == null ? null : ConnectionString.Parse(cs).Endpoint;
         }
-
-        private readonly AadServicePrincipalClientConfig _client;
     }
 }

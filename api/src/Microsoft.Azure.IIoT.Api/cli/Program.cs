@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             // Register configuration interfaces and logger
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterInstance(new AadApiClientConfig(configuration))
+            builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
@@ -72,10 +72,20 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Use bearer authentication
+            // Use bearer authentication with aad
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
-            // Use device code token provider to get tokens
+            builder.RegisterType<AadApiClientConfig>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ClientAuthAggregateConfig>()
+                .AsImplementedInterfaces().SingleInstance();
+            // Use default vs authentication
+            builder.RegisterType<VsAuthenticationProvider>()
+                .AsSelf();
+            // fallback to device code token provider
+            builder.RegisterType<DeviceCodeTokenProvider>()
+                .AsSelf();
+            // Use cli wrapper
             builder.RegisterType<CliAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();
 

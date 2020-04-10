@@ -125,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
 
             // Register service info and configuration interfaces
             builder.RegisterInstance(Config)
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces();
 

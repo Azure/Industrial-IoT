@@ -16,11 +16,9 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// <summary>
         /// Authenticate user and retrieve token.
         /// </summary>
-        /// in case authentication failed.
-        /// <exception cref="System.Security.Authentication.AuthenticationException"/>
         /// <param name="resource">Resource to authenticate</param>
         /// <param name="scopes">Scope permissions to request</param>
-        /// <returns></returns>
+        /// <returns>null if no token could be retrieved</returns>
         Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes = null);
 

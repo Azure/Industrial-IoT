@@ -3,17 +3,18 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
-    using System.Collections.Generic;
+using System.Collections.Generic;
 
+namespace Microsoft.Azure.IIoT.Auth {
     /// <summary>
-    /// Configuration interface for client authentication
+    /// Extension for swagger clients
+    /// see https://swagger.io/docs/specification/authentication/oauth2/
     /// </summary>
-    public interface IClientAuthConfig {
+    public interface IOpenApiClientConfig : IOAuthClientConfig {
 
         /// <summary>
-        /// Supported clients
+        /// Redirect Uris
         /// </summary>
-        IEnumerable<IOAuthClientConfig> ClientSchemes { get; }
+        List<string> RedirectUris { get; }
     }
 }

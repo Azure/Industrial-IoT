@@ -21,14 +21,12 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
 
             builder.RegisterType<AadServiceAuthConfig>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AadServicePrincipalClientConfig>()
+            builder.RegisterType<AadSpClientConfig>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // ...
 
-            builder.RegisterType<AuthServiceServiceAuthConfig>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AuthServiceClientConfig>()
+            builder.RegisterType<AuthServiceOAuthConfig>()
                 .AsImplementedInterfaces().SingleInstance();
 
             base.Load(builder);

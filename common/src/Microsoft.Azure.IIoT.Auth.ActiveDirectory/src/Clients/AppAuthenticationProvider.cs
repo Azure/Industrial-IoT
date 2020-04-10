@@ -6,9 +6,11 @@
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.Services.AppAuthentication;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Security.Authentication;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -29,30 +31,57 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>
         /// Create auth provider.
         /// </summary>
-        public AppAuthenticationProvider() : this(null) {
+        /// <param name="logger"></param>
+        public AppAuthenticationProvider(ILogger logger) : this(null, logger) {
         }
 
         /// <summary>
         /// Create auth provider
         /// </summary>
         /// <param name="config"></param>
-        public AppAuthenticationProvider(IOAuthClientConfig config) {
-            _config = config;
-            _provider = CreateProvider();
+        /// <param name="logger"></param>
+        public AppAuthenticationProvider(IClientAuthConfig config, ILogger logger) {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _config = config?.ClientSchemes?
+                .Where(c => c.Scheme == AuthScheme.Aad)
+                .Where(c => !string.IsNullOrEmpty(c.AppId))
+                .ToDictionary(c => c.Audience ?? string.Empty,
+                    c => (c.GetAuthorityUrl(), CreateProvider(c)));
+            // Add default entry
+            if (_config == null) {
+                _config = new Dictionary<string, (string, AzureServiceTokenProvider)> {
+                    [string.Empty] =
+                        ("https://login.microsoftonline.com/",
+                            CreateProvider())
+                };
+            }
         }
 
-        /// <summary>
-        /// Obtain token using the Application authentication token
-        /// provider framework.
-        /// </summary>
-        /// <param name="resource"></param>
-        /// <param name="scopes"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            var token = await _provider.KeyVaultTokenCallback(
-                _config.GetAuthorityUrl(), resource, scopes?.FirstOrDefault());
-            return TokenResultModelEx.Parse(token);
+            resource ??= string.Empty;
+            if (!_config.TryGetValue(resource, out var entry) &&
+                !_config.TryGetValue(string.Empty, out entry)) {
+                throw new AuthenticationException("Failed to retrieve handler.");
+            }
+            var (authorityUrl, provider) = entry;
+            try {
+                var token = await provider.KeyVaultTokenCallback(
+                    authorityUrl, resource, scopes?.FirstOrDefault());
+                if (token == null) {
+                    throw new AuthenticationException("No token found.");
+                }
+                return TokenResultModelEx.Parse(token);
+            }
+            catch (AuthenticationException) {
+                throw;
+            }
+            catch (Exception ex) {
+                _logger.Information(ex, "Failed to retrieve token for {resource}",
+                    resource);
+                throw new AuthenticationException("Unexpected error retrieving token", ex);
+            }
         }
 
         /// <inheritdoc/>
@@ -72,33 +101,34 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// Helper to create provider
         /// </summary>
         /// <returns></returns>
-        private AzureServiceTokenProvider CreateProvider() {
+        private AzureServiceTokenProvider CreateProvider(
+            IOAuthClientConfig config = null) {
             // See if configured in environment variable
             var cs = Environment.GetEnvironmentVariable(
                 "AzureServicesAuthConnectionString");
             if (string.IsNullOrEmpty(cs)) {
-                if (string.IsNullOrEmpty(_config?.AppId)) {
+                if (string.IsNullOrEmpty(config?.AppId)) {
                     // Run as dev or current user
                     cs = NoClientIdRunAs();
                 }
                 else {
                     // Run as app
-                    cs = $"RunAs=App;AppId={_config.AppId}";
-                    if (!string.IsNullOrEmpty(_config.TenantId)) {
-                        cs += $";TenantId={_config.TenantId}";
+                    cs = $"RunAs=App;AppId={config.AppId}";
+                    if (!string.IsNullOrEmpty(config.TenantId)) {
+                        cs += $";TenantId={config.TenantId}";
                     }
-                    if (!string.IsNullOrEmpty(_config.AppSecret)) {
-                        cs += $";AppKey={_config.AppSecret}";
+                    if (!string.IsNullOrEmpty(config.AppSecret)) {
+                        cs += $";AppKey={config.AppSecret}";
                     }
                 }
             }
             return new AzureServiceTokenProvider(cs,
-                _config.GetAuthorityUrl());
+                config.GetAuthorityUrl());
         }
 
         /// <summary>Configuration for derived class</summary>
-        protected readonly IOAuthClientConfig _config;
-        /// <summary>Token provider for derived class</summary>
-        protected readonly AzureServiceTokenProvider _provider;
+        protected readonly Dictionary<string,
+            (string, AzureServiceTokenProvider)> _config;
+        private readonly ILogger _logger;
     }
 }

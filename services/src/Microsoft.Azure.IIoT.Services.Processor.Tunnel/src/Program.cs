@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -22,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Http.Auth;
 
     /// <summary>
     /// IoT Hub device telemetry event processor host.  Processes all
@@ -101,6 +103,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
 
             // register diagnostics
             builder.AddDiagnostics(config);
+            builder.RegisterModule<DefaultServiceAuthProviders>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Event processor services for onboarding consumer
@@ -121,6 +124,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
 
             // Http client module to call other services
             builder.RegisterModule<HttpClientModule>();
+            // Use bearer authentication
+            builder.RegisterType<HttpBearerAuthentication>()
+                .AsImplementedInterfaces().SingleInstance();
             // Managed or service principal authentication
             builder.RegisterType<AppAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();

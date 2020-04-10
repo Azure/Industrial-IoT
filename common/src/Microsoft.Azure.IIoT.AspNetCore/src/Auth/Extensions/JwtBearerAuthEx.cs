@@ -8,12 +8,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Options;
     using Microsoft.IdentityModel.Tokens;
     using System;
     using System.IdentityModel.Tokens.Jwt;
@@ -43,28 +45,33 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <summary>
         /// Helper to add jwt bearer authentication
         /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddJwtBearerAuthentication(this IServiceCollection services) {
+        /// <param name="builder"></param>
+        /// <param name="scheme"></param>
+        public static AuthenticationBuilder AddJwtBearerScheme(this AuthenticationBuilder builder,
+            string scheme) {
 
-            services.TryAddTransient<IServerAuthConfig, ServiceAuthAggregateConfig>();
-            var provider = services.BuildServiceProvider();
-            var environment = provider.GetRequiredService<IWebHostEnvironment>();
-            var auth = provider.GetService<IServerAuthConfig>();
-
-            // Add jwt bearer auth
-            var builder = services.AddAuthentication();
-            if (auth == null || !auth.JwtBearerSchemes.Any()) {
-                // No schemes configured
-                return services;
-            }
-
+            builder.Services.TryAddTransient<IServerAuthConfig, ServiceAuthAggregateConfig>();
             // Allow access to context from within token providers and other client auth
-            services.AddHttpContextAccessor();
+            builder.Services.AddHttpContextAccessor();
 
-            foreach (var config in auth.JwtBearerSchemes) {
-                builder = builder.AddJwtBearer(config.GetSchemeName(), options => {
+            // Add scheme configuration
+            builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>>(services => {
+                var schemes = services.GetRequiredService<IServerAuthConfig>();
+                var environment = services.GetRequiredService<IWebHostEnvironment>();
+                return new ConfigureNamedOptions<JwtBearerOptions>(scheme, options => {
+
+                    // Find whether the scheme is configurable
+                    var config = schemes?.JwtBearerSchemes?
+                        .FirstOrDefault(s => s.GetSchemeName() == scheme);
+                    if (config == null) {
+                        // Not configurable - this is ok as this might not be enabled
+                        // Will not be enabled for authorization
+                        return;
+                    }
                     options.Authority = config.GetAuthorityUrl();
                     options.SaveToken = true; // Save token to allow request on behalf
+                    options.RequireHttpsMetadata =
+                       !new Uri(options.Authority).DnsSafeHost.EqualsIgnoreCase("localhost");
 
                     options.TokenValidationParameters = new TokenValidationParameters {
                         ClockSkew = config.AllowedClockSkew,
@@ -74,11 +81,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         ValidAudience = config.Audience
                     };
                     options.Events = new JwtBearerEvents {
-                        OnAuthenticationFailed = ctx => {
-                            ctx.NoResult();
-                            return WriteErrorAsync(ctx.Response, environment.IsDevelopment() ?
-                                ctx.Exception : null);
-                        },
+                     //  OnAuthenticationFailed = ctx => {
+                     //      ctx.NoResult();
+                     //      return WriteErrorAsync(ctx.Response, environment.IsDevelopment() ?
+                     //          ctx.Exception : null);
+                     //  },
                         OnTokenValidated = ctx => {
                             if (ctx.SecurityToken is JwtSecurityToken accessToken) {
                                 if (ctx.Principal.Identity is ClaimsIdentity identity) {
@@ -90,8 +97,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         }
                     };
                 });
-            }
-            return services;
+            });
+            return builder.AddJwtBearer(scheme, configureOptions: null);
         }
 
         /// <summary>

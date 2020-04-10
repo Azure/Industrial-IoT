@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -138,7 +139,7 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            services.AddLogging(o => o.AddConsole().AddDebug());
+            // services.AddLogging(o => o.AddConsole().AddDebug());
             services.AddHeaderForwarding();
 
             // Protect anything using keyvault and storage persisted keys
@@ -214,6 +215,9 @@ namespace Microsoft.Azure.IIoT.App {
 
             // Register logger
             builder.AddDiagnostics(Config);
+            //      builder.RegisterModule<DefaultClientAuthProviders>(); // TODO
+            builder.RegisterType<ClientAuthAggregateConfig>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
@@ -311,6 +315,11 @@ namespace Microsoft.Azure.IIoT.App {
 
             /// <inheritdoc/>
             public void Handle(HttpContext context, AuthenticationException ex) {
+                Invalidate(context);
+            }
+
+            /// <inheritdoc/>
+            public void Invalidate(HttpContext context) {
                 // Force signout
                 var provider = context?.RequestServices.GetService<AuthenticationStateProvider>();
                 if (provider is ServerAuthenticationStateProvider s) {

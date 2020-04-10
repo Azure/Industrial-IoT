@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
@@ -29,6 +30,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Http.Auth;
 
     /// <summary>
     /// IoT Hub device events event processor host.  Processes all
@@ -108,6 +110,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
 
             // register diagnostics
             builder.AddDiagnostics(config);
+            builder.RegisterModule<DefaultServiceAuthProviders>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Event processor services for onboarding consumer
@@ -139,6 +142,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
                 .AsImplementedInterfaces().SingleInstance();
             // using Http client module (needed for api)
             builder.RegisterModule<HttpClientModule>();
+            // Use bearer authentication
+            builder.RegisterType<HttpBearerAuthentication>()
+                .AsImplementedInterfaces().SingleInstance();
             // with Managed or service principal authentication
             builder.RegisterType<AppAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();

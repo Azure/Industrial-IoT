@@ -5,9 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.IIoT.Auth.Models;
-    using Serilog;
+    using Microsoft.Azure.IIoT.Utils;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Autofac;
 
     /// <summary>
     /// Authenticate with device token after trying app authentication.
@@ -15,34 +16,20 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     public class CliAuthenticationProvider : ITokenProvider {
 
         /// <inheritdoc/>
-        public CliAuthenticationProvider(IOAuthClientConfig config, ILogger logger) {
-            _vs = new VsAuthenticationProvider(config);
-            _dc = new DeviceCodeTokenProvider(config, logger);
-        }
-
-        /// <inheritdoc/>
-        public CliAuthenticationProvider(IOAuthClientConfig config,
-            ITokenCacheProvider store, ILogger logger) {
-            _vs = new VsAuthenticationProvider(config);
-            _dc = new DeviceCodeTokenProvider(config, store, logger);
-        }
-
-        /// <inheritdoc/>
-        public CliAuthenticationProvider(IDeviceCodePrompt prompt,
-            IOAuthClientConfig config, ITokenCacheProvider store, ILogger logger) {
-            _vs = new VsAuthenticationProvider(config);
-            _dc = new DeviceCodeTokenProvider(prompt, config, store, logger);
+        public CliAuthenticationProvider(IComponentContext components) {
+            _vs = components.Resolve<VsAuthenticationProvider>();
+            _dc = components.Resolve<DeviceCodeTokenProvider>();
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes = null) {
-            try {
-                return await _vs.GetTokenForAsync(resource, scopes);
+
+            var token = await Try.Async(() => _vs.GetTokenForAsync(resource, scopes));
+            if (token != null) {
+                return token;
             }
-            catch {
-                return await _dc.GetTokenForAsync(resource, scopes);
-            }
+            return await Try.Async(() => _dc.GetTokenForAsync(resource, scopes));
         }
 
         /// <inheritdoc/>

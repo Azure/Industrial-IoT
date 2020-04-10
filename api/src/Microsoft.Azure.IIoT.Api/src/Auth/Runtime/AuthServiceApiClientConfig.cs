@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Runtime {
     using Microsoft.Azure.IIoT.Api.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
@@ -21,17 +20,21 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_AppSecretKey = "Auth:AppSecret";
         private const string kAuth_InstanceUrlKey = "Auth:InstanceUrl";
 
+        /// <summary>Scheme</summary>
+        public string Scheme => AuthScheme.AuthService;
+
         /// <summary>Auth server disabled or not</summary>
         protected bool IsDisabled => GetBoolOrDefault(kAuth_IsDisabledKey,
             () => GetBoolOrDefault(PcsVariable.PCS_AUTH_SERVICE_DISABLED,
                 () => false));
-
         /// <summary>Application id</summary>
-        public string AppId => GetStringOrDefault(kAuth_AppIdKey,
-            () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_SERVICE_APPID))?.Trim();
+        public string AppId => IsDisabled ? null : GetStringOrDefault(kAuth_AppIdKey,
+            () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_CLIENT_APPID,
+                () => "F095B8821F4F4604B6E3AD1110EE58A4"))?.Trim();
         /// <summary>App secret</summary>
-        public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey,
-            () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_SERVICE_SECRET))?.Trim();
+        public string AppSecret => IsDisabled ? null : GetStringOrDefault(kAuth_AppSecretKey,
+            () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_CLIENT_SECRET,
+                () => null))?.Trim();
         /// <summary>Auth server instance url</summary>
         public string InstanceUrl => IsDisabled ? null :
             GetStringOrDefault(kAuth_InstanceUrlKey,
@@ -40,6 +43,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
 
         /// <summary>Optional tenant</summary>
         public string TenantId => null;
+        /// <summary>Audience</summary>
+        public string Audience => null;
 
         /// <summary>
         /// Configuration constructor
@@ -49,5 +54,4 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
             base(configuration) {
         }
     }
-
 }

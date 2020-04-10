@@ -151,14 +151,9 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
                 .WithUrl(_endpointUri, options => {
                     if (_tokenProvider != null) {
                         options.AccessTokenProvider = async () => {
-                            try {
-                                var token = await _tokenProvider.GetTokenForAsync(
-                                    _resourceId);
-                                return token?.RawToken;
-                            }
-                            catch {
-                                return null;
-                            }
+                            var token = await _tokenProvider.GetTokenForAsync(
+                                _resourceId);
+                            return token?.RawToken;
                         };
                     }
                 })

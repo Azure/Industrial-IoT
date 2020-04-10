@@ -3,12 +3,22 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients {
+namespace Microsoft.Azure.IIoT.Auth {
 
     /// <summary>
     /// Configuration for oauth clients
     /// </summary>
     public interface IOAuthClientConfig {
+
+        /// <summary>
+        /// Name of the authentication scheme
+        /// </summary>
+        string Scheme { get; }
+
+        /// <summary>
+        /// Audience (app id of service)
+        /// </summary>
+        string Audience { get; }
 
         /// <summary>
         /// The Id of the client.

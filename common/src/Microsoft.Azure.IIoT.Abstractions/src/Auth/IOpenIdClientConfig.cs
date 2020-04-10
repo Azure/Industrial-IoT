@@ -4,16 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth {
-    using System.Collections.Generic;
-
     /// <summary>
-    /// Configuration interface for client authentication
+    /// Extension for openid clients
     /// </summary>
-    public interface IClientAuthConfig {
+    public interface IOpenIdClientConfig : IOAuthClientConfig {
 
         /// <summary>
-        /// Supported clients
+        /// Client uri
         /// </summary>
-        IEnumerable<IOAuthClientConfig> ClientSchemes { get; }
+        string ClientUri { get; }
     }
 }

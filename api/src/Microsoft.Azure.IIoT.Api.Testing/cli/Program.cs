@@ -3,13 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Api.Cli {
+namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Api.Jobs.Clients;
     using Microsoft.Azure.IIoT.Api.Jobs;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
@@ -34,7 +35,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
 
     /// <summary>
     /// Api command line interface
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             // Register configuration interfaces and logger
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterInstance(new AadApiClientConfig(configuration))
+            builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register logger
@@ -66,10 +66,20 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Use bearer authentication
+            // Use bearer authentication with aad
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
-            // Use device code token provider to get tokens
+            builder.RegisterType<AadApiClientConfig>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ClientAuthAggregateConfig>()
+                .AsImplementedInterfaces().SingleInstance();
+            // Use default vs authentication
+            builder.RegisterType<VsAuthenticationProvider>()
+                .AsSelf();
+            // fallback to device code token provider
+            builder.RegisterType<DeviceCodeTokenProvider>()
+                .AsSelf();
+            // Use cli wrapper
             builder.RegisterType<CliAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();
 

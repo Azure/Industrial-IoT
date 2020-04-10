@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Services;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -105,6 +106,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
 
             // register diagnostics
             builder.AddDiagnostics(config);
+            builder.RegisterModule<DefaultServiceAuthProviders>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Event processor services

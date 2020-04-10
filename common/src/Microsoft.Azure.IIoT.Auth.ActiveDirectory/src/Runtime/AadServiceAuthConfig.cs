@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_InstanceUrlKey = "Aad:InstanceUrl";
 
         /// <summary>Scheme</summary>
-        public string Scheme => "aad";
+        public string Scheme => AuthScheme.Aad;
         /// <summary>Aad instance url</summary>
         public string InstanceUrl => GetStringOrDefault(kAuth_InstanceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_INSTANCE,
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
                 () => "https://login.microsoftonline.com"))).Trim();
         /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
-            () => GetStringOrDefault(PcsVariable.PCS_AAD_TENANT,
+            () => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
             () => GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT",
                 () => "common"))).Trim();
         /// <summary>Trusted issuer</summary>
@@ -44,7 +44,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
                 () => 120));
         /// <summary>Valid audience</summary>
         public string Audience => GetStringOrDefault(kAuth_AudienceKey,
-            () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE))?.Trim();
+            () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
+                () => null))?.Trim();
 
         /// <summary>
         /// Configuration constructor

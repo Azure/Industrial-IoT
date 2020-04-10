@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -105,6 +106,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(config);
+            builder.RegisterModule<DefaultServiceAuthProviders>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register http client module

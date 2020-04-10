@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth {
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Storage;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Models;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Services;
+    using Microsoft.Azure.IIoT.Auth.IdentityServer4.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
@@ -117,7 +118,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth {
             var authentication = services.AddAuthentication();
 
             // Attach aad
-            var aadConfig = new AadServicePrincipalClientConfig(Config.Configuration);
+            var aadConfig = new AadSpClientConfig(Config.Configuration);
             if (!string.IsNullOrEmpty(aadConfig.AppId) &&
                 !string.IsNullOrEmpty(aadConfig.AppSecret)) {
                 authentication = authentication.AddAzureAD(options => {
@@ -188,6 +189,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth {
             // Add diagnostics and auth providers
             builder.AddDiagnostics(Config);
             builder.RegisterModule<DefaultServiceAuthProviders>();
+            builder.RegisterModule<DefaultClientAuthProviders>();
+
+            // TODO: Add openid auth providers
+            // TODO: Add swagger auth providers (?)
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
@@ -208,6 +213,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth {
             builder.RegisterType<UserDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
 
+            builder.RegisterType<IdentityServerConfig>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IdentityServerStorageInit>()
                 .AsImplementedInterfaces().SingleInstance();
             // ... and auto start

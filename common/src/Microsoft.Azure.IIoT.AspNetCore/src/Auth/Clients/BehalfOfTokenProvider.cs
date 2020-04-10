@@ -34,76 +34,87 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="logger"></param>
         /// <param name="handler"></param>
         public BehalfOfTokenProvider(IHttpContextAccessor ctx, ITokenCacheProvider store,
-            IOAuthClientConfig config, ILogger logger, IAuthenticationErrorHandler handler = null) {
+            IClientAuthConfig config, ILogger logger, IAuthenticationErrorHandler handler = null) {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _config = config ?? throw new ArgumentNullException(nameof(config));
             _handler = handler ?? new ThrowHandler();
 
-            if (string.IsNullOrEmpty(_config.AppId) ||
-                string.IsNullOrEmpty(_config.AppSecret)) {
-                _logger.Error("On behalf token provider was not configured with " +
-                    "a client id or secret.  No tokens will be obtained. ");
+            _config = config?.ClientSchemes?
+                .Where(c => c.Scheme == AuthScheme.Aad)
+                .Where(c => !string.IsNullOrEmpty(c.AppId))
+                .ToDictionary(c => c.Audience ?? string.Empty, c => c)
+                    ?? throw new ArgumentNullException(nameof(config));
+
+            if (_config.Count == 0) {
+                _logger.Error("On Behalf token provider was not configured with " +
+                    "with client ids.  No tokens can be obtained.");
             }
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            if (string.IsNullOrEmpty(_config.AppId) ||
-                string.IsNullOrEmpty(_config.AppSecret)) {
+            resource ??= string.Empty;
+            if (!_config.TryGetValue(resource, out var config) &&
+                !_config.TryGetValue(string.Empty, out config)) {
                 return null;
             }
-
-            var user = _ctx.HttpContext?.User;
-            // User id should be known, we need it to sign in on behalf of...
-            if (user == null) {
-                _handler.Handle(_ctx.HttpContext,
-                    new AuthenticationException("Missing claims principal."));
-                return null;
-            }
-
-            var name = user.FindFirstValue(ClaimTypes.Upn);
-            if (string.IsNullOrEmpty(name)) {
-                name = user.FindFirstValue(ClaimTypes.Email);
-            }
-            if (string.IsNullOrEmpty(name)) {
-                name = user.Identity?.Name;
-            }
-
-            const string kAccessTokenKey = "access_token";
-            var token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
-            if (string.IsNullOrEmpty(token)) {
-                _handler.Handle(_ctx.HttpContext, new AuthenticationException(
-                    $"No auth on behalf of {name} without token..."));
-                return null;
-            }
-
-            var cache = _store.GetCache($"OID:{user.GetObjectId()}");
-            var ctx = CreateAuthenticationContext(_config.InstanceUrl,
-                _config.TenantId, cache);
-
             try {
-                var result = await ctx.AcquireTokenSilentAsync(resource, _config.AppId);
-                return result.ToTokenResult();
-            }
-            catch (AdalException ex) {
-                if (ex.ErrorCode == AdalError.FailedToAcquireTokenSilently) {
-                    if (_handler.AcquireTokenIfSilentFails) {
-                        try {
-                            var result = await ctx.AcquireTokenAsync(resource,
-                            new ClientCredential(_config.AppId, _config.AppSecret),
-                            new UserAssertion(token, kGrantType, name));
-                            return result.ToTokenResult();
-                        }
-                        catch (AdalException ex2) {
-                            ex = ex2;
+                var user = _ctx.HttpContext?.User;
+                // User id should be known, we need it to sign in on behalf of...
+                if (user == null) {
+                    throw new AuthenticationException("Missing claims principal.");
+                }
+
+                var name = user.FindFirstValue(ClaimTypes.Upn);
+                if (string.IsNullOrEmpty(name)) {
+                    name = user.FindFirstValue(ClaimTypes.Email);
+                }
+                if (string.IsNullOrEmpty(name)) {
+                    name = user.Identity?.Name;
+                }
+
+                const string kAccessTokenKey = "access_token";
+                var token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
+                if (string.IsNullOrEmpty(token)) {
+                    throw new AuthenticationException(
+                        $"No auth on behalf of {name} without token...");
+                }
+
+                var cache = _store.GetCache($"OID:{user.GetObjectId()}");
+                var ctx = CreateAuthenticationContext(config.InstanceUrl,
+                    config.TenantId, cache);
+                try {
+                    var result = await ctx.AcquireTokenSilentAsync(resource, config.AppId);
+                    return result.ToTokenResult();
+                }
+                catch (AdalException ex) {
+                    if (ex.ErrorCode == AdalError.FailedToAcquireTokenSilently) {
+                        if (_handler.AcquireTokenIfSilentFails &&
+                            !string.IsNullOrEmpty(config.AppSecret)) {
+                            try {
+                                var result = await ctx.AcquireTokenAsync(resource,
+                                    new ClientCredential(config.AppId, config.AppSecret),
+                                    new UserAssertion(token, kGrantType, name));
+                                return result.ToTokenResult();
+                            }
+                            catch (AdalException ex2) {
+                                ex = ex2;
+                            }
                         }
                     }
+                    throw new AuthenticationException(
+                        $"Failed to authenticate on behalf of {name}", ex);
                 }
-                _handler.Handle(_ctx.HttpContext, new AuthenticationException(
-                    $"Failed to authenticate on behalf of {name}", ex));
+                catch (Exception ex2) {
+                    throw new AuthenticationException(
+                        $"Unexpected error authenticating on behalf of {name}", ex2);
+                }
+            }
+            catch (AuthenticationException e) {
+                _logger.Information(e, "Failed to get token for {resource} ", resource);
+                _handler.Handle(_ctx.HttpContext, e);
                 return null;
             }
         }
@@ -140,7 +151,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="resource"></param>
         /// <returns></returns>
         public Task InvalidateAsync(string resource) {
-            // TODO
+            var user = _ctx.HttpContext?.User;
+            if (user != null) {
+                var cache = _store.GetCache($"OID:{user.GetObjectId()}");
+                cache?.Clear();
+            }
+            _handler.Invalidate(_ctx.HttpContext);
             return Task.CompletedTask;
         }
 
@@ -155,6 +171,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             public void Handle(HttpContext context, AuthenticationException ex) {
                 throw ex;
             }
+            /// <inheritdoc/>
+            public void Invalidate(HttpContext context) {
+            }
         }
 
         private const string kGrantType = "urn:ietf:params:oauth:grant-type:jwt-bearer";
@@ -163,7 +182,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private readonly IHttpContextAccessor _ctx;
         private readonly ITokenCacheProvider _store;
         private readonly ILogger _logger;
-        private readonly IOAuthClientConfig _config;
+        private readonly Dictionary<string, IOAuthClientConfig> _config;
         private readonly IAuthenticationErrorHandler _handler;
     }
 }

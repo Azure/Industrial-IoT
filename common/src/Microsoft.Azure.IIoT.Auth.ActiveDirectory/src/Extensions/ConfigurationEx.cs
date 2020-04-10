@@ -7,6 +7,8 @@ namespace Microsoft.Extensions.Configuration {
     using Microsoft.Extensions.Primitives;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
     using Microsoft.Azure.Services.AppAuthentication;
@@ -16,7 +18,6 @@ namespace Microsoft.Extensions.Configuration {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT;
 
     /// <summary>
     /// Extension methods
@@ -56,11 +57,15 @@ namespace Microsoft.Extensions.Configuration {
             public string AppSecret => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_SECRET,
                 () => Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_SECRET))?.Trim();
             /// <summary>Optional tenant</summary>
-            public string TenantId => GetStringOrDefault(PcsVariable.PCS_AAD_TENANT,
-                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_AAD_TENANT) ?? "common").Trim();
+            public string TenantId => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
+                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT))?.Trim();
 
             /// <summary>Aad instance url</summary>
             public string InstanceUrl => null;
+            /// <summary>Audience</summary>
+            public string Audience => null;
+            /// <summary>Scheme</summary>
+            public string Scheme => AuthScheme.Aad;
 
             /// <summary>
             /// Configuration constructor

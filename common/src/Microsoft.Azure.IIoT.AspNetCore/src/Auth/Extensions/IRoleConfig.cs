@@ -3,17 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
-    using System.Collections.Generic;
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
 
     /// <summary>
-    /// Configuration interface for client authentication
+    /// Role configuration
     /// </summary>
-    public interface IClientAuthConfig {
+    public interface IRoleConfig {
 
         /// <summary>
-        /// Supported clients
+        /// Using roles
         /// </summary>
-        IEnumerable<IOAuthClientConfig> ClientSchemes { get; }
+        bool UseRoles { get; }
     }
 }

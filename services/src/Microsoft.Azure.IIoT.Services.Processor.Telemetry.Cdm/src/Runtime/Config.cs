@@ -49,14 +49,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
         public string ADLSg2ContainerName => _cdm.ADLSg2ContainerName;
         /// <inheritdoc/>
         public string RootFolder => _cdm.RootFolder;
-        /// <inheritdoc/>
-        public string TenantId => _cdm.TenantId;
-        /// <inheritdoc/>
-        public string AppId => _cdm.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _cdm.AppSecret;
-        /// <inheritdoc/>
-        public string InstanceUrl => _cdm.InstanceUrl;
 
         /// <summary>
         /// Configuration constructor
