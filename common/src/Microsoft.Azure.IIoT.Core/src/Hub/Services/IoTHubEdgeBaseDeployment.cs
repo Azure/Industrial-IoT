@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// </summary>
         /// <param name="version"></param>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version = "1.0") {
+        private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version = "1.0.9") {
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(@"
 {
     ""$edgeAgent"": {
@@ -78,7 +78,15 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                     ""restartPolicy"": ""always"",
                     ""settings"": {
                         ""image"": ""mcr.microsoft.com/azureiotedge-hub:" + version + @""",
-                        ""createOptions"": ""{\""HostConfig\"":{\""PortBindings\"":{\""5671/tcp\"":[{\""HostPort\"":\""5671\""}],\""8883/tcp\"":[{\""HostPort\"":\""8883\""}],\""443/tcp\"":[{\""HostPort\"":\""443\""}]}}}""
+                        ""createOptions"": ""{\""HostConfig\"":{\""PortBindings\"":{\""443/tcp\"":[{\""HostPort\"":\""443\""}],\""5671/tcp\"":[{\""HostPort\"":\""5671\""}],\""9600/tcp\"":[{\""HostPort\"":\""9600\""}],\""8883/tcp\"":[{\""HostPort\"":\""8883\""}]}},\""ExposedPorts\"":{\""9600/tcp\"":{},\""5671/tcp\"":{},\""8883/tcp\"":{}}}""
+                    },
+                    ""env"": {
+                        ""experimentalfeatures__enabled"": {
+                            ""value"": ""true""
+                        },
+                        ""experimentalfeatures__enableMetrics"": {
+                            ""value"": ""true""
+                        }
                     }
                 }
             },
