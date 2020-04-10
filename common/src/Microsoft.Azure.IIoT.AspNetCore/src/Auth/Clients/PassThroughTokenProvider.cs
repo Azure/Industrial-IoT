@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Security.Authentication;
+    using System.Linq;
 
     /// <summary>
     /// Authenticate using the current token.
@@ -23,7 +24,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// to be able to get at the http context here.
         /// </summary>
         /// <param name="ctx"></param>
-        public PassThroughTokenProvider(IHttpContextAccessor ctx) {
+        /// <param name="config"></param>
+        public PassThroughTokenProvider(IHttpContextAccessor ctx,
+            IClientAuthConfig config = null) {
+            _schemes = config?.ClientSchemes?.Select(s => s.Scheme).Distinct().ToList();
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
         }
 
@@ -31,7 +35,19 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             const string kAccessTokenKey = "access_token";
-            var token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
+
+            string token = null;
+            if (_schemes == null) {
+                token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
+            }
+            else {
+                foreach (var scheme in _schemes) {
+                    token = await _ctx.HttpContext.GetTokenAsync(scheme, kAccessTokenKey);
+                    if (token != null) {
+                        break; // Use first found token
+                    }
+                }
+            }
             if (string.IsNullOrEmpty(token)) {
                 return null;
             }
@@ -48,6 +64,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             return Task.CompletedTask;
         }
 
+        private readonly List<string> _schemes;
         private readonly IHttpContextAccessor _ctx;
     }
 
