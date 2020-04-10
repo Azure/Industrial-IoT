@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Runtime {
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Autofac;
 
     /// <summary>

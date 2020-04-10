@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.IdentityServer4.Services {
-    using Microsoft.Azure.IIoT.Exceptions;
     using Serilog;
     using System;
     using System.Threading.Tasks;

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Extensions.Configuration {
     using Microsoft.Extensions.Primitives;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Auth;

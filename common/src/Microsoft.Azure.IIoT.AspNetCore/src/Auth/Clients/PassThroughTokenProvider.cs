@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Security.Authentication;
     using System.Linq;
 
     /// <summary>
