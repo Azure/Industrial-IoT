@@ -21,6 +21,11 @@ namespace Microsoft.Azure.IIoT.Auth {
         public const string Aad = nameof(Aad);
 
         /// <summary>
+        /// User assigned identity
+        /// </summary>
+        public const string Msi = nameof(Msi);
+
+        /// <summary>
         /// Auth service
         /// </summary>
         public const string AuthService = nameof(AuthService);

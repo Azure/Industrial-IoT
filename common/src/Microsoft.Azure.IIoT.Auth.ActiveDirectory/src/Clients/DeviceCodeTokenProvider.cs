@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Authenticate using device code
     /// </summary>
-    public class DeviceCodeTokenProvider : ITokenProvider {
+    public sealed class DeviceCodeTokenProvider : ITokenProvider {
 
         /// <summary>
         /// Create console output device code based token provider
@@ -32,8 +32,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="store"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public DeviceCodeTokenProvider(IClientAuthConfig config, ITokenCacheProvider store,
-            ILogger logger) :
+        public DeviceCodeTokenProvider(
+            IClientAuthConfig config, ITokenCacheProvider store, ILogger logger) :
             this(new ConsolePrompt(), config, store, logger) {
         }
 
@@ -49,16 +49,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _prompt = prompt ?? throw new ArgumentNullException(nameof(prompt));
             _store = store ?? DefaultTokenCacheProvider.Instance;
-            _config = config?.ClientSchemes?
-                .Where(c => c.Scheme == AuthScheme.Aad)
-                .Where(c => !string.IsNullOrEmpty(c.AppId))
-                .ToDictionary(c => c.Audience ?? string.Empty, c => c)
-                    ?? throw new ArgumentNullException(nameof(config));
-
-            if (_config.Count == 0) {
-                _logger.Error("Device code token provider was not configured with " +
-                    "with client ids.  No tokens can be obtained.");
-            }
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         /// <summary>
@@ -69,10 +60,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <returns></returns>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-
-            resource ??= string.Empty;
-            if (!_config.TryGetValue(resource, out var config) &&
-                !_config.TryGetValue(string.Empty, out config)) {
+            if (!_config.TryGetConfig(resource, AuthScheme.Aad, out var config)) {
                 return null;
             }
             var ctx = CreateAuthenticationContext(config.InstanceUrl,
@@ -144,14 +132,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             }
         }
 
-        /// <summary>Logger for derived class</summary>
-        protected readonly ILogger _logger;
-        /// <summary>Configuration for derived class</summary>
-        protected readonly Dictionary<string, IOAuthClientConfig> _config;
-        /// <summary>Callback for derived class</summary>
-        protected readonly IDeviceCodePrompt _prompt;
-
-        private const string kDefaultAuthorityUrl = "https://login.microsoftonline.com/";
+        private readonly ILogger _logger;
+        private readonly IClientAuthConfig _config;
+        private readonly IDeviceCodePrompt _prompt;
         private readonly ITokenCacheProvider _store;
+        private const string kDefaultAuthorityUrl = "https://login.microsoftonline.com/";
     }
 }

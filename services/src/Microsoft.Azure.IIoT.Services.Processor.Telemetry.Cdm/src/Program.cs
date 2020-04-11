@@ -26,6 +26,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.Auth.Clients;
 
     /// <summary>
     /// IoT Hub device telemetry event processor host.  Processes all
@@ -104,10 +106,20 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
             builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // register diagnostics
+            // Add diagnostics
             builder.AddDiagnostics(config);
-            builder.RegisterModule<DefaultServiceAuthProviders>();
+
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
             builder.RegisterModule<NewtonSoftJsonModule>();
+
+            // Add unattended authentication
+            builder.RegisterModule<UnattendedAuthentication>();
 
             // Event processor services for onboarding consumer
             builder.RegisterType<EventProcessorHost>()
@@ -121,16 +133,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
 
             // Handle telemetry events
             builder.RegisterType<EventHubDeviceEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // ... requires the corresponding services
-            // Register http client module (needed for api)
-            builder.RegisterModule<HttpClientModule>();
-            // Use bearer authentication
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            // Use device code token provider to get tokens
-            builder.RegisterType<AppAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Handle opc-ua pub/sub subscriber messages

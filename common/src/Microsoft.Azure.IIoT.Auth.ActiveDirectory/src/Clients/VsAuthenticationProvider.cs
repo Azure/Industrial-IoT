@@ -4,26 +4,29 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
+    using Microsoft.Azure.Services.AppAuthentication;
     using Serilog;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Uses developer tool authentication
     /// </summary>
-    public class VsAuthenticationProvider : AppAuthenticationProvider {
+    public class VsAuthenticationProvider : AppAuthenticationBase {
 
         /// <inheritdoc/>
-        public VsAuthenticationProvider(ILogger logger) :
-            base(logger) {
+        public VsAuthenticationProvider(ILogger logger) : base(logger) {
+            _provider = new AzureServiceTokenProvider(
+                "RunAs=Developer; DeveloperTool=VisualStudio", kAzureAdInstance);
         }
 
         /// <inheritdoc/>
-        public VsAuthenticationProvider(IClientAuthConfig config, ILogger logger) :
-            base(config, logger) {
+        protected override IEnumerable<(string, AzureServiceTokenProvider)> Get(
+            string resource) {
+            return (kAzureAdInstance, _provider).YieldReturn();
         }
 
-        /// <inheritdoc/>
-        protected override string NoClientIdRunAs() {
-            return "RunAs=Developer; DeveloperTool=VisualStudio";
-        }
+        private const string kAzureAdInstance = "https://login.microsoftonline.com/common";
+        private readonly AzureServiceTokenProvider _provider;
     }
 }

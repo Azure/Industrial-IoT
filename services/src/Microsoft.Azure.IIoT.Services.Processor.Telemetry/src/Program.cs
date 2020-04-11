@@ -106,7 +106,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
 
             // register diagnostics
             builder.AddDiagnostics(config);
-            builder.RegisterModule<DefaultServiceAuthProviders>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Event processor services

@@ -38,6 +38,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Autofac.Extensions.DependencyInjection;
     using Prometheus;
     using System;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
 
     /// <summary>
     /// Webservice startup
@@ -168,15 +169,23 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces();
 
-            // Add diagnostics and auth providers
+            // Add diagnostics
             builder.AddDiagnostics(Config);
-            builder.RegisterModule<DefaultServiceAuthProviders>();
+
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
             builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            // Register metrics logger
-            builder.RegisterType<MetricsLogger>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Add service to service authentication
+            builder.RegisterModule<WebServiceAuthentication>();
+
+            // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
 
@@ -227,13 +236,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             builder.RegisterType<
                 DiscovererEventForwarder<DiscoverersHub>>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // Register http client module
-            builder.RegisterModule<HttpClientModule>();
-#if DEBUG
-            builder.RegisterType<NoOpCertValidator>()
-                .AsImplementedInterfaces();
-#endif
 
             // Register event bus for integration events
             builder.RegisterType<EventBusHost>()

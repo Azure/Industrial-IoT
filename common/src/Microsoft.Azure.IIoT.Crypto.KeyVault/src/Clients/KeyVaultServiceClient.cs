@@ -9,6 +9,8 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Storage;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
@@ -35,15 +37,12 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
         /// <param name="serializer"></param>
         /// <param name="certificates"></param>
         /// <param name="factory"></param>
-        /// <param name="provider"></param>
+        /// <param name="tokenSources"></param>
         public KeyVaultServiceClient(ICertificateRepository certificates,
             ICertificateFactory factory, IKeyVaultConfig config, IJsonSerializer serializer,
-            Auth.ITokenProvider provider) : this (certificates, factory, config, serializer,
-                new KeyVaultClient(async (_, resource, scope) => {
-                    var token = await provider.GetTokenForAsync(
-                        resource, scope.YieldReturn());
-                    return token.RawToken;
-                })) {
+            IEnumerable<ITokenSource> tokenSources) :
+            this(certificates, factory, config, serializer, tokenSources?
+                .FirstOrDefault(s => s.Resource == Resource.KeyVault)) {
         }
 
         /// <summary>
@@ -68,6 +67,26 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
             _keyVaultClient = client ?? throw new ArgumentNullException(nameof(client));
+        }
+
+        /// <summary>
+        /// Create key vault service client
+        /// </summary>
+        /// <param name="config">Keyvault configuration.</param>
+        /// <param name="serializer"></param>
+        /// <param name="certificates"></param>
+        /// <param name="factory"></param>
+        /// <param name="tokenSource"></param>
+        private KeyVaultServiceClient(ICertificateRepository certificates,
+            ICertificateFactory factory, IKeyVaultConfig config, IJsonSerializer serializer,
+            ITokenSource tokenSource) : this(certificates, factory, config, serializer,
+                new KeyVaultClient(async (_, resource, scope) => {
+                    var token = await tokenSource.GetTokenForAsync(scope.YieldReturn());
+                    return token.RawToken;
+                })) {
+            if (tokenSource == null) {
+                throw new ArgumentNullException(nameof(tokenSource));
+            }
         }
 
         /// <inheritdoc/>

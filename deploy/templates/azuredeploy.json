@@ -15,24 +15,28 @@
         },
         "servicePrincipalId": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Specifies the object ID of the service principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
             }
         },
         "serviceAppId": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Specifies the registered service application identifier (GUID) in your Azure Active Directory tenant."
             }
         },
         "serviceAppSecret": {
             "type": "securestring",
+            "defaultValue": "",
             "metadata": {
                 "description": "The registered service application secret used to authenticate against KeyVault."
             }
         },
         "clientAppId": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Specifies a registered client application identifier (GUID) in your Azure Active Directory tenant."
             }
@@ -41,6 +45,13 @@
             "type": "securestring",
             "metadata": {
                 "description": "The registered client application secret."
+            }
+        },
+        "keyVaultPrincipalId": {
+            "type": "string",
+            "defaultValue": "[parameters('servicePrincipalId')]",
+            "metadata": {
+                "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access keyvault."
             }
         },
         "authorityUri": {
@@ -97,13 +108,6 @@
             "defaultValue": "https://raw.githubusercontent.com/Azure/Industrial-IoT",
             "metadata": {
                 "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
-            }
-        },
-        "managedIdentityName": {
-            "type": "string",
-            "defaultValue": "[if(not(empty(parameters('servicePrincipalId'))), '', concat('msi', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)))]",
-            "metadata": {
-                "description": "The name of the managed identity to create.  If keyvault principal was omitted a default identity will be provisioned to access resources."
             }
         },
         "numberOfLinuxGateways": {
@@ -218,14 +222,8 @@
                     "branchName": {
                         "value": "[parameters('branchName')]"
                     },
-                    "managedIdentityName": {
-                        "value": "[parameters('managedIdentityName')]"
-                    },
-                    "servicePrincipalId": {
-                        "value": "[parameters('servicePrincipalId')]"
-                    },
                     "keyVaultPrincipalId": {
-                        "value": "[parameters('servicePrincipalId')]"
+                        "value": "[parameters('keyVaultPrincipalId')]"
                     }
                 },
                 "templateLink": {

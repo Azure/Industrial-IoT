@@ -31,6 +31,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Http.Auth;
+    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.Auth.Clients;
 
     /// <summary>
     /// IoT Hub device events event processor host.  Processes all
@@ -108,10 +110,20 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // register diagnostics
+            // Add diagnostics
             builder.AddDiagnostics(config);
-            builder.RegisterModule<DefaultServiceAuthProviders>();
+
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
             builder.RegisterModule<NewtonSoftJsonModule>();
+
+            // Add unattended authentication
+            builder.RegisterModule<UnattendedAuthentication>();
 
             // Event processor services for onboarding consumer
             builder.RegisterType<EventProcessorHost>()
@@ -139,14 +151,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             builder.RegisterType<OnboardingServicesApiAdapter>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<OnboardingServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            // using Http client module (needed for api)
-            builder.RegisterModule<HttpClientModule>();
-            // Use bearer authentication
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            // with Managed or service principal authentication
-            builder.RegisterType<AppAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // 2.) Handler for discovery progress

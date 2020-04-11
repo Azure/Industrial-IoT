@@ -36,6 +36,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice startup
@@ -163,22 +164,24 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces();
 
-            // Add diagnostics and auth providers
+            // Add diagnostics
             builder.AddDiagnostics(Config);
-            builder.RegisterModule<DefaultServiceAuthProviders>();
-            builder.RegisterModule<MessagePackModule>();
-            builder.RegisterModule<NewtonSoftJsonModule>();
-
-            // CORS setup
-            builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
+            builder.RegisterModule<MessagePackModule>();
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<PassThroughTokenProvider>()
+            // Add service to service authentication
+            builder.RegisterModule<WebServiceAuthentication>();
+
+            // CORS setup
+            builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Processor for discovery events plus ...

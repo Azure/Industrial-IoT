@@ -32,6 +32,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice startup
@@ -156,17 +157,21 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces();
 
-            // Add diagnostics and auth providers
+            // Add diagnostics
             builder.AddDiagnostics(Config);
-            builder.RegisterModule<DefaultServiceAuthProviders>();
-            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<PassThroughTokenProvider>()
-                .AsImplementedInterfaces().SingleInstance();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
+            builder.RegisterModule<MessagePackModule>();
+            builder.RegisterModule<NewtonSoftJsonModule>();
+
+            // Add service to service authentication
+            builder.RegisterModule<WebServiceAuthentication>();
 
             builder.RegisterType<JwtTokenValidator>()
                 .AsImplementedInterfaces();

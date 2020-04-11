@@ -32,6 +32,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
     using Autofac.Extensions.DependencyInjection;
     using System;
     using ILogger = Serilog.ILogger;
+    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice startup
@@ -158,22 +159,24 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces();
 
-            // Add diagnostics and auth providers
+            // Add diagnostics
             builder.AddDiagnostics(Config);
-            builder.RegisterModule<DefaultServiceAuthProviders>();
-            builder.RegisterModule<MessagePackModule>();
-            builder.RegisterModule<NewtonSoftJsonModule>();
-
-            // CORS setup
-            builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
+            builder.RegisterModule<MessagePackModule>();
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<PassThroughTokenProvider>()
+            // Add service to service authentication
+            builder.RegisterModule<WebServiceAuthentication>();
+
+            // CORS setup
+            builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // TODO: Use job database service api

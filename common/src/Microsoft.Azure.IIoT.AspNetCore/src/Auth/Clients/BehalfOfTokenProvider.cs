@@ -38,26 +38,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
             _handler = handler ?? new ThrowHandler();
-
-            _config = config?.ClientSchemes?
-                .Where(c => c.Scheme == AuthScheme.Aad)
-                .Where(c => !string.IsNullOrEmpty(c.AppId))
-                .ToDictionary(c => c.Audience ?? string.Empty, c => c)
-                    ?? throw new ArgumentNullException(nameof(config));
-
-            if (_config.Count == 0) {
-                _logger.Error("On Behalf token provider was not configured with " +
-                    "with client ids.  No tokens can be obtained.");
-            }
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            resource ??= string.Empty;
-            if (!_config.TryGetValue(resource, out var config) &&
-                !_config.TryGetValue(string.Empty, out config)) {
+            if (!_config.TryGetConfig(resource, AuthScheme.Aad, out var config)) {
                 return null;
             }
             try {
@@ -182,7 +170,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private readonly IHttpContextAccessor _ctx;
         private readonly ITokenCacheProvider _store;
         private readonly ILogger _logger;
-        private readonly Dictionary<string, IOAuthClientConfig> _config;
+        private readonly IClientAuthConfig _config;
         private readonly IAuthenticationErrorHandler _handler;
     }
 }

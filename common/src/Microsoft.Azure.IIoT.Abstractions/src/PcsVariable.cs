@@ -97,6 +97,12 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Key (in KeyVault) to be used for encription of keys </summary>
         public const string PCS_KEYVAULT_KEY_DATAPROTECTION =
             "PCS_KEYVAULT_KEY_DATAPROTECTION";
+        /// <summary> Managed service identity application id </summary>
+        public const string PCS_MSI_APPID =
+            "PCS_MSI_APPID";
+        /// <summary> Managed service identity tenant </summary>
+        public const string PCS_MSI_TENANT =
+            "PCS_MSI_TENANT";
         /// <summary> Aad Auth tenant </summary>
         public const string PCS_AUTH_TENANT =
             "PCS_AUTH_TENANT";
@@ -106,7 +112,7 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Aad Trusted Issuer </summary>
         public const string PCS_AAD_ISSUER =
             "PCS_AUTH_ISSUER";
-        /// <summary> Aad Audience or null if disabled </summary>
+        /// <summary> Aad valid audience or null if disabled </summary>
         public const string PCS_AAD_AUDIENCE =
             "PCS_AUTH_AUDIENCE";
         /// <summary> Service application id </summary>

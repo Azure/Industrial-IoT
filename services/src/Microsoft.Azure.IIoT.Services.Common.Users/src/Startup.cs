@@ -32,6 +32,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
 
     /// <summary>
     /// Webservice startup
@@ -164,18 +166,25 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users {
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces();
 
-            // Add diagnostics and auth providers
+            // Add diagnostics
             builder.AddDiagnostics(Config);
-            builder.RegisterModule<DefaultServiceAuthProviders>();
+
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
             builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
+
+            // Add service to service authentication
+            builder.RegisterModule<WebServiceAuthentication>();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // Register http client module
-            builder.RegisterModule<HttpClientModule>();
 
             builder.RegisterType<CosmosDbServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();

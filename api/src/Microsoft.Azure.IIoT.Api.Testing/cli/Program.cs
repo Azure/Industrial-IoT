@@ -56,6 +56,10 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
             builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces().SingleInstance();
 
+            // Configure aad
+            builder.RegisterType<AadApiClientConfig>()
+                .AsImplementedInterfaces().SingleInstance();
+
             // Register logger
             builder.AddDiagnostics(config, addConsole: false);
             builder.RegisterModule<NewtonSoftJsonModule>();
@@ -65,23 +69,8 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
             // ... as well as signalR client (needed for api)
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // Use bearer authentication with aad
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AadApiClientConfig>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ClientAuthAggregateConfig>()
-                .AsImplementedInterfaces().SingleInstance();
-            // Use default vs authentication
-            builder.RegisterType<VsAuthenticationProvider>()
-                .AsSelf();
-            // fallback to device code token provider
-            builder.RegisterType<DeviceCodeTokenProvider>()
-                .AsSelf();
-            // Use cli wrapper
-            builder.RegisterType<CliAuthenticationProvider>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Use default token sources
+            builder.RegisterModule<ConsoleAuthentication>();
 
             // Register twin, vault, and registry services clients
             builder.RegisterType<TwinServiceClient>()

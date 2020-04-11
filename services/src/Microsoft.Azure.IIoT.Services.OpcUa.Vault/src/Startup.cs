@@ -44,6 +44,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice startup
@@ -175,30 +176,28 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces();
 
-            // Add diagnostics and auth providers
+            // Add diagnostics
             builder.AddDiagnostics(Config);
-            builder.RegisterModule<DefaultServiceAuthProviders>();
+
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
             builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
+
+            // Add service to service authentication
+            builder.RegisterModule<WebServiceAuthentication>();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register http client module
-            builder.RegisterModule<HttpClientModule>();
-
-            // ... with bearer auth
-            builder.RegisterType<DistributedTokenCache>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // key vault client ...
-            builder.RegisterType<AppAuthenticationProvider>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<KeyVaultServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Add key vault client
+            builder.RegisterModule<KeyVaultClientModule>();
 
             // Register event bus ...
             builder.RegisterType<EventBusHost>()

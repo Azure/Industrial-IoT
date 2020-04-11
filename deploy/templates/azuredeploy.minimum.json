@@ -2,22 +2,9 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "servicePrincipalId": {
-            "type": "string",
-            "metadata": {
-                "description": "Specifies the object ID of the service principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
-            }
-        },
-        "keyVaultPrincipalId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Specifies the object ID of the registered service principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
-            }
-        },
         "managedIdentityName": {
             "type": "string",
-            "defaultValue": "[if(not(empty(parameters('keyVaultPrincipalId'))), '', concat('msi', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)))]",
+            "defaultValue": "[concat('msi', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5))]",
             "metadata": {
                 "description": "The name of the managed identity to create.  If client principal was omitted a default identity will be provisioned to access resources."
             }
@@ -166,6 +153,13 @@
                 "description": "The Azure IoT Hub default message retention in days."
             }
         },
+        "keyVaultPrincipalId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies a principal in your Azure Active Directory tenant to give access to the key vault for development."
+            }
+        },
         "keyVaultName": {
             "type": "string",
             "defaultValue": "[concat('keyvault-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
@@ -198,16 +192,15 @@
         "iothubTelemetryConsumerGroup": "telemetry",
         "iothubEventsConsumerGroup": "events",
         "iothubTunnelConsumerGroup": "tunnel",
-        "identityResourceName": "[if(empty(parameters('managedIdentityName')), concat('msi', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('managedIdentityName'))]",
-        "identityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityResourceName'))]",
+        "identityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('managedIdentityName'))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
         "configurationResourceName": "infrastructure.configuration"
     },
     "resources": [
         {
-            "name": "[variables('identityResourceName')]",
-            "condition": "[not(empty(parameters('managedIdentityName')))]",
+            "comments": "Managed identity to access keyvault.",
+            "name": "[parameters('managedIdentityName')]",
             "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
             "apiVersion": "2018-11-30",
             "location": "[resourceGroup().location]"
@@ -222,15 +215,15 @@
                 "enabledForDeployment": false,
                 "enabledForTemplateDeployment": true,
                 "enabledForVolumeEncryption": false,
-                "tenantId": "[subscription().tenantId]",
+                "tenantId": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]",
                 "sku": {
                     "name": "[parameters('keyVaultSkuName')]",
                     "family": "A"
                 },
                 "accessPolicies": [
                     {
-                        "tenantId": "[subscription().tenantId]",
-                        "objectId": "[parameters('servicePrincipalId')]",
+                        "tenantId": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]",
+                        "objectId": "[reference(variables('identityResourceId'), '2018-11-30').principalId]",
                         "permissions": {
                             "keys": [
                                 "get",
@@ -261,8 +254,8 @@
             ]
         },
         {
-            "comments": "KeyVault managed service identity configuration access permissions.",
-            "condition": "[not(and(empty(parameters('managedIdentityName')), empty(parameters('keyVaultPrincipalId'))))]",
+            "comments": "KeyVault service principal access permissions.",
+            "condition": "[not(empty(parameters('keyVaultPrincipalId')))]",
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
             "name": "[concat(parameters('keyVaultName'), '/add')]",
             "apiVersion": "2016-10-01",
@@ -270,17 +263,28 @@
                 "accessPolicies": [
                     {
                         "tenantId": "[subscription().tenantId]",
-                        "objectId": "[if(not(empty(parameters('managedIdentityName'))), reference(variables('identityResourceId'), '2018-11-30').principalId, parameters('keyVaultPrincipalId'))]",
+                        "objectId": "[parameters('keyVaultPrincipalId')]",
                         "permissions": {
                             "keys": [
                                 "get",
+                                "list",
+                                "sign",
                                 "unwrapKey",
                                 "wrapKey",
                                 "create"
                             ],
                             "secrets": [
                                 "get",
-                                "list"
+                                "list",
+                                "set",
+                                "delete"
+                            ],
+                            "certificates": [
+                                "get",
+                                "list",
+                                "update",
+                                "create",
+                                "import"
                             ]
                         }
                     }
@@ -533,6 +537,14 @@
                             {
                                 "key": "PCS_KEYVAULT_URL",
                                 "value": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))).vaultUri]"
+                            },
+                            {
+                                "key": "PCS_MSI_APPID",
+                                "value": "[reference(variables('identityResourceId'), '2018-11-30').clientId]"
+                            },
+                            {
+                                "key": "PCS_MSI_TENANT",
+                                "value": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]"
                             }
                         ]
                     }
@@ -562,7 +574,15 @@
         },
         "managedIdentityResourceId": {
             "type": "string",
-            "value": "[if(empty(parameters('managedIdentityName')), '', variables('identityResourceId'))]"
+            "value": "[variables('identityResourceId')]"
+        },
+        "managedIdentityClientId": {
+            "type": "string",
+            "value": "[reference(variables('identityResourceId'), '2018-11-30').clientId]"
+        },
+        "managedIdentityTenantId": {
+            "type": "string",
+            "value": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]"
         },
         "storageName": {
             "type": "string",

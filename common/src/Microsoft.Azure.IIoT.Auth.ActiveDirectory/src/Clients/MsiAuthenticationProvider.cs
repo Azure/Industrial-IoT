@@ -4,20 +4,24 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Clients {
+    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.Services.AppAuthentication;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
-    /// <inheritdoc/>
-    public class AppAuthenticationProvider : AppAuthenticationBase {
+    /// <summary>
+    /// Use msi to get token
+    /// </summary>
+    public class MsiAuthenticationProvider : AppAuthenticationBase {
 
         /// <inheritdoc/>
-        public AppAuthenticationProvider(IClientAuthConfig config, ILogger logger) :
+        public MsiAuthenticationProvider(IClientAuthConfig config, ILogger logger) :
             base(logger) {
             _config = config?.ClientSchemes?
-                .Where(c => c.Scheme == AuthScheme.Aad)
+                .Where(c => c.Scheme == AuthScheme.Msi)
                 .Where(c => !string.IsNullOrEmpty(c.AppId))
                 .Select(CreateProvider)
                 .ToList();
@@ -41,9 +45,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
                 cs = $"RunAs=App;AppId={config.AppId}";
                 if (!string.IsNullOrEmpty(config.TenantId)) {
                     cs += $";TenantId={config.TenantId}";
-                }
-                if (!string.IsNullOrEmpty(config.AppSecret)) {
-                    cs += $";AppKey={config.AppSecret}";
                 }
             }
             var url = config.GetAuthorityUrl();
