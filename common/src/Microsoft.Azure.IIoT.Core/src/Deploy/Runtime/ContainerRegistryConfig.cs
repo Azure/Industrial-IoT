@@ -19,7 +19,8 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
         private const string kDockerPassword = "Docker:Password";
         private const string kImagesNamespace = "Docker:ImagesNamespace";
         private const string kImagesTag = "Docker:ImagesTag";
-
+        private const string kWorkspaceId = "Docker:WorkspaceId";
+        private const string kWorkspaceKey = "Docker:WorkspaceKey";
         /// <inheritdoc/>
         public string DockerServer => GetStringOrDefault(kDockerServer,
             () => GetStringOrDefault(PcsVariable.PCS_DOCKER_SERVER));
@@ -38,6 +39,13 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
             () => GetStringOrDefault(PcsVariable.PCS_IMAGES_TAG,
                 () => Assembly.GetExecutingAssembly().GetReleaseVersion().ToString(3)));
 
+        /// <inheritdoc/>
+        public string WorkspaceId => GetStringOrDefault(kWorkspaceId,
+            () => GetStringOrDefault(PcsVariable.PCS_WORKSPACE_ID));
+
+        /// <inheritdoc/>
+        public string WorkspaceKey => GetStringOrDefault(kWorkspaceKey,
+            () => GetStringOrDefault(PcsVariable.PCS_WORKSPACE_KEY));
         /// <summary>
         /// Configuration constructor
         /// </summary>

@@ -34,5 +34,15 @@ namespace Microsoft.Azure.IIoT.Deploy {
         /// Version
         /// </summary>
         string ImagesTag { get; }
+
+        /// <summary>
+        /// Log Analytics workspace Id
+        /// </summary>
+        string WorkspaceId { get; }
+
+        /// <summary>
+        /// Log Analytics workspace Key
+        /// </summary>
+        string WorkspaceKey { get; }
     }
 }

@@ -232,5 +232,11 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Deployment Level </summary>
         public const string PCS_DEPLOYMENT_LEVEL =
             "PCS_DEPLOYMENT_LEVEL";
+        /// <summary> Log Analytics workspace Id </summary>
+        public const string PCS_WORKSPACE_ID =
+            "PCS_WORKSPACE_ID";
+        /// <summary> Log Analytics workspace key </summary>
+        public const string PCS_WORKSPACE_KEY =
+            "PCS_WORKSPACE_KEY";
     }
 }
