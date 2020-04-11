@@ -20,7 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             }
             return new EngineConfigurationModel {
                 BatchSize = model.BatchSize,
-                DiagnosticsInterval = model.DiagnosticsInterval
+                DiagnosticsInterval = model.DiagnosticsInterval,
+                MaxMessageSize = model.MaxMessageSize
             };
         }
     }

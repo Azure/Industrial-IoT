@@ -81,19 +81,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 ClientHandle = notification.ClientHandle,
                 Value = notification.Value,
                 Overflow = notification.Value?.StatusCode.Overflow,
-                NotificationData = notification.Message == null ||
-                                    notification.Message.IsEmpty ? null :
-                    notification.Message.NotificationData.ToList(),
-                PublishTime = notification.Message == null ||
-                                    notification.Message.IsEmpty ? (DateTime?)null :
-                    notification.Message.PublishTime,
-                SequenceNumber = notification.Message == null ||
-                                    notification.Message.IsEmpty ? (uint?)null :
-                    notification.Message.SequenceNumber,
-                StringTable = notification.Message == null ||
-                                    notification.Message.IsEmpty ? null :
-                    notification.Message.StringTable,
-                DiagnosticInfo = notification.DiagnosticInfo
+                NotificationData = notification.Message == null || notification.Message.IsEmpty
+                    ? null
+                    : notification.Message.NotificationData.ToList(),
+                PublishTime = notification.Message == null || notification.Message.IsEmpty
+                    ? (DateTime?)null
+                    : notification.Message.PublishTime,
+                SequenceNumber = notification.Message == null || notification.Message.IsEmpty
+                    ? (uint?)null
+                    : notification.Message.SequenceNumber,
+                StringTable = notification.Message == null || notification.Message.IsEmpty
+                    ? null
+                    : notification.Message.StringTable,
+                DiagnosticInfo = notification.DiagnosticInfo,
+                IsHeartbeat = false
             };
         }
 
@@ -115,18 +116,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 AttributeId = monitoredItem.AttributeId,
                 ClientHandle = eventFieldList.ClientHandle,
                 Value = ToDataValue(eventFieldList, monitoredItem),
-                NotificationData = eventFieldList.Message == null ||
-                                    eventFieldList.Message.IsEmpty ? null :
-                    eventFieldList.Message.NotificationData.ToList(),
-                PublishTime = eventFieldList.Message == null ||
-                                    eventFieldList.Message.IsEmpty ? (DateTime?)null :
-                    eventFieldList.Message.PublishTime,
-                SequenceNumber = eventFieldList.Message == null ||
-                                    eventFieldList.Message.IsEmpty ? (uint?)null :
-                    eventFieldList.Message.SequenceNumber,
-                StringTable = eventFieldList.Message == null ||
-                                    eventFieldList.Message.IsEmpty ? null :
-                    eventFieldList.Message.StringTable
+                NotificationData = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
+                    ? null
+                    : eventFieldList.Message.NotificationData.ToList(),
+                PublishTime = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
+                    ? (DateTime?)null
+                    : eventFieldList.Message.PublishTime,
+                SequenceNumber = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
+                    ? (uint?)null
+                    : eventFieldList.Message.SequenceNumber,
+                StringTable = eventFieldList.Message == null || eventFieldList.Message.IsEmpty
+                    ? null
+                    : eventFieldList.Message.StringTable,
+                IsHeartbeat = false
+                
             };
         }
 
