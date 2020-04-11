@@ -87,6 +87,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
         public string ImagesNamespace => _cr.ImagesNamespace;
         /// <inheritdoc/>
         public string ImagesTag => _cr.ImagesTag;
+        /// <inheritdoc/>
+        public string WorkspaceId => _cr.WorkspaceId;
+        /// <inheritdoc/>
+        public string WorkspaceKey => _cr.WorkspaceKey;
 
         /// <summary>
         /// Whether to use role based access
