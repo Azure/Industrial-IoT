@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Crypto {
     public interface ICertificateRepository {
 
         /// <summary>
-        /// Add certificate and returns id of the certificate in 
+        /// Add certificate and returns id of the certificate in
         /// the repository.
         /// </summary>
         /// <param name="certificateName"></param>
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Crypto {
             CancellationToken ct = default);
 
         /// <summary>
-        /// Find certificate with the registered id in certificate 
+        /// Find certificate with the registered id in certificate
         /// repository.
         /// </summary>
         /// <param name="id">Id of certificate</param>
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Crypto {
             string id, CancellationToken ct = default);
 
         /// <summary>
-        /// Disable certificate and returns the certificate 
+        /// Disable certificate and returns the certificate
         /// identifier under which it was added.
         /// </summary>
         /// <param name="certificate"></param>

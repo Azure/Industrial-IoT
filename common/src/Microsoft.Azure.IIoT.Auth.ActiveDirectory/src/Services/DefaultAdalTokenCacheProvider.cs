@@ -9,11 +9,11 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Default token cache adapter
     /// </summary>
-    public class DefaultTokenCacheProvider : ITokenCacheProvider {
+    public class DefaultAdalTokenCacheProvider : IAdalTokenCacheProvider {
 
         /// <summary>Singleton</summary>
-        public static ITokenCacheProvider Instance =>
-            new DefaultTokenCacheProvider();
+        public static IAdalTokenCacheProvider Instance =>
+            new DefaultAdalTokenCacheProvider();
 
         /// <summary>
         /// Returns the default shared cache

@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// <summary>
     /// Token cache persisted in the distributed cache.
     /// </summary>
-    public class DistributedTokenCache : ITokenCacheProvider {
+    public class DistributedTokenCache : IAdalTokenCacheProvider {
 
         /// <summary>
         /// Create token store in provided distributed cache

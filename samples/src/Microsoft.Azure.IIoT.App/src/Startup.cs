@@ -230,7 +230,7 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
             // Use behalf of token provider to get tokens from user
-            builder.RegisterType<BehalfOfTokenProvider>()
+            builder.RegisterType<AdalTokenProvider>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<SignOutHandler>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -283,7 +283,7 @@ namespace Microsoft.Azure.IIoT.App {
                 context.Options.ClientSecret);
 
             // TODO : Refactor!!!
-            var provider = context.HttpContext.RequestServices.GetRequiredService<ITokenCacheProvider>();
+            var provider = context.HttpContext.RequestServices.GetRequiredService<IAdalTokenCacheProvider>();
             var tokenCache = provider.GetCache($"OID:{context.Principal.GetObjectId()}");
             var authContext = new AuthenticationContext(context.Options.Authority, tokenCache);
 

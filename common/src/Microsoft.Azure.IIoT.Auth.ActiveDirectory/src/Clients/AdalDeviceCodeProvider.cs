@@ -15,14 +15,14 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Authenticate using device code
     /// </summary>
-    public sealed class DeviceCodeTokenProvider : ITokenProvider {
+    public sealed class AdalDeviceCodeProvider : ITokenProvider {
 
         /// <summary>
         /// Create console output device code based token provider
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public DeviceCodeTokenProvider(IClientAuthConfig config, ILogger logger) :
+        public AdalDeviceCodeProvider(IClientAuthConfig config, ILogger logger) :
             this(new ConsolePrompt(), config, null, logger) {
         }
 
@@ -32,8 +32,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="store"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public DeviceCodeTokenProvider(
-            IClientAuthConfig config, ITokenCacheProvider store, ILogger logger) :
+        public AdalDeviceCodeProvider(
+            IClientAuthConfig config, IAdalTokenCacheProvider store, ILogger logger) :
             this(new ConsolePrompt(), config, store, logger) {
         }
 
@@ -44,8 +44,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="prompt"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public DeviceCodeTokenProvider(IDeviceCodePrompt prompt,
-            IClientAuthConfig config, ITokenCacheProvider store, ILogger logger) {
+        public AdalDeviceCodeProvider(IDeviceCodePrompt prompt,
+            IClientAuthConfig config, IAdalTokenCacheProvider store, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _prompt = prompt ?? throw new ArgumentNullException(nameof(prompt));
             _store = store ?? DefaultTokenCacheProvider.Instance;
@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="store"></param>
         /// <returns></returns>
         private static AuthenticationContext CreateAuthenticationContext(
-            string authorityUrl, string tenantId, ITokenCacheProvider store) {
+            string authorityUrl, string tenantId, IAdalTokenCacheProvider store) {
             if (string.IsNullOrEmpty(authorityUrl)) {
                 authorityUrl = kDefaultAuthorityUrl;
             }
@@ -134,7 +134,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         private readonly ILogger _logger;
         private readonly IClientAuthConfig _config;
         private readonly IDeviceCodePrompt _prompt;
-        private readonly ITokenCacheProvider _store;
+        private readonly IAdalTokenCacheProvider _store;
         private const string kDefaultAuthorityUrl = "https://login.microsoftonline.com/";
     }
 }

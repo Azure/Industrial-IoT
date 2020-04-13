@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// Authenticate on behalf of current logged in claims principal to another
     /// service. This uses the behalf_of flow defined in xxx.
     /// </summary>
-    public partial class BehalfOfTokenProvider : ITokenProvider {
+    public partial class AdalTokenProvider : ITokenProvider {
 
         /// <summary>
         /// Create auth provider. Need to also inject the http context accessor
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         /// <param name="handler"></param>
-        public BehalfOfTokenProvider(IHttpContextAccessor ctx, ITokenCacheProvider store,
+        public AdalTokenProvider(IHttpContextAccessor ctx, IAdalTokenCacheProvider store,
             IClientAuthConfig config, ILogger logger, IAuthenticationErrorHandler handler = null) {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private const string kDefaultAuthorityUrl = "https://login.microsoftonline.com/";
 
         private readonly IHttpContextAccessor _ctx;
-        private readonly ITokenCacheProvider _store;
+        private readonly IAdalTokenCacheProvider _store;
         private readonly ILogger _logger;
         private readonly IClientAuthConfig _config;
         private readonly IAuthenticationErrorHandler _handler;

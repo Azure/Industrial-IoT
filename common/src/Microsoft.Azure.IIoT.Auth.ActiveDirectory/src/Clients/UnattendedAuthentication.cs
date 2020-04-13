@@ -12,9 +12,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Autofac;
+    using Microsoft.Azure.IIoT.Auth.Clients.Default;
 
     /// <summary>
-    /// Unattended authentication support
+    /// Unattended client authentication support
     /// </summary>
     public class UnattendedAuthentication : Module {
 
@@ -27,10 +28,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces();
 
-            // fallback to app authentication
-            //   // Use auth service token provider
-            //   builder.RegisterType<AuthServiceTokenProvider>()
-            //       .AsSelf().AsImplementedInterfaces();
+            // Use client credential and fallback to app authentication
+            builder.RegisterType<ClientCredentialTokenProvider>()
+                .AsSelf().AsImplementedInterfaces();
             builder.RegisterType<AppAuthenticationProvider>()
                 .AsSelf().AsImplementedInterfaces();
 
@@ -50,29 +50,28 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
 
             /// <inheritdoc/>
             public ServiceTokenSource(IComponentContext components) {
-               // _as = components.Resolve<AuthServiceTokenProvider>();
+                _as = components.Resolve<ClientCredentialTokenProvider>();
                 _aa = components.Resolve<AppAuthenticationProvider>();
             }
 
             /// <inheritdoc/>
             public async Task<TokenResultModel> GetTokenForAsync(
                 IEnumerable<string> scopes = null) {
-
-             //   var token = await Try.Async(() => _as.GetTokenForAsync(Resource, scopes));
-             //   if (token != null) {
-             //       return token;
-             //   }
+                var token = await Try.Async(() => _as.GetTokenForAsync(Resource, scopes));
+                if (token != null) {
+                    return token;
+                }
                 return await Try.Async(() => _aa.GetTokenForAsync(Resource, scopes));
             }
 
             /// <inheritdoc/>
             public async Task InvalidateAsync() {
-                //    await Try.Async(() =>_as.InvalidateAsync(Resource));
+                await Try.Async(() => _as.InvalidateAsync(Resource));
                 await Try.Async(() => _aa.InvalidateAsync(Resource));
             }
 
             private readonly AppAuthenticationProvider _aa;
-           // private readonly AuthServiceTokenProvider _as;
+            private readonly ClientCredentialTokenProvider _as;
         }
     }
 }

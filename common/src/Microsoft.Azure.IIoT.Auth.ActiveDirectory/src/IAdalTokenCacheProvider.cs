@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// <summary>
     /// Token cache provider interface
     /// </summary>
-    public interface ITokenCacheProvider {
+    public interface IAdalTokenCacheProvider {
 
         /// <summary>
         /// Return a token cache object that maps to the
