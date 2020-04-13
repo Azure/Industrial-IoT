@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             IClientAuthConfig config, IAdalTokenCacheProvider store, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _prompt = prompt ?? throw new ArgumentNullException(nameof(prompt));
-            _store = store ?? DefaultTokenCacheProvider.Instance;
+            _store = store ?? AdalTokenCacheProvider.Instance;
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
@@ -66,13 +66,13 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 try {
                     try {
                         var result = await ctx.AcquireTokenSilentAsync(
-                            config.Audience, config.AppId);
+                            config.GetAudience(scopes), config.AppId);
                         return result.ToTokenResult();
                     }
                     catch (AdalSilentTokenAcquisitionException) {
                         // Use device code
                         var codeResult = await ctx.AcquireDeviceCodeAsync(
-                            config.Audience, config.AppId);
+                            config.GetAudience(scopes), config.AppId);
 
                         _prompt.Prompt(codeResult.DeviceCode, codeResult.ExpiresOn,
                             codeResult.Message);

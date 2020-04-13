@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             builder.RegisterType<AppAuthenticationProvider>()
                 .AsSelf();
             // fallback to device code token provider
-            builder.RegisterType<AdalDeviceCodeTokenProvider>()
+            builder.RegisterType<AdalDeviceCodeProvider>()
                 .AsSelf();
 
             // Use cli token source
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             /// <inheritdoc/>
             public NativeClientTokenSource(IComponentContext components) {
                 _vs = components.Resolve<LocalDevelopmentProvider>();
-                _dc = components.Resolve<AdalDeviceCodeTokenProvider>();
+                _dc = components.Resolve<AdalDeviceCodeProvider>();
                 _aa = components.Resolve<AppAuthenticationProvider>();
             }
 
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             }
 
             private readonly LocalDevelopmentProvider _vs;
-            private readonly AdalDeviceCodeTokenProvider _dc;
+            private readonly AdalDeviceCodeProvider _dc;
             private readonly AppAuthenticationProvider _aa;
         }
     }

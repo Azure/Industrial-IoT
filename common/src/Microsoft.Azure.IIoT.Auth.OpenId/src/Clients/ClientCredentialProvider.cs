@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Authenticate using client credentials
     /// </summary>
-    public sealed class ClientCredentialTokenProvider : ITokenProvider {
+    public sealed class ClientCredentialProvider : ITokenProvider {
 
         /// <summary>
         /// Create console output device code based token provider
@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="http"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public ClientCredentialTokenProvider(IHttpClientFactory http,
+        public ClientCredentialProvider(IHttpClientFactory http,
             IClientAuthConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _http = http ?? throw new ArgumentNullException(nameof(http));

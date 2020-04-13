@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             builder.RegisterType<PassThroughTokenProvider>()
                 .AsSelf().AsImplementedInterfaces();
             // Use auth service token provider
-            builder.RegisterType<ClientCredentialTokenProvider>()
+            builder.RegisterType<ClientCredentialProvider>()
                 .AsSelf().AsImplementedInterfaces();
             // fallback to app authentication
             builder.RegisterType<AppAuthenticationProvider>()
@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             /// <inheritdoc/>
             public HybridTokenSource(IComponentContext components) {
                 _pt = components.Resolve<PassThroughTokenProvider>();
-                _cc = components.Resolve<ClientCredentialTokenProvider>();
+                _cc = components.Resolve<ClientCredentialProvider>();
                 _aa = components.Resolve<AppAuthenticationProvider>();
             }
 
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
             private readonly PassThroughTokenProvider _pt;
             private readonly AppAuthenticationProvider _aa;
-            private readonly ClientCredentialTokenProvider _cc;
+            private readonly ClientCredentialProvider _cc;
         }
     }
 }

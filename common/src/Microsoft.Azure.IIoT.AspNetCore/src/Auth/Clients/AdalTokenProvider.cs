@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     var ctx = CreateAuthenticationContext(config.InstanceUrl,
                         config.TenantId, cache);
                     try {
-                        var result = await ctx.AcquireTokenSilentAsync(config.Audience,
+                        var result = await ctx.AcquireTokenSilentAsync(config.GetAudience(scopes),
                             config.AppId);
                         return result.ToTokenResult();
                     }
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                             if (_handler.AcquireTokenIfSilentFails &&
                                 !string.IsNullOrEmpty(config.AppSecret)) {
                                 try {
-                                    var result = await ctx.AcquireTokenAsync(config.Audience,
+                                    var result = await ctx.AcquireTokenAsync(config.GetAudience(scopes),
                                         new ClientCredential(config.AppId, config.AppSecret),
                                         new UserAssertion(token, kGrantType, name));
                                     return result.ToTokenResult();

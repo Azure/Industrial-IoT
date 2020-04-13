@@ -38,7 +38,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             foreach (var (config, provider) in Get(resource)) {
                 try {
                     var token = await provider.KeyVaultTokenCallback(
-                        config.GetAuthorityUrl(), config.Audience, scopes?.FirstOrDefault());
+                        config.GetAuthorityUrl(),
+                        config.GetAudience(scopes),
+                        config.GetScopeNames(scopes)?.FirstOrDefault());
                     if (token == null) {
                         return null;
                     }

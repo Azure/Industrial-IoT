@@ -4,74 +4,85 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Clients {
+    using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Utils;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Autofac;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
 
     /// <summary>
-    /// Unattended client authentication support
+    /// Keyvault authentication support
     /// </summary>
-    public class UnattendedAuthentication : Module {
+    public class KeyVaultAuthentication : Module {
 
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
-            builder.RegisterModule<DefaultServiceAuthProviders>();
 
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ClientAuthAggregateConfig>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<MsiClientConfig>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AadSpKeyVaultConfig>()
+                .AsImplementedInterfaces().SingleInstance();
 
-            // Use client credential and fallback to app authentication
-            builder.RegisterType<ClientCredentialProvider>()
+            // Use msi auth
+            builder.RegisterType<MsiAuthenticationProvider>()
                 .AsSelf().AsImplementedInterfaces();
+            // Fall back
             builder.RegisterType<AppAuthenticationProvider>()
                 .AsSelf().AsImplementedInterfaces();
+            // Use Vs authentication
+            builder.RegisterType<LocalDevelopmentProvider>()
+                .AsSelf();
 
             // Use service to service token source
-            builder.RegisterType<ServiceTokenSource>()
+            builder.RegisterType<KeyVaultTokenSource>()
                 .AsImplementedInterfaces().SingleInstance();
             base.Load(builder);
         }
 
         /// <summary>
-        /// First try passthrough, then try app authentication
+        /// Keyvault token source
         /// </summary>
-        internal class ServiceTokenSource : ITokenSource {
+        internal class KeyVaultTokenSource : ITokenSource {
 
             /// <inheritdoc/>
-            public string Resource => Http.Resource.Platform;
+            public string Resource => Http.Resource.KeyVault;
 
             /// <inheritdoc/>
-            public ServiceTokenSource(IComponentContext components) {
-                _as = components.Resolve<ClientCredentialProvider>();
+            public KeyVaultTokenSource(IComponentContext components) {
+                _ma = components.Resolve<MsiAuthenticationProvider>();
                 _aa = components.Resolve<AppAuthenticationProvider>();
+                _vs = components.Resolve<LocalDevelopmentProvider>();
             }
 
             /// <inheritdoc/>
             public async Task<TokenResultModel> GetTokenForAsync(
                 IEnumerable<string> scopes = null) {
-                var token = await Try.Async(() => _as.GetTokenForAsync(Resource, scopes));
+                var token = await Try.Async(() => _ma.GetTokenForAsync(Resource, scopes));
                 if (token != null) {
                     return token;
                 }
-                return await Try.Async(() => _aa.GetTokenForAsync(Resource, scopes));
+                token = await Try.Async(() => _aa.GetTokenForAsync(Resource, scopes));
+                if (token != null) {
+                    return token;
+                }
+                return await Try.Async(() => _vs.GetTokenForAsync(Resource, scopes));
             }
 
             /// <inheritdoc/>
             public async Task InvalidateAsync() {
-                await Try.Async(() => _as.InvalidateAsync(Resource));
+                await Try.Async(() => _ma.InvalidateAsync(Resource));
                 await Try.Async(() => _aa.InvalidateAsync(Resource));
+                await Try.Async(() => _vs.InvalidateAsync(Resource));
             }
 
             private readonly AppAuthenticationProvider _aa;
-            private readonly ClientCredentialProvider _as;
+            private readonly LocalDevelopmentProvider _vs;
+            private readonly MsiAuthenticationProvider _ma;
         }
     }
 }

@@ -196,8 +196,24 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Add key vault client
+            // Add key vault
             builder.RegisterModule<KeyVaultClientModule>();
+
+            // Crypto services
+            builder.RegisterType<CertificateDatabase>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<CertificateRevoker>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<CertificateFactory>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<CertificateIssuer>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<KeyDatabase>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<KeyHandleSerializer>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // TODO: Add keyvault here to override ....
 
             // Register event bus ...
             builder.RegisterType<EventBusHost>()
@@ -215,21 +231,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
                 .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<RegistryEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // Crypto services
-            builder.RegisterType<CertificateDatabase>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<CertificateRevoker>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<CertificateFactory>()
-                .AsImplementedInterfaces().SingleInstance();
-            // TODO: Add keyvault
-            builder.RegisterType<CertificateIssuer>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<KeyDatabase>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<KeyHandleSerializer>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register registry micro services adapters
