@@ -99,6 +99,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
 
+            builder.RegisterInstance(serviceInfo)
+                .AsImplementedInterfaces().SingleInstance();
+
+            // Register configuration interfaces
+            builder.RegisterInstance(config)
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterInstance(config.Configuration)
+                .AsImplementedInterfaces().SingleInstance();
+
             // Add diagnostics
             builder.AddDiagnostics(config);
 

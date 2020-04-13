@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// Job service url
         /// </summary>
         string JobServiceUrl { get; }
-
-        /// <summary>
-        /// The Job service resource id
-        /// </summary>
-        string JobServiceResourceId { get; }
     }
 }

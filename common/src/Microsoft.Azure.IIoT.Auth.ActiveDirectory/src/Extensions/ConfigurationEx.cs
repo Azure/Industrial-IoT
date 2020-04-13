@@ -61,6 +61,8 @@ namespace Microsoft.Extensions.Configuration {
 
             /// <summary>Aad instance url</summary>
             public string InstanceUrl => null;
+            /// <summary>Resource</summary>
+            public string Resource => Azure.IIoT.Http.Resource.KeyVault;
             /// <summary>Audience</summary>
             public string Audience => null;
             /// <summary>Scheme</summary>

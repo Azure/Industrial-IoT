@@ -29,8 +29,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
 
         /// <inheritdoc/>
         public string OpcUaOnboardingServiceUrl => _ia.OpcUaOnboardingServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaOnboardingServiceResourceId => _ia.OpcUaOnboardingServiceResourceId;
 
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;

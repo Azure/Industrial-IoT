@@ -72,13 +72,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
 
         /// <inheritdoc/>
         public string OpcUaTwinServiceUrl => _api.OpcUaTwinServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaTwinServiceResourceId => _api.OpcUaTwinServiceResourceId;
 
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _api.OpcUaRegistryServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaRegistryServiceResourceId => _api.OpcUaRegistryServiceResourceId;
 
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;

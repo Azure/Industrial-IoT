@@ -16,8 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Runtime {
 
         /// <inheritdoc/>
         public string OpcUaOnboardingServiceUrl => _oc.OpcUaOnboardingServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaOnboardingServiceResourceId => _oc.OpcUaOnboardingServiceResourceId;
 
         /// <inheritdoc/>
         public InternalApiConfig(IConfiguration configuration) :

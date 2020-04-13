@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         }
 
         /// <inheritdoc/>
-        protected override IEnumerable<(string, AzureServiceTokenProvider)> Get(string resource) {
+        protected override IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> Get(string resource) {
             return _config.Where(c => c.Key == resource).Select(c => c.Value);
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// Helper to create provider
         /// </summary>
         /// <returns></returns>
-        private static KeyValuePair<string, (string, AzureServiceTokenProvider)> CreateProvider(
+        private static KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)> CreateProvider(
             IOAuthClientConfig config) {
             // See if configured in environment variable
             var cs = Environment.GetEnvironmentVariable("AzureServicesAuthConnectionString");
@@ -46,11 +46,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
                     cs += $";AppKey={config.AppSecret}";
                 }
             }
-            var url = config.GetAuthorityUrl();
-            return KeyValuePair.Create(config.Audience ?? Http.Resource.Platform,
-                (url, new AzureServiceTokenProvider(cs, url)));
+            return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
+                (config, new AzureServiceTokenProvider(cs, config.GetAuthorityUrl())));
         }
 
-        private readonly List<KeyValuePair<string, (string, AzureServiceTokenProvider)>> _config;
+        private readonly List<KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)>> _config;
     }
 }

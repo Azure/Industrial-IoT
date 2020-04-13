@@ -28,9 +28,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// <param name="serializer"></param>
         /// <param name="client"></param>
         public PublisherServiceEvents(IHttpClient httpClient, ICallbackClient client,
-            IEventsConfig config, ISerializer serializer) : this(httpClient, client,
-                config?.OpcUaEventsServiceUrl, config.OpcUaEventsServiceResourceId,
-                serializer) {
+            IEventsConfig config, ISerializer serializer) :
+            this(httpClient, client, config?.OpcUaEventsServiceUrl, serializer) {
         }
 
         /// <summary>
@@ -39,17 +38,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// <param name="httpClient"></param>
         /// <param name="client"></param>
         /// <param name="serviceUri"></param>
-        /// <param name="resourceId"></param>
         /// <param name="serializer"></param>
         public PublisherServiceEvents(IHttpClient httpClient, ICallbackClient client,
-            string serviceUri, string resourceId, ISerializer serializer = null) {
+            string serviceUri, ISerializer serializer = null) {
             if (string.IsNullOrEmpty(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the events micro service.");
             }
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _serviceUri = serviceUri;
-            _resourceId = resourceId;
             _serializer = serializer ?? new NewtonSoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
@@ -62,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
             if (callback == null) {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events", _resourceId);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events", Resource.Platform);
             var registration = hub.Register(EventTargets.PublisherSampleTarget, callback);
             try {
                 await NodePublishSubscribeByEndpointAsync(endpointId, hub.ConnectionId,
@@ -87,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/telemetry/{endpointId}/samples", _resourceId);
+                $"{_serviceUri}/v2/telemetry/{endpointId}/samples", Resource.Platform);
             _serializer.SerializeToRequest(request, connectionId);
             var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -103,7 +100,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/telemetry/{endpointId}/samples/{connectionId}", _resourceId);
+                $"{_serviceUri}/v2/telemetry/{endpointId}/samples/{connectionId}", Resource.Platform);
             var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -111,7 +108,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         private readonly IHttpClient _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
-        private readonly string _resourceId;
         private readonly ICallbackClient _client;
     }
 }

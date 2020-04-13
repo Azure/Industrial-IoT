@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces().SingleInstance();
             // Use default authentication
-            builder.RegisterModule<ConsoleAuthentication>();
+            builder.RegisterModule<NativeClientAuthentication>();
 
             // Register twin, vault, and registry services clients
             builder.RegisterType<TwinServiceClient>()

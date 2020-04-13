@@ -32,6 +32,8 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         public string InstanceUrl => _client.InstanceUrl;
         /// <summary>Audience</summary>
         public string Audience => _client.Audience;
+        /// <summary>Resource</summary>
+        public string Resource => _client.Resource;
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;

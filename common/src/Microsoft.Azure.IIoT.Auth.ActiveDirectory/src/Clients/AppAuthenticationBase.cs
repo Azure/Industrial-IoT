@@ -35,14 +35,14 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            foreach (var (authorityUrl, provider) in Get(resource)) {
+            foreach (var (config, provider) in Get(resource)) {
                 try {
                     var token = await provider.KeyVaultTokenCallback(
-                        authorityUrl, resource, scopes?.FirstOrDefault());
+                        config.GetAuthorityUrl(), config.Audience, scopes?.FirstOrDefault());
                     if (token == null) {
                         return null;
                     }
-                    return TokenResultModelEx.Parse(token);
+                    return JwtSecurityTokenEx.Parse(token);
                 }
                 catch (Exception ex) {
                     _logger.Information(ex, "Failed to retrieve token for {resource}",
@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// </summary>
         /// <param name="resource"></param>
         /// <returns></returns>
-        protected abstract IEnumerable<(string, AzureServiceTokenProvider)> Get(string resource);
+        protected abstract IEnumerable<(IOAuthClientConfig, AzureServiceTokenProvider)> Get(string resource);
 
         /// <summary> Logger </summary>
         protected readonly ILogger _logger;

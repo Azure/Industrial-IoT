@@ -16,7 +16,12 @@ namespace Microsoft.Azure.IIoT.Auth {
         string Scheme { get; }
 
         /// <summary>
-        /// Audience (app id of service)
+        /// Name of the audience
+        /// </summary>
+        string Resource { get; }
+
+        /// <summary>
+        /// App id of the service
         /// </summary>
         string Audience { get; }
 

@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// <summary>
     /// Access token authentication handler
     /// </summary>
-    public class IdentityTokenAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions> {
+    public class IdentityTokenAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions> {
 
         /// <summary>
         /// Create authentication handler
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="clock"></param>
         /// <param name="httpContextAccessor"></param>
         /// <param name="accessTokenValidator"></param>
-        public IdentityTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+        public IdentityTokenAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock,
             IHttpContextAccessor httpContextAccessor, IIdentityTokenValidator accessTokenValidator) :
             base(options, logger, encoder, clock) {

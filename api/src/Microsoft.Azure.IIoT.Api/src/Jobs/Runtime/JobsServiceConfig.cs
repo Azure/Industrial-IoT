@@ -16,19 +16,12 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Runtime {
         /// Jobs configuration
         /// </summary>
         private const string kJobServiceUrlKey = "JobServiceUrl";
-        private const string kJobServiceIdKey = "JobServiceResourceId";
 
         /// <summary>Jobs service endpoint url</summary>
         public string JobServiceUrl => GetStringOrDefault(
             kJobServiceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_JOBS_SERVICE_URL,
                 () => GetDefaultUrl("9046", "jobs")));
-        /// <summary>Jobs service audience</summary>
-        public string JobServiceResourceId => GetStringOrDefault(
-            kJobServiceIdKey,
-            () => GetStringOrDefault("JOBS_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
-                    () => null)));
 
         /// <inheritdoc/>
         public JobsServiceConfig(IConfiguration configuration) :

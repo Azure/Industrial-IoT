@@ -60,36 +60,35 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <returns></returns>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            if (!_config.TryGetConfig(resource, AuthScheme.Aad, out var config)) {
-                return null;
-            }
-            var ctx = CreateAuthenticationContext(config.InstanceUrl,
-                config.TenantId, _store);
-            try {
+            foreach (var config in _config.Query(resource, AuthScheme.Aad)) {
+                var ctx = CreateAuthenticationContext(config.InstanceUrl,
+                    config.TenantId, _store);
                 try {
-                    var result = await ctx.AcquireTokenSilentAsync(
-                        resource, config.AppId);
-                    return result.ToTokenResult();
+                    try {
+                        var result = await ctx.AcquireTokenSilentAsync(
+                            config.Audience, config.AppId);
+                        return result.ToTokenResult();
+                    }
+                    catch (AdalSilentTokenAcquisitionException) {
+                        // Use device code
+                        var codeResult = await ctx.AcquireDeviceCodeAsync(
+                            config.Audience, config.AppId);
+
+                        _prompt.Prompt(codeResult.DeviceCode, codeResult.ExpiresOn,
+                            codeResult.Message);
+
+                        // Wait and acquire it when authenticated
+                        var result = await ctx.AcquireTokenByDeviceCodeAsync
+                            (codeResult);
+                        return result.ToTokenResult();
+                    }
                 }
-                catch (AdalSilentTokenAcquisitionException) {
-
-                    // Use device code
-                    var codeResult = await ctx.AcquireDeviceCodeAsync(
-                        resource, config.AppId);
-
-                    _prompt.Prompt(codeResult.DeviceCode, codeResult.ExpiresOn,
-                        codeResult.Message);
-
-                    // Wait and acquire it when authenticated
-                    var result = await ctx.AcquireTokenByDeviceCodeAsync
-                        (codeResult);
-                    return result.ToTokenResult();
+                catch (Exception exc) {
+                    _logger.Information(exc, "Failed to get token for {resource}", resource);
+                    continue;
                 }
             }
-            catch (AdalException exc) {
-                _logger.Information(exc, "Failed to get token for {resource}", resource);
-                return null;
-            }
+            return null;
         }
 
         /// <inheritdoc/>

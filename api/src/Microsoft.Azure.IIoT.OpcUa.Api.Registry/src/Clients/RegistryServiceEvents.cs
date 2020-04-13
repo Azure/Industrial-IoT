@@ -28,9 +28,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="serializer"></param>
         /// <param name="client"></param>
         public RegistryServiceEvents(IHttpClient httpClient, ICallbackClient client,
-            IEventsConfig config, ISerializer serializer) : this(httpClient, client,
-                config?.OpcUaEventsServiceUrl, config.OpcUaEventsServiceResourceId,
-                    serializer) {
+            IEventsConfig config, ISerializer serializer) :
+            this(httpClient, client, config?.OpcUaEventsServiceUrl, serializer) {
         }
 
         /// <summary>
@@ -39,17 +38,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="httpClient"></param>
         /// <param name="client"></param>
         /// <param name="serviceUri"></param>
-        /// <param name="resourceId"></param>
         /// <param name="serializer"></param>
         public RegistryServiceEvents(IHttpClient httpClient, ICallbackClient client,
-            string serviceUri, string resourceId, ISerializer serializer = null) {
+            string serviceUri, ISerializer serializer = null) {
             if (string.IsNullOrEmpty(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the events micro service.");
             }
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _serviceUri = serviceUri;
-            _resourceId = resourceId;
             _serializer = serializer ?? new NewtonSoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
@@ -61,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/applications/events",
-                _resourceId);
+                Resource.Platform);
             var registration = hub.Register(EventTargets.ApplicationEventTarget, callback);
             return new AsyncDisposable(registration);
         }
@@ -73,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/endpoints/events",
-                _resourceId);
+                Resource.Platform);
             var registration = hub.Register(EventTargets.EndpointEventTarget, callback);
             return new AsyncDisposable(registration);
         }
@@ -85,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/gateways/events",
-                _resourceId);
+                Resource.Platform);
             var registration = hub.Register(EventTargets.GatewayEventTarget, callback);
             return new AsyncDisposable(registration);
         }
@@ -97,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/supervisors/events",
-                _resourceId);
+                Resource.Platform);
             var registration = hub.Register(EventTargets.SupervisorEventTarget, callback);
             return new AsyncDisposable(registration);
         }
@@ -109,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/discovery/events",
-                _resourceId);
+                Resource.Platform);
             var registration = hub.Register(EventTargets.DiscovererEventTarget, callback);
             return new AsyncDisposable(registration);
         }
@@ -121,7 +118,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events",
-                _resourceId);
+                Resource.Platform);
             var registration = hub.Register(EventTargets.PublisherEventTarget, callback);
             return new AsyncDisposable(registration);
         }
@@ -133,7 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/discovery/events",
-                _resourceId);
+                Resource.Platform);
             var registration = hub.Register(EventTargets.DiscoveryProgressTarget, callback);
             try {
                 await SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
@@ -155,7 +152,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
                 throw new ArgumentNullException(nameof(callback));
             }
             var hub = await _client.GetHubAsync($"{_serviceUri}/v2/discovery/events",
-                _resourceId);
+                Resource.Platform);
             var registration = hub.Register(EventTargets.DiscoveryProgressTarget, callback);
             try {
                 await SubscribeDiscoveryProgressByRequestIdAsync(requestId, hub.ConnectionId,
@@ -180,7 +177,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/discovery/{discovererId}/events", _resourceId);
+                $"{_serviceUri}/v2/discovery/{discovererId}/events", Resource.Platform);
             _serializer.SerializeToRequest(request, connectionId);
             var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -196,7 +193,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
                 throw new ArgumentNullException(nameof(connectionId));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/discovery/requests/{requestId}/events", _resourceId);
+                $"{_serviceUri}/v2/discovery/requests/{requestId}/events", Resource.Platform);
             _serializer.SerializeToRequest(request, connectionId);
             var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -213,7 +210,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             }
             var request = _httpClient.NewRequest(
                 $"{_serviceUri}/v2/discovery/{discovererId}/events/{connectionId}",
-                _resourceId);
+                Resource.Platform);
             var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -229,14 +226,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             }
             var request = _httpClient.NewRequest(
                 $"{_serviceUri}/v2/discovery/requests/{requestId}/events/{connectionId}",
-                _resourceId);
+                Resource.Platform);
             var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
 
         private readonly IHttpClient _httpClient;
         private readonly string _serviceUri;
-        private readonly string _resourceId;
         private readonly ISerializer _serializer;
         private readonly ICallbackClient _client;
     }

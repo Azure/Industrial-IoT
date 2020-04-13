@@ -23,8 +23,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
         /// <param name="config"></param>
         /// <param name="serializer"></param>
         public OnboardingServiceClient(IHttpClient httpClient, IOnboardingConfig config,
-            ISerializer serializer) : this(httpClient, config.OpcUaOnboardingServiceUrl,
-                config.OpcUaOnboardingServiceResourceId, serializer) {
+            ISerializer serializer) :
+            this(httpClient, config.OpcUaOnboardingServiceUrl, serializer) {
         }
 
         /// <summary>
@@ -32,16 +32,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
-        /// <param name="resourceId"></param>
         /// <param name="serializer"></param>
         public OnboardingServiceClient(IHttpClient httpClient, string serviceUri,
-            string resourceId, ISerializer serializer) {
+            ISerializer serializer) {
             if (string.IsNullOrEmpty(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the onboarding micro service.");
             }
             _serviceUri = serviceUri;
-            _resourceId = resourceId;
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
@@ -49,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
         /// <inheritdoc/>
         public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
             var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
-                _resourceId);
+                Resource.Platform);
             try {
                 var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
@@ -69,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery") {
                 Query = $"discovererId={discovererId}"
             };
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -77,7 +75,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients {
 
         private readonly IHttpClient _httpClient;
         private readonly string _serviceUri;
-        private readonly string _resourceId;
         private readonly ISerializer _serializer;
     }
 }

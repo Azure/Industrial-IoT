@@ -45,66 +45,74 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            if (!_config.TryGetConfig(resource, AuthScheme.Aad, out var config)) {
-                return null;
-            }
-            try {
-                var user = _ctx.HttpContext?.User;
-                // User id should be known, we need it to sign in on behalf of...
-                if (user == null) {
-                    throw new AuthenticationException("Missing claims principal.");
-                }
 
-                var name = user.FindFirstValue(ClaimTypes.Upn);
-                if (string.IsNullOrEmpty(name)) {
-                    name = user.FindFirstValue(ClaimTypes.Email);
-                }
-                if (string.IsNullOrEmpty(name)) {
-                    name = user.Identity?.Name;
-                }
-
-                const string kAccessTokenKey = "access_token";
-                var token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
-                if (string.IsNullOrEmpty(token)) {
-                    throw new AuthenticationException(
-                        $"No auth on behalf of {name} without token...");
-                }
-
-                var cache = _store.GetCache($"OID:{user.GetObjectId()}");
-                var ctx = CreateAuthenticationContext(config.InstanceUrl,
-                    config.TenantId, cache);
-                try {
-                    var result = await ctx.AcquireTokenSilentAsync(resource, config.AppId);
-                    return result.ToTokenResult();
-                }
-                catch (AdalException ex) {
-                    if (ex.ErrorCode == AdalError.FailedToAcquireTokenSilently) {
-                        if (_handler.AcquireTokenIfSilentFails &&
-                            !string.IsNullOrEmpty(config.AppSecret)) {
-                            try {
-                                var result = await ctx.AcquireTokenAsync(resource,
-                                    new ClientCredential(config.AppId, config.AppSecret),
-                                    new UserAssertion(token, kGrantType, name));
-                                return result.ToTokenResult();
-                            }
-                            catch (AdalException ex2) {
-                                ex = ex2;
-                            }
-                        }
-                    }
-                    throw new AuthenticationException(
-                        $"Failed to authenticate on behalf of {name}", ex);
-                }
-                catch (Exception ex2) {
-                    throw new AuthenticationException(
-                        $"Unexpected error authenticating on behalf of {name}", ex2);
-                }
-            }
-            catch (AuthenticationException e) {
+            var user = _ctx.HttpContext?.User;
+            // User id should be known, we need it to sign in on behalf of them...
+            if (user == null) {
+                var e = new AuthenticationException("Missing claims principal.");
                 _logger.Information(e, "Failed to get token for {resource} ", resource);
                 _handler.Handle(_ctx.HttpContext, e);
                 return null;
             }
+
+            var name = user.FindFirstValue(ClaimTypes.Upn);
+            if (string.IsNullOrEmpty(name)) {
+                name = user.FindFirstValue(ClaimTypes.Email);
+            }
+            if (string.IsNullOrEmpty(name)) {
+                name = user.Identity?.Name;
+            }
+
+            const string kAccessTokenKey = "access_token";
+            var token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
+            if (string.IsNullOrEmpty(token)) {
+                var e = new AuthenticationException(
+                    $"No auth on behalf of {name} without token...");
+                _logger.Information(e, "Failed to get token for {resource} ", resource);
+                _handler.Handle(_ctx.HttpContext, e);
+                return null;
+            }
+
+            var cache = _store.GetCache($"OID:{user.GetObjectId()}");
+            foreach (var config in _config.Query(resource, AuthScheme.Aad)) {
+                try {
+                    var ctx = CreateAuthenticationContext(config.InstanceUrl,
+                        config.TenantId, cache);
+                    try {
+                        var result = await ctx.AcquireTokenSilentAsync(config.Audience,
+                            config.AppId);
+                        return result.ToTokenResult();
+                    }
+                    catch (AdalException ex) {
+                        if (ex.ErrorCode == AdalError.FailedToAcquireTokenSilently) {
+                            if (_handler.AcquireTokenIfSilentFails &&
+                                !string.IsNullOrEmpty(config.AppSecret)) {
+                                try {
+                                    var result = await ctx.AcquireTokenAsync(config.Audience,
+                                        new ClientCredential(config.AppId, config.AppSecret),
+                                        new UserAssertion(token, kGrantType, name));
+                                    return result.ToTokenResult();
+                                }
+                                catch (AdalException ex2) {
+                                    ex = ex2;
+                                }
+                            }
+                        }
+                        throw new AuthenticationException(
+                            $"Failed to authenticate on behalf of {name}", ex);
+                    }
+                    catch (Exception ex2) {
+                        throw new AuthenticationException(
+                            $"Unexpected error authenticating on behalf of {name}", ex2);
+                    }
+                }
+                catch (AuthenticationException e) {
+                    _logger.Information(e, "Failed to get token for {resource} ", resource);
+                    _handler.Handle(_ctx.HttpContext, e);
+                    continue;
+                }
+            }
+            return null;
         }
 
         /// <summary>

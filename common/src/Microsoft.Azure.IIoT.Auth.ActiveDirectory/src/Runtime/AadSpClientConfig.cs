@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_AppIdKey = "Aad:AppId";
         private const string kAuth_AppSecretKey = "Aad:AppSecret";
         private const string kAuth_TenantIdKey = "Aad:TenantId";
+        private const string kAuth_AudienceKey = "Aad:Audience";
         private const string kAuth_AuthorityUrlKey = "Aad:AuthorityUrl";
 
         /// <summary>Scheme</summary>
@@ -41,7 +42,11 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
             () => GetStringOrDefault("PCS_WEBUI_AUTH_AAD_INSTANCE",
                 () => "https://login.microsoftonline.com"))).Trim();
         /// <summary>Audience</summary>
-        public string Audience => null;
+        public string Audience => GetStringOrDefault(kAuth_AudienceKey,
+            () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
+                () => null))?.Trim();
+        /// <summary>Resource</summary>
+        public string Resource => Http.Resource.Platform;
 
         /// <summary>
         /// Configuration constructor

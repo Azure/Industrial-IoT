@@ -10,28 +10,21 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Runtime {
     /// <summary>
     /// Configuration - wraps a configuration root
     /// </summary>
-    public class IUserManagerConfig : ApiConfigBase, Identity.IUserManagerConfig {
+    public class UserManagerConfig : ApiConfigBase, IUserManagerConfig {
 
         /// <summary>
         /// Identitymanager configuration
         /// </summary>
         private const string kIdentityServiceUrlKey = "IdentityServiceUrl";
-        private const string kIdentityServiceIdKey = "IdentityServiceResourceId";
 
         /// <summary>Identitymanager service endpoint url</summary>
         public string IdentityServiceUrl => GetStringOrDefault(
             kIdentityServiceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_USERS_SERVICE_URL,
                 () => GetDefaultUrl("9048", "users")));
-        /// <summary>Identitymanager service audience</summary>
-        public string IdentityServiceResourceId => GetStringOrDefault(
-            kIdentityServiceIdKey,
-            () => GetStringOrDefault("USERS_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
-                    () => null)));
 
         /// <inheritdoc/>
-        public IUserManagerConfig(IConfiguration configuration) :
+        public  UserManagerConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

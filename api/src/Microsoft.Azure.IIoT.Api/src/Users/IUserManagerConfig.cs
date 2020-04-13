@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.Api.Identity {
         /// Identitymanager service url
         /// </summary>
         string IdentityServiceUrl { get; }
-
-        /// <summary>
-        /// Resource id of Identitymanager service
-        /// </summary>
-        string IdentityServiceResourceId { get; }
     }
 }

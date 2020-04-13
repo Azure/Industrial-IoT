@@ -178,7 +178,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Add service to service authentication
-            builder.RegisterModule<WebServiceAuthentication>();
+            builder.RegisterModule<WebApiAuthentication>();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()

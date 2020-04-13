@@ -171,7 +171,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Add service to service authentication
-            builder.RegisterModule<WebServiceAuthentication>();
+            builder.RegisterModule<WebApiAuthentication>();
 
             builder.RegisterType<JwtTokenValidator>()
                 .AsImplementedInterfaces();

@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding {
         /// Opc onboarding service url
         /// </summary>
         string OpcUaOnboardingServiceUrl { get; }
-
-        /// <summary>
-        /// Resource id of onboarding service
-        /// </summary>
-        string OpcUaOnboardingServiceResourceId { get; }
     }
 }

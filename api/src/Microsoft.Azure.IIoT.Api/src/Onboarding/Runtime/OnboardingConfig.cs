@@ -23,12 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Runtime {
             kOnboardingServiceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_ONBOARDING_SERVICE_URL,
                 () => GetDefaultUrl("9060", "onboarding")));
-        /// <summary>onboarding service audience</summary>
-        public string OpcUaOnboardingServiceResourceId => GetStringOrDefault(
-            kOnboardingServiceIdKey,
-            () => GetStringOrDefault("OPC_ONBOARDING_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
-                    () => null)));
 
         /// <inheritdoc/>
         public OnboardingConfig(IConfiguration configuration) :

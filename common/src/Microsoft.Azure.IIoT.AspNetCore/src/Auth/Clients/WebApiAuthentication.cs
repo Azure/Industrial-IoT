@@ -12,11 +12,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// <summary>
     /// Default web service authentication
     /// </summary>
-    public class WebServiceAuthentication : Module {
+    public class WebApiAuthentication : Module {
 
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
-            builder.RegisterModule<DefaultServiceAuthProviders>();
 
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -25,11 +24,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             builder.RegisterType<DistributedTokenCache>()
                 .AsImplementedInterfaces().SingleInstance();
 
+            builder.RegisterModule<DefaultServiceAuthProviders>();
+
             // Pass token through is the only provider here
             builder.RegisterType<PassThroughTokenProvider>()
                 .AsSelf().AsImplementedInterfaces();
             builder.RegisterType<TokenProviderTokenSource<PassThroughTokenProvider>>()
                 .AsImplementedInterfaces().SingleInstance();
+
             base.Load(builder);
         }
     }

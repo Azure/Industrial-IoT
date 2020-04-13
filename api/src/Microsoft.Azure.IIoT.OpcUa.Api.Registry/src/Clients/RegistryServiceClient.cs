@@ -25,9 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <param name="config"></param>
         /// <param name="serializer"></param>
         public RegistryServiceClient(IHttpClient httpClient, IRegistryConfig config,
-            ISerializer serializer) : this(httpClient,
-                config?.OpcUaRegistryServiceUrl, config.OpcUaRegistryServiceResourceId,
-                serializer) {
+            ISerializer serializer) :
+            this(httpClient, config?.OpcUaRegistryServiceUrl, serializer) {
         }
 
         /// <summary>
@@ -35,16 +34,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
-        /// <param name="resourceId"></param>
         /// <param name="serializer"></param>
         public RegistryServiceClient(IHttpClient httpClient, string serviceUri,
-            string resourceId, ISerializer serializer = null) {
+            ISerializer serializer = null) {
             if (string.IsNullOrEmpty(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the registry micro service.");
             }
             _serviceUri = serviceUri;
-            _resourceId = resourceId;
             _serializer = serializer ?? new NewtonSoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
@@ -52,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         /// <inheritdoc/>
         public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
             var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
-                _resourceId);
+                Resource.Platform);
             try {
                 var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
@@ -73,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(discovererId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/discovery/{discovererId}",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -83,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         public async Task<DiscovererListApiModel> ListDiscoverersAsync(
             string continuation, int? pageSize, CancellationToken ct) {
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery");
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             if (continuation != null) {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
@@ -101,7 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             DiscovererQueryApiModel query, int? pageSize,
             CancellationToken ct) {
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery/query");
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
@@ -118,7 +115,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(discovererId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}");
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -134,7 +131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}") {
                 Query = $"mode={mode}"
             };
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             _serializer.SerializeToRequest(request, config);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -147,7 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/{supervisorId}/status");
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -160,7 +157,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/{supervisorId}/reset");
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -175,7 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(supervisorId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/supervisors/{supervisorId}",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -188,7 +185,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             if (continuation != null) {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
@@ -209,7 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
@@ -229,7 +226,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -246,7 +243,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(content.DiscoveryUrl));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             request.Options.Timeout = 60000;
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
@@ -259,7 +256,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/discover",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             request.Options.Timeout = 60000;
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
@@ -272,7 +269,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/applications/discover/${content.Id}", _resourceId);
+                $"{_serviceUri}/v2/applications/discover/${content.Id}", Resource.Platform);
             var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -287,7 +284,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(content.ApplicationUri));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -326,7 +323,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(applicationId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -339,7 +336,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(applicationId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
-                _resourceId);
+                Resource.Platform);
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -350,7 +347,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         public async Task<ApplicationInfoListApiModel> QueryApplicationsAsync(
             ApplicationRegistrationQueryApiModel query, int? pageSize, CancellationToken ct) {
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/query",
-                _resourceId);
+                Resource.Platform);
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
@@ -364,7 +361,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         public async Task<ApplicationInfoListApiModel> ListApplicationsAsync(
             string continuation, int? pageSize, CancellationToken ct) {
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
-                _resourceId);
+                Resource.Platform);
             if (continuation != null) {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
@@ -381,7 +378,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         public async Task<ApplicationSiteListApiModel> ListSitesAsync(
             string continuation, int? pageSize, CancellationToken ct) {
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/sites",
-                _resourceId);
+                Resource.Platform);
             if (continuation != null) {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
@@ -400,7 +397,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(applicationId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
-                _resourceId);
+                Resource.Platform);
             var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -409,7 +406,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         public async Task PurgeDisabledApplicationsAsync(TimeSpan notSeenFor,
             CancellationToken ct) {
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/applications?notSeenFor={notSeenFor}", _resourceId);
+                $"{_serviceUri}/v2/applications?notSeenFor={notSeenFor}", Resource.Platform);
             var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -421,7 +418,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             if (continuation != null) {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
@@ -442,7 +439,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
@@ -462,7 +459,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -476,7 +473,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/{endpointId}/certificate");
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -489,7 +486,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/endpoints/{endpointId}/activate", _resourceId);
+                $"{_serviceUri}/v2/endpoints/{endpointId}/activate", Resource.Platform);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -500,7 +497,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/endpoints/{endpointId}/deactivate", _resourceId);
+                $"{_serviceUri}/v2/endpoints/{endpointId}/deactivate", Resource.Platform);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -512,7 +509,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             if (continuation != null) {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
@@ -535,7 +532,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(publisherId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/publishers/{publisherId}",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -549,7 +546,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
@@ -569,7 +566,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (onlyServerState ?? false) {
                 uri.Query = "onlyServerState=true";
             }
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -580,7 +577,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         public async Task<GatewayListApiModel> ListGatewaysAsync(
             string continuation, int? pageSize, CancellationToken ct) {
             var uri = new UriBuilder($"{_serviceUri}/v2/gateways");
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             if (continuation != null) {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
             }
@@ -603,7 +600,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(gatewayId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/gateways/{gatewayId}",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -613,7 +610,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         public async Task<GatewayListApiModel> QueryGatewaysAsync(
             GatewayQueryApiModel query, int? pageSize, CancellationToken ct) {
             var uri = new UriBuilder($"{_serviceUri}/v2/gateways/query");
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
@@ -630,7 +627,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 throw new ArgumentNullException(nameof(gatewayId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/gateways/{gatewayId}");
-            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var request = _httpClient.NewRequest(uri.Uri, Resource.Platform);
             _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -639,7 +636,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
 
         private readonly IHttpClient _httpClient;
         private readonly string _serviceUri;
-        private readonly string _resourceId;
         private readonly ISerializer _serializer;
     }
 }

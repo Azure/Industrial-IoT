@@ -80,11 +80,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         ValidAudience = config.Audience
                     };
                     options.Events = new JwtBearerEvents {
-                     //  OnAuthenticationFailed = ctx => {
-                     //      ctx.NoResult();
-                     //      return WriteErrorAsync(ctx.Response, environment.IsDevelopment() ?
-                     //          ctx.Exception : null);
-                     //  },
                         OnTokenValidated = ctx => {
                             if (ctx.SecurityToken is JwtSecurityToken accessToken) {
                                 if (ctx.Principal.Identity is ClaimsIdentity identity) {

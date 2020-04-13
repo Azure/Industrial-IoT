@@ -33,6 +33,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         public string AppSecret => null;
         /// <summary>Audience</summary>
         public string Audience => null;
+        /// <summary>Resource</summary>
+        public string Resource => Http.Resource.KeyVault;
 
         /// <summary>
         /// Configuration constructor

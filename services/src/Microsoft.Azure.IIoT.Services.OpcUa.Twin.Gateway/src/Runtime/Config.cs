@@ -72,8 +72,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
 
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _api.OpcUaRegistryServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaRegistryServiceResourceId => _api.OpcUaRegistryServiceResourceId;
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>

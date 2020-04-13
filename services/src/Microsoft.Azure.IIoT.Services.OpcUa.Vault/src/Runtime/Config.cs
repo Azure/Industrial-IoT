@@ -94,8 +94,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
 
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _registry.OpcUaRegistryServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaRegistryServiceResourceId => _registry.OpcUaRegistryServiceResourceId;
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>

@@ -179,7 +179,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Add service to service authentication
-            builder.RegisterModule<WebServiceAuthentication>();
+            builder.RegisterModule<WebApiAuthentication>();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()

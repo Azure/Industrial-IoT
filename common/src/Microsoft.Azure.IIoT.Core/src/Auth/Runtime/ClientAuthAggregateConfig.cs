@@ -24,5 +24,12 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
             ClientSchemes = clients?.Where(s => !string.IsNullOrEmpty(s.AppId)).ToList()
                 ?? throw new ArgumentNullException(nameof(clients));
         }
+
+        /// <inheritdoc/>
+        public IEnumerable<IOAuthClientConfig> Query(string resource, string scheme) {
+            return ClientSchemes?
+                .Where(c => c.Resource == resource && c.Scheme == scheme)
+                    ?? Enumerable.Empty<IOAuthClientConfig>();
+        }
     }
 }

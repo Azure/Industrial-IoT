@@ -201,6 +201,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             public string InstanceUrl => null;
             /// <summary>Scheme</summary>
             public string Scheme => AuthScheme.Aad;
+            /// <summary>Resource</summary>
+            public string Resource => Azure.IIoT.Http.Resource.KeyVault;
             /// <summary>Audience</summary>
             public string Audience => null;
 

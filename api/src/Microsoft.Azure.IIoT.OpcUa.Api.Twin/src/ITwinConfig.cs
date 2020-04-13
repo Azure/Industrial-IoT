@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// Opc twin service url
         /// </summary>
         string OpcUaTwinServiceUrl { get; }
-
-        /// <summary>
-        /// The twin service resource id
-        /// </summary>
-        string OpcUaTwinServiceResourceId { get; }
     }
 }

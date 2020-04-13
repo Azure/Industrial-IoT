@@ -30,38 +30,24 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
 
         /// <inheritdoc/>
         public string OpcUaTwinServiceUrl => _twin.OpcUaTwinServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaTwinServiceResourceId => _twin.OpcUaTwinServiceResourceId;
 
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _registry.OpcUaRegistryServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaRegistryServiceResourceId => _registry.OpcUaRegistryServiceResourceId;
 
         /// <inheritdoc/>
         public string JobServiceUrl => _jobs.JobServiceUrl;
-        /// <inheritdoc/>
-        public string JobServiceResourceId => _jobs.JobServiceResourceId;
 
         /// <inheritdoc/>
         public string OpcUaVaultServiceUrl => _vault.OpcUaVaultServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaVaultServiceResourceId => _vault.OpcUaVaultServiceResourceId;
 
         /// <inheritdoc/>
         public string OpcUaHistoryServiceUrl => _history.OpcUaHistoryServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaHistoryServiceResourceId => _history.OpcUaHistoryServiceResourceId;
 
         /// <inheritdoc/>
         public string OpcUaPublisherServiceUrl => _publisher.OpcUaPublisherServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaPublisherServiceResourceId => _publisher.OpcUaPublisherServiceResourceId;
 
         /// <inheritdoc/>
         public string OpcUaEventsServiceUrl => _events.OpcUaEventsServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaEventsServiceResourceId => _events.OpcUaEventsServiceResourceId;
 
         /// <inheritdoc/>
         public bool UseMessagePackProtocol => _events.UseMessagePackProtocol;

@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Cli authentication
     /// </summary>
-    public class ConsoleAuthentication : Module {
+    public class NativeClientAuthentication : Module {
 
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
@@ -26,14 +26,17 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 .AsImplementedInterfaces();
 
             // Use Vs authentication
-            builder.RegisterType<VsAuthenticationProvider>()
+            builder.RegisterType<LocalDevelopmentProvider>()
+                .AsSelf();
+            // Use app authentication
+            builder.RegisterType<AppAuthenticationProvider>()
                 .AsSelf();
             // fallback to device code token provider
             builder.RegisterType<DeviceCodeTokenProvider>()
                 .AsSelf();
 
             // Use cli token source
-            builder.RegisterType<CliTokenSource>()
+            builder.RegisterType<NativeClientTokenSource>()
                 .AsImplementedInterfaces().SingleInstance();
             base.Load(builder);
         }
@@ -42,15 +45,16 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>
         /// Authenticate with device token after trying app authentication.
         /// </summary>
-        internal class CliTokenSource : ITokenSource {
+        internal class NativeClientTokenSource : ITokenSource {
 
             /// <inheritdoc/>
             public string Resource => Http.Resource.Platform;
 
             /// <inheritdoc/>
-            public CliTokenSource(IComponentContext components) {
-                _vs = components.Resolve<VsAuthenticationProvider>();
+            public NativeClientTokenSource(IComponentContext components) {
+                _vs = components.Resolve<LocalDevelopmentProvider>();
                 _dc = components.Resolve<DeviceCodeTokenProvider>();
+                _aa = components.Resolve<AppAuthenticationProvider>();
             }
 
             /// <inheritdoc/>
@@ -61,17 +65,23 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 if (token != null) {
                     return token;
                 }
+                token = await Try.Async(() => _aa.GetTokenForAsync(Resource, scopes));
+                if (token != null) {
+                    return token;
+                }
                 return await Try.Async(() => _dc.GetTokenForAsync(Resource, scopes));
             }
 
             /// <inheritdoc/>
             public async Task InvalidateAsync() {
+                await _aa.InvalidateAsync(Resource);
                 await _vs.InvalidateAsync(Resource);
                 await _dc.InvalidateAsync(Resource);
             }
 
-            private readonly VsAuthenticationProvider _vs;
+            private readonly LocalDevelopmentProvider _vs;
             private readonly DeviceCodeTokenProvider _dc;
+            private readonly AppAuthenticationProvider _aa;
         }
     }
 }

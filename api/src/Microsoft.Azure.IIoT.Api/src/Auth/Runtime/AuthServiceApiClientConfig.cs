@@ -19,14 +19,12 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_AppIdKey = "Auth:AppId";
         private const string kAuth_AppSecretKey = "Auth:AppSecret";
         private const string kAuth_InstanceUrlKey = "Auth:InstanceUrl";
+        private const string kAuth_AudienceKey = "Auth:Audience";
 
         /// <summary>Scheme</summary>
         public string Scheme => AuthScheme.AuthService;
-
-        /// <summary>Auth server disabled or not</summary>
-        protected bool IsDisabled => GetBoolOrDefault(kAuth_IsDisabledKey,
-            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_SERVICE_DISABLED,
-                () => false));
+        /// <summary>Applicable resource</summary>
+        public string Resource => IsDisabled ? null : Http.Resource.Platform;
         /// <summary>Application id</summary>
         public string AppId => IsDisabled ? null : GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_CLIENT_APPID,
@@ -40,11 +38,18 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
             GetStringOrDefault(kAuth_InstanceUrlKey,
                 () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_URL,
                     () => GetDefaultUrl("9090", "auth")));
-
+        /// <summary>Valid audience</summary>
+        public string Audience => IsDisabled ? null :
+            GetStringOrDefault(kAuth_AudienceKey,
+                () => GetStringOrDefault(PcsVariable.PCS_SERVICE_NAME,
+                    () => "iiot"))?.Trim();
         /// <summary>Optional tenant</summary>
         public string TenantId => null;
-        /// <summary>Audience</summary>
-        public string Audience => null;
+
+        /// <summary>Auth server disabled or not</summary>
+        protected bool IsDisabled => GetBoolOrDefault(kAuth_IsDisabledKey,
+            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_SERVICE_DISABLED,
+                () => false));
 
         /// <summary>
         /// Configuration constructor

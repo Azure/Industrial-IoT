@@ -11,6 +11,6 @@
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Auth.OpenId\src\Microsoft.Azure.IIoT.Auth.OpenId.csproj" />
   </ItemGroup>
 </Project>

@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             if (string.IsNullOrEmpty(token)) {
                 return null;
             }
-            return TokenResultModelEx.Parse(token);
+            return JwtSecurityTokenEx.Parse(token);
         }
 
         /// <summary>

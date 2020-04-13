@@ -28,7 +28,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
 
         /// <summary>Scheme</summary>
         public string Scheme => AuthScheme.AuthService;
-
+        /// <summary>Applicable resource</summary>
+        public string Resource => IsDisabled ? null : Http.Resource.Platform;
         /// <summary>Application id</summary>
         public string AppId => AppSecret == null ? null : GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_SERVICE_APPID,
@@ -57,7 +58,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
             GetStringOrDefault(kAuth_AudienceKey,
                 () => GetStringOrDefault(PcsVariable.PCS_SERVICE_NAME,
                     () => "iiot"))?.Trim();
-
         /// <summary>No tenant</summary>
         public string TenantId => null;
 

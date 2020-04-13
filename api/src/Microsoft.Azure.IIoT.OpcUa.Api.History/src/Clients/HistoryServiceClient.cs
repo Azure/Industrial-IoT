@@ -24,9 +24,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
         /// <param name="config"></param>
         /// <param name="serializer"></param>
         public HistoryServiceClient(IHttpClient httpClient, IHistoryConfig config,
-            ISerializer serializer) : this(httpClient,
-                config?.OpcUaHistoryServiceUrl, config?.OpcUaHistoryServiceResourceId,
-                serializer) {
+            ISerializer serializer) :
+            this(httpClient, config?.OpcUaHistoryServiceUrl, serializer) {
         }
 
         /// <summary>
@@ -34,9 +33,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
-        /// <param name="resourceId"></param>
         /// <param name="serializer"></param>
-        public HistoryServiceClient(IHttpClient httpClient, string serviceUri, string resourceId,
+        public HistoryServiceClient(IHttpClient httpClient, string serviceUri,
             ISerializer serializer = null) {
             if (string.IsNullOrEmpty(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
@@ -45,13 +43,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
             _serializer = serializer ?? new NewtonSoftJsonSerializer();
             _serviceUri = serviceUri;
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _resourceId = resourceId;
         }
 
         /// <inheritdoc/>
         public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
-                _resourceId);
+            var request = _httpClient.NewRequest($"{_serviceUri}/healthz", Resource.Platform);
             try {
                 var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
@@ -75,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content.Details));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/history/read/{endpointId}", _resourceId);
+                $"{_serviceUri}/v2/history/read/{endpointId}", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -95,7 +91,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/history/read/{endpointId}/next", _resourceId);
+                $"{_serviceUri}/v2/history/read/{endpointId}/next", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -115,7 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content.Details));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/history/update/{endpointId}", _resourceId);
+                $"{_serviceUri}/v2/history/update/{endpointId}", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -133,7 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/read/{endpointId}/values", _resourceId);
+                $"{_serviceUri}/v2/read/{endpointId}/values", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -151,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/read/{endpointId}/values/modified", _resourceId);
+                $"{_serviceUri}/v2/read/{endpointId}/values/modified", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -169,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/read/{endpointId}/values/pick", _resourceId);
+                $"{_serviceUri}/v2/read/{endpointId}/values/pick", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -187,7 +183,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/read/{endpointId}/values/processed", _resourceId);
+                $"{_serviceUri}/v2/read/{endpointId}/values/processed", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -207,7 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/read/{endpointId}/values/next", _resourceId);
+                $"{_serviceUri}/v2/read/{endpointId}/values/next", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -225,7 +221,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/read/{endpointId}/events", _resourceId);
+                $"{_serviceUri}/v2/read/{endpointId}/events", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -245,7 +241,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content.ContinuationToken));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/read/{endpointId}/events/next", _resourceId);
+                $"{_serviceUri}/v2/read/{endpointId}/events/next", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -262,7 +258,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/replace/{endpointId}/values", _resourceId);
+                $"{_serviceUri}/v2/replace/{endpointId}/values", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -279,7 +275,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/replace/{endpointId}/events", _resourceId);
+                $"{_serviceUri}/v2/replace/{endpointId}/events", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -296,7 +292,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/insert/{endpointId}/values", _resourceId);
+                $"{_serviceUri}/v2/insert/{endpointId}/values", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -313,7 +309,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/insert/{endpointId}/events", _resourceId);
+                $"{_serviceUri}/v2/insert/{endpointId}/events", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -330,7 +326,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/delete/{endpointId}/values", _resourceId);
+                $"{_serviceUri}/v2/delete/{endpointId}/values", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -347,7 +343,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/delete/{endpointId}/values/pick", _resourceId);
+                $"{_serviceUri}/v2/delete/{endpointId}/values/pick", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -364,7 +360,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/delete/{endpointId}/values/modified", _resourceId);
+                $"{_serviceUri}/v2/delete/{endpointId}/values/modified", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -381,7 +377,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/delete/{endpointId}/events", _resourceId);
+                $"{_serviceUri}/v2/delete/{endpointId}/events", Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -391,6 +387,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Clients {
         private readonly IHttpClient _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
-        private readonly string _resourceId;
     }
 }

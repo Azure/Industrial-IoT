@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
 
             services.AddHttpContextAccessor();
             services.AddAuthentication("DeviceTokenAuth")
-                .AddScheme<AuthenticationSchemeOptions, IdentityTokenAuthenticationHandler>(
+                .AddScheme<AuthenticationSchemeOptions, IdentityTokenAuthHandler>(
                     "DeviceTokenAuth", null);
 
             // Add controllers as services so they'll be resolved.
@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Add service to service authentication
-            builder.RegisterModule<WebServiceAuthentication>();
+            builder.RegisterModule<WebApiAuthentication>();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
