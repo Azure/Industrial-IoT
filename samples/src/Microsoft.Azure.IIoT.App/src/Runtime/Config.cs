@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Azure.IIoT.Core.TSI.Runtime;
+    using Microsoft.Azure.IIoT.App.TSI.Runtime;
 
     /// <summary>
     /// Configuration aggregation
