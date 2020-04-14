@@ -7,20 +7,15 @@ The IoT Edge Runtime and the Industrial IoT Edge Modules are automatically insta
 
 ## Run the Industrial IoT Gateway Installer
 
-- Download Azure CLI
+From your edge gateway, run the Industrial IoT Gateway Installer for Windows directly from the Web from [here](https://github.com/Azure/Industrial-IoT-Gateway-Installer/raw/master/Releases/Windows/setup.exe).
 
-    1. On the Azure CLI Wizard read and accept the terms in the License Agreement by checking "I accept the terms in the License Agreement.
-    2. Select "Install" to install Azure CLI.
-    3. Click "Next".
-    4. After Azure CLI is installed, click the Finish button to exit the Setup Wizard.
+For Linux, unzip the following folder to your edge gateway from [here](https://github.com/Azure/Industrial-IoT-Gateway-Installer/raw/master/Releases/Linux.zip) and run:
 
-- Activate Hyper-V
+   ```bash
+   dotnet IoTEdgeInstallerConsoleApp.dll
+   ```
 
-    1. Right click on the Windows button and select ‘Apps and Features’.
-    2. Select Programs and Features on the right under related settings.
-    3. Select Turn Windows Features on or off.
-    4. Select Hyper-V and click OK.
-    5. When the installation has completed you are prompted to restart your computer.
+If the dotnet SDK is not yet installed, you can do this by running:
 
    ```bash
    sudo snap install dotnet-sdk --classic
