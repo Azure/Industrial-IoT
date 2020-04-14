@@ -1,0 +1,46 @@
+﻿@using Microsoft.Azure.IIoT.App.Runtime
+@using Microsoft.AspNetCore.Components
+@using System
+
+@inject NavigationManager NavigationManager
+@inject Config Configuration
+
+<AuthorizeView>
+    <Authorized>
+        @if(!String.IsNullOrEmpty(_tsiLink))
+        {
+            <a href="@_tsiLink" class="tsi_link" target="_blank">Go to Timeseries Insights</a>
+        }   
+    </Authorized>
+    <NotAuthorized>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private string _tsiLink { get; set; } = null;
+
+
+    /// <summary>
+    /// OnInitialized
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        CreateTSILink();
+    }
+
+    /// <summary>
+    /// Create TSI link
+    /// </summary>
+    private void CreateTSILink()
+    {
+        if (!String.IsNullOrEmpty(Configuration.TsiDataAccessFQDN))
+        {
+            var index = Configuration.TsiDataAccessFQDN.IndexOf('.');
+            if (index > 0)
+            {
+                _tsiLink = "https://insights.timeseries.azure.com/preview?environmentId=" + Configuration.TsiDataAccessFQDN.Substring(0, index) + "&tid=" + Configuration.TenantId;
+            }
+        }
+    }
+}
+

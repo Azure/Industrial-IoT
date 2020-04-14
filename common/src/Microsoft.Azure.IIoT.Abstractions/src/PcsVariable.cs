@@ -232,5 +232,8 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Deployment Level </summary>
         public const string PCS_DEPLOYMENT_LEVEL =
             "PCS_DEPLOYMENT_LEVEL";
+        /// <summary> URL path base for TSI query </summary>
+        public const string PCS_TSI_URL =
+            "PCS_TSI_URL";
     }
 }

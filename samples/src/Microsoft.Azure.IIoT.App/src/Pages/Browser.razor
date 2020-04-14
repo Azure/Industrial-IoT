@@ -118,7 +118,7 @@
                     <td>@node.NodeClass</td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
-              ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
+                    ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <div class="td-fixed">
@@ -247,7 +247,7 @@
             }
             StateHasChanged();
             _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
-                samples => InvokeAsync(() => PublishEvent(samples)));
+                samples => InvokeAsync(() => GetPublishedNodeData(samples)));
         }
     }
 
@@ -384,7 +384,11 @@
         this.StateHasChanged();
     }
 
-    private Task PublishEvent(MonitoredItemMessageApiModel samples)
+    /// <summary>
+    /// GetPublishedNodeData
+    /// </summary>
+    /// <param name="samples"></param>
+    private Task GetPublishedNodeData(MonitoredItemMessageApiModel samples)
     {
         foreach (var node in PagedNodeList.Results)
         {
@@ -399,6 +403,9 @@
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Dispose
+    /// </summary>
     public async void Dispose()
     {
         if (_publishEvent != null)
@@ -407,6 +414,10 @@
         }
     }
 
+    /// <summary>
+    /// Get Item stored in session storage
+    /// </summary>
+    /// <param name="key"></param>
     private async Task<T> GetSecureItemAsync<T>(string key)
     {
         var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);

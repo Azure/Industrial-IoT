@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Azure.IIoT.App.TSI.Runtime;
 
     /// <summary>
     /// Configuration aggregation
@@ -30,6 +31,8 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         public string InstanceUrl => _auth.InstanceUrl;
         /// <inheritdoc/>
         public string Domain => _auth.Domain;
+        /// <inheritdoc/>
+        public string TsiDataAccessFQDN => _tsi.DataAccessFQDN;
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
@@ -59,11 +62,13 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
             _host = new HostConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
+            _tsi = new TsiConfig(configuration);
         }
 
         private readonly ApiClientConfig _auth;
         private readonly SignalRServiceConfig _sr;
         private readonly HostConfig _host;
         private readonly ForwardedHeadersConfig _fh;
+        private readonly TsiConfig _tsi;
     }
 }
