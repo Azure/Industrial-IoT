@@ -251,6 +251,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
-        private static readonly Gauge _twinModuleStart = Metrics.CreateGauge("iiot_edge_twin_twin_module_start", "twin module started");
+        private static readonly Gauge _twinModuleStart = Metrics.CreateGauge("iiot_edge_twin_module_start", "twin module started");
     }
 }

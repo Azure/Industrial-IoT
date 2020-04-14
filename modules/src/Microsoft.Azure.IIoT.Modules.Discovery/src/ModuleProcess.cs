@@ -169,6 +169,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
-        private static readonly Gauge _discoveryModuleStart = Metrics.CreateGauge("iiot_edge_discovery_discovery_module_start", "discovery module started");
+        private static readonly Gauge _discoveryModuleStart = Metrics.CreateGauge("iiot_edge_discovery_module_start", "discovery module started");
+
     }
 }

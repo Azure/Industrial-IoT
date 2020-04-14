@@ -53,9 +53,6 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// <param name="version"></param>
         /// <returns></returns>
         private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version = "1.0.9") {
-            if (String.IsNullOrEmpty(_config.WorkspaceId) || String.IsNullOrEmpty(_config.WorkspaceKey)) {
-                Console.WriteLine("empty configs found.. hard coding for now");
-            } 
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(@"
 {
     ""$edgeAgent"": {
@@ -137,7 +134,6 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
             ""syncTarget"": ""AzureLogAnalytics"",
             ""endpoints"": {
                 ""edgeHub"": ""http://edgeHub:9600/metrics"",
-                ""discovery"": ""http://discovery:9700/metrics"",
                 ""opctwin"": ""http://opctwin:9701/metrics"",
                 ""opcpublisher"": ""http://opcpublisher:9702/metrics""
             }

@@ -199,6 +199,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         private readonly TaskCompletionSource<bool> _exit;
         private int _exitCode;
         private TaskCompletionSource<bool> _reset;
-        private static readonly Gauge _publisherModuleStart = Metrics.CreateGauge("iiot_edge_publisher_publisher_module_start", "publisher module started");
+        private static readonly Gauge _publisherModuleStart = Metrics.CreateGauge("iiot_edge_publisher_module_start", "publisher module started");
     }
 }
