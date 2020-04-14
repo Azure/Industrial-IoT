@@ -4,8 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
-    using global::IdentityModel.Client;
     using Microsoft.Azure.IIoT.Auth.Models;
+    using Microsoft.Azure.IIoT.Http.Default;
+    using global::IdentityModel.Client;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -18,16 +19,19 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     public sealed class ClientCredentialProvider : ITokenProvider {
 
         /// <summary>
+        /// Http client factory
+        /// </summary>
+        public IHttpClientFactory Http { get; set; }
+
+        /// <summary>
         /// Create console output device code based token provider
         /// </summary>
-        /// <param name="http"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public ClientCredentialProvider(IHttpClientFactory http,
-            IClientAuthConfig config, ILogger logger) {
+        public ClientCredentialProvider(IClientAuthConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _http = http ?? throw new ArgumentNullException(nameof(http));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            Http = new HttpClientFactory(logger.ForContext<HttpClientFactory>());
         }
 
         /// <summary>
@@ -39,26 +43,31 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             foreach (var config in _config.Query(resource, AuthScheme.AuthService)) {
-                if (string.IsNullOrEmpty(config.AppSecret)) {
+                if (string.IsNullOrEmpty(config.ClientSecret)) {
                     continue;
                 }
                 try {
-                    var client = _http.CreateClient("token_client");
+                    var client = Http.CreateClient("token_client");
                     var response = await client.RequestClientCredentialsTokenAsync(
                         new ClientCredentialsTokenRequest {
                             Address = $"{config.GetAuthorityUrl()}/connect/token",
-                            ClientId = config.AppId,
-                            ClientSecret = config.AppSecret
+                            ClientId = config.ClientId,
+                            ClientSecret = config.ClientSecret
                         });
                     if (response.IsError) {
-                        _logger.Error("Error requesting access token for client {clientName}. Error = {error}",
-                            resource, response.Error);
+                        _logger.Error("Error {error} aquiring token for {resource} with {config}",
+                            response.Error, resource, config.GetName());
                         return null;
                     }
-                    return JwtSecurityTokenEx.Parse(response?.AccessToken);
+                    var result = JwtSecurityTokenEx.Parse(response?.AccessToken);
+                    _logger.Information(
+                        "Successfully acquired token for {resource} with {config}.",
+                        resource, config.GetName());
+                    return result;
                 }
                 catch (Exception exc) {
-                    _logger.Information(exc, "Failed to get token for {resource}", resource);
+                    _logger.Information(exc, "Failed to get token for {resource} using {config}",
+                        resource, config.GetName());
                 }
             }
             return null;
@@ -70,7 +79,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         }
 
         private readonly ILogger _logger;
-        private readonly IHttpClientFactory _http;
         private readonly IClientAuthConfig _config;
     }
 }

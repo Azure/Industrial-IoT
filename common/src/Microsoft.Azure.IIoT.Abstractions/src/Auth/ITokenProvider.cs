@@ -9,24 +9,25 @@ namespace Microsoft.Azure.IIoT.Auth {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Injectable token authentication
+    /// Injectable token provider implementation
     /// </summary>
     public interface ITokenProvider {
 
         /// <summary>
         /// Authenticate user and retrieve token.
         /// </summary>
-        /// <param name="resource">Resource to authenticate</param>
+        /// <param name="resource"><see cref="Http.Resource"/> to
+        /// authenticate</param>
         /// <param name="scopes">Scope permissions to request</param>
         /// <returns>null if no token could be retrieved</returns>
         Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes = null);
 
         /// <summary>
-        /// Invalidate any token in token cache for
-        /// named resource.
+        /// Invalidate token cache after failed authentication.
         /// </summary>
-        /// <param name="resource"></param>
+        /// <param name="resource"><see cref="Http.Resource"/> to
+        /// invalidate</param>
         Task InvalidateAsync(string resource);
     }
 }

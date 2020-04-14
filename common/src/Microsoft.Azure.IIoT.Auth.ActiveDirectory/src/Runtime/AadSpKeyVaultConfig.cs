@@ -20,19 +20,23 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_TenantIdKey = "Aad:TenantId";
         private const string kAuth_AuthorityUrlKey = "Aad:AuthorityUrl";
 
+        /// <inheritdoc/>
+        public bool IsValid =>
+            ClientId != null && ClientSecret != null && TenantId != null;
         /// <summary>Scheme</summary>
         public string Scheme => AuthScheme.Aad;
         /// <summary>Application id</summary>
-        public string AppId => GetStringOrDefault(kAuth_AppIdKey,
+        public string ClientId => GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_APPID,
                 () => null))?.Trim();
         /// <summary>App secret</summary>
-        public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey,
+        public string ClientSecret => GetStringOrDefault(kAuth_AppSecretKey,
             () => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_SECRET,
                 () => null))?.Trim();
         /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
-            () => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT))?.Trim();
+            () => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
+                () => null))?.Trim();
         /// <summary>Authority url</summary>
         public string InstanceUrl => GetStringOrDefault(kAuth_AuthorityUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_INSTANCE,
@@ -41,6 +45,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         public string Audience => null;
         /// <summary>Resource</summary>
         public string Resource => Http.Resource.KeyVault;
+
 
         /// <summary>
         /// Configuration constructor

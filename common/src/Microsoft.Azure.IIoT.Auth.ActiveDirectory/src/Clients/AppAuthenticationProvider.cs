@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             base(logger) {
             _config = config?.ClientSchemes?
                 .Where(c => c.Scheme == AuthScheme.Aad)
-                .Where(c => !string.IsNullOrEmpty(c.AppId))
+                .Where(c => !string.IsNullOrEmpty(c.ClientId))
                 .Select(CreateProvider)
                 .ToList();
         }
@@ -38,12 +38,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             var cs = Environment.GetEnvironmentVariable("AzureServicesAuthConnectionString");
             if (string.IsNullOrEmpty(cs)) {
                 // Run as app
-                cs = $"RunAs=App;AppId={config.AppId}";
+                cs = $"RunAs=App;AppId={config.ClientId}";
                 if (!string.IsNullOrEmpty(config.TenantId)) {
                     cs += $";TenantId={config.TenantId}";
                 }
-                if (!string.IsNullOrEmpty(config.AppSecret)) {
-                    cs += $";AppKey={config.AppSecret}";
+                if (!string.IsNullOrEmpty(config.ClientSecret)) {
+                    cs += $";AppKey={config.ClientSecret}";
                 }
             }
             return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,

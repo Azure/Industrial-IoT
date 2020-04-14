@@ -5,15 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Auth.Models;
+    using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Auth;
-    using Microsoft.Azure.IIoT.Utils;
+    using Serilog;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
     using Autofac;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
 
     /// <summary>
     /// Hybrid web service and unattended authentication
@@ -25,69 +24,37 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             builder.RegisterModule<DefaultServiceAuthProviders>();
 
             builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ClientAuthAggregateConfig>()
-                .AsImplementedInterfaces();
-
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<DistributedTokenCache>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Pass token through
             builder.RegisterType<PassThroughTokenProvider>()
                 .AsSelf().AsImplementedInterfaces();
-            // Use auth service token provider
+            builder.RegisterType<HttpHandlerFactory>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ClientCredentialProvider>()
-                .AsSelf().AsImplementedInterfaces();
-            // fallback to app authentication
+                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             builder.RegisterType<AppAuthenticationProvider>()
                 .AsSelf().AsImplementedInterfaces();
 
             // Use service to service token source
             builder.RegisterType<HybridTokenSource>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             base.Load(builder);
         }
 
         /// <summary>
-        /// First try passthrough, then try app authentication
+        /// First try passthrough, then try service client credentials
         /// </summary>
-        internal class HybridTokenSource : ITokenSource {
-
+        internal class HybridTokenSource : TokenProviderAggregate, ITokenSource {
             /// <inheritdoc/>
-            public string Resource => Http.Resource.Platform;
-
-            /// <inheritdoc/>
-            public HybridTokenSource(IComponentContext components) {
-                _pt = components.Resolve<PassThroughTokenProvider>();
-                _cc = components.Resolve<ClientCredentialProvider>();
-                _aa = components.Resolve<AppAuthenticationProvider>();
+            public HybridTokenSource(PassThroughTokenProvider pt, ClientCredentialProvider cc,
+                AppAuthenticationProvider aa, IEnumerable<ITokenProvider> providers, ILogger logger)
+                    : base(providers, Http.Resource.Platform, logger, pt, cc, aa) {
             }
-
-            /// <inheritdoc/>
-            public async Task<TokenResultModel> GetTokenForAsync(
-                IEnumerable<string> scopes = null) {
-
-                var token = await Try.Async(() => _pt.GetTokenForAsync(Resource, scopes));
-                if (token != null) {
-                    return token;
-                }
-                token = await Try.Async(() => _cc.GetTokenForAsync(Resource, scopes));
-                if (token != null) {
-                    return token;
-                }
-                return await Try.Async(() => _aa.GetTokenForAsync(Resource, scopes));
-            }
-
-            /// <inheritdoc/>
-            public async Task InvalidateAsync() {
-                await Try.Async(() => _pt.InvalidateAsync(Resource));
-                await Try.Async(() =>_cc.InvalidateAsync(Resource));
-                await Try.Async(() => _aa.InvalidateAsync(Resource));
-            }
-
-            private readonly PassThroughTokenProvider _pt;
-            private readonly AppAuthenticationProvider _aa;
-            private readonly ClientCredentialProvider _cc;
         }
     }
 }

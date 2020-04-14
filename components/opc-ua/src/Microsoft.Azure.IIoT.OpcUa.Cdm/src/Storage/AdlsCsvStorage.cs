@@ -41,15 +41,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             if (addHeader) {
                 foreach (var prop in info) {
                     if (prop.Name != nameof(DataSetMessageModel.Payload)) {
-                        AddAddValueToCsvStringBuilder(prop.Name, separator, sb);
+                        AddValueToCsvStringBuilder(prop.Name, separator, sb);
                     }
                     else{
                         var payload = prop.GetValue(data[0]) as Dictionary<string, DataValueModel>;
                         foreach(var node in payload.OrderBy(i => i.Key)) {
-                            AddAddValueToCsvStringBuilder($"{node.Key}_value", separator, sb);
-                            AddAddValueToCsvStringBuilder($"{node.Key}_status", separator, sb);
-                            AddAddValueToCsvStringBuilder($"{node.Key}_sourceTimestamp", separator, sb);
-                            AddAddValueToCsvStringBuilder($"{node.Key}_serverTimestamp", separator, sb);
+                            AddValueToCsvStringBuilder($"{node.Key}_value", separator, sb);
+                            AddValueToCsvStringBuilder($"{node.Key}_status", separator, sb);
+                            AddValueToCsvStringBuilder($"{node.Key}_sourceTimestamp", separator, sb);
+                            AddValueToCsvStringBuilder($"{node.Key}_serverTimestamp", separator, sb);
                         }
                     }
                 }
@@ -59,14 +59,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 sb.AppendLine();
                 foreach (var prop in info) {
                     if (prop.Name != nameof(DataSetMessageModel.Payload)) {
-                        AddAddValueToCsvStringBuilder(prop.GetValue(obj), separator, sb);
+                        AddValueToCsvStringBuilder(prop.GetValue(obj), separator, sb);
                     }
                     else {
                         var payload = prop.GetValue(obj) as Dictionary<string, DataValueModel>;
                         foreach (var node in payload.OrderBy(i => i.Key)) {
                             var nodeProperties = node.Value.GetType().GetProperties();
                             foreach (var nodeProp in nodeProperties) {
-                                AddAddValueToCsvStringBuilder(nodeProp.GetValue(node.Value), separator, sb);
+                                AddValueToCsvStringBuilder(nodeProp.GetValue(node.Value), separator, sb);
                             }
                         }
                     }
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             return sb.ToString();
         }
 
-        private void AddAddValueToCsvStringBuilder(object value,
+        private void AddValueToCsvStringBuilder(object value,
             string separator, StringBuilder sb) {
 
             if (value != null) {

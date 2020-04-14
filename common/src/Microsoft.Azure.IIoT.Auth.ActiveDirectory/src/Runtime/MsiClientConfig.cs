@@ -18,22 +18,25 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_AppIdKey = "Msi:AppId";
         private const string kAuth_TenantIdKey = "Msi:TenantId";
 
-        /// <summary>Scheme</summary>
+        /// <inheritdoc/>
+        public bool IsValid => ClientId != null && TenantId != null;
+        /// <inheritdoc/>
         public string Scheme => AuthScheme.Msi;
-        /// <summary>Application id</summary>
-        public string AppId => GetStringOrDefault(kAuth_AppIdKey,
+        /// <inheritdoc/>
+        public string ClientId => GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_MSI_APPID,
                 () => null))?.Trim();
-        /// <summary>Optional tenant</summary>
+        /// <inheritdoc/>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
-            () => GetStringOrDefault(PcsVariable.PCS_MSI_TENANT))?.Trim();
-        /// <summary>Authority url</summary>
+            () => GetStringOrDefault(PcsVariable.PCS_MSI_TENANT,
+                () => null))?.Trim();
+        /// <inheritdoc/>
         public string InstanceUrl => null;
-        /// <summary>App secret</summary>
-        public string AppSecret => null;
-        /// <summary>Audience</summary>
+        /// <inheritdoc/>
+        public string ClientSecret => null;
+        /// <inheritdoc/>
         public string Audience => null;
-        /// <summary>Resource</summary>
+        /// <inheritdoc/>
         public string Resource => Http.Resource.KeyVault;
 
         /// <summary>

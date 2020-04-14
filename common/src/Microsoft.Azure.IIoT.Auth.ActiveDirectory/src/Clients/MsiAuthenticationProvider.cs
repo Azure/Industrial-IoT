@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Auth.Clients {
     using Microsoft.Azure.Services.AppAuthentication;
     using Serilog;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -20,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             base(logger) {
             _config = config?.ClientSchemes?
                 .Where(c => c.Scheme == AuthScheme.Msi)
-                .Where(c => !string.IsNullOrEmpty(c.AppId))
+                .Where(c => !string.IsNullOrEmpty(c.ClientId))
                 .Select(CreateProvider)
                 .ToList();
         }
@@ -36,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <returns></returns>
         private static KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)> CreateProvider(
             IOAuthClientConfig config) {
-            var cs = $"RunAs=App;AppId={config.AppId}";
+            var cs = $"RunAs=App;AppId={config.ClientId}";
             if (!string.IsNullOrEmpty(config.TenantId)) {
                 cs += $";TenantId={config.TenantId}";
             }

@@ -21,17 +21,19 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_InstanceUrlKey = "Auth:InstanceUrl";
         private const string kAuth_AudienceKey = "Auth:Audience";
 
+        /// <inheritdoc/>
+        public bool IsValid => ClientId != null && Audience != null;
         /// <summary>Scheme</summary>
         public string Scheme => AuthScheme.Aad;
         /// <summary>Resource</summary>
         public string Resource => Http.Resource.Platform;
-
         /// <summary>Application id</summary>
-        public string AppId => GetStringOrDefault(kAuth_AppIdKey,
+        public string ClientId => GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_CLIENT_APPID,
-            () => GetStringOrDefault("PCS_WEBUI_AUTH_AAD_APPID")))?.Trim();
+            () => GetStringOrDefault("PCS_WEBUI_AUTH_AAD_APPID",
+                () => null)))?.Trim();
         /// <summary>App secret</summary>
-        public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey,
+        public string ClientSecret => GetStringOrDefault(kAuth_AppSecretKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_CLIENT_SECRET,
             () => GetStringOrDefault("PCS_APPLICATION_SECRET")))?.Trim();
         /// <summary>Optional tenant</summary>

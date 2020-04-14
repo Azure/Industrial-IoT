@@ -97,6 +97,15 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         }
 
         /// <summary>
+        /// Get an identifier string for configuration
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static string GetName(this IOAuthClientConfig config) {
+            return $"{GetSchemeName(config)}:{config.ClientId}->{GetAudience(config)}";
+        }
+
+        /// <summary>
         /// Split audience from scope name and return both
         /// </summary>
         /// <param name="scope"></param>

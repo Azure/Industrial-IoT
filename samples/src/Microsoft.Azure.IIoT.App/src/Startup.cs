@@ -163,8 +163,8 @@ namespace Microsoft.Azure.IIoT.App {
                     options.Instance = Config.InstanceUrl;
                     options.Domain = Config.GetDomain();
                     options.TenantId = Config.TenantId;
-                    options.ClientId = Config.AppId;
-                    options.ClientSecret = Config.AppSecret;
+                    options.ClientId = Config.ClientId;
+                    options.ClientSecret = Config.ClientSecret;
                     options.CallbackPath = "/signin-oidc";
                 });
 
@@ -179,7 +179,7 @@ namespace Microsoft.Azure.IIoT.App {
                 .Configure<OpenIdConnectOptions>(AzureADDefaults.OpenIdScheme, options => {
                     options.SaveTokens = true;
                     options.ResponseType = "id_token code";
-                    options.Resource = Config.AppId;
+                    options.Resource = Config.ClientId;
                     options.Scope.Add("offline_access");
                     options.Events.OnAuthenticationFailed = OnAuthenticationFailedAsync;
                     options.Events.OnAuthorizationCodeReceived = OnAuthorizationCodeReceivedAsync;

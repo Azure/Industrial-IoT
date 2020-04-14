@@ -24,7 +24,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.Utils;

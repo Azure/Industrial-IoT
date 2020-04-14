@@ -20,9 +20,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Utils;

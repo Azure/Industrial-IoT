@@ -119,14 +119,14 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth {
 
             // Attach aad
             var aadConfig = new AadSpClientConfig(Config.Configuration);
-            if (!string.IsNullOrEmpty(aadConfig.AppId) &&
-                !string.IsNullOrEmpty(aadConfig.AppSecret)) {
+            if (!string.IsNullOrEmpty(aadConfig.ClientId) &&
+                !string.IsNullOrEmpty(aadConfig.ClientSecret)) {
                 authentication = authentication.AddAzureAD(options => {
                     options.Instance = aadConfig.InstanceUrl;
                     options.Domain = aadConfig.GetDomain();
                     options.TenantId = aadConfig.TenantId;
-                    options.ClientId = aadConfig.AppId;
-                    options.ClientSecret = aadConfig.AppSecret;
+                    options.ClientId = aadConfig.ClientId;
+                    options.ClientSecret = aadConfig.ClientSecret;
                     options.CallbackPath = "/signin-oidc";
                 });
             }

@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Hosting;

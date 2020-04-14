@@ -6,6 +6,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Models;
+    using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -28,15 +29,19 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     public class OpenIdUserTokenProvider : ITokenProvider {
 
         /// <summary>
+        /// Http client factory
+        /// </summary>
+        public IHttpClientFactory Http { get; set; }
+
+        /// <summary>
         /// Create token provider
         /// </summary>
         /// <param name="clock"></param>
-        /// <param name="http"></param>
         /// <param name="config"></param>
         /// <param name="oidc"></param>
         /// <param name="ctx"></param>
         /// <param name="logger"></param>
-        public OpenIdUserTokenProvider(IHttpClientFactory http, IClientAuthConfig config,
+        public OpenIdUserTokenProvider(IClientAuthConfig config,
             IOptionsMonitor<OpenIdConnectOptions> oidc, IHttpContextAccessor ctx,
             ISystemClock clock, ILogger logger) {
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
@@ -44,7 +49,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _http = http ?? throw new ArgumentNullException(nameof(http));
+            Http = new HttpClientFactory(logger.ForContext<HttpClientFactory>());
         }
 
 
@@ -79,14 +84,19 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                                 return refreshed.AccessToken;
                             });
                         }).Value;
-                        return JwtSecurityTokenEx.Parse(accessToken);
+                        var result = JwtSecurityTokenEx.Parse(accessToken);
+                        _logger.Information(
+                            "Successfully acquired token for {resource} with {config}.",
+                            resource, config.GetName());
+                        return result;
                     }
                     finally {
                         kRequests.TryRemove(refreshToken, out _);
                     }
                 }
                 catch (Exception e) {
-                    _logger.Information(e, "Failed to get token for {resource} ", resource);
+                    _logger.Debug(e, "Failed to get token for {resource} with {config}.",
+                        resource, config.GetName());
                     continue;
                 }
             }
@@ -110,11 +120,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <returns></returns>
         private async Task<TokenResponse> RefreshUserAccessTokenAsync(string refreshToken,
             IOAuthClientConfig config) {
-            var client = _http.CreateClient("token_client");
+            var client = Http.CreateClient("token_client");
             var response = await client.RequestRefreshTokenAsync(new RefreshTokenRequest {
                 Address = config.GetAuthorityUrl(),
-                ClientId = config.AppId,
-                ClientSecret = config.AppSecret,
+                ClientId = config.ClientId,
+                ClientSecret = config.ClientSecret,
                 RefreshToken = refreshToken
             });
             if (!response.IsError) {
@@ -136,7 +146,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <returns></returns>
         private async Task RevokeRefreshTokenAsync(string refreshToken,
             IOAuthClientConfig config) {
-            var client = _http.CreateClient("token_client");
+            var client = Http.CreateClient("token_client");
             var configuration = await GetOpenIdConfigurationAsync(config.Scheme);
             if (configuration == null) {
                 _logger.Information(
@@ -146,8 +156,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             var response = await client.RevokeTokenAsync(new TokenRevocationRequest {
                 Address = configuration
                     .AdditionalData[OidcConstants.Discovery.RevocationEndpoint].ToString(),
-                ClientId = config.AppId,
-                ClientSecret = config.AppSecret,
+                ClientId = config.ClientId,
+                ClientSecret = config.ClientSecret,
                 Token = refreshToken,
                 TokenTypeHint = OidcConstants.TokenTypes.RefreshToken
             });
@@ -245,6 +255,5 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private readonly IHttpContextAccessor _ctx;
         private readonly ILogger _logger;
         private readonly IClientAuthConfig _config;
-        private readonly IHttpClientFactory _http;
     }
 }

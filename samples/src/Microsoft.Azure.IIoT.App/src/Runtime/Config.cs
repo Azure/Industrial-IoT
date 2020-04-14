@@ -21,11 +21,13 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         IWebHostConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
+        public bool IsValid => _client.IsValid;
+        /// <inheritdoc/>
         public string Scheme => _client.Scheme;
         /// <inheritdoc/>
-        public string AppId => _client.AppId;
+        public string ClientId => _client.ClientId;
         /// <inheritdoc/>
-        public string AppSecret => _client.AppSecret;
+        public string ClientSecret => _client.ClientSecret;
         /// <inheritdoc/>
         public string TenantId => _client.TenantId;
         /// <inheritdoc/>

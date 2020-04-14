@@ -4,15 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Clients {
-    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Http.Auth;
-    using Microsoft.Azure.IIoT.Utils;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Autofac;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Auth;
+    using Autofac;
+    using Serilog;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Unattended client authentication support
@@ -24,54 +23,34 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             builder.RegisterModule<DefaultServiceAuthProviders>();
 
             builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ClientAuthAggregateConfig>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Use client credential and fallback to app authentication
+            builder.RegisterType<HttpHandlerFactory>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ClientCredentialProvider>()
-                .AsSelf().AsImplementedInterfaces();
+                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             builder.RegisterType<AppAuthenticationProvider>()
-                .AsSelf().AsImplementedInterfaces();
+                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Use service to service token source
             builder.RegisterType<ServiceTokenSource>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             base.Load(builder);
         }
 
         /// <summary>
-        /// First try passthrough, then try app authentication
+        /// Service token strategy prefers client credentials over app auth and rest
         /// </summary>
-        internal class ServiceTokenSource : ITokenSource {
-
+        internal class ServiceTokenSource : TokenProviderAggregate, ITokenSource {
             /// <inheritdoc/>
-            public string Resource => Http.Resource.Platform;
-
-            /// <inheritdoc/>
-            public ServiceTokenSource(IComponentContext components) {
-                _as = components.Resolve<ClientCredentialProvider>();
-                _aa = components.Resolve<AppAuthenticationProvider>();
+            public ServiceTokenSource(ClientCredentialProvider cc, AppAuthenticationProvider aa,
+                IEnumerable<ITokenProvider> providers, ILogger logger)
+                    : base(providers, Http.Resource.Platform, logger, cc, aa) {
             }
-
-            /// <inheritdoc/>
-            public async Task<TokenResultModel> GetTokenForAsync(
-                IEnumerable<string> scopes = null) {
-                var token = await Try.Async(() => _as.GetTokenForAsync(Resource, scopes));
-                if (token != null) {
-                    return token;
-                }
-                return await Try.Async(() => _aa.GetTokenForAsync(Resource, scopes));
-            }
-
-            /// <inheritdoc/>
-            public async Task InvalidateAsync() {
-                await Try.Async(() => _as.InvalidateAsync(Resource));
-                await Try.Async(() => _aa.InvalidateAsync(Resource));
-            }
-
-            private readonly AppAuthenticationProvider _aa;
-            private readonly ClientCredentialProvider _as;
         }
     }
 }

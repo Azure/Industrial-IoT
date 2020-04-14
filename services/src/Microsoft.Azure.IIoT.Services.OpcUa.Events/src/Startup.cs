@@ -10,12 +10,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Messaging.Default;

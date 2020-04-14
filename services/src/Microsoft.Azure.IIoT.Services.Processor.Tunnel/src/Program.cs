@@ -14,8 +14,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using Serilog;
@@ -23,7 +21,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Auth.Clients;
 

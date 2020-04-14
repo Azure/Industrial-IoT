@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -48,32 +47,36 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             IEnumerable<string> scopes) {
             foreach (var config in _config.Query(resource, AuthScheme.AuthService)) {
                 await Task.Delay(1);
-              // var ctx = CreateAuthenticationContext(config.InstanceUrl,
-              //     config.TenantId, _store);
-              // try {
-              //     try {
-              //         var result = await ctx.AcquireTokenSilentAsync(
-              //             config.Audience, config.AppId);
-              //         return result.ToTokenResult();
-              //     }
-              //     catch (AdalSilentTokenAcquisitionException) {
-              //         // Use device code
-              //         var codeResult = await ctx.AcquireDeviceCodeAsync(
-              //             config.Audience, config.AppId);
-              //
-              //         _prompt.Prompt(codeResult.DeviceCode, codeResult.ExpiresOn,
-              //             codeResult.Message);
-              //
-              //         // Wait and acquire it when authenticated
-              //         var result = await ctx.AcquireTokenByDeviceCodeAsync
-              //             (codeResult);
-              //         return result.ToTokenResult();
-              //     }
-              // }
-              // catch (Exception exc) {
-              //     _logger.Information(exc, "Failed to get token for {resource}", resource);
-              //     continue;
-              // }
+                // var ctx = CreateAuthenticationContext(config.InstanceUrl,
+                //     config.TenantId, _store);
+                // try {
+                //     try {
+                //         var result = await ctx.AcquireTokenSilentAsync(
+                //             config.Audience, config.AppId);
+                //         return result.ToTokenResult();
+                //     }
+                //     catch (AdalSilentTokenAcquisitionException) {
+                //         // Use device code
+                //         var codeResult = await ctx.AcquireDeviceCodeAsync(
+                //             config.Audience, config.AppId);
+                //
+                //         _prompt.Prompt(codeResult.DeviceCode, codeResult.ExpiresOn,
+                //             codeResult.Message);
+                //
+                //         // Wait and acquire it when authenticated
+                //         var result = await ctx.AcquireTokenByDeviceCodeAsync
+                //             (codeResult);
+                //         return result.ToTokenResult();
+                //     }
+                //    _logger.Information(
+                //  "Successfully acquired token for {resource} with {config}.",
+                //  resource, config.GetName());
+                //    // }
+                // catch (Exception exc) {
+                //     _logger.Information(exc, "Failed to get token for {resource}using {config}",
+              //  resource, config.GetName());
+                //     continue;
+                // }
             }
             return null;
         }

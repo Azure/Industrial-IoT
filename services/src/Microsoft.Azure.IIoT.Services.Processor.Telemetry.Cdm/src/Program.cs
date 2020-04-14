@@ -14,11 +14,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using Serilog;

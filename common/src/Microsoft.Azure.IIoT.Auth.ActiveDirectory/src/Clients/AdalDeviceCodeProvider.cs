@@ -66,25 +66,31 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 try {
                     try {
                         var result = await ctx.AcquireTokenSilentAsync(
-                            config.GetAudience(scopes), config.AppId);
+                            config.GetAudience(scopes), config.ClientId);
+                        _logger.Information(
+                            "Successfully acquired token for {resource} with {config}.",
+                            resource, config.GetName());
                         return result.ToTokenResult();
                     }
                     catch (AdalSilentTokenAcquisitionException) {
                         // Use device code
                         var codeResult = await ctx.AcquireDeviceCodeAsync(
-                            config.GetAudience(scopes), config.AppId);
+                            config.GetAudience(scopes), config.ClientId);
 
                         _prompt.Prompt(codeResult.DeviceCode, codeResult.ExpiresOn,
                             codeResult.Message);
 
                         // Wait and acquire it when authenticated
-                        var result = await ctx.AcquireTokenByDeviceCodeAsync
-                            (codeResult);
+                        var result = await ctx.AcquireTokenByDeviceCodeAsync(codeResult);
+                        _logger.Information(
+                            "Successfully acquired token for {resource} with {config}.",
+                            resource, config.GetName());
                         return result.ToTokenResult();
                     }
                 }
                 catch (Exception exc) {
-                    _logger.Information(exc, "Failed to get token for {resource}", resource);
+                    _logger.Debug(exc, "Failed to get token for {resource} with {config}.",
+                        resource, config.GetName());
                     continue;
                 }
             }

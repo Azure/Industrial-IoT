@@ -9,12 +9,7 @@ namespace Microsoft.Azure.IIoT.Auth {
     /// <summary>
     /// Configuration interface for server token validation
     /// </summary>
-    public interface IOAuthServerConfig {
-
-        /// <summary>
-        /// Name of the authentication scheme
-        /// </summary>
-        string Scheme { get; }
+    public interface IOAuthServerConfig : IOAuthConfig {
 
         /// <summary>
         /// Our service's id or url that was registered and
@@ -23,17 +18,6 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// for us.
         /// </summary>
         string Audience { get; }
-
-        /// <summary>
-        /// The instance url is the base address of the
-        /// token-issuing authentication server instance.
-        /// </summary>
-        string InstanceUrl { get; }
-
-        /// <summary>
-        /// Tenant id if any.
-        /// </summary>
-        string TenantId { get; }
 
         /// <summary>
         /// The token's iss parameter must match this string

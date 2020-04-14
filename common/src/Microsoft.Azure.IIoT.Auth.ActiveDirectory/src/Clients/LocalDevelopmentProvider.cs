@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Serilog;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.InteropServices;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Uses developer tool or Az cache as authentication
@@ -19,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             base(logger) {
             _config = config?.ClientSchemes?
                 .Where(c => c.Scheme == AuthScheme.Msi || c.Scheme == AuthScheme.Aad)
+                .Where(c => c.Audience != null && Regex.IsMatch(c.Audience, @"^[0-9a-zA-Z-.:/]+$"))
                 .SelectMany(CreateProvider)
                 .ToList();
         }
@@ -34,12 +37,16 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <returns></returns>
         private static IEnumerable<KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)>>
             CreateProvider(IOAuthClientConfig config) {
-            yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
-                (config, new AzureServiceTokenProvider(
-                    "RunAs=Developer; DeveloperTool=VisualStudio", config.GetAuthorityUrl())));
-            yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
-                (config, new AzureServiceTokenProvider(
-                    "RunAs=Developer; DeveloperTool=AzureCli", config.GetAuthorityUrl())));
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
+                    (config, new AzureServiceTokenProvider(
+                        "RunAs=Developer; DeveloperTool=VisualStudio", config.GetAuthorityUrl())));
+            }
+            else {
+                yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
+                    (config, new AzureServiceTokenProvider(
+                        "RunAs=Developer; DeveloperTool=AzureCli", config.GetAuthorityUrl())));
+            }
         }
 
         private readonly List<KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)>> _config;

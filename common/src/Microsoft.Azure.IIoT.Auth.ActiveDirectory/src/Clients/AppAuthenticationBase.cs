@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -38,17 +39,21 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             foreach (var (config, provider) in Get(resource)) {
                 try {
                     var token = await provider.KeyVaultTokenCallback(
-                        config.GetAuthorityUrl(),
-                        config.GetAudience(scopes),
+                        config.GetAuthorityUrl(), config.GetAudience(scopes),
                         config.GetScopeNames(scopes)?.FirstOrDefault());
                     if (token == null) {
                         return null;
                     }
-                    return JwtSecurityTokenEx.Parse(token);
+                    var result = JwtSecurityTokenEx.Parse(token);
+                    _logger.Information(
+                        "Successfully acquired token for {resource} with {config}.",
+                        resource, config.GetName());
+                    return result;
                 }
                 catch (Exception ex) {
-                    _logger.Information(ex, "Failed to retrieve token for {resource}",
-                        resource);
+                    _logger.Debug(ex,
+                        "Failed to retrieve token for {resource} using {config}",
+                        resource, config.GetName());
                     continue;
                 }
             }

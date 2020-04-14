@@ -20,8 +20,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="clients"></param>
-        public ClientAuthAggregateConfig(IEnumerable<IOAuthClientConfig> clients)  {
-            ClientSchemes = clients?.Where(s => !string.IsNullOrEmpty(s.AppId)).ToList()
+        public ClientAuthAggregateConfig(IEnumerable<IOAuthClientConfig> clients) {
+            ClientSchemes = clients?.Where(s => s.IsValid).ToList()
                 ?? throw new ArgumentNullException(nameof(clients));
         }
 

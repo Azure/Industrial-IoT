@@ -6,43 +6,30 @@
 namespace Microsoft.Azure.IIoT.Auth {
 
     /// <summary>
-    /// Configuration for oauth clients
+    /// Configuration for oauth flow participating clients
     /// </summary>
-    public interface IOAuthClientConfig {
+    public interface IOAuthClientConfig : IOAuthConfig {
 
         /// <summary>
-        /// Name of the authentication scheme
-        /// </summary>
-        string Scheme { get; }
-
-        /// <summary>
-        /// Name of the audience
+        /// The <see cref="Http.Resource"/> that
+        /// can be accessed with this configuration.
         /// </summary>
         string Resource { get; }
 
         /// <summary>
-        /// App id of the service
+        /// Client id
+        /// </summary>
+        string ClientId { get; }
+
+        /// <summary>
+        /// Optional client secret
+        /// </summary>
+        string ClientSecret { get; }
+
+        /// <summary>
+        /// Optional resource's audience.
+        /// if not provided will be part of scopes.
         /// </summary>
         string Audience { get; }
-
-        /// <summary>
-        /// The Id of the client.
-        /// </summary>
-        string AppId { get; }
-
-        /// <summary>
-        /// Client secret
-        /// </summary>
-        string AppSecret { get; }
-
-        /// <summary>
-        /// Tenant id if any
-        /// </summary>
-        string TenantId { get; }
-
-        /// <summary>
-        /// Instance url
-        /// </summary>
-        string InstanceUrl { get; }
     }
 }

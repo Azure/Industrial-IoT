@@ -80,17 +80,23 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                         config.TenantId, cache);
                     try {
                         var result = await ctx.AcquireTokenSilentAsync(config.GetAudience(scopes),
-                            config.AppId);
+                            config.ClientId);
+                        _logger.Information(
+                            "Successfully acquired token for {resource} with {config}.",
+                            resource, config.GetName());
                         return result.ToTokenResult();
                     }
                     catch (AdalException ex) {
                         if (ex.ErrorCode == AdalError.FailedToAcquireTokenSilently) {
                             if (_handler.AcquireTokenIfSilentFails &&
-                                !string.IsNullOrEmpty(config.AppSecret)) {
+                                !string.IsNullOrEmpty(config.ClientSecret)) {
                                 try {
                                     var result = await ctx.AcquireTokenAsync(config.GetAudience(scopes),
-                                        new ClientCredential(config.AppId, config.AppSecret),
+                                        new ClientCredential(config.ClientId, config.ClientSecret),
                                         new UserAssertion(token, kGrantType, name));
+                                    _logger.Information(
+                                        "Successfully acquired token for {resource} with {config}.",
+                                        resource, config.GetName());
                                     return result.ToTokenResult();
                                 }
                                 catch (AdalException ex2) {
@@ -107,7 +113,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                     }
                 }
                 catch (AuthenticationException e) {
-                    _logger.Information(e, "Failed to get token for {resource} ", resource);
+                    _logger.Debug(e, "Failed to get token for {resource} with {config}.",
+                        resource, config.GetName());
                     _handler.Handle(_ctx.HttpContext, e);
                     continue;
                 }

@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Cdm {
         Task<bool> WriteInCsvPartition<T>(string partitionUrl, List<T> data, string separator);
 
         /// <summary>
-        /// creates the storage root folder if not already existing 
+        /// creates the storage root folder if not already existing
         /// </summary>
         /// <param name="hostName"></param>
         /// <param name="blobName"></param>

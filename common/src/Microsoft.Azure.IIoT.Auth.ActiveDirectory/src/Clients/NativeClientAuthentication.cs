@@ -4,16 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
-    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Http.Auth;
-    using Microsoft.Azure.IIoT.Utils;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
     using Autofac;
+    using Serilog;
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Public console client authentication
+    /// Public native console client authentication
     /// </summary>
     public class NativeClientAuthentication : Module {
 
@@ -21,66 +19,32 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         protected override void Load(ContainerBuilder builder) {
 
             builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ClientAuthAggregateConfig>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
 
-            // Use Vs authentication
             builder.RegisterType<LocalDevelopmentProvider>()
-                .AsSelf();
-            // Use app authentication
+                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<AppAuthenticationProvider>()
-                .AsSelf();
-            // fallback to device code token provider
+                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<AdalDeviceCodeProvider>()
-                .AsSelf();
+                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Use cli token source
             builder.RegisterType<NativeClientTokenSource>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             base.Load(builder);
         }
 
         /// <summary>
-        /// Authenticate with device token after trying app authentication.
+        /// Authenticate with device token after trying app and developer authentication.
         /// </summary>
-        internal class NativeClientTokenSource : ITokenSource {
-
+        internal class NativeClientTokenSource : TokenProviderAggregate, ITokenSource {
             /// <inheritdoc/>
-            public string Resource => Http.Resource.Platform;
-
-            /// <inheritdoc/>
-            public NativeClientTokenSource(IComponentContext components) {
-                _vs = components.Resolve<LocalDevelopmentProvider>();
-                _dc = components.Resolve<AdalDeviceCodeProvider>();
-                _aa = components.Resolve<AppAuthenticationProvider>();
+            public NativeClientTokenSource(LocalDevelopmentProvider ld, AppAuthenticationProvider aa,
+                AdalDeviceCodeProvider dc, IEnumerable<ITokenProvider> providers, ILogger logger)
+                    : base(providers, Http.Resource.Platform, logger, ld, aa, dc) {
             }
-
-            /// <inheritdoc/>
-            public async Task<TokenResultModel> GetTokenForAsync(
-                IEnumerable<string> scopes = null) {
-
-                var token = await Try.Async(() => _vs.GetTokenForAsync(Resource, scopes));
-                if (token != null) {
-                    return token;
-                }
-                token = await Try.Async(() => _aa.GetTokenForAsync(Resource, scopes));
-                if (token != null) {
-                    return token;
-                }
-                return await Try.Async(() => _dc.GetTokenForAsync(Resource, scopes));
-            }
-
-            /// <inheritdoc/>
-            public async Task InvalidateAsync() {
-                await _aa.InvalidateAsync(Resource);
-                await _vs.InvalidateAsync(Resource);
-                await _dc.InvalidateAsync(Resource);
-            }
-
-            private readonly LocalDevelopmentProvider _vs;
-            private readonly AdalDeviceCodeProvider _dc;
-            private readonly AppAuthenticationProvider _aa;
         }
     }
 }

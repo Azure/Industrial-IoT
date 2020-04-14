@@ -17,9 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.OpcUa.Vault.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Clients;
     using Microsoft.Azure.IIoT.Crypto.Storage;
     using Microsoft.Azure.IIoT.Crypto.Default;
@@ -30,7 +28,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;

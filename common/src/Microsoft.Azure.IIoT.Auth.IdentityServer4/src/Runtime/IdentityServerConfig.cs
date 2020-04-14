@@ -61,8 +61,8 @@ namespace Microsoft.Azure.IIoT.Auth.IdentityServer4.Runtime {
 
             var client = new Client {
                 ClientUri = "urn:iiot",
-                ClientId = config.AppId,
-                ClientName = config.AppId,
+                ClientId = config.ClientId,
+                ClientName = config.ClientId,
                 AllowOfflineAccess = true,
                 AllowedScopes = scopes?.ToList() ?? new List<string>(),
             };
@@ -92,9 +92,9 @@ namespace Microsoft.Azure.IIoT.Auth.IdentityServer4.Runtime {
             }
 
             // Add secret
-            if (!string.IsNullOrEmpty(config.AppSecret)) {
+            if (!string.IsNullOrEmpty(config.ClientSecret)) {
                 client.ClientSecrets = new List<Secret> {
-                    new Secret(config.AppSecret)
+                    new Secret(config.ClientSecret)
                 };
             }
             return client;

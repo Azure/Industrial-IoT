@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     using System;
 
     /// <summary>
-    /// Service auth configuration - includes auth and host configuration
+    /// Service auth configuration
     /// </summary>
     public class AadServiceAuthConfig : ConfigBase, IOAuthServerConfig {
 
@@ -22,6 +22,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_TenantIdKey = "Aad:TenantId";
         private const string kAuth_InstanceUrlKey = "Aad:InstanceUrl";
 
+        /// <inheritdoc/>
+        public bool IsValid => Audience != null;
         /// <summary>Scheme</summary>
         public string Scheme => AuthScheme.Aad;
         /// <summary>Aad instance url</summary>

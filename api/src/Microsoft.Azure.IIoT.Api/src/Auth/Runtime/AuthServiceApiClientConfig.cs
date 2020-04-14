@@ -21,35 +21,34 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_InstanceUrlKey = "Auth:InstanceUrl";
         private const string kAuth_AudienceKey = "Auth:Audience";
 
+        /// <inheritdoc/>
+        public bool IsValid => GetBoolOrDefault(kAuth_IsDisabledKey,
+            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_SERVICE_DISABLED,
+                () => false));
         /// <summary>Scheme</summary>
         public string Scheme => AuthScheme.AuthService;
         /// <summary>Applicable resource</summary>
-        public string Resource => IsDisabled ? null : Http.Resource.Platform;
+        public string Resource => Http.Resource.Platform;
         /// <summary>Application id</summary>
-        public string AppId => IsDisabled ? null : GetStringOrDefault(kAuth_AppIdKey,
+        public string ClientId =>  GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_CLIENT_APPID,
                 () => "F095B8821F4F4604B6E3AD1110EE58A4"))?.Trim();
         /// <summary>App secret</summary>
-        public string AppSecret => IsDisabled ? null : GetStringOrDefault(kAuth_AppSecretKey,
+        public string ClientSecret => GetStringOrDefault(kAuth_AppSecretKey,
             () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_CLIENT_SECRET,
                 () => null))?.Trim();
         /// <summary>Auth server instance url</summary>
-        public string InstanceUrl => IsDisabled ? null :
+        public string InstanceUrl =>
             GetStringOrDefault(kAuth_InstanceUrlKey,
                 () => GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_URL,
                     () => GetDefaultUrl("9090", "auth")));
         /// <summary>Valid audience</summary>
-        public string Audience => IsDisabled ? null :
+        public string Audience =>
             GetStringOrDefault(kAuth_AudienceKey,
                 () => GetStringOrDefault(PcsVariable.PCS_SERVICE_NAME,
                     () => "iiot"))?.Trim();
         /// <summary>Optional tenant</summary>
         public string TenantId => null;
-
-        /// <summary>Auth server disabled or not</summary>
-        protected bool IsDisabled => GetBoolOrDefault(kAuth_IsDisabledKey,
-            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_SERVICE_DISABLED,
-                () => false));
 
         /// <summary>
         /// Configuration constructor

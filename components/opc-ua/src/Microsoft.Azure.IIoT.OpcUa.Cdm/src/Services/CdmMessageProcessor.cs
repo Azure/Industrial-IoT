@@ -72,14 +72,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             });
 
             var authConfig = auth?.ClientSchemes?.FirstOrDefault(s =>
-                s.Scheme == AuthScheme.Aad && !string.IsNullOrEmpty(s.AppSecret));
+                s.Scheme == AuthScheme.Aad && !string.IsNullOrEmpty(s.ClientSecret));
             if (authConfig == null) {
                 throw new ArgumentNullException("Missing service principal configuration");
             }
 
             _adapter = new ADLSAdapter($"{config.ADLSg2HostName}",
                 $"/{config.ADLSg2ContainerName}/{config.RootFolder}",
-                authConfig.TenantId, authConfig.AppId, authConfig.AppSecret);
+                authConfig.TenantId, authConfig.ClientId, authConfig.ClientSecret);
             _cdmCorpus.Storage.Mount("adls", _adapter);
             var gitAdapter = new GithubAdapter();
             _cdmCorpus.Storage.Mount("cdm", gitAdapter);

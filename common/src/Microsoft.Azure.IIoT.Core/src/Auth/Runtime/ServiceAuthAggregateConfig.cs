@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <param name="schemes"></param>
         public ServiceAuthAggregateConfig(IConfiguration configuration, IEnumerable<IOAuthServerConfig> schemes) :
             base(configuration) {
-            JwtBearerSchemes = schemes?.Where(s => !string.IsNullOrEmpty(s.Audience)).ToList()
+            JwtBearerSchemes = schemes?.Where(s => s.IsValid).ToList()
                 ?? throw new ArgumentNullException(nameof(schemes));
         }
     }
