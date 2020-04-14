@@ -14,11 +14,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     public interface IMessageEncoder {
 
         /// <summary>
-        /// Encodes the message
+        /// Encodes the list of messages into single message NetworkMessageModel list
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
         Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            DataSetMessageModel message);
+            IEnumerable<DataSetMessageModel> message);
+
+        /// <summary>
+        /// Encodes the list of messages into batched NetworkMessageModel list
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <param name="maxMessageSize"></param>
+        /// <returns></returns>
+        Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync
+            (IEnumerable<DataSetMessageModel> messages, int maxMessageSize);
     }
 }
