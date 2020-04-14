@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Extensions.Configuration;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -123,7 +123,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
                 Updated = ToServiceModel(
                     application.UpdateTime, null),
                 ApplicationId = null,
-                Certificate = null,
                 HostAddresses = null,
                 NotSeenSince = null,
                 SiteId = null,
@@ -134,37 +133,52 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
         }
 
         /// <summary>from Vault v1</summary>
-        [Serializable]
+        [DataContract]
         internal class ApplicationName {
             internal string Locale { get; set; }
             internal string Text { get; set; }
         }
 
         /// <summary>from Vault v1</summary>
-        [Serializable]
+        [DataContract]
         internal class Application {
             internal static readonly string ClassTypeName = "Application";
             internal Application() {
                 ClassType = ClassTypeName;
             }
-            [JsonProperty(PropertyName = "id")]
+            [DataMember(Name = "id")]
             internal Guid ApplicationId { get; set; }
-            [JsonProperty(PropertyName = "_etag")]
+            [DataMember(Name = "_etag")]
             internal string ETag { get; set; }
+            [DataMember]
             internal string ClassType { get; set; }
+            [DataMember]
             internal int ID { get; set; }
+            [DataMember]
             internal string ApplicationUri { get; set; }
+            [DataMember]
             internal string ApplicationName { get; set; }
+            [DataMember]
             internal ApplicationType ApplicationType { get; set; }
+            [DataMember]
             internal string ProductUri { get; set; }
+            [DataMember]
             internal string ServerCapabilities { get; set; }
+            [DataMember]
             internal ApplicationName[] ApplicationNames { get; set; }
+            [DataMember]
             internal string[] DiscoveryUrls { get; set; }
+            [DataMember]
             internal string GatewayServerUri { get; set; }
+            [DataMember]
             internal string DiscoveryProfileUri { get; set; }
+            [DataMember]
             internal string AuthorityId { get; set; }
+            [DataMember]
             internal DateTime? CreateTime { get; set; }
+            [DataMember]
             internal DateTime? UpdateTime { get; set; }
+            [DataMember]
             internal DateTime? DeleteTime { get; set; }
         }
 

@@ -7,19 +7,18 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
-    using System.Collections.Concurrent;
     using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Collections.Generic;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Http;
+    using System.Collections.Concurrent;
     using System.Net.Http;
 
     /// <summary>
@@ -33,10 +32,13 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// <summary>
         /// Create server
         /// </summary>
-        /// <param name="client"></param>
         /// <param name="http"></param>
+        /// <param name="client"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public HttpTunnelServer(IMethodClient client, IHttpClient http, ILogger logger) {
+        public HttpTunnelServer(IHttpClient http, IMethodClient client,
+            IJsonSerializer serializer, ILogger logger) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _http = http ?? throw new ArgumentNullException(nameof(http));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -54,42 +56,62 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId, byte[] payload,
             IDictionary<string, string> properties, Func<Task> checkpoint) {
+            var completed = await HandleEventAsync(deviceId, moduleId,
+                payload, properties);
+            if (completed) {
+                await Try.Async(() => checkpoint?.Invoke());
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> HandleEventAsync(string deviceId, string moduleId,
+            byte[] payload, IDictionary<string, string> properties) {
 
             if (!properties.TryGetValue("content-type", out var type) &&
                 !properties.TryGetValue("iothub-content-type", out type)) {
-                throw new ArgumentException("Missing content type in event.");
+                _logger.Error(
+                    "Missing content type in tunnel event from {deviceId} {moduleId}.",
+                    deviceId, moduleId);
+                return true;
             }
 
             // Get message id and correlation id from content type
             var typeParsed = type.Split("_", StringSplitOptions.RemoveEmptyEntries);
             if (typeParsed.Length != 2 ||
                 !int.TryParse(typeParsed[1], out var messageId)) {
-                return;
+                _logger.Error("Bad content type {contentType} in tunnel event" +
+                    " from {deviceId} {moduleId}.", type, deviceId, moduleId);
+                return true;
             }
             var requestId = typeParsed[0];
 
             HttpRequestProcessor processor;
             if (messageId == 0) {
-                var request = JsonConvertEx.DeserializeObject<HttpTunnelRequestModel>(
-                    Encoding.UTF8.GetString(payload));
-                processor = new HttpRequestProcessor(this, deviceId, moduleId,
-                    requestId, request, null);
-                if (request.Chunks != 0) {
-                    if (!_requests.TryAdd(requestId, processor)) {
-                        throw new InvalidOperationException(
-                            $"Adding request {requestId} failed.");
+                try {
+                    var chunk0 = DeserializeRequest0(payload, out var request, out var chunks);
+                    processor = new HttpRequestProcessor(this, deviceId, moduleId,
+                        requestId, request, chunks, chunk0, null);
+                    if (chunks != 0) { // More to follow?
+                        if (!_requests.TryAdd(requestId, processor)) {
+                            throw new InvalidOperationException(
+                                $"Adding request {requestId} failed.");
+                        }
+                        // Need more
+                        return false;
                     }
-
-                    // Need more
-                    return;
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Failed to parse tunnel request from {deviceId} " +
+                        "{moduleId} with id {requestId} - giving up.",
+                        deviceId, moduleId, requestId);
+                    return true;
                 }
                 // Complete request
             }
             else if (_requests.TryGetValue(requestId, out processor)) {
                 if (!processor.AddChunk(messageId, payload)) {
-
                     // Need more
-                    return;
+                    return false;
                 }
                 // Complete request
                 _requests.TryRemove(requestId, out _);
@@ -99,19 +121,51 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 _logger.Debug("Request from {deviceId} {moduleId} " +
                     "with id {requestId} timed out - give up.",
                     deviceId, moduleId, requestId);
-                return;
+                return true;
             }
 
             // Complete request
             try {
                 await processor.CompleteAsync();
-                await Try.Async(() => checkpoint?.Invoke());
             }
             catch (Exception ex) {
                 _logger.Error(ex,
                     "Failed to complete request from {deviceId} {moduleId} " +
                     "with id {requestId} - giving up.",
                     deviceId, moduleId, requestId);
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Deserialize request number 0
+        /// </summary>
+        /// <param name="chunks"></param>
+        /// <param name="payload"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        private byte[] DeserializeRequest0(byte[] payload,
+            out HttpTunnelRequestModel request, out int chunks) {
+            // Deserialize data
+            using (var header = new MemoryStream(payload))
+            using (var reader = new BinaryReader(header)) {
+                var headerLen = reader.ReadInt32();
+                if (headerLen > payload.Length - 8) {
+                    throw new ArgumentException("Bad encoding length");
+                }
+                var headerBuf = reader.ReadBytes(headerLen);
+                var bufferLen = reader.ReadInt32();
+                if (bufferLen > payload.Length - (headerLen + 8)) {
+                    throw new ArgumentException("Bad encoding length");
+                }
+                var chunk0 = bufferLen > 0 ? reader.ReadBytes(bufferLen) : null;
+                chunks = reader.ReadInt32();
+                if (chunks > kMaxNumberOfChunks) {
+                    throw new ArgumentException("Bad encoding length");
+                }
+                request = _serializer.Deserialize<HttpTunnelRequestModel>(
+                    headerBuf.Unzip());
+                return chunk0;
             }
         }
 
@@ -154,10 +208,12 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             /// <param name="moduleId"></param>
             /// <param name="requestId"></param>
             /// <param name="request"></param>
+            /// <param name="chunks"></param>
+            /// <param name="chunk0"></param>
             /// <param name="timeout"></param>
             public HttpRequestProcessor(HttpTunnelServer outer, string deviceId,
                 string moduleId, string requestId, HttpTunnelRequestModel request,
-                TimeSpan? timeout) {
+                int chunks, byte[] chunk0, TimeSpan? timeout) {
                 RequestId = requestId ??
                     throw new ArgumentNullException(nameof(requestId));
                 _outer = outer ??
@@ -166,7 +222,9 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 _moduleId = moduleId;
                 _timeout = timeout ?? TimeSpan.FromSeconds(20);
                 _request = request;
-                _payload = new List<byte[]>(request.Chunks);
+                _chunks = chunks + 1;
+                _payload = new byte[_chunks][];
+                _payload[0] = chunk0 ?? new byte[0];
             }
 
             /// <summary>
@@ -179,19 +237,40 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     var request = _outer._http.NewRequest(_request.Uri, _request.ResourceId);
 
                     // Add payload
-                    if (_payload.Count > 0) {
+                    byte[] payload = null;
+                    if (_payload.Length > 1) {
+                        // Combine chunks
                         using (var stream = new MemoryStream()) {
                             foreach (var chunk in _payload) {
                                 stream.Write(chunk);
                             }
-                            var payload = stream.ToArray().Unzip();
-                            request.Content = new ByteArrayContent(payload);
+                            payload = stream.ToArray().Unzip();
+                        }
+                    }
+                    else if (_payload.Length == 1 && _payload[0].Length > 0) {
+                        payload = _payload[0].Unzip();
+                    }
+
+                    if (payload != null) {
+#if LOG_PAYLOAD_STRING
+                        var debug = Try.Op(() => Encoding.UTF8.GetString(payload));
+                        if (!string.IsNullOrEmpty(debug)) {
+                            _outer._logger.Information("{Message}", debug);
+                        }
+#endif
+                        request.Content = new ByteArrayContent(payload);
+                        // Add content headers
+                        if (_request.ContentHeaders != null) {
+                            foreach (var header in _request.ContentHeaders) {
+                                request.Content.Headers.TryAddWithoutValidation(
+                                    header.Key, header.Value);
+                            }
                         }
                     }
 
-                    // Add headers
-                    if (_request.Headers != null) {
-                        foreach (var header in _request.Headers) {
+                    // Add remaining headers
+                    if (_request.RequestHeaders != null) {
+                        foreach (var header in _request.RequestHeaders) {
                             request.Headers.TryAddWithoutValidation(
                                 header.Key, header.Value);
                         }
@@ -212,7 +291,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     // Forward response back to caller
                     await _outer._client.CallMethodAsync(
                         _deviceId, _moduleId, MethodNames.Response,
-                        JsonConvertEx.SerializeObject(new HttpTunnelResponseModel {
+                        _outer._serializer.SerializeToString(new HttpTunnelResponseModel {
                             Headers = response.Headers?
                                 .ToDictionary(h => h.Key, h => h.Value.ToList()),
                             RequestId = RequestId,
@@ -225,11 +304,10 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     // Forward failure back to caller
                     await _outer._client.CallMethodAsync(
                         _deviceId, _moduleId, MethodNames.Response,
-                        JsonConvertEx.SerializeObject(new HttpTunnelResponseModel {
+                        _outer._serializer.SerializeToString(new HttpTunnelResponseModel {
                             RequestId = RequestId,
                             Status = (int)HttpStatusCode.InternalServerError,
-                            Payload = Encoding.UTF8.GetBytes(
-                                JsonConvertEx.SerializeObject(ex))
+                            Payload = _outer._serializer.SerializeToBytes(ex).ToArray()
                         }));
                 }
             }
@@ -241,12 +319,12 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             /// <param name="payload"></param>
             /// <returns></returns>
             internal bool AddChunk(int id, byte[] payload) {
-                if (id < 1 || id > _request.Chunks) {
+                if (id < 0 || id >= _payload.Length || _payload[id] != null) {
                     return false;
                 }
-                _payload.Insert(id - 1, payload);
+                _payload[id] = payload;
                 _lastActivity = DateTime.UtcNow;
-                if (_payload.Count != _request.Chunks || _payload.Any(p => p == null)) {
+                if (_payload.Any(p => p == null)) {
                     return false;
                 }
                 return true;
@@ -257,13 +335,16 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             private readonly string _moduleId;
             private readonly TimeSpan _timeout;
             private readonly HttpTunnelRequestModel _request;
-            private readonly List<byte[]> _payload;
+            private readonly int _chunks;
+            private readonly byte[][] _payload;
             private DateTime _lastActivity;
         }
 
+        private const int kMaxNumberOfChunks = 1024;
         private const int kTimeoutCheckInterval = 10000;
         private readonly ConcurrentDictionary<string, HttpRequestProcessor> _requests;
         private readonly Timer _timer;
+        private readonly IJsonSerializer _serializer;
         private readonly IMethodClient _client;
         private readonly IHttpClient _http;
         private readonly ILogger _logger;

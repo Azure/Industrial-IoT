@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.Endpoint {
             var endpoint = new EndpointRegistrationModel {
                 Endpoint = new EndpointModel {
                     Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                    Certificate = _server.Certificate?.RawData
+                    Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 },
                 Id = "testid",
                 SupervisorId = SupervisorModelEx.CreateSupervisorId(

@@ -76,7 +76,6 @@ app {
     color: #d7d7d7;
     border-radius: 4px;
     height: 3rem;
-    display: flex;
     align-items: center;
     line-height: 3rem;
 }
@@ -89,6 +88,10 @@ app {
 .nav-item a:hover {
     background-color: rgba(255,255,255,0.1);
     color: white;
+}
+
+.nav-link {
+    padding: .1rem 1rem;
 }
 
 .content {
@@ -220,6 +223,10 @@ ellipsis-space {
     overflow: auto;
     word-wrap: break-word;
     height: 48px;
+}
+
+.tsi_link {
+    margin-right: 1.5rem;
 }
 
 @media (max-width: 767.98px) {

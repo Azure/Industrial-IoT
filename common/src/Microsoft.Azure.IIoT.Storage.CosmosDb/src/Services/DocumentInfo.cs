@@ -36,5 +36,4 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
         private readonly Document _doc;
     }
-
 }

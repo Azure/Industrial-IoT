@@ -25,10 +25,10 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Runtime {
             GetStringOrDefault(kEdgeHubConnectionString);
         /// <summary>Whether to bypass cert validation</summary>
         public bool BypassCertVerification =>
-            GetBoolOrDefault(nameof(BypassCertVerification), false);
+            GetBoolOrDefault(nameof(BypassCertVerification), () => false);
         /// <summary>Transports to use</summary>
         public TransportOption Transport => Enum.Parse<TransportOption>(
-            GetStringOrDefault(nameof(Transport), nameof(TransportOption.Any)), true);
+            GetStringOrDefault(nameof(Transport), () => nameof(TransportOption.Any)), true);
 
         /// <summary>
         /// Configuration constructor

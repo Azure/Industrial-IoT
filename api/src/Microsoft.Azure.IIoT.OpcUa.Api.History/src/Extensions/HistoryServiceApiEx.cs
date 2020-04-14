@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;

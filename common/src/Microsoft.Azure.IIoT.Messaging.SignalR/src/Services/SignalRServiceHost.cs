@@ -4,49 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Models;
+    using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Services;
     using Microsoft.Azure.SignalR.Management;
+    using Microsoft.Azure.SignalR.Common;
+    using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
-    using System.Security.Claims;
     using Serilog;
 
     /// <summary>
     /// Publish subscriber service built using signalr
     /// </summary>
-    public class SignalRServiceHost : IIdentityTokenGenerator, IEndpoint,
-        ICallbackInvoker, IGroupRegistration, IHostProcess, IHealthCheck, IDisposable {
-
-        /// <inheritdoc/>
-        public string Resource { get; }
-
-        /// <inheritdoc/>
-        public Uri EndpointUrl => new Uri(_serviceManager.GetClientEndpoint(Resource));
+    public sealed class SignalRServiceHost<THub> : SignalRServiceEndpoint<THub>,
+        ICallbackInvokerT<THub>, IGroupRegistrationT<THub>, IHostProcess,
+        IHealthCheck, IDisposable where THub : Hub {
 
         /// <summary>
         /// Create signalR event bus
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public SignalRServiceHost(ISignalRServiceConfig config, ILogger logger) {
+        public SignalRServiceHost(ISignalRServiceConfig config, ILogger logger)
+            : base (config) {
+
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             if (string.IsNullOrEmpty(config?.SignalRConnString)) {
                 throw new ArgumentNullException(nameof(config.SignalRConnString));
             }
-            _serviceManager = new ServiceManagerBuilder().WithOptions(option => {
-                option.ConnectionString = config.SignalRConnString;
-                option.ServiceTransportType = ServiceTransportType.Persistent;
-            }).Build();
-            Resource = !string.IsNullOrEmpty(config.SignalRHubName) ?
-                config.SignalRHubName : "default";
-            //   TODO : force hub renew mechanism introduced to workaround a 
-            //      signalR SDK bug. To be removed after the fix is done in the SDK
             _renewHubTimer = new Timer(RenewHubTimer_ElapesedAsync);
             _renewHubInterval = TimeSpan.FromMinutes(3);
         }
@@ -114,62 +101,66 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         }
 
         /// <inheritdoc/>
-        public void Dispose() {
-            Try.Op(() => StopAsync().Wait());
-            _renewHubTimer.Dispose();
-        }
-
-        /// <inheritdoc/>
-        public IdentityTokenModel GenerateIdentityToken(string userId,
-            IList<Claim> claims, TimeSpan? lifeTime) {
-            if (string.IsNullOrEmpty(userId)) {
-                throw new ArgumentNullException(nameof(userId));
-            }
-            if (lifeTime == null) {
-                lifeTime = TimeSpan.FromMinutes(5);
-            }
-            return new IdentityTokenModel {
-                Identity = userId,
-                Key = _serviceManager.GenerateClientAccessToken(
-                    Resource, userId, claims, lifeTime),
-                Expires = DateTime.UtcNow + lifeTime.Value
-            };
-        }
-
-        /// <inheritdoc/>
-        public Task BroadcastAsync(string method, object[] arguments,
+        public async Task BroadcastAsync(string method, object[] arguments,
             CancellationToken ct) {
             if (string.IsNullOrEmpty(method)) {
                 throw new ArgumentNullException(nameof(method));
             }
-            return _hub.Clients.All.SendCoreAsync(method,
-                arguments ?? new object[0], ct);
+            try {
+                await _hub.Clients.All.SendCoreAsync(method,
+                    arguments ?? new object[0], ct);
+            }
+            catch (AzureSignalRNotConnectedException e) {
+                _logger.Verbose(e,
+                    "Failed to send broadcast message because hub is not connected");
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to send broadcast message");
+            }
         }
 
         /// <inheritdoc/>
-        public Task UnicastAsync(string target, string method, object[] arguments,
-            CancellationToken ct) {
+        public async Task UnicastAsync(string target, string method,
+            object[] arguments, CancellationToken ct) {
             if (string.IsNullOrEmpty(method)) {
                 throw new ArgumentNullException(nameof(method));
             }
             if (string.IsNullOrEmpty(target)) {
                 throw new ArgumentNullException(nameof(target));
             }
-            return _hub.Clients.User(target).SendCoreAsync(method,
-                arguments ?? new object[0], ct);
+            try {
+                await _hub.Clients.User(target).SendCoreAsync(method,
+                    arguments ?? new object[0], ct);
+            }
+            catch (AzureSignalRNotConnectedException e) {
+                _logger.Verbose(e,
+                    "Failed to send unicast message because hub is not connected");
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to send unicast message");
+            }
         }
 
         /// <inheritdoc/>
-        public Task MulticastAsync(string group, string method, object[] arguments,
-            CancellationToken ct) {
+        public async Task MulticastAsync(string group, string method,
+            object[] arguments, CancellationToken ct) {
             if (string.IsNullOrEmpty(method)) {
                 throw new ArgumentNullException(nameof(method));
             }
             if (string.IsNullOrEmpty(group)) {
                 throw new ArgumentNullException(nameof(group));
             }
-            return _hub.Clients.Group(group).SendCoreAsync(method,
-                arguments ?? new object[0], ct);
+            try {
+                await _hub.Clients.Group(group).SendCoreAsync(method,
+                    arguments ?? new object[0], ct);
+            }
+            catch (AzureSignalRNotConnectedException e) {
+                _logger.Verbose(e,
+                    "Failed to send multicast message because hub is not connected");
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to send multicast message");
+            }
         }
 
         /// <inheritdoc/>
@@ -181,7 +172,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             if (string.IsNullOrEmpty(group)) {
                 throw new ArgumentNullException(nameof(group));
             }
-            return _hub.UserGroups.AddToGroupAsync(client, group, ct);
+            return _hub.Groups.AddToGroupAsync(client, group, ct);
         }
 
         /// <inheritdoc/>
@@ -193,7 +184,13 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             if (string.IsNullOrEmpty(group)) {
                 throw new ArgumentNullException(nameof(group));
             }
-            return _hub.UserGroups.RemoveFromGroupAsync(client, group, ct);
+            return _hub.Groups.RemoveFromGroupAsync(client, group, ct);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose() {
+            Try.Op(() => StopAsync().Wait());
+            _renewHubTimer.Dispose();
         }
 
         private async void RenewHubTimer_ElapesedAsync(object sender) {
@@ -210,10 +207,9 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }
         }
 
+        private IServiceHubContext _hub;
         private readonly Timer _renewHubTimer;
         private readonly TimeSpan _renewHubInterval;
-        private IServiceHubContext _hub;
         private readonly ILogger _logger;
-        private readonly IServiceManager _serviceManager;
     }
 }

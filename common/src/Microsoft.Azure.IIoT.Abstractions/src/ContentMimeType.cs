@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT {
         /// Message pack encoding
         /// </summary>
         public const string MsgPack =
-            "application/binary-msgpack";
+            "application/x-msgpack";
 
         /// <summary>
         /// OPC UA json encoding as per OPC UA part 6
@@ -78,6 +78,12 @@ namespace Microsoft.Azure.IIoT {
         /// </summary>
         public const string UaNonReversibleJsonReference =
             "application/ua+json+ref+nr";
+
+        /// <summary>
+        /// For backwards compatibility with legacy publisher
+        /// </summary>
+        public const string UaLegacyPublisher =
+            "application/opcua+uajson";
 
         /// <summary>
         /// Certificate content

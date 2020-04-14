@@ -5,26 +5,27 @@
 
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Response model
     /// </summary>
+    [DataContract]
     public sealed class CertificateRequestQueryResponseApiModel {
 
         /// <summary>
         /// The query result.
         /// </summary>
-        [JsonProperty(PropertyName = "requests",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "requests", Order = 0,
+            EmitDefaultValue = false)]
         public List<CertificateRequestRecordApiModel> Requests { get; set; }
 
         /// <summary>
         /// Link to the next page of results.
         /// </summary>
-        [JsonProperty(PropertyName = "nextPageLink",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "nextPageLink", Order = 1,
+            EmitDefaultValue = false)]
         public string NextPageLink { get; set; }
     }
 }

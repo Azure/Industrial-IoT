@@ -16,6 +16,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
+        /// Managing provided endpoint twin
+        /// </summary>
+        public string EndpointId { get; set; }
+
+        /// <summary>
         /// Included connected or disconnected
         /// </summary>
         public bool? Connected { get; set; }

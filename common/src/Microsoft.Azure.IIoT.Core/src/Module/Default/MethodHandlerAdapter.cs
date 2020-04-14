@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         public Task<byte[]> InvokeAsync(string method, byte[] payload,
             string contentType) {
             if (_calltable.TryGetValue(method, out var invoker)) {
-                return invoker.InvokeAsync(payload, contentType);
+                return invoker.InvokeAsync(payload, contentType, this);
             }
             return Task.FromException<byte[]>(
                 new InvalidOperationException($"{method} invoker not registered"));

@@ -25,7 +25,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
     /// </summary>
-    public class LegacyCliOptions : Dictionary<string, string>, IAgentConfigProvider, IEngineConfiguration, ILegacyCliModelProvider {
+    public class LegacyCliOptions : Dictionary<string, string>, IAgentConfigProvider,
+        IEngineConfiguration, ILegacyCliModelProvider {
         /// <summary>
         /// Empty constructor.
         /// </summary>
@@ -89,6 +90,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "mm|messagingmode=", "The messaging mode for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
                         (MessagingMode m) => this[LegacyCliConfigKeys.MessagingMode] = m.ToString() },
+                    { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." + 
+                        "Default is 'true', for legacy compatibility use 'false'",
+                        (bool b) => this[LegacyCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
                     // Client settings
                     { "ot|operationtimeout=", "the operation timeout of the publisher OPC UA client in ms.",
@@ -118,7 +122,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     // cert store options
                     { "aa|autoaccept", "the publisher trusts all servers it is establishing a connection to.",
                           b => this[LegacyCliConfigKeys.AutoAcceptCerts] = (b != null).ToString() },
-                    { "to|trustowncert", "the publisher certificate is put into the trusted store automatically.",
+                    { "tm|trustmyself", "the publisher certificate is put into the trusted store automatically.",
                         t => this[LegacyCliConfigKeys.TrustMyself] = (t != null).ToString() },
                     { "at|appcertstoretype=", "the own application cert store type (allowed: Directory, X509Store).",
                         s => {
@@ -141,6 +145,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "ip|issuercertstorepath=", "the path of the trusted issuer cert store.",
                         s => this[LegacyCliConfigKeys.OpcIssuerCertStorePath] = s },
                     { "it|issuercertstoretype=", "Legacy - do not use.", _ => {} },
+                    { "bs|batchsize=", "the size of message batching buffer.",
+                        (int i) => this[LegacyCliConfigKeys.BatchSize] = i.ToString() },
+                    { "ms|iothubmessagesize=", "the maximum size of the (IoT D2C) message.",
+                        (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
 
                     // Legacy unsupported
                     { "si|iothubsendinterval=", "Legacy - do not use.", _ => {} },
@@ -149,7 +157,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "mq|monitoreditemqueuecapacity=", "Legacy - do not use.", _ => {} },
                     { "ns|noshutdown=", "Legacy - do not use.", _ => {} },
                     { "rf|runforever", "Legacy - do not use.", _ => {} },
-                    { "ms|iothubmessagesize=", "Legacy - do not use.", _ => {} },
                     { "pn|portnum=", "Legacy - do not use.", _ => {} },
                     { "pa|path=", "Legacy - do not use.", _ => {} },
                     { "lr|ldsreginterval=", "Legacy - do not use.", _ => {} },
@@ -182,7 +189,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public bool RunInLegacyMode => System.IO.File.Exists(GetValueOrDefault(LegacyCliConfigKeys.PublisherNodeConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename));
 
@@ -198,15 +205,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public event ConfigUpdatedEventHandler OnConfigUpdated;
 #pragma warning restore 67
 
+
         /// <summary>
-        /// The batch size, hardcoded to 1.
+        /// The batch size 
         /// </summary>
-        public int? BatchSize => 1;
+        public int? BatchSize => LegacyCliModel.BatchSize;
 
         /// <summary>
         /// The interval to show diagnostic information in the log.
         /// </summary>
         public TimeSpan? DiagnosticsInterval => LegacyCliModel.DiagnosticsInterval;
+
+        /// <summary>
+        /// the Maximum (IoT D2C) message size 
+        /// </summary>
+        public int? MaxMessageSize => LegacyCliModel.MaxMessageSize;
 
         /// <summary>
         /// The model of the CLI arguments.
@@ -221,6 +234,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             LoggerConfiguration loggerConfiguration = null;
 
             if (!string.IsNullOrWhiteSpace(LegacyCliModel.LogFilename)) {
+                loggerConfiguration ??= new LoggerConfiguration();
                 loggerConfiguration = loggerConfiguration.WriteTo.File(LegacyCliModel.LogFilename, flushToDiskInterval: LegacyCliModel.LogFileFlushTimeSpan ?? TimeSpan.FromSeconds(30));
             }
 
@@ -242,6 +256,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 LogFilename = GetValueOrDefault<string>(LegacyCliConfigKeys.LogFileName),
                 Transport = GetValueOrDefault<string>(LegacyCliConfigKeys.HubTransport),
                 MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, MessagingMode.Samples),
+                FullFeaturedMessage = GetValueOrDefault(LegacyCliConfigKeys.FullFeaturedMessage, false),
                 EdgeHubConnectionString = GetValueOrDefault<string>(LegacyCliConfigKeys.EdgeHubConnectionString),
                 OperationTimeout = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcOperationTimeout),
                 MaxStringLength = GetValueOrDefault<long?>(LegacyCliConfigKeys.OpcMaxStringLength),
@@ -254,7 +269,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 ApplicationCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcOwnCertStorePath),
                 TrustedPeerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcTrustedCertStorePath),
                 RejectedCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcRejectedCertStorePath),
-                TrustedIssuerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcIssuerCertStorePath)
+                TrustedIssuerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcIssuerCertStorePath),
+                BatchSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.BatchSize, 1),
+                MaxMessageSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.MaxMessageSize, 0)
             };
         }
 

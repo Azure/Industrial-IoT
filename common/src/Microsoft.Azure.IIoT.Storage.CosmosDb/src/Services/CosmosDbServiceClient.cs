@@ -5,12 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents;
-    using Newtonsoft.Json;
     using Serilog;
     using System;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Provides document db and graph functionality for storage interfaces.
@@ -24,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// <param name="logger"></param>
         /// <param name="jsonConfig"></param>
         public CosmosDbServiceClient(ICosmosDbConfig config,
-            ILogger logger, IJsonSerializerConfig jsonConfig = null) {
+            ILogger logger, IJsonSerializerSettingsProvider jsonConfig = null) {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _jsonConfig = jsonConfig;
@@ -39,19 +40,20 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                 databaseId = "default";
             }
             var cs = ConnectionString.Parse(_config.DbConnectionString);
-            var settings = _jsonConfig?.Serializer ?? JsonConvert.DefaultSettings?.Invoke();
-
+            if (_jsonConfig?.Settings != null) {
+                // Workaround https://github.com/Azure/azure-cosmos-dotnet-v2/issues/351
+                JsonConvert.DefaultSettings = () => _jsonConfig?.Settings;
+            }
             var client = new DocumentClient(new Uri(cs.Endpoint), cs.SharedAccessKey,
-                settings, null, options?.Consistency.ToConsistencyLevel());
+                _jsonConfig?.Settings, null, options?.Consistency.ToConsistencyLevel());
             await client.CreateDatabaseIfNotExistsAsync(new Database {
                 Id = databaseId
             });
-            return new DocumentDatabase(client, databaseId, settings,
-                _config.ThroughputUnits, _logger);
+            return new DocumentDatabase(client, databaseId, _config.ThroughputUnits, _logger, _jsonConfig);
         }
 
         private readonly ICosmosDbConfig _config;
         private readonly ILogger _logger;
-        private readonly IJsonSerializerConfig _jsonConfig;
+        private readonly IJsonSerializerSettingsProvider _jsonConfig;
     }
 }

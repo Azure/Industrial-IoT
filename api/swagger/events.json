@@ -1,0 +1,253 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "SignalR-Event-Service",
+    "description": "Azure Industrial IoT SignalR Event Service",
+    "contact": {
+      "url": "https://www.github.com/Azure/Industrial-IoT"
+    },
+    "license": {
+      "name": "MIT LICENSE",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "v2"
+  },
+  "host": "localhost:9080",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/events/v2/discovery/{discovererId}/events": {
+      "put": {
+        "tags": [
+          "Discovery"
+        ],
+        "summary": "Subscribe to discovery progress from discoverer",
+        "description": "Register a client to receive discovery progress events through SignalR from a particular discoverer.",
+        "operationId": "SubscribeByDiscovererId",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "discovererId",
+            "description": "The discoverer to subscribe to",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The connection that will receive discovery events.",
+            "schema": {
+              "description": "The connection that will receive discovery\r\n            events.",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/events/v2/discovery/requests/{requestId}/events": {
+      "put": {
+        "tags": [
+          "Discovery"
+        ],
+        "summary": "Subscribe to discovery progress for a request",
+        "description": "Register a client to receive discovery progress events through SignalR for a particular request.",
+        "operationId": "SubscribeByRequestId",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "requestId",
+            "description": "The request to monitor",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The connection that will receive discovery events.",
+            "schema": {
+              "description": "The connection that will receive discovery\r\n            events.",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/events/v2/discovery/requests/{requestId}/events/{connectionId}": {
+      "delete": {
+        "tags": [
+          "Discovery"
+        ],
+        "summary": "Unsubscribe from discovery progress for a request.",
+        "description": "Unregister a client and stop it from receiving discovery events for a particular request.",
+        "operationId": "UnsubscribeByRequestId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "requestId",
+            "description": "The request to unsubscribe from",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "connectionId",
+            "description": "The connection that will not receive any more discovery progress",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/events/v2/discovery/{discovererId}/events/{connectionId}": {
+      "delete": {
+        "tags": [
+          "Discovery"
+        ],
+        "summary": "Unsubscribe from discovery progress from discoverer.",
+        "description": "Unregister a client and stop it from receiving discovery events.",
+        "operationId": "UnsubscribeByDiscovererId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "discovererId",
+            "description": "The discoverer to unsubscribe from",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "connectionId",
+            "description": "The connection that will not receive any more discovery progress",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/events/v2/telemetry/{endpointId}/samples": {
+      "put": {
+        "tags": [
+          "Telemetry"
+        ],
+        "summary": "Subscribe to receive samples",
+        "description": "Register a client to receive publisher samples through SignalR.",
+        "operationId": "Subscribe",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The endpoint to subscribe to",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The connection that will receive publisher samples.",
+            "schema": {
+              "description": "The connection that will receive publisher\r\n            samples.",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/events/v2/telemetry/{endpointId}/samples/{connectionId}": {
+      "delete": {
+        "tags": [
+          "Telemetry"
+        ],
+        "summary": "Unsubscribe from receiving samples.",
+        "description": "Unregister a client and stop it from receiving samples.",
+        "operationId": "Unsubscribe",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The endpoint to unsubscribe from",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "connectionId",
+            "description": "The connection that will not receive any more published samples",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "oauth2": {
+      "type": "oauth2",
+      "flow": "implicit",
+      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
+      "description": "Implicit oauth2 token flow."
+    }
+  },
+  "tags": [
+    {
+      "name": "Discovery",
+      "description": "Configure discovery"
+    },
+    {
+      "name": "Telemetry",
+      "description": "Value and Event monitoring services"
+    }
+  ]
+}

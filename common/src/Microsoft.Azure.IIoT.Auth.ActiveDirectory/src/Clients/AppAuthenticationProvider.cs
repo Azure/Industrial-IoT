@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             var token = await _provider.KeyVaultTokenCallback(
-                _config.GetAuthorityUrl(), resource, scopes.FirstOrDefault());
+                _config.GetAuthorityUrl(), resource, scopes?.FirstOrDefault());
             return TokenResultModelEx.Parse(token);
         }
 

@@ -1,7 +1,5 @@
-@page "/browser/{applicationId}/{endpointId}/{applicationUri}"
-@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{applicationUri}"
-@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{applicationUri}/{page}"
-
+@page "/browser/{applicationId}/{endpointId}"
+@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
 
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
@@ -10,11 +8,13 @@
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models
+@using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models
+@using System.Collections.Generic
 @using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
 @using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models
 @using Microsoft.Azure.IIoT.App.Common
-@using System.Collections.Generic
-
+@using Microsoft.Azure.IIoT.App.Models
+@using Microsoft.Azure.IIoT.App.Services.SecureData
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser BrowseManager
@@ -22,8 +22,8 @@
 @inject PublisherServiceEvents PublisherServiceEvents
 @inject Registry RegistryHelper
 @inject UICommon CommonHelper
-
-@implements IDisposable
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject SecureData secureData
 
 <h1>Endpoint Control</h1>
 
@@ -32,9 +32,9 @@
     {
         <a href="/discoverers/">/ @DiscovererId</a>
     }
-    @if (ApplicationUri != string.Empty && ApplicationUri != RegistryHelper.PathAll)
-    {
-        <a href="/applications/">/ @ApplicationUri</a>
+    @if (ApplicationId != string.Empty && ApplicationId != RegistryHelper.PathAll)
+    {  
+        <a href="/applications/">/ @CommonHelper.ApplicationUri[ApplicationId]</a>
     }
     @if (SupervisorId != string.Empty && SupervisorId != RegistryHelper.PathAll)
     {
@@ -118,15 +118,19 @@
                     <td>@node.NodeClass</td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
-                      ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
+                    ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <div class="td-fixed">
                             <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
                                 @{string outputValue = $"{node.Value}";}
                                 @{string outputType = $"({node.DataType})";}
+                                @{string outputStatus = $"({node.Status} -";}
+                                @{string outputTimestamp = $" {node.Timestamp})";}
                                 <span>@outputValue</span>
                                 <span>@outputType</span>
+                                <span>@outputStatus</span>
+                                <span>@outputTimestamp</span>
                             </a>
                         </div>
                     </td>
@@ -154,15 +158,16 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <ErrorMessage PageError="@PagedNodeList.Error" Status="@null"></ErrorMessage>
 
 <Drawer HeaderText="Select Action" ObjectData="@NodeData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
-    <_DrawerActionContent nodeData="@NodeData" endpointId="@EndpointId" pagedNodeList="@PagedNodeList"></_DrawerActionContent>
+    <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" PagedNodeList="@PagedNodeList" Credential="@Credential"></_DrawerActionContent>
 </Drawer>
 
-<Pager Result=@NodeList PageChanged=@(async(Page) => PagerPageChanged(Page)) />
+<Pager Result=@NodeList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
+
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 
 @code {
@@ -180,35 +185,41 @@
     public string SupervisorId { get; set; } = string.Empty;
 
     [Parameter]
-    public string ApplicationUri { get; set; } = string.Empty;
-
-    [Parameter]
     public string Page { get; set; } = "1";
 
     public PagedResult<ListNode> NodeList = new PagedResult<ListNode>();
     public PagedResult<ListNode> PagedNodeList = new PagedResult<ListNode>();
+    public CredentialModel Credential = new CredentialModel();
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
     private IAsyncDisposable _publishEvent { get; set; }
     private string _tableView { get; set; } = "visible";
+    private List<string> _parentId { get; set; }
 
 
     /// <summary>
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public async void PagerPageChanged(int page)
+    public async Task PagerPageChanged(int page)
     {
+        CommonHelper.Spinner = "loader-big";
+        StateHasChanged();
+        if (!string.IsNullOrEmpty(NodeList.ContinuationToken) && page > PagedNodeList.PageCount)
+        {
+            await BrowseTreeAsync(BrowseDirection.Forward, 0, false);
+        }
         PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, null);
         foreach (var node in PagedNodeList.Results)
         {
-            // fetch the actual value
+            //fetch the actual value
             if (node.NodeClass == NodeClass.Variable)
             {
-                node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id);
+                node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id, Credential);
             }
         }
-        NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + page);
+        CommonHelper.Spinner = string.Empty;
+        StateHasChanged();
     }
 
     /// <summary>
@@ -227,14 +238,16 @@
     {
         if (firstRender)
         {
-            await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward, 0);
+            Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
+            await BrowseTreeAsync(BrowseDirection.Forward, 0, true, string.Empty, new List<string>());
             CommonHelper.Spinner = string.Empty;
             if (PagedNodeList.Error != null)
             {
                 _tableView = "hidden";
             }
             StateHasChanged();
-            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId, null, PublishEvent);
+            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
+                samples => InvokeAsync(() => GetPublishedNodeData(samples)));
         }
     }
 
@@ -245,7 +258,7 @@
     /// <param name="parentId"></param>
     private async Task GetTreeAsync(string id, List<string> parentId)
     {
-        await BrowseTreeAsync(id, parentId, BrowseDirection.Forward, 0);
+        await BrowseTreeAsync(BrowseDirection.Forward, 0, true, id, parentId);
     }
 
     /// <summary>
@@ -255,8 +268,8 @@
     /// <param name="parentId"></param>
     private async Task GetTreeBackAsync(string id, List<string> parentId, int index)
     {
-        await BrowseTreeAsync(id, parentId, BrowseDirection.Backward, index);
-        NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + ApplicationUri); 
+        await BrowseTreeAsync(BrowseDirection.Backward, index, true, id, parentId);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
     }
 
     /// <summary>
@@ -265,10 +278,30 @@
     /// <param name="id"></param>
     /// <param name="parentId"></param>
     /// <param name="direction"></param>
-    private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction, int index)
+    private async Task BrowseTreeAsync(BrowseDirection direction, int index, bool firstPage, String id = null, List<string> parentId = null)
     {
         CommonHelper.Spinner = "loader-big";
-        NodeList = await BrowseManager.GetTreeAsync(EndpointId, id, parentId, DiscovererId, direction, index);
+
+        if (firstPage)
+        {
+            _parentId = parentId;
+            NodeList = await BrowseManager.GetTreeAsync(EndpointId,
+                                        id,
+                                        parentId,
+                                        DiscovererId,
+                                        direction,
+                                        index,
+                                        Credential);
+        }
+        else
+        {
+            NodeList = await BrowseManager.GetTreeNextAsync(EndpointId,
+                                            _parentId,
+                                            DiscovererId,
+                                            Credential,
+                                            NodeList);
+        }
+
         var publishedNodes = await Publisher.PublishedAsync(EndpointId);
 
         foreach (var node in NodeList.Results)
@@ -302,7 +335,7 @@
     {
         if ((bool)ev.Value)
         {
-            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, 1000, 1000);
+            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, 1000, 1000, Credential);
             if (result)
             {
                 node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel()
@@ -322,7 +355,7 @@
         }
         else
         {
-            var result = await Publisher.StopPublishingAsync(endpointId, node.Id);
+            var result = await Publisher.StopPublishingAsync(endpointId, node.Id, Credential);
             if (result)
             {
                 node.PublishedItem = null;
@@ -351,24 +384,43 @@
         this.StateHasChanged();
     }
 
-    private Task PublishEvent(MonitoredItemMessageApiModel samples)
+    /// <summary>
+    /// GetPublishedNodeData
+    /// </summary>
+    /// <param name="samples"></param>
+    private Task GetPublishedNodeData(MonitoredItemMessageApiModel samples)
     {
         foreach (var node in PagedNodeList.Results)
         {
             if (node.Id == samples.NodeId)
             {
-                node.Value = $"{samples.Value?.ToString()} ({samples.Status}/{samples.Timestamp})";
+                node.Value = samples.Value?.ToJson()?.TrimQuotes();
+                node.Status = string.IsNullOrEmpty(samples.Status) ? "Good" : samples.Status;
+                node.Timestamp = samples.Timestamp.Value.ToLocalTime().ToString();
                 this.StateHasChanged();
             }
         }
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Dispose
+    /// </summary>
     public async void Dispose()
     {
         if (_publishEvent != null)
         {
             await _publishEvent.DisposeAsync();
         }
+    }
+
+    /// <summary>
+    /// Get Item stored in session storage
+    /// </summary>
+    /// <param name="key"></param>
+    private async Task<T> GetSecureItemAsync<T>(string key)
+    {
+        var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
+        return secureData.UnprotectDeserialize<T>(serializedProtectedData);
     }
 }

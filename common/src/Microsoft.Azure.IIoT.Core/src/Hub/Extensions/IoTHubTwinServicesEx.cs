@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Hub {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
-    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -26,9 +26,8 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="moduleId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<DeviceTwinModel> FindAsync(
-            this IIoTHubTwinServices service, string deviceId,
-            string moduleId = null, CancellationToken ct = default) {
+        public static async Task<DeviceTwinModel> FindAsync(this IIoTHubTwinServices service,
+            string deviceId, string moduleId = null, CancellationToken ct = default) {
             try {
                 return await service.GetAsync(deviceId, moduleId, ct);
             }
@@ -130,7 +129,7 @@ namespace Microsoft.Azure.IIoT.Hub {
             return new DeviceTwinListModel {
                 ContinuationToken = response.ContinuationToken,
                 Items = response.Result
-                    .Select(j => j.ToObject<DeviceTwinModel>())
+                    .Select(j => j.ConvertTo<DeviceTwinModel>())
                     .ToList()
             };
         }
@@ -162,9 +161,9 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="query"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<JToken>> QueryAsync(
+        public static async Task<IEnumerable<VariantValue>> QueryAsync(
             this IIoTHubTwinServices service, string query, CancellationToken ct = default) {
-            var result = new List<JToken>();
+            var result = new List<VariantValue>();
             string continuation = null;
             do {
                 var response = await service.QueryAsync(query, continuation, null, ct);
@@ -186,11 +185,11 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task UpdatePropertyAsync(this IIoTHubTwinServices service,
-            string deviceId, string moduleId, string property, JToken value,
+            string deviceId, string moduleId, string property, VariantValue value,
             CancellationToken ct = default) {
             return service.UpdatePropertiesAsync(deviceId, moduleId,
-                new Dictionary<string, JToken> {
-                    [property] = value
+                new Dictionary<string, VariantValue> {
+                    [property] = value ?? VariantValue.Null
                 }, null, ct);
         }
 
@@ -204,7 +203,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task UpdatePropertyAsync(this IIoTHubTwinServices service,
-            string deviceId, string property, JToken value,
+            string deviceId, string property, VariantValue value,
             CancellationToken ct = default) {
             return service.UpdatePropertyAsync(deviceId, null, property, value, ct);
         }
@@ -219,7 +218,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task UpdatePropertiesAsync(this IIoTHubTwinServices service,
-            string deviceId, string moduleId, Dictionary<string, JToken> properties,
+            string deviceId, string moduleId, Dictionary<string, VariantValue> properties,
             CancellationToken ct = default) {
             return service.UpdatePropertiesAsync(deviceId, moduleId, properties, null, ct);
         }
@@ -233,7 +232,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task UpdatePropertiesAsync(this IIoTHubTwinServices service,
-            string deviceId, Dictionary<string, JToken> properties,
+            string deviceId, Dictionary<string, VariantValue> properties,
             CancellationToken ct = default) {
             return service.UpdatePropertiesAsync(deviceId, null, properties, ct);
         }

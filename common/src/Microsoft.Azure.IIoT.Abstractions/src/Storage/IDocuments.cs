@@ -106,12 +106,5 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <exception cref="NotSupportedException"/>
         /// <returns></returns>
         ISqlClient OpenSqlClient();
-
-        /// <summary>
-        /// Open bulk loader if supported
-        /// </summary>
-        /// <exception cref="NotSupportedException"/>
-        /// <returns></returns>
-        Task<IDocumentLoader> CreateBulkLoader();
     }
 }

@@ -4,18 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Result of publish stop request
     /// </summary>
+    [DataContract]
     public class PublishStopResponseApiModel {
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
-        [JsonProperty(PropertyName = "errorInfo",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "errorInfo", Order = 0,
+            EmitDefaultValue = false)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

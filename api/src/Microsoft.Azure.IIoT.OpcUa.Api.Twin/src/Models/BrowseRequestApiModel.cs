@@ -4,56 +4,53 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
-    using System.ComponentModel;
 
     /// <summary>
     /// Browse request model
     /// </summary>
+    [DataContract]
     public class BrowseRequestApiModel {
 
         /// <summary>
         /// Node to browse.
-        /// (default: RootFolder).
+        /// (defaults to root folder).
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Direction to browse in
         /// (default: forward)
         /// </summary>
-        [JsonProperty(PropertyName = "direction",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "direction", Order = 1,
+            EmitDefaultValue = false)]
         public BrowseDirection? Direction { get; set; }
 
         /// <summary>
         /// View to browse
         /// (default: null = new view = All nodes).
         /// </summary>
-        [JsonProperty(PropertyName = "view",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "view", Order = 2,
+            EmitDefaultValue = false)]
         public BrowseViewApiModel View { get; set; }
 
         /// <summary>
         /// Reference types to browse.
         /// (default: hierarchical).
         /// </summary>
-        [JsonProperty(PropertyName = "referenceTypeId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "referenceTypeId", Order = 3,
+            EmitDefaultValue = false)]
         public string ReferenceTypeId { get; set; }
 
         /// <summary>
         /// Whether to include subtypes of the reference type.
         /// (default is false)
         /// </summary>
-        [JsonProperty(PropertyName = "noSubtypes",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(false)]
+        [DataMember(Name = "noSubtypes", Order = 4,
+            EmitDefaultValue = false)]
         public bool? NoSubtypes { get; set; }
 
         /// <summary>
@@ -63,9 +60,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// or target nodes.
         /// (default is decided by client e.g. 60)
         /// </summary>
-        [JsonProperty(PropertyName = "maxReferencesToReturn",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "maxReferencesToReturn", Order = 5,
+            EmitDefaultValue = false)]
         public uint? MaxReferencesToReturn { get; set; }
 
         /// <summary>
@@ -74,18 +70,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// information.
         /// (default is false)
         /// </summary>
-        [JsonProperty(PropertyName = "targetNodesOnly",
-           NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(false)]
+        [DataMember(Name = "targetNodesOnly", Order = 6,
+           EmitDefaultValue = false)]
         public bool? TargetNodesOnly { get; set; }
 
         /// <summary>
         /// Whether to read variable values on target nodes.
         /// (default is false)
         /// </summary>
-        [JsonProperty(PropertyName = "readVariableValues",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(false)]
+        [DataMember(Name = "readVariableValues", Order = 7,
+            EmitDefaultValue = false)]
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
@@ -93,16 +87,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// nodes that have classes defined in this array.
         /// (default: null - all targets are returned)
         /// </summary>
-        [JsonProperty(PropertyName = "nodeClassFilter",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "nodeClassFilter", Order = 8,
+            EmitDefaultValue = false)]
         public List<NodeClass> NodeClassFilter { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "header",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "header", Order = 9,
+            EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

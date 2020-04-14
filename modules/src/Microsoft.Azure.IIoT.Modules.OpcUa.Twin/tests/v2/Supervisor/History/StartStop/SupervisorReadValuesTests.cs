@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
                 new EndpointRegistrationModel {
                     Endpoint = new EndpointModel {
                         Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                        Certificate = _server.Certificate?.RawData
+                        Certificate = _server.Certificate?.RawData?.ToThumbprint()
                     },
                     Id = "testid",
                     SupervisorId = SupervisorModelEx.CreateSupervisorId(deviceId, moduleId)
@@ -38,7 +38,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
         }
 
         private readonly HistoryServerFixture _server;
+#if DEBUG
+        private readonly bool _runAll = true;
+#else
         private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+#endif
 
 
         [SkippableFact]

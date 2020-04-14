@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters {
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Exceptions;
-    using Newtonsoft.Json;
     using System;
     using System.Linq;
     using System.Net;
@@ -63,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters {
                     context.Result = GetResponse((HttpStatusCode)mcs.Result,
                         context.Exception);
                     break;
-                case JsonReaderException jre:
+                case SerializerException sre:
                 case MethodCallException mce:
                 case BadRequestException br:
                 case ArgumentException are:

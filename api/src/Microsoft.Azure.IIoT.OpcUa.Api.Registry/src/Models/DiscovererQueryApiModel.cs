@@ -4,36 +4,33 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Discoverer registration query
     /// </summary>
+    [DataContract]
     public class DiscovererQueryApiModel {
 
         /// <summary>
         /// Site of the discoverer
         /// </summary>
-        [JsonProperty(PropertyName = "siteId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "siteId", Order = 0,
+            EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
         /// Discovery mode of discoverer
         /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "discovery", Order = 1,
+            EmitDefaultValue = false)]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Included connected or disconnected
         /// </summary>
-        [JsonProperty(PropertyName = "connected",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "connected", Order = 2,
+            EmitDefaultValue = false)]
         public bool? Connected { get; set; }
     }
 }

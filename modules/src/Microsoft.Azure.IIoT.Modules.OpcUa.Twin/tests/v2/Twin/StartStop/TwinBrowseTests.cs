@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
 
         private EndpointModel Endpoint => new EndpointModel {
             Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-            Certificate = _server.Certificate?.RawData
+            Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 
         private BrowseServicesTests<string> GetTests(EndpointRegistrationModel endpoint,
@@ -35,7 +35,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         }
 
         private readonly TestServerFixture _server;
+#if DEBUG
+        private readonly bool _runAll = true;
+#else
         private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+#endif
 
         [SkippableFact]
         public async Task NodeBrowseInRootTest1Async() {
@@ -163,6 +167,26 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
                     await GetTests(endpoint, services).NodeBrowseStaticScalarVariablesTestAsync();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter1Async() {
+            // Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowseStaticScalarVariablesTestWithFilter1Async();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter2Async() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
+                    await GetTests(endpoint, services).NodeBrowseStaticScalarVariablesTestWithFilter2Async();
                 });
             }
         }

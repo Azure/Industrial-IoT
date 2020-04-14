@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
         /// <inheritdoc/>
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_ONBOARDING_SERVICE_PATH_BASE,
-            _host.ServicePathBase);
+            () => _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;

@@ -4,39 +4,40 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Discovery request
     /// </summary>
+    [DataContract]
     public class DiscoveryRequestApiModel {
 
         /// <summary>
         /// Id of discovery request
         /// </summary>
-        [JsonProperty(PropertyName = "id",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "id", Order = 0,
+            EmitDefaultValue = false)]
         public string Id { get; set; }
 
         /// <summary>
         /// Discovery mode to use
         /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "discovery", Order = 1,
+            EmitDefaultValue = false)]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Scan configuration to use
         /// </summary>
-        [JsonProperty(PropertyName = "configuration",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "configuration", Order = 2,
+            EmitDefaultValue = false)]
         public DiscoveryConfigApiModel Configuration { get; set; }
 
         /// <summary>
         /// Operation audit context
         /// </summary>
-        [JsonProperty(PropertyName = "context",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "context", Order = 3,
+            EmitDefaultValue = false)]
         public RegistryOperationApiModel Context { get; set; }
     }
 }

@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// State of the endpoint after activation
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum EndpointConnectivityState {
 
         /// <summary>

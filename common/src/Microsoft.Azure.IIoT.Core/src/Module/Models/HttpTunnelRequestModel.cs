@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Models {
-    using Newtonsoft.Json;
-    using System;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Tunneled message
     /// </summary>
+    [DataContract]
     public class HttpTunnelRequestModel {
 
         /// <summary>
@@ -22,33 +22,34 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// <summary>
         /// Method
         /// </summary>
-        [JsonProperty(PropertyName = "method")]
+        [DataMember(Name = "method", Order = 0)]
         public string Method { get; set; }
 
         /// <summary>
         /// Resource id
         /// </summary>
-        [JsonProperty(PropertyName = "resourceId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "resourceId", Order = 1,
+            EmitDefaultValue = false)]
         public string ResourceId { get; internal set; }
 
         /// <summary>
         /// Uri to call
         /// </summary>
-        [JsonProperty(PropertyName = "uri")]
+        [DataMember(Name = "uri", Order = 2)]
         public string Uri { get; internal set; }
 
         /// <summary>
         /// Headers
         /// </summary>
-        [JsonProperty(PropertyName = "headers",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public Dictionary<string, List<string>> Headers { get; set; }
+        [DataMember(Name = "requestHeaders", Order = 3,
+            EmitDefaultValue = false)]
+        public Dictionary<string, List<string>> RequestHeaders { get; set; }
 
         /// <summary>
-        /// Number of chunks that follow
+        /// Headers
         /// </summary>
-        [JsonProperty(PropertyName = "chunks")]
-        public int Chunks { get; set; }
+        [DataMember(Name = "contentHeaders", Order = 4,
+            EmitDefaultValue = false)]
+        public Dictionary<string, List<string>> ContentHeaders { get; set; }
     }
 }

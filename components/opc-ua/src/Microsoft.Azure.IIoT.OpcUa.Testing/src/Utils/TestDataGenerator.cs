@@ -105,9 +105,9 @@ namespace Opc.Ua.Test {
                 _boundaryValues[kAvailableBoundaryValues[i].SystemType.Name] =
                     kAvailableBoundaryValues[i].Values.ToArray();
             }
-            _tokenValues = LoadStringData("Opc.Ua.Core.Types.Utils.LocalizedData.txt");
+            _tokenValues = LoadStringData("Opc.Ua.Types.Utils.LocalizedData.txt");
             if (_tokenValues.Count == 0) {
-                _tokenValues = LoadStringData("Opc.Ua.Core.Utils.LocalizedData.txt");
+                _tokenValues = LoadStringData("Opc.Ua.Utils.LocalizedData.txt");
             }
             _availableLocales = new string[_tokenValues.Count];
             var num = 0;

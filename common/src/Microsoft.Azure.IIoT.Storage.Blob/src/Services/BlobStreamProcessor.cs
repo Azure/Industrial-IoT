@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage.Blob.Services {
-    using Serilog;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Blob;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Text;
@@ -22,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Services {
     /// service bus.  No matter what the processor simply processes the
     /// stream it is handed.
     /// </summary>
-    public class BlobStreamProcessor : IBlobUploadHandler, IEventHandler {
+    public class BlobStreamProcessor : IDeviceFileUploadHandler, IEventProcessingHandler {
 
         /// <summary>
         /// Create stream processor
@@ -42,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Services {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId, string blobName,
             string contentType, string blobUri, DateTime enqueuedTimeUtc, CancellationToken ct) {
-            // If registered with blob upload notification host directly - this gets called. 
+            // If registered with blob upload notification host directly - this gets called.
             var properties = new Dictionary<string, string> {
                 { CommonProperties.DeviceId, deviceId },
                 { CommonProperties.ModuleId, moduleId },
@@ -63,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Services {
             }
             // Assume the event data is a string representing the uri to process
             var blobUri = Encoding.UTF8.GetString(eventData);
-            if (!Uri.TryCreate(blobUri, UriKind.Absolute, out var uri)) {
+            if (!Uri.TryCreate(blobUri, UriKind.Absolute, out _)) {
                 // We can always add more formats here later...
                 return;
             }

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Credential model
@@ -19,6 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// <summary>
         /// Credential to pass to server.
         /// </summary>
-        public JToken Value { get; set; }
+        public VariantValue Value { get; set; }
     }
 }

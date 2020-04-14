@@ -4,38 +4,42 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Application event type
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum ApplicationEventType {
 
         /// <summary>
         /// New
         /// </summary>
+        [EnumMember]
         New,
 
         /// <summary>
         /// Enabled
         /// </summary>
+        [EnumMember]
         Enabled,
 
         /// <summary>
         /// Disabled
         /// </summary>
+        [EnumMember]
         Disabled,
 
         /// <summary>
         /// Updated
         /// </summary>
+        [EnumMember]
         Updated,
 
         /// <summary>
         /// Deleted
         /// </summary>
+        [EnumMember]
         Deleted,
     }
 }

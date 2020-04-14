@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Storage;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Threading.Tasks;
@@ -23,12 +24,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
         /// </summary>
         /// <param name="source"></param>
         /// <param name="repo"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public ApplicationTwinsMigration(IIoTHubTwinServices source, IApplicationRepository repo,
-            ILogger logger) {
+            IJsonSerializer serializer, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
-            _source = new ApplicationTwins(source, logger);
+            _source = new ApplicationTwins(source, serializer, logger);
         }
 
         /// <inheritdoc/>

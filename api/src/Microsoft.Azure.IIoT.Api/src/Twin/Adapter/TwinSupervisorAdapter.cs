@@ -5,10 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Implements node services as adapter on top of supervisor api.
@@ -28,72 +30,72 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public async Task<BrowseResultModel> NodeBrowseFirstAsync(
             EndpointApiModel endpoint, BrowseRequestModel request) {
             var result = await _client.NodeBrowseFirstAsync(endpoint,
-                request.Map<BrowseRequestApiModel>());
-            return result.Map<BrowseResultModel>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<BrowseNextResultModel> NodeBrowseNextAsync(
             EndpointApiModel endpoint, BrowseNextRequestModel request) {
             var result = await _client.NodeBrowseNextAsync(endpoint,
-                request.Map<BrowseNextRequestApiModel>());
-            return result.Map<BrowseNextResultModel>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<BrowsePathResultModel> NodeBrowsePathAsync(
             EndpointApiModel endpoint, BrowsePathRequestModel request) {
             var result = await _client.NodeBrowsePathAsync(endpoint,
-                request.Map<BrowsePathRequestApiModel>());
-            return result.Map<BrowsePathResultModel>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<ValueReadResultModel> NodeValueReadAsync(
             EndpointApiModel endpoint, ValueReadRequestModel request) {
             var result = await _client.NodeValueReadAsync(endpoint,
-                request.Map<ValueReadRequestApiModel>());
-            return result.Map<ValueReadResultModel>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<ValueWriteResultModel> NodeValueWriteAsync(
             EndpointApiModel endpoint, ValueWriteRequestModel request) {
             var result = await _client.NodeValueWriteAsync(endpoint,
-                request.Map<ValueWriteRequestApiModel>());
-            return result.Map<ValueWriteResultModel>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<MethodMetadataResultModel> NodeMethodGetMetadataAsync(
             EndpointApiModel endpoint, MethodMetadataRequestModel request) {
             var result = await _client.NodeMethodGetMetadataAsync(endpoint,
-                request.Map<MethodMetadataRequestApiModel>());
-            return result.Map<MethodMetadataResultModel>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<MethodCallResultModel> NodeMethodCallAsync(
             EndpointApiModel endpoint, MethodCallRequestModel request) {
             var result = await _client.NodeMethodCallAsync(endpoint,
-                request.Map<MethodCallRequestApiModel>());
-            return result.Map<MethodCallResultModel>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<ReadResultModel> NodeReadAsync(
             EndpointApiModel endpoint, ReadRequestModel request) {
             var result = await _client.NodeReadAsync(endpoint,
-                request.Map<ReadRequestApiModel>());
-            return result.Map<ReadResultModel>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<WriteResultModel> NodeWriteAsync(
             EndpointApiModel endpoint, WriteRequestModel request) {
             var result = await _client.NodeWriteAsync(endpoint,
-                request.Map<WriteRequestApiModel>());
-            return result.Map<WriteResultModel>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         private readonly ITwinModuleApi _client;

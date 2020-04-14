@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
 
@@ -20,9 +20,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Create device twin
         /// </summary>
         /// <param name="registration"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
-        public static DeviceTwinModel ToDeviceTwin(this DiscovererRegistration registration) {
-            return Patch(null, registration);
+        public static DeviceTwinModel ToDeviceTwin(
+            this DiscovererRegistration registration, IJsonSerializer serializer) {
+            return Patch(null, registration, serializer);
         }
 
         /// <summary>
@@ -30,14 +32,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="existing"></param>
         /// <param name="update"></param>
+        /// <param name="serializer"></param>
         public static DeviceTwinModel Patch(this DiscovererRegistration existing,
-            DiscovererRegistration update) {
+            DiscovererRegistration update, IJsonSerializer serializer) {
 
             var twin = new DeviceTwinModel {
                 Etag = existing?.Etag,
-                Tags = new Dictionary<string, JToken>(),
+                Tags = new Dictionary<string, VariantValue>(),
                 Properties = new TwinPropertiesModel {
-                    Desired = new Dictionary<string, JToken>()
+                    Desired = new Dictionary<string, VariantValue>()
                 }
             };
 
@@ -60,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (!(policiesUpdate ?? true)) {
                 twin.Tags.Add(nameof(DiscovererRegistration.SecurityPoliciesFilter),
                     update?.SecurityPoliciesFilter == null ?
-                    null : JToken.FromObject(update.SecurityPoliciesFilter));
+                    null : serializer.FromObject(update.SecurityPoliciesFilter));
             }
 
             var trustListUpdate = update?.TrustListsFilter.DecodeAsList().SequenceEqualsSafe(
@@ -68,13 +71,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (!(trustListUpdate ?? true)) {
                 twin.Tags.Add(nameof(DiscovererRegistration.TrustListsFilter),
                     update?.TrustListsFilter == null ?
-                    null : JToken.FromObject(update.TrustListsFilter));
+                    null : serializer.FromObject(update.TrustListsFilter));
             }
 
             if (update?.SecurityModeFilter != existing?.SecurityModeFilter) {
                 twin.Tags.Add(nameof(DiscovererRegistration.SecurityModeFilter),
                     update?.SecurityModeFilter == null ?
-                    null : JToken.FromObject(update?.SecurityModeFilter));
+                    null : serializer.FromObject(update.SecurityModeFilter.ToString()));
             }
 
             // Settings
@@ -84,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (!(urlUpdate ?? true)) {
                 twin.Properties.Desired.Add(nameof(DiscovererRegistration.DiscoveryUrls),
                     update?.DiscoveryUrls == null ?
-                    null : JToken.FromObject(update.DiscoveryUrls));
+                    null : serializer.FromObject(update.DiscoveryUrls));
             }
 
             var localesUpdate = update?.Locales?.DecodeAsList()?.SequenceEqualsSafe(
@@ -92,12 +95,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (!(localesUpdate ?? true)) {
                 twin.Properties.Desired.Add(nameof(DiscovererRegistration.Locales),
                     update?.Locales == null ?
-                    null : JToken.FromObject(update.Locales));
+                    null : serializer.FromObject(update.Locales));
             }
 
             if (update?.Discovery != existing?.Discovery) {
                 twin.Properties.Desired.Add(nameof(DiscovererRegistration.Discovery),
-                    JToken.FromObject(update?.Discovery));
+                    serializer.FromObject(update?.Discovery.ToString()));
             }
 
             if (update?.AddressRangesToScan != existing?.AddressRangesToScan) {
@@ -113,7 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (update?.LogLevel != existing?.LogLevel) {
                 twin.Properties.Desired.Add(nameof(DiscovererRegistration.LogLevel),
                     update?.LogLevel == null ?
-                    null : JToken.FromObject(update.LogLevel));
+                    null : serializer.FromObject(update.LogLevel.ToString()));
             }
 
             if (update?.MaxNetworkProbes != existing?.MaxNetworkProbes) {
@@ -163,12 +166,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="properties"></param>
         /// <returns></returns>
         public static DiscovererRegistration ToDiscovererRegistration(this DeviceTwinModel twin,
-            Dictionary<string, JToken> properties) {
+            Dictionary<string, VariantValue> properties) {
             if (twin == null) {
                 return null;
             }
 
-            var tags = twin.Tags ?? new Dictionary<string, JToken>();
+            var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
             var connected = twin.IsConnected();
 
             var registration = new DiscovererRegistration {
@@ -231,11 +234,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Get discoverer registration from twin
         /// </summary>
-        /// <param name="twin"></param>
         /// <param name="onlyServerState"></param>
+        /// <param name="twin"></param>
         /// <returns></returns>
-        public static DiscovererRegistration ToDiscovererRegistration(this DeviceTwinModel twin,
-            bool onlyServerState) {
+        public static DiscovererRegistration ToDiscovererRegistration(this DeviceTwinModel twin, bool onlyServerState = false) {
             return ToDiscovererRegistration(twin, onlyServerState, out var tmp);
         }
 
@@ -247,19 +249,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// endpoint.
         /// </summary>
         /// <param name="twin"></param>
-        /// <param name="onlyServerState">Only desired endpoint should be returned
-        /// this means that you will look at stale information.</param>
+        /// <param name="onlyServerState"></param>
         /// <param name="connected"></param>
         /// <returns></returns>
         public static DiscovererRegistration ToDiscovererRegistration(this DeviceTwinModel twin,
-            bool onlyServerState, out bool connected) {
+             bool onlyServerState, out bool connected) {
 
             if (twin == null) {
                 connected = false;
                 return null;
             }
             if (twin.Tags == null) {
-                twin.Tags = new Dictionary<string, JToken>();
+                twin.Tags = new Dictionary<string, VariantValue>();
             }
 
             var consolidated =
@@ -280,14 +281,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 }
             }
 
-            if (!onlyServerState) {
-                consolidated._isInSync = consolidated.IsInSyncWith(desired);
-                return consolidated;
+            if (onlyServerState) {
+                consolidated = desired;
             }
-            if (desired != null) {
-                desired._isInSync = desired.IsInSyncWith(consolidated);
-            }
-            return desired;
+
+            consolidated._isInSync = consolidated.IsInSyncWith(desired);
+            consolidated._desired = desired;
+            return consolidated;
         }
 
         /// <summary>
@@ -307,24 +307,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DeviceId = deviceId,
                 ModuleId = moduleId,
                 LogLevel = model.LogLevel,
-                Discovery = model.Discovery ?? DiscoveryMode.Off,
-                AddressRangesToScan = model.DiscoveryConfig?.AddressRangesToScan,
-                NetworkProbeTimeout = model.DiscoveryConfig?.NetworkProbeTimeout,
-                MaxNetworkProbes = model.DiscoveryConfig?.MaxNetworkProbes,
-                PortRangesToScan = model.DiscoveryConfig?.PortRangesToScan,
-                PortProbeTimeout = model.DiscoveryConfig?.PortProbeTimeout,
-                MaxPortProbes = model.DiscoveryConfig?.MaxPortProbes,
-                IdleTimeBetweenScans = model.DiscoveryConfig?.IdleTimeBetweenScans,
-                MinPortProbesPercent = model.DiscoveryConfig?.MinPortProbesPercent,
-                SecurityModeFilter = model.DiscoveryConfig?.ActivationFilter?.
+                Discovery = model.RequestedMode ?? DiscoveryMode.Off,
+                AddressRangesToScan = model.RequestedConfig?.AddressRangesToScan,
+                NetworkProbeTimeout = model.RequestedConfig?.NetworkProbeTimeout,
+                MaxNetworkProbes = model.RequestedConfig?.MaxNetworkProbes,
+                PortRangesToScan = model.RequestedConfig?.PortRangesToScan,
+                PortProbeTimeout = model.RequestedConfig?.PortProbeTimeout,
+                MaxPortProbes = model.RequestedConfig?.MaxPortProbes,
+                IdleTimeBetweenScans = model.RequestedConfig?.IdleTimeBetweenScans,
+                MinPortProbesPercent = model.RequestedConfig?.MinPortProbesPercent,
+                SecurityModeFilter = model.RequestedConfig?.ActivationFilter?.
                     SecurityMode,
-                TrustListsFilter = model.DiscoveryConfig?.ActivationFilter?.
+                TrustListsFilter = model.RequestedConfig?.ActivationFilter?.
                     TrustLists.EncodeAsDictionary(),
-                SecurityPoliciesFilter = model.DiscoveryConfig?.ActivationFilter?.
+                SecurityPoliciesFilter = model.RequestedConfig?.ActivationFilter?.
                     SecurityPolicies.EncodeAsDictionary(),
-                DiscoveryUrls = model.DiscoveryConfig?.DiscoveryUrls?.
+                DiscoveryUrls = model.RequestedConfig?.DiscoveryUrls?.
                     EncodeAsDictionary(),
-                Locales = model.DiscoveryConfig?.Locales?.
+                Locales = model.RequestedConfig?.Locales?.
                     EncodeAsDictionary(),
                 Connected = model.Connected ?? false,
                 SiteId = model.SiteId,
@@ -347,11 +347,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 SiteId = registration.SiteId,
                 LogLevel = registration.LogLevel,
                 DiscoveryConfig = registration.ToConfigModel(),
+                RequestedMode = registration._desired?.Discovery != DiscoveryMode.Off ?
+                    registration._desired?.Discovery : null,
+                RequestedConfig = registration._desired.ToConfigModel(),
                 Connected = registration.IsConnected() ? true : (bool?)null,
                 OutOfSync = registration.IsConnected() && !registration._isInSync ? true : (bool?)null
             };
         }
-
 
         /// <summary>
         /// Returns if no discovery config specified
@@ -359,6 +361,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="registration"></param>
         /// <returns></returns>
         private static bool IsNullConfig(this DiscovererRegistration registration) {
+            if (registration == null) {
+                return true;
+            }
             if (string.IsNullOrEmpty(registration.AddressRangesToScan) &&
                 string.IsNullOrEmpty(registration.PortRangesToScan) &&
                 registration.MaxNetworkProbes == null &&
@@ -381,8 +386,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <returns></returns>
         private static DiscoveryConfigModel ToConfigModel(this DiscovererRegistration registration) {
             return registration.IsNullConfig() ? null : new DiscoveryConfigModel {
-                AddressRangesToScan = registration.AddressRangesToScan,
-                PortRangesToScan = registration.PortRangesToScan,
+                AddressRangesToScan = string.IsNullOrEmpty(registration.AddressRangesToScan) ?
+                    null : registration.AddressRangesToScan,
+                PortRangesToScan = string.IsNullOrEmpty(registration.PortRangesToScan) ?
+                    null : registration.PortRangesToScan,
                 MaxNetworkProbes = registration.MaxNetworkProbes,
                 NetworkProbeTimeout = registration.NetworkProbeTimeout,
                 MaxPortProbes = registration.MaxPortProbes,
@@ -426,30 +433,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Flag twin as synchronized - i.e. it matches the other.
         /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="other"></param>
-        internal static bool IsInSyncWith(this DiscovererRegistration registration,
-            DiscovererRegistration other) {
-            if (registration == null) {
-                return other == null;
+        /// <param name="reported"></param>
+        /// <param name="desired"></param>
+        internal static bool IsInSyncWith(this DiscovererRegistration reported,
+            DiscovererRegistration desired) {
+            if (reported == null) {
+                return desired == null;
             }
             return
-                other != null &&
-                registration.SiteId == other.SiteId &&
-                registration.LogLevel == other.LogLevel &&
-                registration.Discovery == other.Discovery &&
-                registration.AddressRangesToScan == other.AddressRangesToScan &&
-                registration.PortRangesToScan == other.PortRangesToScan &&
-                registration.MaxNetworkProbes == other.MaxNetworkProbes &&
-                registration.NetworkProbeTimeout == other.NetworkProbeTimeout &&
-                registration.MaxPortProbes == other.MaxPortProbes &&
-                registration.MinPortProbesPercent == other.MinPortProbesPercent &&
-                registration.PortProbeTimeout == other.PortProbeTimeout &&
-                registration.IdleTimeBetweenScans == other.IdleTimeBetweenScans &&
-                registration.DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                    other.DiscoveryUrls.DecodeAsList()) &&
-                registration.Locales.DecodeAsList().SequenceEqualsSafe(
-                    other.Locales.DecodeAsList());
+                desired != null &&
+                reported.SiteId == desired.SiteId &&
+                reported.LogLevel == desired.LogLevel &&
+                reported.Discovery == desired.Discovery &&
+                (string.IsNullOrEmpty(desired.AddressRangesToScan) ||
+                    reported.AddressRangesToScan == desired.AddressRangesToScan) &&
+                (string.IsNullOrEmpty(desired.PortRangesToScan) ||
+                    reported.PortRangesToScan == desired.PortRangesToScan) &&
+                (desired.MaxNetworkProbes == null ||
+                    reported.MaxNetworkProbes == desired.MaxNetworkProbes) &&
+                (desired.MaxNetworkProbes == null ||
+                    reported.NetworkProbeTimeout == desired.NetworkProbeTimeout) &&
+                (desired.MaxPortProbes == null ||
+                    reported.MaxPortProbes == desired.MaxPortProbes) &&
+                (desired.MinPortProbesPercent == null ||
+                    reported.MinPortProbesPercent == desired.MinPortProbesPercent) &&
+                (desired.PortProbeTimeout == null ||
+                    reported.PortProbeTimeout == desired.PortProbeTimeout) &&
+                (desired.IdleTimeBetweenScans == null ||
+                    reported.IdleTimeBetweenScans == desired.IdleTimeBetweenScans) &&
+                ((desired.DiscoveryUrls.DecodeAsList()?.Count ?? 0) == 0 ||
+                    reported.DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
+                        desired.DiscoveryUrls.DecodeAsList())) &&
+                ((desired.Locales.DecodeAsList()?.Count ?? 0) == 0 ||
+                    reported.Locales.DecodeAsList().SequenceEqualsSafe(
+                        desired.Locales.DecodeAsList()));
         }
     }
 }

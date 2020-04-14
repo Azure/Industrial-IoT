@@ -4,28 +4,30 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Trust group types
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum TrustGroupType {
 
         /// <summary>
         /// Application certificate
         /// </summary>
+        [EnumMember]
         ApplicationInstanceCertificate,
 
         /// <summary>
         /// Https certificate type
         /// </summary>
+        [EnumMember]
         HttpsCertificate,
 
         /// <summary>
         /// User credential certificate type
         /// </summary>
+        [EnumMember]
         UserCredentialCertificate
     }
 }

@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Filters {
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.KeyVault.Models;
-    using Newtonsoft.Json;
     using Opc.Ua;
     using System;
     using System.Linq;
@@ -61,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Filters {
                     context.Result = GetResponse(HttpStatusCode.Forbidden,
                         context.Exception);
                     break;
-                case JsonReaderException jre:
+                case SerializerException sre:
                 case BadRequestException br:
                 case ArgumentNullException ane:
                 case ArgumentException are:

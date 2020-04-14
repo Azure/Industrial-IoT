@@ -5,7 +5,7 @@ jobs:
 - job: sdl
   displayName: SDL Tasks
   pool:
-    name: Hosted Windows 2019 with VS2019
+    vmImage: 'windows-2019'
     demands:
     - msbuild
     - npm
@@ -70,6 +70,9 @@ jobs:
     displayName: PoliCheck
     inputs:
       targetType: F
+      SOMEnabled: false
+      uploadToSOM: true
+      workspaceid: f26cefbe-7e7b-436a-8aad-ded8bb5d03e1
     continueOnError: true
   - task: SdtReport@1
     displayName: 'Create Security Analysis Report'

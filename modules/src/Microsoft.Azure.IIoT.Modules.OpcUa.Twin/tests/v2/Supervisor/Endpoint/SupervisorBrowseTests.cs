@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Endpoint {
                 new EndpointRegistrationModel {
                     Endpoint = new EndpointModel {
                         Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                        Certificate = _server.Certificate?.RawData
+                        Certificate = _server.Certificate?.RawData?.ToThumbprint()
                     },
                     Id = "testid",
                     SupervisorId = SupervisorModelEx.CreateSupervisorId(
@@ -103,6 +103,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Endpoint {
         [Fact]
         public async Task NodeBrowseStaticScalarVariablesTestAsync() {
             await GetTests().NodeBrowseStaticScalarVariablesTestAsync();
+        }
+
+        [Fact]
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter1Async() {
+            await GetTests().NodeBrowseStaticScalarVariablesTestWithFilter1Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter2Async() {
+            await GetTests().NodeBrowseStaticScalarVariablesTestWithFilter2Async();
         }
 
         [Fact]

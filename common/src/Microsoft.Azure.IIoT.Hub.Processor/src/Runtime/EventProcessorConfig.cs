@@ -11,7 +11,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
     /// <summary>
     /// Event processor configuration - wraps a configuration root
     /// </summary>
-    public class EventProcessorConfig : StorageConfig, IEventProcessorConfig {
+    public class EventProcessorConfig : StorageConfig, IEventProcessorHostConfig,
+        IEventProcessorConfig {
 
         /// <summary>
         /// Event processor configuration
@@ -19,15 +20,24 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
         private const string kReceiveBatchSizeKey = "ReceiveBatchSize";
         private const string kReceiveTimeoutKey = "ReceiveTimeout";
         private const string kLeaseContainerNameKey = "LeaseContainerName";
+        private const string kInitialReadFromEnd = "InitialReadFromEnd";
+        private const string kCheckpointIntervalKey = "CheckpointIntervalKey";
 
         /// <summary> Checkpoint storage </summary>
-        public string LeaseContainerName => GetStringOrDefault(kLeaseContainerNameKey, null);
+        public string LeaseContainerName => GetStringOrDefault(kLeaseContainerNameKey,
+            () => null);
         /// <summary> Receive batch size </summary>
-        public int ReceiveBatchSize =>
-            GetIntOrDefault(kReceiveBatchSizeKey, 999);
+        public int ReceiveBatchSize => GetIntOrDefault(kReceiveBatchSizeKey,
+            () => 999);
         /// <summary> Receive timeout </summary>
-        public TimeSpan ReceiveTimeout =>
-            GetDurationOrDefault(kReceiveTimeoutKey, TimeSpan.FromSeconds(5));
+        public TimeSpan ReceiveTimeout => GetDurationOrDefault(kReceiveTimeoutKey,
+            () => TimeSpan.FromSeconds(5));
+        /// <summary> Read from end </summary>
+        public bool InitialReadFromEnd => GetBoolOrDefault(kInitialReadFromEnd,
+            () => false);
+        /// <summary> Checkpoint timer </summary>
+        public TimeSpan? CheckpointInterval => GetDurationOrDefault(kCheckpointIntervalKey,
+            () => TimeSpan.FromSeconds(10));
 
         /// <summary>
         /// Configuration constructor

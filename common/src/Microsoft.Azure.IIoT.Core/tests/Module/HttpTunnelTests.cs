@@ -6,7 +6,10 @@
 namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Messaging;
     using AutoFixture;
     using Moq;
     using Serilog;
@@ -26,17 +29,18 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             // Setup
             var logger = Log.Logger;
             var eventBridge = new EventBridge();
-            var factory = new HttpTunnelHandlerFactory(eventBridge, null, logger);
+            var factory = new HttpTunnelHandlerFactory(eventBridge, _serializer, null, logger);
             var client = new HttpClientFactory(factory, logger).CreateClient("msft");
 
             var adapter = new MethodHandlerAdapter(factory.YieldReturn());
-            var chunkServer = new TestChunkServer(100, (method, buffer, type) => {
+            var chunkServer = new TestChunkServer(_serializer, 100, (method, buffer, type) => {
                 Assert.Equal(MethodNames.Response, method);
                 return adapter.InvokeAsync(method, buffer, type).Result;
             });
 
-            var server = new HttpTunnelServer(chunkServer.CreateClient(),
-                new Http.Default.HttpClient(new HttpClientFactory(logger), logger), logger);
+            var server = new HttpTunnelServer(
+                new Http.Default.HttpClient(new HttpClientFactory(logger), logger),
+                chunkServer.CreateClient(), _serializer, logger);
             eventBridge.Handler = server;
 
             // Act
@@ -62,11 +66,11 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             // Setup
             var logger = Log.Logger;
             var eventBridge = new EventBridge();
-            var factory = new HttpTunnelHandlerFactory(eventBridge, null, logger);
+            var factory = new HttpTunnelHandlerFactory(eventBridge, _serializer, null, logger);
             var client = new HttpClientFactory(factory, logger).CreateClient("msft");
 
             var adapter = new MethodHandlerAdapter(factory.YieldReturn());
-            var chunkServer = new TestChunkServer(1000, (method, buffer, type) => {
+            var chunkServer = new TestChunkServer(_serializer, 1000, (method, buffer, type) => {
                 Assert.Equal(MethodNames.Response, method);
                 return adapter.InvokeAsync(method, buffer, type).Result;
             });
@@ -82,7 +86,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             Mock.Get(httpclientMock)
                 .Setup(m => m.GetAsync(It.IsAny<IHttpRequest>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(response));
-            var server = new HttpTunnelServer(chunkServer.CreateClient(), httpclientMock, logger);
+            var server = new HttpTunnelServer(httpclientMock,
+                chunkServer.CreateClient(), _serializer, logger);
             eventBridge.Handler = server;
 
             // Act
@@ -103,6 +108,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
 
 
         [Theory]
+        [InlineData(5 * 1024 * 1024)]
         [InlineData(1000 * 1024)]
         [InlineData(100000)]
         [InlineData(20)]
@@ -114,11 +120,11 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             // Setup
             var logger = Log.Logger;
             var eventBridge = new EventBridge();
-            var factory = new HttpTunnelHandlerFactory(eventBridge, null, logger);
+            var factory = new HttpTunnelHandlerFactory(eventBridge, _serializer, null, logger);
             var client = new HttpClientFactory(factory, logger).CreateClient("msft");
 
             var adapter = new MethodHandlerAdapter(factory.YieldReturn());
-            var chunkServer = new TestChunkServer(100000, (method, buffer, type) => {
+            var chunkServer = new TestChunkServer(_serializer, 100000, (method, buffer, type) => {
                 Assert.Equal(MethodNames.Response, method);
                 return adapter.InvokeAsync(method, buffer, type).Result;
             });
@@ -143,7 +149,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 .Setup(m => m.NewRequest(It.Is<Uri>(u => u == uri), It.IsAny<string>()))
                 .Returns(request);
 
-            var server = new HttpTunnelServer(chunkServer.CreateClient(), httpclientMock, logger);
+            var server = new HttpTunnelServer(httpclientMock, chunkServer.CreateClient(), _serializer, logger);
             eventBridge.Handler = server;
 
             // Act
@@ -163,6 +169,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         }
 
         [Theory]
+        [InlineData(5 * 1024 * 1024)]
         [InlineData(1000 * 1024)]
         [InlineData(100000)]
         [InlineData(20)]
@@ -174,11 +181,11 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             // Setup
             var logger = Log.Logger;
             var eventBridge = new EventBridge();
-            var factory = new HttpTunnelHandlerFactory(eventBridge, null, logger);
+            var factory = new HttpTunnelHandlerFactory(eventBridge, _serializer, null, logger);
             var client = new HttpClientFactory(factory, logger).CreateClient("msft");
 
             var adapter = new MethodHandlerAdapter(factory.YieldReturn());
-            var chunkServer = new TestChunkServer(128 * 1024, (method, buffer, type) => {
+            var chunkServer = new TestChunkServer(_serializer, 128 * 1024, (method, buffer, type) => {
                 Assert.Equal(MethodNames.Response, method);
                 return adapter.InvokeAsync(method, buffer, type).Result;
             });
@@ -201,7 +208,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 .Setup(m => m.NewRequest(It.Is<Uri>(u => u == uri), It.IsAny<string>()))
                 .Returns(request);
 
-            var server = new HttpTunnelServer(chunkServer.CreateClient(), httpclientMock, logger);
+            var server = new HttpTunnelServer(httpclientMock, chunkServer.CreateClient(), _serializer, logger);
             eventBridge.Handler = server;
 
             // Act
@@ -223,11 +230,11 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             // Setup
             var logger = Log.Logger;
             var eventBridge = new EventBridge();
-            var factory = new HttpTunnelHandlerFactory(eventBridge, null, logger);
+            var factory = new HttpTunnelHandlerFactory(eventBridge, _serializer, null, logger);
             var client = new HttpClientFactory(factory, logger).CreateClient("msft");
 
             var adapter = new MethodHandlerAdapter(factory.YieldReturn());
-            var chunkServer = new TestChunkServer(128 * 1024, (method, buffer, type) => {
+            var chunkServer = new TestChunkServer(_serializer, 128 * 1024, (method, buffer, type) => {
                 Assert.Equal(MethodNames.Response, method);
                 return adapter.InvokeAsync(method, buffer, type).Result;
             });
@@ -248,7 +255,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 .Setup(m => m.NewRequest(It.Is<Uri>(u => u == uri), It.IsAny<string>()))
                 .Returns(request);
 
-            var server = new HttpTunnelServer(chunkServer.CreateClient(), httpclientMock, logger);
+            var server = new HttpTunnelServer(httpclientMock, chunkServer.CreateClient(), _serializer, logger);
             eventBridge.Handler = server;
 
             // Act
@@ -263,9 +270,6 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             Assert.NotNull(result.Headers);
             Assert.Empty(result.Headers);
         }
-
-
-
 
         public class EventBridge : IEventClient {
 
@@ -286,5 +290,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 throw new NotImplementedException();
             }
         }
+
+        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

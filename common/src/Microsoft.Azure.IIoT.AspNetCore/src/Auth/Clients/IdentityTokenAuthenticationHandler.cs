@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Serilog;
     using System;
     using System.Security.Claims;
     using System.Text.Encodings.Web;
@@ -56,8 +55,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 return AuthenticateResult.Success(ticket);
             }
             catch (Exception ex) {
-                Log.Warning(ex, "Could not validate token.");
-                return AuthenticateResult.Fail("Invalid token.");
+                return AuthenticateResult.Fail(ex);
             }
         }
 

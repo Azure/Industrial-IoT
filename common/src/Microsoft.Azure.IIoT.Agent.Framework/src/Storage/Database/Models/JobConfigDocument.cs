@@ -4,29 +4,31 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using System.Runtime.Serialization;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Job model
     /// </summary>
+    [DataContract]
     public class JobConfigDocument {
 
         /// <summary>
         /// id
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Etag
         /// </summary>
-        [JsonProperty(PropertyName = "_etag")]
+        [DataMember(Name = "_etag")]
         public string ETag { get; set; }
 
         /// <summary>
         /// Document type
         /// </summary>
+        [DataMember]
         public string ClassType { get; set; } = ClassTypeName;
         /// <summary/>
         public static readonly string ClassTypeName = "JobConfig";
@@ -34,11 +36,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// <summary>
         /// Identifier of the job document
         /// </summary>
+        [DataMember]
         public string JobId { get; set; }
 
         /// <summary>
         /// Job description
         /// </summary>
-        public JObject Job { get; set; }
+        [DataMember]
+        public VariantValue Job { get; set; }
     }
 }

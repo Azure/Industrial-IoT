@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
 
@@ -34,9 +34,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var twin = new DeviceTwinModel {
                 Etag = existing?.Etag,
-                Tags = new Dictionary<string, JToken>(),
+                Tags = new Dictionary<string, VariantValue>(),
                 Properties = new TwinPropertiesModel {
-                    Desired = new Dictionary<string, JToken>()
+                    Desired = new Dictionary<string, VariantValue>()
                 }
             };
 
@@ -65,12 +65,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="properties"></param>
         /// <returns></returns>
         public static GatewayRegistration ToGatewayRegistration(this DeviceTwinModel twin,
-            Dictionary<string, JToken> properties) {
+            Dictionary<string, VariantValue> properties) {
             if (twin == null) {
                 return null;
             }
 
-            var tags = twin.Tags ?? new Dictionary<string, JToken>();
+            var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
             var connected = twin.IsConnected();
 
             var registration = new GatewayRegistration {
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 return null;
             }
             if (twin.Tags == null) {
-                twin.Tags = new Dictionary<string, JToken>();
+                twin.Tags = new Dictionary<string, VariantValue>();
             }
 
             var consolidated =

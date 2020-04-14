@@ -22,9 +22,9 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
             }
             return new TwinPropertiesModel {
                 Desired = model.Desired?
-                    .ToDictionary(kv => kv.Key, kv => kv.Value?.DeepClone()),
+                    .ToDictionary(kv => kv.Key, kv => kv.Value?.Copy()),
                 Reported = model.Reported?
-                    .ToDictionary(kv => kv.Key, kv => kv.Value?.DeepClone())
+                    .ToDictionary(kv => kv.Key, kv => kv.Value?.Copy())
             };
         }
     }

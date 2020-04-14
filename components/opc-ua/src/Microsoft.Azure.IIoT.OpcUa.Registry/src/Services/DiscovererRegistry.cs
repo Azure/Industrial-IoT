@@ -5,6 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Serilog;
@@ -23,21 +26,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
+        /// <param name="broker"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public DiscovererRegistry(IIoTHubTwinServices iothub, ILogger logger) {
+        public DiscovererRegistry(IIoTHubTwinServices iothub,
+            IRegistryEventBroker<IDiscovererRegistryListener> broker,
+            IJsonSerializer serializer, ILogger logger) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
+            _broker = broker ?? throw new ArgumentNullException(nameof(broker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public async Task<DiscovererModel> GetDiscovererAsync(string id,
-            bool onlyServerState, CancellationToken ct) {
+            CancellationToken ct) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentException(nameof(id));
             }
             var deviceId = DiscovererModelEx.ParseDeviceId(id, out var moduleId);
             var device = await _iothub.GetAsync(deviceId, moduleId, ct);
-            var registration = device.ToEntityRegistration(onlyServerState)
+            var registration = device.ToEntityRegistration()
                 as DiscovererRegistration;
             if (registration == null) {
                 throw new ResourceNotFoundException(
@@ -76,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     // Update registration from update request
                     var patched = registration.ToServiceModel();
                     if (request.Discovery != null) {
-                        patched.Discovery = (DiscoveryMode)request.Discovery;
+                        patched.RequestedMode = (DiscoveryMode)request.Discovery;
                     }
 
                     if (request.SiteId != null) {
@@ -90,62 +99,73 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     }
 
                     if (request.DiscoveryConfig != null) {
-                        if (patched.DiscoveryConfig == null) {
-                            patched.DiscoveryConfig = new DiscoveryConfigModel();
+                        if (patched.RequestedConfig == null) {
+                            patched.RequestedConfig = new DiscoveryConfigModel();
                         }
                         if (request.DiscoveryConfig.AddressRangesToScan != null) {
-                            patched.DiscoveryConfig.AddressRangesToScan =
+                            patched.RequestedConfig.AddressRangesToScan =
                                 string.IsNullOrEmpty(
                                     request.DiscoveryConfig.AddressRangesToScan.Trim()) ?
                                         null : request.DiscoveryConfig.AddressRangesToScan;
                         }
                         if (request.DiscoveryConfig.PortRangesToScan != null) {
-                            patched.DiscoveryConfig.PortRangesToScan =
+                            patched.RequestedConfig.PortRangesToScan =
                                 string.IsNullOrEmpty(
                                     request.DiscoveryConfig.PortRangesToScan.Trim()) ?
                                         null : request.DiscoveryConfig.PortRangesToScan;
                         }
                         if (request.DiscoveryConfig.IdleTimeBetweenScans != null) {
-                            patched.DiscoveryConfig.IdleTimeBetweenScans =
-                                request.DiscoveryConfig.IdleTimeBetweenScans;
+                            patched.RequestedConfig.IdleTimeBetweenScans =
+                                request.DiscoveryConfig.IdleTimeBetweenScans.Value.Ticks < 0 ?
+                                    null : request.DiscoveryConfig.IdleTimeBetweenScans;
                         }
                         if (request.DiscoveryConfig.MaxNetworkProbes != null) {
-                            patched.DiscoveryConfig.MaxNetworkProbes =
+                            patched.RequestedConfig.MaxNetworkProbes =
                                 request.DiscoveryConfig.MaxNetworkProbes <= 0 ?
                                     null : request.DiscoveryConfig.MaxNetworkProbes;
                         }
                         if (request.DiscoveryConfig.NetworkProbeTimeout != null) {
-                            patched.DiscoveryConfig.NetworkProbeTimeout =
-                                request.DiscoveryConfig.NetworkProbeTimeout.Value.Ticks == 0 ?
+                            patched.RequestedConfig.NetworkProbeTimeout =
+                                request.DiscoveryConfig.NetworkProbeTimeout.Value.Ticks <= 0 ?
                                     null : request.DiscoveryConfig.NetworkProbeTimeout;
                         }
                         if (request.DiscoveryConfig.MaxPortProbes != null) {
-                            patched.DiscoveryConfig.MaxPortProbes =
+                            patched.RequestedConfig.MaxPortProbes =
                                 request.DiscoveryConfig.MaxPortProbes <= 0 ?
                                     null : request.DiscoveryConfig.MaxPortProbes;
                         }
                         if (request.DiscoveryConfig.MinPortProbesPercent != null) {
-                            patched.DiscoveryConfig.MinPortProbesPercent =
+                            patched.RequestedConfig.MinPortProbesPercent =
                                 request.DiscoveryConfig.MinPortProbesPercent <= 0 ||
                                 request.DiscoveryConfig.MinPortProbesPercent > 100 ?
                                     null : request.DiscoveryConfig.MinPortProbesPercent;
                         }
                         if (request.DiscoveryConfig.PortProbeTimeout != null) {
-                            patched.DiscoveryConfig.PortProbeTimeout =
-                                request.DiscoveryConfig.PortProbeTimeout.Value.Ticks == 0 ?
+                            patched.RequestedConfig.PortProbeTimeout =
+                                request.DiscoveryConfig.PortProbeTimeout.Value.Ticks <= 0 ?
                                     null : request.DiscoveryConfig.PortProbeTimeout;
                         }
                         if (request.DiscoveryConfig.ActivationFilter != null) {
-                            patched.DiscoveryConfig.ActivationFilter =
+                            patched.RequestedConfig.ActivationFilter =
                                 request.DiscoveryConfig.ActivationFilter.SecurityMode == null &&
                                 request.DiscoveryConfig.ActivationFilter.SecurityPolicies == null &&
                                 request.DiscoveryConfig.ActivationFilter.TrustLists == null ?
                                     null : request.DiscoveryConfig.ActivationFilter;
                         }
+                        if (request.DiscoveryConfig.DiscoveryUrls != null) {
+                            patched.RequestedConfig.DiscoveryUrls =
+                                request.DiscoveryConfig.DiscoveryUrls.Count == 0 ?
+                                    null : request.DiscoveryConfig.DiscoveryUrls;
+                        }
                     }
                     // Patch
-                    await _iothub.PatchAsync(registration.Patch(
-                        patched.ToDiscovererRegistration()), false, ct);
+                    twin = await _iothub.PatchAsync(registration.Patch(
+                        patched.ToDiscovererRegistration(), _serializer), false, ct);
+
+                    // Send update to through broker
+                    registration = twin.ToEntityRegistration(true) as DiscovererRegistration;
+                    await _broker.NotifyAllAsync(l => l.OnDiscovererUpdatedAsync(null,
+                        registration.ToServiceModel()));
                     return;
                 }
                 catch (ResourceOutOfDateException ex) {
@@ -157,7 +177,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<DiscovererListModel> ListDiscoverersAsync(
-            string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Discoverer}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
@@ -165,7 +185,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return new DiscovererListModel {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
-                    .Select(t => t.ToDiscovererRegistration(onlyServerState))
+                    .Select(t => t.ToDiscovererRegistration())
                     .Select(s => s.ToServiceModel())
                     .ToList()
             };
@@ -173,21 +193,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<DiscovererListModel> QueryDiscoverersAsync(
-            DiscovererQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct) {
+            DiscovererQueryModel model, int? pageSize, CancellationToken ct) {
 
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Discoverer}'";
 
             if (model?.Discovery != null) {
-                // If discovery mode provided, include it in search
-                query += $"AND properties.desired.{nameof(DiscovererRegistration.Discovery)} = " +
-                    $"'{model.Discovery}' ";
+                // If reported discovery mode provided, include it in search
+                query += $"AND (properties.reported.{nameof(DiscovererRegistration.Discovery)} = " +
+                    $"'{model.Discovery}' " +
+                         $"OR properties.desired.{nameof(DiscovererRegistration.Discovery)} = " +
+                    $"'{model.Discovery}')";
             }
             if (model?.SiteId != null) {
                 // If site id provided, include it in search
                 query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
                     $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}')";
+                    $"'{model.SiteId}' OR deviceId ='{model.SiteId}') ";
             }
             if (model?.Connected != null) {
                 // If flag provided, include it in search
@@ -205,13 +227,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return new DiscovererListModel {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
-                    .Select(t => t.ToDiscovererRegistration(onlyServerState))
+                    .Select(t => t.ToDiscovererRegistration())
                     .Select(s => s.ToServiceModel())
                     .ToList()
             };
         }
 
         private readonly IIoTHubTwinServices _iothub;
+        private readonly IJsonSerializer _serializer;
+        private readonly IRegistryEventBroker<IDiscovererRegistryListener> _broker;
         private readonly ILogger _logger;
     }
 }

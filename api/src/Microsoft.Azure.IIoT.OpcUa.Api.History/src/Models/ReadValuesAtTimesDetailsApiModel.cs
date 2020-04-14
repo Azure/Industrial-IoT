@@ -4,27 +4,28 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Read data at specified times
     /// </summary>
+    [DataContract]
     public class ReadValuesAtTimesDetailsApiModel {
 
         /// <summary>
         /// Requested datums
         /// </summary>
-        [JsonProperty(PropertyName = "reqTimes")]
+        [DataMember(Name = "reqTimes", Order = 0)]
         [Required]
         public DateTime[] ReqTimes { get; set; }
 
         /// <summary>
         /// Whether to use simple bounds
         /// </summary>
-        [JsonProperty(PropertyName = "useSimpleBounds",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "useSimpleBounds", Order = 1,
+            EmitDefaultValue = false)]
         public bool? UseSimpleBounds { get; set; }
     }
 }

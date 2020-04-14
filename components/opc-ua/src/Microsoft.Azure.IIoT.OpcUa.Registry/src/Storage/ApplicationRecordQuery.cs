@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="logger"></param>
         /// <param name="events"></param>
         public ApplicationRecordQuery(IItemContainerFactory db, ILogger logger,
-            IApplicationRegistryEvents events = null) {
+            IRegistryEvents<IApplicationRegistryListener> events = null) {
             _database = new ApplicationDatabase(db, logger);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _unregister = events?.Register(this);
@@ -46,6 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <inheritdoc/>
         public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
+            // TODO handle patching
             return UpdateAsync(application);
         }
 
@@ -58,13 +59,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <inheritdoc/>
         public Task OnApplicationDisabledAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
-            return DeleteAsync(application);
+            return DeleteAsync(application.ApplicationId);
         }
 
         /// <inheritdoc/>
         public Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
-            return DeleteAsync(application);
+            string applicationId, ApplicationInfoModel application) {
+            return DeleteAsync(applicationId);
         }
 
         /// <inheritdoc/>
@@ -120,14 +121,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <summary>
         /// Delete application from index
         /// </summary>
-        /// <param name="application"></param>
+        /// <param name="applicationId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task DeleteAsync(ApplicationInfoModel application,
+        private async Task DeleteAsync(string applicationId,
             CancellationToken ct = default) {
             try {
-                await _database.DeleteAsync(application.ApplicationId, a => true, ct);
+                await _database.DeleteAsync(applicationId, a => true, ct);
             }
+            catch (ResourceNotFoundException) { }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to delete application from index");
             }

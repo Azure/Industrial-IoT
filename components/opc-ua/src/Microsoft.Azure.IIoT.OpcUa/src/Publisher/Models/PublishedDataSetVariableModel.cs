@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
 
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Substitution value for bad / empty results (not supported yet)
         /// </summary>
-        public JToken SubstituteValue { get; set; }
+        public VariantValue SubstituteValue { get; set; }
 
         /// <summary>
         /// MetaData properties qualified names. (not supported yet)

@@ -5,74 +5,75 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Node vertex
     /// </summary>
+    [DataContract]
     public abstract class BaseNodeVertexModel : AddressSpaceVertexModel {
 
         /// <summary>
         /// Node Class - also a vertex type discriminator
         /// </summary>
-        [JsonProperty(PropertyName = "nodeClass",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "nodeClass",
+            EmitDefaultValue = false)]
         public NodeClass? NodeClass { get; set; }
 
         /// <summary>
         /// Modelling rule
         /// </summary>
-        [JsonProperty(PropertyName = "modellingRule",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "modellingRule",
+            EmitDefaultValue = false)]
         public string ModellingRule { get; set; }
 
         /// <summary>
         /// Browse name of the node
         /// </summary>
-        [JsonProperty(PropertyName = "browseName",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "browseName",
+            EmitDefaultValue = false)]
         public string BrowseName { get; set; }
 
         /// <summary>
         /// Display name .
         /// </summary>
-        [JsonProperty(PropertyName = "displayName",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "displayName",
+            EmitDefaultValue = false)]
         public string DisplayName { get; set; }
 
         /// <summary>
         /// Description .
         /// </summary>
-        [JsonProperty(PropertyName = "description",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "description",
+            EmitDefaultValue = false)]
         public string Description { get; set; }
 
         /// <summary>
         /// Node access restrictions if any.
         /// </summary>
-        [JsonProperty(PropertyName = "accessRestrictions",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "accessRestrictions",
+            EmitDefaultValue = false)]
         public NodeAccessRestrictions? AccessRestrictions { get; set; }
 
         /// <summary>
         /// Default write mask for the node (default: 0)
         /// </summary>
-        [JsonProperty(PropertyName = "writeMask",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "writeMask",
+            EmitDefaultValue = false)]
         public uint? WriteMask { get; set; }
 
         /// <summary>
         /// Default user write mask for the node (default: 0)
         /// </summary>
-        [JsonProperty(PropertyName = "userWriteMask",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "userWriteMask",
+            EmitDefaultValue = false)]
         public uint? UserWriteMask { get; set; }
 
         /// <summary>
         /// Symbolic name
         /// </summary>
-        [JsonProperty(PropertyName = "symbolicName",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "symbolicName",
+            EmitDefaultValue = false)]
         public string SymbolicName { get; set; }
 
         /// <summary>

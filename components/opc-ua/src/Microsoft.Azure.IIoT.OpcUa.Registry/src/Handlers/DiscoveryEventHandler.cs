@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -21,31 +21,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     public sealed class DiscoveryEventHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string MessageSchema => MessageSchemaTypes.DiscoveryEvents;
+        public string MessageSchema => Models.MessageSchemaTypes.DiscoveryEvents;
 
         /// <summary>
         /// Create handler
         /// </summary>
-        /// <param name="processor"></param>
+        /// <param name="processors"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public DiscoveryEventHandler(IEnumerable<IDiscoveryResultProcessor> processor,
-            ILogger logger) {
+        public DiscoveryEventHandler(IEnumerable<IDiscoveryResultProcessor> processors,
+            IJsonSerializer serializer, ILogger logger) {
+            _serializer = serializer ??
+                throw new ArgumentNullException(nameof(serializer));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
-            _processors = processor?.ToList() ??
-                throw new ArgumentNullException(nameof(processor));
+            _processors = processors?.ToList() ??
+                throw new ArgumentNullException(nameof(processors));
         }
 
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-            var json = Encoding.UTF8.GetString(payload);
             DiscoveryEventModel discovery;
             try {
-                discovery = JsonConvertEx.DeserializeObject<DiscoveryEventModel>(json);
+                discovery = _serializer.Deserialize<DiscoveryEventModel>(payload);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to convert discovery result {json}", json);
+                _logger.Error(ex, "Failed to convert discovery result {json}",
+                    Encoding.UTF8.GetString(payload));
                 return;
             }
             try {
@@ -220,7 +223,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
             new Dictionary<string,
                 Dictionary<DateTime, DiscovererDiscoveryResult>>();
         private readonly SemaphoreSlim _queueLock = new SemaphoreSlim(1, 1);
-
+        private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly List<IDiscoveryResultProcessor> _processors;
     }

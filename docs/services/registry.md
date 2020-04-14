@@ -4,6 +4,8 @@
 
 ## Overview
 
+Namespace: Microsoft.Azure.IIoT.Services.OpcUa.Registry
+
 The role of the Registry Microservice is to manage entities and identities in IoT Hub. These include:
 
 * **Applications**. In OPC parlance, an "Application" can be a server or a client or both.  It is also a grouping mechanism for Endpoints, i.e. Applications have Endpoints.  An Application contains all server provided information, such as Discovery URLs, Application and Product URIs.

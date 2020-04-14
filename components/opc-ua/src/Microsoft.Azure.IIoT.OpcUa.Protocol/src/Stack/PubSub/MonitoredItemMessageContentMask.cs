@@ -73,13 +73,8 @@ namespace Opc.Ua {
         DisplayName = 0x800,
 
         /// <summary>
-        /// Subscription id included
-        /// </summary>
-        SubscriptionId = 0x1000,
-
-        /// <summary>
         /// Extra fields included
         /// </summary>
-        ExtraFields = 0x2000
+        ExtensionFields = 0x1000
     }
 }

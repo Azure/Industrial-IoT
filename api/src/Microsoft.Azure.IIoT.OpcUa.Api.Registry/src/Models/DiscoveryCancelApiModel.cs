@@ -4,18 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Discovery cancel request
     /// </summary>
+    [DataContract]
     public class DiscoveryCancelApiModel {
 
         /// <summary>
         /// Id of discovery request
         /// </summary>
-        [JsonProperty(PropertyName = "id",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "id", Order = 0,
+            EmitDefaultValue = false)]
         public string Id { get; set; }
     }
 }

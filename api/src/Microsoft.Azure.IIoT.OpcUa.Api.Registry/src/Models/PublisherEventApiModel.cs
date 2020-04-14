@@ -4,24 +4,32 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Publisher event
     /// </summary>
+    [DataContract]
     public class PublisherEventApiModel {
 
         /// <summary>
         /// Event type
         /// </summary>
-        [JsonProperty(PropertyName = "eventType")]
+        [DataMember(Name = "eventType", Order = 0)]
         public PublisherEventType EventType { get; set; }
 
         /// <summary>
-        /// Application
+        /// Publisher id
         /// </summary>
-        [JsonProperty(PropertyName = "publisher",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "id", Order = 1,
+            EmitDefaultValue = false)]
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Publisher
+        /// </summary>
+        [DataMember(Name = "publisher", Order = 2,
+            EmitDefaultValue = false)]
         public PublisherApiModel Publisher { get; set; }
     }
 }

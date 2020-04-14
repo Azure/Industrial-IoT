@@ -48,6 +48,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string MessagingMode = "MessagingMode";
 
         /// <summary>
+        /// Flag to demand full featured message creation from publisher
+        /// </summary>
+        public const string FullFeaturedMessage = "FullFeaturedMessage";
+        
+        /// <summary>
         /// Key for the default sampling interval in milliseconds.
         /// </summary>
         public const string OpcSamplingInterval = "DefaultSamplingInterval";
@@ -66,6 +71,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the diagnostics interval in seconds.
         /// </summary>
         public const string DiagnosticsInterval = "DiagnosticsInterval";
+
+        /// <summary>
+        /// Key for the batch size of the batching buffer
+        /// </summary>
+        public const string BatchSize = "BatchSize";
+
+        /// <summary>
+        /// Key for the max (IoT Hub D2C)message size 
+        /// </summary>
+        public const string MaxMessageSize = "MaxMessageSize";
 
         /// <summary>
         /// Key for the time for the logfile to flush to disc in seconds.

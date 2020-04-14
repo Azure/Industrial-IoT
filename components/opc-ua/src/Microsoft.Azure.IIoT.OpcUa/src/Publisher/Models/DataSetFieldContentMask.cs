@@ -4,15 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using System;
 
     /// <summary>
     /// Content for dataset field
     /// </summary>
     [Flags]
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum DataSetFieldContentMask {
 
         /// <summary>
@@ -74,6 +71,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Extra fields included
         /// </summary>
-        ExtraFields = 0x200000
+        ExtensionFields = 0x200000
     }
 }

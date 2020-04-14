@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.IIoT.Auth.Models;
     using Serilog;
-    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 

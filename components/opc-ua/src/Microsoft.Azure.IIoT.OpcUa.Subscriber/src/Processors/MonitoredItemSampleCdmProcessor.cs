@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
         }
 
         /// <inheritdoc/>
-        public Task HandleSampleAsync(MonitoredItemSampleModel sample) {
+        public Task HandleSampleAsync(MonitoredItemMessageModel sample) {
             return _client.ProcessAsync(sample);
         }
         /// <inheritdoc/>

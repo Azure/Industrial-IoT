@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
     using System.Collections.Generic;
 
@@ -13,30 +13,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     /// Source vertex describing the source.
     /// </summary>
     [Label(AddressSpaceElementNames.Source)]
+    [DataContract]
     public class SourceVertexModel : IVertex {
 
         /// <summary>
         /// Returns the vertex identifier
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id")]
         public string Id => Uri + "/" + Version;
 
         /// <summary>
         /// Source uri
         /// </summary>
-        [JsonProperty(PropertyName = "_uri")]
+        [DataMember(Name = "_uri")]
         public Uri Uri { get; set; }
 
         /// <summary>
         /// Source semantic versioning
         /// </summary>
-        [JsonProperty(PropertyName = "_version")]
+        [DataMember(Name = "_version")]
         public string Version { get; set; }
 
         /// <summary>
         /// Custom tags
         /// </summary>
-        [JsonProperty(PropertyName = "tag")]
+        [DataMember(Name = "tag")]
         public IDictionary<string, string> Tag { get; set; }
 
         /// <inheritdoc/>

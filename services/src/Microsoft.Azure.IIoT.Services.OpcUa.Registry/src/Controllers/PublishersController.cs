@@ -6,11 +6,9 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -24,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/publishers")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
     [ApiController]
     public class PublishersController : ControllerBase {
@@ -33,11 +30,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// Create controller for publisher services
         /// </summary>
         /// <param name="publishers"></param>
-        /// <param name="events"></param>
-        public PublishersController(IPublisherRegistry publishers,
-            IGroupRegistration events) {
+        public PublishersController(IPublisherRegistry publishers) {
             _publishers = publishers;
-            _events = events;
         }
 
         /// <summary>
@@ -189,35 +183,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
             return result.ToApiModel();
         }
 
-        /// <summary>
-        /// Subscribe to publisher registry events
-        /// </summary>
-        /// <remarks>
-        /// Register a user to receive publisher events through SignalR.
-        /// </remarks>
-        /// <param name="userId">The user id that will receive publisher
-        /// events.</param>
-        /// <returns></returns>
-        [HttpPut("events")]
-        public async Task SubscribeAsync([FromBody]string userId) {
-            await _events.SubscribeAsync("publishers", userId);
-        }
-
-        /// <summary>
-        /// Unsubscribe registry events
-        /// </summary>
-        /// <remarks>
-        /// Unregister a user and stop it from receiving publisher events.
-        /// </remarks>
-        /// <param name="userId">The user id that will not receive
-        /// any more publisher events</param>
-        /// <returns></returns>
-        [HttpDelete("events/{userId}")]
-        public async Task UnsubscribeAsync(string userId) {
-            await _events.UnsubscribeAsync("publishers", userId);
-        }
-
         private readonly IPublisherRegistry _publishers;
-        private readonly IGroupRegistration _events;
     }
 }

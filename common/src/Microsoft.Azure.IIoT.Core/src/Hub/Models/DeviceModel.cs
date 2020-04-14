@@ -4,35 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Model of device registry document
     /// </summary>
+    [DataContract]
     public class DeviceModel {
 
         /// <summary>
         /// Etag for comparison
         /// </summary>
-        [JsonProperty(PropertyName = "etag")]
+        [DataMember(Name = "etag")]
         public string Etag { get; set; }
 
         /// <summary>
         /// Device id
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Module id
         /// </summary>
-        [JsonProperty(PropertyName = "moduleId")]
+        [DataMember(Name = "moduleId")]
         public string ModuleId { get; set; }
 
         /// <summary>
         /// Authentication information
         /// </summary>
-        [JsonProperty(PropertyName = "authentication")]
+        [DataMember(Name = "authentication")]
         public DeviceAuthenticationModel Authentication { get; set; }
     }
 }

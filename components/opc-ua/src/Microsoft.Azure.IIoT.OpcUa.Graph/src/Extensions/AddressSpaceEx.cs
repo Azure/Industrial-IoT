@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
     using Opc.Ua.Nodeset;
     using Opc.Ua.Extensions;
@@ -130,8 +131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                                 (vNode.AccessLevelEx ?? 0)) : null,
                         MinimumSamplingInterval = vNode.MinimumSamplingInterval,
                         Historizing = vNode.Historizing,
-                        Value = vNode.Value == null ? null : codec.Encode(vNode.Value.Value,
-                            out builtInType),
+                        Value = codec.Encode(vNode.Value, out builtInType),
                         BuiltInType = builtInType
                     };
                     break;
@@ -144,8 +144,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                                 (vNode.AccessLevelEx ?? 0)) : null,
                         MinimumSamplingInterval = vNode.MinimumSamplingInterval,
                         Historizing = vNode.Historizing,
-                        Value = vNode.Value == null ? null : codec.Encode(vNode.Value.Value,
-                            out builtInType),
+                        Value = codec.Encode(vNode.Value, out builtInType),
                         BuiltInType = builtInType
                     };
                     break;
@@ -170,8 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                         IsAbstract = vtNode.IsAbstract ?? false,
                         ValueRank = (NodeValueRank?)vtNode.ValueRank,
                         ArrayDimensions = vtNode.ArrayDimensions,
-                        Value = vtNode.Value == null ? null : codec.Encode(vtNode.Value.Value,
-                            out builtInType),
+                        Value = codec.Encode(vtNode.Value, out builtInType),
                         BuiltInType = builtInType
                     };
                     break;
@@ -180,15 +178,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
                         IsAbstract = vtNode.IsAbstract ?? false,
                         ValueRank = (NodeValueRank?)vtNode.ValueRank,
                         ArrayDimensions = vtNode.ArrayDimensions,
-                        Value = vtNode.Value == null ? null : codec.Encode(vtNode.Value.Value,
-                            out builtInType),
+                        Value = codec.Encode(vtNode.Value, out builtInType),
                         BuiltInType = builtInType
                     };
                     break;
                 case DataTypeNodeModel dtNode:
                     vertex = new DataTypeNodeVertexModel {
                         IsAbstract = dtNode.IsAbstract,
-                        DataTypeDefinition = dtNode.Definition == null ? null :
+                        DataTypeDefinition = dtNode.Definition == null ? VariantValue.Null :
                             codec.Encode(new Variant(new ExtensionObject(dtNode.Definition)),
                             out _)
                     };

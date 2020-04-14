@@ -4,15 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
-    using Serilog;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.Documents.Linq;
+    using Microsoft.Azure.Documents;
+    using Serilog;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using System;
-    using Microsoft.Azure.Documents;
 
     /// <summary>
     /// Wraps a document query to return document infos

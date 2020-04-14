@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT OPC Vault component</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

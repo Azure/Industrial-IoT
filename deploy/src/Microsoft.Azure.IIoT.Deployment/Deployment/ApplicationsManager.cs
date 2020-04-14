@@ -16,18 +16,24 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
     class ApplicationsManager {
 
+        public const string SERVICE_KEY_NAME = "Service Key";
+        public const string CLIENT_KEY_NAME = "Client Key";
+        public const string AKS_KEY_NAME = "rbac";
+
         protected readonly Guid _tenantId;
         protected readonly MicrosoftGraphServiceClient _msGraphServiceClient;
 
         private Application _serviceApplication;
         private ServicePrincipal _serviceApplicationSP;
+        private string _serviceApplicationSecret;
 
         private Application _clientApplication;
         private ServicePrincipal _clientApplicationSP;
+        private string _clientApplicationSecret;
 
         private Application _aksApplication;
         private ServicePrincipal _aksApplicationSP;
-        private string _aksApplicationPasswordCredentialRbacSecret;
+        private string _aksApplicationSecret;
 
         public ApplicationsManager (
             Guid tenantId,
@@ -50,12 +56,20 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             return _serviceApplicationSP;
         }
 
+        public string GetServiceApplicationSecret() {
+            return _serviceApplicationSecret;
+        }
+
         public Application GetClientApplication() {
             return _clientApplication;
         }
 
         public ServicePrincipal GetClientApplicationSP() {
             return _clientApplicationSP;
+        }
+
+        public string GetClientApplicationSecret() {
+            return _clientApplicationSecret;
         }
 
         public Application GetAKSApplication() {
@@ -66,8 +80,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             return _aksApplicationSP;
         }
 
-        public string GetAKSApplicationRbacSecret() {
-            return _aksApplicationPasswordCredentialRbacSecret;
+        public string GetAKSApplicationSecret() {
+            return _aksApplicationSecret;
         }
 
         public async Task RegisterApplicationsAsync(
@@ -84,12 +98,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // Service Application /////////////////////////////////////////////
             // Register service application
-            _serviceApplication = await RegisterServiceApplicationAsync(
+            var serviceApplicationRegistrationResult = await RegisterServiceApplicationAsync(
                     serviceApplicationName,
                     owner,
                     tags,
                     cancellationToken
                 );
+
+            _serviceApplication = serviceApplicationRegistrationResult.Item1;
+            _serviceApplicationSecret = serviceApplicationRegistrationResult.Item2.SecretText;
 
             // Find service principal for service application
             _serviceApplicationSP = await _msGraphServiceClient
@@ -106,12 +123,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // Client Application //////////////////////////////////////////////
             // Register client application
-            _clientApplication = await RegisterClientApplicationAsync(
+            var clientApplicationRegistrationResult = await RegisterClientApplicationAsync(
                     _serviceApplication,
                     clientApplicationName,
                     tags,
                     cancellationToken
                 );
+
+            _clientApplication = clientApplicationRegistrationResult.Item1;
+            _clientApplicationSecret = clientApplicationRegistrationResult.Item2.SecretText;
 
             // Find service principal for client application
             _clientApplicationSP = await _msGraphServiceClient
@@ -145,14 +165,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // App Registration for AKS ////////////////////////////////////////
             // Register aks application
-            var registrationResult = await RegisterAKSApplicationAsync(
+            var aksApplicationRegistrationResult = await RegisterAKSApplicationAsync(
                     aksApplicationName,
                     tags,
                     cancellationToken
                 );
 
-            _aksApplication = registrationResult.Item1;
-            _aksApplicationPasswordCredentialRbacSecret = registrationResult.Item2;
+            _aksApplication = aksApplicationRegistrationResult.Item1;
+            _aksApplicationSecret = aksApplicationRegistrationResult.Item2.SecretText;
 
             // Find service principal for aks application
             _aksApplicationSP = await _msGraphServiceClient
@@ -177,9 +197,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         /// <returns></returns>
         public async Task GetDefinitionsFromMicrosoftGraphAsync(
             Guid serviceApplicationId,
+            string serviceApplicationSecret,
             Guid clientApplicationId,
+            string clientApplicationSecret,
             Guid aksApplicationId,
-            string AksApplicationRbacSecret,
+            string aksApplicationSecret,
             CancellationToken cancellationToken = default
         ) {
             Log.Information("Application and Service Principal definitions will be retrieved from Microsoft Graph.");
@@ -197,6 +219,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
+            _serviceApplicationSecret = serviceApplicationSecret;
+
             Log.Information("Getting client application registration ...");
             _clientApplication = await _msGraphServiceClient
                 .GetApplicationAsync(
@@ -209,6 +233,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     _clientApplication,
                     cancellationToken
                 );
+
+            _clientApplicationSecret = clientApplicationSecret;
 
             Log.Information("Getting AKS application registration ...");
             _aksApplication = await _msGraphServiceClient
@@ -223,7 +249,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            _aksApplicationPasswordCredentialRbacSecret = AksApplicationRbacSecret;
+            _aksApplicationSecret = aksApplicationSecret;
         }
 
         /// <summary>
@@ -232,17 +258,50 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         /// </summary>
         /// <param name="applicationRegistrationDefinition"></param>
         public void Load(ApplicationRegistrationDefinition applicationRegistrationDefinition) {
+            // Details of service application
             _serviceApplication = applicationRegistrationDefinition.ServiceApplication;
             _serviceApplicationSP = applicationRegistrationDefinition.ServiceApplicationSP;
+            _serviceApplicationSecret = applicationRegistrationDefinition.ServiceApplicationSecret;
 
+            // Details of client application
             _clientApplication = applicationRegistrationDefinition.ClientApplication;
             _clientApplicationSP = applicationRegistrationDefinition.ClientApplicationSP;
+            _clientApplicationSecret = applicationRegistrationDefinition.ClientApplicationSecret;
 
+            // Details of aks application
             _aksApplication = applicationRegistrationDefinition.AksApplication;
             _aksApplicationSP = applicationRegistrationDefinition.AksApplicationSP;
-            _aksApplicationPasswordCredentialRbacSecret = applicationRegistrationDefinition.AksApplicationRbacSecret;
+            _aksApplicationSecret = applicationRegistrationDefinition.AksApplicationSecret;
         }
 
+        /// <summary>
+        /// Dump application registration details as ApplicationRegistrationDefinition object.
+        /// </summary>
+        /// <returns></returns>
+        public ApplicationRegistrationDefinition ToApplicationRegistrationDefinition() {
+            var definition = new ApplicationRegistrationDefinition(
+                // Details of service application
+                _serviceApplication,
+                _serviceApplicationSP,
+                _serviceApplicationSecret,
+                // Details of client application
+                _clientApplication,
+                _clientApplicationSP,
+                _clientApplicationSecret,
+                // Details of aks application
+                _aksApplication,
+                _aksApplicationSP,
+                _aksApplicationSecret
+            );
+
+            return definition;
+        }
+
+        /// <summary>
+        /// Try to delete all application registrations and their service principals.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task DeleteApplicationsAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -353,11 +412,27 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             var redirectUris = new List<string> {
                 $"{applicationURL}",
-                $"{applicationURL}registry/",
-                $"{applicationURL}twin/",
-                $"{applicationURL}history/",
-                $"{applicationURL}ua/",
-                $"{applicationURL}vault/"
+                $"{applicationURL}registry/swagger/",
+                $"{applicationURL}registry/swagger/oauth2-redirect.html",
+                $"{applicationURL}twin/swagger/",
+                $"{applicationURL}twin/swagger/oauth2-redirect.html",
+                $"{applicationURL}history/swagger/",
+                $"{applicationURL}history/swagger/oauth2-redirect.html",
+                $"{applicationURL}vault/swagger/",
+                $"{applicationURL}vault/swagger/oauth2-redirect.html",
+                $"{applicationURL}onboarding/swagger/",
+                $"{applicationURL}onboarding/swagger/oauth2-redirect.html",
+                $"{applicationURL}publisher/swagger/",
+                $"{applicationURL}publisher/swagger/oauth2-redirect.html",
+                $"{applicationURL}jobs/swagger/",
+                $"{applicationURL}jobs/swagger/oauth2-redirect.html",
+                $"{applicationURL}configuration/swagger/",
+                $"{applicationURL}configuration/swagger/oauth2-redirect.html",
+                $"{applicationURL}edge/jobs/swagger/",
+                $"{applicationURL}edge/jobs/swagger/oauth2-redirect.html",
+                $"{applicationURL}edge/manage/swagger/",
+                $"{applicationURL}edge/manage/swagger/oauth2-redirect.html",
+                $"{applicationURL}frontend/signin-oidc",
             };
 
             _clientApplication = await _msGraphServiceClient
@@ -368,7 +443,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
         }
 
-        protected async Task<Application> RegisterServiceApplicationAsync(
+        protected async Task<Tuple<Application, PasswordCredential>> RegisterServiceApplicationAsync(
             string serviceApplicationName,
             DirectoryObject owner,
             IEnumerable<string> tags = null,
@@ -485,11 +560,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     );
 
                 // Add Service Key PasswordCredential
-                var serviceKeyName = "Service Key";
-                await _msGraphServiceClient
+                var serviceApplicationPasswordCredential = await _msGraphServiceClient
                     .AddApplication2YPasswordCredentialAsync(
                         serviceApplication,
-                        serviceKeyName,
+                        SERVICE_KEY_NAME,
                         cancellationToken
                     );
 
@@ -572,9 +646,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                         cancellationToken
                     );
 
+                var result = new Tuple<Application, PasswordCredential>(
+                    serviceApplication,
+                    serviceApplicationPasswordCredential
+                );
+
                 Log.Information("Created service application registration.");
 
-                return serviceApplication;
+                return result;
             }
             catch (Exception) {
                 Log.Error("Failed to create service application registration.");
@@ -582,7 +661,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
-        public async Task<Application> RegisterClientApplicationAsync(
+        protected async Task<Tuple<Application, PasswordCredential>> RegisterClientApplicationAsync(
             Application serviceApplication,
             string clientApplicationName,
             IEnumerable<string> tags = null,
@@ -677,11 +756,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     );
 
                 // Add Client Key PasswordCredential
-                var clientKeyName = "Client Key";
-                await _msGraphServiceClient
+                var clientApplicationPasswordCredential = await _msGraphServiceClient
                     .AddApplication2YPasswordCredentialAsync(
                         clientApplication,
-                        clientKeyName,
+                        CLIENT_KEY_NAME,
                         cancellationToken
                     );
 
@@ -700,9 +778,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                         cancellationToken
                     );
 
+                var result = new Tuple<Application, PasswordCredential>(
+                    clientApplication,
+                    clientApplicationPasswordCredential
+                );
+
                 Log.Information("Created client application registration.");
 
-                return clientApplication;
+                return result;
             }
             catch (Exception) {
                 Log.Error("Failed to created client application registration.");
@@ -710,7 +793,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
-        public async Task<Tuple<Application, string>> RegisterAKSApplicationAsync(
+        protected async Task<Tuple<Application, PasswordCredential>> RegisterAKSApplicationAsync(
             string aksApplicationName,
             IEnumerable<string> tags = null,
             CancellationToken cancellationToken = default
@@ -769,19 +852,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     );
 
                 // Add RBAC Key PasswordCredential
-                var rbacKeyName = "rbac";
-                var aksApplicationRBACPasswordCredential = await _msGraphServiceClient
+                var aksApplicationPasswordCredential = await _msGraphServiceClient
                     .AddApplication2YPasswordCredentialAsync(
                         aksApplication,
-                        rbacKeyName,
+                        AKS_KEY_NAME,
                         cancellationToken
                     );
-
-                if (string.IsNullOrEmpty(aksApplicationRBACPasswordCredential.SecretText)) {
-                    throw new Exception($"Failed to get password credentials for AKS Application: {rbacKeyName}");
-                }
-
-                var aksApplicationRBACPasswordCredentialSecret = aksApplicationRBACPasswordCredential.SecretText;
 
                 // We need to create ServicePrincipal for this application.
                 await _msGraphServiceClient
@@ -798,9 +874,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                         cancellationToken
                     );
 
-                var result = new Tuple<Application, string>(
+                var result = new Tuple<Application, PasswordCredential>(
                     aksApplication,
-                    aksApplicationRBACPasswordCredentialSecret
+                    aksApplicationPasswordCredential
                 );
 
                 Log.Information("Created AKS application registration.");

@@ -4,30 +4,32 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Node path target
     /// </summary>
+    [DataContract]
     public class NodePathTargetApiModel {
 
         /// <summary>
         /// The target browse path
         /// </summary>
-        [JsonProperty(PropertyName = "browsePath")]
+        [DataMember(Name = "browsePath", Order = 0)]
         public string[] BrowsePath { get; set; }
 
         /// <summary>
         /// Target node
         /// </summary>
-        [JsonProperty(PropertyName = "target")]
+        [DataMember(Name = "target", Order = 1)]
         public NodeApiModel Target { get; set; }
 
         /// <summary>
         /// Remaining index in path
         /// </summary>
-        [JsonProperty(PropertyName = "remainingPathIndex",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "remainingPathIndex", Order = 2,
+            EmitDefaultValue = false)]
         public int? RemainingPathIndex { get; set; }
     }
 }

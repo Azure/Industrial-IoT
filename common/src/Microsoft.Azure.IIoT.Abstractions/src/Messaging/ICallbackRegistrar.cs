@@ -10,12 +10,12 @@ namespace Microsoft.Azure.IIoT.Messaging {
     /// <summary>
     /// User callback registration client
     /// </summary>
-    public interface ICallbackRegistrar : IDisposable {
+    public interface ICallbackRegistrar {
 
         /// <summary>
-        /// User receiving events
+        /// Connection receiving events
         /// </summary>
-        string UserId { get; }
+        string ConnectionId { get; }
 
         /// <summary>
         /// Register handler to handle a method call

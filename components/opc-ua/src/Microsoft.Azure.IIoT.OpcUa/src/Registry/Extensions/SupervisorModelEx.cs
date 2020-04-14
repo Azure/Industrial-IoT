@@ -91,10 +91,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 return null;
             }
             return new SupervisorModel {
-                Certificate = model.Certificate,
                 Connected = model.Connected,
                 Id = model.Id,
                 OutOfSync = model.OutOfSync,
+                LogLevel = model.LogLevel,
                 SiteId = model.SiteId
             };
         }

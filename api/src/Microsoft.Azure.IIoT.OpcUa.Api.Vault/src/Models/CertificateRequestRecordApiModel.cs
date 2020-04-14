@@ -5,70 +5,71 @@
 
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Certificate request record model
     /// </summary>
+    [DataContract]
     public sealed class CertificateRequestRecordApiModel {
 
         /// <summary>
         /// Request id
         /// </summary>
-        [JsonProperty(PropertyName = "requestId")]
+        [DataMember(Name = "requestId", Order = 0)]
         public string RequestId { get; set; }
 
         /// <summary>
         /// Application id
         /// </summary>
-        [JsonProperty(PropertyName = "entityId")]
+        [DataMember(Name = "entityId", Order = 1)]
         public string EntityId { get; set; }
 
         /// <summary>
         /// Trust group
         /// </summary>
-        [JsonProperty(PropertyName = "groupId")]
+        [DataMember(Name = "groupId", Order = 2)]
         public string GroupId { get; set; }
 
         /// <summary>
         /// Request state
         /// </summary>
-        [JsonProperty(PropertyName = "state")]
+        [DataMember(Name = "state", Order = 3)]
         public CertificateRequestState State { get; set; }
 
         /// <summary>
         /// Request type
         /// </summary>
-        [JsonProperty(PropertyName = "type")]
+        [DataMember(Name = "type", Order = 4)]
         public CertificateRequestType Type { get; set; }
 
         /// <summary>
         /// Error diagnostics
         /// </summary>
-        [JsonProperty(PropertyName = "errorInfo",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public JToken ErrorInfo { get; set; }
+        [DataMember(Name = "errorInfo", Order = 5,
+            EmitDefaultValue = false)]
+        public VariantValue ErrorInfo { get; set; }
 
         /// <summary>
         /// Request time
         /// </summary>
-        [JsonProperty(PropertyName = "submitted",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "submitted", Order = 6,
+            EmitDefaultValue = false)]
         public VaultOperationContextApiModel Submitted { get; set; }
 
         /// <summary>
         /// Approved or rejected
         /// </summary>
-        [JsonProperty(PropertyName = "approved",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "approved", Order = 7,
+            EmitDefaultValue = false)]
         public VaultOperationContextApiModel Approved { get; set; }
 
         /// <summary>
         /// Finished
         /// </summary>
-        [JsonProperty(PropertyName = "accepted",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "accepted", Order = 8,
+            EmitDefaultValue = false)]
         public VaultOperationContextApiModel Accepted { get; set; }
     }
 }

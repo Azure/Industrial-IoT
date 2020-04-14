@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 StatusReason = model.StatusReason,
                 StatusUpdatedTime = model.StatusUpdatedTime,
                 Tags = model.Tags?
-                    .ToDictionary(kv => kv.Key, kv => kv.Value?.DeepClone()),
+                    .ToDictionary(kv => kv.Key, kv => kv.Value?.Copy()),
                 Version = model.Version
             };
         }
@@ -75,27 +75,27 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static Dictionary<string, JToken> GetConsolidatedProperties(
+        public static Dictionary<string, VariantValue> GetConsolidatedProperties(
             this DeviceTwinModel model) {
 
             var desired = model.Properties?.Desired;
             var reported = model.Properties?.Reported;
             if (reported == null || desired == null) {
                 return (reported ?? desired) ??
-                    new Dictionary<string, JToken>();
+                    new Dictionary<string, VariantValue>();
             }
 
-            var properties = new Dictionary<string, JToken>(desired);
+            var properties = new Dictionary<string, VariantValue>(desired);
 
             // Merge with reported
             foreach (var prop in reported) {
                 if (properties.TryGetValue(prop.Key, out var existing)) {
-                    if (existing == null || prop.Value == null) {
-                        if (existing == prop.Value) {
+                    if (VariantValueEx.IsNull(existing) || VariantValueEx.IsNull(prop.Value)) {
+                        if (VariantValueEx.IsNull(existing) && VariantValueEx.IsNull(prop.Value)) {
                             continue;
                         }
                     }
-                    else if (JToken.DeepEquals(existing, prop.Value)) {
+                    else if (VariantValue.DeepEquals(existing, prop.Value)) {
                         continue;
                     }
                     properties[prop.Key] = prop.Value;

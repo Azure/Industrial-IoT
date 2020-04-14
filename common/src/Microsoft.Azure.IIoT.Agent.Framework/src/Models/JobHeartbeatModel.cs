@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Job heartbeat
@@ -34,6 +34,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// <summary>
         /// Job state
         /// </summary>
-        public JToken State { get; set; }
+        public VariantValue State { get; set; }
     }
 }

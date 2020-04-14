@@ -4,24 +4,32 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Endpoint Event model
     /// </summary>
+    [DataContract]
     public class EndpointEventApiModel {
 
         /// <summary>
         /// Type of event
         /// </summary>
-        [JsonProperty(PropertyName = "eventType")]
+        [DataMember(Name = "eventType", Order = 0)]
         public EndpointEventType EventType { get; set; }
+
+        /// <summary>
+        /// Endpoint id
+        /// </summary>
+        [DataMember(Name = "id", Order = 1,
+            EmitDefaultValue = false)]
+        public string Id { get; set; }
 
         /// <summary>
         /// Endpoint info
         /// </summary>
-        [JsonProperty(PropertyName = "endpoint",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "endpoint", Order = 2,
+            EmitDefaultValue = false)]
         public EndpointInfoApiModel Endpoint { get; set; }
     }
 }

@@ -40,6 +40,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         }
 
         /// <summary>
+        /// Checks whether the identifier is an endpoint id
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <returns></returns>
+        public static bool IsEndpointId(string endpointId) {
+            if (string.IsNullOrWhiteSpace(endpointId)) {
+                return false;
+            }
+            if (!endpointId.StartsWith("uat")) {
+                return false;
+            }
+            return endpointId.Substring(3).IsBase16();
+        }
+
+        /// <summary>
         /// Equality comparison
         /// </summary>
         /// <param name="model"></param>

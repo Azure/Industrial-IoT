@@ -5,13 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Services {
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Default iot hub device event handler implementation
+    /// Default edge base deployment configuration
     /// </summary>
     public sealed class IoTHubEdgeBaseDeployment : IHostProcess {
 
@@ -19,8 +19,11 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// Create edge base deployer
         /// </summary>
         /// <param name="service"></param>
-        public IoTHubEdgeBaseDeployment(IIoTHubConfigurationServices service) {
+        /// <param name="serializer"></param>
+        public IoTHubEdgeBaseDeployment(IIoTHubConfigurationServices service,
+            IJsonSerializer serializer) {
             _service = service ?? throw new ArgumentNullException(nameof(service));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         /// <inheritdoc/>
@@ -47,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// <param name="version"></param>
         /// <returns></returns>
         private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version = "1.0") {
-            return JsonConvertEx.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(@"
+            return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(@"
 {
     ""$edgeAgent"": {
         ""properties.desired"": {
@@ -100,5 +103,6 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
 
         private const string kDefaultSchemaVersion = "1.0";
         private readonly IIoTHubConfigurationServices _service;
+        private readonly IJsonSerializer _serializer;
     }
 }

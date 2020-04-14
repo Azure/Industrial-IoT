@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Security mode of endpoint
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum SecurityMode {
 
         /// <summary>

@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading.Tasks;
 
@@ -25,27 +25,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadResultModel<JToken>> HistoryReadAsync(
-            string endpoint, HistoryReadRequestModel<JToken> request) {
+        public async Task<HistoryReadResultModel<VariantValue>> HistoryReadAsync(
+            string endpoint, HistoryReadRequestModel<VariantValue> request) {
             var result = await _client.HistoryReadRawAsync(endpoint,
-                request.Map<HistoryReadRequestApiModel<JToken>>());
-            return result.Map<HistoryReadResultModel<JToken>>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadNextResultModel<JToken>> HistoryReadNextAsync(
+        public async Task<HistoryReadNextResultModel<VariantValue>> HistoryReadNextAsync(
             string endpoint, HistoryReadNextRequestModel request) {
             var result = await _client.HistoryReadRawNextAsync(endpoint,
-                request.Map<HistoryReadNextRequestApiModel>());
-            return result.Map<HistoryReadNextResultModel<JToken>>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResultModel> HistoryUpdateAsync(
-            string endpoint, HistoryUpdateRequestModel<JToken> request) {
+            string endpoint, HistoryUpdateRequestModel<VariantValue> request) {
             var result = await _client.HistoryUpdateRawAsync(endpoint,
-                request.Map<HistoryUpdateRequestApiModel<JToken>>());
-            return result.Map<HistoryUpdateResultModel>();
+                request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         private readonly IHistoryServiceRawApi _client;

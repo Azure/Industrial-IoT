@@ -4,25 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Model of an event
     /// </summary>
+    [DataContract]
     public class EventModel {
 
         /// <summary>
         /// Properties of the event
         /// </summary>
-        [JsonProperty(PropertyName = "properties")]
+        [DataMember(Name = "properties")]
         public Dictionary<string, string> Properties { get; set; }
 
         /// <summary>
         /// Payload of event
         /// </summary>
-        [JsonProperty(PropertyName = "payload")]
-        public JToken Payload { get; set; }
+        [DataMember(Name = "payload")]
+        public VariantValue Payload { get; set; }
     }
 }

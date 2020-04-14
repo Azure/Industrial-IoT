@@ -21,19 +21,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
 
         /// <inheritdoc/>
         public int MaxSessionCount =>
-            GetIntOrDefault(kMaxSessionCountKey, 1000);
+            GetIntOrDefault(kMaxSessionCountKey, () => 1000);
         /// <inheritdoc/>
         public TimeSpan MaxSessionTimeout =>
-            GetDurationOrDefault(kMaxSessionTimeoutKey, TimeSpan.FromHours(1));
+            GetDurationOrDefault(kMaxSessionTimeoutKey, () => TimeSpan.FromHours(1));
         /// <inheritdoc/>
         public TimeSpan MinSessionTimeout =>
-            GetDurationOrDefault(kMinSessionTimeoutKey, TimeSpan.FromSeconds(10));
+            GetDurationOrDefault(kMinSessionTimeoutKey, () => TimeSpan.FromSeconds(10));
         /// <inheritdoc/>
         public TimeSpan MaxRequestAge =>
-            GetDurationOrDefault(kMaxRequestAgeKey, TimeSpan.FromMinutes(5));
+            GetDurationOrDefault(kMaxRequestAgeKey, () => TimeSpan.FromMinutes(5));
         /// <inheritdoc/>
         public int NonceLength =>
-            GetIntOrDefault(kNonceLengthKey, 32);
+            GetIntOrDefault(kNonceLengthKey, () => 32);
 
         /// <summary>
         /// Configuration constructor

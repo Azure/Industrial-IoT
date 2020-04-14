@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -21,9 +21,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Create device twin
         /// </summary>
         /// <param name="registration"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
-        public static DeviceTwinModel ToDeviceTwin(this PublisherRegistration registration) {
-            return Patch(null, registration);
+        public static DeviceTwinModel ToDeviceTwin(
+            this PublisherRegistration registration, IJsonSerializer serializer) {
+            return Patch(null, registration, serializer);
         }
 
         /// <summary>
@@ -31,14 +33,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="existing"></param>
         /// <param name="update"></param>
+        /// <param name="serializer"></param>
         public static DeviceTwinModel Patch(this PublisherRegistration existing,
-            PublisherRegistration update) {
+            PublisherRegistration update, IJsonSerializer serializer) {
 
             var twin = new DeviceTwinModel {
                 Etag = existing?.Etag,
-                Tags = new Dictionary<string, JToken>(),
+                Tags = new Dictionary<string, VariantValue>(),
                 Properties = new TwinPropertiesModel {
-                    Desired = new Dictionary<string, JToken>()
+                    Desired = new Dictionary<string, VariantValue>()
                 }
             };
 
@@ -64,19 +67,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (!(capsUpdate ?? true)) {
                 twin.Properties.Desired.Add(nameof(PublisherRegistration.Capabilities),
                     update?.Capabilities == null ?
-                    null : JToken.FromObject(update.Capabilities));
+                    null : serializer.FromObject(update.Capabilities));
             }
-
-            var certUpdate = update?.Certificate?.DecodeAsByteArray()?.SequenceEqualsSafe(
-                existing?.Certificate.DecodeAsByteArray());
-            if (!(certUpdate ?? true)) {
-                twin.Properties.Desired.Add(nameof(PublisherRegistration.Certificate),
-                    update?.Certificate == null ?
-                    null : JToken.FromObject(update.Certificate));
-                twin.Tags.Add(nameof(PublisherRegistration.Thumbprint),
-                    update?.Certificate?.DecodeAsByteArray()?.ToSha1Hash());
-            }
-
 
             if (update?.JobOrchestratorUrl != existing?.JobOrchestratorUrl) {
                 twin.Properties.Desired.Add(nameof(PublisherRegistration.JobOrchestratorUrl),
@@ -85,7 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (update?.LogLevel != existing?.LogLevel) {
                 twin.Properties.Desired.Add(nameof(PublisherRegistration.LogLevel),
                     update?.LogLevel == null ?
-                    null : JToken.FromObject(update.LogLevel));
+                    null : serializer.FromObject(update.LogLevel.ToString()));
             }
 
 
@@ -123,12 +115,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="properties"></param>
         /// <returns></returns>
         public static PublisherRegistration ToPublisherRegistration(this DeviceTwinModel twin,
-            Dictionary<string, JToken> properties) {
+            Dictionary<string, VariantValue> properties) {
             if (twin == null) {
                 return null;
             }
 
-            var tags = twin.Tags ?? new Dictionary<string, JToken>();
+            var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
             var connected = twin.IsConnected();
 
             var registration = new PublisherRegistration {
@@ -144,13 +136,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     tags.GetValueOrDefault<bool>(nameof(PublisherRegistration.IsDisabled), null),
                 NotSeenSince =
                     tags.GetValueOrDefault<DateTime>(nameof(PublisherRegistration.NotSeenSince), null),
-                Thumbprint =
-                    tags.GetValueOrDefault<string>(nameof(PublisherRegistration.Thumbprint), null),
 
                 // Properties
 
-                Certificate =
-                    properties.GetValueOrDefault<Dictionary<string, string>>(nameof(PublisherRegistration.Certificate), null),
                 LogLevel =
                     properties.GetValueOrDefault<TraceLogLevel>(nameof(PublisherRegistration.LogLevel), null),
                 JobOrchestratorUrl =
@@ -205,7 +193,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 return null;
             }
             if (twin.Tags == null) {
-                twin.Tags = new Dictionary<string, JToken>();
+                twin.Tags = new Dictionary<string, VariantValue>();
             }
 
             var consolidated =
@@ -257,11 +245,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 JobCheckInterval = model.Configuration?.JobCheckInterval,
                 MaxWorkers = model.Configuration?.MaxWorkers,
                 HeartbeatInterval = model.Configuration?.HeartbeatInterval,
-                Certificate = model.Certificate?.EncodeAsDictionary(),
                 Capabilities = model.Configuration?.Capabilities?
                     .ToDictionary(k => k.Key, v => v.Value),
                 Connected = model.Connected ?? false,
-                Thumbprint = model.Certificate?.ToSha1Hash(),
                 SiteId = model.SiteId,
             };
         }
@@ -278,7 +264,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return new PublisherModel {
                 Id = PublisherModelEx.CreatePublisherId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
-                Certificate = registration.Certificate?.DecodeAsByteArray(),
                 LogLevel = registration.LogLevel,
                 Configuration = registration.ToConfigModel(),
                 Connected = registration.IsConnected() ? true : (bool?)null,

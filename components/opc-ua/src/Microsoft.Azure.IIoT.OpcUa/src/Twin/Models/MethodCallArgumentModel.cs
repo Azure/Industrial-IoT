@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Method argument model
@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// <summary>
         /// Value to use
         /// </summary>
-        public JToken Value { get; set; }
+        public VariantValue Value { get; set; }
 
         /// <summary>
         /// Data type of the value

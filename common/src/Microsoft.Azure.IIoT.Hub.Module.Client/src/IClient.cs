@@ -58,34 +58,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             MethodCallback methodHandler, object userContext);
 
         /// <summary>
-        /// Registers a new delegate that is called for a stream that
-        /// doesn't have a delegate registered for its name.
-        /// If a default delegate is already registered it will replace
-        /// with the new delegate.
-        /// </summary>
-        /// <param name="streamHandler">The delegate to be used when a
-        /// stream with the given name is initiated by the cloud service.
-        /// </param>
-        /// <param name="userContext">Generic parameter to be interpreted
-        /// by the client code.</param>
-        Task SetStreamsDefaultHandlerAsync(
-            StreamCallback streamHandler, object userContext);
-
-        /// <summary>
-        /// Registers a new delegate for the named stream. If a delegate
-        /// is already associated with the named stream, it will be replaced
-        /// with the new delegate.
-        /// <param name="streamName">The name of the stream to associate
-        /// with the delegate.</param>
-        /// <param name="streamHandler">The delegate to be used when a
-        /// stream with the given name is initiated by the cloud service.</param>
-        /// <param name="userContext">generic parameter to be interpreted
-        /// by the client code.</param>
-        /// </summary>
-        Task SetStreamHandlerAsync(string streamName,
-            StreamCallback streamHandler, object userContext);
-
-        /// <summary>
         /// Retrieve a device twin object for the current device.
         /// </summary>
         /// <returns>The device twin object for the current
@@ -141,19 +113,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// <returns></returns>
         Task<MethodResponse> InvokeMethodAsync(string deviceId,
             MethodRequest methodRequest,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Create a new stream
-        /// </summary>
-        /// <param name="streamName">name of the stream</param>
-        /// <param name="hostName">Host name to connect to</param>
-        /// <param name="port">Port to connect to</param>
-        /// <param name="cancellationToken">To cancel the stream
-        /// </param>
-        /// <returns></returns>
-        Task<Stream> CreateStreamAsync(string streamName, string hostName,
-            ushort port,
             CancellationToken cancellationToken = default);
 
         /// <summary>

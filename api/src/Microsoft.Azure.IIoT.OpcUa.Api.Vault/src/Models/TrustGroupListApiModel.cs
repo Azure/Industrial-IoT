@@ -4,26 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Trust group identifier list model
     /// </summary>
+    [DataContract]
     public sealed class TrustGroupListApiModel {
 
         /// <summary>
         /// Groups
         /// </summary>
-        [JsonProperty(PropertyName = "groups",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "groups", Order = 0,
+            EmitDefaultValue = false)]
         public List<string> Groups { get; set; }
 
         /// <summary>
         /// Next link
         /// </summary>
-        [JsonProperty(PropertyName = "nextPageLink",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "nextPageLink", Order = 1,
+            EmitDefaultValue = false)]
         public string NextPageLink { get; set; }
     }
 }

@@ -17,10 +17,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// Subscribe to monitored item messages
         /// </summary>
         /// <param name="endpointId"></param>
-        /// <param name="userId"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(string endpointId,
-            string userId, Func<MonitoredItemMessageApiModel, Task> callback);
+        Task<IAsyncDisposable> NodePublishSubscribeByEndpointAsync(
+            string endpointId, Func<MonitoredItemMessageApiModel, Task> callback);
     }
 }

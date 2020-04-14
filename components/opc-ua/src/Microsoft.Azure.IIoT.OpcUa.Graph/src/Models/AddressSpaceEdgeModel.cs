@@ -5,13 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Node to some other type edge
     /// </summary>
     /// <typeparam name="TOutV"></typeparam>
     /// <typeparam name="TInV"></typeparam>
+    [DataContract]
     public class AddressSpaceEdgeModel<TOutV, TInV> :
         ManyToManyEdge<TOutV, TInV>
         where TOutV : AddressSpaceVertexModel
@@ -20,25 +21,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// <summary>
         /// Identifier
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Partition key
         /// </summary>
-        [JsonProperty(PropertyName = "__pk")]
+        [DataMember(Name = "__pk")]
         public string PartitionKey => SourceId;
 
         /// <summary>
         /// Source Id
         /// </summary>
-        [JsonProperty(PropertyName = "_source")]
+        [DataMember(Name = "_source")]
         public string SourceId { get; set; }
 
         /// <summary>
         /// Source revision
         /// </summary>
-        [JsonProperty(PropertyName = "_rev")]
+        [DataMember(Name = "_rev")]
         public long Revision { get; set; }
     }
 }

@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Exceptions;
     using Serilog;
@@ -19,13 +21,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
     /// </summary>
     public class TwinServices : ITwinServices, IDisposable {
 
+        /// <inheritdoc/>
+        public EndpointConnectivityState State { get; private set; }
+            = EndpointConnectivityState.Disconnected;
+
         /// <summary>
         /// Create twin services
         /// </summary>
         /// <param name="client"></param>
         /// <param name="events"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public TwinServices(IEndpointServices client, IEventEmitter events, ILogger logger) {
+        public TwinServices(IEndpointServices client, IEventEmitter events,
+            IJsonSerializer serializer, ILogger logger) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -55,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
                         _session = null;
 
                         // Clear state
-                        await _events?.ReportAsync("State", null);
+                        State = EndpointConnectivityState.Disconnected;
                     }
 
                     // Register callback to report endpoint state property
@@ -64,8 +73,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
                             Endpoint = endpoint
                         };
                         _session = _client.GetSessionHandle(connection);
+
+                        // Set initial state
+                        State = _session.State;
+
+                        // update reported state
                         _callback = _client.RegisterCallback(connection,
-                            state => _events?.ReportAsync("State", state));
+                            state => {
+                                State = state;
+                                return _events?.ReportAsync("State",
+                                     _serializer.FromObject(state));
+                            });
                         _logger.Information("Endpoint {endpoint} ({device}, {module}) updated.",
                             endpoint?.Url, _events.DeviceId, _events.ModuleId);
 
@@ -111,7 +129,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
                 catch (OperationCanceledException) {
                     _logger.Error("Failed to get endpoint for twin {device} - " +
                         "timed out waiting for configuration!", _events?.DeviceId);
-                    throw new InvalidConfigurationException("Twin without endpoint configuration");
+                    throw new InvalidConfigurationException(
+                        "Twin without endpoint configuration");
                 }
             }
         }
@@ -130,6 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
         private ISessionHandle _session;
         private IDisposable _callback;
         private TaskCompletionSource<EndpointModel> _endpoint;
+        private readonly IJsonSerializer _serializer;
         private readonly SemaphoreSlim _lock;
         private readonly IEndpointServices _client;
         private readonly IEventEmitter _events;
