@@ -48,13 +48,6 @@
             }
           }
         },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ],
         "x-ms-pageable": {
           "nextLinkName": "nextPageLink"
         }
@@ -89,14 +82,7 @@
               "$ref": "#/definitions/X509CrlChainApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/issuer/{serialNumber}": {
@@ -198,14 +184,7 @@
               "$ref": "#/definitions/StartSigningRequestResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/requests/sign/{requestId}": {
@@ -238,14 +217,7 @@
               "$ref": "#/definitions/FinishSigningRequestResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/requests/keypair": {
@@ -287,14 +259,7 @@
               "$ref": "#/definitions/StartNewKeyPairRequestResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/requests/keypair/{requestId}": {
@@ -327,14 +292,7 @@
               "$ref": "#/definitions/FinishNewKeyPairRequestResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/requests/{requestId}/approve": {
@@ -358,14 +316,7 @@
           "200": {
             "description": "Success"
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/requests/{requestId}/reject": {
@@ -389,14 +340,7 @@
           "200": {
             "description": "Success"
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/requests/{requestId}/accept": {
@@ -420,14 +364,7 @@
           "200": {
             "description": "Success"
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/requests/{requestId}": {
@@ -451,14 +388,7 @@
           "200": {
             "description": "Success"
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -488,14 +418,7 @@
               "$ref": "#/definitions/CertificateRequestRecordApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/requests/query": {
@@ -543,14 +466,7 @@
               "$ref": "#/definitions/CertificateRequestQueryResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/requests": {
@@ -590,13 +506,6 @@
             }
           }
         },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ],
         "x-ms-pageable": {
           "nextLinkName": "nextPageLink"
         }
@@ -639,13 +548,6 @@
             }
           }
         },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ],
         "x-ms-pageable": {
           "nextLinkName": "nextPageLink"
         }
@@ -688,14 +590,7 @@
               "$ref": "#/definitions/TrustGroupRegistrationResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/groups/{groupId}": {
@@ -728,14 +623,7 @@
               "$ref": "#/definitions/TrustGroupRegistrationApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       },
       "post": {
         "tags": [
@@ -773,14 +661,7 @@
           "200": {
             "description": "Success"
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       },
       "delete": {
         "tags": [
@@ -802,14 +683,7 @@
           "200": {
             "description": "Success"
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/groups/root": {
@@ -851,14 +725,7 @@
               "$ref": "#/definitions/TrustGroupRegistrationResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/groups/{groupId}/renew": {
@@ -881,14 +748,7 @@
           "200": {
             "description": "Success"
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/trustlists/{entityId}/{trustedEntityId}": {
@@ -919,14 +779,7 @@
           "200": {
             "description": "Success"
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/vault/v2/trustlists/{entityId}": {
@@ -973,13 +826,6 @@
             }
           }
         },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ],
         "x-ms-pageable": {
           "nextLinkName": "nextPageLink"
         }
@@ -1013,14 +859,7 @@
           "200": {
             "description": "Success"
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     }
   },
@@ -1157,8 +996,7 @@
           "type": "string"
         },
         "crl": {
-          "description": "The certificate revocation list.",
-          "type": "string"
+          "description": "The certificate revocation list."
         }
       }
     },
@@ -1197,8 +1035,7 @@
           "type": "string"
         },
         "certificateRequest": {
-          "description": "Request",
-          "type": "string"
+          "description": "Request"
         }
       }
     },
@@ -1278,8 +1115,7 @@
           "$ref": "#/definitions/CertificateRequestType"
         },
         "errorInfo": {
-          "description": "Error diagnostics",
-          "type": "string"
+          "description": "Error diagnostics"
         },
         "submitted": {
           "$ref": "#/definitions/VaultOperationContextApiModel"
@@ -1705,14 +1541,11 @@
     }
   },
   "securityDefinitions": {
-    "oauth2": {
-      "type": "oauth2",
-      "flow": "implicit",
-      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
-      "scopes": {
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
-      },
-      "description": "Implicit oauth2 token flow."
+    "bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Authorization token in the form of 'bearer <token>'"
     }
   },
   "tags": [

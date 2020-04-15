@@ -64,14 +64,7 @@
               "$ref": "#/definitions/PublishStartResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/publisher/v2/publish/{endpointId}/bulk": {
@@ -120,14 +113,7 @@
               "$ref": "#/definitions/PublishBulkResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/publisher/v2/publish/{endpointId}/stop": {
@@ -176,14 +162,7 @@
               "$ref": "#/definitions/PublishStopResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/publisher/v2/publish/{endpointId}": {
@@ -232,14 +211,7 @@
               "$ref": "#/definitions/PublishedItemListResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -278,13 +250,6 @@
             }
           }
         },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ],
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
         }
@@ -316,6 +281,11 @@
           "format": "date-span",
           "description": "Sampling interval to use",
           "type": "string"
+        },
+        "heartbeatInterval": {
+          "format": "date-span",
+          "description": "Sampling interval to use",
+          "type": "string"
         }
       }
     },
@@ -341,8 +311,7 @@
           "$ref": "#/definitions/CredentialType"
         },
         "value": {
-          "description": "Value to pass to server",
-          "type": "string"
+          "description": "Value to pass to server"
         }
       }
     },
@@ -427,8 +396,7 @@
           "type": "string"
         },
         "diagnostics": {
-          "description": "Additional diagnostics information",
-          "type": "string"
+          "description": "Additional diagnostics information"
         }
       }
     },
@@ -538,14 +506,11 @@
     }
   },
   "securityDefinitions": {
-    "oauth2": {
-      "type": "oauth2",
-      "flow": "implicit",
-      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
-      "scopes": {
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
-      },
-      "description": "Implicit oauth2 token flow."
+    "bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Authorization token in the form of 'bearer <token>'"
     }
   },
   "tags": [
