@@ -75,17 +75,20 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                         $"host-{Guid.NewGuid()}", _hub.EventHubPath, consumerGroup,
                         GetEventHubConnectionString(), _checkpoint, _lease);
                 }
-                else if (_config.GetStorageConnString() != null) {
-                    _host = new EventHubs.Processor.EventProcessorHost(
-                        _hub.EventHubPath, consumerGroup, GetEventHubConnectionString(),
-                        _config.GetStorageConnString(),
-                        !string.IsNullOrEmpty(_config.LeaseContainerName) ?
-                            _config.LeaseContainerName : _hub.EventHubPath.ToSha1Hash());
-                }
                 else {
-                    _logger.Error("No storage configured or checkpoint " +
-                        "manager/lease manager implementation injected.");
-                    throw new InvalidConfigurationException("Invalid checkpoint configuration.");
+                    var blobConnectionString = _config.GetStorageConnString();
+                    if (!string.IsNullOrEmpty(blobConnectionString)) {
+                        _host = new EventHubs.Processor.EventProcessorHost(
+                            _hub.EventHubPath, consumerGroup, GetEventHubConnectionString(),
+                            blobConnectionString,
+                            !string.IsNullOrEmpty(_config.LeaseContainerName) ?
+                                _config.LeaseContainerName : _hub.EventHubPath.ToSha1Hash());
+                    }
+                    else {
+                        throw new InvalidConfigurationException(
+                            "Invalid checkpointing configuration. No storage configured " +
+                            "or checkpoint manager/lease manager implementation injected.");
+                    }
                 }
                 await _host.RegisterEventProcessorFactoryAsync(
                     _factory, new EventProcessorOptions {

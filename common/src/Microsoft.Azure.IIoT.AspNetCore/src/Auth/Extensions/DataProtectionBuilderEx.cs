@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.Azure.IIoT.Storage.Datalake;
     using Microsoft.Azure.IIoT.Storage.Datalake.Runtime;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Auth.KeyVault;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
@@ -53,7 +54,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             this IDataProtectionBuilder builder, IConfiguration configuration) {
             var config = new DataProtectionConfig(configuration);
             if (string.IsNullOrEmpty(config.KeyVaultBaseUrl)) {
-                return builder;
+                throw new InvalidConfigurationException(
+                    "Keyvault base url is missing in your configuration " +
+                    "for dataprotection to be able to store the root key.");
             }
             var keyName = config.KeyVaultKeyDataProtection;
             var keyVault = new KeyVaultClientBootstrap(configuration);
@@ -74,10 +77,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
 
             var storage = new DataProtectionConfig(configuration);
             var containerName = storage.BlobStorageContainerDataProtection;
-            if (string.IsNullOrEmpty(storage.GetStorageConnString())) {
-                return builder;
+            var connectionString = storage.GetStorageConnString();
+            if (string.IsNullOrEmpty(connectionString)) {
+               throw new InvalidConfigurationException(
+                   "Storage configuration is missing in your configuration for " +
+                   "dataprotection to store all keys across all instances.");
             }
-
             var storageAccount = CloudStorageAccount.Parse(storage.GetStorageConnString());
             var relativePath = $"{containerName}/keys.xml";
             var uriBuilder = new UriBuilder(storageAccount.BlobEndpoint);

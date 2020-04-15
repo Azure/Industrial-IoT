@@ -17,7 +17,9 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
     using System.Threading;
     using System.Threading.Tasks;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Datalake storage service
+    /// </summary>
     public class DataLakeStorageService : IFileStorage {
 
         /// <summary>
@@ -29,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             IEnumerable<ITokenSource> tokenSources = null) {
 
             // Get token source for storage
-            var endpoint = new Uri(config.EndpointSuffix);
+            var endpoint = new Uri($"https://{config.AccountName}.{config.EndpointSuffix}");
             var tokenSource = tokenSources?
                 .FirstOrDefault(t => t.IsEnabled && t.Resource == Http.Resource.Storage);
             if (tokenSource == null) {
@@ -39,8 +41,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
                         "configuration to access storage account.");
                 }
                 _client = new DataLakeServiceClient(endpoint,
-                    new StorageSharedKeyCredential(config.AccountName,
-                    config.AccountKey));
+                    new StorageSharedKeyCredential(config.AccountName, config.AccountKey));
             }
             else {
                 _client = new DataLakeServiceClient(endpoint,

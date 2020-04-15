@@ -67,7 +67,6 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <param name="services"></param>
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
-
             services.AddHeaderForwarding();
             services.AddHttpContextAccessor();
             services.AddHealthChecks();

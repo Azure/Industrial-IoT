@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
             () => GetStringOrDefault(PcsVariable.PCS_AAD_INSTANCE,
                 () => "https://login.microsoftonline.com")).Trim();
         /// <summary>Audience</summary>
-        public string Audience => null;
+        public string Audience => "https://vault.azure.net";
         /// <summary>Resource</summary>
         public string Resource => Http.Resource.KeyVault;
 
