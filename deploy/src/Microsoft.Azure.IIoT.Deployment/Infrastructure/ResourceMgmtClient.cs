@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
-
+    using Newtonsoft.Json;
     using Serilog;
 
     class ResourceMgmtClient : IDisposable {
@@ -119,6 +119,100 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 Log.Error($"Failed to register resource providers");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Create a deployment.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="deploymentName"></param>
+        /// <param name="template"></param>
+        /// <param name="parameters"></param>
+        /// <param name="deploymentMode"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<DeploymentExtendedInner> CreateDeploymentAsync(
+            IResourceGroup resourceGroup,
+            string deploymentName,
+            object template,
+            object parameters,
+            DeploymentMode deploymentMode,
+            CancellationToken cancellationToken = default
+        ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (string.IsNullOrWhiteSpace(deploymentName)) {
+                throw new ArgumentNullException(nameof(deploymentName));
+            }
+            if (template is null) {
+                throw new ArgumentNullException(nameof(template));
+            }
+            if (parameters is null) {
+                throw new ArgumentNullException(nameof(parameters));
+            }
+
+            var deploymentDefinition = new DeploymentInner {
+                Location = resourceGroup.RegionName,
+                Properties = new DeploymentProperties {
+                    Template = template,
+                    Parameters = parameters,
+                    Mode = deploymentMode,
+                }
+            };
+
+            deploymentDefinition.Validate();
+
+            var deployment = await _resourceManagementClient
+                .Deployments
+                .CreateOrUpdateAsync(
+                    resourceGroup.Name,
+                    deploymentName,
+                    deploymentDefinition,
+                    cancellationToken
+                );
+
+            return deployment;
+        }
+
+        /// <summary>
+        /// Create a deployment.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="deploymentName"></param>
+        /// <param name="templateJson"></param>
+        /// <param name="parametersJson"></param>
+        /// <param name="deploymentMode"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<DeploymentExtendedInner> CreateDeploymentAsync(
+            IResourceGroup resourceGroup,
+            string deploymentName,
+            string templateJson,
+            string parametersJson,
+            DeploymentMode deploymentMode,
+            CancellationToken cancellationToken = default
+        ) {
+            if (string.IsNullOrWhiteSpace(templateJson)) {
+                throw new ArgumentNullException(nameof(templateJson));
+            }
+            if (string.IsNullOrWhiteSpace(parametersJson)) {
+                throw new ArgumentNullException(nameof(parametersJson));
+            }
+
+            var template = JsonConvert.DeserializeObject(templateJson);
+            var parameters = JsonConvert.DeserializeObject(parametersJson);
+
+            var deployment = await CreateDeploymentAsync(
+                resourceGroup,
+                deploymentName,
+                template,
+                parameters,
+                deploymentMode,
+                cancellationToken
+            );
+
+            return deployment;
         }
 
         public void Dispose() {

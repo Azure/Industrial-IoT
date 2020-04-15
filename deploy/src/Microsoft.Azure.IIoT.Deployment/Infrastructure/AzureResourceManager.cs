@@ -132,7 +132,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 Log.Error(ex, $"Failed to initiate deletion of Resource Group: {resourceGroup.Name}");
                 throw;
             }
-
         }
 
         public static async Task<IEnumerable<SubscriptionInner>> GetSubscriptionsUsingRestClientAsync(
