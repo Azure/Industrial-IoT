@@ -1,0 +1,235 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "edgeUsername": {
+            "type": "string",
+            "defaultValue": "sandboxuser",
+            "metadata": {
+                "description": "Username for the IoT Edge virtual machine"
+            }
+        },
+        "edgePassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the IoT Edge virtual machine"
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "linuxVmName": "jumpbox-vm",
+        "publicIpName": "linux-ip",
+        "publicIpId": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', variables('publicIpName'))]",
+        "nsgName": "linux-nsg",
+        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('nsgName'))]",
+        "vnetName": "linux-vnet",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+        "subnetName": "vm-subnet",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetName'))]",
+        // "networkProfileName": "linux-vnet-networkprofile",
+        // "networkProfileId": "[resourceId('Microsoft.Network/networkProfiles', variables('networkProfileName'))]",
+        "networkInterfaceName": "linux-networkInterface",
+        "networkInterfaceId": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('publicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('location')]",
+            "properties": {
+                "publicIpAllocationMethod": "Dynamic"
+            },
+            "sku": {
+                "name": "Basic"
+            }
+        },
+        {
+            "comments":  "Default Network Security Group for template",
+            "name": "[variables('nsgName')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "HTTPS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('vnetName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[variables('nsgId')]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.1.8.0/22"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('subnetName')]",
+                        "properties": {
+                            "addressPrefix": "10.1.8.0/24",
+                            "networkSecurityGroup": {
+                                "id": "[variables('nsgId')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('networkInterfaceName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[variables('nsgId')]",
+                "[variables('vnetId')]",
+                "[variables('publicIpId')]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[variables('publicIpId')]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[variables('nsgId')]"
+                }
+            }
+        },
+        // {
+        //     "name": "[variables('networkProfileName')]",
+        //     "type": "Microsoft.Network/networkProfiles",
+        //     "apiVersion": "2018-08-01",
+        //     "location": "[variables('location')]",
+        //     "dependsOn": [
+        //         "[variables('vnetId')]"
+        //     ],
+        //     "properties": {
+        //         "containerNetworkInterfaceConfigurations": [
+        //             {
+        //                 "name": "linux-container-network-interface",
+        //                 "properties": {
+        //                     "ipConfigurations": [
+        //                         {
+        //                             "name": "linux-container-ipconfiguration",
+        //                             "properties": {
+        //                                 "subnet": {
+        //                                     "id": "[variables('vnetId')]"
+        //                                 }
+        //                             }
+        //                         }
+        //                     ]
+        //                 }
+        //             }
+        //         ]
+        //     }
+        // },
+        {
+            "name": "[variables('linuxVmName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2018-06-01",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[variables('networkInterfaceId')]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_B1ms"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "StandardSSD_LRS"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "microsoft_iot_edge",
+                        "offer": "iot_edge_vm_ubuntu",
+                        "sku": "ubuntu_1604_edgeruntimeonly",
+                        "version": "1.0.1"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('networkInterfaceId')]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[variables('linuxVmName')]",
+                    "adminUsername": "[parameters('edgeUsername')]",
+                    "adminPassword": "[parameters('edgePassword')]"
+                }
+            },
+            "plan": {
+                "name": "ubuntu_1604_edgeruntimeonly",
+                "publisher": "microsoft_iot_edge",
+                "product": "iot_edge_vm_ubuntu"
+            }
+        }//,
+        // {
+        //     "comments": "One time script execution to connect Edge with Iot Hub",
+        //     "type": "Microsoft.Compute/virtualMachines/extensions",
+        //     "name": "[concat(variables('linuxVmName'), '/', 'scriptextensions')]",
+        //     "apiVersion": "2019-03-01",
+        //     "dependsOn": [
+        //         "[concat('Microsoft.Compute/virtualMachines/', variables('linuxVmName'))]"
+        //     ],
+        //     "location": "[variables('location')]",
+        //     "properties": {
+        //         "publisher": "Microsoft.Azure.Extensions",
+        //         "type": "CustomScript",
+        //         "typeHandlerVersion": "2.0",
+        //         "autoUpgradeMinorVersion": true,
+        //         "settings": {
+        //             "commandToExecute": "[concat('sudo /etc/iotedge/configedge.sh','|')]"
+        //         }
+        //     }
+        // }
+    ]
+}
