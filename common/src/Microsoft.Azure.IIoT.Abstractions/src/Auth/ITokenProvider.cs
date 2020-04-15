@@ -14,6 +14,11 @@ namespace Microsoft.Azure.IIoT.Auth {
     public interface ITokenProvider {
 
         /// <summary>
+        /// The token provider supports this resource
+        /// </summary>
+        bool Supports(string resource);
+
+        /// <summary>
         /// Authenticate user and retrieve token.
         /// </summary>
         /// <param name="resource"><see cref="Http.Resource"/> to

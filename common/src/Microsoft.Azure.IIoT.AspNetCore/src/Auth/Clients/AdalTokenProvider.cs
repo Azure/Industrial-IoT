@@ -43,6 +43,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         }
 
         /// <inheritdoc/>
+        public bool Supports(string resource) {
+            return _config.Query(resource, AuthScheme.Aad).Any();
+        }
+
+        /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
 

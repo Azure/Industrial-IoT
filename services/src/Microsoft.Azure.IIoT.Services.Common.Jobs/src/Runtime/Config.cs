@@ -64,8 +64,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
-        /// <inheritdoc/>
-        public string IoTHubResourceId => _hub.IoTHubResourceId;
 
         /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);

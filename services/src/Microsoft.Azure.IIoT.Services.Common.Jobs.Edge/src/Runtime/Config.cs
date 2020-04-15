@@ -43,8 +43,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
-        /// <inheritdoc/>
-        public string IoTHubResourceId => _hub.IoTHubResourceId;
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;

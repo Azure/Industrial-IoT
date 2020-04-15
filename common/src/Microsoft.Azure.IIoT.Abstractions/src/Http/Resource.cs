@@ -24,5 +24,10 @@ namespace Microsoft.Azure.IIoT.Http {
         /// Keyvault
         /// </summary>
         public static readonly string KeyVault = nameof(KeyVault);
+
+        /// <summary>
+        /// Storage
+        /// </summary>
+        public static readonly string Storage = nameof(Storage);
     }
 }

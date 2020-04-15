@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using System.Linq;
 
     /// <summary>
     /// Authenticate using client credentials
@@ -34,12 +35,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             Http = new HttpClientFactory(logger.ForContext<HttpClientFactory>());
         }
 
-        /// <summary>
-        /// Obtain token from user
-        /// </summary>
-        /// <param name="resource"></param>
-        /// <param name="scopes"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
+        public bool Supports(string resource) {
+            return _config.Query(resource, AuthScheme.AuthService).Any();
+        }
+
+        /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             foreach (var config in _config.Query(resource, AuthScheme.AuthService)) {

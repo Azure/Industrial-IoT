@@ -52,12 +52,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        /// <summary>
-        /// Obtain token from user
-        /// </summary>
-        /// <param name="resource"></param>
-        /// <param name="scopes"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
+        public bool Supports(string resource) {
+            return _config.Query(resource, AuthScheme.Aad).Any();
+        }
+
+        /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             foreach (var config in _config.Query(resource, AuthScheme.Aad)) {

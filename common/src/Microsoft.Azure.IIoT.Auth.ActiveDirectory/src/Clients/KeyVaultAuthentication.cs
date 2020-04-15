@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
 
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<MsiClientConfig>()
+            builder.RegisterType<MsiKeyVaultClientConfig>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<AadSpKeyVaultConfig>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();

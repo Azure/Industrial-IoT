@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Servic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Registry", "services\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.csproj", "{34BF73AA-89A3-4E10-A1AC-2360A93143FE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync", "services\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.csproj", "{98CC86E7-6BD0-4B5A-B71B-C8F57C98E081}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync", "services\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.csproj", "{98CC86E7-6BD0-4B5A-B71B-C8F57C98E081}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.OpcUa.Vault", "services\src\Microsoft.Azure.IIoT.Services.OpcUa.Vault\src\Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj", "{039B213A-5930-475D-B3C0-FA15AF6CD631}"
 EndProject
@@ -174,7 +174,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Storag
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Storage.CosmosDb", "common\src\Microsoft.Azure.IIoT.Storage.CosmosDb\src\Microsoft.Azure.IIoT.Storage.CosmosDb.csproj", "{85C11EF0-B2F8-49C5-BC6D-476000B8EE75}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Storage.Blob", "common\src\Microsoft.Azure.IIoT.Storage.Blob\src\Microsoft.Azure.IIoT.Storage.Blob.csproj", "{EF2CC697-A505-4EF5-8399-5DD53A6DDD0C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Storage.Datalake", "common\src\Microsoft.Azure.IIoT.Storage.Datalake\src\Microsoft.Azure.IIoT.Storage.Datalake.csproj", "{EF2CC697-A505-4EF5-8399-5DD53A6DDD0C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Messaging.SignalR", "common\src\Microsoft.Azure.IIoT.Messaging.SignalR\src\Microsoft.Azure.IIoT.Messaging.SignalR.csproj", "{483F0742-F21F-4BD8-8BE4-26FB232DA91B}"
 EndProject

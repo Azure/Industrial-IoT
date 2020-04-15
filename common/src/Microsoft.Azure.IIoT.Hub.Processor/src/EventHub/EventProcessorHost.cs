@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Storage.Datalake;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
     using Serilog;
@@ -74,10 +75,10 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                         $"host-{Guid.NewGuid()}", _hub.EventHubPath, consumerGroup,
                         GetEventHubConnectionString(), _checkpoint, _lease);
                 }
-                else if (_config.BlobStorageConnString != null) {
+                else if (_config.GetStorageConnString() != null) {
                     _host = new EventHubs.Processor.EventProcessorHost(
                         _hub.EventHubPath, consumerGroup, GetEventHubConnectionString(),
-                        _config.BlobStorageConnString,
+                        _config.GetStorageConnString(),
                         !string.IsNullOrEmpty(_config.LeaseContainerName) ?
                             _config.LeaseContainerName : _hub.EventHubPath.ToSha1Hash());
                 }

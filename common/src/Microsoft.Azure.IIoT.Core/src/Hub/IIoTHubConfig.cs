@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// Connection string
         /// </summary>
         string IoTHubConnString { get; }
-
-        /// <summary>
-        /// IoT Hub Resource identifier
-        /// </summary>
-        string IoTHubResourceId { get; }
     }
 }

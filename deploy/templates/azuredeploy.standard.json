@@ -603,6 +603,10 @@
                                 "value": "[parameters('datalakeName')]"
                             },
                             {
+                                "key": "PCS_ADLSG2_ACCOUNT_KEY",
+                                "value": "[listKeys(variables('datalakeResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+                            },
+                            {
                                 "key": "PCS_SIGNALR_CONNSTRING",
                                 "value": "[listkeys(parameters('signalRName'), '2018-10-01').primaryConnectionString]"
                             },

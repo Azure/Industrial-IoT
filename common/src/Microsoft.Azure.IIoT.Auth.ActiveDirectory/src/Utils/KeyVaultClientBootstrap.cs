@@ -46,13 +46,13 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
             // Register keyvaultclient factory
             builder.Register(context => {
                 var tokenSource = context.Resolve<IEnumerable<ITokenSource>>()
-                    .FirstOrDefault(s => s.Resource == Http.Resource.KeyVault);
+                    .FirstOrDefault(s => s.IsEnabled && s.Resource == Http.Resource.KeyVault);
 
                 return new KeyVaultClient(async (_, resource, scope) => {
                     if (tokenSource == null) {
                         return null;
                     }
-                    var token = await tokenSource.GetTokenForAsync(
+                    var token = await tokenSource.GetTokenAsync(
                         (resource + "/" + scope).YieldReturn());
                     return token?.RawToken;
                 });

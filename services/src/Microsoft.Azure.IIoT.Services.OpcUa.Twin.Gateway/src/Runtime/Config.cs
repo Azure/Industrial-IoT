@@ -32,8 +32,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
-        /// <inheritdoc/>
-        public string IoTHubResourceId => _hub.IoTHubResourceId;
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;

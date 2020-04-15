@@ -89,8 +89,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
-        /// <inheritdoc/>
-        public string IoTHubResourceId => _hub.IoTHubResourceId;
 
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _registry.OpcUaRegistryServiceUrl;

@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
 
             // ...
 
-            builder.RegisterType<MsiClientConfig>()
+            builder.RegisterType<MsiKeyVaultClientConfig>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AuthServiceOAuthConfig>()
                 .AsImplementedInterfaces().SingleInstance();

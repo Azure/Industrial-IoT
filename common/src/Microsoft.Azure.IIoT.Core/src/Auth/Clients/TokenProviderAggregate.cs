@@ -22,6 +22,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <inheritdoc/>
         public string Resource { get; }
 
+        /// <inheritdoc/>
+        public bool IsEnabled => _providers.Any(p => p.Supports(Resource));
+
         /// <summary>
         /// Create aggregate
         /// </summary>
@@ -57,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         }
 
         /// <inheritdoc/>
-        public virtual async Task<TokenResultModel> GetTokenForAsync(
+        public virtual async Task<TokenResultModel> GetTokenAsync(
             IEnumerable<string> scopes = null) {
             foreach (var provider in _providers) {
                 _logger.Debug("Try acquiring token using {provider}.", provider.GetType());

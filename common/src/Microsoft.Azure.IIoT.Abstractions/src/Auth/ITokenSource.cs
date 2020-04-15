@@ -15,6 +15,11 @@ namespace Microsoft.Azure.IIoT.Auth {
     public interface ITokenSource {
 
         /// <summary>
+        /// The token source is enabled
+        /// </summary>
+        bool IsEnabled { get; }
+
+        /// <summary>
         /// Retrieves tokens for this <see cref="Http.Resource"/>
         /// </summary>
         string Resource { get; }
@@ -24,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// </summary>
         /// <param name="scopes">Scope permissions to request</param>
         /// <returns>null if no token could be retrieved</returns>
-        Task<TokenResultModel> GetTokenForAsync(
+        Task<TokenResultModel> GetTokenAsync(
             IEnumerable<string> scopes = null);
 
         /// <summary>

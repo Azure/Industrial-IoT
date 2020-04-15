@@ -6,24 +6,18 @@
 namespace Microsoft.Azure.IIoT.Cdm {
 
     /// <summary>
-    /// configuration for the CDM storage handler
+    /// configuration for the CDM folder
     /// </summary>
-    public interface ICdmClientConfig {
-
-        /// <summary>
-        /// ADLSg2 connection host name
-        /// #identifier#.dfs.core.windows.net
-        /// </summary>
-        string ADLSg2HostName { get; }
+    public interface ICdmFolderConfig {
 
         /// <summary>
         /// Blob container name used by the CDM storage
         /// </summary>
-        string ADLSg2ContainerName { get; }
+        string StorageDrive { get; }
 
         /// <summary>
         /// CDM root folder within CDM blob container
         /// </summary>
-        string RootFolder { get; }
+        string StorageFolder { get; }
     }
 }

@@ -49,6 +49,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
             _useMessagePack = (useMessagePack ?? false) && _msgPack != null;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _tokenSources = tokenSources?
+                .Where(p => p.IsEnabled)
                 .FirstOrDefault(p => p.Resource == (resourceId ?? Resource.Platform))
                    ?? tokenSources?
                 .FirstOrDefault();
@@ -154,7 +155,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
                 .WithUrl(_endpointUri, options => {
                     if (_tokenSources != null) {
                         options.AccessTokenProvider = async () => {
-                            var token = await _tokenSources.GetTokenForAsync();
+                            var token = await _tokenSources.GetTokenAsync();
                             return token?.RawToken;
                         };
                     }

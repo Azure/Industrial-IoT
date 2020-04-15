@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.Azure.IIoT.Crypto.KeyVault;
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime;
-    using Microsoft.Azure.IIoT.Storage.Blob;
-    using Microsoft.Azure.IIoT.Storage.Blob.Runtime;
+    using Microsoft.Azure.IIoT.Storage.Datalake;
+    using Microsoft.Azure.IIoT.Storage.Datalake.Runtime;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Auth.KeyVault;
     using Microsoft.Azure.KeyVault;
@@ -70,19 +70,15 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
         public static IDataProtectionBuilder AddAzureBlobKeyStorage(
-            this IDataProtectionBuilder builder, IConfiguration configuration = null) {
-            if (configuration == null) {
-                configuration = builder.Services.BuildServiceProvider()
-                    .GetRequiredService<IConfiguration>();
-            }
+            this IDataProtectionBuilder builder, IConfiguration configuration) {
 
             var storage = new DataProtectionConfig(configuration);
             var containerName = storage.BlobStorageContainerDataProtection;
-            if (string.IsNullOrEmpty(storage.BlobStorageConnString)) {
+            if (string.IsNullOrEmpty(storage.GetStorageConnString())) {
                 return builder;
             }
 
-            var storageAccount = CloudStorageAccount.Parse(storage.BlobStorageConnString);
+            var storageAccount = CloudStorageAccount.Parse(storage.GetStorageConnString());
             var relativePath = $"{containerName}/keys.xml";
             var uriBuilder = new UriBuilder(storageAccount.BlobEndpoint);
             uriBuilder.Path = uriBuilder.Path.TrimEnd('/') + "/" + relativePath.TrimStart('/');
@@ -127,13 +123,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <summary>
         /// Data protection default configuration
         /// </summary>
-        internal sealed class DataProtectionConfig : ConfigBase, IKeyVaultConfig, IStorageConfig {
+        internal sealed class DataProtectionConfig : ConfigBase, IKeyVaultConfig, IBlobConfig  {
 
             private const string kKeyVaultKeyDataProtectionDefault = "dataprotection";
             private const string kBlobStorageContainerDataProtectionDefault = "dataprotection";
 
-            /// <inheritdoc/>
-            public string BlobStorageConnString => _stg.BlobStorageConnString;
             /// <inheritdoc/>
             public string KeyVaultBaseUrl => _kv.KeyVaultBaseUrl;
             /// <inheritdoc/>
@@ -155,17 +149,24 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         PcsVariable.PCS_STORAGE_CONTAINER_DATAPROTECTION) ??
                         kBlobStorageContainerDataProtectionDefault).Trim();
 
+            /// <inheritdoc/>
+            public string EndpointSuffix => _stg.EndpointSuffix;
+            /// <inheritdoc/>
+            public string AccountName => _stg.AccountName;
+            /// <inheritdoc/>
+            public string AccountKey => _stg.AccountKey;
+
             /// <summary>
             /// Configuration constructor
             /// </summary>
             /// <param name="configuration"></param>
             public DataProtectionConfig(IConfiguration configuration) :
                 base(configuration) {
-                _stg = new StorageConfig(configuration);
+                _stg = new BlobConfig(configuration);
                 _kv = new KeyVaultConfig(configuration);
             }
 
-            private readonly StorageConfig _stg;
+            private readonly BlobConfig _stg;
             private readonly KeyVaultConfig _kv;
         }
     }

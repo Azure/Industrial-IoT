@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 Host = HubConnectionString.HostName,
                 Path = path,
                 Query = "api-version=" + kApiVersion
-            }.Uri, _config.IoTHubResourceId);
+            }.Uri);
             request.Headers.Add(HttpRequestHeader.Authorization.ToString(),
                 CreateSasToken(HubConnectionString, 3600));
             request.Headers.Add(HttpRequestHeader.UserAgent.ToString(), kClientId);

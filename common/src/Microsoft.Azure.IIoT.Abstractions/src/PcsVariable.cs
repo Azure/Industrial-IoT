@@ -46,14 +46,17 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> datalake account </summary>
         public const string PCS_ADLSG2_ACCOUNT =
             "PCS_ADLSG2_ACCOUNT";
-        /// <summary> ADLS Gen2 account connection string </summary>
-        public const string PCS_ADLSG2_CONNSTRING =
+        /// <summary> datalake account key </summary>
+        public const string PCS_ADLSG2_ACCOUNT_KEY =
+            "PCS_ADLSG2_ACCOUNT_KEY";
+        /// <summary> ADLS Gen2 endpoint suffix </summary>
+        public const string PCS_ADLSG2_ENDPOINTSUFFIX =
             "PCS_ADLSG2_CONNSTRING";
-        /// <summary> ADLS Gen2 blob container for CDM storage </summary>
-        public const string PCS_ADLSG2_CONTAINER_CDM =
+        /// <summary> CDM storage drive </summary>
+        public const string PCS_CDM_DRIVE_NAME =
             "PCS_ADLSG2_CONTAINER_CDM";
-        /// <summary> CDM root folder within CDM blob container </summary>
-        public const string PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER =
+        /// <summary> CDM storage folder </summary>
+        public const string PCS_CDM_ROOT_FOLDER =
             "PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER";
         /// <summary> storage connection string </summary>
         public const string PCS_STORAGE_CONNSTRING =

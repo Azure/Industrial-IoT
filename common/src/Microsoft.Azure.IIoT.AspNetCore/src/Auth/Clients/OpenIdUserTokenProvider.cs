@@ -52,6 +52,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             Http = new HttpClientFactory(logger.ForContext<HttpClientFactory>());
         }
 
+        /// <inheritdoc/>
+        public bool Supports(string resource) {
+            return _config.Query(resource, AuthScheme.AuthService).Any();
+        }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,

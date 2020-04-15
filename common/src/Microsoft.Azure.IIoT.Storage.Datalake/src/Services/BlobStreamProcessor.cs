@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Storage.Blob.Services {
+namespace Microsoft.Azure.IIoT.Storage.Datalake.Services {
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.WindowsAzure.Storage;
@@ -31,11 +31,11 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Services {
         /// <param name="config"></param>
         /// <param name="processor"></param>
         /// <param name="logger"></param>
-        public BlobStreamProcessor(IStorageConfig config, IBlobProcessor processor,
+        public BlobStreamProcessor(IBlobConfig config, IBlobProcessor processor,
             ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _processor = processor ?? throw new ArgumentNullException(nameof(processor));
-            var storageAccount = CloudStorageAccount.Parse(config.BlobStorageConnString);
+            var storageAccount = CloudStorageAccount.Parse(config.GetStorageConnString());
             _client = storageAccount.CreateCloudBlobClient();
             _options = new BlobRequestOptions();
         }

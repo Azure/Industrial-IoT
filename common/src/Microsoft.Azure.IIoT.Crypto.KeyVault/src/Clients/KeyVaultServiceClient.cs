@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
             ICertificateFactory factory, IKeyVaultConfig config, IJsonSerializer serializer,
             IEnumerable<ITokenSource> tokenSources) :
             this(certificates, factory, config, serializer, tokenSources?
-                .FirstOrDefault(s => s.Resource == Resource.KeyVault)) {
+                .FirstOrDefault(s => s.IsEnabled && s.Resource == Resource.KeyVault)) {
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
             ICertificateFactory factory, IKeyVaultConfig config, IJsonSerializer serializer,
             ITokenSource tokenSource) : this(certificates, factory, config, serializer,
                 new KeyVaultClient(async (_, resource, scope) => {
-                    var token = await tokenSource.GetTokenForAsync(
+                    var token = await tokenSource.GetTokenAsync(
                         (resource + "/" + scope).YieldReturn());
                     return token.RawToken;
                 })) {

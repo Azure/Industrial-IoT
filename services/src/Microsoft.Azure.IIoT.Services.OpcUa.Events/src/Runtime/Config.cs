@@ -80,7 +80,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         /// <inheritdoc/>
         public TimeSpan ReceiveTimeout => _ep.ReceiveTimeout;
         /// <inheritdoc/>
-        public string BlobStorageConnString => _ep.BlobStorageConnString;
+        public string EndpointSuffix => _ep.EndpointSuffix;
+        /// <inheritdoc/>
+        public string AccountName => _ep.AccountName;
+        /// <inheritdoc/>
+        public string AccountKey => _ep.AccountKey;
+
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
         /// <inheritdoc/>

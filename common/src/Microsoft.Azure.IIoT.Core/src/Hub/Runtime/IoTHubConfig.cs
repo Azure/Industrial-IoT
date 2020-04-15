@@ -22,8 +22,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
             () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_CONNSTRING,
                 () => GetStringOrDefault("_HUB_CS",
                     () => null)));
-        /// <summary>Resource Id</summary>
-        public string IoTHubResourceId { get; set; }
 
         /// <summary>
         /// Configuration constructor

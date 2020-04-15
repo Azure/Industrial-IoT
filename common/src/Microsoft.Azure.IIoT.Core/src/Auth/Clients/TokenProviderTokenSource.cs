@@ -21,12 +21,15 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         public string Resource { get; } = Http.Resource.Platform;
 
         /// <inheritdoc/>
+        public bool IsEnabled => _provider.Supports(Resource);
+
+        /// <inheritdoc/>
         public TokenProviderTokenSource(T provider) {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
         /// <inheritdoc/>
-        public async Task<TokenResultModel> GetTokenForAsync(
+        public async Task<TokenResultModel> GetTokenAsync(
             IEnumerable<string> scopes = null) {
             return await Try.Async(() => _provider.GetTokenForAsync(Resource, scopes));
         }

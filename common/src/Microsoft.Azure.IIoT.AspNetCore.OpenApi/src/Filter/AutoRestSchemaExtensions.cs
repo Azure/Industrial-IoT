@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.OpenApi.Any;
     using Microsoft.OpenApi.Models;
     using Newtonsoft.Json;
@@ -89,6 +90,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
                         model.Nullable = true;
                     }
                     paramType = paramType.GetGenericArguments()[0];
+                }
+                if (paramType == typeof(VariantValue)) {
+                    model.Type = null; // any
+                    model.Format = null;
+                    model.Nullable = true;
+                    model.Description = "A variant which can be represented by any value including null.";
                 }
                 if (paramType == typeof(uint)) {
                     model.Type = "integer";

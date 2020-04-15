@@ -24,8 +24,10 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
         /// </summary>
         /// <param name="providers"></param>
         public HttpBearerAuthentication(IEnumerable<ITokenSource> providers) {
-            _tokens = providers?.ToDictionary(kv => kv.Resource ?? string.Empty, kv => kv)
-                ?? throw new ArgumentNullException(nameof(providers));
+            _tokens = providers?
+                .Where(p => p.IsEnabled)
+                .ToDictionary(kv => kv.Resource ?? string.Empty, kv => kv)
+                    ?? throw new ArgumentNullException(nameof(providers));
         }
 
         /// <summary>
@@ -52,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
                 var desiredPermissions = Enumerable.Empty<string>();
 
                 if (_tokens.TryGetValue(resourceId, out var source)) {
-                    var result = await source.GetTokenForAsync(desiredPermissions);
+                    var result = await source.GetTokenAsync(desiredPermissions);
                     if (result?.RawToken != null) {
                         headers.Authorization = new AuthenticationHeaderValue(
                             "Bearer", result.RawToken);

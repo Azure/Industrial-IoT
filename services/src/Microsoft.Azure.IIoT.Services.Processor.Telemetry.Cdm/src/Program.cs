@@ -13,7 +13,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
+    using Microsoft.Azure.IIoT.Storage.Datalake.Runtime;
+    using Microsoft.Azure.IIoT.Storage.Datalake.Default;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
@@ -23,8 +27,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Http.Ssl;
-    using Microsoft.Azure.IIoT.Auth.Clients;
 
     /// <summary>
     /// IoT Hub device telemetry event processor host.  Processes all
@@ -115,8 +117,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
             // Add serializers
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            // Add unattended authentication
+            // Add unattended and storage authentication
             builder.RegisterModule<UnattendedAuthentication>();
+            builder.RegisterModule<StorageAuthentication>();
 
             // Event processor services for onboarding consumer
             builder.RegisterType<EventProcessorHost>()
@@ -139,9 +142,16 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Handle the CDM handler
-            builder.RegisterType<AdlsCsvStorage>()
+            builder.RegisterType<DatalakeConfig>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<DatalakeConfig>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<DataLakeStorageService>()
                 .AsImplementedInterfaces().SingleInstance();
-              // handlers for the legacy publisher (disabled)
+            builder.RegisterType<CsvDataTableWriter>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // handlers for the legacy publisher (disabled)
             builder.RegisterType<CdmMessageProcessor>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<MonitoredItemSampleCdmProcessor>()

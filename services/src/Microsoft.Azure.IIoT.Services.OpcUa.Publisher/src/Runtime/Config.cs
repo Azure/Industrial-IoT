@@ -41,8 +41,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
-        /// <inheritdoc/>
-        public string IoTHubResourceId => _hub.IoTHubResourceId;
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
@@ -72,7 +70,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
 
         /// <inheritdoc/>
         public string OpcUaTwinServiceUrl => _api.OpcUaTwinServiceUrl;
-
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _api.OpcUaRegistryServiceUrl;
 

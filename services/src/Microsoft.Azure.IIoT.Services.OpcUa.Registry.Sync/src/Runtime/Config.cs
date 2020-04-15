@@ -26,9 +26,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime {
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
         /// <inheritdoc/>
-        public string IoTHubResourceId => _hub.IoTHubResourceId;
-        /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
+        /// <inheritdoc/>
+        public TimeSpan SyncInterval => _sync.SyncInterval;
+        /// <inheritdoc/>
+        public string JobOrchestratorUrl => _edge.JobOrchestratorUrl;
 
         /// <inheritdoc/>
         public int TokenLength => _id.TokenLength;
@@ -38,11 +40,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime {
         public TimeSpan TokenStaleInterval => _id.TokenStaleInterval;
         /// <inheritdoc/>
         public TimeSpan UpdateInterval => _id.UpdateInterval;
-
-        /// <inheritdoc/>
-        public TimeSpan SyncInterval => _sync.SyncInterval;
-        /// <inheritdoc/>
-        public string JobOrchestratorUrl => _edge.JobOrchestratorUrl;
 
         /// <summary>
         /// Configuration constructor

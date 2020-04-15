@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -31,6 +30,11 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <inheritdoc/>
         protected AppAuthenticationBase(ILogger logger) {
             _logger = logger;
+        }
+
+        /// <inheritdoc/>
+        public bool Supports(string resource) {
+            return Get(resource).Any();
         }
 
         /// <inheritdoc/>

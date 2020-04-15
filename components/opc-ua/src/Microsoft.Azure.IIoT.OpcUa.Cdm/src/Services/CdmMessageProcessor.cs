@@ -6,13 +6,16 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Cdm;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Storage.Datalake;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.CommonDataModel.ObjectModel.Cdm;
     using Microsoft.CommonDataModel.ObjectModel.Enums;
     using Microsoft.CommonDataModel.ObjectModel.Storage;
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
+    using Microsoft.CommonDataModel.ObjectModel.Utilities.Network;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -32,23 +35,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         /// Create the cdm message processor
         /// </summary>
         /// <param name="config"></param>
-        /// <param name="auth"></param>
+        /// <param name="location"></param>
+        /// <param name="tokenSources"></param>
         /// <param name="logger"></param>
-        /// <param name="storage"></param>
-        public CdmMessageProcessor(ICdmClientConfig config, IClientAuthConfig auth,
-            ILogger logger, IAdlsStorage storage) {
+        /// <param name="tableWriter"></param>
+        public CdmMessageProcessor(IDatalakeConfig config, ICdmFolderConfig location,
+            IDataTableWriter tableWriter, IEnumerable<ITokenSource> tokenSources,
+            ILogger logger) {
+
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _location = location ?? throw new ArgumentNullException(nameof(location));
+            _tableWriter = tableWriter ?? throw new ArgumentNullException(nameof(tableWriter));
 
             _lock = new SemaphoreSlim(1, 1);
             _samplesCacheSize = 0;
-            _cacheUploadTimer = new Timer(CacheTimer_ElapesedAsync);
+            _cacheUploadTimer = new Timer(CacheTimer_ElapsedAsync);
             _cacheUploadTriggered = false;
             _cacheUploadInterval = TimeSpan.FromSeconds(20);
             _samplesCache = new Dictionary<string, List<MonitoredItemMessageModel>>();
             _dataSetsCache = new Dictionary<string, List<DataSetMessageModel>>();
-
             _cdmCorpus = new CdmCorpusDefinition();
 
             var cdmLogger = _logger.ForContext(typeof(CdmStatusLevel));
@@ -71,15 +76,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 }
             });
 
-            var authConfig = auth?.ClientSchemes?.FirstOrDefault(s =>
-                s.Scheme == AuthScheme.Aad && !string.IsNullOrEmpty(s.ClientSecret));
-            if (authConfig == null) {
-                throw new ArgumentNullException("Missing service principal configuration");
+            var storageHost = $"{config.AccountName}.{config.EndpointSuffix}";
+            var storageRoot = $"/{location.StorageDrive}/{location.StorageFolder}";
+            var tokenSource = tokenSources?
+                .FirstOrDefault(s => s.IsEnabled && s.Resource == Http.Resource.Storage);
+            if (tokenSource == null) {
+                if (string.IsNullOrEmpty(config.AccountKey)) {
+                    throw new InvalidConfigurationException(
+                        "Missing storage account key or service principal " +
+                        "configuration to access storage account.");
+                }
+                // Use shared access key for storage access
+                _adapter = new ADLSAdapter(storageHost, storageRoot,
+                    config.AccountKey);
             }
-
-            _adapter = new ADLSAdapter($"{config.ADLSg2HostName}",
-                $"/{config.ADLSg2ContainerName}/{config.RootFolder}",
-                authConfig.TenantId, authConfig.ClientId, authConfig.ClientSecret);
+            else {
+                // Use service principal with bearer token for storage access
+                _adapter = new ADLSAdapter(storageHost, storageRoot,
+                    new TokenProviderAdapter(tokenSource));
+            }
             _cdmCorpus.Storage.Mount("adls", _adapter);
             var gitAdapter = new GithubAdapter();
             _cdmCorpus.Storage.Mount("cdm", gitAdapter);
@@ -118,9 +133,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     return;
                 }
 
-                // validate if the root already exist
-                await _storage.CreateBlobRoot(_config.ADLSg2HostName,
-                    _config.ADLSg2ContainerName, _config.RootFolder);
+                // Ensure underlying folder is present
+                var drive = await _tableWriter.Storage.CreateOrOpenDriveAsync(
+                    _location.StorageDrive);
+                await drive.CreateOrOpenSubFolderAsync(_location.StorageFolder);
 
                 // create a new Manifest definition
                 Manifest = _cdmCorpus.MakeObject<CdmManifestDefinition>(
@@ -226,13 +242,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     continue;
                 }
                 var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
-                var partitionUrl = _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location);
+                var (drive, folder, file) = SplitDatalakeAdapterPath(
+                    _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location));
                 var partitionDelimitor = csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter;
                 result = (dataSetRecordList != null)
-                    ? await _storage.WriteInCsvPartition<DataSetMessageModel>(
-                        partitionUrl, dataSetRecordList, partitionDelimitor)
-                    : await _storage.WriteInCsvPartition<MonitoredItemMessageModel>(
-                        partitionUrl, samplesRecordList, partitionDelimitor);
+                    ? await _tableWriter.WriteAsync<DataSetMessageModel>(
+                        drive, folder, file, dataSetRecordList, partitionDelimitor)
+                    : await _tableWriter.WriteAsync<MonitoredItemMessageModel>(
+                        drive, folder, file, samplesRecordList, partitionDelimitor);
                 if (result == false && retry == false) {
                     retry = true;
                 }
@@ -248,6 +265,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 _logger.Warning("Failed to process CDM data for {record.Key} records.", partitionKey);
             }
             return persist;
+        }
+
+        /// <inheritdoc/>
+        private (string, string, string) SplitDatalakeAdapterPath(string adapterPath) {
+            var pathElements = new Uri(adapterPath).PathAndQuery.Trim('/').Split('/');
+            if (pathElements.Length != 3) {
+                throw new ArgumentException("Adapter path was unexpected");
+            }
+            return (pathElements[0], pathElements[1], pathElements[2]);
         }
 
         /// <inheritdoc/>
@@ -567,7 +593,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         /// Cache Timer Elapesed handler
         /// </summary>
         /// <param name="sender"></param>
-        private async void CacheTimer_ElapesedAsync(object sender) {
+        private async void CacheTimer_ElapsedAsync(object sender) {
             await _lock.WaitAsync();
             try {
                 _cacheUploadTriggered = true;
@@ -614,15 +640,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         }
 
         /// <summary>
+        /// Token provider adapter
+        /// </summary>
+        private class TokenProviderAdapter : TokenProvider {
+
+            /// <inheritdoc/>
+            public TokenProviderAdapter(ITokenSource tokenSource) {
+                _tokenSource = tokenSource;
+            }
+
+            /// <inheritdoc/>
+            public string GetToken() {
+                var token = _tokenSource.GetTokenAsync().Result;
+                return token?.RawToken;
+            }
+
+            private readonly ITokenSource _tokenSource;
+        }
+
+        /// <summary>
         /// Cdm Manifest handler
         /// </summary>
         private CdmManifestDefinition Manifest { get; set; }
 
         private readonly ADLSAdapter _adapter = null;
-        private readonly IAdlsStorage _storage = null;
+        private readonly IDataTableWriter _tableWriter = null;
         private readonly CdmCorpusDefinition _cdmCorpus = null;
         private readonly ILogger _logger;
-        private readonly ICdmClientConfig _config;
+        private readonly ICdmFolderConfig _location;
 
         private readonly SemaphoreSlim _lock;
         private readonly Timer _cacheUploadTimer;

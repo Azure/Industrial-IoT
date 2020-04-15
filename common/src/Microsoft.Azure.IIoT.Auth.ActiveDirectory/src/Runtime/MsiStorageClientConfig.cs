@@ -8,9 +8,9 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
-    /// Managed service identity configuration
+    /// Managed service identity configuration for storage
     /// </summary>
-    public class MsiClientConfig : ConfigBase, IOAuthClientConfig {
+    public class MsiStorageClientConfig : ConfigBase, IOAuthClientConfig {
 
         /// <summary>
         /// Client configuration
@@ -18,6 +18,10 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_AppIdKey = "Msi:AppId";
         private const string kAuth_TenantIdKey = "Msi:TenantId";
 
+        /// <summary>Audience</summary>
+        public string Audience => "https://storage.azure.com";
+        /// <summary>Resource</summary>
+        public string Resource => Http.Resource.Storage;
         /// <inheritdoc/>
         public bool IsValid => ClientId != null && TenantId != null;
         /// <inheritdoc/>
@@ -34,16 +38,12 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         public string InstanceUrl => null;
         /// <inheritdoc/>
         public string ClientSecret => null;
-        /// <inheritdoc/>
-        public string Audience => null;
-        /// <inheritdoc/>
-        public string Resource => Http.Resource.KeyVault;
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public MsiClientConfig(IConfiguration configuration) :
+        public MsiStorageClientConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }
