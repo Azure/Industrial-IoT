@@ -24,6 +24,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         public const string EVENT_HUB_CONSUMER_GROUP_TELEMETRY_CDM = "telemetry_cdm";
         public const string EVENT_HUB_CONSUMER_GROUP_TELEMETRY_UX = "telemetry_ux";
+        public const int DEFAULT_MESSAGE_RETENTION_IN_DAYS = 2;
+        public const int DEFUALT_PARTITION_COUNT = 4;
 
         private const string kEVENT_HUB_NAMESPACE_AUTHORIZATION_RULE = "RootManageSharedAccessKey";
 
@@ -260,6 +262,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// <param name="resourceGroup"></param>
         /// <param name="eventHubNamespace"></param>
         /// <param name="eventHubName"></param>
+        /// <param name="messageRetentionInDays"></param>
+        /// <param name="partitionCount"></param>
         /// <param name="tags"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -267,6 +271,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IResourceGroup resourceGroup,
             EHNamespaceInner eventHubNamespace,
             string eventHubName,
+            int messageRetentionInDays,
+            int partitionCount,
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
@@ -289,8 +295,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     Location = resourceGroup.RegionName,
                     Tags = tags,
 
-                    MessageRetentionInDays = 1,
-                    PartitionCount = 2,
+                    MessageRetentionInDays = messageRetentionInDays,
+                    PartitionCount = partitionCount,
                     Status = EntityStatus.Active
                 };
 
