@@ -238,5 +238,8 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Log Analytics workspace key </summary>
         public const string PCS_WORKSPACE_KEY =
             "PCS_WORKSPACE_KEY";
+        /// <summary> URL path base for TSI query </summary>
+        public const string PCS_TSI_URL =
+            "PCS_TSI_URL";
     }
 }

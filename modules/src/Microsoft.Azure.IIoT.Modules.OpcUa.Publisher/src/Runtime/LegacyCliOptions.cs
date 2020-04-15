@@ -145,6 +145,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "ip|issuercertstorepath=", "the path of the trusted issuer cert store.",
                         s => this[LegacyCliConfigKeys.OpcIssuerCertStorePath] = s },
                     { "it|issuercertstoretype=", "Legacy - do not use.", _ => {} },
+                    { "bs|batchsize=", "the size of message batching buffer.",
+                        (int i) => this[LegacyCliConfigKeys.BatchSize] = i.ToString() },
+                    { "ms|iothubmessagesize=", "the maximum size of the (IoT D2C) message.",
+                        (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
 
                     // Legacy unsupported
                     { "si|iothubsendinterval=", "Legacy - do not use.", _ => {} },
@@ -153,7 +157,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "mq|monitoreditemqueuecapacity=", "Legacy - do not use.", _ => {} },
                     { "ns|noshutdown=", "Legacy - do not use.", _ => {} },
                     { "rf|runforever", "Legacy - do not use.", _ => {} },
-                    { "ms|iothubmessagesize=", "Legacy - do not use.", _ => {} },
                     { "pn|portnum=", "Legacy - do not use.", _ => {} },
                     { "pa|path=", "Legacy - do not use.", _ => {} },
                     { "lr|ldsreginterval=", "Legacy - do not use.", _ => {} },
@@ -202,15 +205,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public event ConfigUpdatedEventHandler OnConfigUpdated;
 #pragma warning restore 67
 
+
         /// <summary>
-        /// The batch size, hardcoded to 1.
+        /// The batch size 
         /// </summary>
-        public int? BatchSize => 1;
+        public int? BatchSize => LegacyCliModel.BatchSize;
 
         /// <summary>
         /// The interval to show diagnostic information in the log.
         /// </summary>
         public TimeSpan? DiagnosticsInterval => LegacyCliModel.DiagnosticsInterval;
+
+        /// <summary>
+        /// the Maximum (IoT D2C) message size 
+        /// </summary>
+        public int? MaxMessageSize => LegacyCliModel.MaxMessageSize;
 
         /// <summary>
         /// The model of the CLI arguments.
@@ -260,7 +269,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 ApplicationCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcOwnCertStorePath),
                 TrustedPeerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcTrustedCertStorePath),
                 RejectedCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcRejectedCertStorePath),
-                TrustedIssuerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcIssuerCertStorePath)
+                TrustedIssuerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcIssuerCertStorePath),
+                BatchSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.BatchSize, 1),
+                MaxMessageSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.MaxMessageSize, 0)
             };
         }
 

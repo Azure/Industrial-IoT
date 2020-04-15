@@ -4,12 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
+    using System;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Network message content
     /// </summary>
     [DataContract]
+    [Flags]
     public enum NetworkMessageContentMask {
 
         /// <summary>
