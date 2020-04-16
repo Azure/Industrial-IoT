@@ -269,7 +269,7 @@
         },
         "workspaceName": {
             "type": "string",
-            "defaultValue": "[concat('logs-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 8))]",
+            "defaultValue": "[concat('logs-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 10))]",
             "metadata": {
                 "description": "Specifies the name of the Azure Log Analytics workspace created as part of the deployment."
             }
