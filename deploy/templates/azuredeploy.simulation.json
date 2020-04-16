@@ -871,7 +871,7 @@
                 "hidden-title": "[variables('dashboardName')]"
             },
             "apiVersion": "2015-08-01-preview"
-        }
+        },
         {
             "comments": "Deploy factory network simulation.",
             "type": "Microsoft.Resources/deployments",
