@@ -42,8 +42,12 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
             ICertificateFactory factory, IKeyVaultConfig config, IJsonSerializer serializer,
             ITokenProvider provider) : this(certificates, factory, config, serializer,
                 new KeyVaultClient(async (_, resource, scope) => {
-                    var token = await provider.GetTokenForAsync(Resource.KeyVault,
-                        (resource + "/" + scope).YieldReturn());
+                    if (resource != "https://vault.azure.net") {
+                        // Tunnels the resource through to the provider
+                        scope = resource + "/" + scope;
+                    }
+                    var token = await provider.GetTokenForAsync(
+                        Resource.KeyVault, scope.YieldReturn());
                     return token.RawToken;
                 })) {
             if (provider?.Supports(Resource.KeyVault) != true) {

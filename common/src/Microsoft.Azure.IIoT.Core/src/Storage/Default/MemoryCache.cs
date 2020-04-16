@@ -14,13 +14,6 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
     /// </summary>
     public sealed class MemoryCache : ICache {
 
-        /// <summary>
-        /// Create cache
-        /// </summary>
-        public MemoryCache() {
-            _cache = new MemCache(typeof(MemoryCache).Name);
-        }
-
         /// <inheritdoc/>
         public Task<byte[]> GetAsync(string key, CancellationToken ct) {
             return Task.FromResult((byte[])_cache.Get(key));
@@ -39,6 +32,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             return Task.CompletedTask;
         }
 
-        private readonly MemCache _cache;
+        private static readonly MemCache _cache =
+            new MemCache(typeof(MemoryCache).Name);
     }
 }

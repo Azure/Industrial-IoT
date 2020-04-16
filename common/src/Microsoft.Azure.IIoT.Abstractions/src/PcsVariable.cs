@@ -97,6 +97,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Keyvault url </summary>
         public const string PCS_KEYVAULT_URL =
             "PCS_KEYVAULT_URL";
+        /// <summary> Keyvault is hsm </summary>
+        public const string PCS_KEYVAULT_ISHSM =
+            "PCS_KEYVAULT_ISHSM";
         /// <summary> Key (in KeyVault) to be used for encription of keys </summary>
         public const string PCS_KEYVAULT_KEY_DATAPROTECTION =
             "PCS_KEYVAULT_KEY_DATAPROTECTION";

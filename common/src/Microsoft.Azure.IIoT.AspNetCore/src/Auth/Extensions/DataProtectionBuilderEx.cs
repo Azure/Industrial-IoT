@@ -136,8 +136,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             /// <inheritdoc/>
             public string KeyVaultBaseUrl => _kv.KeyVaultBaseUrl;
             /// <inheritdoc/>
-            public string KeyVaultResourceId => _kv.KeyVaultResourceId;
-            /// <inheritdoc/>
             public bool KeyVaultIsHsm => _kv.KeyVaultIsHsm;
 
             /// <summary>Key (in KeyVault) to be used for encription of keys</summary>

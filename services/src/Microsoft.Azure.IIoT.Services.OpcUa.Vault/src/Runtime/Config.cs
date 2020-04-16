@@ -71,8 +71,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         /// <inheritdoc/>
         public string KeyVaultBaseUrl => _keyVault.KeyVaultBaseUrl;
         /// <inheritdoc/>
-        public string KeyVaultResourceId => _keyVault.KeyVaultResourceId;
-        /// <inheritdoc/>
         public bool KeyVaultIsHsm => _keyVault.KeyVaultIsHsm;
 
         /// <inheritdoc/>

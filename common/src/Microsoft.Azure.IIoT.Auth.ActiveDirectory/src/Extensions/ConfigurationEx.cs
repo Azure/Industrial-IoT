@@ -15,6 +15,7 @@ namespace Microsoft.Extensions.Configuration {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Extension methods
@@ -152,12 +153,12 @@ namespace Microsoft.Extensions.Configuration {
 
                 var vaultUri = configuration.GetValue<string>(keyVaultUrlVarName, null);
                 if (string.IsNullOrEmpty(vaultUri)) {
-                    Log.Logger.Debug("No keyvault uri found in configuration under {key}. " +
-                        "Cannot read configuration from keyvault.",
+                    Log.Logger.Debug("No keyvault uri found in configuration under {key}. ",
                         keyVaultUrlVarName);
                     vaultUri = Environment.GetEnvironmentVariable(keyVaultUrlVarName);
                     if (string.IsNullOrEmpty(vaultUri)) {
-                        Log.Logger.Debug("No keyvault uri found in environment.",
+                        Log.Logger.Debug("No keyvault uri found in environment under {key}. " +
+                            "Not reading configuration from keyvault without keyvault uri.",
                             keyVaultUrlVarName);
                         return null;
                     }
@@ -165,11 +166,12 @@ namespace Microsoft.Extensions.Configuration {
 
                 var provider = new KeyVaultConfigurationProvider(configuration, vaultUri);
                 if (!await provider.TryReadSecretAsync(keyVaultUrlVarName)) {
-                    Log.Logger.Information(
+                    throw new InvalidConfigurationException(
+                        "A keyvault uri was provided could not access keyvault at the address. " +
                         "If you want to read configuration from keyvault, make sure " +
-                        "you are signed in to Visual Studio or Azure CLI on this " +
-                        "machine and that you have been given access to this KeyVault. ");
-                    return null;
+                        "the keyvault is reachable, the required permissions are configured " +
+                        "on keyvault and authentication provider information is available. " +
+                        "Sign into Visual Studio or Azure CLI on this machine and try again.");
                 }
                 else if (!lazyLoad) {
                     await provider.LoadAllSecretsAsync();
@@ -191,8 +193,8 @@ namespace Microsoft.Extensions.Configuration {
                     return true;
                 }
                 catch (Exception ex) {
-                    Log.Logger.Debug("Failed to authenticate to keyvault {url}: {message}",
-                        _keyVaultUri, ex.Message);
+                    Log.Logger.Error(ex, "Failed to access keyvault {url}.",
+                        _keyVaultUri);
                     return false;
                 }
             }

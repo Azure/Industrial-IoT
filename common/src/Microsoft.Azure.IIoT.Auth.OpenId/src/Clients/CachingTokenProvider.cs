@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     using System.Threading.Tasks;
     using System;
     using System.Text;
+    using System.Linq;
 
     /// <summary>
     /// Caching token provider
@@ -27,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <inheritdoc/>
         public override async Task<TokenResultModel> GetTokenForAsync(
             string resource, IEnumerable<string> scopes = null) {
-            var token = await Try.Async(() => GetTokenFromCacheAsync(resource));
+            var token = await Try.Async(() => GetTokenFromCacheAsync(resource, scopes));
             if (token == null) {
                 token = await base.GetTokenForAsync(resource, scopes);
                 if (token != null && !token.Cached) {
@@ -48,18 +49,24 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// Helper to get token from cache
         /// </summary>
         /// <returns></returns>
-        private async Task<TokenResultModel> GetTokenFromCacheAsync(string resource) {
+        private async Task<TokenResultModel> GetTokenFromCacheAsync(string resource,
+            IEnumerable<string> scopes) {
             var cached = await _cache.GetAsync(resource);
             if (cached != null) {
                 var token = JwtSecurityTokenEx.Parse(Encoding.UTF8.GetString(cached));
-                if (token.ExpiresOn + TimeSpan.FromSeconds(30) < DateTimeOffset.UtcNow) {
+                if (token.ExpiresOn >= DateTimeOffset.UtcNow + TimeSpan.FromSeconds(30)) {
+                    if (scopes != null) {
+                        // TODO: Check token has all scope is part of the token
+                        if (!scopes.All(scope => string.IsNullOrEmpty(scope))) {
+                            return null;
+                        }
+                    }
                     return token;
                 }
             }
             return null;
         }
 
-        private readonly List<ITokenSource> _tokenSources;
         private readonly ICache _cache;
     }
 }
