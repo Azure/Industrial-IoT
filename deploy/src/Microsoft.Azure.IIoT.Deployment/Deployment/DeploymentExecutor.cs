@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
     using Microsoft.Azure.KeyVault.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+    using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
     using Microsoft.Azure.Management.KeyVault.Fluent.Models;
     using Microsoft.Azure.Management.Storage.Fluent.Models;
     using Microsoft.Azure.Management.IotHub.Models;
@@ -52,6 +53,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         private RestClient _restClient;
 
         private ApplicationsManager _applicationsManager;
+        private ResourceMgmtClient _resourceManagementClient;
         private KeyVaultMgmtClient _keyVaultManagementClient;
         private StorageMgmtClient _storageManagementClient;
         private IotHubMgmtClient _iotHubManagementClient;
@@ -409,6 +411,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             var subscriptionId = _subscription.SubscriptionId;
 
+            _resourceManagementClient = new ResourceMgmtClient(_subscription.SubscriptionId, _restClient);
             _keyVaultManagementClient = new KeyVaultMgmtClient(subscriptionId, _restClient);
             _storageManagementClient = new StorageMgmtClient(subscriptionId, _restClient);
             _iotHubManagementClient = new IotHubMgmtClient(subscriptionId, _restClient);
@@ -427,8 +430,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         protected async Task RegisterResourceProvidersAsync(
             CancellationToken cancellationToken = default
         ) {
-            using var resourceMgmtClient = new ResourceMgmtClient(_subscription.SubscriptionId, _restClient);
-            await resourceMgmtClient.RegisterRequiredResourceProvidersAsync(cancellationToken);
+            await _resourceManagementClient.RegisterRequiredResourceProvidersAsync(cancellationToken);
         }
 
         protected async Task SetupApplicationsAsync(
@@ -687,13 +689,62 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             //PublicIPAddressInner publicIPAddress;
             //NetworkInterfaceInner networkInterface;
 
-            networkSecurityGroup = await _networkManagementClient
-                .CreateNetworkSecurityGroupAsync(
+            var networkingDeployment = await _resourceManagementClient
+                .CreateResourceGroupDeploymentAsync(
                     _resourceGroup,
-                    _networkSecurityGroupName,
-                    _defaultTagsDict,
+                    "networking",
+                    Resources.ArmTemplates.networking,
+                    new Dictionary<string, string> { },
+                    DeploymentMode.Incremental,
                     cancellationToken
                 );
+
+            var networkingDeploymentOutput = ResourceMgmtClient.ExtractDeploymentOutput(networkingDeployment);
+
+            if (!networkingDeploymentOutput.ContainsKey("nsgName")) {
+                throw new Exception("Expected key not present in deployment output: nsgName");
+            }
+            if (!networkingDeploymentOutput.ContainsKey("vnetName")) {
+                throw new Exception("Expected key not present in deployment output: vnetName");
+            }
+            if (!networkingDeploymentOutput.ContainsKey("subnetNameVM")) {
+                throw new Exception("Expected key not present in deployment output: subnetNameVM");
+            }
+            if (!networkingDeploymentOutput.ContainsKey("subnetNameAKS")) {
+                throw new Exception("Expected key not present in deployment output: subnetNameAKS");
+            }
+
+            var nsgName = networkingDeploymentOutput["nsgName"];
+            var vnetName = networkingDeploymentOutput["vnetName"];
+            var subnetNameVM = networkingDeploymentOutput["subnetNameVM"];
+            var subnetNameAKS = networkingDeploymentOutput["subnetNameAKS"];
+
+            networkSecurityGroup = await _networkManagementClient
+                .GetNetworkSecurityGroupAsync(
+                    _resourceGroup,
+                    nsgName,
+                    cancellationToken
+                );
+
+            virtualNetwork = await _networkManagementClient
+                .GetVirtualNetworkAsync(
+                    _resourceGroup,
+                    vnetName,
+                    cancellationToken
+                );
+
+            virtualNetworkAksSubnet = virtualNetwork
+                .Subnets
+                .Where(subnet => subnet.Name == subnetNameAKS)
+                .First();
+
+            //networkSecurityGroup = await _networkManagementClient
+            //    .CreateNetworkSecurityGroupAsync(
+            //        _resourceGroup,
+            //        _networkSecurityGroupName,
+            //        _defaultTagsDict,
+            //        cancellationToken
+            //    );
 
             //routeTable = _networkManagementClient
             //    .CreateRouteTableAsync(
@@ -704,17 +755,17 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             //        cancellationToken    
             //    ).Result;
 
-            virtualNetwork = await _networkManagementClient
-                .CreateVirtualNetworkAsync(
-                    _resourceGroup,
-                    networkSecurityGroup,
-                    _virtualNetworkName,
-                    null,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
+            //virtualNetwork = await _networkManagementClient
+            //    .CreateVirtualNetworkAsync(
+            //        _resourceGroup,
+            //        networkSecurityGroup,
+            //        _virtualNetworkName,
+            //        null,
+            //        _defaultTagsDict,
+            //        cancellationToken
+            //    );
 
-            virtualNetworkAksSubnet = _networkManagementClient.GetAksSubnet(virtualNetwork);
+            //virtualNetworkAksSubnet = _networkManagementClient.GetAksSubnet(virtualNetwork);
 
             //publicIPAddress = _networkManagementClient
             //    .CreatePublicIPAddressAsync(

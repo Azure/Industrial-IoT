@@ -1,0 +1,159 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "iiotServicesName": {
+            "type": "string",
+            "defaultValue": "iiotservices",
+            "metadata": {
+                "description": "Name of IIoT solution, used as name prefix."
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "nsgName": "[concat(parameters('iiotServicesName'), '-nsg')]",
+        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('nsgName'))]",
+        "vnetName": "[concat(parameters('iiotServicesName'), '-vnet')]",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+        "subnetNameVM": "vm-subnet",
+        "subnetVMRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetNameVM'))]",
+        "subnetNameAKS": "aks-subnet",
+        "subnetAKSRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetNameAKS'))]"
+    },
+    "resources": [
+        {
+            "comments":  "Default Network Security Group for template",
+            "name": "[variables('nsgName')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "UASC",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "4840",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "HTTPS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "HTTP",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('vnetName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[variables('nsgId')]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/8"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('subnetNameVM')]",
+                        "properties": {
+                            "addressPrefix": "10.241.0.0/16",
+                            "networkSecurityGroup": {
+                                "id": "[variables('nsgId')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('subnetNameAKS')]",
+                        "properties": {
+                            "addressPrefix": "10.240.0.0/16",
+                            "networkSecurityGroup": {
+                                "id": "[variables('nsgId')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+        "nsgName": {
+            "type": "string",
+            "value": "[variables('nsgName')]"
+        },
+        "nsgId": {
+            "type": "string",
+            "value": "[variables('nsgId')]"
+        },
+        "vnetName": {
+            "type": "string",
+            "value": "[variables('vnetName')]"
+        },
+        "vnetId": {
+            "type": "string",
+            "value": "[variables('vnetId')]"
+        },
+        "subnetNameVM": {
+            "type": "string",
+            "value": "[variables('subnetNameVM')]"
+        },
+        "subnetVMRef": {
+            "type": "string",
+            "value": "[variables('subnetVMRef')]"
+        },
+        "subnetNameAKS": {
+            "type": "string",
+            "value": "[variables('subnetNameAKS')]"
+        },
+        "subnetAKSRef": {
+            "type": "string",
+            "value": "[variables('subnetAKSRef')]"
+        }
+    }
+}

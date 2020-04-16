@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -13,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Models;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using Serilog;
 
     class ResourceMgmtClient : IDisposable {
@@ -122,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         }
 
         /// <summary>
-        /// Create a deployment.
+        /// Create a deployment in resource group.
         /// </summary>
         /// <param name="resourceGroup"></param>
         /// <param name="deploymentName"></param>
@@ -131,7 +134,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// <param name="deploymentMode"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<DeploymentExtendedInner> CreateDeploymentAsync(
+        public async Task<DeploymentExtendedInner> CreateResourceGroupDeploymentAsync(
             IResourceGroup resourceGroup,
             string deploymentName,
             object template,
@@ -153,7 +156,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
 
             var deploymentDefinition = new DeploymentInner {
-                Location = resourceGroup.RegionName,
                 Properties = new DeploymentProperties {
                     Template = template,
                     Parameters = parameters,
@@ -176,7 +178,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         }
 
         /// <summary>
-        /// Create a deployment.
+        /// Create a deployment in resource group.
         /// </summary>
         /// <param name="resourceGroup"></param>
         /// <param name="deploymentName"></param>
@@ -185,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// <param name="deploymentMode"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<DeploymentExtendedInner> CreateDeploymentAsync(
+        public async Task<DeploymentExtendedInner> CreateResourceGroupDeploymentAsync(
             IResourceGroup resourceGroup,
             string deploymentName,
             string templateJson,
@@ -203,7 +205,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             var template = JsonConvert.DeserializeObject(templateJson);
             var parameters = JsonConvert.DeserializeObject(parametersJson);
 
-            var deployment = await CreateDeploymentAsync(
+            var deployment = await CreateResourceGroupDeploymentAsync(
                 resourceGroup,
                 deploymentName,
                 template,
@@ -213,6 +215,108 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             );
 
             return deployment;
+        }
+
+        /// <summary>
+        /// Create a deployment in resource group.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="deploymentName"></param>
+        /// <param name="templateJson"></param>
+        /// <param name="parameters"></param>
+        /// <param name="deploymentMode"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<DeploymentExtendedInner> CreateResourceGroupDeploymentAsync(
+            IResourceGroup resourceGroup,
+            string deploymentName,
+            string templateJson,
+            IDictionary<string, string> parameters,
+            DeploymentMode deploymentMode,
+            CancellationToken cancellationToken = default
+        ) {
+            if (parameters is null) {
+                throw new ArgumentNullException(nameof(parameters));
+            }
+
+            var parametersJson = ToParametersJson(parameters);
+
+            var deployment = await CreateResourceGroupDeploymentAsync(
+                resourceGroup,
+                deploymentName,
+                templateJson,
+                parametersJson,
+                deploymentMode,
+                cancellationToken
+            );
+
+            return deployment;
+        }
+
+        /// <summary>
+        /// Transform key-value pair dictionary to formatted JSON that is expected by ARM.
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        protected static string ToParametersJson(IDictionary<string, string> parameters) {
+            // Transform {"key1": "value1"} entry to the following format:
+            //  {
+            //      "key1" {
+            //          "value": "value1"
+            //      },
+            //      ...
+            //  }
+            const string valueKey = "value";
+
+            var parametersTransformed = new Dictionary<string, Dictionary<string, string>>();
+            foreach (var keyValuePair in parameters) {
+                var valueTransformed = new Dictionary<string, string> {
+                    { valueKey, keyValuePair.Value }
+                };
+                parametersTransformed.Add(keyValuePair.Key, valueTransformed);
+            }
+
+            var parametersJson = JsonConvert.SerializeObject(parametersTransformed);
+
+            return parametersJson;
+        }
+
+        /// <summary>
+        /// Extract deployment output into dictionary.
+        /// </summary>
+        /// <param name="deployment"></param>
+        /// <returns></returns>
+        public static IDictionary<string, string> ExtractDeploymentOutput(
+            DeploymentExtendedInner deployment
+        ) {
+            const string valueKey = "value";
+
+            var output = new Dictionary<string, string>();
+
+            if (deployment.Properties.Outputs is null) {
+                return output;
+            }
+
+            if (!(deployment.Properties.Outputs is JObject)) {
+                throw new ArgumentException("deployment.Properties.Outputs is not of type Newtonsoft.Json.Linq.JObject");
+            }
+
+            var deploymentOutput = (JObject) deployment.Properties.Outputs;
+            foreach(var keyValuePair in deploymentOutput) {
+                var key = keyValuePair.Key;
+
+                var valueJToket = keyValuePair.Value[valueKey];
+
+                if (valueJToket is null) {
+                    throw new NullReferenceException($"value object for '{key}' key does not contain '{valueKey}' key");
+                }
+
+                var value = valueJToket.ToString();
+
+                output.Add(key, value);
+            }
+
+            return output;
         }
 
         public void Dispose() {

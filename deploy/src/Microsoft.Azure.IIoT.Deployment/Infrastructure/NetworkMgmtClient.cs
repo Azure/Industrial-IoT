@@ -57,6 +57,29 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return iotServicesPrefix + "-public-ip";
         }
 
+        /// <summary>
+        /// Get network security group by its name.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="networkSecurityGroupName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<NetworkSecurityGroupInner> GetNetworkSecurityGroupAsync(
+            IResourceGroup resourceGroup,
+            string networkSecurityGroupName,
+            CancellationToken cancellationToken = default
+        ) {
+            var networkSecurityGroup = await _networkManagementClient
+                .NetworkSecurityGroups
+                .GetAsync(
+                    resourceGroup.Name,
+                    networkSecurityGroupName,
+                    cancellationToken: cancellationToken
+                );
+
+            return networkSecurityGroup;
+        }
+
         public async Task<NetworkSecurityGroupInner> CreateNetworkSecurityGroupAsync(
             IResourceGroup resourceGroup,
             string networkSecurityGroupName,
@@ -115,7 +138,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                             SourceAddressPrefix = "*",
                             DestinationAddressPrefix = "*",
                             Access = SecurityRuleAccess.Deny,
-                            Priority = 103,
+                            Priority = 110,
                             Direction = SecurityRuleDirection.Inbound
                         }
                     }
@@ -177,6 +200,29 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 );
 
             return routeTable;
+        }
+
+        /// <summary>
+        /// Get virtual network by its name.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="virtualNetworkName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<VirtualNetworkInner> GetVirtualNetworkAsync(
+            IResourceGroup resourceGroup,
+            string virtualNetworkName,
+            CancellationToken cancellationToken = default
+        ) {
+            var virtualNetwork = await _networkManagementClient
+                .VirtualNetworks
+                .GetAsync(
+                    resourceGroup.Name,
+                    virtualNetworkName,
+                    cancellationToken: cancellationToken
+                );
+
+            return virtualNetwork;
         }
 
         public async Task<VirtualNetworkInner> CreateVirtualNetworkAsync(
