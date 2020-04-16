@@ -1,4 +1,8 @@
-﻿
+﻿/*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*/
+
 .spinning {
     animation: spin 1s infinite linear;
     -webkit-animation: spin2 1s infinite linear;

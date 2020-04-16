@@ -1,4 +1,9 @@
-﻿@page "/endpoints"
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@page "/endpoints"
 @page "/endpoints/{discovererId}/{applicationId}/{supervisorId}"
 
 @using Microsoft.AspNetCore.Components;
@@ -32,6 +37,7 @@
             <th>Security Level</th>
             <th>Endpoint State</th>
             <th>Activation Status</th>
+            <th> </th>
             <th>
                 @if ((DiscovererId != null) && (DiscovererId != @RegistryHelper.PathAll))
                 {
@@ -87,11 +93,15 @@
                         @endpoint.EndpointModel.ActivationState.ToString()
                     }
                 </td>
+                <td>
+                    <a class="ellipsis-space" href='publishedNodes/@endpoint.EndpointModel.Registration.Id'>Published Nodes</a>
+                </td>
                 <td></td>
             </tr>
         }
     </tbody>
 </table>
+<div class="@_tableEmpty center">No Endpoints found.</div>
 
 <ErrorMessage PageError="@_pagedendpointList.Error" Status="@Status"></ErrorMessage>
 
@@ -118,7 +128,8 @@
         new PagedResult<EndpointInfo>();
     private PagedResult<EndpointInfo> _pagedendpointList =
         new PagedResult<EndpointInfo>();
-    private string _tableView { get; set; } = "visible";
+    private string _tableView = "visible";
+    private string _tableEmpty = "displayNone";
     private IAsyncDisposable _endpointEvents { get; set; }
 
     /// <summary>
@@ -158,10 +169,7 @@
             Page = "1";
             _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
             CommonHelper.Spinner = string.Empty;
-            if (_pagedendpointList.Error != null)
-            {
-                _tableView = "hidden";
-            }
+            CommonHelper.CheckErrorOrEmpty<EndpointInfo>(_pagedendpointList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
 
             _endpointEvents = await RegistryServiceEvents.SubscribeEndpointEventsAsync(

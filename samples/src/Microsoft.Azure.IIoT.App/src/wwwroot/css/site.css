@@ -1,3 +1,8 @@
+/*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*/
+
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
 html, body {
@@ -153,6 +158,18 @@ app {
     visibility: hidden;
 }
 
+.displayNone {
+    display: none;
+}
+
+.displayBlock {
+    display: block;
+}
+
+.displayFlex {
+    display: flex;
+}
+
 .events {
     max-height: 300px;
     overflow-y: auto;
@@ -172,7 +189,7 @@ app {
     width: 60%;
 }
 
-.error {
+.center {
     text-align:center;
 }
 
