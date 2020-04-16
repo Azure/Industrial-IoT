@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.App.Common;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Storage;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Serializers;
@@ -234,7 +235,9 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<SignOutHandler>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DistributedTokenCache>()
+            builder.RegisterType<DistributedProtectedCache>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AdalTokenCache>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register twin, vault, and registry services clients

@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Cdm.Runtime {
+namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Runtime {
+    using Microsoft.Azure.IIoT.OpcUa.Cdm;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
 

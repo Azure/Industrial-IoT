@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
+    using Microsoft.Azure.IIoT.AspNetCore.Storage;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Auth.Runtime;
@@ -27,7 +28,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<DistributedTokenCache>()
+            builder.RegisterType<DistributedProtectedCache>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AdalTokenCache>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DefaultTokenProvider>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope()

@@ -4,20 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm {
+    using System.Collections.Generic;
 
     /// <summary>
-    /// configuration for the CDM folder
+    /// Record encoder
     /// </summary>
-    public interface ICdmFolderConfig {
+    public interface IRecordEncoder {
 
         /// <summary>
-        /// Blob container name used by the CDM storage
+        /// Encode each line in the table
         /// </summary>
-        string StorageDrive { get; }
-
-        /// <summary>
-        /// CDM root folder within CDM blob container
-        /// </summary>
-        string StorageFolder { get; }
+        /// <param name="data"></param>
+        /// <param name="separator"></param>
+        /// <param name="addHeader"></param>
+        /// <returns></returns>
+        byte[] Encode<T>(List<T> data, string separator,
+            bool addHeader = false);
     }
 }

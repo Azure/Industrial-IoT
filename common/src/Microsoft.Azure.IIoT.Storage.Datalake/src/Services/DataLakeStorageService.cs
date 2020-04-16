@@ -14,32 +14,36 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Datalake storage service
     /// </summary>
     public class DataLakeStorageService : IFileStorage {
 
+        /// <inheritdoc/>
+        public Uri Endpoint { get; }
+
         /// <summary>
-        /// CDM Azure Data lake storage handler
+        /// Azure Data lake storage service
         /// </summary>
         /// <param name="config"></param>
         /// <param name="provider"></param>
         public DataLakeStorageService(IDatalakeConfig config, ITokenProvider provider = null) {
 
             // Get token source for storage
-            var endpoint = new Uri($"https://{config.AccountName}.{config.EndpointSuffix}");
+            Endpoint = new Uri($"https://{config.AccountName}.{config.EndpointSuffix}");
             if (provider?.Supports(Http.Resource.Storage) != true) {
                 if (string.IsNullOrEmpty(config.AccountKey)) {
                     throw new InvalidConfigurationException(
                         "Missing shared access key or service principal " +
                         "configuration to access storage account.");
                 }
-                _client = new DataLakeServiceClient(endpoint,
+                _client = new DataLakeServiceClient(Endpoint,
                     new StorageSharedKeyCredential(config.AccountName, config.AccountKey));
             }
             else {
-                _client = new DataLakeServiceClient(endpoint,
+                _client = new DataLakeServiceClient(Endpoint,
                     new FileSystemTokenProvider(provider));
             }
         }
@@ -72,6 +76,12 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             }
 
             /// <inheritdoc/>
+            public virtual async Task<DateTimeOffset> GetLastModifiedAsync(
+                CancellationToken ct) {
+                return (await GetPropertiesAsync(ct)).LastModified;
+            }
+
+            /// <inheritdoc/>
             public async Task<IFile> CreateOrOpenFileAsync(string fileName,
                 CancellationToken ct) {
                 var file = _filesystem.GetFileClient(fileName);
@@ -84,7 +94,41 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
                 CancellationToken ct) {
                 var folder = _filesystem.GetDirectoryClient(folderName);
                 await folder.CreateIfNotExistsAsync(cancellationToken: ct);
-                return new FileSystemFolder(folder);
+                return new FileSystemFolder(_filesystem, "/", folder);
+            }
+
+            /// <inheritdoc />
+            public async Task<IEnumerable<string>> GetAllFilesAsync(CancellationToken ct) {
+                var results = new List<string>();
+                await foreach (var item in _filesystem.GetPathsAsync(cancellationToken: ct)) {
+                    if (item.IsDirectory ?? false) {
+                        continue;
+                    }
+                    results.Add(item.Name);
+                }
+                return results;
+            }
+
+
+            /// <inheritdoc />
+            public async Task<IEnumerable<string>> GetAllSubFoldersAsync(CancellationToken ct) {
+                var results = new List<string>();
+                await foreach (var item in _filesystem.GetPathsAsync(cancellationToken: ct)) {
+                    if (item.IsDirectory ?? false) {
+                        results.Add(item.Name);
+                    }
+                }
+                return results;
+            }
+
+            /// <summary>
+            /// Content length retreiver
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            private async Task<FileSystemProperties> GetPropertiesAsync(CancellationToken ct) {
+                var properties = await _filesystem.GetPropertiesAsync(cancellationToken: ct);
+                return properties.Value;
             }
 
             private readonly DataLakeFileSystemClient _filesystem;
@@ -98,6 +142,8 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// <inheritdoc/>
             public string Name => _file.Name;
 
+            public DateTimeOffset LastModified { get; }
+
             /// <summary>
             /// Create file
             /// </summary>
@@ -109,6 +155,12 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// <inheritdoc/>
             public virtual async Task<long> GetSizeAsync(CancellationToken ct) {
                 return (await GetPropertiesAsync(ct)).ContentLength;
+            }
+
+            /// <inheritdoc/>
+            public virtual async Task<DateTimeOffset> GetLastModifiedAsync(
+                CancellationToken ct) {
+                return (await GetPropertiesAsync(ct)).LastModified;
             }
 
             /// <inheritdoc/>
@@ -160,9 +212,20 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// <summary>
             /// Create file
             /// </summary>
+            /// <param name="filesystem"></param>
+            /// <param name="parentPath"></param>
             /// <param name="folder"></param>
-            public FileSystemFolder(DataLakeDirectoryClient folder) {
+            public FileSystemFolder(DataLakeFileSystemClient filesystem,
+                string parentPath, DataLakeDirectoryClient folder) {
+                _filesystem = filesystem;
+                _parentPath = parentPath;
                 _folder = folder;
+            }
+
+            /// <inheritdoc/>
+            public virtual async Task<DateTimeOffset> GetLastModifiedAsync(
+                CancellationToken ct) {
+                return (await GetPropertiesAsync(ct)).LastModified;
             }
 
             /// <inheritdoc/>
@@ -178,9 +241,50 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
                 string folderName, CancellationToken ct) {
                 var folder = _folder.GetSubDirectoryClient(folderName);
                 await folder.CreateIfNotExistsAsync(cancellationToken: ct);
-                return new FileSystemFolder(folder);
+                return new FileSystemFolder(_filesystem, _parentPath + "/" + Name, folder);
             }
 
+            /// <inheritdoc />
+            public async Task<IEnumerable<string>> GetAllFilesAsync(CancellationToken ct) {
+                var results = new List<string>();
+                var path = _parentPath + "/" + Name;
+                await foreach (var item in _filesystem.GetPathsAsync(path, cancellationToken: ct)) {
+                    if (item.IsDirectory ?? false) {
+                        continue;
+                    }
+                    if (item.Name.StartsWith(path, StringComparison.InvariantCultureIgnoreCase)) {
+                        results.Add(item.Name.Substring(path.Length + 1));
+                    }
+                }
+                return results;
+            }
+
+            /// <inheritdoc />
+            public async Task<IEnumerable<string>> GetAllSubFoldersAsync(CancellationToken ct) {
+                var results = new List<string>();
+                var path = _parentPath + "/" + Name;
+                await foreach (var item in _filesystem.GetPathsAsync(path, cancellationToken: ct)) {
+                    if (item.IsDirectory ?? false) {
+                        if (item.Name.StartsWith(path, StringComparison.InvariantCultureIgnoreCase)) {
+                            results.Add(item.Name.Substring(path.Length + 1));
+                        }
+                    }
+                }
+                return results;
+            }
+
+            /// <summary>
+            /// Content length retreiver
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            private async Task<PathProperties> GetPropertiesAsync(CancellationToken ct) {
+                var properties = await _folder.GetPropertiesAsync(cancellationToken: ct);
+                return properties.Value;
+            }
+
+            private readonly DataLakeFileSystemClient _filesystem;
+            private readonly string _parentPath;
             private readonly DataLakeDirectoryClient _folder;
         }
 

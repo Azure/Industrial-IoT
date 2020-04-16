@@ -6,11 +6,17 @@
 namespace Microsoft.Azure.IIoT.Storage {
     using System.Threading;
     using System.Threading.Tasks;
+    using System;
 
     /// <summary>
     /// File Storage
     /// </summary>
     public interface IFileStorage {
+
+        /// <summary>
+        /// Get the endpoint at which to access storage.
+        /// </summary>
+        Uri Endpoint { get; }
 
         /// <summary>
         /// Open drive with files and folders

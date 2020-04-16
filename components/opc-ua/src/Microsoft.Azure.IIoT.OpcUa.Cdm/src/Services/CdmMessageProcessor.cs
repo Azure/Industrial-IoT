@@ -4,18 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Cdm;
-    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.OpcUa.Cdm;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Storage.Datalake;
+    using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.CommonDataModel.ObjectModel.Cdm;
     using Microsoft.CommonDataModel.ObjectModel.Enums;
     using Microsoft.CommonDataModel.ObjectModel.Storage;
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
-    using Microsoft.CommonDataModel.ObjectModel.Utilities.Network;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -34,18 +31,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         /// <summary>
         /// Create the cdm message processor
         /// </summary>
-        /// <param name="config"></param>
-        /// <param name="location"></param>
-        /// <param name="tokenProvider"></param>
+        /// <param name="storage"></param>
+        /// <param name="encoder"></param>
         /// <param name="logger"></param>
-        /// <param name="tableWriter"></param>
-        public CdmMessageProcessor(IDatalakeConfig config, ICdmFolderConfig location,
-            IDataTableWriter tableWriter, ITokenProvider tokenProvider, ILogger logger) {
-
+        public CdmMessageProcessor(IStorageAdapter storage, IRecordEncoder encoder,
+            ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _location = location ?? throw new ArgumentNullException(nameof(location));
-            _tableWriter = tableWriter ?? throw new ArgumentNullException(nameof(tableWriter));
-
+            _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
             _lock = new SemaphoreSlim(1, 1);
             _samplesCacheSize = 0;
             _cacheUploadTimer = new Timer(CacheTimer_ElapsedAsync);
@@ -54,7 +47,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             _samplesCache = new Dictionary<string, List<MonitoredItemMessageModel>>();
             _dataSetsCache = new Dictionary<string, List<DataSetMessageModel>>();
             _cdmCorpus = new CdmCorpusDefinition();
-
             var cdmLogger = _logger.ForContext(typeof(CdmStatusLevel));
             _cdmCorpus.SetEventCallback(new EventCallback {
                 Invoke = (level, msg) => {
@@ -74,47 +66,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     }
                 }
             });
-
-            var storageHost = $"{config.AccountName}.{config.EndpointSuffix}";
-            var storageRoot = $"/{location.StorageDrive}/{location.StorageFolder}";
-            if (tokenProvider?.Supports(Http.Resource.Storage) != true) {
-                if (string.IsNullOrEmpty(config.AccountKey)) {
-                    throw new InvalidConfigurationException(
-                        "Missing storage account key or service principal " +
-                        "configuration to access storage account.");
-                }
-                // Use shared access key for storage access
-                _adapter = new ADLSAdapter(storageHost, storageRoot,
-                    config.AccountKey);
-            }
-            else {
-                // Use service principal with bearer token for storage access
-                _adapter = new ADLSAdapter(storageHost, storageRoot,
-                    new TokenProviderAdapter(tokenProvider));
-            }
-            _cdmCorpus.Storage.Mount("adls", _adapter);
+            _cdmCorpus.Storage.Mount("adls", _storage.Adapter);
             var gitAdapter = new GithubAdapter();
             _cdmCorpus.Storage.Mount("cdm", gitAdapter);
             _cdmCorpus.Storage.DefaultNamespace = "adls";
         }
 
-        /// <summary>
-        /// Processes the payload message from the IoTHub for storage
-        /// </summary>
-        /// <param name="payload"></param>
-        /// <param name="properties"></param>
-        /// <param name="partitionKey"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task ProcessAsync<T>(T payload,
             IDictionary<string, string> properties = null,
             string partitionKey = null) {
             await ProcessCdmSampleAsync(payload);
         }
 
-        /// <summary>
-        /// Open and load the cdm repository
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task OpenAsync() {
 
             _logger.Information($"Open CDM Processor ...");
@@ -129,11 +94,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     // unable to retrieve the root folder
                     return;
                 }
-
-                // Ensure underlying folder is present
-                var drive = await _tableWriter.Storage.CreateOrOpenDriveAsync(
-                    _location.StorageDrive);
-                await drive.CreateOrOpenSubFolderAsync(_location.StorageFolder);
 
                 // create a new Manifest definition
                 Manifest = _cdmCorpus.MakeObject<CdmManifestDefinition>(
@@ -151,10 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));
         }
 
-        /// <summary>
-        /// closes the cdm model repository
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task CloseAsync() {
             _logger.Information("Closing CDM Processor ...");
             Try.Op(() => _cacheUploadTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan));
@@ -164,15 +121,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _adapter.Dispose();
             _cacheUploadTimer.Dispose();
             _lock.Dispose();
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Perform write from cache
+        /// </summary>
+        /// <returns></returns>
         private async Task PerformWriteCacheAsync() {
             var sw = Stopwatch.StartNew();
-            var performSave = false;
+            var writeManifest = false;
             _logger.Information("Sending processed CDM data ...");
             try {
                 if (_samplesCacheSize == 0) {
@@ -188,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                         _logger.Error("Samples list is empty ...");
                         continue;
                     }
-                    performSave |= await WriteRecordToPartitionAsync(
+                    writeManifest |= await WriteRecordToPartitionAsync(
                         record.Key, record.Value);
                 }
                 foreach (var record in _dataSetsCache) {
@@ -196,10 +155,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                         _logger.Error("DataSet list is empty ...");
                         continue;
                     }
-                    performSave |= await WriteRecordToPartitionAsync(
+                    writeManifest |= await WriteRecordToPartitionAsync(
                         record.Key, record.Value);
                 }
-                if (performSave) {
+                if (writeManifest) {
                     await Manifest.SaveAsAsync("model.json", true);
                 }
                 _logger.Information("Finished sending CDM data records - duration {elapsed}).",
@@ -223,54 +182,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             sw.Stop();
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Write records
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="partitionKey"></param>
+        /// <param name="record"></param>
+        /// <returns></returns>
         private async Task<bool> WriteRecordToPartitionAsync<T>(string partitionKey, IList<T> record) {
             var retry = false;
-            var result = true;
             bool persist;
             var dataSetRecordList = record as List<DataSetMessageModel>;
             var samplesRecordList = record as List<MonitoredItemMessageModel>;
-            do {
-                var partition = (dataSetRecordList != null)
-                    ? GetOrCreateEntityDataPartition(partitionKey, dataSetRecordList[0], out persist, retry)
-                    : GetOrCreateEntityDataPartition(partitionKey, samplesRecordList[0], out persist, retry);
-                if (partition == null) {
-                    _logger.Error("Failed to create CDM Entity for {key} records).", partitionKey);
-                    continue;
-                }
-                var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
-                var (drive, folder, file) = SplitDatalakeAdapterPath(
-                    _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location));
-                var partitionDelimitor = csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter;
-                result = (dataSetRecordList != null)
-                    ? await _tableWriter.WriteAsync<DataSetMessageModel>(
-                        drive, folder, file, dataSetRecordList, partitionDelimitor)
-                    : await _tableWriter.WriteAsync<MonitoredItemMessageModel>(
-                        drive, folder, file, samplesRecordList, partitionDelimitor);
-                if (result == false && retry == false) {
-                    retry = true;
-                }
-                else {
-                    retry = false;
-                }
-            } while (retry);
-
-            if (result) {
-                _logger.Information("Successfully processed to CDM {count} records.", record.Count);
+            var partition = (dataSetRecordList != null)
+                ? GetOrCreateEntityDataPartition(partitionKey, dataSetRecordList[0], out persist, retry)
+                : GetOrCreateEntityDataPartition(partitionKey, samplesRecordList[0], out persist, retry);
+            if (partition == null) {
+                _logger.Error("Failed to create CDM Entity for {key} records).", partitionKey);
+                return persist;
+            }
+            var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
+            var partitionDelimitor = csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter;
+            if (dataSetRecordList != null) {
+                await _storage.WriteAsync(partition.Location, first =>
+                    _encoder.Encode<DataSetMessageModel>(dataSetRecordList, partitionDelimitor, first));
             }
             else {
-                _logger.Warning("Failed to process CDM data for {record.Key} records.", partitionKey);
+                await _storage.WriteAsync(partition.Location, first =>
+                    _encoder.Encode<MonitoredItemMessageModel>(samplesRecordList, partitionDelimitor, first));
             }
+            _logger.Information("successfully processed {count} records and written as CDM.", record.Count);
             return persist;
-        }
-
-        /// <inheritdoc/>
-        private (string, string, string) SplitDatalakeAdapterPath(string adapterPath) {
-            var pathElements = new Uri(adapterPath).PathAndQuery.Trim('/').Split('/');
-            if (pathElements.Length != 3) {
-                throw new ArgumentException("Adapter path was unexpected");
-            }
-            return (pathElements[0], pathElements[1], pathElements[2]);
         }
 
         /// <inheritdoc/>
@@ -495,7 +437,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 return null;
             }
 
-            // check if the enetity was aleready added
+            // check if the entity was already added
             var entityDefinition = Manifest.Entities.Item(key);
             if (entityDefinition == null) {
                 // add a new entity for the DataSet
@@ -637,35 +579,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         }
 
         /// <summary>
-        /// Token provider adapter
-        /// </summary>
-        private class TokenProviderAdapter : TokenProvider {
-
-            /// <inheritdoc/>
-            public TokenProviderAdapter(ITokenProvider provider) {
-                _provider = provider;
-            }
-
-            /// <inheritdoc/>
-            public string GetToken() {
-                var token = _provider.GetTokenForAsync(Http.Resource.Storage).Result;
-                return token?.RawToken;
-            }
-
-            private readonly ITokenProvider _provider;
-        }
-
-        /// <summary>
         /// Cdm Manifest handler
         /// </summary>
         private CdmManifestDefinition Manifest { get; set; }
 
-        private readonly ADLSAdapter _adapter = null;
-        private readonly IDataTableWriter _tableWriter = null;
-        private readonly CdmCorpusDefinition _cdmCorpus = null;
+        private readonly CdmCorpusDefinition _cdmCorpus;
         private readonly ILogger _logger;
-        private readonly ICdmFolderConfig _location;
-
+        private readonly IRecordEncoder _encoder;
+        private readonly IStorageAdapter _storage;
         private readonly SemaphoreSlim _lock;
         private readonly Timer _cacheUploadTimer;
         private readonly TimeSpan _cacheUploadInterval;

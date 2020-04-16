@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage {
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -33,6 +34,20 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<IFolder> CreateOrOpenSubFolderAsync(string folder,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get all files in folder
+        /// </summary>
+        /// <returns></returns>
+        Task<IEnumerable<string>> GetAllFilesAsync(
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get all subfolders in folder
+        /// </summary>
+        /// <returns></returns>
+        Task<IEnumerable<string>> GetAllSubFoldersAsync(
             CancellationToken ct = default);
     }
 }

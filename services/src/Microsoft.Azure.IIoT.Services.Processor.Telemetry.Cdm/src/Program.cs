@@ -144,11 +144,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
             // Handle the CDM handler
             builder.RegisterType<DatalakeConfig>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<DatalakeConfig>()
-                .AsImplementedInterfaces();
             builder.RegisterType<DataLakeStorageService>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<CsvDataTableWriter>()
+            builder.RegisterType<CdmFileStorageAdapter>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<CsvEncoder>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // handlers for the legacy publisher (disabled)

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage {
+    using System;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
@@ -24,6 +25,14 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="ct"></param>
         /// <returns></returns>
         public Task<long> GetSizeAsync(
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get last modified time
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public Task<DateTimeOffset> GetLastModifiedAsync(
             CancellationToken ct = default);
 
         /// <summary>

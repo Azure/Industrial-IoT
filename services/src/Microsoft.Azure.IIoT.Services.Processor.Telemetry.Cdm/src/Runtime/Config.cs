@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
-    using Microsoft.Azure.IIoT.Cdm;
-    using Microsoft.Azure.IIoT.Cdm.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Cdm;
+    using Microsoft.Azure.IIoT.OpcUa.Cdm.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;

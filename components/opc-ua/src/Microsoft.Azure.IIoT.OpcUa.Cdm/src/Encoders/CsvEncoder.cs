@@ -6,9 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Storage;
-    using Microsoft.Azure.IIoT.Cdm;
     using Serilog;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -17,47 +15,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
     /// <summary>
     /// Writes data tables into files on file storage
     /// </summary>
-    public class CsvDataTableWriter : IDataTableWriter {
+    public class CsvEncoder : IRecordEncoder {
 
         /// <inheritdoc/>
-        public IFileStorage Storage { get; }
-
-        /// <summary>
-        /// CDM Azure Data lake storage handler
-        /// </summary>
-        /// <param name="logger"></param>
-        /// <param name="storage"></param>
-        public CsvDataTableWriter(ILogger logger, IFileStorage storage) {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            Storage = storage ?? throw new ArgumentNullException(nameof(storage));
-        }
-
-        /// <inheritdoc/>
-        public async Task<bool> WriteAsync<T>(string drive, string folder, string partition,
-            List<T> data, string separator) {
-            try {
-                var storage = await Storage.CreateOrOpenDriveAsync(drive);
-                var directory = await storage.CreateOrOpenSubFolderAsync(folder);
-                var file = await directory.CreateOrOpenFileAsync(partition);
-                var size = await file.GetSizeAsync();
-                var content = Encoding.UTF8.GetBytes(BuildCsvData(data, separator, size == 0));
-                await file.WriteAsync(content, content.Length, size);
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Failed to write data in the csv partition");
-                throw ex;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// prepare a csv formated block
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="separator"></param>
-        /// <param name="addHeader"></param>
-        /// <returns></returns>
-        private string BuildCsvData<T>(List<T> data, string separator, bool addHeader = false) {
+        public byte[] Encode<T>(List<T> data, string separator, bool addHeader = false) {
             var sb = new StringBuilder();
             var info = typeof(T).GetProperties();
             if (addHeader) {
@@ -95,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 }
                 sb.Remove(sb.Length - 1, 1);
             }
-            return sb.ToString();
+            return Encoding.UTF8.GetBytes(sb.ToString());
         }
 
         private void AddValueToCsvStringBuilder(object value,
@@ -123,6 +84,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             sb.Append(separator);
         }
 
-        private readonly ILogger _logger;
+        internal const string Type = "adls";
     }
 }
