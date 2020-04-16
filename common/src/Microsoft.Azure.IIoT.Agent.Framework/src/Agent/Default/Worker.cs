@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Prometheus;
 
     /// <summary>
     /// Individual agent worker
@@ -152,6 +153,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
             catch (Exception ex) {
                 _logger.Debug(ex, "Could not send worker heartbeat.");
+                _moduleExceptions.WithLabels(ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace).Inc();
             }
             Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
         }
@@ -190,6 +192,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     // TODO: we should notify the exception 
                     _logger.Error(ex, "Worker: {Id}, exception during worker processing, wait {delay}...",
                         WorkerId, _jobCheckerInterval);
+                    _moduleExceptions.WithLabels(ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace).Inc();
                     await Task.Delay(_jobCheckerInterval, ct);
                 }
             }
@@ -325,6 +328,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
                 catch (Exception ex) {
                     _logger.Error(ex, "Error processing job {job}.", Job.Id);
+                    _moduleExceptions.WithLabels(ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace).Inc();
                     Job.LifetimeData.Status = JobStatus.Error;
                 }
                 finally {
@@ -496,5 +500,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         private JobProcess _jobProcess;
         private Task _worker;
         private CancellationTokenSource _cts;
+        private static readonly Counter _moduleExceptions = Metrics.CreateCounter("iiot_edge_module_exceptions", "module exceptions",
+            new CounterConfiguration {
+                LabelNames = new[] { "source", "type", "message", "stacktrace" }
+            });
     }
 }
