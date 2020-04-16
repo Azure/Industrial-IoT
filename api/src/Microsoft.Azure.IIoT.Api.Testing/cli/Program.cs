@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
         /// Configure Dependency injection
         /// </summary>
         public static IContainer ConfigureContainer(
-            IConfiguration configuration) {
+            IConfiguration configuration, bool useMsgPack) {
             var builder = new ContainerBuilder();
 
             var config = new ApiConfig(configuration);
@@ -62,6 +62,9 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
             // Register logger
             builder.AddDiagnostics(config, addConsole: false);
             builder.RegisterModule<NewtonSoftJsonModule>();
+            if (useMsgPack) {
+                builder.RegisterModule<MessagePackModule>();
+            }
 
             // Register http client module ...
             builder.RegisterModule<HttpClientModule>();
@@ -105,7 +108,8 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
                 .AddFromKeyVault()
                 .Build();
 
-            using (var scope = new Program(config)) {
+            using (var scope = new Program(config,
+                args.Any(arg => arg.EqualsIgnoreCase("--useMsgPack")))) {
                 scope.RunAsync(args).Wait();
             }
         }
@@ -114,8 +118,8 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
         /// <summary>
         /// Configure Dependency injection
         /// </summary>
-        public Program(IConfiguration configuration) {
-            var container = ConfigureContainer(configuration);
+        public Program(IConfiguration configuration, bool useMsgPack) {
+            var container = ConfigureContainer(configuration, useMsgPack);
             _scope = container.BeginLifetimeScope();
             _twin = _scope.Resolve<ITwinServiceApi>();
             _registry = _scope.Resolve<IRegistryServiceApi>();
