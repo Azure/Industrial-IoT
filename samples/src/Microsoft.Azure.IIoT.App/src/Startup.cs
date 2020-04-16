@@ -235,6 +235,8 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<SignOutHandler>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<DefaultTokenProvider>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DistributedProtectedCache>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AdalTokenCache>()
