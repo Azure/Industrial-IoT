@@ -25,6 +25,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string VIRTUAL_NETWORK_ADDRESS_PREFIXES = "10.0.0.0/8";
         public const string VIRTUAL_NETWORK_AKS_SUBNET_NAME = "aks-subnet";
         public const string VIRTUAL_NETWORK_AKS_SUBNET_ADDRESS_PREFIXES = "10.240.0.0/16";
+        public const string VIRTUAL_NETWORK_VM_SUBNET_NAME = "vm-subnet";
+        public const string VIRTUAL_NETWORK_VM_SUBNET_ADDRESS_PREFIXES = "10.241.0.0/16";
 
         private readonly NetworkManagementClient _networkManagementClient;
 
@@ -249,9 +251,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                             }
                     },
                     Subnets = new List<SubnetInner> {
-                            new SubnetInner () {
+                            new SubnetInner {
                                 Name = VIRTUAL_NETWORK_AKS_SUBNET_NAME,
                                 AddressPrefix = VIRTUAL_NETWORK_AKS_SUBNET_ADDRESS_PREFIXES,
+                                NetworkSecurityGroup = new SubResource {
+                                    Id = networkSecurityGroup.Id
+                                }
+                            },
+                            new SubnetInner {
+                                Name = VIRTUAL_NETWORK_VM_SUBNET_NAME,
+                                AddressPrefix = VIRTUAL_NETWORK_VM_SUBNET_ADDRESS_PREFIXES,
                                 NetworkSecurityGroup = new SubResource {
                                     Id = networkSecurityGroup.Id
                                 }

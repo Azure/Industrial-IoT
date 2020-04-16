@@ -101,18 +101,18 @@
                 },
                 "subnets": [
                     {
-                        "name": "[variables('subnetNameVM')]",
+                        "name": "[variables('subnetNameAKS')]",
                         "properties": {
-                            "addressPrefix": "10.241.0.0/16",
+                            "addressPrefix": "10.240.0.0/16",
                             "networkSecurityGroup": {
                                 "id": "[variables('nsgId')]"
                             }
                         }
                     },
                     {
-                        "name": "[variables('subnetNameAKS')]",
+                        "name": "[variables('subnetNameVM')]",
                         "properties": {
-                            "addressPrefix": "10.240.0.0/16",
+                            "addressPrefix": "10.241.0.0/16",
                             "networkSecurityGroup": {
                                 "id": "[variables('nsgId')]"
                             }
