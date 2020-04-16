@@ -42,61 +42,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-            MonitoredItemMessage message;
-            var context = new ServiceMessageContext();
+
             try {
-                using (var stream = new MemoryStream(payload)) {
-                    using (var decoder = new BinaryDecoder(stream, context)) {
-                        var result = decoder.ReadEncodeable(null,
-                            typeof(MonitoredItemMessage)) as MonitoredItemMessage;
-                        message = result;
-                    }
+                var context = new ServiceMessageContext();
+                var decoder = new BinaryDecoder(new MemoryStream(payload), context);
+                var messages = decoder.ReadBoolean(null) // is Batch?
+                    ? decoder.ReadEncodeableArray(null, typeof(MonitoredItemMessage)) 
+                        as MonitoredItemMessage[]
+                     : (decoder.ReadEncodeable(null, typeof(MonitoredItemMessage))
+                        as MonitoredItemMessage).YieldReturn();
+
+                foreach (var message in messages) {
+                    var type = BuiltInType.Null;
+                    var codec = _encoder.Create(context);
+                    var dataset = new DataSetMessageModel {
+                        PublisherId = (message.ExtensionFields != null &&
+                            message.ExtensionFields.TryGetValue("PublisherId", out var publisherId))
+                                ? publisherId : message.ApplicationUri ?? message.EndpointUrl,
+                        MessageId = null,
+                        DataSetClassId = message.NodeId.AsString(null),
+                        DataSetWriterId = (message.ExtensionFields != null &&
+                            message.ExtensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
+                                ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
+                        SequenceNumber = 0,
+                        Status = StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
+                        MetaDataVersion = "1.0",
+                        Timestamp = message.Timestamp,
+                        Payload = new Dictionary<string, DataValueModel>() {
+                            [message.NodeId.AsString(context)] = new DataValueModel {
+                                Value = message?.Value == null
+                                    ? null : codec.Encode(message.Value.WrappedValue, out type),
+                                DataType = type == BuiltInType.Null
+                                    ? null : type.ToString(),
+                                Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
+                                    ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
+                                SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)
+                                    ? null : message?.Value?.SourceTimestamp,
+                                SourcePicoseconds = (message?.Value?.SourcePicoseconds == 0)
+                                    ? null : message?.Value?.SourcePicoseconds,
+                                ServerTimestamp = (message?.Value?.ServerTimestamp == DateTime.MinValue)
+                                    ? null : message?.Value?.ServerTimestamp,
+                                ServerPicoseconds = (message?.Value?.ServerPicoseconds == 0)
+                                    ? null : message?.Value?.ServerPicoseconds,
+                            }
+                        }
+                    };
+                    await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset)));
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to decode message");
-                return;
-            }
-            try {
-                var type = BuiltInType.Null;
-                var codec = _encoder.Create(context);
-                var dataset = new DataSetMessageModel {
-                    PublisherId = (message.ExtensionFields != null &&
-                        message.ExtensionFields.TryGetValue("PublisherId", out var publisherId))
-                            ? publisherId : message.ApplicationUri ?? message.EndpointUrl,
-                    MessageId = null,
-                    DataSetClassId = message.NodeId.AsString(null),
-                    DataSetWriterId = (message.ExtensionFields != null &&
-                        message.ExtensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
-                            ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
-                    SequenceNumber = 0,
-                    Status = StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
-                    MetaDataVersion = "1.0",
-                    Timestamp = message.Timestamp,
-                    Payload = new Dictionary<string, DataValueModel>() {
-                        [message.NodeId.AsString(context)] = new DataValueModel {
-                            Value = message?.Value == null
-                                ? null : codec.Encode(message.Value.WrappedValue, out type),
-                            DataType = type == BuiltInType.Null
-                                ? null : type.ToString(),
-                            Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
-                                ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
-                            SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)
-                                ? null : message?.Value?.SourceTimestamp,
-                            SourcePicoseconds = (message?.Value?.SourcePicoseconds == 0)
-                                ? null : message?.Value?.SourcePicoseconds,
-                            ServerTimestamp = (message?.Value?.ServerTimestamp == DateTime.MinValue)
-                                ? null : message?.Value?.ServerTimestamp,
-                            ServerPicoseconds = (message?.Value?.ServerPicoseconds == 0)
-                                ? null : message?.Value?.ServerPicoseconds,
-                        }
-                    }
-                };
-                await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset)));
-            }
-            catch (Exception ex) {
-                _logger.Error(ex,
-                    "Publishing message {message} failed with exception - skip", message);
+                _logger.Error(ex,"Publishing messages failed - skip");
             }
         }
 

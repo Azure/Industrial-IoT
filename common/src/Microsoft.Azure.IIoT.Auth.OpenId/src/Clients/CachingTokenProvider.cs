@@ -28,6 +28,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <inheritdoc/>
         public override async Task<TokenResultModel> GetTokenForAsync(
             string resource, IEnumerable<string> scopes = null) {
+            if (string.IsNullOrEmpty(resource)) {
+                resource = Http.Resource.Platform;
+            }
             var token = await Try.Async(() => GetTokenFromCacheAsync(resource, scopes));
             if (token == null) {
                 token = await base.GetTokenForAsync(resource, scopes);
@@ -41,6 +44,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
 
         /// <inheritdoc/>
         public override async Task InvalidateAsync(string resource) {
+            if (string.IsNullOrEmpty(resource)) {
+                resource = Http.Resource.Platform;
+            }
             await _cache.RemoveAsync(resource);
             await base.InvalidateAsync(resource);
         }

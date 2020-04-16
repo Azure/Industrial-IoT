@@ -62,6 +62,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public TimeSpan? DiagnosticsInterval { get; set; }
 
         /// <summary>
+        /// The size of the message batching buffer
+        /// </summary>
+        public int? BatchSize { get; set; }
+
+        /// <summary>
+        /// The maximum size of the (IoT D2C ) message
+        /// </summary>
+        public int? MaxMessageSize { get; set; }
+
+        /// <summary>
         /// The time to flush the log file to the disc.
         /// </summary>
         public TimeSpan? LogFileFlushTimeSpan { get; set; }

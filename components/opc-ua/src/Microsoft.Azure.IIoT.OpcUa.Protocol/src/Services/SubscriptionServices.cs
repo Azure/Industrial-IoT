@@ -511,6 +511,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             if (item.TriggerHeartbeat(publishTime)) {
                                 var heartbeatValue = item.Item.LastValue.ToMonitoredItemNotification(item.Item);
                                 heartbeatValue.SequenceNumber = sequenceNumber;
+                                heartbeatValue.IsHeartbeat = true;
                                 heartbeatValue.PublishTime = publishTime;
                                 message.Notifications.Add(heartbeatValue);
                             }

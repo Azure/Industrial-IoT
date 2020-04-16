@@ -76,7 +76,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     SecurityRules = new List<SecurityRuleInner> {
                         new SecurityRuleInner {
                             Name = "UASC",
-
                             Protocol = SecurityRuleProtocol.Tcp,
                             SourcePortRange = "*",
                             DestinationPortRange = "4840",
@@ -88,7 +87,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         },
                         new SecurityRuleInner {
                             Name = "HTTPS",
-
                             Protocol = SecurityRuleProtocol.Tcp,
                             SourcePortRange = "*",
                             DestinationPortRange = "443",
@@ -97,18 +95,27 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                             Access = SecurityRuleAccess.Allow,
                             Priority = 101,
                             Direction = SecurityRuleDirection.Inbound
-
+                        },
+                        new SecurityRuleInner {
+                            Name = "HTTP",
+                            Protocol = SecurityRuleProtocol.Tcp,
+                            SourcePortRange = "*",
+                            DestinationPortRange = "80",
+                            SourceAddressPrefix = "*",
+                            DestinationAddressPrefix = "*",
+                            Access = SecurityRuleAccess.Allow,
+                            Priority = 102,
+                            Direction = SecurityRuleDirection.Inbound
                         },
                         new SecurityRuleInner {
                             Name = "SSH",
-
                             Protocol = SecurityRuleProtocol.Tcp,
                             SourcePortRange = "*",
                             DestinationPortRange = "22",
                             SourceAddressPrefix = "*",
                             DestinationAddressPrefix = "*",
                             Access = SecurityRuleAccess.Deny,
-                            Priority = 102,
+                            Priority = 103,
                             Direction = SecurityRuleDirection.Inbound
                         }
                     }

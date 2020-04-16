@@ -114,8 +114,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     SamplingInterval = node.OpcSamplingIntervalTimespan ??
                                         legacyCliModel.DefaultSamplingInterval ?? (TimeSpan?)null,
                                     HeartbeatInterval = node.HeartbeatInterval == null ? (TimeSpan?)null :
-                                        TimeSpan.FromSeconds(node.HeartbeatInterval.Value)
-                                    // TODO: skip first? 
+                                        TimeSpan.FromSeconds(node.HeartbeatInterval.Value),
+                                    // Force the queue size to 2 so that we avoid data 
+                                    // loss in case publishing interval and sampling interval are equal
+                                    QueueSize = 2
+                                        // TODO: skip first? 
                                     // SkipFirst = opcNode.SkipFirst,
 
                                 })
@@ -128,9 +131,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         MessagingMode = legacyCliModel.MessagingMode,
                         Engine = _config == null ? null : new EngineConfigurationModel {
                             BatchSize = _config.BatchSize,
-                            DiagnosticsInterval = _config.DiagnosticsInterval
+                            DiagnosticsInterval = _config.DiagnosticsInterval,
+                            MaxMessageSize = _config.MaxMessageSize
                         },
                         WriterGroup = new WriterGroupModel {
+                            MessageType = MessageEncoding.Json,
                             WriterGroupId = _identity.DeviceId + "_"+ _identity.ModuleId,
                             DataSetWriters = new List<DataSetWriterModel> {
                                 new DataSetWriterModel {
@@ -151,7 +156,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         DataSetMessageContentMask =
                                             (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Timestamp : 0) |
                                             DataSetContentMask.MetaDataVersion |
-                                            DataSetContentMask.Status |
+                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Status : 0) |
                                             DataSetContentMask.DataSetWriterId |
                                             DataSetContentMask.MajorVersion |
                                             DataSetContentMask.MinorVersion |

@@ -406,7 +406,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new EngineConfigurationApiModel {
                 BatchSize = model.BatchSize,
-                DiagnosticsInterval = model.DiagnosticsInterval
+                DiagnosticsInterval = model.DiagnosticsInterval,
+                MaxMessageSize = model.MaxMessageSize
             };
         }
 
@@ -420,6 +421,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new EngineConfigurationModel {
                 BatchSize = model.BatchSize,
+                MaxMessageSize = model.MaxMessageSize,
                 DiagnosticsInterval = model.DiagnosticsInterval
             };
         }

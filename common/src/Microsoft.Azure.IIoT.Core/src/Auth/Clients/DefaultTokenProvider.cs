@@ -30,6 +30,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <inheritdoc/>
         public virtual async Task<TokenResultModel> GetTokenForAsync(
             string resource, IEnumerable<string> scopes = null) {
+            if (string.IsNullOrEmpty(resource)) {
+                resource = Http.Resource.Platform;
+            }
             foreach (var source in _tokenSources.Where(p => p.Resource == resource)) {
                 var token = await source.GetTokenAsync(scopes);
                 if (token != null) {
@@ -41,6 +44,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
 
         /// <inheritdoc/>
         public virtual async Task InvalidateAsync(string resource) {
+            if (string.IsNullOrEmpty(resource)) {
+                resource = Http.Resource.Platform;
+            }
             await Task.WhenAll(_tokenSources
                 .Where(p => p.Resource == resource)
                 .Select(p => p.InvalidateAsync()));

@@ -23,7 +23,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 BatchSize = model.Engine?.BatchSize,
                 PublisherId = publisherId,
                 DiagnosticsInterval = model.Engine?.DiagnosticsInterval,
-                WriterGroup = model.WriterGroup
+                WriterGroup = model.WriterGroup,
+                MaxMessageSize = model.Engine?.MaxMessageSize
             };
         }
     }

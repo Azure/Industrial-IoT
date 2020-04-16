@@ -66,20 +66,11 @@ spec:
         resources:
 {{ toYaml .Values.deployment.microServices.telemetryProcessor.resources | indent 10 }}
 {{- end }}
-        env:
-{{- /* env  section will be populated by environment variables specified in env.txt file */}}
-{{- $envSecretName := include "azure-industrial-iot.env.fullname" . }}
-{{- range .Files.Lines "env.txt" }}
-{{- $keyName := trim . }}
-{{- if $keyName }}
-        - name: {{ $keyName }}
-          valueFrom:
-            secretKeyRef:
-              name: {{ $envSecretName }}
-              key: {{ $keyName }}
-{{- end }}
-{{- end }}
+        envFrom:
+        - secretRef:
+            name: {{ include "azure-industrial-iot.env.fullname" . }}
 {{- if .Values.deployment.microServices.telemetryProcessor.extraEnv }}
+        env:
 {{ toYaml .Values.deployment.microServices.telemetryProcessor.extraEnv | indent 8 }}
 {{- end }}
 {{- end }}

@@ -225,6 +225,10 @@ ellipsis-space {
     height: 48px;
 }
 
+.tsi_link {
+    margin-right: 1.5rem;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;

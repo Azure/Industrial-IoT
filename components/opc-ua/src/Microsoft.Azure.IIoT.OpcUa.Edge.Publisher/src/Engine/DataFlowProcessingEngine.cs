@@ -51,8 +51,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     (int)engineConfiguration.DiagnosticsInterval.Value.TotalMilliseconds);
             }
 
-            if (engineConfiguration.BatchSize.HasValue && engineConfiguration.BatchSize.Value > 1) {
-                _bufferSize = engineConfiguration.BatchSize.Value;
+            if (engineConfiguration.BatchSize.HasValue && 
+                engineConfiguration.BatchSize.Value > 1) {
+                _dataSetMessageBufferSize = engineConfiguration.BatchSize.Value;
+            }
+            if (engineConfiguration.MaxMessageSize.HasValue &&
+                engineConfiguration.MaxMessageSize.Value > 0) {
+                _maxEncodedMessageSize = engineConfiguration.MaxMessageSize.Value;
             }
         }
 
@@ -80,13 +85,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 IsRunning = true;
 
-                _encodingBlock = new TransformManyBlock<DataSetMessageModel, NetworkMessageModel>(
-                    async input => await _messageEncoder.EncodeAsync(input),
+                _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
+                    async input =>
+                        (_dataSetMessageBufferSize == 1)
+                            ? await _messageEncoder.EncodeAsync(input)
+                            : await _messageEncoder.EncodeBatchAsync(input, _maxEncodedMessageSize),
                     new ExecutionDataflowBlockOptions {
                         CancellationToken = cancellationToken
                     });
 
-                _batchBlock = new BatchBlock<NetworkMessageModel>(_bufferSize,
+                _batchDataSetMessageBlock = new BatchBlock<DataSetMessageModel>(
+                    _dataSetMessageBufferSize,
+                    new GroupingDataflowBlockOptions {
+                        CancellationToken = cancellationToken
+                    });
+
+                _batchNetworkMessageBlock = new BatchBlock<NetworkMessageModel>(
+                    _networkMessageBufferSize,
                     new GroupingDataflowBlockOptions {
                         CancellationToken = cancellationToken
                     });
@@ -96,9 +111,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     new ExecutionDataflowBlockOptions {
                         CancellationToken = cancellationToken
                     });
-
-                _encodingBlock.LinkTo(_batchBlock);
-                _batchBlock.LinkTo(_sinkBlock);
+                _batchDataSetMessageBlock.LinkTo(_encodingBlock);
+                _encodingBlock.LinkTo(_batchNetworkMessageBlock);
+                _batchNetworkMessageBlock.LinkTo(_sinkBlock);
 
                 await _messageTrigger.RunAsync(cancellationToken);
 
@@ -127,7 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             sb.AppendLine($"   # Messages Sent to IoT Hub: {_messageSink.SentMessagesCount}");
             sb.AppendLine($"   # Number of connection retries since last error: {_messageTrigger.NumberOfConnectionRetries}");
             sb.AppendLine($"   # EncodingBlock input/output count: {_encodingBlock?.InputCount}/{_encodingBlock?.OutputCount}");
-            sb.AppendLine($"   # BatchBlock output count: {_batchBlock?.OutputCount}");
+            sb.AppendLine($"   # DataSetMessageBatchBlock output count: {_batchDataSetMessageBlock?.OutputCount}");
             sb.AppendLine($"   # SinkBlock input count: {_sinkBlock?.InputCount}");
             sb.AppendLine("   =======================");
             _logger.Information(sb.ToString());
@@ -140,18 +155,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="sender"></param>
         /// <param name="args"></param>
         private void MessageTriggerMessageReceived(object sender, DataSetMessageModel args) {
-            _encodingBlock.Post(args);
+            _batchDataSetMessageBlock.Post(args);
         }
 
-        private readonly int _bufferSize = 1;
+        private readonly int _dataSetMessageBufferSize = 1;
+        private readonly int _networkMessageBufferSize = 1;
+        private readonly int _maxEncodedMessageSize = 256 * 1024;
         private readonly Timer _diagnosticsOutputTimer;
         private readonly IMessageSink _messageSink;
         private readonly IMessageEncoder _messageEncoder;
         private readonly IMessageTrigger _messageTrigger;
         private readonly ILogger _logger;
 
-        private BatchBlock<NetworkMessageModel> _batchBlock;
-        private TransformManyBlock<DataSetMessageModel, NetworkMessageModel> _encodingBlock;
+        private BatchBlock<DataSetMessageModel> _batchDataSetMessageBlock;
+        private BatchBlock<NetworkMessageModel> _batchNetworkMessageBlock;
+        private TransformManyBlock<DataSetMessageModel[], NetworkMessageModel> _encodingBlock;
         private ActionBlock<NetworkMessageModel[]> _sinkBlock;
     }
 }
