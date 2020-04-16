@@ -20,5 +20,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         /// Diagnostics interval
         /// </summary>
         TimeSpan? DiagnosticsInterval { get; }
+
+        /// <summary>
+        /// Maximum mesage size for the encoded messages 
+        /// typically the IoT Hub's mas D2C message size
+        /// </summary>
+        int? MaxMessageSize { get; }
     }
 }

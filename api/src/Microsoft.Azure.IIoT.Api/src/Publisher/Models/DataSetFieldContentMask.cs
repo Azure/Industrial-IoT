@@ -81,9 +81,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         SubscriptionId = 0x100000,
 
         /// <summary>
-        /// Extra fields included
+        /// Extension fields included
         /// </summary>
         [EnumMember]
-        ExtraFields = 0x200000
+        ExtensionFields = 0x200000
     }
 }

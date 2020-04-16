@@ -1695,9 +1695,14 @@ namespace Opc.Ua.Encoders {
             if (_reader == null) {
                 return null;
             }
+            if (_reader.TokenType == JsonToken.EndObject && 
+                string.IsNullOrEmpty(_reader.Path)) {
+                return null;
+            }
             if (_reader is JsonLoader loader) {
                 loader.Reset();
             }
+
             var root = JToken.ReadFrom(_reader,
                 new JsonLoadSettings {
                     CommentHandling = CommentHandling.Ignore,
