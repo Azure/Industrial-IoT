@@ -36,12 +36,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         /// </summary>
         /// <param name="config"></param>
         /// <param name="location"></param>
-        /// <param name="tokenSources"></param>
+        /// <param name="tokenProvider"></param>
         /// <param name="logger"></param>
         /// <param name="tableWriter"></param>
         public CdmMessageProcessor(IDatalakeConfig config, ICdmFolderConfig location,
-            IDataTableWriter tableWriter, IEnumerable<ITokenSource> tokenSources,
-            ILogger logger) {
+            IDataTableWriter tableWriter, ITokenProvider tokenProvider, ILogger logger) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _location = location ?? throw new ArgumentNullException(nameof(location));
@@ -78,9 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
             var storageHost = $"{config.AccountName}.{config.EndpointSuffix}";
             var storageRoot = $"/{location.StorageDrive}/{location.StorageFolder}";
-            var tokenSource = tokenSources?
-                .FirstOrDefault(s => s.IsEnabled && s.Resource == Http.Resource.Storage);
-            if (tokenSource == null) {
+            if (tokenProvider?.Supports(Http.Resource.Storage) != true) {
                 if (string.IsNullOrEmpty(config.AccountKey)) {
                     throw new InvalidConfigurationException(
                         "Missing storage account key or service principal " +
@@ -93,7 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             else {
                 // Use service principal with bearer token for storage access
                 _adapter = new ADLSAdapter(storageHost, storageRoot,
-                    new TokenProviderAdapter(tokenSource));
+                    new TokenProviderAdapter(tokenProvider));
             }
             _cdmCorpus.Storage.Mount("adls", _adapter);
             var gitAdapter = new GithubAdapter();
@@ -645,17 +642,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private class TokenProviderAdapter : TokenProvider {
 
             /// <inheritdoc/>
-            public TokenProviderAdapter(ITokenSource tokenSource) {
-                _tokenSource = tokenSource;
+            public TokenProviderAdapter(ITokenProvider provider) {
+                _provider = provider;
             }
 
             /// <inheritdoc/>
             public string GetToken() {
-                var token = _tokenSource.GetTokenAsync().Result;
+                var token = _provider.GetTokenForAsync(Http.Resource.Storage).Result;
                 return token?.RawToken;
             }
 
-            private readonly ITokenSource _tokenSource;
+            private readonly ITokenProvider _provider;
         }
 
         /// <summary>

@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
     using System.Linq;
     using System.Net.Http;
     using System.Threading;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Bearer authentication handler
@@ -22,12 +21,9 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
         /// <summary>
         /// Create bearer auth handler
         /// </summary>
-        /// <param name="providers"></param>
-        public HttpBearerAuthentication(IEnumerable<ITokenSource> providers) {
-            _tokens = providers?
-                .Where(p => p.IsEnabled)
-                .ToDictionary(kv => kv.Resource ?? string.Empty, kv => kv)
-                    ?? throw new ArgumentNullException(nameof(providers));
+        /// <param name="provider"></param>
+        public HttpBearerAuthentication(ITokenProvider provider) {
+            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
         /// <summary>
@@ -43,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
             if (headers == null) {
                 throw new ArgumentNullException(nameof(headers));
             }
-            if (resourceId != null) {
+            if (!string.IsNullOrEmpty(resourceId)) {
                 //
                 // TODO: Eventually we also need scopes/desired permissions
                 // for the token, e.g. read, read/write, etc.
@@ -53,12 +49,12 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
                 //
                 var desiredPermissions = Enumerable.Empty<string>();
 
-                if (_tokens.TryGetValue(resourceId, out var source)) {
-                    var result = await source.GetTokenAsync(desiredPermissions);
-                    if (result?.RawToken != null) {
-                        headers.Authorization = new AuthenticationHeaderValue(
-                            "Bearer", result.RawToken);
-                    }
+                var result = await _provider.GetTokenForAsync(resourceId,
+                    desiredPermissions);
+
+                if (result?.RawToken != null) {
+                    headers.Authorization = new AuthenticationHeaderValue(
+                        "Bearer", result.RawToken);
                 }
             }
         }
@@ -78,12 +74,12 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
                 throw new ArgumentNullException(nameof(headers));
             }
             if (statusCode == HttpStatusCode.Unauthorized) {
-                if (resourceId != null && _tokens.TryGetValue(resourceId, out var source)) {
-                    await source.InvalidateAsync();
+                if (!string.IsNullOrEmpty(resourceId)) {
+                    await _provider.InvalidateAsync(resourceId);
                 }
             }
         }
 
-        private readonly Dictionary<string, ITokenSource> _tokens;
+        private readonly ITokenProvider _provider;
     }
 }

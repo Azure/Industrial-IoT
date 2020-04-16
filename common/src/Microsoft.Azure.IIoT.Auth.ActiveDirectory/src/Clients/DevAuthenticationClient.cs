@@ -14,10 +14,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Uses developer tool or Az cache as authentication
     /// </summary>
-    public class LocalDevelopmentProvider : AppAuthenticationBase {
+    public class DevAuthenticationClient : AppAuthenticationBase {
 
         /// <inheritdoc/>
-        public LocalDevelopmentProvider(IClientAuthConfig config, ILogger logger) :
+        public DevAuthenticationClient(IClientAuthConfig config, ILogger logger) :
             base(logger) {
             _config = config?.ClientSchemes?
                 .Where(c => c.Scheme == AuthScheme.Msi || c.Scheme == AuthScheme.Aad)

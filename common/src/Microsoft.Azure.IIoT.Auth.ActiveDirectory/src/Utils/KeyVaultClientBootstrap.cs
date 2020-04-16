@@ -45,14 +45,9 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
 
             // Register keyvaultclient factory
             builder.Register(context => {
-                var tokenSource = context.Resolve<IEnumerable<ITokenSource>>()
-                    .FirstOrDefault(s => s.IsEnabled && s.Resource == Http.Resource.KeyVault);
-
+                var provider = context.Resolve<ITokenProvider>();
                 return new KeyVaultClient(async (_, resource, scope) => {
-                    if (tokenSource == null) {
-                        return null;
-                    }
-                    var token = await tokenSource.GetTokenAsync(
+                    var token = await provider.GetTokenForAsync(Http.Resource.KeyVault,
                         (resource + "/" + scope).YieldReturn());
                     return token?.RawToken;
                 });

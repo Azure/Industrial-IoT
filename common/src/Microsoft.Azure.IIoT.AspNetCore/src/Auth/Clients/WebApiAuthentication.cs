@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Autofac;
+    using Microsoft.Azure.IIoT.Auth;
 
     /// <summary>
     /// Default web service authentication
@@ -21,15 +22,16 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<DistributedTokenCache>()
-                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<DefaultTokenProvider>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope()
+                .IfNotRegistered(typeof(ITokenProvider));
 
             builder.RegisterModule<DefaultServiceAuthProviders>();
 
             // Pass token through is the only provider here
-            builder.RegisterType<PassThroughTokenProvider>()
+            builder.RegisterType<PassThroughBearerToken>()
                 .AsSelf().AsImplementedInterfaces();
-            builder.RegisterType<TokenProviderTokenSource<PassThroughTokenProvider>>()
+            builder.RegisterType<TokenServiceSource<PassThroughBearerToken>>()
                 .AsImplementedInterfaces().SingleInstance();
 
             base.Load(builder);

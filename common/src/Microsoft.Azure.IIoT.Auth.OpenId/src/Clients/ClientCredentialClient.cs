@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Authenticate using client credentials
     /// </summary>
-    public sealed class ClientCredentialProvider : ITokenProvider {
+    public sealed class ClientCredentialClient : ITokenClient {
 
         /// <summary>
         /// Http client factory
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public ClientCredentialProvider(IClientAuthConfig config, ILogger logger) {
+        public ClientCredentialClient(IClientAuthConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             Http = new HttpClientFactory(logger.ForContext<HttpClientFactory>());
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                             response.Error, resource, config.GetName());
                         return null;
                     }
-                    var result = JwtSecurityTokenEx.Parse(response?.AccessToken);
+                    var result = JwtSecurityTokenEx.Parse(response.AccessToken);
                     _logger.Information(
                         "Successfully acquired token for {resource} with {config}.",
                         resource, config.GetName());

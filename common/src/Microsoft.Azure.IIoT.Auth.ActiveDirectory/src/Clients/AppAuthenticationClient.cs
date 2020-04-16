@@ -11,10 +11,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     using System.Linq;
 
     /// <inheritdoc/>
-    public class AppAuthenticationProvider : AppAuthenticationBase {
+    public class AppAuthenticationClient : AppAuthenticationBase {
 
         /// <inheritdoc/>
-        public AppAuthenticationProvider(IClientAuthConfig config, ILogger logger) :
+        public AppAuthenticationClient(IClientAuthConfig config, ILogger logger) :
             base(logger) {
             _config = config?.ClientSchemes?
                 .Where(c => c.Scheme == AuthScheme.Aad)

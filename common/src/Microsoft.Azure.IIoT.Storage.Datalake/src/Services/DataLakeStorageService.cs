@@ -11,9 +11,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
     using global::Azure.Storage.Files.DataLake.Models;
     using global::Azure.Core;
     using System;
-    using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -26,15 +24,12 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
         /// CDM Azure Data lake storage handler
         /// </summary>
         /// <param name="config"></param>
-        /// <param name="tokenSources"></param>
-        public DataLakeStorageService(IDatalakeConfig config,
-            IEnumerable<ITokenSource> tokenSources = null) {
+        /// <param name="provider"></param>
+        public DataLakeStorageService(IDatalakeConfig config, ITokenProvider provider = null) {
 
             // Get token source for storage
             var endpoint = new Uri($"https://{config.AccountName}.{config.EndpointSuffix}");
-            var tokenSource = tokenSources?
-                .FirstOrDefault(t => t.IsEnabled && t.Resource == Http.Resource.Storage);
-            if (tokenSource == null) {
+            if (provider?.Supports(Http.Resource.Storage) != true) {
                 if (string.IsNullOrEmpty(config.AccountKey)) {
                     throw new InvalidConfigurationException(
                         "Missing shared access key or service principal " +
@@ -45,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             }
             else {
                 _client = new DataLakeServiceClient(endpoint,
-                    new FileSystemTokenProvider(tokenSource));
+                    new FileSystemTokenProvider(provider));
             }
         }
 
@@ -193,8 +188,8 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
         private class FileSystemTokenProvider : TokenCredential {
 
             /// <inheritdoc/>
-            public FileSystemTokenProvider(ITokenSource tokenSource) {
-                _tokenSource = tokenSource;
+            public FileSystemTokenProvider(ITokenProvider provider) {
+                _provider = provider;
             }
 
             /// <inheritdoc/>
@@ -206,14 +201,14 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// <inheritdoc/>
             public override async ValueTask<AccessToken> GetTokenAsync(
                 TokenRequestContext requestContext, CancellationToken ct) {
-                var result = await _tokenSource.GetTokenAsync();
+                var result = await _provider.GetTokenForAsync(Http.Resource.Storage);
                 if (result == null) {
                     return default;
                 }
                 return new AccessToken(result.RawToken, result.ExpiresOn);
             }
 
-            private readonly ITokenSource _tokenSource;
+            private readonly ITokenProvider _provider;
         }
 
         private readonly DataLakeServiceClient _client;

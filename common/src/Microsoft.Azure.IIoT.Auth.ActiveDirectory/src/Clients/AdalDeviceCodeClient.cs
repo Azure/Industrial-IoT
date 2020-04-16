@@ -15,14 +15,14 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Authenticate using device code
     /// </summary>
-    public sealed class AdalDeviceCodeProvider : ITokenProvider {
+    public sealed class AdalDeviceCodeClient : ITokenClient {
 
         /// <summary>
         /// Create console output device code based token provider
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public AdalDeviceCodeProvider(IClientAuthConfig config, ILogger logger) :
+        public AdalDeviceCodeClient(IClientAuthConfig config, ILogger logger) :
             this(new ConsolePrompt(), config, null, logger) {
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="store"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public AdalDeviceCodeProvider(
+        public AdalDeviceCodeClient(
             IClientAuthConfig config, IAdalTokenCacheProvider store, ILogger logger) :
             this(new ConsolePrompt(), config, store, logger) {
         }
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="prompt"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public AdalDeviceCodeProvider(IDeviceCodePrompt prompt,
+        public AdalDeviceCodeClient(IDeviceCodePrompt prompt,
             IClientAuthConfig config, IAdalTokenCacheProvider store, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _prompt = prompt ?? throw new ArgumentNullException(nameof(prompt));

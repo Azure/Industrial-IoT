@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// For more information check out
     /// https://docs.microsoft.com/en-us/azure/key-vault/service-to-service-authentication
     /// </summary>
-    public abstract class AppAuthenticationBase : ITokenProvider {
+    public abstract class AppAuthenticationBase : ITokenClient {
 
         /// <inheritdoc/>
         protected AppAuthenticationBase(ILogger logger) {

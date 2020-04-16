@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Autofac;
     using Serilog;
     using System.Collections.Generic;
+    using Microsoft.Azure.IIoT.Storage.Default;
 
     /// <summary>
     /// Public native console client authentication
@@ -23,15 +24,19 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
-            builder.RegisterType<LocalDevelopmentProvider>()
+            builder.RegisterType<DevAuthenticationClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<AppAuthenticationProvider>()
+            builder.RegisterType<AppAuthenticationClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<AdalDeviceCodeProvider>()
+            builder.RegisterType<AdalDeviceCodeClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Use cli token source
             builder.RegisterType<NativeClientTokenSource>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<MemoryCache>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<CachingTokenProvider>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             base.Load(builder);
         }
@@ -39,10 +44,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>
         /// Authenticate with device token after trying app and developer authentication.
         /// </summary>
-        internal class NativeClientTokenSource : TokenProviderAggregate, ITokenSource {
+        internal class NativeClientTokenSource : TokenServiceAggregate, ITokenSource {
             /// <inheritdoc/>
-            public NativeClientTokenSource(LocalDevelopmentProvider ld, AppAuthenticationProvider aa,
-                AdalDeviceCodeProvider dc, IEnumerable<ITokenProvider> providers, ILogger logger)
+            public NativeClientTokenSource(DevAuthenticationClient ld, AppAuthenticationClient aa,
+                AdalDeviceCodeClient dc, IEnumerable<ITokenClient> providers, ILogger logger)
                     : base(providers, Http.Resource.Platform, logger, ld, aa, dc) {
             }
         }

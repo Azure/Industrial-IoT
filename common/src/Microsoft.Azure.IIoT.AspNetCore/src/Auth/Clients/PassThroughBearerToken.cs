@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// <summary>
     /// Authenticate using the current token.
     /// </summary>
-    public class PassThroughTokenProvider : ITokenProvider {
+    public class PassThroughBearerToken : ITokenClient {
 
         /// <summary>
         /// Create auth provider. Need to also inject the http context accessor
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// </summary>
         /// <param name="ctx"></param>
         /// <param name="config"></param>
-        public PassThroughTokenProvider(IHttpContextAccessor ctx,
+        public PassThroughBearerToken(IHttpContextAccessor ctx,
             IClientAuthConfig config = null) {
             _schemes = config?.ClientSchemes?.Select(s => s.Scheme).Distinct().ToList();
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
@@ -55,7 +55,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             if (string.IsNullOrEmpty(token)) {
                 return null;
             }
-            return JwtSecurityTokenEx.Parse(token);
+            var result = JwtSecurityTokenEx.Parse(token);
+            result.Cached = true; // Already cached as part of context
+            return result;
         }
 
         /// <summary>

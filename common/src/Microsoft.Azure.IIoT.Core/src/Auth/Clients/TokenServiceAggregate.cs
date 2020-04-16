@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// Token provider aggregate token source - combines token providers into a source for
     /// tokens for a particular resource.
     /// </summary>
-    public class TokenProviderAggregate : ITokenSource {
+    public class TokenServiceAggregate : ITokenSource {
 
         /// <inheritdoc/>
         public string Resource { get; }
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// </summary>
         /// <param name="providers"></param>
         /// <param name="logger"></param>
-        public TokenProviderAggregate(IEnumerable<ITokenProvider> providers, ILogger logger) :
+        public TokenServiceAggregate(IEnumerable<ITokenClient> providers, ILogger logger) :
             this (providers, Http.Resource.Platform, logger) {
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="providers"></param>
         /// <param name="resource"></param>
         /// <param name="logger"></param>
-        protected TokenProviderAggregate(IEnumerable<ITokenProvider> providers,
+        protected TokenServiceAggregate(IEnumerable<ITokenClient> providers,
             string resource, ILogger logger) {
             _providers = providers?.ToList() ?? throw new ArgumentNullException(nameof(providers));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -54,8 +54,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="resource"></param>
         /// <param name="logger"></param>
         /// <param name="prefer"></param>
-        protected TokenProviderAggregate(IEnumerable<ITokenProvider> providers,
-            string resource, ILogger logger, params ITokenProvider[] prefer)
+        protected TokenServiceAggregate(IEnumerable<ITokenClient> providers,
+            string resource, ILogger logger, params ITokenClient[] prefer)
             : this (Reorder(providers, prefer), resource, logger) {
         }
 
@@ -86,8 +86,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="providers"></param>
         /// <param name="prefer"></param>
         /// <returns></returns>
-        private static IEnumerable<ITokenProvider> Reorder(IEnumerable<ITokenProvider> providers,
-            params ITokenProvider[] prefer) {
+        private static IEnumerable<ITokenClient> Reorder(IEnumerable<ITokenClient> providers,
+            params ITokenClient[] prefer) {
             return prefer
                 .Concat(providers ?? throw new ArgumentNullException(nameof(providers)))
                     .Where(p => prefer
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
                 .Distinct();
         }
 
-        private readonly List<ITokenProvider> _providers;
+        private readonly List<ITokenClient> _providers;
         private readonly ILogger _logger;
     }
 }

@@ -29,7 +29,8 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
                 TenantId = result.TenantId,
                 UserInfo = jwt.Payload.Claims.ToUserInfo(
                     result.UserInfo.ToUserInfo()),
-                IdToken = result.IdToken
+                IdToken = result.IdToken,
+                Cached = true // Always cached in adal
             };
         }
     }

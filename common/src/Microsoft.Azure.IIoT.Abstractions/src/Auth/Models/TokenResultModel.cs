@@ -60,5 +60,10 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
         /// service or null if no Id Token is returned.
         /// </summary>
         public string IdToken { get; set; }
+
+        /// <summary>
+        /// Do not cache the token
+        /// </summary>
+        public bool Cached { get; set; }
     }
 }

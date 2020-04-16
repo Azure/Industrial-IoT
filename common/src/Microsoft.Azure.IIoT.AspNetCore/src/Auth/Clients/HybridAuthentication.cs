@@ -29,15 +29,18 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<DistributedTokenCache>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<DefaultTokenProvider>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope()
+                .IfNotRegistered(typeof(ITokenProvider));
 
-            builder.RegisterType<PassThroughTokenProvider>()
+            builder.RegisterType<PassThroughBearerToken>()
                 .AsSelf().AsImplementedInterfaces();
             builder.RegisterType<HttpHandlerFactory>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<ClientCredentialProvider>()
+            builder.RegisterType<ClientCredentialClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-            builder.RegisterType<AppAuthenticationProvider>()
+            builder.RegisterType<AppAuthenticationClient>()
                 .AsSelf().AsImplementedInterfaces();
 
             // Use service to service token source
@@ -49,10 +52,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <summary>
         /// First try passthrough, then try service client credentials
         /// </summary>
-        internal class HybridTokenSource : TokenProviderAggregate, ITokenSource {
+        internal class HybridTokenSource : TokenServiceAggregate, ITokenSource {
             /// <inheritdoc/>
-            public HybridTokenSource(PassThroughTokenProvider pt, ClientCredentialProvider cc,
-                AppAuthenticationProvider aa, IEnumerable<ITokenProvider> providers, ILogger logger)
+            public HybridTokenSource(PassThroughBearerToken pt, ClientCredentialClient cc,
+                AppAuthenticationClient aa, IEnumerable<ITokenClient> providers, ILogger logger)
                     : base(providers, Http.Resource.Platform, logger, pt, cc, aa) {
             }
         }

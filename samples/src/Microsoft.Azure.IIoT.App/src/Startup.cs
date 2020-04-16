@@ -230,7 +230,7 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
             // Use behalf of token provider to get tokens from user
-            builder.RegisterType<AdalTokenProvider>()
+            builder.RegisterType<AdalUserTokenClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<SignOutHandler>()
                 .AsImplementedInterfaces().SingleInstance();

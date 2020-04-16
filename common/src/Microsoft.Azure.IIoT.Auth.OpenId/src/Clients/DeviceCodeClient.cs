@@ -14,14 +14,14 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     /// <summary>
     /// Authenticate using device code
     /// </summary>
-    public sealed class DeviceCodeProvider : ITokenProvider {
+    public sealed class DeviceCodeClient : ITokenClient {
 
         /// <summary>
         /// Create console output device code based token provider
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public DeviceCodeProvider(IClientAuthConfig config, ILogger logger) :
+        public DeviceCodeClient(IClientAuthConfig config, ILogger logger) :
             this(new ConsolePrompt(), config, logger) {
         }
 
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="prompt"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public DeviceCodeProvider(IDeviceCodePrompt prompt,
+        public DeviceCodeClient(IDeviceCodePrompt prompt,
             IClientAuthConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _prompt = prompt ?? throw new ArgumentNullException(nameof(prompt));
@@ -69,15 +69,16 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 //             (codeResult);
                 //         return result.ToTokenResult();
                 //     }
-                //    _logger.Information(
-                //  "Successfully acquired token for {resource} with {config}.",
-                //  resource, config.GetName());
-                //    // }
-                // catch (Exception exc) {
-                //     _logger.Information(exc, "Failed to get token for {resource}using {config}",
-              //  resource, config.GetName());
-                //     continue;
-                // }
+               // result.Cached = true; // TODO: Cache here
+                                      //    _logger.Information(
+                                      //  "Successfully acquired token for {resource} with {config}.",
+                                      //  resource, config.GetName());
+                                      //    // }
+                                      // catch (Exception exc) {
+                                      //     _logger.Information(exc, "Failed to get token for {resource}using {config}",
+                                      //  resource, config.GetName());
+                                      //     continue;
+                                      // }
             }
             return null;
         }

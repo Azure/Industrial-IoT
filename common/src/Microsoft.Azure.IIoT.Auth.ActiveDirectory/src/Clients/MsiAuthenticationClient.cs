@@ -12,10 +12,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// <summary>
     /// Use msi to get token
     /// </summary>
-    public class MsiAuthenticationProvider : AppAuthenticationBase {
+    public class MsiAuthenticationClient : AppAuthenticationBase {
 
         /// <inheritdoc/>
-        public MsiAuthenticationProvider(IClientAuthConfig config, ILogger logger) :
+        public MsiAuthenticationClient(IClientAuthConfig config, ILogger logger) :
             base(logger) {
             _config = config?.ClientSchemes?
                 .Where(c => c.Scheme == AuthScheme.Msi)

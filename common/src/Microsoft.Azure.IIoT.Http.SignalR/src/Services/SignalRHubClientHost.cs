@@ -34,10 +34,9 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
         /// <param name="msgPack"></param>
         /// <param name="logger"></param>
         /// <param name="resourceId"></param>
-        /// <param name="tokenSources"></param>
-        public SignalRHubClientHost(string endpointUrl,
-            bool? useMessagePack, ILogger logger, string resourceId,
-            IEnumerable<ITokenSource> tokenSources = null,
+        /// <param name="provider"></param>
+        public SignalRHubClientHost(string endpointUrl, bool? useMessagePack,
+            ILogger logger, string resourceId, ITokenProvider provider = null,
             IJsonSerializerSettingsProvider jsonSettings = null,
             IMessagePackFormatterResolverProvider msgPack = null) {
             if (string.IsNullOrEmpty(endpointUrl)) {
@@ -48,11 +47,8 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
             _endpointUri = new Uri(endpointUrl);
             _useMessagePack = (useMessagePack ?? false) && _msgPack != null;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _tokenSources = tokenSources?
-                .Where(p => p.IsEnabled)
-                .FirstOrDefault(p => p.Resource == (resourceId ?? Resource.Platform))
-                   ?? tokenSources?
-                .FirstOrDefault();
+            _resourceId = provider?.Supports(resourceId) == true ? resourceId : null;
+            _provider = provider;
         }
 
         /// <inheritdoc/>
@@ -153,9 +149,9 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
             }
             var connection = builder
                 .WithUrl(_endpointUri, options => {
-                    if (_tokenSources != null) {
+                    if (_provider != null) {
                         options.AccessTokenProvider = async () => {
-                            var token = await _tokenSources.GetTokenAsync();
+                            var token = await _provider.GetTokenForAsync(_resourceId);
                             return token?.RawToken;
                         };
                     }
@@ -200,7 +196,8 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
         private readonly Uri _endpointUri;
         private readonly bool _useMessagePack;
         private readonly ILogger _logger;
-        private readonly ITokenSource _tokenSources;
+        private readonly ITokenProvider _provider;
+        private readonly string _resourceId;
         private HubConnection _connection;
         private bool _started;
     }

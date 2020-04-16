@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Storage.Default;
     using System.Collections.Generic;
     using Autofac;
     using Serilog;
@@ -27,14 +28,18 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             builder.RegisterType<AadSpStorageConfig>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
-            builder.RegisterType<MsiAuthenticationProvider>()
+            builder.RegisterType<MsiAuthenticationClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<AppAuthenticationProvider>()
+            builder.RegisterType<AppAuthenticationClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<LocalDevelopmentProvider>()
+            builder.RegisterType<DevAuthenticationClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
 
             builder.RegisterType<StorageTokenSource>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<MemoryCache>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<CachingTokenProvider>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             base.Load(builder);
@@ -43,10 +48,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <summary>
         /// Authenticate with device token after trying app and developer authentication.
         /// </summary>
-        internal class StorageTokenSource : TokenProviderAggregate, ITokenSource {
+        internal class StorageTokenSource : TokenServiceAggregate, ITokenSource {
             /// <inheritdoc/>
-            public StorageTokenSource(MsiAuthenticationProvider ma, AppAuthenticationProvider aa,
-                LocalDevelopmentProvider ld, IEnumerable<ITokenProvider> providers, ILogger logger)
+            public StorageTokenSource(MsiAuthenticationClient ma, AppAuthenticationClient aa,
+                DevAuthenticationClient ld, IEnumerable<ITokenClient> providers, ILogger logger)
                     : base(providers, Http.Resource.Storage, logger, ma, aa, ld) {
             }
         }

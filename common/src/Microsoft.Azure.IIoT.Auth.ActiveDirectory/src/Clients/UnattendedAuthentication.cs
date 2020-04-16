@@ -9,12 +9,13 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Auth;
+    using Microsoft.Azure.IIoT.Storage.Default;
     using Autofac;
     using Serilog;
     using System.Collections.Generic;
 
     /// <summary>
-    /// Unattended client authentication support
+    /// Unattended client to service authentication support
     /// </summary>
     public class UnattendedAuthentication : Module {
 
@@ -30,14 +31,19 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             // Use client credential and fallback to app authentication
             builder.RegisterType<HttpHandlerFactory>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<ClientCredentialProvider>()
+            builder.RegisterType<ClientCredentialClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-            builder.RegisterType<AppAuthenticationProvider>()
+            builder.RegisterType<AppAuthenticationClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Use service to service token source
             builder.RegisterType<ServiceTokenSource>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+
+            builder.RegisterType<MemoryCache>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<CachingTokenProvider>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             base.Load(builder);
         }
@@ -45,10 +51,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <summary>
         /// Service token strategy prefers client credentials over app auth and rest
         /// </summary>
-        internal class ServiceTokenSource : TokenProviderAggregate, ITokenSource {
+        internal class ServiceTokenSource : TokenServiceAggregate, ITokenSource {
             /// <inheritdoc/>
-            public ServiceTokenSource(ClientCredentialProvider cc, AppAuthenticationProvider aa,
-                IEnumerable<ITokenProvider> providers, ILogger logger)
+            public ServiceTokenSource(ClientCredentialClient cc, AppAuthenticationClient aa,
+                IEnumerable<ITokenClient> providers, ILogger logger)
                     : base(providers, Http.Resource.Platform, logger, cc, aa) {
             }
         }

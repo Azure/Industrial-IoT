@@ -14,8 +14,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// <summary>
     /// Use token provider as token source
     /// </summary>
-    public class TokenProviderTokenSource<T> : ITokenSource
-        where T : ITokenProvider {
+    public class TokenServiceSource<T> : ITokenSource
+        where T : ITokenClient {
 
         /// <inheritdoc/>
         public string Resource { get; } = Http.Resource.Platform;
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         public bool IsEnabled => _provider.Supports(Resource);
 
         /// <inheritdoc/>
-        public TokenProviderTokenSource(T provider) {
+        public TokenServiceSource(T provider) {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 

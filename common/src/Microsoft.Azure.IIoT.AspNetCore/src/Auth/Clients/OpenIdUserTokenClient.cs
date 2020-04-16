@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// <summary>
     /// Implements basic token management logic
     /// </summary>
-    public class OpenIdUserTokenProvider : ITokenProvider {
+    public class OpenIdUserTokenClient : ITokenClient {
 
         /// <summary>
         /// Http client factory
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="oidc"></param>
         /// <param name="ctx"></param>
         /// <param name="logger"></param>
-        public OpenIdUserTokenProvider(IClientAuthConfig config,
+        public OpenIdUserTokenClient(IClientAuthConfig config,
             IOptionsMonitor<OpenIdConnectOptions> oidc, IHttpContextAccessor ctx,
             ISystemClock clock, ILogger logger) {
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
@@ -76,7 +76,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             var dtRefresh = expiration.Value.Subtract(TimeSpan.FromMinutes(1));
             if (dtRefresh >= _clock.UtcNow) {
                 // Token still valid - use it.
-                return JwtSecurityTokenEx.Parse(accessToken);
+                var token = JwtSecurityTokenEx.Parse(accessToken);
+                token.Cached = true;
+                return token;
             }
             foreach (var config in _config.Query(resource, AuthScheme.AuthService)) {
                 try {
@@ -88,11 +90,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                                 return refreshed.AccessToken;
                             });
                         }).Value;
-                        var result = JwtSecurityTokenEx.Parse(accessToken);
+                        var token = JwtSecurityTokenEx.Parse(accessToken);
+                        token.Cached = true;
                         _logger.Information(
                             "Successfully acquired token for {resource} with {config}.",
                             resource, config.GetName());
-                        return result;
+                        return token;
                     }
                     finally {
                         kRequests.TryRemove(refreshToken, out _);
