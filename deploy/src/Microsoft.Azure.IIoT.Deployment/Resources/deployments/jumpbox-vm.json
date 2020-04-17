@@ -2,14 +2,53 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "edgeUsername": {
+        "nsgId": {
+            "type": "string",
+            "metadata": {
+                "description": "Network security group ID"
+            }
+        },
+        "subnetId": {
+            "type": "string",
+            "metadata": {
+                "description": "Virtual network subnet ID"
+            }
+        },
+        "aksClusterName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of AKS cluster."
+            }
+        },
+        "publicIpName": {
+            "type": "string",
+            "defaultValue": "jumpbox-ip",
+            "metadata": {
+                "description": "Name of Public IP resource for jumpbox."
+            }
+        },
+        "networkInterfaceName": {
+            "type": "string",
+            "defaultValue": "jumpbox-networkInterface",
+            "metadata": {
+                "description": "Name of Network Interface resource for jumpbox."
+            }
+        },
+        "virtualMachineName": {
+            "type": "string",
+            "defaultValue": "jumpbox-vm",
+            "metadata": {
+                "description": "Name of Network Interface resource for jumpbox."
+            }
+        },
+        "virtualMachineUsername": {
             "type": "string",
             "defaultValue": "sandboxuser",
             "metadata": {
                 "description": "Username for the IoT Edge virtual machine"
             }
         },
-        "edgePassword": {
+        "virtualMachinePassword": {
             "type": "securestring",
             "metadata": {
                 "description": "Password for the IoT Edge virtual machine"
@@ -28,31 +67,24 @@
         },
         "rbacGuid": {
             "type": "string",
-            "defaultValue": "[newGuid()]"
+            "defaultValue": "[guid(subscription().subscriptionId, resourceGroup().id)]"
         }
     },
     "variables": {
         "location": "[resourceGroup().location]",
-        "publicIpName": "linux-ip",
-        "publicIpId": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', variables('publicIpName'))]",
-        "nsgName": "linux-nsg",
-        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('nsgName'))]",
-        "vnetName": "linux-vnet",
-        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetName'))]",
-        "subnetName": "vm-subnet",
-        "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetName'))]",
-        // "networkProfileName": "linux-vnet-networkprofile",
-        // "networkProfileId": "[resourceId('Microsoft.Network/networkProfiles', variables('networkProfileName'))]",
-        "networkInterfaceName": "linux-networkInterface",
-        "networkInterfaceId": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]",
-        "vmName": "jumpbox-vm",
-        "vmId": "[resourceId(resourceGroup().name, 'Microsoft.Compute/virtualMachines', variables('vmName'))]",
+        "publicIpId": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('publicIpName'))]",
+        "networkInterfaceId": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]",
+        "virtualMachineId": "[resourceId(resourceGroup().name, 'Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]",
+        "roleAssignmentId": "[resourceId(resourceGroup().name, 'Microsoft.Authorization/roleAssignments', parameters('rbacGuid'))]",
         "AzureKubernetesServiceClusterAdminRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '0ab0b1a8-8aac-4efd-b8c2-3ee1fb270be8')]",
-        "AzureKubernetesServiceClusterUserRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4abbcc35-e782-43d8-92c5-2d3f1bd2253f')]"
+        "AzureKubernetesServiceClusterUserRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4abbcc35-e782-43d8-92c5-2d3f1bd2253f')]",
+        "azAksGetUserCredentialsCmd": "[concat('az aks get-credentials --resource-group ', resourceGroup().name, ' --name ', parameters('aksClusterName'))]",
+        "azAksGetAdminCredentialsCmd": "[concat('az aks get-credentials --resource-group ', resourceGroup().name, ' --name ', parameters('aksClusterName'), ' --admin')]",
+        "azAksGetCredentialsCmd": "[if (equals(parameters('builtInRoleType'), 'AzureKubernetesServiceClusterAdminRole'), variables('azAksGetAdminCredentialsCmd'), variables('azAksGetUserCredentialsCmd'))]"
     },
     "resources": [
         {
-            "name": "[variables('publicIpName')]",
+            "name": "[parameters('publicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "2018-08-01",
             "location": "[variables('location')]",
@@ -64,77 +96,11 @@
             }
         },
         {
-            "comments":  "Default Network Security Group for template",
-            "name": "[variables('nsgName')]",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2018-08-01",
-            "location": "[variables('location')]",
-            "properties": {
-                "securityRules": [
-                    {
-                        "name": "HTTPS",
-                        "properties": {
-                            "protocol": "TCP",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "443",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 101,
-                            "direction": "Inbound"
-                        }
-                    },
-                    {
-                        "name": "SSH",
-                        "properties": {
-                            "protocol": "TCP",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "22",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Deny",
-                            "priority": 102,
-                            "direction": "Inbound"
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "name": "[variables('vnetName')]",
-            "type": "Microsoft.Network/virtualNetworks",
-            "apiVersion": "2018-08-01",
-            "location": "[variables('location')]",
-            "dependsOn": [
-                "[variables('nsgId')]"
-            ],
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "10.1.8.0/22"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[variables('subnetName')]",
-                        "properties": {
-                            "addressPrefix": "10.1.8.0/24",
-                            "networkSecurityGroup": {
-                                "id": "[variables('nsgId')]"
-                            }
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "name": "[variables('networkInterfaceName')]",
+            "name": "[parameters('networkInterfaceName')]",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-08-01",
             "location": "[variables('location')]",
             "dependsOn": [
-                "[variables('nsgId')]",
-                "[variables('vnetId')]",
                 "[variables('publicIpId')]"
             ],
             "properties": {
@@ -143,7 +109,7 @@
                         "name": "ipconfig1",
                         "properties": {
                             "subnet": {
-                                "id": "[variables('subnetRef')]"
+                                "id": "[parameters('subnetId')]"
                             },
                             "privateIPAllocationMethod": "Dynamic",
                             "publicIpAddress": {
@@ -153,40 +119,12 @@
                     }
                 ],
                 "networkSecurityGroup": {
-                    "id": "[variables('nsgId')]"
+                    "id": "[parameters('nsgId')]"
                 }
             }
         },
-        // {
-        //     "name": "[variables('networkProfileName')]",
-        //     "type": "Microsoft.Network/networkProfiles",
-        //     "apiVersion": "2018-08-01",
-        //     "location": "[variables('location')]",
-        //     "dependsOn": [
-        //         "[variables('vnetId')]"
-        //     ],
-        //     "properties": {
-        //         "containerNetworkInterfaceConfigurations": [
-        //             {
-        //                 "name": "linux-container-network-interface",
-        //                 "properties": {
-        //                     "ipConfigurations": [
-        //                         {
-        //                             "name": "linux-container-ipconfiguration",
-        //                             "properties": {
-        //                                 "subnet": {
-        //                                     "id": "[variables('vnetId')]"
-        //                                 }
-        //                             }
-        //                         }
-        //                     ]
-        //                 }
-        //             }
-        //         ]
-        //     }
-        // },
         {
-            "name": "[variables('vmName')]",
+            "name": "[parameters('virtualMachineName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-06-01",
             "location": "[variables('location')]",
@@ -222,9 +160,9 @@
                     ]
                 },
                 "osProfile": {
-                    "computerName": "[variables('vmName')]",
-                    "adminUsername": "[parameters('edgeUsername')]",
-                    "adminPassword": "[parameters('edgePassword')]"
+                    "computerName": "[parameters('virtualMachineName')]",
+                    "adminUsername": "[parameters('virtualMachineUsername')]",
+                    "adminPassword": "[parameters('virtualMachinePassword')]"
                 }
             },
             "plan": {
@@ -238,32 +176,42 @@
             "type": "Microsoft.Authorization/roleAssignments",
             "name": "[parameters('rbacGuid')]",
             "dependsOn": [
-                "[variables('vmId')]"
+                "[variables('virtualMachineId')]"
             ],
             "properties": {
                 "roleDefinitionId": "[variables(parameters('builtInRoleType'))]",
-                "principalId": "[reference(variables('vmId'), '2017-12-01', 'Full').identity.principalId]",
+                "principalId": "[reference(variables('virtualMachineId'), '2017-12-01', 'Full').identity.principalId]",
                 "scope": "[resourceGroup().id]"
             }
-        }//,
-        // {
-        //     "comments": "One time script execution to connect Edge with Iot Hub",
-        //     "type": "Microsoft.Compute/virtualMachines/extensions",
-        //     "name": "[concat(variables('vmName'), '/', 'scriptextensions')]",
-        //     "apiVersion": "2019-03-01",
-        //     "dependsOn": [
-        //         "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
-        //     ],
-        //     "location": "[variables('location')]",
-        //     "properties": {
-        //         "publisher": "Microsoft.Azure.Extensions",
-        //         "type": "CustomScript",
-        //         "typeHandlerVersion": "2.0",
-        //         "autoUpgradeMinorVersion": true,
-        //         "settings": {
-        //             "commandToExecute": "[concat('sudo /etc/iotedge/configedge.sh','|')]"
-        //         }
-        //     }
-        // }
+        },
+        {
+            "comments": "One time script execution to setup VM",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('virtualMachineName'), '/scriptextensions_setup')]",
+            "apiVersion": "2019-03-01",
+            "dependsOn": [
+                "[variables('roleAssignmentId')]"
+            ],
+            "location": "[variables('location')]",
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "protectedSettings": {
+                    "managedIdentity" : {},
+                    "fileUris": [
+                        "https://azurecliprod.blob.core.windows.net/$root/deb_install.sh"
+                    ],
+                    "commandToExecute": "[concat(
+                        'sudo bash deb_install.sh && ',
+                        'az login --identity && ',
+                        'az aks install-cli && ',
+                        'az acr helm install-cli --client-version \"3.1.0\" -y && ',
+                        variables('azAksGetCredentialsCmd')
+                    )]"
+                }
+            }
+        }
     ]
 }
