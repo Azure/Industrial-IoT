@@ -5,27 +5,24 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.AspNetCore.Http;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using System.Security.Authentication;
+    using System.Threading.Tasks;
 
     /// <summary>
-    /// Handle error
+    /// Handle challenge
     /// </summary>
-    public interface IAuthenticationErrorHandler {
+    public interface IAuthChallengeHandler {
 
         /// <summary>
-        /// Aquire token non-silent if silent fails before handling.
-        /// </summary>
-        bool AcquireTokenIfSilentFails { get; }
-
-        /// <summary>
-        /// Handle authentication error
-        /// </summary>
-        void Handle(HttpContext context, AuthenticationException ex);
-
-        /// <summary>
-        /// Handle invalidate
+        /// Handle authentication challenge
         /// </summary>
         /// <param name="context"></param>
-        void Invalidate(HttpContext context);
+        /// <param name="resource"></param>
+        /// <param name="scheme"></param>
+        /// <param name="ex"></param>
+        /// <returns></returns>
+        Task<TokenResultModel> ChallengeAsync(HttpContext context, string resource,
+            string scheme, AuthenticationException ex = null);
     }
 }

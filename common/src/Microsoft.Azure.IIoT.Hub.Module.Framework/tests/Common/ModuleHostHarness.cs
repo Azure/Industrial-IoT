@@ -88,7 +88,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 ConnectionString.CreateServiceConnectionString(
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-            public string IoTHubResourceId => null;
         }
 
         public class TestModuleConfig : IModuleConfig {

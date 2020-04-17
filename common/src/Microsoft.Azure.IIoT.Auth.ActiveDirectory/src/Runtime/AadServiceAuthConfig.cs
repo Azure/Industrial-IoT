@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <inheritdoc/>
         public bool IsValid => Audience != null;
         /// <summary>Scheme</summary>
-        public string Scheme => AuthScheme.Aad;
+        public string Scheme => AuthScheme.AzureAD;
         /// <summary>Aad instance url</summary>
         public string InstanceUrl => GetStringOrDefault(kAuth_InstanceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_INSTANCE,

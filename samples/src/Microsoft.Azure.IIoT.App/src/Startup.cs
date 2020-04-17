@@ -44,6 +44,7 @@ namespace Microsoft.Azure.IIoT.App {
     using System.Threading.Tasks;
     using System.Security.Claims;
     using Blazored.SessionStorage;
+    using Microsoft.Azure.IIoT.Auth.Models;
 
     /// <summary>
     /// Webapp startup
@@ -216,7 +217,6 @@ namespace Microsoft.Azure.IIoT.App {
 
             // Register logger
             builder.AddDiagnostics(Config);
-            //      builder.RegisterModule<DefaultClientAuthProviders>(); // TODO
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterModule<MessagePackModule>();
@@ -227,19 +227,9 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces(); // Per request
 
-            // Use bearer authentication
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            // Use behalf of token provider to get tokens from user
-            builder.RegisterType<AdalUserTokenClient>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Use web app bearer authentication for services
+            builder.RegisterModule<WebAppAuthentication>();
             builder.RegisterType<SignOutHandler>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DefaultTokenProvider>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DistributedProtectedCache>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AdalTokenCache>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register twin, vault, and registry services clients
@@ -264,10 +254,8 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<Publisher>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
-
             builder.RegisterType<UICommon>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
-
             builder.RegisterType<SecureData>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
         }
@@ -313,18 +301,21 @@ namespace Microsoft.Azure.IIoT.App {
         }
 
         /// <inheritdoc/>
-        private class SignOutHandler : IAuthenticationErrorHandler {
+        private class SignOutHandler : IAuthChallengeHandler {
 
             /// <inheritdoc/>
-            public bool AcquireTokenIfSilentFails => true;
-
-            /// <inheritdoc/>
-            public void Handle(HttpContext context, AuthenticationException ex) {
-                Invalidate(context);
+            public async Task<TokenResultModel> ChallengeAsync(HttpContext context, string resource,
+                string scheme, AuthenticationException ex = null) {
+                SignOut(context);
+                await context.ChallengeAsync(scheme);
+                return null;
             }
 
-            /// <inheritdoc/>
-            public void Invalidate(HttpContext context) {
+            /// <summary>
+            /// Sign out
+            /// </summary>
+            /// <param name="context"></param>
+            private void SignOut(HttpContext context) {
                 // Force signout
                 var provider = context?.RequestServices.GetService<AuthenticationStateProvider>();
                 if (provider is ServerAuthenticationStateProvider s) {

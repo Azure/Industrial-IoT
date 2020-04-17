@@ -23,5 +23,12 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// <param name="scheme"></param>
         /// <returns></returns>
         IEnumerable<IOAuthClientConfig> Query(string resource, string scheme);
+
+        /// <summary>
+        /// Retrieve configuration for scheme
+        /// </summary>
+        /// <param name="scheme"></param>
+        /// <returns></returns>
+        IEnumerable<IOAuthClientConfig> Query(string scheme);
     }
 }

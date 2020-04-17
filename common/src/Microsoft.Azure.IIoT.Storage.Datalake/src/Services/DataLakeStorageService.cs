@@ -164,18 +164,13 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             }
 
             /// <inheritdoc/>
-            public virtual async Task WriteAsync(byte[] stream, int count,
-                long offset, CancellationToken ct) {
+            public virtual async Task AppendAsync(byte[] stream, int count, CancellationToken ct) {
+                var properties = await GetPropertiesAsync(ct);
                 using (var buffer = new MemoryStream(stream, 0, count)) {
+                    var offset = properties.ContentLength;
                     await _file.AppendAsync(buffer, offset, cancellationToken: ct);
                     await _file.FlushAsync(offset + count, cancellationToken: ct);
                 }
-            }
-
-            /// <inheritdoc/>
-            public virtual async Task AppendAsync(byte[] stream, int count, CancellationToken ct) {
-                var properties = await GetPropertiesAsync(ct);
-                await WriteAsync(stream, count, properties.ContentLength, ct);
             }
 
             /// <inheritdoc/>

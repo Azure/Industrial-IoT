@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <inheritdoc/>
         public bool IsValid => ClientId != null && Audience != null;
         /// <summary>Scheme</summary>
-        public string Scheme => AuthScheme.Aad;
+        public string Scheme => AuthScheme.AzureAD;
         /// <summary>Resource</summary>
         public string Resource => Http.Resource.Platform;
         /// <summary>Application id</summary>

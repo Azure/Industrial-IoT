@@ -54,13 +54,13 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
 
         /// <inheritdoc/>
         public bool Supports(string resource) {
-            return _config.Query(resource, AuthScheme.Aad).Any();
+            return _config.Query(resource, AuthScheme.AzureAD).Any();
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            foreach (var config in _config.Query(resource, AuthScheme.Aad)) {
+            foreach (var config in _config.Query(resource, AuthScheme.AzureAD)) {
                 var ctx = CreateAuthenticationContext(config.InstanceUrl,
                     config.TenantId, _store);
                 try {

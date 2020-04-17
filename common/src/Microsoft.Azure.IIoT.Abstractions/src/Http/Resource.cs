@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <summary>
         /// Platform
         /// </summary>
-        public static readonly string Platform = string.Empty;
+        public static readonly string Platform = nameof(Platform);
 
         /// <summary>
         /// Keyvault

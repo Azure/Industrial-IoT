@@ -11,19 +11,19 @@ namespace Microsoft.Azure.IIoT.Auth {
     public static class AuthScheme {
 
         /// <summary>
-        /// Unknown
+        /// Bearer auth
         /// </summary>
-        public const string Unknown = "Bearer";
+        public const string Bearer = nameof(Bearer);
 
         /// <summary>
-        /// Aad auth
-        /// </summary>
-        public const string Aad = nameof(Aad);
-
-        /// <summary>
-        /// User assigned identity
+        /// User assigned identity based authentication
         /// </summary>
         public const string Msi = nameof(Msi);
+
+        /// <summary>
+        /// Azure AD based authentication
+        /// </summary>
+        public const string AzureAD = nameof(AzureAD);
 
         /// <summary>
         /// Auth service

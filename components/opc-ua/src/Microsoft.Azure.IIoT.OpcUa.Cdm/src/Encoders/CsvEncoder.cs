@@ -5,9 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Storage;
     using Serilog;
+    using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -59,15 +62,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             return Encoding.UTF8.GetBytes(sb.ToString());
         }
 
+        /// <summary>
+        /// Add value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="separator"></param>
+        /// <param name="sb"></param>
         private void AddValueToCsvStringBuilder(object value,
             string separator, StringBuilder sb) {
 
             if (value != null) {
-                var str = value?.ToString();
-                if (str != null &&
-                    (str.Contains(separator) ||
+                var str = FormatValue(value);
+                if (str.Contains(separator) ||
                     str.Contains("\"") || str.Contains("\r") ||
-                    str.Contains("\n"))) {
+                    str.Contains("\n")) {
                     sb.Append('\"');
                     foreach (var nextChar in str) {
                         sb.Append(nextChar);
@@ -82,6 +90,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 }
             }
             sb.Append(separator);
+        }
+
+        /// <summary>
+        /// Format value as string
+        /// </summary>
+        /// <param name="o"></param>
+        /// <returns></returns>
+        private string FormatValue(object o) {
+            switch (o) {
+                case null:
+                    return "";
+                case VariantValue vv:
+                    return vv.ToJson().TrimQuotes();
+                case IFormattable f:
+                    return f.ToString(null, CultureInfo.InvariantCulture);
+                default:
+                    return o.ToString();
+            }
         }
 
         internal const string Type = "adls";

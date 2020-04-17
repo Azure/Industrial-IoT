@@ -39,13 +39,15 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="clock"></param>
         /// <param name="config"></param>
         /// <param name="oidc"></param>
+        /// <param name="schemes"></param>
         /// <param name="ctx"></param>
         /// <param name="logger"></param>
-        public OpenIdUserTokenClient(IClientAuthConfig config,
-            IOptionsMonitor<OpenIdConnectOptions> oidc, IHttpContextAccessor ctx,
+        public OpenIdUserTokenClient(IClientAuthConfig config, IHttpContextAccessor ctx,
+            IOptionsMonitor<OpenIdConnectOptions> oidc, IAuthenticationSchemeProvider schemes,
             ISystemClock clock, ILogger logger) {
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
             _oidc = oidc ?? throw new ArgumentNullException(nameof(oidc));
+            _schemes = schemes ?? throw new ArgumentNullException(nameof(schemes));
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -60,14 +62,21 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
+
+            var schemes = await _schemes.GetAllSchemesAsync();
+            if (!schemes.Any(s => s.Name == AuthScheme.AuthService)) {
+                return null;
+            }
+
             var user = _ctx.HttpContext.User;
             if (!user.Identity.IsAuthenticated) {
-                _logger.Debug("No authenticated user to get token for.");
+                _logger.Debug("User is not authenticated.");
                 return null;
             }
             var userName = user.FindFirst(JwtClaimTypes.Name)?.Value ??
                 user.FindFirst(JwtClaimTypes.Subject)?.Value ?? "unknown";
-            var (accessToken, expiration, refreshToken) = await GetTokenAsync();
+
+            var (accessToken, expiration, refreshToken) = await GetTokenFromCacheAsync();
             if (refreshToken == null) {
                 _logger.Debug("No token data found in user token store.");
                 return null;
@@ -80,6 +89,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 token.Cached = true;
                 return token;
             }
+
             foreach (var config in _config.Query(resource, AuthScheme.AuthService)) {
                 try {
                     _logger.Debug("Token for user {user} needs refreshing.", userName);
@@ -93,7 +103,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                         var token = JwtSecurityTokenEx.Parse(accessToken);
                         token.Cached = true;
                         _logger.Information(
-                            "Successfully acquired token for {resource} with {config}.",
+                            "Successfully refreshed token for {resource} with {config}.",
                             resource, config.GetName());
                         return token;
                     }
@@ -112,7 +122,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
         /// <inheritdoc/>
         public async Task InvalidateAsync(string resource) {
-            var (_, _, refreshToken) = await GetTokenAsync();
+            var (_, _, refreshToken) = await GetTokenFromCacheAsync();
             if (string.IsNullOrEmpty(refreshToken)) {
                 return;
             }
@@ -200,8 +210,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// Get tokens for current user
         /// </summary>
         /// <returns></returns>
-        private async Task<(string, DateTimeOffset?, string)> GetTokenAsync() {
-            var result = await _ctx.HttpContext.AuthenticateAsync();
+        private async Task<(string, DateTimeOffset?, string)> GetTokenFromCacheAsync() {
+            var result = await _ctx.HttpContext.AuthenticateAsync(AuthScheme.AuthService);
             if (!result.Succeeded) {
                 return (null, null, null);
             }
@@ -257,6 +267,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
         static readonly ConcurrentDictionary<string, Lazy<Task<string>>> kRequests =
             new ConcurrentDictionary<string, Lazy<Task<string>>>();
+        private readonly IAuthenticationSchemeProvider _schemes;
         private readonly IOptionsMonitor<OpenIdConnectOptions> _oidc;
         private readonly ISystemClock _clock;
         private readonly IHttpContextAccessor _ctx;

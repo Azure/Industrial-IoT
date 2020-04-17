@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth {
+
     /// <summary>
     /// Token provider is a single source aggregate per
     /// process and used directly by a service implementation.

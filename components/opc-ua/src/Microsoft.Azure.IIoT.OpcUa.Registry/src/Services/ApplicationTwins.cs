@@ -151,19 +151,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> ListAsync(
-            string continuation, int? pageSize, bool? disabled, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Application}' ";
-            if (disabled != null) {
-                if (disabled.Value) {
-                    query +=
-                        $"AND IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
-                }
-                else {
-                    query +=
-                        $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
-                }
-            }
             var result = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
             return new ApplicationInfoListModel {
                 ContinuationToken = result.ContinuationToken,

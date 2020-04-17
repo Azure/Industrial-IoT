@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
 
             services.AddHttpsRedirect();
             services.AddAuthentication()
-                .AddJwtBearerScheme(AuthScheme.Aad)
+                .AddJwtBearerScheme(AuthScheme.AzureAD)
                 .AddJwtBearerScheme(AuthScheme.AuthService);
 
             // TODO: Remove http client factory and use

@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         public DevAuthenticationClient(IClientAuthConfig config, ILogger logger) :
             base(logger) {
             _config = config?.ClientSchemes?
-                .Where(c => c.Scheme == AuthScheme.Msi || c.Scheme == AuthScheme.Aad)
+                .Where(c => c.Scheme == AuthScheme.Msi || c.Scheme == AuthScheme.AzureAD)
                 .Where(c => c.Audience != null && Regex.IsMatch(c.Audience, @"^[0-9a-zA-Z-.:/]+$"))
                 .SelectMany(CreateProvider)
                 .ToList();

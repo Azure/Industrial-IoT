@@ -12,13 +12,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// <summary>
     /// Token cache persisted in the distributed cache.
     /// </summary>
-    public class AdalTokenCache : IAdalTokenCacheProvider {
+    public class AdalTokenCacheAdapter : IAdalTokenCacheProvider {
 
         /// <summary>
         /// Create token store in provided distributed cache
         /// </summary>
         /// <param name="cache">Cache</param>
-        public AdalTokenCache(ICache cache) {
+        public AdalTokenCacheAdapter(ICache cache) {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             /// </summary>
             /// <param name="store">cache to create entry in</param>
             /// <param name="cacheKey">Key in cache</param>
-            public DistributedTokenCacheEntry(AdalTokenCache store, string cacheKey) {
+            public DistributedTokenCacheEntry(AdalTokenCacheAdapter store, string cacheKey) {
 
                 AfterAccess = args => {
                     if (HasStateChanged) {

@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users {
             services.AddDistributedMemoryCache();
             services.AddHttpsRedirect();
             services.AddAuthentication()
-                .AddJwtBearerScheme(AuthScheme.Aad)
+                .AddJwtBearerScheme(AuthScheme.AzureAD)
                 .AddJwtBearerScheme(AuthScheme.AuthService);
             services.AddAuthorizationPolicies(
                 Policies.RoleMapping,

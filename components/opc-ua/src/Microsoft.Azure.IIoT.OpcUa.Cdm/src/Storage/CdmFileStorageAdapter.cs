@@ -80,8 +80,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         public async Task WriteAsync(string corpusPath, string data) {
             try {
                 var file = await GetCorpusFileAsync(corpusPath);
-                var buffer = Encoding.UTF8.GetBytes(data);
-                await file.WriteAsync(buffer, buffer.Length, 0);
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(data))) {
+                    await file.UploadAsync(stream);
+                }
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to write data to {corpus}", corpusPath);
@@ -95,7 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 var file = await GetCorpusFileAsync(corpusPath);
                 var size = await file.GetSizeAsync();
                 var content = encoder(size == 0);
-                await file.WriteAsync(content, content.Length, size);
+                await file.AppendAsync(content, content.Length);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to write data to {corpus}", corpusPath);

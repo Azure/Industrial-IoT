@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <summary>
         /// Authenticate with device token after trying app and developer authentication.
         /// </summary>
-        internal class StorageTokenSource : TokenServiceAggregate, ITokenSource {
+        internal class StorageTokenSource : TokenClientAggregateSource, ITokenSource {
             /// <inheritdoc/>
             public StorageTokenSource(MsiAuthenticationClient ma, AppAuthenticationClient aa,
                 DevAuthenticationClient ld, IEnumerable<ITokenClient> providers, ILogger logger)

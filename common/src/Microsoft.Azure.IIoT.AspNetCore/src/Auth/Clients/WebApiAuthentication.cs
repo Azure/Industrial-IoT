@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             // Pass token through is the only provider here
             builder.RegisterType<PassThroughBearerToken>()
                 .AsSelf().AsImplementedInterfaces();
-            builder.RegisterType<TokenServiceSource<PassThroughBearerToken>>()
+            builder.RegisterType<TokenClientSource<PassThroughBearerToken>>()
                 .AsImplementedInterfaces().SingleInstance();
 
             base.Load(builder);

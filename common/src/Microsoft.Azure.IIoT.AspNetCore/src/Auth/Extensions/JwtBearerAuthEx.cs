@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
@@ -60,7 +59,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                 return new ConfigureNamedOptions<JwtBearerOptions>(scheme, options => {
 
                     // Find whether the scheme is configurable
-                    var config = schemes?.JwtBearerSchemes?
+                    var config = schemes.JwtBearerSchemes?
                         .FirstOrDefault(s => s.GetSchemeName() == scheme);
                     if (config == null) {
                         // Not configurable - this is ok as this might not be enabled
@@ -131,23 +130,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                     "Only accepted protocol versions are AAD v1.0 or V2.0");
             }
             return issuer;
-        }
-
-        /// <summary>
-        /// Helper to write response error
-        /// </summary>
-        /// <param name="response"></param>
-        /// <param name="ex"></param>
-        /// <returns></returns>
-        private static Task WriteErrorAsync(HttpResponse response, Exception ex) {
-            response.StatusCode = 500;
-            response.ContentType = "text/plain";
-            if (ex != null) {
-                // Debug only, in production do not share exceptions with the remote host.
-                return response.WriteAsync(ex.ToString());
-            }
-            return response.WriteAsync(
-                "An error occurred processing your authentication.");
         }
 
         private const string kDefaultIssuerUri = "https://sts.windows.net/";

@@ -19,17 +19,20 @@ namespace Microsoft.Azure.IIoT.Auth {
         bool Supports(string resource);
 
         /// <summary>
-        /// Authenticate user and retrieve token.
+        /// Acquires a token for a target resource.  In case token
+        /// cannot be retrieved should not throw but return null and
+        /// log errors as appropriate.
         /// </summary>
         /// <param name="resource"><see cref="Http.Resource"/> to
-        /// authenticate</param>
+        /// acquire token for</param>
         /// <param name="scopes">Scope permissions to request</param>
         /// <returns>null if no token could be retrieved</returns>
         Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes = null);
 
         /// <summary>
-        /// Invalidate token cache after failed authentication.
+        /// Invalidate tokens for a target resource after
+        /// failed authentication.
         /// </summary>
         /// <param name="resource"><see cref="Http.Resource"/> to
         /// invalidate</param>

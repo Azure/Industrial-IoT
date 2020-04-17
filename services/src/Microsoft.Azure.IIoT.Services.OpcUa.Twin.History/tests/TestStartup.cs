@@ -10,6 +10,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
@@ -19,6 +21,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
     using System;
     using System.Net.Http;
     using System.Text;
+    using System.Threading.Tasks;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Startup class for tests
@@ -48,6 +52,25 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterType<TestTokenProvider>()
+                .AsImplementedInterfaces();
+        }
+
+        public class TestTokenProvider : ITokenProvider {
+
+            public Task<TokenResultModel> GetTokenForAsync(
+                string resource, IEnumerable<string> scopes = null) {
+                return Task.FromResult<TokenResultModel>(null);
+            }
+
+            public Task InvalidateAsync(string resource) {
+                return Task.CompletedTask;
+            }
+
+            public bool Supports(string resource) {
+                return true;
+            }
         }
 
         public class TestIoTHubConfig : IIoTHubConfig {
@@ -55,7 +78,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
                 ConnectionString.CreateServiceConnectionString(
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-            public string IoTHubResourceId => null;
         }
     }
 

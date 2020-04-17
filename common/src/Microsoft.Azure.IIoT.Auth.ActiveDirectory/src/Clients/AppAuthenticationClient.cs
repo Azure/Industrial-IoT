@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         public AppAuthenticationClient(IClientAuthConfig config, ILogger logger) :
             base(logger) {
             _config = config?.ClientSchemes?
-                .Where(c => c.Scheme == AuthScheme.Aad)
+                .Where(c => c.Scheme == AuthScheme.AzureAD)
                 .Where(c => !string.IsNullOrEmpty(c.ClientId))
                 .Select(CreateProvider)
                 .ToList();

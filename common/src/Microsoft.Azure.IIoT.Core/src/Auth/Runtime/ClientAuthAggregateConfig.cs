@@ -31,5 +31,12 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
                 .Where(c => c.Resource == resource && c.Scheme == scheme)
                     ?? Enumerable.Empty<IOAuthClientConfig>();
         }
+
+        /// <inheritdoc/>
+        public IEnumerable<IOAuthClientConfig> Query(string scheme) {
+            return ClientSchemes?
+                .Where(c => c.Scheme == scheme)
+                    ?? Enumerable.Empty<IOAuthClientConfig>();
+        }
     }
 }

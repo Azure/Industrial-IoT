@@ -76,8 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             bool onlyServerState, int? pageSize, CancellationToken ct) {
             // Find all devices where endpoint information is configured
             var query = $"SELECT * FROM devices WHERE " +
-                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' " +
-                $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
+                $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}'";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
 
             return new EndpointInfoListModel {

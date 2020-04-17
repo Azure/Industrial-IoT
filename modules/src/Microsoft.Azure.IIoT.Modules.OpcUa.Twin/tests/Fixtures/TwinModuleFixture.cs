@@ -255,9 +255,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                 ConnectionString.CreateServiceConnectionString(
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-
-            /// <inheritdoc/>
-            public string IoTHubResourceId => null;
         }
 
         /// <summary>

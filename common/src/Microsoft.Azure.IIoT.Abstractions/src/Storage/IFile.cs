@@ -36,17 +36,6 @@ namespace Microsoft.Azure.IIoT.Storage {
             CancellationToken ct = default);
 
         /// <summary>
-        /// Write buffer at offset and flush
-        /// </summary>
-        /// <param name="stream"></param>
-        /// <param name="count"></param>
-        /// <param name="offset"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task WriteAsync(byte[] stream, int count,
-            long offset, CancellationToken ct = default);
-
-        /// <summary>
         /// Append buffer at end of file and flush.
         /// </summary>
         /// <param name="stream"></param>

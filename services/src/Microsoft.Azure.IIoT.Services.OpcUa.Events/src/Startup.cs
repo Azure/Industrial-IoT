@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
 
             services.AddHttpsRedirect();
             services.AddAuthentication()
-                .AddJwtBearerScheme(AuthScheme.Aad)
+                .AddJwtBearerScheme(AuthScheme.AzureAD)
                 .AddJwtBearerScheme(AuthScheme.AuthService);
             services.AddAuthorizationPolicies(
                 Policies.RoleMapping,

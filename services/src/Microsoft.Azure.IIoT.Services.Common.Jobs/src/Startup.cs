@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
             services.AddAuthentication()
-                .AddJwtBearerScheme(AuthScheme.Aad)
+                .AddJwtBearerScheme(AuthScheme.AzureAD)
                 .AddJwtBearerScheme(AuthScheme.AuthService);
             services.AddAuthorizationPolicies(
                 Policies.RoleMapping,

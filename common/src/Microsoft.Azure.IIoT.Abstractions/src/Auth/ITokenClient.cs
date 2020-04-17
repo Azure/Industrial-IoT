@@ -6,8 +6,9 @@
 namespace Microsoft.Azure.IIoT.Auth {
 
     /// <summary>
-    /// Injectable token client implementation - multiple
-    /// per process and encapsulating the provider.
+    /// Injectable identity provider specific token acquisition
+    /// client implementation - multiple per process and
+    /// encapsulating the identity platform and flow used.
     /// </summary>
     public interface ITokenClient : ITokenAcquisition {
     }

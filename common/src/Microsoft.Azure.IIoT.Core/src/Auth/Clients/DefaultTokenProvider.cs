@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     using System.Linq;
 
     /// <summary>
-    /// Caching token provider
+    /// Enumerates all token sources and provides token from first successful source
     /// </summary>
     public class DefaultTokenProvider : ITokenProvider {
 

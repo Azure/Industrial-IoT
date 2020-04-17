@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <summary>
         /// Service token strategy prefers client credentials over app auth and rest
         /// </summary>
-        internal class ServiceTokenSource : TokenServiceAggregate, ITokenSource {
+        internal class ServiceTokenSource : TokenClientAggregateSource, ITokenSource {
             /// <inheritdoc/>
             public ServiceTokenSource(ClientCredentialClient cc, AppAuthenticationClient aa,
                 IEnumerable<ITokenClient> providers, ILogger logger)

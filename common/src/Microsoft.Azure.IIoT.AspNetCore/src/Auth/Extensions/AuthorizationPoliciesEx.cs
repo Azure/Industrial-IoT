@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="app"></param>
         /// <returns></returns>
         public static IApplicationBuilder UseAuthorizationPolicies(this IApplicationBuilder app) {
+            var auth = app.ApplicationServices.GetService<IServerAuthConfig>();
             return app.UseAuthorization();
         }
 
@@ -49,11 +50,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                 var auth = provider.GetService<IServerAuthConfig>();
 
                 // Only enable configured schemes for authorization (see authentication extensions)
-                var schemes = auth?.JwtBearerSchemes
+                var schemes = auth.JwtBearerSchemes
                     .Select(s => s.GetSchemeName())
                     .Distinct()
                     .ToArray() ?? new string[0];
-                if (auth.AllowAnonymousAccess) {
+                if (auth.AllowAnonymousAccess || schemes.Length == 0) {
                     // No schemes configured - require nothing in terms of authorization
                     configure = (n, builder, p) => builder.RequireAssertion(ctx => true);
                 }

@@ -11,10 +11,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Auth.Models;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Serializers.MessagePack;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
@@ -25,7 +28,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using System.Text;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using System.Threading;
     using System.Linq;
 
@@ -59,6 +61,25 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterType<TestTokenProvider>()
+                .AsImplementedInterfaces();
+        }
+
+        public class TestTokenProvider : ITokenProvider {
+
+            public Task<TokenResultModel> GetTokenForAsync(
+                string resource, IEnumerable<string> scopes = null) {
+                return Task.FromResult<TokenResultModel>(null);
+            }
+
+            public Task InvalidateAsync(string resource) {
+                return Task.CompletedTask;
+            }
+
+            public bool Supports(string resource) {
+                return true;
+            }
         }
 
         public class TestIoTHubConfig : IIoTHubConfig, IIoTHubConfigurationServices {

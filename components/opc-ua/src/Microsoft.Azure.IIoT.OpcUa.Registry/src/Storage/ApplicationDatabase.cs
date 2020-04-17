@@ -78,21 +78,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<ApplicationInfoListModel> ListAsync(
-            string continuation, int? pageSize, bool? disabled, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM Applications a " +
                 $"WHERE a.{nameof(ApplicationRegistration.DeviceType)} = '{IdentityType.Application}' ";
-            if (disabled != null) {
-                if (disabled.Value) {
-                    query +=
-                        $"AND IS_DEFINED(a.{nameof(ApplicationRegistration.NotSeenSince)}) " +
-                        $"AND NOT IS_NULL(a.{nameof(ApplicationRegistration.NotSeenSince)})";
-                }
-                else {
-                    query +=
-                        $"AND (NOT IS_DEFINED(a.{nameof(ApplicationRegistration.NotSeenSince)}) " +
-                        $"OR IS_NULL(a.{nameof(ApplicationRegistration.NotSeenSince)}))";
-                }
-            }
             var client = _applications.OpenSqlClient();
             var compiled = continuation != null ?
                 client.Continue<ApplicationRegistration>(continuation, pageSize) :

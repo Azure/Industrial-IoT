@@ -31,6 +31,7 @@ namespace Microsoft.Azure.IIoT.Auth.Models {
                         result.DisplayableId = claim.Value;
                         break;
                     case "oid":
+                    case "http://schemas.microsoft.com/identity/claims/objectidentifier":
                         result.UniqueId = claim.Value;
                         break;
                     case ClaimTypes.GivenName:

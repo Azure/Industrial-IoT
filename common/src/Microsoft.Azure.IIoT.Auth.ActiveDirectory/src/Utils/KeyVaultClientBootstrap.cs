@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
     using Microsoft.Azure.KeyVault;
     using Autofac;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>

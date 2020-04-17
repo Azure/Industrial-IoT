@@ -158,7 +158,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <inheritdoc/>
         public Task<ApplicationInfoListModel> ListApplicationsAsync(
             string continuation, int? pageSize, CancellationToken ct) {
-            return _database.ListAsync(continuation, pageSize, false, ct);
+            return _database.ListAsync(continuation, pageSize, ct);
         }
 
         /// <inheritdoc/>
@@ -168,7 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var absolute = DateTime.UtcNow - notSeenSince;
             string continuation = null;
             do {
-                var applications = await _database.ListAsync(continuation, null, true, ct);
+                var applications = await _database.ListAsync(continuation, null, ct);
                 continuation = applications?.ContinuationToken;
                 if (applications?.Items == null) {
                     continue;

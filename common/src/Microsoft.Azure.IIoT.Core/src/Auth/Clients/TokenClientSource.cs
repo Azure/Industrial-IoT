@@ -12,33 +12,33 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     using System;
 
     /// <summary>
-    /// Use token provider as token source
+    /// Use token client as token source
     /// </summary>
-    public class TokenServiceSource<T> : ITokenSource
+    public class TokenClientSource<T> : ITokenSource
         where T : ITokenClient {
 
         /// <inheritdoc/>
         public string Resource { get; } = Http.Resource.Platform;
 
         /// <inheritdoc/>
-        public bool IsEnabled => _provider.Supports(Resource);
+        public bool IsEnabled => _client.Supports(Resource);
 
         /// <inheritdoc/>
-        public TokenServiceSource(T provider) {
-            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
+        public TokenClientSource(T client) {
+            _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenAsync(
             IEnumerable<string> scopes = null) {
-            return await Try.Async(() => _provider.GetTokenForAsync(Resource, scopes));
+            return await Try.Async(() => _client.GetTokenForAsync(Resource, scopes));
         }
 
         /// <inheritdoc/>
         public async Task InvalidateAsync() {
-            await Try.Async(() => _provider.InvalidateAsync(Resource));
+            await Try.Async(() => _client.InvalidateAsync(Resource));
         }
 
-        private readonly T _provider;
+        private readonly T _client;
     }
 }
