@@ -28,16 +28,16 @@ namespace Microsoft.Azure.IIoT.App.Data {
             }
             switch (ev.EventType) {
                 case ApplicationEventType.New:
-                case ApplicationEventType.Enabled:
                     if (application == null) {
                         // Add if not already in list
                         results.Add(ev.Application);
                     }
                     break;
+                case ApplicationEventType.Enabled:
                 case ApplicationEventType.Updated:
+                case ApplicationEventType.Disabled:
                     ev.Application.Patch(application);
                     break;
-                case ApplicationEventType.Disabled:
                 case ApplicationEventType.Deleted:
                     results.Remove(application);
                     break;

@@ -76,16 +76,30 @@
                 <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
                 <td>
                     @if (endpoint.EndpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                     endpoint.EndpointModel.ActivationState == EndpointActivationState.Activated)
+                      endpoint.EndpointModel.ActivationState == EndpointActivationState.Activated)
                     {
-                        <input type="checkbox" checked
-                               @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
+                        @if (endpoint.EndpointModel.NotSeenSince != null)
+                        {
+                            <input type="checkbox" checked disabled />
+                        }
+                        else
+                        {
+                            <input type="checkbox" checked
+                                   @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
+                        }
                         @endpoint.EndpointModel.ActivationState.ToString()
                     }
                     else
                     {
-                        <input type="checkbox"
-                               @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
+                        @if (endpoint.EndpointModel.NotSeenSince != null)
+                        {
+                            <input type="checkbox" disabled />
+                        }
+                        else
+                        {
+                            <input type="checkbox"
+                                   @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
+                        }
                         @endpoint.EndpointModel.ActivationState.ToString()
                     }
                 </td>
