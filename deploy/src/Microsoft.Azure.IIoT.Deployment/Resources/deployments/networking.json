@@ -8,23 +8,47 @@
             "metadata": {
                 "description": "Name of IIoT solution, used as name prefix."
             }
+        },
+        "nsgName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('iiotServicesName'), '-nsg')]",
+            "metadata": {
+                "description": "Name of network security groups."
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('iiotServicesName'), '-vnet')]",
+            "metadata": {
+                "description": "Name of virtual networks."
+            }
+        },
+        "subnetAKSName": {
+            "type": "string",
+            "defaultValue": "aks-subnet",
+            "metadata": {
+                "description": "Name of subnet for an AKS cluster."
+            }
+        },
+        "subnetVMName": {
+            "type": "string",
+            "defaultValue": "vm-subnet",
+            "metadata": {
+                "description": "Name of subnet for a VM."
+            }
         }
     },
     "variables": {
         "location": "[resourceGroup().location]",
-        "nsgName": "[concat(parameters('iiotServicesName'), '-nsg')]",
-        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('nsgName'))]",
-        "vnetName": "[concat(parameters('iiotServicesName'), '-vnet')]",
-        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetName'))]",
-        "subnetNameVM": "vm-subnet",
-        "subnetVMRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetNameVM'))]",
-        "subnetNameAKS": "aks-subnet",
-        "subnetAKSRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetNameAKS'))]"
+        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+        "subnetAKSRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetAKSName'))]",
+        "subnetVMRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetVMName'))]"
     },
     "resources": [
         {
             "comments":  "Default Network Security Group for template",
-            "name": "[variables('nsgName')]",
+            "name": "[parameters('nsgName')]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2018-08-01",
             "location": "[variables('location')]",
@@ -86,7 +110,7 @@
             }
         },
         {
-            "name": "[variables('vnetName')]",
+            "name": "[parameters('vnetName')]",
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2018-08-01",
             "location": "[variables('location')]",
@@ -101,7 +125,7 @@
                 },
                 "subnets": [
                     {
-                        "name": "[variables('subnetNameAKS')]",
+                        "name": "[parameters('subnetAKSName')]",
                         "properties": {
                             "addressPrefix": "10.240.0.0/16",
                             "networkSecurityGroup": {
@@ -110,7 +134,7 @@
                         }
                     },
                     {
-                        "name": "[variables('subnetNameVM')]",
+                        "name": "[parameters('subnetVMName')]",
                         "properties": {
                             "addressPrefix": "10.241.0.0/16",
                             "networkSecurityGroup": {
@@ -125,7 +149,7 @@
     "outputs": {
         "nsgName": {
             "type": "string",
-            "value": "[variables('nsgName')]"
+            "value": "[parameters('nsgName')]"
         },
         "nsgId": {
             "type": "string",
@@ -133,27 +157,27 @@
         },
         "vnetName": {
             "type": "string",
-            "value": "[variables('vnetName')]"
+            "value": "[parameters('vnetName')]"
         },
         "vnetId": {
             "type": "string",
             "value": "[variables('vnetId')]"
         },
-        "subnetNameVM": {
+        "subnetAKSName": {
             "type": "string",
-            "value": "[variables('subnetNameVM')]"
-        },
-        "subnetVMRef": {
-            "type": "string",
-            "value": "[variables('subnetVMRef')]"
-        },
-        "subnetNameAKS": {
-            "type": "string",
-            "value": "[variables('subnetNameAKS')]"
+            "value": "[parameters('subnetAKSName')]"
         },
         "subnetAKSRef": {
             "type": "string",
             "value": "[variables('subnetAKSRef')]"
+        },
+        "subnetVMName": {
+            "type": "string",
+            "value": "[parameters('subnetVMName')]"
+        },
+        "subnetVMRef": {
+            "type": "string",
+            "value": "[variables('subnetVMRef')]"
         }
     }
 }

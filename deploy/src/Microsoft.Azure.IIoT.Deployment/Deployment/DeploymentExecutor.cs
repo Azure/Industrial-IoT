@@ -686,56 +686,51 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             //RouteTableInner routeTable;
             VirtualNetworkInner virtualNetwork;
             SubnetInner virtualNetworkAksSubnet;
+            SubnetInner virtualNetworkVmSubnet;
             //PublicIPAddressInner publicIPAddress;
             //NetworkInterfaceInner networkInterface;
+
+            var networkingDeploymentParameters = new Dictionary<string, string> {
+                {"nsgName", _networkSecurityGroupName},
+                {"vnetName", _virtualNetworkName},
+                {"subnetAKSName", NetworkMgmtClient.VIRTUAL_NETWORK_AKS_SUBNET_NAME},
+                {"subnetVMName", NetworkMgmtClient.VIRTUAL_NETWORK_VM_SUBNET_NAME}
+            };
 
             var networkingDeployment = await _resourceManagementClient
                 .CreateResourceGroupDeploymentAsync(
                     _resourceGroup,
                     "networking",
                     Resources.ArmTemplates.networking,
-                    new Dictionary<string, string> { },
+                    networkingDeploymentParameters,
                     DeploymentMode.Incremental,
                     cancellationToken
                 );
 
             var networkingDeploymentOutput = ResourceMgmtClient.ExtractDeploymentOutput(networkingDeployment);
 
-            if (!networkingDeploymentOutput.ContainsKey("nsgName")) {
-                throw new Exception("Expected key not present in deployment output: nsgName");
-            }
-            if (!networkingDeploymentOutput.ContainsKey("vnetName")) {
-                throw new Exception("Expected key not present in deployment output: vnetName");
-            }
-            if (!networkingDeploymentOutput.ContainsKey("subnetNameVM")) {
-                throw new Exception("Expected key not present in deployment output: subnetNameVM");
-            }
-            if (!networkingDeploymentOutput.ContainsKey("subnetNameAKS")) {
-                throw new Exception("Expected key not present in deployment output: subnetNameAKS");
-            }
-
-            var nsgName = networkingDeploymentOutput["nsgName"];
-            var vnetName = networkingDeploymentOutput["vnetName"];
-            var subnetNameVM = networkingDeploymentOutput["subnetNameVM"];
-            var subnetNameAKS = networkingDeploymentOutput["subnetNameAKS"];
-
             networkSecurityGroup = await _networkManagementClient
                 .GetNetworkSecurityGroupAsync(
                     _resourceGroup,
-                    nsgName,
+                    _networkSecurityGroupName,
                     cancellationToken
                 );
 
             virtualNetwork = await _networkManagementClient
                 .GetVirtualNetworkAsync(
                     _resourceGroup,
-                    vnetName,
+                    _virtualNetworkName,
                     cancellationToken
                 );
 
             virtualNetworkAksSubnet = virtualNetwork
                 .Subnets
-                .Where(subnet => subnet.Name == subnetNameAKS)
+                .Where(subnet => subnet.Name == NetworkMgmtClient.VIRTUAL_NETWORK_AKS_SUBNET_NAME)
+                .First();
+
+            virtualNetworkVmSubnet = virtualNetwork
+                .Subnets
+                .Where(subnet => subnet.Name == NetworkMgmtClient.VIRTUAL_NETWORK_VM_SUBNET_NAME)
                 .First();
 
             //networkSecurityGroup = await _networkManagementClient
@@ -1283,6 +1278,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             disposeIfNotNull(_aksClusterX509Certificate);
 
             // Resource management classes
+            disposeIfNotNull(_resourceManagementClient);
             disposeIfNotNull(_keyVaultManagementClient);
             disposeIfNotNull(_storageManagementClient);
             disposeIfNotNull(_iotHubManagementClient);

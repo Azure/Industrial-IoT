@@ -94,11 +94,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///            &quot;metadata&quot;: {
         ///                &quot;description&quot;: &quot;Name of IIoT solution, used as name prefix.&quot;
         ///            }
-        ///        }
-        ///    },
-        ///    &quot;variables&quot;: {
-        ///        &quot;location&quot;: &quot;[resourceGroup().location]&quot;,
-        ///        &quot;nsgName&quot;: &quot;[concat(parameters [rest of string was truncated]&quot;;.
+        ///        },
+        ///        &quot;nsgName&quot;: {
+        ///            &quot;type&quot;: &quot;string&quot;,
+        ///            &quot;defaultValue&quot;: &quot;[concat(parameters(&apos;iiotServicesNa [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string networking {
             get {
