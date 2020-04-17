@@ -14,11 +14,25 @@
             "metadata": {
                 "description": "Password for the IoT Edge virtual machine"
             }
+        },
+        "builtInRoleType": {
+            "type": "string",
+            "metadata": {
+                "description": "AKS role that should be assigned to the VM"
+            },
+            "allowedValues": [
+                "AzureKubernetesServiceClusterAdminRole",
+                "AzureKubernetesServiceClusterUserRole"
+            ],
+            "defaultValue": "AzureKubernetesServiceClusterAdminRole"
+        },
+        "rbacGuid": {
+            "type": "string",
+            "defaultValue": "[newGuid()]"
         }
     },
     "variables": {
         "location": "[resourceGroup().location]",
-        "linuxVmName": "jumpbox-vm",
         "publicIpName": "linux-ip",
         "publicIpId": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', variables('publicIpName'))]",
         "nsgName": "linux-nsg",
@@ -30,7 +44,11 @@
         // "networkProfileName": "linux-vnet-networkprofile",
         // "networkProfileId": "[resourceId('Microsoft.Network/networkProfiles', variables('networkProfileName'))]",
         "networkInterfaceName": "linux-networkInterface",
-        "networkInterfaceId": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]"
+        "networkInterfaceId": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]",
+        "vmName": "jumpbox-vm",
+        "vmId": "[resourceId(resourceGroup().name, 'Microsoft.Compute/virtualMachines', variables('vmName'))]",
+        "AzureKubernetesServiceClusterAdminRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '0ab0b1a8-8aac-4efd-b8c2-3ee1fb270be8')]",
+        "AzureKubernetesServiceClusterUserRole": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4abbcc35-e782-43d8-92c5-2d3f1bd2253f')]"
     },
     "resources": [
         {
@@ -168,13 +186,16 @@
         //     }
         // },
         {
-            "name": "[variables('linuxVmName')]",
+            "name": "[variables('vmName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-06-01",
             "location": "[variables('location')]",
             "dependsOn": [
                 "[variables('networkInterfaceId')]"
             ],
+            "identity": {
+                "type": "SystemAssigned"
+            },
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_B1ms"
@@ -201,7 +222,7 @@
                     ]
                 },
                 "osProfile": {
-                    "computerName": "[variables('linuxVmName')]",
+                    "computerName": "[variables('vmName')]",
                     "adminUsername": "[parameters('edgeUsername')]",
                     "adminPassword": "[parameters('edgePassword')]"
                 }
@@ -211,14 +232,27 @@
                 "publisher": "microsoft_iot_edge",
                 "product": "iot_edge_vm_ubuntu"
             }
+        },
+        {
+            "apiVersion": "2017-09-01",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "name": "[parameters('rbacGuid')]",
+            "dependsOn": [
+                "[variables('vmId')]"
+            ],
+            "properties": {
+                "roleDefinitionId": "[variables(parameters('builtInRoleType'))]",
+                "principalId": "[reference(variables('vmId'), '2017-12-01', 'Full').identity.principalId]",
+                "scope": "[resourceGroup().id]"
+            }
         }//,
         // {
         //     "comments": "One time script execution to connect Edge with Iot Hub",
         //     "type": "Microsoft.Compute/virtualMachines/extensions",
-        //     "name": "[concat(variables('linuxVmName'), '/', 'scriptextensions')]",
+        //     "name": "[concat(variables('vmName'), '/', 'scriptextensions')]",
         //     "apiVersion": "2019-03-01",
         //     "dependsOn": [
-        //         "[concat('Microsoft.Compute/virtualMachines/', variables('linuxVmName'))]"
+        //         "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
         //     ],
         //     "location": "[variables('location')]",
         //     "properties": {
