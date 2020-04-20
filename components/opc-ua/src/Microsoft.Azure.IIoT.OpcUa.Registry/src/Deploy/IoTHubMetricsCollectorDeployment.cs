@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             var content = @"
             {
                 ""$edgeAgent"": {
-                    ""properties.desired.modules.discovery"": {
+                    ""properties.desired.modules.metricscollector"": {
                         ""settings"": {
                             ""image"": ""veyalla/metricscollector:0.0.4-amd64"",
                             ""createOptions"": """ + createOptions + @"""
