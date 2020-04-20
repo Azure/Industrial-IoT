@@ -68,6 +68,13 @@
         "rbacGuid": {
             "type": "string",
             "defaultValue": "[guid(subscription().subscriptionId, resourceGroup().id)]"
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for resources."
+            }
         }
     },
     "variables": {
@@ -88,6 +95,7 @@
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "2018-08-01",
             "location": "[variables('location')]",
+            "tags" : "[parameters('tags')]",
             "properties": {
                 "publicIpAllocationMethod": "Dynamic"
             },
@@ -100,6 +108,7 @@
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-08-01",
             "location": "[variables('location')]",
+            "tags" : "[parameters('tags')]",
             "dependsOn": [
                 "[variables('publicIpId')]"
             ],
@@ -128,6 +137,7 @@
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-06-01",
             "location": "[variables('location')]",
+            "tags" : "[parameters('tags')]",
             "dependsOn": [
                 "[variables('networkInterfaceId')]"
             ],
@@ -172,9 +182,10 @@
             }
         },
         {
-            "apiVersion": "2017-09-01",
-            "type": "Microsoft.Authorization/roleAssignments",
             "name": "[parameters('rbacGuid')]",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2017-09-01",
+            "tags" : "[parameters('tags')]",
             "dependsOn": [
                 "[variables('virtualMachineId')]"
             ],
@@ -189,6 +200,7 @@
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('virtualMachineName'), '/scriptextensions_setup')]",
             "apiVersion": "2019-03-01",
+            "tags" : "[parameters('tags')]",
             "dependsOn": [
                 "[variables('roleAssignmentId')]"
             ],

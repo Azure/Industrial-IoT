@@ -36,6 +36,13 @@
             "metadata": {
                 "description": "Name of subnet for a VM."
             }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for resources."
+            }
         }
     },
     "variables": {
@@ -52,6 +59,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2018-08-01",
             "location": "[variables('location')]",
+            "tags" : "[parameters('tags')]",
             "properties": {
                 "securityRules": [
                     {
@@ -114,6 +122,7 @@
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2018-08-01",
             "location": "[variables('location')]",
+            "tags" : "[parameters('tags')]",
             "dependsOn": [
                 "[variables('nsgId')]"
             ],

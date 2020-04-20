@@ -704,6 +704,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     Resources.ArmTemplates.networking,
                     networkingDeploymentParameters,
                     DeploymentMode.Incremental,
+                    _defaultTagsDict,
                     cancellationToken
                 );
 

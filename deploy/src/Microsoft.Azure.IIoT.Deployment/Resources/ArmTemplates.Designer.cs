@@ -65,17 +65,20 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    &quot;$schema&quot;: &quot;https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#&quot;,
         ///    &quot;contentVersion&quot;: &quot;1.0.0.0&quot;,
         ///    &quot;parameters&quot;: {
-        ///        &quot;edgeUsername&quot;: {
+        ///        &quot;nsgId&quot;: {
         ///            &quot;type&quot;: &quot;string&quot;,
-        ///            &quot;defaultValue&quot;: &quot;sandboxuser&quot;,
         ///            &quot;metadata&quot;: {
-        ///                &quot;description&quot;: &quot;Username for the IoT Edge virtual machine&quot;
+        ///                &quot;description&quot;: &quot;Network security group ID&quot;
         ///            }
         ///        },
-        ///        &quot;edgePassword&quot;: {
-        ///            &quot;type&quot;: &quot;securestring&quot;,
+        ///        &quot;subnetId&quot;: {
+        ///            &quot;type&quot;: &quot;string&quot;,
         ///            &quot;metadata&quot;: {
-        ///                &quot;description&quot;: &quot;Password for t [rest of string was truncated]&quot;;.
+        ///                &quot;description&quot;: &quot;Virtual network subnet ID&quot;
+        ///            }
+        ///        },
+        ///        &quot;aksClusterName&quot;: {
+        ///           [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string jumpbox_vm {
             get {

@@ -225,6 +225,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// <param name="templateJson"></param>
         /// <param name="parameters"></param>
         /// <param name="deploymentMode"></param>
+        /// <param name="tags"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task<DeploymentExtendedInner> CreateResourceGroupDeploymentAsync(
@@ -233,13 +234,27 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string templateJson,
             IDictionary<string, string> parameters,
             DeploymentMode deploymentMode,
+            IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
             if (parameters is null) {
                 throw new ArgumentNullException(nameof(parameters));
             }
 
-            var parametersJson = ToParametersJson(parameters);
+            var parametersObj = parameters.ToDictionary(
+                pair => pair.Key,
+                pair => (object)pair.Value
+            );
+
+            if (!(tags is null) && (tags.Count > 0)) {
+                const string tagsKey = "tags";
+                if (parametersObj.ContainsKey(tagsKey)) {
+                    throw new ArgumentException($"{nameof(parameters)} already contains '{tagsKey}' key");
+                }
+                parametersObj.Add(tagsKey, tags);
+            }
+
+            var parametersJson = ToParametersJson(parametersObj);
 
             var deployment = await CreateResourceGroupDeploymentAsync(
                 resourceGroup,
@@ -258,7 +273,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// </summary>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        protected static string ToParametersJson(IDictionary<string, string> parameters) {
+        protected static string ToParametersJson(IDictionary<string, object> parameters) {
             // Transform {"key1": "value1"} entry to the following format:
             //  {
             //      "key1" {
@@ -268,9 +283,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             //  }
             const string valueKey = "value";
 
-            var parametersTransformed = new Dictionary<string, Dictionary<string, string>>();
+            var parametersTransformed = new Dictionary<string, Dictionary<string, object>>();
             foreach (var keyValuePair in parameters) {
-                var valueTransformed = new Dictionary<string, string> {
+                var valueTransformed = new Dictionary<string, object> {
                     { valueKey, keyValuePair.Value }
                 };
                 parametersTransformed.Add(keyValuePair.Key, valueTransformed);
