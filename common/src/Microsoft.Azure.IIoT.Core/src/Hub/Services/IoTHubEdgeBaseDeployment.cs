@@ -20,7 +20,6 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// Create edge base deployer
         /// </summary>
         /// <param name="service"></param>
-        /// <param name="config"></param>
         /// <param name="serializer"></param>
         public IoTHubEdgeBaseDeployment(IIoTHubConfigurationServices service,
             IJsonSerializer serializer) {
