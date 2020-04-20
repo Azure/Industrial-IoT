@@ -121,11 +121,10 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
     ""metricscollector"": {
         ""properties.desired"": {
             ""schemaVersion"": ""1.0"",
-            ""scrapeFrequencySecs"": 300,
+            ""scrapeFrequencySecs"": 120,
             ""metricsFormat"": ""Json"",
             ""syncTarget"": ""AzureLogAnalytics"",
             ""endpoints"": {
-                ""edgeHub"": ""http://edgeHub:9600/metrics"",
                 ""opctwin"": ""http://opctwin:9701/metrics"",
                 ""opcpublisher"": ""http://opcpublisher:9702/metrics""
             }
