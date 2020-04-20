@@ -213,5 +213,35 @@
                 }
             }
         }
-    ]
+    ],
+    "outputs": {
+         "publicIpName": {
+            "type": "string",
+            "value": "[parameters('publicIpName')]"
+        },
+        "publicIpId": {
+            "type": "string",
+            "value": "[variables('publicIpId')]"
+        },
+         "networkInterfaceName": {
+            "type": "string",
+            "value": "[parameters('networkInterfaceName')]"
+        },
+        "networkInterfaceId": {
+            "type": "string",
+            "value": "[variables('networkInterfaceId')]"
+        },
+         "virtualMachineName": {
+            "type": "string",
+            "value": "[parameters('virtualMachineName')]"
+        },
+        "virtualMachineId": {
+            "type": "string",
+            "value": "[variables('virtualMachineId')]"
+        },
+         "rbacGuid": {
+            "type": "string",
+            "value": "[parameters('rbacGuid')]"
+        }
+   }
 }
