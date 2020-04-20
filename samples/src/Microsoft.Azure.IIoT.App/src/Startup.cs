@@ -235,7 +235,7 @@ namespace Microsoft.Azure.IIoT.App {
             /// <inheritdoc/>
             public async Task<TokenResultModel> ChallengeAsync(HttpContext context, string resource,
                 string scheme, AuthenticationException ex = null) {
-                SignOut(context);
+             //   SignOut(context);
                 await context.ChallengeAsync(scheme);
                 return null;
             }

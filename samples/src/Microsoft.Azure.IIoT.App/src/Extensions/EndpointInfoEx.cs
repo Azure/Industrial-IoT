@@ -22,8 +22,7 @@ namespace Microsoft.Azure.IIoT.App.Data {
         public static void Update(this IList<EndpointInfo> results, EndpointEventApiModel ev) {
             var endpoint = results.FirstOrDefault(e => e.EndpointModel.Registration.Id == ev.Id);
             if (endpoint == null &&
-                ev.EventType != EndpointEventType.New &&
-                ev.EventType != EndpointEventType.Enabled) {
+                ev.EventType != EndpointEventType.New) {
                 return;
             }
             switch (ev.EventType) {

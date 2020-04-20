@@ -22,8 +22,7 @@ namespace Microsoft.Azure.IIoT.App.Data {
             ApplicationEventApiModel ev) {
             var application = results.FirstOrDefault(e => e.ApplicationId == ev.Id);
             if (application == null &&
-                ev.EventType != ApplicationEventType.New &&
-                ev.EventType != ApplicationEventType.Enabled) {
+                ev.EventType != ApplicationEventType.New) {
                 return;
             }
             switch (ev.EventType) {
