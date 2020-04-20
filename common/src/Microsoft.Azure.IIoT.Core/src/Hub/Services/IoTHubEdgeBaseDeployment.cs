@@ -23,10 +23,9 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// <param name="config"></param>
         /// <param name="serializer"></param>
         public IoTHubEdgeBaseDeployment(IIoTHubConfigurationServices service,
-            IContainerRegistryConfig config, IJsonSerializer serializer) {
+            IJsonSerializer serializer) {
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            _config = config ?? throw new ArgumentNullException(nameof(service));
         }
 
         /// <inheritdoc/>
@@ -85,25 +84,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                     }
                 }
             },
-            ""modules"": {
-                ""metricscollector"": {
-                    ""settings"": {
-                        ""image"": ""veyalla/metricscollector:0.0.4-amd64"",
-                        ""createOptions"": """"
-                    },
-                    ""type"": ""docker"",
-                    ""version"": ""1.0"",
-                    ""env"": {
-                        ""AzMonWorkspaceId"": {
-                            ""value"": """ + _config.WorkspaceId + @"""
-                        },
-                        ""AzMonWorkspaceKey"": {
-                            ""value"": """ + _config.WorkspaceKey + @"""
-                        }
-                    },
-                    ""status"": ""running"",
-                    ""restartPolicy"": ""always""
-                }
+           ""modules"": {
             }
         }
     },
@@ -117,18 +98,6 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                 ""timeToLiveSecs"": 7200
             }
         }
-    },
-    ""metricscollector"": {
-        ""properties.desired"": {
-            ""schemaVersion"": ""1.0"",
-            ""scrapeFrequencySecs"": 120,
-            ""metricsFormat"": ""Json"",
-            ""syncTarget"": ""AzureLogAnalytics"",
-            ""endpoints"": {
-                ""opctwin"": ""http://opctwin:9701/metrics"",
-                ""opcpublisher"": ""http://opcpublisher:9702/metrics""
-            }
-        }
     }
 }
 ");
@@ -137,6 +106,5 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         private const string kDefaultSchemaVersion = "1.0";
         private readonly IIoTHubConfigurationServices _service;
         private readonly IJsonSerializer _serializer;
-        private readonly IContainerRegistryConfig _config;
     }
 }
