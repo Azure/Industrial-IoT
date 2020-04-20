@@ -24,6 +24,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
 
+            builder.RegisterType<HttpHandlerFactory>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ClientAuthAggregateConfig>()
@@ -31,31 +33,22 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             builder.RegisterType<DefaultTokenProvider>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope()
                 .IfNotRegistered(typeof(ITokenProvider));
-
-            builder.RegisterModule<DefaultServiceAuthProviders>();
-
-            // Cache tokens in protected cache - by default in memory
+            // Cache tokens in memory
             builder.RegisterType<MemoryCache>()
                 .AsImplementedInterfaces().SingleInstance()
                 .IfNotRegistered(typeof(ICache));
-            builder.RegisterType<DistributedProtectedCache>()
-                .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterModule<DefaultServiceAuthProviders>();
 
             // 1) Use auth service open id token client
-            builder.RegisterType<HttpHandlerFactory>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<OpenIdUserTokenClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-            // 2) Use adal user token as fallback
-            builder.RegisterType<AdalTokenCacheAdapter>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<AdalUserTokenClient>()
-                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
-
-            //  builder.RegisterType<MsalUserTokenClient>()
-            //      .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
+            // 2) Use msal user token as fallback
+            builder.RegisterType<MsalUserTokenClient>()
+                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
             // Use service to service token source
             builder.RegisterType<UserTokenSource>()
@@ -68,11 +61,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// </summary>
         internal class UserTokenSource : TokenClientAggregateSource, ITokenSource {
 
-            /// <inheritdoc/>
-            public UserTokenSource(OpenIdUserTokenClient oi, AdalUserTokenClient uc,
-                IEnumerable<ITokenClient> providers, ILogger logger)
-                : base(providers, Http.Resource.Platform, logger, oi, uc) {
-            }
 
             /// <inheritdoc/>
             public UserTokenSource(OpenIdUserTokenClient oi, MsalUserTokenClient uc,

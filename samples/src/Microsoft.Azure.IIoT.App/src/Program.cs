@@ -21,7 +21,8 @@ namespace Microsoft.Azure.IIoT.App {
         public static void Main(string[] args) {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Components", LogEventLevel.Information)
+                .MinimumLevel.Override("Microsoft.AspNetCore.SignalR", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .CreateLogger();

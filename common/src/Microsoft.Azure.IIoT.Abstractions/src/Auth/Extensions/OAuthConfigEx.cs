@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Server {
+namespace Microsoft.Azure.IIoT.Auth {
     using System;
 
     /// <summary>
     /// Configuration extensions
     /// </summary>
-    public static class OAuthServerConfigEx {
+    public static class OAuthConfigEx {
 
         /// <summary>
         /// Url of the token issuing instance.  E.g. the JWT bearer
@@ -18,8 +18,10 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
         /// validate the token's signature.
         /// </summary>
         /// <param name="config"></param>
+        /// <param name="noVersion"></param>
         /// <returns></returns>
-        public static string GetAuthorityUrl(this IOAuthServerConfig config) {
+        public static string GetAuthorityUrl(this IOAuthConfig config,
+            bool noVersion = false) {
             var authorityUrl = config?.InstanceUrl?.TrimEnd('/');
 
             var tenantId = config?.TenantId;
@@ -33,7 +35,11 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
                 if (string.IsNullOrEmpty(tenantId)) {
                     tenantId = "common";
                 }
-                return authorityUrl + "/" + tenantId + "/v2.0";
+                authorityUrl += "/" + tenantId;
+                if (!noVersion) {
+                    authorityUrl += "/v2.0";
+                }
+                return authorityUrl;
             }
 
             if (string.IsNullOrEmpty(authorityUrl)) {
@@ -51,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static string GetSchemeName(this IOAuthServerConfig config) {
+        public static string GetSchemeName(this IOAuthConfig config) {
             var name = config.Scheme;
             if (string.IsNullOrEmpty(name)) {
                 return AuthScheme.Bearer;

@@ -11,10 +11,10 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Storage;
-    using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth.Models;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
@@ -24,8 +24,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Authentication.AzureAD.UI;
-    using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
@@ -36,7 +34,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Autofac.Extensions.DependencyInjection;
     using Autofac;
     using System;
@@ -44,7 +41,6 @@ namespace Microsoft.Azure.IIoT.App {
     using System.Threading.Tasks;
     using System.Security.Claims;
     using Blazored.SessionStorage;
-    using Microsoft.Azure.IIoT.Auth.Models;
 
     /// <summary>
     /// Webapp startup
@@ -96,6 +92,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             app.UsePathBase();
             app.UseHeaderForwarding();
+            app.UseSession();
 
             var isDevelopment = Environment.IsDevelopment();
             isDevelopment = true; // TODO Remove when all issues fixed
@@ -109,14 +106,6 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseHttpsRedirect();
             app.UseStaticFiles();
             app.UseRouting();
-            app.UseRewriter(
-                new RewriteOptions().Add(context => {
-                    if (context.HttpContext.Request.Path == Config.ServicePathBase +  "/AzureAD/Account/SignedOut") {
-                        context.HttpContext.Response.Redirect(Config.ServicePathBase + "/discoverers");
-                        context.HttpContext.SignOutAsync("Cookies");
-                    }
-                })
-            );
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -144,9 +133,11 @@ namespace Microsoft.Azure.IIoT.App {
             // services.AddLogging(o => o.AddConsole().AddDebug());
             services.AddHeaderForwarding();
 
+            services.AddSession(option => {
+                option.Cookie.IsEssential = true;
+            });
             // Protect anything using keyvault and storage persisted keys
             services.AddAzureDataProtection(Config.Configuration);
-
             services.Configure<CookiePolicyOptions>(options => {
                 // This lambda determines whether user consent for non-essential cookies
                 // is needed for a given request.
@@ -158,40 +149,13 @@ namespace Microsoft.Azure.IIoT.App {
                 options.Cookie.SameSite = SameSiteMode.Strict;
             });
 
-            services.AddHttpContextAccessor();
-            services
-                .AddAuthentication(AzureADDefaults.AuthenticationScheme)
-                .AddAzureAD(options => {
-                    options.Instance = Config.InstanceUrl;
-                    options.Domain = Config.GetDomain();
-                    options.TenantId = Config.TenantId;
-                    options.ClientId = Config.ClientId;
-                    options.ClientSecret = Config.ClientSecret;
-                    options.CallbackPath = "/signin-oidc";
-                });
-
-            //
-            // Without overriding the response type (which by default is id_token),
-            // the OnAuthorizationCodeReceived event is not called but instead
-            // OnTokenValidated event is called. Here we request both so that
-            // OnTokenValidated is called first which ensures that context.Principal
-            // has a non-null value when OnAuthorizationCodeReceived is called
-            //
-            services
-                .Configure<OpenIdConnectOptions>(AzureADDefaults.OpenIdScheme, options => {
-                    options.SaveTokens = true;
-                    options.ResponseType = "id_token code";
-                    options.Resource = Config.ClientId;
-                    options.Scope.Add("offline_access");
-                    options.Events.OnAuthenticationFailed = OnAuthenticationFailedAsync;
-                    options.Events.OnAuthorizationCodeReceived = OnAuthorizationCodeReceivedAsync;
-                });
+            services.AddAuthentication()
+                .AddOpenIdConnect(AuthScheme.AzureAD)
+             //   .AddOpenIdConnect(AuthScheme.AuthService)
+                ;
+            services.AddAuthorization();
 
             services.AddControllersWithViews();
-
-            services.AddAuthorization(options => {
-                options.AddPolicy("Auth", c => c.RequireAuthenticatedUser());
-            });
 
             services.AddRazorPages();
             services.AddSignalR()
@@ -199,6 +163,7 @@ namespace Microsoft.Azure.IIoT.App {
                 .AddMessagePackSerializer()
              //   .AddAzureSignalRService(Config)
                 ;
+
             services.AddServerSideBlazor();
             services.AddBlazoredSessionStorage();
         }
@@ -217,20 +182,24 @@ namespace Microsoft.Azure.IIoT.App {
 
             // Register logger
             builder.AddDiagnostics(Config);
-            builder.RegisterType<ClientAuthAggregateConfig>()
-                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
+
+            // Use web app openid authentication
+            builder.RegisterModule<WebAppAuthentication>();
+            builder.RegisterType<AadApiClientConfig>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<AuthServiceApiClientConfig>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<HttpContextSessionCache>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<SignOutHandler>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register http client module (needed for api)...
             builder.RegisterModule<HttpClientModule>();
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces(); // Per request
-
-            // Use web app bearer authentication for services
-            builder.RegisterModule<WebAppAuthentication>();
-            builder.RegisterType<SignOutHandler>()
-                .AsImplementedInterfaces().SingleInstance();
 
             // Register twin, vault, and registry services clients
             builder.RegisterType<TwinServiceClient>()
@@ -258,46 +227,6 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<SecureData>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
-        }
-
-
-        /// <summary>
-        /// Redeems the authorization code by calling AcquireTokenByAuthorizationCodeAsync
-        /// in order to ensure
-        /// that the cache has a token for the signed-in user, which will then enable
-        /// the controllers
-        /// to call AcquireTokenSilentAsync successfully.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        private async Task OnAuthorizationCodeReceivedAsync(AuthorizationCodeReceivedContext context) {
-            // Acquire a Token for the API and cache it.
-            var credential = new ClientCredential(context.Options.ClientId,
-                context.Options.ClientSecret);
-
-            // TODO : Refactor!!!
-            var provider = context.HttpContext.RequestServices.GetRequiredService<IAdalTokenCacheProvider>();
-            var tokenCache = provider.GetCache($"OID:{context.Principal.GetObjectId()}");
-            var authContext = new AuthenticationContext(context.Options.Authority, tokenCache);
-
-            var authResult = await authContext.AcquireTokenByAuthorizationCodeAsync(
-                context.TokenEndpointRequest.Code,
-                new Uri(context.TokenEndpointRequest.RedirectUri, UriKind.RelativeOrAbsolute),
-                credential, context.Options.Resource);
-
-            // Notify the OIDC middleware that we already took care of code redemption.
-            context.HandleCodeRedemption(authResult.AccessToken, context.ProtocolMessage.IdToken);
-        }
-
-        /// <summary>
-        /// Handle failures
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        private Task OnAuthenticationFailedAsync(AuthenticationFailedContext context) {
-            context.Response.Redirect("/Error");
-            context.HandleResponse(); // Suppress the exception
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.App.Runtime {
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
@@ -13,33 +12,19 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Azure.IIoT.App.TSI.Runtime;
 
     /// <summary>
     /// Configuration aggregation
     /// </summary>
-    public class Config : ApiConfig, IOAuthClientConfig, ISignalRServiceConfig,
+    public class Config : ApiConfig, ISignalRServiceConfig,
         IWebHostConfig, IForwardedHeadersConfig {
 
-        /// <inheritdoc/>
-        public bool IsValid => _client.IsValid;
-        /// <inheritdoc/>
-        public string Scheme => _client.Scheme;
-        /// <inheritdoc/>
-        public string ClientId => _client.ClientId;
-        /// <inheritdoc/>
-        public string ClientSecret => _client.ClientSecret;
-        /// <inheritdoc/>
-        public string TenantId => _client.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _client.InstanceUrl;
-        /// <summary>Audience</summary>
-        public string Audience => _client.Audience;
-        /// <summary>Resource</summary>
-        public string Resource => _client.Resource;
-        
-        /// <inheritdoc/>
-        public string TsiDataAccessFQDN => _tsi.DataAccessFQDN;
+        /// <summary>Url</summary>
+        public string TsiDataAccessFQDN =>
+            GetStringOrDefault(PcsVariable.PCS_TSI_URL)?.Trim();
+        /// <summary>Tenant</summary>
+        public string TsiTenantId =>
+            GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT)?.Trim();
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
@@ -65,17 +50,13 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _client = new AadApiClientConfig(configuration);
             _host = new WebHostConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
-            _tsi = new TsiConfig(configuration);
         }
 
-        private readonly AadApiClientConfig _client;
         private readonly SignalRServiceConfig _sr;
         private readonly WebHostConfig _host;
         private readonly ForwardedHeadersConfig _fh;
-        private readonly TsiConfig _tsi;
     }
 }

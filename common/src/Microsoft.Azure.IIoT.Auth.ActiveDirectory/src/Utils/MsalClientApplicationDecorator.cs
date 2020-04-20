@@ -31,6 +31,14 @@ namespace Microsoft.Azure.IIoT.Auth.Storage {
         }
 
         /// <summary>
+        /// Clear the cache
+        /// </summary>
+        /// <returns></returns>
+        public virtual async Task ClearCacheAsync() {
+            await _userTokenCache.ClearAsync();
+        }
+
+        /// <summary>
         /// Token cache provider
         /// </summary>
         protected sealed class MsalTokenCacheDecorator {

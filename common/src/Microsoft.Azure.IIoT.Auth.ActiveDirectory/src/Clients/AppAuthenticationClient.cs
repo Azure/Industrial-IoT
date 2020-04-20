@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
                 }
             }
             return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
-                (config, new AzureServiceTokenProvider(cs, config.GetAuthorityUrl())));
+                (config, new AzureServiceTokenProvider(cs, config.GetAuthorityUrl(true))));
         }
 
         private readonly List<KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)>> _config;

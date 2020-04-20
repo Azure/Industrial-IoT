@@ -37,15 +37,16 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <returns></returns>
         private static IEnumerable<KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)>>
             CreateProvider(IOAuthClientConfig config) {
+            var authority = config.GetAuthorityUrl(true);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
                     (config, new AzureServiceTokenProvider(
-                        "RunAs=Developer; DeveloperTool=VisualStudio", config.GetAuthorityUrl())));
+                        "RunAs=Developer; DeveloperTool=VisualStudio", authority)));
             }
             else {
                 yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
                     (config, new AzureServiceTokenProvider(
-                        "RunAs=Developer; DeveloperTool=AzureCli", config.GetAuthorityUrl())));
+                        "RunAs=Developer; DeveloperTool=AzureCli", authority)));
             }
         }
 

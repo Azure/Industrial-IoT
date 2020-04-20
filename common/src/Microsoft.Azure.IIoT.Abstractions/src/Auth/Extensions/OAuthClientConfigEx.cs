@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients {
+namespace Microsoft.Azure.IIoT.Auth {
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -12,36 +12,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     /// Configuration extensions
     /// </summary>
     public static class OAuthClientConfigEx {
-
-        /// <summary>
-        /// Helper to get the autority url
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public static string GetAuthorityUrl(this IOAuthClientConfig config) {
-            var authorityUrl = config?.InstanceUrl?.TrimEnd('/');
-
-            var tenantId = config?.TenantId;
-            if (config.GetSchemeName() == AuthScheme.AzureAD) {
-                if (string.IsNullOrEmpty(authorityUrl)) {
-                    // Default to aad
-                    authorityUrl = kDefaultAuthorityUrl;
-                }
-                if (string.IsNullOrEmpty(tenantId)) {
-                    tenantId = "common";
-                }
-                return authorityUrl + "/" + tenantId;
-            }
-
-            if (string.IsNullOrEmpty(authorityUrl)) {
-                throw new ArgumentNullException(nameof(config.InstanceUrl));
-            }
-            // Non aad e.g. identity server with optional tenant id.
-            if (!string.IsNullOrEmpty(tenantId)) {
-                authorityUrl += "/" + tenantId;
-            }
-            return authorityUrl;
-        }
 
         /// <summary>
         /// Get domain
@@ -84,25 +54,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         }
 
         /// <summary>
-        /// Returns the scheme name
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public static string GetSchemeName(this IOAuthClientConfig config) {
-            var name = config.Scheme;
-            if (string.IsNullOrEmpty(name)) {
-                return AuthScheme.Bearer;
-            }
-            return name;
-        }
-
-        /// <summary>
         /// Get an identifier string for configuration
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
         public static string GetName(this IOAuthClientConfig config) {
-            return $"{GetSchemeName(config)}:{config.ClientId}->{GetAudience(config)}";
+            return $"{config.GetSchemeName()}:{config.ClientId}->{GetAudience(config)}";
         }
 
         /// <summary>

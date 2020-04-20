@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System.Collections.Generic;
-
 namespace Microsoft.Azure.IIoT.Auth {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Extension for swagger clients
     /// see https://swagger.io/docs/specification/authentication/oauth2/

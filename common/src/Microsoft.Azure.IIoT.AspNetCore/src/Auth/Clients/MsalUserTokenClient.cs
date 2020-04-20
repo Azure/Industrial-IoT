@@ -25,7 +25,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     /// Authenticate on behalf of current logged in claims principal to another
     /// service. This uses the behalf_of flow defined in xxx.
     /// </summary>
-    public partial class MsalUserTokenClient : ITokenClient {
+    public partial class MsalUserTokenClient : ITokenClient, ICodeRedemption {
+
+        /// <inheritdoc/>
+        public string Scheme => AuthScheme.AzureAD;
 
         /// <summary>
         /// Create auth provider. Need to also inject the http context accessor
@@ -48,32 +51,20 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             _handler = handler ?? new NullHandler();
         }
 
-        /// <summary>
-        /// Create public client
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        private MsalConfidentialClientDecorator CreateConfidentialClientApplication(
-            IOAuthClientConfig config) {
-            return new MsalConfidentialClientDecorator(ConfidentialClientApplicationBuilder
-                .Create(config.ClientId).WithAuthority($"{config.GetAuthorityUrl()}/")
-                .Build(), _cache, config.ClientId, _ctx.HttpContext.User.GetObjectId());
-        }
-
         /// <inheritdoc/>
         public bool Supports(string resource) {
-            return _config.Query(resource, AuthScheme.AzureAD).Any();
+            return _config.Query(resource, Scheme).Any();
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             var schemes = await _schemes.GetAllSchemesAsync();
-            if (!schemes.Any(s => s.Name == AuthScheme.AzureAD)) {
+            if (!schemes.Any(s => s.Name == Scheme)) {
                 return null;
             }
-            foreach (var config in _config.Query(resource, AuthScheme.AzureAD)) {
-                var decorator = CreateConfidentialClientApplication(config);
+            foreach (var config in _config.Query(resource, Scheme)) {
+                var decorator = CreateConfidentialClientApplication(_ctx.HttpContext.User, config);
                 try {
                     var result = await AcquireTokenSilentAsync(decorator.Client,
                         _ctx.HttpContext.User, scopes, config.TenantId);
@@ -113,6 +104,49 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 }
             }
             return null;
+        }
+
+        /// <inheritdoc/>
+        public async Task<TokenResultModel> RedeemCodeForUserAsync(ClaimsPrincipal user,
+            string code, IEnumerable<string> scopes) {
+            var schemes = await _schemes.GetAllSchemesAsync();
+            if (!schemes.Any(s => s.Name == Scheme)) {
+                return null;
+            }
+            foreach (var config in _config.Query(Scheme)) {
+                var decorator = CreateConfidentialClientApplication(user, config);
+                try {
+                    var result = await decorator.Client
+                         .AcquireTokenByAuthorizationCode(scopes.Except(kScopesRequestedByMsal), code)
+                         .ExecuteAsync();
+                    if (result != null) {
+                        return result.ToTokenResult();
+                    }
+                }
+                catch (Exception e) {
+                    _logger.Error(e, "Failed to get token for code with {config}.",
+                         config.GetName());
+                }
+            }
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public async Task SignOutUserAsync(ClaimsPrincipal user) {
+            foreach (var config in _config.Query(Scheme)) {
+                var decorator = CreateConfidentialClientApplication(user, config);
+                var account = await decorator.Client.GetAccountAsync(user.GetMsalAccountId());
+
+                if (account == null) {
+                    var accounts = await decorator.Client.GetAccountsAsync();
+                    account = accounts.FirstOrDefault(a => a.Username == user.GetLoginHint());
+                }
+
+                if (account != null) {
+                    await decorator.Client.RemoveAsync(account);
+                    await decorator.ClearCacheAsync();
+                }
+            }
         }
 
         /// <inheritdoc/>
@@ -173,6 +207,19 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         }
 
         /// <summary>
+        /// Create public client
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        private MsalConfidentialClientDecorator CreateConfidentialClientApplication(
+            ClaimsPrincipal user, IOAuthClientConfig config) {
+            return new MsalConfidentialClientDecorator(ConfidentialClientApplicationBuilder
+                .Create(config.ClientId).WithAuthority($"{config.GetAuthorityUrl()}/").Build(),
+                    _cache, config.ClientId, user.GetObjectId());
+        }
+
+        /// <summary>
         /// Null handling
         /// </summary>
         private sealed class NullHandler : IAuthChallengeHandler {
@@ -195,5 +242,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private readonly IHttpContextAccessor _ctx;
         private readonly ICache _cache;
         private readonly IAuthChallengeHandler _handler;
+
     }
 }

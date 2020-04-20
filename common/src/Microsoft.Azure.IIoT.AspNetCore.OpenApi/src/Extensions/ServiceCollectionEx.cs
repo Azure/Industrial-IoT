@@ -5,9 +5,7 @@
 
 namespace Microsoft.OpenApi.Models {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.Extensions.DependencyInjection;

@@ -27,7 +27,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="app"></param>
         /// <returns></returns>
         public static IApplicationBuilder UseAuthorizationPolicies(this IApplicationBuilder app) {
-            var auth = app.ApplicationServices.GetService<IServerAuthConfig>();
             return app.UseAuthorization();
         }
 

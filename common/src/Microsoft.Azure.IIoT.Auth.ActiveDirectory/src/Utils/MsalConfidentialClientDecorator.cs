@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Auth.Storage {
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Identity.Client;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Decorates a client with a cache to keep tokens
@@ -24,6 +25,12 @@ namespace Microsoft.Azure.IIoT.Auth.Storage {
             ICache cache, string applicationKey, string userKey) : base(client, cache, userKey) {
             _appTokenCache = new MsalTokenCacheDecorator(cache,
                 client.AppTokenCache, applicationKey);
+        }
+
+        /// <inheritdoc/>
+        public override async Task ClearCacheAsync() {
+            await _appTokenCache.ClearAsync();
+            await base.ClearCacheAsync();
         }
 
         private readonly MsalTokenCacheDecorator _appTokenCache;

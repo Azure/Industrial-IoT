@@ -77,6 +77,7 @@ namespace Microsoft.Azure.IIoT.Auth.IdentityServer4.Runtime {
                 client.RedirectUris = new List<string> { $"{uri}/signin-oidc" };
                 client.PostLogoutRedirectUris = new List<string>{ uri };
                 client.FrontChannelLogoutUri = $"{uri}/signout-oidc";
+
                 client.AllowedScopes.Add(IdentityServerConstants.StandardScopes.OpenId);
                 client.AllowedScopes.Add(IdentityServerConstants.StandardScopes.Profile);
                 client.AllowedScopes.Add(IdentityServerConstants.StandardScopes.Email);
