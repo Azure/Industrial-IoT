@@ -927,6 +927,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 .CreateIotHubAsync(
                     _resourceGroup,
                     _iotHubName,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_RETENTION_TIME_IN_DAYS,
                     IotHubMgmtClient.IOT_HUB_EVENT_HUB_PARTITIONS_COUNT,
                     storageAccountGen2ConectionString,
                     iotHubBlobContainer.Name,
@@ -993,6 +994,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     _resourceGroup,
                     eventHubNamespace,
                     _eventHubName,
+                    EventHubMgmtClient.DEFAULT_MESSAGE_RETENTION_IN_DAYS,
+                    EventHubMgmtClient.DEFUALT_PARTITION_COUNT,
                     _defaultTagsDict,
                     cancellationToken
                 );
