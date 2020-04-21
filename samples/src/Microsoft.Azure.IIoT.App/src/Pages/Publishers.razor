@@ -1,4 +1,9 @@
-﻿@page "/publishers"
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@page "/publishers"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -34,7 +39,7 @@
             <tr>
                 <td>@publisher.Id</td>
                 <td>
-                    @{ string Capabilities = CommonHelper.None; }
+                    @{ string Capabilities = CommonHelper.None;}
                     @{ string HeartbeatInterval = CommonHelper.None;}
                     @{ string JobCheckInterval = CommonHelper.None;}
                     @{ string JobOrchestratorUrl = CommonHelper.None;}
@@ -44,7 +49,7 @@
                         Capabilities = publisher.Configuration.Capabilities == null ? CommonHelper.None : publisher.Configuration.Capabilities.ToString();
                         HeartbeatInterval = publisher.Configuration.HeartbeatInterval == null ? CommonHelper.None : publisher.Configuration.HeartbeatInterval.ToString();
                         JobCheckInterval = publisher.Configuration.JobCheckInterval == null ? CommonHelper.None : publisher.Configuration.JobCheckInterval.ToString();
-                        JobOrchestratorUrl = publisher.Configuration.JobOrchestratorUrl == null ? CommonHelper.None : publisher.Configuration.JobOrchestratorUrl.ToString();
+                        JobOrchestratorUrl = string.IsNullOrEmpty(publisher.Configuration.JobOrchestratorUrl) ? CommonHelper.None : publisher.Configuration.JobOrchestratorUrl;
                         MaxWorkers = publisher.Configuration.MaxWorkers == null ? CommonHelper.None : publisher.Configuration.MaxWorkers.ToString();
                     }
                     Capabilities: @Capabilities<br />
@@ -63,6 +68,7 @@
         }
     </tbody>
 </table>
+<div class="@_tableEmpty center">No Publishers found.</div>
 
 <ErrorMessage PageError="@_pagedPublisherList.Error" Status="@null"></ErrorMessage>
 
@@ -78,7 +84,8 @@
     private PagedResult<PublisherApiModel> _publisherList = new PagedResult<PublisherApiModel>();
     private PagedResult<PublisherApiModel> _pagedPublisherList = new PagedResult<PublisherApiModel>();
     private IAsyncDisposable _publisherEvent { get; set; }
-    private string _tableView { get; set; } = "visible";
+    private string _tableView = "visible";
+    private string _tableEmpty = "displayNone";
 
     /// <summary>
     /// Notify page change
@@ -113,10 +120,7 @@
             Page = "1";
             _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _publisherList.Error);
             CommonHelper.Spinner = string.Empty;
-            if (_pagedPublisherList.Error != null)
-            {
-                _tableView = "hidden";
-            }
+            CommonHelper.CheckErrorOrEmpty<PublisherApiModel>(_pagedPublisherList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
 
             _publisherEvent = await RegistryServiceEvents.SubscribePublisherEventsAsync(

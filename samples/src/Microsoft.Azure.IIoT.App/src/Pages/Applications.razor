@@ -1,4 +1,9 @@
-﻿@page "/applications"
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@page "/applications"
 
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Azure.IIoT.App.Services
@@ -54,6 +59,7 @@
         }
     </tbody>
 </table>
+<div class="@_tableEmpty center">No Assets found.</div>
 
 <Drawer HeaderText="Asset Info" ObjectData="@ApplicationData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
     <_DrawerAssetContent ApplicationData="@ApplicationData"></_DrawerAssetContent>
@@ -80,7 +86,8 @@
     private PagedResult<ApplicationInfoApiModel> _pagedapplicationList =
         new PagedResult<ApplicationInfoApiModel>();
     private IAsyncDisposable _applicationEvent { get; set; }
-    private string _tableView { get; set; } = "visible";
+    private string _tableView = "visible";
+    private string _tableEmpty = "displayNone";
 
     /// <summary>
     /// Notify page change
@@ -113,10 +120,7 @@
         {
             await UpdateApplicationAsync();
             CommonHelper.Spinner = string.Empty;
-            if (_pagedapplicationList.Error != null)
-            {
-                _tableView = "hidden";
-            }
+            CommonHelper.CheckErrorOrEmpty<ApplicationInfoApiModel>(_pagedapplicationList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
 
             _applicationEvent = await RegistryServiceEvents.SubscribeApplicationEventsAsync(
