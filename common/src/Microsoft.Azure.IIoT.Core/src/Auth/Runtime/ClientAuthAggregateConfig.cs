@@ -14,28 +14,28 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     public class ClientAuthAggregateConfig : IClientAuthConfig {
 
         /// <inheritdoc/>
-        public IEnumerable<IOAuthClientConfig> ClientSchemes { get; }
+        public IEnumerable<IOAuthClientConfig> Providers { get; }
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="clients"></param>
         public ClientAuthAggregateConfig(IEnumerable<IOAuthClientConfig> clients) {
-            ClientSchemes = clients?.Where(s => s.IsValid).ToList()
+            Providers = clients?.Where(s => s.IsValid).ToList()
                 ?? throw new ArgumentNullException(nameof(clients));
         }
 
         /// <inheritdoc/>
         public IEnumerable<IOAuthClientConfig> Query(string resource, string scheme) {
-            return ClientSchemes?
-                .Where(c => c.Resource == resource && c.Scheme == scheme)
+            return Providers?
+                .Where(c => c.Resource == resource && c.Provider == scheme)
                     ?? Enumerable.Empty<IOAuthClientConfig>();
         }
 
         /// <inheritdoc/>
         public IEnumerable<IOAuthClientConfig> Query(string scheme) {
-            return ClientSchemes?
-                .Where(c => c.Scheme == scheme)
+            return Providers?
+                .Where(c => c.Provider == scheme)
                     ?? Enumerable.Empty<IOAuthClientConfig>();
         }
     }

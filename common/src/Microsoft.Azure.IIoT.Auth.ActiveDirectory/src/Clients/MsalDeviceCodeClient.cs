@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             IClientAuthConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _prompt = prompt ?? throw new ArgumentNullException(nameof(prompt));
-            _config = config?.Query(AuthScheme.AzureAD)
+            _config = config?.Query(AuthProvider.AzureAD)
                 .Select(config => (config, CreatePublicClientApplication(config)))
                 .ToList();
         }

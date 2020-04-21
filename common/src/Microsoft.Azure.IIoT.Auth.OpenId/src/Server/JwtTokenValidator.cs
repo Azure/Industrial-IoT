@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Auth.Server.Default {
                 throw new ArgumentNullException(nameof(config));
             }
             _validators = new ConcurrentDictionary<string, JwtTokenEndpointValidator>(
-                config.JwtBearerSchemes.Select(s => KeyValuePair.Create(s.GetSchemeName(),
+                config.JwtBearerProviders.Select(s => KeyValuePair.Create(s.GetProviderName(),
                     new JwtTokenEndpointValidator(s, logger))));
         }
 

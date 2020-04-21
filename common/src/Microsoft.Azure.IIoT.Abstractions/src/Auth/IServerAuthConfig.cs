@@ -17,8 +17,8 @@ namespace Microsoft.Azure.IIoT.Auth {
         bool AllowAnonymousAccess { get; }
 
         /// <summary>
-        /// Supported auth schemes
+        /// Supported providers
         /// </summary>
-        IEnumerable<IOAuthServerConfig> JwtBearerSchemes { get; }
+        IEnumerable<IOAuthServerConfig> JwtBearerProviders { get; }
     }
 }

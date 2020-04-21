@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth {
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Models;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Services;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.Azure.IIoT.Storage.Default;
@@ -110,10 +110,11 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth {
                     LoginUrl = "/Account/Login",
                     LoginReturnUrlParameter = "returnUrl"
                 };
-            }).AddAspNetIdentity<UserModel>();
-
-            // TODO
-            builder.AddDeveloperSigningCredential();
+            });
+            builder
+                .AddAspNetIdentity<UserModel>()
+                .AddDeveloperSigningCredential() // TODO
+                ;
 
             var authentication = services.AddAuthentication();
 

@@ -241,7 +241,7 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         if (authState.User?.Identity.IsAuthenticated != true)
         {
-            NavigationManager.NavigateTo("AzureAD/Account/SignIn", true);
+          //  NavigationManager.NavigateTo("Account/AzureAD/LogIn", true);
         }
     }
 

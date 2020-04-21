@@ -1774,7 +1774,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 });
             }
 
-            foreach (var scheme in _auth.JwtBearerSchemes) {
+            foreach (var scheme in _auth.JwtBearerProviders) {
                 // Authenticate and then use endpoints
                 if (!string.IsNullOrEmpty(scheme.InstanceUrl)) {
                     policies.Add(new UserTokenPolicy {

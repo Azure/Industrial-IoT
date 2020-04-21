@@ -47,15 +47,16 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
         /// <inheritdoc/>
         public bool Supports(string resource) {
-            return _config.Query(resource, AuthScheme.AzureAD).Any();
+            return _config.Query(resource, AuthProvider.AzureAD).Any();
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
 
-            var schemes = await _schemes.GetAllSchemesAsync();
-            if (!schemes.Any(s => s.Name == AuthScheme.AzureAD)) {
+            // Name of scheme is name of provider
+            var providers = await _schemes.GetAllSchemesAsync();
+            if (!providers.Any(s => s.Name == AuthProvider.AzureAD)) {
                 return null;
             }
 
@@ -64,11 +65,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             if (user == null) {
                 var e = new AuthenticationException("Missing claims principal.");
                 _logger.Information(e, "Failed to get token for {resource} ", resource);
-                return await _handler.ChallengeAsync(_ctx.HttpContext, resource, AuthScheme.AzureAD, e);
+                return await _handler.ChallengeAsync(_ctx.HttpContext, resource, AuthProvider.AzureAD, e);
             }
 
             var cache = _store.GetCache($"OID:{user.GetObjectId()}");
-            foreach (var config in _config.Query(resource, AuthScheme.AzureAD)) {
+            foreach (var config in _config.Query(resource, AuthProvider.AzureAD)) {
                 try {
                     var ctx = CreateAuthenticationContext(config.InstanceUrl,
                         config.TenantId, cache);
@@ -113,7 +114,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 catch (AuthenticationException e) {
                     _logger.Debug(e, "Failed to get token for {resource} with {config}.",
                         resource, config.GetName());
-                    var result = await _handler.ChallengeAsync(_ctx.HttpContext, resource, AuthScheme.AzureAD, e);
+                    var result = await _handler.ChallengeAsync(_ctx.HttpContext, resource, AuthProvider.AzureAD, e);
                     if (result != null) {
                         return result;
                     }
@@ -129,7 +130,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 var cache = _store.GetCache($"OID:{user.GetObjectId()}");
                 cache?.Clear();
             }
-            await _handler.ChallengeAsync(_ctx.HttpContext, resource, AuthScheme.AzureAD);
+            await _handler.ChallengeAsync(_ctx.HttpContext, resource, AuthProvider.AzureAD);
         }
 
         /// <summary>
@@ -164,7 +165,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private sealed class NullHandler : IAuthChallengeHandler {
             /// <inheritdoc/>
             public Task<TokenResultModel> ChallengeAsync(HttpContext context, string resource,
-                string scheme, AuthenticationException ex = null) {
+                string provider, AuthenticationException ex = null) {
                 return kNull;
             }
             private static readonly Task<TokenResultModel> kNull =

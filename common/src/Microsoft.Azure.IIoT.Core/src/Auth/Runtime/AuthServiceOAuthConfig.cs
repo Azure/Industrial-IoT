@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
             () => GetBoolOrDefault(PcsVariable.PCS_AUTH_SERVICE_DISABLED,
                 () => false));
         /// <summary>Scheme</summary>
-        public string Scheme => AuthScheme.AuthService;
+        public string Provider => AuthProvider.AuthService;
         /// <summary>Applicable resource</summary>
         public string Resource => Http.Resource.Platform;
         /// <summary>Application id</summary>

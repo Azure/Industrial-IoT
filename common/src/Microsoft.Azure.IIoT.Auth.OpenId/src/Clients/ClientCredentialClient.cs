@@ -37,13 +37,13 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
 
         /// <inheritdoc/>
         public bool Supports(string resource) {
-            return _config.Query(resource, AuthScheme.AuthService).Any();
+            return _config.Query(resource, AuthProvider.AuthService).Any();
         }
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
-            foreach (var config in _config.Query(resource, AuthScheme.AuthService)) {
+            foreach (var config in _config.Query(resource, AuthProvider.AuthService)) {
                 if (string.IsNullOrEmpty(config.ClientSecret)) {
                     continue;
                 }

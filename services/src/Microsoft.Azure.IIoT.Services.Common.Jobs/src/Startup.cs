@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Serializers;
@@ -29,7 +30,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice Startup
@@ -91,8 +91,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
             services.AddAuthentication()
-                .AddJwtBearerScheme(AuthScheme.AzureAD)
-                .AddJwtBearerScheme(AuthScheme.AuthService);
+                .AddJwtBearerProvider(AuthProvider.AzureAD)
+                .AddJwtBearerProvider(AuthProvider.AuthService);
             services.AddAuthorizationPolicies(
                 Policies.RoleMapping,
                 Policies.CanRead,
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
             app.EnableCors();
 
             app.UseJwtBearerAuthentication();
-            app.UseAuthorizationPolicies();
+            app.UseAuthorization();
             app.UseHttpsRedirect();
 
             app.UseCorrelation();

@@ -95,8 +95,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
 
             services.AddHttpsRedirect();
             services.AddAuthentication()
-                .AddJwtBearerScheme(AuthScheme.AzureAD)
-                .AddJwtBearerScheme(AuthScheme.AuthService);
+                .AddJwtBearerProvider(AuthProvider.AzureAD)
+                .AddJwtBearerProvider(AuthProvider.AuthService);
             services.AddAuthorizationPolicies(
                 Policies.RoleMapping,
                 Policies.CanBrowse,
@@ -129,7 +129,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             app.EnableCors();
 
             app.UseJwtBearerAuthentication();
-            app.UseAuthorizationPolicies();
+            app.UseAuthorization();
             app.UseHttpsRedirect();
 
             app.UseCorrelation();

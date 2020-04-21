@@ -17,8 +17,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <inheritdoc/>
         public MsiAuthenticationClient(IClientAuthConfig config, ILogger logger) :
             base(logger) {
-            _config = config?.ClientSchemes?
-                .Where(c => c.Scheme == AuthScheme.Msi)
+            _config = config?.Providers?
+                .Where(c => c.Provider == AuthProvider.Msi)
                 .Where(c => !string.IsNullOrEmpty(c.ClientId))
                 .Select(CreateProvider)
                 .ToList();

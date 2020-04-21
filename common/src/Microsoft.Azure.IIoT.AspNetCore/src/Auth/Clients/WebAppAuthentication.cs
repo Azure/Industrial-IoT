@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
-    using Microsoft.Azure.IIoT.AspNetCore.Storage;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth;
@@ -12,6 +11,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Azure.IIoT.Storage;
+    using Microsoft.AspNetCore.Components.Authorization;
     using Autofac;
     using Serilog;
     using System.Collections.Generic;
@@ -60,7 +60,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// First try passthrough, then try service client credentials
         /// </summary>
         internal class UserTokenSource : TokenClientAggregateSource, ITokenSource {
-
 
             /// <inheritdoc/>
             public UserTokenSource(OpenIdUserTokenClient oi, MsalUserTokenClient uc,

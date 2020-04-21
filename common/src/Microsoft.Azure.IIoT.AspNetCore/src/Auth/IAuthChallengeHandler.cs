@@ -19,10 +19,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="resource"></param>
-        /// <param name="scheme"></param>
+        /// <param name="provider"></param>
         /// <param name="ex"></param>
         /// <returns></returns>
         Task<TokenResultModel> ChallengeAsync(HttpContext context, string resource,
-            string scheme, AuthenticationException ex = null);
+            string provider, AuthenticationException ex = null);
     }
 }

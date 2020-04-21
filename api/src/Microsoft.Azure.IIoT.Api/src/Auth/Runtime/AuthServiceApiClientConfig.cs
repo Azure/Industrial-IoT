@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         public bool IsValid => GetBoolOrDefault(kAuth_IsDisabledKey,
             () => GetBoolOrDefault(PcsVariable.PCS_AUTH_SERVICE_DISABLED,
                 () => false));
-        /// <summary>Scheme</summary>
-        public string Scheme => AuthScheme.AuthService;
+        /// <summary>Provider</summary>
+        public string Provider => AuthProvider.AuthService;
         /// <summary>Applicable resource</summary>
         public string Resource => Http.Resource.Platform;
         /// <summary>Application id</summary>

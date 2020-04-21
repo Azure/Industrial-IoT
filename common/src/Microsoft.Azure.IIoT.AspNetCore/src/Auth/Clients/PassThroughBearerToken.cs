@@ -26,13 +26,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="config"></param>
         public PassThroughBearerToken(IHttpContextAccessor ctx,
             IClientAuthConfig config = null) {
-            _schemes = config?.ClientSchemes?.Select(s => s.Scheme).Distinct().ToList();
+            _providers = config?.Providers?.Select(s => s.Provider).Distinct().ToList();
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
         }
 
         /// <inheritdoc/>
         public bool Supports(string resource) {
-            return _schemes.Any();
+            return _providers.Any();
         }
 
         /// <inheritdoc/>
@@ -41,12 +41,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             const string kAccessTokenKey = "access_token";
 
             string token = null;
-            if (_schemes == null) {
+            if (_providers == null) {
                 token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
             }
             else {
-                foreach (var scheme in _schemes) {
-                    token = await _ctx.HttpContext.GetTokenAsync(scheme, kAccessTokenKey);
+                foreach (var provider in _providers) {
+                    token = await _ctx.HttpContext.GetTokenAsync(provider, kAccessTokenKey);
                     if (token != null) {
                         break; // Use first found token
                     }
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             return Task.CompletedTask;
         }
 
-        private readonly List<string> _schemes;
+        private readonly List<string> _providers;
         private readonly IHttpContextAccessor _ctx;
     }
 

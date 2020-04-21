@@ -12,23 +12,23 @@ namespace Microsoft.Azure.IIoT.Auth {
     public interface IClientAuthConfig {
 
         /// <summary>
-        /// Supported clients
+        /// Supported providers
         /// </summary>
-        IEnumerable<IOAuthClientConfig> ClientSchemes { get; }
+        IEnumerable<IOAuthClientConfig> Providers { get; }
 
         /// <summary>
-        /// Retrieve configuration for resource and scheme
+        /// Retrieve configuration for resource and provider
         /// </summary>
         /// <param name="resource"></param>
-        /// <param name="scheme"></param>
+        /// <param name="provider"></param>
         /// <returns></returns>
-        IEnumerable<IOAuthClientConfig> Query(string resource, string scheme);
+        IEnumerable<IOAuthClientConfig> Query(string resource, string provider);
 
         /// <summary>
-        /// Retrieve configuration for scheme
+        /// Retrieve configuration for provider
         /// </summary>
-        /// <param name="scheme"></param>
+        /// <param name="provider"></param>
         /// <returns></returns>
-        IEnumerable<IOAuthClientConfig> Query(string scheme);
+        IEnumerable<IOAuthClientConfig> Query(string provider);
     }
 }

@@ -16,10 +16,10 @@ namespace Microsoft.Azure.IIoT.Auth {
         bool IsValid { get; }
 
         /// <summary>
-        /// The scheme or provider type.
-        /// One of <see cref="AuthScheme"/>.
+        /// The provider type.
+        /// One of <see cref="AuthProvider"/>.
         /// </summary>
-        string Scheme { get; }
+        string Provider { get; }
 
         /// <summary>
         /// The instance url is the base address of the

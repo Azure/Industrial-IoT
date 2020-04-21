@@ -27,8 +27,8 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <inheritdoc/>
         public bool IsValid =>
             ClientId != null && ClientSecret != null && TenantId != null;
-        /// <summary>Scheme</summary>
-        public string Scheme => AuthScheme.AzureAD;
+        /// <summary>Provider</summary>
+        public string Provider => AuthProvider.AzureAD;
         /// <summary>Application id</summary>
         public string ClientId => GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_SERVICE_APPID,

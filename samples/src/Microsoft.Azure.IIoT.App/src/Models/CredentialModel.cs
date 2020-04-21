@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System.ComponentModel.DataAnnotations;
-
 namespace Microsoft.Azure.IIoT.App.Models {
+    using System.ComponentModel.DataAnnotations;
+
     public class CredentialModel {
         [Required]
         public string Username { get; set; }

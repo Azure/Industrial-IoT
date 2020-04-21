@@ -6,14 +6,14 @@
 namespace Microsoft.Azure.IIoT.Auth {
 
     /// <summary>
-    /// Industrial IoT defined auth schemes
+    /// Industrial IoT defined auth providers
     /// </summary>
-    public static class AuthScheme {
+    public static class AuthProvider {
 
         /// <summary>
-        /// Bearer auth
+        /// Unknown provider
         /// </summary>
-        public const string Bearer = nameof(Bearer);
+        public const string Unknown = nameof(Unknown);
 
         /// <summary>
         /// User assigned identity based authentication

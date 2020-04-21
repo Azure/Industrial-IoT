@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.Auth {
         /// <param name="config"></param>
         /// <returns></returns>
         public static string GetName(this IOAuthClientConfig config) {
-            return $"{config.GetSchemeName()}:{config.ClientId}->{GetAudience(config)}";
+            return $"{config.GetProviderName()}:{config.ClientId}->{GetAudience(config)}";
         }
 
         /// <summary>

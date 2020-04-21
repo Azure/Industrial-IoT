@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Serilog {
-    using Serilog.Events;
     using Microsoft.Azure.IIoT.Diagnostics;
     using System;
 
@@ -23,7 +22,6 @@ namespace Serilog {
         public static LoggerConfiguration Configure(this LoggerConfiguration configuration,
             Func<LoggerConfiguration, string, LoggerConfiguration> configure, bool addConsole = true) {
             configuration = configuration
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .Enrich.WithProperty("SourceContext", "Root")
                 .Enrich.FromLogContext();
             if (addConsole) {
@@ -49,7 +47,6 @@ namespace Serilog {
         /// <returns></returns>
         public static LoggerConfiguration ConsoleOut(this LoggerConfiguration configuration) {
             return configuration
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .WriteTo.Console(outputTemplate: "{Message:lj}{NewLine}")
                 .MinimumLevel.ControlledBy(LogControl.Level);

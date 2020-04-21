@@ -38,14 +38,14 @@ namespace Microsoft.Azure.IIoT.Auth.IdentityServer4.Runtime {
         public IdentityServerConfig(IClientAuthConfig clients,
             IServerAuthConfig servers) {
 
-            Apis = servers?.JwtBearerSchemes?
-                .Where(s => s.Scheme == AuthScheme.AuthService)
+            Apis = servers?.JwtBearerProviders?
+                .Where(s => s.Provider == AuthProvider.AuthService)
                 .Select(ToServiceModel)
                 .ToList();
-            Clients = clients?.ClientSchemes?
-                .Where(s => s.Scheme == AuthScheme.AuthService)
-                .Select(s => ToClient(s, servers?.JwtBearerSchemes?
-                    .Where(s => s.Scheme == AuthScheme.AuthService)
+            Clients = clients?.Providers?
+                .Where(s => s.Provider == AuthProvider.AuthService)
+                .Select(s => ToClient(s, servers?.JwtBearerProviders?
+                    .Where(s => s.Provider == AuthProvider.AuthService)
                     .Select(s => s.Audience)))
                 .ToList();
         }

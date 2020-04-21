@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Storage;
-    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Serializers;
@@ -23,23 +22,19 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Rewrite;
     using Microsoft.AspNetCore.Components.Authorization;
-    using Microsoft.AspNetCore.Components.Server;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Hosting;
     using Autofac.Extensions.DependencyInjection;
     using Autofac;
+    using Serilog;
+    using Serilog.Events;
     using System;
-    using System.Security.Authentication;
-    using System.Threading.Tasks;
-    using System.Security.Claims;
     using Blazored.SessionStorage;
 
     /// <summary>
@@ -136,8 +131,11 @@ namespace Microsoft.Azure.IIoT.App {
             services.AddSession(option => {
                 option.Cookie.IsEssential = true;
             });
+
             // Protect anything using keyvault and storage persisted keys
             services.AddAzureDataProtection(Config.Configuration);
+            services.AddDistributedMemoryCache();
+
             services.Configure<CookiePolicyOptions>(options => {
                 // This lambda determines whether user consent for non-essential cookies
                 // is needed for a given request.
@@ -149,12 +147,12 @@ namespace Microsoft.Azure.IIoT.App {
                 options.Cookie.SameSite = SameSiteMode.Strict;
             });
 
-            services.AddAuthentication()
-                .AddOpenIdConnect(AuthScheme.AzureAD)
+            services.AddAuthentication(AuthProvider.AzureAD)
+                .AddOpenIdConnect(AuthProvider.AzureAD)
              //   .AddOpenIdConnect(AuthScheme.AuthService)
                 ;
-            services.AddAuthorization();
 
+            services.AddAuthorizationPolicies();
             services.AddControllersWithViews();
 
             services.AddRazorPages();
@@ -166,6 +164,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             services.AddServerSideBlazor();
             services.AddBlazoredSessionStorage();
+            services.AddScoped<AuthenticationStateProvider, BlazorAuthStateProvider>();
         }
 
         /// <summary>
@@ -181,7 +180,10 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces();
 
             // Register logger
-            builder.AddDiagnostics(Config);
+            builder.AddDiagnostics(Config, new LoggerConfiguration()
+                .MinimumLevel.Override("Microsoft.AspNetCore.Components", LogEventLevel.Information)
+                .MinimumLevel.Override("Microsoft.AspNetCore.SignalR", LogEventLevel.Information));
+
             builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
@@ -191,10 +193,8 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces();
             builder.RegisterType<AuthServiceApiClientConfig>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HttpContextSessionCache>()
+            builder.RegisterType<DistributedProtectedCache>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<SignOutHandler>()
-                .AsImplementedInterfaces().SingleInstance();
 
             // Register http client module (needed for api)...
             builder.RegisterModule<HttpClientModule>();
@@ -220,39 +220,13 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<Registry>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<Browser>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<Publisher>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<UICommon>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<SecureData>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
-        }
-
-        /// <inheritdoc/>
-        private class SignOutHandler : IAuthChallengeHandler {
-
-            /// <inheritdoc/>
-            public async Task<TokenResultModel> ChallengeAsync(HttpContext context, string resource,
-                string scheme, AuthenticationException ex = null) {
-             //   SignOut(context);
-                await context.ChallengeAsync(scheme);
-                return null;
-            }
-
-            /// <summary>
-            /// Sign out
-            /// </summary>
-            /// <param name="context"></param>
-            private void SignOut(HttpContext context) {
-                // Force signout
-                var provider = context?.RequestServices.GetService<AuthenticationStateProvider>();
-                if (provider is ServerAuthenticationStateProvider s) {
-                    var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
-                    var anonymousState = new AuthenticationState(anonymousUser);
-                    s.SetAuthenticationState(Task.FromResult(anonymousState));
-                }
-            }
+                .AsImplementedInterfaces().AsSelf();
         }
     }
 }

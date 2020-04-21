@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             app.EnableCors();
 
             // app.UseJwtBearerAuthentication(); // TODO
-            app.UseAuthorizationPolicies();
+            app.UseAuthorization();
             app.UseHttpsRedirect();
 
             app.UseCorrelation();

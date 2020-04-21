@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
         /// <inheritdoc/>
         public bool Supports(string resource) {
-            return _config.Query(resource, AuthScheme.AuthService).Any();
+            return _config.Query(resource, AuthProvider.AuthService).Any();
         }
 
         /// <inheritdoc/>
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             IEnumerable<string> scopes) {
 
             var schemes = await _schemes.GetAllSchemesAsync();
-            if (!schemes.Any(s => s.Name == AuthScheme.AuthService)) {
+            if (!schemes.Any(s => s.Name == AuthProvider.AuthService)) {
                 return null;
             }
 
@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 return token;
             }
 
-            foreach (var config in _config.Query(resource, AuthScheme.AuthService)) {
+            foreach (var config in _config.Query(resource, AuthProvider.AuthService)) {
                 try {
                     _logger.Debug("Token for user {user} needs refreshing.", userName);
                     try {
@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             if (string.IsNullOrEmpty(refreshToken)) {
                 return;
             }
-            foreach (var config in _config.Query(resource, AuthScheme.AuthService)) {
+            foreach (var config in _config.Query(resource, AuthProvider.AuthService)) {
                 await RevokeRefreshTokenAsync(refreshToken, config);
             }
         }
@@ -164,10 +164,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private async Task RevokeRefreshTokenAsync(string refreshToken,
             IOAuthClientConfig config) {
             var client = Http.CreateClient("token_client");
-            var configuration = await GetOpenIdConfigurationAsync(config.Scheme);
+            var configuration = await GetOpenIdConfigurationAsync(config.Provider);
             if (configuration == null) {
                 _logger.Information(
-                    "Failed to revoke token for scheme {schemeName}", config.Scheme);
+                    "Failed to revoke token for scheme {schemeName}", config.Provider);
                 return;
             }
             var response = await client.RevokeTokenAsync(new TokenRevocationRequest {
@@ -211,7 +211,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// </summary>
         /// <returns></returns>
         private async Task<(string, DateTimeOffset?, string)> GetTokenFromCacheAsync() {
-            var result = await _ctx.HttpContext.AuthenticateAsync(AuthScheme.AuthService);
+            var result = await _ctx.HttpContext.AuthenticateAsync(AuthProvider.AuthService);
             if (!result.Succeeded) {
                 return (null, null, null);
             }

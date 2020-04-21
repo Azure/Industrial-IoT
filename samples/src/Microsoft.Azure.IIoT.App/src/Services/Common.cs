@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.AspNetCore.Components;
-using Microsoft.Azure.IIoT.App.Data;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace Microsoft.Azure.IIoT.App.Common {
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.Azure.IIoT.App.Data;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+
     public class UICommon : ComponentBase  {
 
         public PagedResult<T> UpdatePage<T>(

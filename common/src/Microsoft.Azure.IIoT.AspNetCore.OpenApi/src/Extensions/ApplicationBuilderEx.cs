@@ -84,7 +84,7 @@ namespace Microsoft.OpenApi.Models {
                         if (!string.IsNullOrEmpty(config.OpenApiAppSecret)) {
                             options.OAuthClientSecret(config.OpenApiAppSecret);
                         }
-                        var resource = auth?.JwtBearerSchemes?.FirstOrDefault();
+                        var resource = auth?.JwtBearerProviders?.FirstOrDefault();
                         if (!string.IsNullOrEmpty(resource?.Audience)) {
                             options.OAuthAdditionalQueryStringParams(
                                 new Dictionary<string, string> {

@@ -95,8 +95,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
 
             services.AddHttpsRedirect();
             services.AddAuthentication()
-                .AddJwtBearerScheme(AuthScheme.AzureAD)
-                .AddJwtBearerScheme(AuthScheme.AuthService);
+                .AddJwtBearerProvider(AuthProvider.AzureAD)
+                .AddJwtBearerProvider(AuthProvider.AuthService);
 
             // TODO: Remove http client factory and use
             // services.AddHttpClient();
@@ -122,7 +122,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             app.EnableCors();
 
             app.UseJwtBearerAuthentication();
-            app.UseAuthorizationPolicies();
+            app.UseAuthorization();
             app.UseHttpsRedirect();
 
             app.UseMetricServer();

@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Auth {
             var authorityUrl = config?.InstanceUrl?.TrimEnd('/');
 
             var tenantId = config?.TenantId;
-            if (config.GetSchemeName() == AuthScheme.AzureAD) {
+            if (config.GetProviderName() == AuthProvider.AzureAD) {
                 if (string.IsNullOrEmpty(authorityUrl)) {
                     // Default to aad
                     authorityUrl = kDefaultAuthorityUrl;
@@ -53,14 +53,14 @@ namespace Microsoft.Azure.IIoT.Auth {
         }
 
         /// <summary>
-        /// Returns the scheme name
+        /// Returns the provider name
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static string GetSchemeName(this IOAuthConfig config) {
-            var name = config.Scheme;
+        public static string GetProviderName(this IOAuthConfig config) {
+            var name = config.Provider;
             if (string.IsNullOrEmpty(name)) {
-                return AuthScheme.Bearer;
+                return AuthProvider.Unknown;
             }
             return name;
         }

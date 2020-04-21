@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <returns></returns>
         public static IApplicationBuilder UseJwtBearerAuthentication(this IApplicationBuilder app) {
             var auth = app.ApplicationServices.GetService<IServerAuthConfig>();
-            if (auth != null && auth.JwtBearerSchemes.Any() && !auth.AllowAnonymousAccess) {
+            if (auth != null && auth.JwtBearerProviders.Any() && !auth.AllowAnonymousAccess) {
                 app.UseAuthentication();
             }
             return app;
@@ -44,23 +44,23 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// Helper to add jwt bearer authentication
         /// </summary>
         /// <param name="builder"></param>
-        /// <param name="scheme"></param>
-        public static AuthenticationBuilder AddJwtBearerScheme(this AuthenticationBuilder builder,
-            string scheme) {
+        /// <param name="provider"></param>
+        public static AuthenticationBuilder AddJwtBearerProvider(this AuthenticationBuilder builder,
+            string provider) {
 
             builder.Services.TryAddTransient<IServerAuthConfig, ServiceAuthAggregateConfig>();
             // Allow access to context from within token providers and other client auth
             builder.Services.AddHttpContextAccessor();
 
-            // Add scheme configuration
+            // Add provider configuration
             builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>>(services => {
                 var schemes = services.GetRequiredService<IServerAuthConfig>();
                 var environment = services.GetRequiredService<IWebHostEnvironment>();
-                return new ConfigureNamedOptions<JwtBearerOptions>(scheme, options => {
+                return new ConfigureNamedOptions<JwtBearerOptions>(provider, options => {
 
                     // Find whether the scheme is configurable
-                    var config = schemes.JwtBearerSchemes?
-                        .FirstOrDefault(s => s.GetSchemeName() == scheme);
+                    var config = schemes.JwtBearerProviders?
+                        .FirstOrDefault(s => s.GetProviderName() == provider);
                     if (config == null) {
                         // Not configurable - this is ok as this might not be enabled
                         // Will not be enabled for authorization
@@ -91,7 +91,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                     };
                 });
             });
-            return builder.AddJwtBearer(scheme, configureOptions: null);
+            builder.Services.AddSingleton(new Provider(provider, JwtBearerDefaults.AuthenticationScheme));
+            return builder.AddJwtBearer(provider, configureOptions: null);
         }
 
         /// <summary>

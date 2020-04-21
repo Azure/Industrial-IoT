@@ -10,14 +10,14 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Code redemption
+    /// Code redemption and user token cache support
     /// </summary>
-    public interface ICodeRedemption {
+    public interface IUserTokenClient {
 
         /// <summary>
-        /// Scheme to use for redemption
+        /// Provider name
         /// </summary>
-        string Scheme { get; }
+        string Provider { get; }
 
         /// <summary>
         /// Redeem token
@@ -29,6 +29,16 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         Task<TokenResultModel> RedeemCodeForUserAsync(
             ClaimsPrincipal user, string code,
             IEnumerable<string> scopes);
+
+        /// <summary>
+        /// Checks whether we have a valid token for
+        /// user in our cache
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="scopes"></param>
+        /// <returns></returns>
+        Task<TokenResultModel> GetUserTokenAsync(
+            ClaimsPrincipal user, IEnumerable<string> scopes);
 
         /// <summary>
         /// Redeem token
