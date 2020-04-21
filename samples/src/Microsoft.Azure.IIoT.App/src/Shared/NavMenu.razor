@@ -1,4 +1,9 @@
-﻿@using Microsoft.Azure.IIoT.App.Models
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@using Microsoft.Azure.IIoT.App.Models
 @using Microsoft.Azure.IIoT.App.Common
 @using Microsoft.Azure.IIoT.App.Services.SecureData
 
@@ -25,11 +30,6 @@
             </NavLink>
         </li>
         <li class="nav-item px-3">
-            <NavLink class="nav-link" href="supervisors">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Twin Module
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
             <NavLink class="nav-link" href="applications">
                 <span class="oi oi-list-rich" aria-hidden="true"></span> Assets
             </NavLink>
@@ -40,12 +40,22 @@
             </NavLink>
         </li>
         <li class="nav-item px-3">
+            <NavLink class="nav-link" href="javascript: void(0)" @onclick="@(() => SubMenu())">
+                <span class="oi @_subMenuIcon" aria-hidden="true"></span> More
+            </NavLink>
+        </li>
+        <li class="nav-item px-5 @_subMenuDisplay">
+            <NavLink class="nav-link" href="supervisors">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Twin Module
+            </NavLink>
+        </li>
+        <li class="nav-item px-5 @_subMenuDisplay">
             <NavLink class="nav-link" href="gateways">
                 <span class="oi oi-list" aria-hidden="true"></span> Gateway
             </NavLink>
         </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="publishers">
+        <li class="nav-item px-5 @_subMenuDisplay">
+            <NavLink class="nav-link " href="publishers">
                 <span class="oi oi-list" aria-hidden="true"></span> Publisher
             </NavLink>
         </li>
@@ -72,6 +82,8 @@
 
     string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
     public CredentialModel Credential = new CredentialModel();
+    private string _subMenuDisplay = "displayNone";
+    private string _subMenuIcon = "oi-expand-down";
 
     /// <summary>
     /// OnAfterRenderAsync
@@ -92,5 +104,19 @@
     {
         var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
         return secureData.UnprotectDeserialize<T>(serializedProtectedData);
+    }
+
+    private void SubMenu()
+    {
+        if (_subMenuDisplay == "displayNone")
+        {
+            _subMenuDisplay = "displayFlex";
+            _subMenuIcon = "oi-collapse-up";
+        }
+        else
+        {
+            _subMenuDisplay = "displayNone";
+            _subMenuIcon = "oi-expand-down";
+        }
     }
 }
