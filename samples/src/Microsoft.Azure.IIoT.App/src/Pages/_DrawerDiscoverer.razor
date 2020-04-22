@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.AspNetCore.Components;
@@ -68,7 +68,7 @@
             </div>
             <hr />
             <div>
-                <button @onclick="@(async() => await UpdateDiscovererConfigAsync(DiscovererData))" type="button" class="btn btn-primary shadow-none">Apply</button>
+                <button @onclick="@(async() => await UpdateDiscovererConfigAsync(DiscovererData))" type="button" class="btn btn-primary shadow-none">@_buttonLabel</button>
             </div>
             <ErrorMessage PageError="@null" Status="@_status"></ErrorMessage>
         </form>
@@ -84,10 +84,33 @@
 
     private string _discoveryUrl { get; set; }
     private string _status { get; set; }
+    private string _buttonLabel { get; set; }
 
+    /// <summary>
+    /// OnInitialized
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        if (DiscovererData.isAdHocDiscovery)
+        {
+            _buttonLabel = "Apply & Scan";
+        }
+        else
+        {
+            _buttonLabel = "Apply";
+        }
+    }
+
+    /// <summary>
+    /// Close Drawer and update discovery
+    /// </summary>
+    /// <param name="discoverer"></param>
     private async Task UpdateDiscovererConfigAsync(DiscovererInfo discoverer)
     {
-        await Onclick.InvokeAsync(null);
-        _status = await RegistryHelper.UpdateDiscovererAsync(discoverer);
+        await Onclick.InvokeAsync(discoverer);
+        if (!discoverer.isAdHocDiscovery)
+        {
+            _status = await RegistryHelper.UpdateDiscovererAsync(discoverer);
+        }
     }
 }

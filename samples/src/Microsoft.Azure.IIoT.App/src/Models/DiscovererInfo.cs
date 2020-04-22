@@ -36,6 +36,16 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         public bool HasApplication { get; set; }
 
+        /// <summary>
+        /// is Ad-Hoc Discovery.
+        /// </summary>
+        public bool isAdHocDiscovery { get; set; } = false;
+
+        /// <summary>
+        /// Id of discovery request
+        /// </summary>
+        public string DiscoveryRequestId { get; set; }
+
         // Bind Proxies
 
         /// <summary>
