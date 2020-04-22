@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/"
 @page "/discoverers"
@@ -24,7 +24,26 @@
 
 @implements IDisposable
 
-<h1>Asset Discovery</h1>
+<div class="flex">
+    <h1>Asset Discovery</h1>
+    <a class="adhocmargin" href="javascript: void(0)" @onclick="@(() => OpenDrawer(new DiscovererInfo {
+                                                  DiscovererModel = new DiscovererApiModel(),
+                                                  isAdHocDiscovery = true
+                                              }))">
+        Run ad-hoc discovery
+    </a>
+    @if (DiscovererData != null)
+    {
+        if (DiscovererData.IsSearching)
+        {
+            <div class="spinnermargin loader"></div>
+        }
+        else
+        {
+            <div class="spinnermargin"></div>
+        }
+    }
+</div>
 
 <table class="table @_tableView">
     <thead>
@@ -117,12 +136,15 @@
                     }
                 </td>
             </tr>
-        }
+                        }
     </tbody>
 </table>
 <div class="@_tableEmpty center">No discoverers found.</div>
 <div class="results @_scanResult">
     Scan Results:
+    <div class="closediv">   
+        <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => CloseScanResultView())" class="oi oi-x closebtn"></a>
+    </div>
     <div class="events">
         @_eventResult
     </div>
@@ -131,7 +153,7 @@
 <ErrorMessage PageError="@_pagedDiscovererList.Error" Status="@Status"></ErrorMessage>
 
 <Drawer HeaderText="Discovery Scan Config" ObjectData="@DiscovererData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
-    <_DrawerDiscoverer DiscovererData="@DiscovererData" Onclick="ClickHandler"></_DrawerDiscoverer>
+    <_DrawerDiscoverer DiscovererData="@DiscovererData" Onclick="((DiscovererData) => ClickHandler((DiscovererInfo)DiscovererData))"></_DrawerDiscoverer>
 </Drawer>
 
 <Pager Result=@_discovererList PageChanged=@((Page) => PagerPageChanged(Page)) />
@@ -211,9 +233,6 @@
     /// Enable discoverer scan
     /// </summary>
     /// <param name="discoverer"></param>
-    /// <param name="forceScan"></param>
-    /// <param name="ipMask"></param>
-    /// <param name="portRange"></param>
     private async Task SetScanAsync(DiscovererInfo discoverer)
     {
         _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
@@ -239,6 +258,34 @@
                 await _discovery.DisposeAsync();
             }
             Status = await RegistryHelper.SetDiscoveryAsync(discoverer);
+        }
+        catch
+        {
+            await _discovery.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Start ad-hoc scan
+    /// </summary>
+    /// <param name="discoverer"></param>
+    private async Task SetAdHocScanAsync(DiscovererInfo discoverer)
+    {
+        discoverer.DiscoveryRequestId = Guid.NewGuid().ToString();
+        _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
+        discoverer.DiscoveryRequestId, async data =>
+        {
+            await InvokeAsync(() => ScanProgress(data));
+        });
+
+        try
+        {
+            _eventResult = string.Empty;
+
+            discoverer.IsSearching = true;
+            _scanResult = "visible";
+            DiscovererData = discoverer;
+            Status = await RegistryHelper.DiscoverServersAsync(discoverer);
         }
         catch
         {
@@ -344,10 +391,20 @@
         StateHasChanged();
     }
 
-    async Task ClickHandler()
+    /// <summary>
+    /// ClickHandler
+    /// </summary>
+    async Task ClickHandler(DiscovererInfo discoverer)
     {
         CloseDrawer();
-        await this.OnAfterRenderAsync(true);
+        if (discoverer.isAdHocDiscovery)
+        {
+            await SetAdHocScanAsync(discoverer);
+        }
+        else
+        {
+            await this.OnAfterRenderAsync(true);
+        }
     }
 
     /// <summary>
@@ -362,11 +419,24 @@
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Close the scan result view
+    /// </summary>
+    public void CloseScanResultView()
+    {
+        _scanResult = "hidden";
+    }
+
     public async void Dispose()
     {
         if (_discovererEvent != null)
         {
             await _discovererEvent.DisposeAsync();
+        }
+
+        if (_discovery != null)
+        {
+            await _discovery.DisposeAsync();
         }
     }
 }
