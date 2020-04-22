@@ -26,6 +26,15 @@ namespace Microsoft.Azure.IIoT.App.Common {
             return list;
         }
 
+        public void CheckErrorOrEmpty<T>(PagedResult<T> list, ref string errorCssClass, ref string emptyCssClass) where T : class {
+            if (list.Error != null) {
+                errorCssClass = "hidden";
+            }
+            else if (list.Results.Count == 0) {
+                emptyCssClass = "displayBlock";
+            }
+        }
+
         public int PageLength { get; set; } = 10;
         public int PageLengthSmall { get; set; } = 4;
         public string None { get; set; } = "(None)";

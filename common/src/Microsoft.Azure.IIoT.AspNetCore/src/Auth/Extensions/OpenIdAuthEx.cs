@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using System.Linq;
     using System.Security.Claims;
     using System;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Open id configuration
@@ -58,7 +57,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
 
                     options.LoginPath = $"/Account/{provider}/LogIn";
                     options.LogoutPath = $"/Account/{provider}/LogOut";
-                    options.AccessDeniedPath = $"/{provider}/AccessDenied";
+                    options.AccessDeniedPath = $"/Account/{provider}/AccessDenied";
                     options.Cookie.SameSite = SameSiteMode.None;
                 });
             });
