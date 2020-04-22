@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// <param name="val"></param>
         /// <returns></returns>
         public static string ToSha1Hash(this VariantValue val) {
-            return val.ToString().ToSha1Hash();
+            return val.ToJson().ToSha1Hash();
         }
     }
 }
