@@ -57,10 +57,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Debug("Message counter has been reset to prevent overflow. " +
                         "So far, {SentMessagesCount} messages has been sent to IoT Hub.",
                         SentMessagesCount);
-                    _messagesSent.Set(SentMessagesCount);
+                    kMessagesSent.Set(SentMessagesCount);
                     SentMessagesCount = 0;
                 }
-                using(_sendingDuration.NewTimer()) {
+                using(kSendingDuration.NewTimer()) {
                     var sw = new Stopwatch();
                     sw.Start();
 
@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     sw.Stop();
                     _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
                 }
-                _messagesSent.Set(messagesCount);
+                kMessagesSent.Set(messagesCount);
                 SentMessagesCount += messagesCount;
             }
             catch (Exception ex) {
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
         private readonly ILogger _logger;
         private readonly IClientAccessor _clientAccessor;
-        private static readonly Gauge _messagesSent = Metrics.CreateGauge("iiot_edge_publisher_messages_sent", "Number of messages sent to IotHub");
-        private static readonly Histogram _sendingDuration = Metrics.CreateHistogram("iiot_edge_publisher_messages_sent_duration_seconds", "Histogram of message sending durations");
+        private static readonly Gauge kMessagesSent = Metrics.CreateGauge("iiot_edge_publisher_messages", "Number of messages sent to IotHub");
+        private static readonly Histogram kSendingDuration = Metrics.CreateHistogram("iiot_edge_publisher_messages_duration", "Histogram of message sending durations");
     }
 }

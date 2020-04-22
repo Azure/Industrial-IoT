@@ -89,16 +89,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
-                    var port = 9701;
-                    logger.Information("Initiating prometheus at port {0}/metrics", port);
-                    var server = new MetricServer(port: port);
+                    logger.Information("Initiating prometheus at port {0}/metrics", kTwinPrometheusPort);
+                    var server = new MetricServer(port: kTwinPrometheusPort);
                     try {
                         server.Start();
                         logger.Information("Started prometheus server");
                         // Start module
                         var product = "OpcTwin_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
-                        _twinModuleStart.Inc();
+                        kTwinModuleStart.Inc();
                         await module.StartAsync(IdentityType.Supervisor, SiteId,
                             product, this);
                         OnRunning?.Invoke(this, true);
@@ -115,7 +114,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     }
                     finally {
                         await module.StopAsync();
-                        _twinModuleStart.Set(0);
+                        kTwinModuleStart.Set(0);
                         server.Stop();
                         OnRunning?.Invoke(this, false);
                     }
@@ -251,6 +250,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
-        private static readonly Gauge _twinModuleStart = Metrics.CreateGauge("iiot_edge_twin_module_start", "twin module started");
+        private const int kTwinPrometheusPort = 9701;
+        private static readonly Gauge kTwinModuleStart = Metrics.CreateGauge("iiot_edge_twin_module_start", "twin module started");
     }
 }

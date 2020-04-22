@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                     Hostname = "opcpublisher",
                     Cmd = new[] {
                     "--aa"
-                }
+                    }
                 }).Replace("\"", "\\\"");
             } else {
                 createOptions = _serializer.SerializeToString(new {

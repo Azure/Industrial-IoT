@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// </summary>
         /// <returns></returns>
         public Task ApplyAsync() {
-            _applyAsync.Inc();
+            kApplyAsync.Inc();
             return _twin.SetEndpointAsync(
                 new EndpointModel {
                     SecurityMode = _securityMode,
@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         private Dictionary<string, string> _alternativeUrls;
 #pragma warning restore IDE0032 // Use auto property
         private readonly ITwinServices _twin;
-        private static readonly String _PREFIX = "iiot_edge_twin_";
-        private static readonly Counter _applyAsync = Metrics.CreateCounter(_PREFIX + "apply_async", "call to applyAsync");
+        private static readonly string kTwinMetricsPrefix = "iiot_edge_twin_";
+        private static readonly Counter kApplyAsync = Metrics.CreateCounter(kTwinMetricsPrefix + "applyc", "call to applyAsync");
     }
 }

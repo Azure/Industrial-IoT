@@ -83,16 +83,15 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
-                    var port = 9700;
-                    logger.Information("Initiating prometheus at port {0}/metrics", port);
-                    var server = new MetricServer(port: port);
+                    logger.Information("Initiating prometheus at port {0}/metrics", kDiscoveryPrometheusPort);
+                    var server = new MetricServer(port: kDiscoveryPrometheusPort);
                     try {
                         server.Start();
                         logger.Information("Started prometheus server");
                         // Start module
                         var product = "OpcDiscovery_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
-                        _discoveryModuleStart.Inc();
+                        kDiscoveryModuleStart.Inc();
                         await module.StartAsync(IdentityType.Discoverer, SiteId,
                             product, this);
                         OnRunning?.Invoke(this, true);
@@ -109,7 +108,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     }
                     finally {
                         await module.StopAsync();
-                        _discoveryModuleStart.Set(0);
+                        kDiscoveryModuleStart.Set(0);
                         server.Stop();
                         OnRunning?.Invoke(this, false);
                     }
@@ -169,7 +168,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
-        private static readonly Gauge _discoveryModuleStart = Metrics.CreateGauge("iiot_edge_discovery_module_start", "discovery module started");
+        private const int kDiscoveryPrometheusPort = 9700;
+        private static readonly Gauge kDiscoveryModuleStart = Metrics.CreateGauge("iiot_edge_discovery_module_start", "discovery module started");
 
     }
 }

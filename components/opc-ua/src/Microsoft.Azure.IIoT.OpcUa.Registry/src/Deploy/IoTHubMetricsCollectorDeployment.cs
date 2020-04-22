@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Deploys discovery module
+    /// Deploys metricscollector module
     /// </summary>
     public sealed class IoTHubMetricsCollectorDeployment : IHostProcess {
 
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Linux'",
-                Priority = 1
+                Priority = 2
             }, true);
 
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Windows'",
-                Priority = 1
+                Priority = 2
             }, true);
         }
 
@@ -70,20 +70,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(
             bool isLinux) {
 
-            // Configure create options per os specified
+            // Configure create options and version per os specified
             string createOptions;
+            string version;
             if (isLinux) {
                 // Linux
                 createOptions = "{}";
+                version = "0.0.4-amd64";
             }
             else {
                 // Windows
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator"
                 });
+                version = "0.0.4-windows-amd64";
             }
             createOptions = createOptions.Replace("\"", "\\\"");
-
+            var image = $"veyalla/metricscollector:{version}";
             _logger.Information("Updating metrics collector module deployment for {os}", isLinux ? "Linux" : "Windows");
 
             // Return deployment modules object
@@ -92,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 ""$edgeAgent"": {
                     ""properties.desired.modules.metricscollector"": {
                         ""settings"": {
-                            ""image"": ""veyalla/metricscollector:0.0.4-amd64"",
+                            ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""
                         },
                         ""type"": ""docker"",

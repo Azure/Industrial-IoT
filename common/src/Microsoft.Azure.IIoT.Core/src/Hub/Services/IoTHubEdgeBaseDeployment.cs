@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                     }
                 }
             },
-           ""modules"": {
+            ""modules"": {
             }
         }
     },
