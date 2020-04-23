@@ -85,11 +85,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         public string AccountName => _ep.AccountName;
         /// <inheritdoc/>
         public string AccountKey => _ep.AccountKey;
-
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
         /// <inheritdoc/>
-        public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
+        public bool InitialReadFromEnd => true;
+        /// <inheritdoc/>
+        public TimeSpan? SkipEventsOlderThan => TimeSpan.FromMinutes(5);
         /// <inheritdoc/>
         public TimeSpan? CheckpointInterval => null; // Never checkpoint
 

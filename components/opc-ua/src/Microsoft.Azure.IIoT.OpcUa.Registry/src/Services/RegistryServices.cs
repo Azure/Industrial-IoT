@@ -21,34 +21,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
 
             // Services
             builder.RegisterType<EndpointEventBroker>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<EndpointRegistry>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<ApplicationEventBroker>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ApplicationRegistry>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<SupervisorEventBroker>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<SupervisorRegistry>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<PublisherEventBroker>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<PublisherRegistry>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<DiscovererEventBroker>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<DiscovererRegistry>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<GatewayEventBroker>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<GatewayRegistry>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             base.Load(builder);
         }

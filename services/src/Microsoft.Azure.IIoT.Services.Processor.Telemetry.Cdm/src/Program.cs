@@ -97,13 +97,13 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
             var builder = new ContainerBuilder();
 
             builder.RegisterInstance(serviceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Add diagnostics
             builder.AddDiagnostics(config);
@@ -125,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
             builder.RegisterType<EventProcessorHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             // ... and auto start
             builder.RegisterType<HostAutoStart>()
                 .AutoActivate()
@@ -133,29 +133,29 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
 
             // Handle telemetry events
             builder.RegisterType<EventHubDeviceEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Handle opc-ua pub/sub subscriber messages
             builder.RegisterType<MonitoredItemSampleModelHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<NetworkMessageModelHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Handle the CDM handler
             builder.RegisterType<DatalakeConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DataLakeStorageService>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<CdmFileStorageAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<CsvEncoder>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // handlers for the legacy publisher (disabled)
             builder.RegisterType<CdmMessageProcessor>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<MonitoredItemSampleCdmProcessor>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             return builder;
         }

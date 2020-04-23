@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime;
     using Microsoft.Azure.IIoT.Services.OpcUa.Events.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
@@ -36,7 +37,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Autofac.Extensions.DependencyInjection;
     using Prometheus;
     using System;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
 
     /// <summary>
     /// Webservice startup
@@ -185,7 +185,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Application event hub
             builder.RegisterType<SignalRHub<ApplicationsHub>>()
@@ -239,7 +239,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             builder.RegisterType<EventBusHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ServiceBusClientFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ServiceBusEventBus>()
                 .AsImplementedInterfaces().SingleInstance()
                 .IfNotRegistered(typeof(IEventBus));
@@ -249,15 +249,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
                 .AsImplementedInterfaces().SingleInstance()
                 .IfNotRegistered(typeof(IEventProcessingHost));
             builder.RegisterType<EventProcessorFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<EventHubDeviceEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Handle opc-ua pub/sub telemetry subscriptions ...
             builder.RegisterType<MonitoredItemSampleModelHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<NetworkMessageModelHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // ... and auto start
             builder.RegisterType<HostAutoStart>()

@@ -51,13 +51,13 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
 
             // Register configuration interfaces and logger
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Configure aad
             builder.RegisterType<AadApiClientConfig>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register logger
             builder.AddDiagnostics(config, addConsole: false);
@@ -70,27 +70,27 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
             builder.RegisterModule<HttpClientModule>();
             // ... as well as signalR client (needed for api)
             builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             // Use default token sources
             builder.RegisterModule<NativeClientAuthentication>();
 
             // Register twin, vault, and registry services clients
             builder.RegisterType<TwinServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<VaultServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<JobsServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // ... with client event callbacks
             builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             return builder.Build();
         }

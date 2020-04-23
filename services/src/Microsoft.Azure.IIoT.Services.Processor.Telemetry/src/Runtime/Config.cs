@@ -15,8 +15,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
     /// <summary>
     /// Telemetry processor service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IEventProcessorConfig,
-        IEventHubConsumerConfig, IEventProcessorHostConfig {
+    public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
+        IEventHubConsumerConfig, IEventProcessorConfig {
 
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
@@ -40,6 +40,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
         /// <inheritdoc/>
         public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
+        /// <inheritdoc/>
+        public TimeSpan? SkipEventsOlderThan => _ep.SkipEventsOlderThan;
         /// <inheritdoc/>
         public string EndpointSuffix => _ep.EndpointSuffix;
         /// <inheritdoc/>

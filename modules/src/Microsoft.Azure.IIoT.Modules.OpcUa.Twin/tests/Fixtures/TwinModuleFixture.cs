@@ -273,14 +273,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
 
             // Twin and history clients
             builder.RegisterType<TwinModuleControlClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleSupervisorClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<HistoryRawSupervisorAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinSupervisorAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<HistoryModuleClient>()
@@ -288,11 +288,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
 
             // Adapts to expanded hda
             builder.RegisterType<HistoricAccessAdapter<string>>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<HistoricAccessAdapter<EndpointRegistrationModel>>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<HistoricAccessAdapter<EndpointApiModel>>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Supervisor clients
             builder.RegisterType<TwinModuleActivationClient>()

@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
                     Label = typeof(T).GetMoniker(),
                 });
 
-                _logger.Debug("----->  {@message} sent...", message);
+                _logger.Verbose("----->  {@message} sent...", message);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to publish message {@message}", message);
@@ -200,7 +200,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
                 // Do for now every time to pass brand new objects
                 var evt = _serializer.Deserialize(message.Body, handler.Type);
                 await handler.HandleAsync(evt);
-                _logger.Debug("<-----  {@message} received and handled! ", evt);
+                _logger.Verbose("<-----  {@message} received and handled! ", evt);
             }
             // Complete the message so that it is not received again.
             await _subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);

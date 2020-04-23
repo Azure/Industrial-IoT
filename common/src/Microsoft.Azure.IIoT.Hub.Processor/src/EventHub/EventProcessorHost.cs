@@ -19,8 +19,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     /// Implementation of event processor host interface to host event
     /// processors.
     /// </summary>
-    public sealed class EventProcessorHost : IDisposable,
-        IEventProcessingHost, IHostProcess {
+    public sealed class EventProcessorHost : IDisposable, IEventProcessingHost, IHostProcess {
 
         /// <summary>
         /// Create host wrapper

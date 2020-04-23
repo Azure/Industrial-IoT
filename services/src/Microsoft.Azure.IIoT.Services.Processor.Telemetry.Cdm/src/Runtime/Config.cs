@@ -17,8 +17,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
     /// <summary>
     /// Cdm processor service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IEventProcessorConfig,
-        IEventHubConsumerConfig, ICdmFolderConfig, IEventProcessorHostConfig {
+    public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
+        IEventHubConsumerConfig, ICdmFolderConfig, IEventProcessorConfig {
 
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
@@ -42,6 +42,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
         public string AccountName => _ep.AccountName;
         /// <inheritdoc/>
         public string AccountKey => _ep.AccountKey;
+        /// <inheritdoc/>
+        public TimeSpan? SkipEventsOlderThan => _ep.SkipEventsOlderThan;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
         /// <inheritdoc/>

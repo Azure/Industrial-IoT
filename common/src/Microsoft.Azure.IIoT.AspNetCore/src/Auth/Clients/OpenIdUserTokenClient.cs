@@ -4,7 +4,6 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.AspNetCore.Authentication;
@@ -63,12 +62,16 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
 
+            var user = _ctx.HttpContext?.User;
+            if (user == null) {
+                return null;
+            }
+
             var schemes = await _schemes.GetAllSchemesAsync();
             if (!schemes.Any(s => s.Name == AuthProvider.AuthService)) {
                 return null;
             }
 
-            var user = _ctx.HttpContext.User;
             if (!user.Identity.IsAuthenticated) {
                 _logger.Debug("User is not authenticated.");
                 return null;
@@ -211,6 +214,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// </summary>
         /// <returns></returns>
         private async Task<(string, DateTimeOffset?, string)> GetTokenFromCacheAsync() {
+            if (_ctx.HttpContext == null) {
+                return (null, null, null);
+            }
             var result = await _ctx.HttpContext.AuthenticateAsync(AuthProvider.AuthService);
             if (!result.Succeeded) {
                 return (null, null, null);
@@ -248,6 +254,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <returns></returns>
         private async Task StoreTokenAsync(string accessToken, int expiresIn,
             string refreshToken) {
+            if (_ctx.HttpContext == null) {
+                throw new Exception("can't store tokens. No context");
+            }
             var result = await _ctx.HttpContext.AuthenticateAsync();
             if (!result.Succeeded) {
                 throw new Exception("can't store tokens. User is anonymous");

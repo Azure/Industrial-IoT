@@ -32,11 +32,12 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="schemes"></param>
-        public ServiceAuthAggregateConfig(IConfiguration configuration, IEnumerable<IOAuthServerConfig> schemes) :
+        /// <param name="providers"></param>
+        public ServiceAuthAggregateConfig(IConfiguration configuration,
+            IEnumerable<IOAuthServerConfig> providers) :
             base(configuration) {
-            JwtBearerProviders = schemes?.Where(s => s.IsValid).ToList()
-                ?? throw new ArgumentNullException(nameof(schemes));
+            JwtBearerProviders = providers?.Where(s => s.IsValid).ToList()
+                ?? throw new ArgumentNullException(nameof(providers));
         }
     }
 }

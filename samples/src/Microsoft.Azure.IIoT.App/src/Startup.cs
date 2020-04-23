@@ -203,22 +203,22 @@ namespace Microsoft.Azure.IIoT.App {
 
             // Register twin, vault, and registry services clients
             builder.RegisterType<TwinServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<VaultServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // ... with client event callbacks
             builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
 
             builder.RegisterType<Registry>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<Browser>()
                 .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<Publisher>()

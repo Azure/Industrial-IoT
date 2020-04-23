@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
+    using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -37,7 +38,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice startup
@@ -187,25 +187,25 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Twin services for browsing and tag selection ...
             builder.RegisterType<TwinServicesApiAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Registry services to lookup endpoints.
             builder.RegisterType<RegistryServicesApiAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Create Publish jobs using ...
             builder.RegisterType<PublisherJobService>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<PublisherJobSerializer>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // ... job services and dependencies
             // TODO - use api once scheduling jobs is available in jobs service
@@ -214,16 +214,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             builder.RegisterType<JobDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<CosmosDbServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<DefaultJobService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubJobConfigurationHandler>()
                 .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<IoTHubConfigurationClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubPublisherDeployment>()
                 .AsImplementedInterfaces().SingleInstance();
 

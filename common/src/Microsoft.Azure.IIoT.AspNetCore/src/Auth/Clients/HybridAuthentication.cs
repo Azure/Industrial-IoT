@@ -27,11 +27,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             builder.RegisterModule<DefaultServiceAuthProviders>();
 
             builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces();
             builder.RegisterType<ClientAuthAggregateConfig>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces();
             builder.RegisterType<DefaultTokenProvider>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope()
+                .AsImplementedInterfaces()
                 .IfNotRegistered(typeof(ITokenProvider));
 
             // Cache tokens in protected cache - by default in memory
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 .AsImplementedInterfaces().SingleInstance()
                 .IfNotRegistered(typeof(ICache));
             builder.RegisterType<DistributedProtectedCache>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // 1) Pass token through
             builder.RegisterType<PassThroughBearerToken>()
@@ -47,20 +47,18 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
             // 2) Fallback to client auth
             builder.RegisterType<HttpHandlerFactory>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces();
             builder.RegisterType<ClientCredentialClient>()
-                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope()
+                .AsSelf().AsImplementedInterfaces()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
             // 3) Use application auth provider
-            builder.RegisterType<AdalTokenCacheAdapter>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<AppAuthenticationClient>()
-                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsSelf().AsImplementedInterfaces();
 
             // Use service to service token source
             builder.RegisterType<HybridTokenSource>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces();
             base.Load(builder);
         }
 

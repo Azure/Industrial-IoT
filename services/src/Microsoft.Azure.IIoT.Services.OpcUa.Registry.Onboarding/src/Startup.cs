@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Module.Default;
@@ -34,7 +35,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice startup
@@ -180,11 +180,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Processor for discovery events plus ...
             builder.RegisterType<DiscoveryProcessor>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // the dependent registries and repositories
             builder.RegisterModule<RegistryServices>();
@@ -205,23 +205,23 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
             builder.RegisterType<TwinModuleCertificateClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleActivationClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<OnboardingClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // and build on Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubTwinMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register event bus for event publishing
             builder.RegisterType<EventBusHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ServiceBusClientFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ServiceBusEventBus>()
                 .AsImplementedInterfaces().SingleInstance();
         }

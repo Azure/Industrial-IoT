@@ -100,13 +100,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
             var builder = new ContainerBuilder();
 
             builder.RegisterInstance(serviceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Add diagnostics
             builder.AddDiagnostics(config);
@@ -125,22 +125,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
 
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubTwinMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register event bus
             builder.RegisterType<EventBusHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ServiceBusClientFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ServiceBusEventBus>()
-                .AsImplementedInterfaces().SingleInstance();
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register task processor
@@ -150,10 +146,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
             // Handle discovery request and pass to all edges
             builder.RegisterModule<RegistryServices>();
             builder.RegisterType<DiscoveryRequestHandler>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DiscoveryMultiplexer>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<DiscovererModuleClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<DiscoveryMultiplexer>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Identity token updater
@@ -168,12 +164,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
 
             // Activation sync
             builder.RegisterType<TwinModuleActivationClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleCertificateClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleDiagnosticsClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ActivationSyncHost>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder;

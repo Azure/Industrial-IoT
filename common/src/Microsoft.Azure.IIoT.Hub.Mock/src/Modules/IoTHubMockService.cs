@@ -29,9 +29,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             builder.RegisterType<IoTHubDeviceEventHandler>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubTwinMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register default serializers...
             builder.RegisterModule<NewtonSoftJsonModule>();

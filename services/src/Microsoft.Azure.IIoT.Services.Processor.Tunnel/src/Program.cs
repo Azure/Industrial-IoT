@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
@@ -21,8 +23,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Http.Ssl;
-    using Microsoft.Azure.IIoT.Auth.Clients;
 
     /// <summary>
     /// IoT Hub device telemetry event processor host.  Processes all
@@ -92,13 +92,13 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
             var builder = new ContainerBuilder();
 
             builder.RegisterInstance(serviceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Add diagnostics
             builder.AddDiagnostics(config);
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
             builder.RegisterType<EventProcessorHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             // ... and auto start
             builder.RegisterType<HostAutoStart>()
                 .AutoActivate()
@@ -127,17 +127,17 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
 
             // Handle tunnel server events
             builder.RegisterType<IoTHubDeviceEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<HttpTunnelServer>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().SingleInstance(); // TODO : no singleton?
 
             // which builds on Iot hub method calls for responses
             builder.RegisterType<ChunkMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubTwinMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             return builder;
         }

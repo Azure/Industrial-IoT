@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
             builder.RegisterType<KeyVaultKeyHandleSerializer>()
                 .AsImplementedInterfaces();
             builder.RegisterType<KeyVaultServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterModule<KeyVaultAuthentication>();
             base.Load(builder);
         }

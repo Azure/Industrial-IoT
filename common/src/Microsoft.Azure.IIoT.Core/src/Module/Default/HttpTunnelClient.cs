@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             // Override default factory with configurable http tunnel
             // client handler factory.
             //
-            builder.RegisterType<HttpTunnelConfigurableFactory>().SingleInstance()
+            builder.RegisterType<HttpTunnelConfigurableFactory>()
                 .AsImplementedInterfaces();
         }
     }

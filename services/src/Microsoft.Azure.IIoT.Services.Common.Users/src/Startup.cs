@@ -12,8 +12,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users {
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.Azure.IIoT.Storage.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
@@ -31,8 +33,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Http.Ssl;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
 
     /// <summary>
     /// Webservice startup
@@ -183,10 +183,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users {
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<CosmosDbServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ItemContainerFactory>()
                 .AsImplementedInterfaces();
 

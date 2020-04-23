@@ -175,20 +175,20 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<JobDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<WorkerDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<CosmosDbServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<DefaultJobService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubJobConfigurationHandler>()
                 .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
         }
     }
 }

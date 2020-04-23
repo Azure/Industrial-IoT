@@ -125,9 +125,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(this)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // register logger
             builder.AddDiagnostics(config);
@@ -140,9 +140,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             builder.RegisterType<ClientServices>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AddressSpaceServices>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
             builder.RegisterType<TaskProcessor>()
@@ -156,9 +156,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
 
             // Register supervisor services
             builder.RegisterType<SupervisorServices>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<TwinContainerFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             if (_injector != null) {
                 // Inject additional services
@@ -199,18 +199,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 // Register outer instances
                 builder.RegisterInstance(_logger)
                     .OnRelease(_ => { }) // Do not dispose
-                    .AsImplementedInterfaces().SingleInstance();
+                    .AsImplementedInterfaces();
                 builder.RegisterInstance(_client)
                     .OnRelease(_ => { }) // Do not dispose
-                    .AsImplementedInterfaces().SingleInstance();
+                    .AsImplementedInterfaces();
 
                 // Register other opc ua services
                 builder.RegisterType<VariantEncoderFactory>()
-                    .AsImplementedInterfaces().SingleInstance();
+                    .AsImplementedInterfaces();
                 builder.RegisterType<TwinServices>()
-                    .AsImplementedInterfaces().SingleInstance();
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
                 builder.RegisterType<AddressSpaceServices>()
-                    .AsImplementedInterfaces().SingleInstance();
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
                 builder.RegisterType<DataUploadServices>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
 

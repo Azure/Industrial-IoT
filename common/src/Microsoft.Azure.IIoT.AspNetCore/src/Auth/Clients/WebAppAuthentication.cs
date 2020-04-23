@@ -25,34 +25,34 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         protected override void Load(ContainerBuilder builder) {
 
             builder.RegisterType<HttpHandlerFactory>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces();
             builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DefaultTokenProvider>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope()
+                .AsImplementedInterfaces()
                 .IfNotRegistered(typeof(ITokenProvider));
             // Cache tokens in memory
             builder.RegisterType<MemoryCache>()
-                .AsImplementedInterfaces().SingleInstance()
+                .AsImplementedInterfaces()
                 .IfNotRegistered(typeof(ICache));
 
             builder.RegisterModule<DefaultServiceAuthProviders>();
 
             // 1) Use auth service open id token client
             builder.RegisterType<OpenIdUserTokenClient>()
-                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope()
+                .AsSelf().AsImplementedInterfaces()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
             // 2) Use msal user token as fallback
             builder.RegisterType<MsalUserTokenClient>()
-                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope()
+                .AsSelf().AsImplementedInterfaces()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
             // Use service to service token source
             builder.RegisterType<UserTokenSource>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces();
             base.Load(builder);
         }
 

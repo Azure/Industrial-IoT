@@ -19,20 +19,20 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         protected override void Load(ContainerBuilder builder) {
 
             builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DefaultTokenProvider>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope()
+                .AsImplementedInterfaces()
                 .IfNotRegistered(typeof(ITokenProvider));
 
             builder.RegisterModule<DefaultServiceAuthProviders>();
 
             // Pass token through is the only provider here
             builder.RegisterType<PassThroughBearerToken>()
-                .AsSelf().AsImplementedInterfaces();
+                .AsSelf();
             builder.RegisterType<TokenClientSource<PassThroughBearerToken>>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             base.Load(builder);
         }

@@ -31,7 +31,7 @@ namespace Autofac {
             }
             // Register metrics logger
             builder.RegisterType<MetricsLogger>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<HealthCheckRegistrar>()
                 .AsImplementedInterfaces().SingleInstance();
             return builder.RegisterModule(

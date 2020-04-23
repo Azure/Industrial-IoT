@@ -15,15 +15,15 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         protected override void Load(ContainerBuilder builder) {
 
             builder.RegisterType<ClientAuthAggregateConfig>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<AadApiClientConfig>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // ...
 
             builder.RegisterType<AuthServiceApiClientConfig>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             base.Load(builder);
         }

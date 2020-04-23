@@ -12,13 +12,12 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel.Runtime {
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Extensions.Configuration;
     using System;
-    using Microsoft.Azure.IIoT.Storage.Datalake.Runtime;
 
     /// <summary>
     /// Telemetry processor service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IEventProcessorConfig,
-        IEventHubConsumerConfig, IIoTHubConfig, IEventProcessorHostConfig {
+    public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
+        IEventHubConsumerConfig, IIoTHubConfig, IEventProcessorConfig {
 
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
@@ -34,6 +33,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel.Runtime {
 
         /// <inheritdoc/>
         public bool InitialReadFromEnd => true;
+        /// <inheritdoc/>
+        public TimeSpan? SkipEventsOlderThan => TimeSpan.FromMinutes(5);
         /// <inheritdoc/>
         public int ReceiveBatchSize => _ep.ReceiveBatchSize;
         /// <inheritdoc/>

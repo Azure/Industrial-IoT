@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -41,7 +42,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice startup
@@ -191,7 +191,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Add key vault
             builder.RegisterModule<KeyVaultClientModule>();
@@ -216,27 +216,23 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             builder.RegisterType<EventBusHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ServiceBusClientFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ServiceBusEventBus>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // ... subscribe to application events ...
             builder.RegisterType<ApplicationEventBusSubscriber>()
                 .AsImplementedInterfaces().SingleInstance();
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
-                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<RegistryEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register registry micro services adapters
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<RegistryServicesApiAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<EntityInfoResolver>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Vault services
             builder.RegisterType<RequestDatabase>()
@@ -258,17 +254,22 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
 
             // Vault handler
             builder.RegisterType<AutoApproveHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<KeyPairRequestHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<SigningRequestHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // ... with cosmos db collection as storage
             builder.RegisterType<ItemContainerFactory>()
                 .AsImplementedInterfaces();
             builder.RegisterType<CosmosDbServiceClient>()
                 .AsImplementedInterfaces();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
+                .AsImplementedInterfaces().SingleInstance();
         }
     }
 }

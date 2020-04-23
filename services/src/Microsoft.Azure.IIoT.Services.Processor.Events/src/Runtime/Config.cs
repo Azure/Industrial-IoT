@@ -20,9 +20,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
     /// <summary>
     /// Telemetry processor service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IEventProcessorConfig,
+    public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
         IEventHubConsumerConfig, IOnboardingConfig, IServiceBusConfig,
-        IIoTHubConfig, IEventProcessorHostConfig {
+        IIoTHubConfig, IEventProcessorConfig {
 
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
@@ -48,7 +48,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
         /// <inheritdoc/>
-        public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
+        public bool InitialReadFromEnd => true;
+        /// <inheritdoc/>
+        public TimeSpan? SkipEventsOlderThan => TimeSpan.FromMinutes(5);
         /// <inheritdoc/>
         public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
 

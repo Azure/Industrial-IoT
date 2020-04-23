@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             base.ConfigureContainer(builder);
 
             builder.RegisterType<TestIoTHubConfig>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TestModule>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ClientServices>()

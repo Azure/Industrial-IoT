@@ -126,11 +126,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(this)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterModule<PublisherJobsConfiguration>();
 
@@ -152,11 +152,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     .AsImplementedInterfaces().SingleInstance();
                 // Local orchestrator
                 builder.RegisterType<LegacyJobOrchestrator>()
-                    .AsImplementedInterfaces().SingleInstance();
+                    .AsImplementedInterfaces();
 
                 // Create jobs from published nodes file
                 builder.RegisterType<PublishedNodesJobConverter>()
-                    .SingleInstance();
+                    .AsSelf().AsImplementedInterfaces();
             }
             else {
                 builder.AddDiagnostics(config);
@@ -166,22 +166,22 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
                 // Cloud job manager
                 builder.RegisterType<JobOrchestratorClient>()
-                    .AsImplementedInterfaces().SingleInstance();
+                    .AsImplementedInterfaces();
 
                 // ... plus controllers
                 builder.RegisterType<ConfigurationSettingsController>()
-                    .AsImplementedInterfaces().SingleInstance();
+                    .AsImplementedInterfaces();
                 builder.RegisterType<IdentityTokenSettingsController>()
-                    .AsImplementedInterfaces().SingleInstance();
+                    .AsImplementedInterfaces();
             }
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()
-                .SingleInstance().AsImplementedInterfaces();
-            builder.RegisterType<SubscriptionServices>()
-                .SingleInstance().AsImplementedInterfaces();
-            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SubscriptionServices>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<VariantEncoderFactory>()
+                .AsImplementedInterfaces();
 
             return builder.Build();
         }

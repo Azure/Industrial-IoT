@@ -16,9 +16,9 @@ namespace Microsoft.Azure.IIoT.Serializers {
         protected override void Load(ContainerBuilder builder) {
 
             builder.RegisterType<MessagePackSerializer>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<MessagePackResolvers>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             base.Load(builder);
         }

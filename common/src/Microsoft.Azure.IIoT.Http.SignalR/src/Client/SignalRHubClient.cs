@@ -53,7 +53,12 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
                 if (!string.IsNullOrEmpty(resourceId)) {
                     lookup += resourceId;
                 }
-                if (!_clients.TryGetValue(lookup, out var client)) {
+                if (!_clients.TryGetValue(lookup, out var client) ||
+                    client.ConnectionId == null) {
+                    if (client != null) {
+                        await client.DisposeAsync();
+                        _clients.Remove(lookup);
+                    }
                     client = await SignalRClientRegistrar.CreateAsync(_config,
                         endpointUrl, _logger, resourceId, _provider, _jsonSettings);
                     _clients.Add(lookup, client);

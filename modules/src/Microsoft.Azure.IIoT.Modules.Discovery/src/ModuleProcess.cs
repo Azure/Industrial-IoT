@@ -118,9 +118,9 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(this)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // register logger
             builder.AddDiagnostics(config);

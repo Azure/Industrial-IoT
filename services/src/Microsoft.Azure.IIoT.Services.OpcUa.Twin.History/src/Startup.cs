@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Extensions.Configuration;
@@ -30,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice startup
@@ -181,25 +181,25 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubTwinMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Adapters and corresponding edge client
             builder.RegisterType<TwinModuleControlClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleSupervisorClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<HistoricAccessAdapter<string>>()
-              .AsImplementedInterfaces().SingleInstance();
+              .AsImplementedInterfaces();
             builder.RegisterType<HistoricAccessAdapter<EndpointRegistrationModel>>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
         }
     }
 }

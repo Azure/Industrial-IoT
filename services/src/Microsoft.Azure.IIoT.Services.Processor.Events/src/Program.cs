@@ -19,6 +19,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
@@ -28,8 +30,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Http.Ssl;
-    using Microsoft.Azure.IIoT.Auth.Clients;
 
     /// <summary>
     /// IoT Hub device events event processor host.  Processes all
@@ -99,13 +99,13 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             var builder = new ContainerBuilder();
 
             builder.RegisterInstance(serviceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Add diagnostics
             builder.AddDiagnostics(config);
@@ -126,35 +126,31 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             builder.RegisterType<EventProcessorHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
-                .AsImplementedInterfaces().SingleInstance();
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Handle iot hub telemetry events...
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubDeviceEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             // ... and pass to the following handlers:
 
             // 1.) Handler for discovery events
             builder.RegisterType<DiscoveryEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // ... requires the corresponding services
             // Call onboarder
             builder.RegisterType<OnboardingServicesApiAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<OnboardingServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // 2.) Handler for discovery progress
             builder.RegisterType<DiscoveryProgressHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<DiscoveryProgressEventBusPublisher>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // 3.) Handlers for twin and device change events ...
             builder.RegisterModule<RegistryTwinEventHandlers>();
@@ -163,10 +159,14 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             builder.RegisterType<EventBusHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ServiceBusClientFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ServiceBusEventBus>()
                 .AsImplementedInterfaces().SingleInstance();
 
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
+                .AsImplementedInterfaces().SingleInstance();
             return builder;
         }
     }

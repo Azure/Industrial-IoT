@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
@@ -30,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
     using Autofac.Extensions.DependencyInjection;
     using System;
     using ILogger = Serilog.ILogger;
-    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice startup
@@ -175,9 +175,11 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // TODO: Use job database service api
+            builder.RegisterType<CosmosDbServiceClient>()
+                .AsImplementedInterfaces();
             builder.RegisterType<JobDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<WorkerDatabase>()
@@ -185,14 +187,12 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             builder.RegisterType<DefaultJobOrchestrator>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DefaultDemandMatcher>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<CosmosDbServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<IdentityTokenValidator>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinIdentityTokenStore>()
                 .AsImplementedInterfaces().SingleInstance();
 

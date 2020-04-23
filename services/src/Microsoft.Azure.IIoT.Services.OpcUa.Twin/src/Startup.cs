@@ -9,10 +9,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Deploy;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Serializers;
@@ -29,8 +31,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Http.Ssl;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
 
     /// <summary>
     /// Webservice startup
@@ -181,25 +181,25 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubTwinMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Edge clients
             builder.RegisterType<TwinModuleControlClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleSupervisorClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Edge deployment
             builder.RegisterType<IoTHubConfigurationClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubSupervisorDeployment>()
                 .AsImplementedInterfaces().SingleInstance();
 

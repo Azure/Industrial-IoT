@@ -13,12 +13,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth.Server.Default;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Auth.Server.Default;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -30,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Http.Ssl;
 
     /// <summary>
     /// Webservice startup
@@ -176,23 +176,23 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
 
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubMessagingHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubTwinMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register registry micro service adapter
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<RegistryServicesApiAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Todo: use twin micro service adapter
             builder.RegisterType<TwinModuleControlClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Auto start listeners
             builder.RegisterType<TcpChannelListener>()
@@ -208,14 +208,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
                 .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
 
-            builder.RegisterType<SessionServices>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<MessageSerializer>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<VariantEncoderFactory>()
-                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<GatewayServer>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SessionServices>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<MessageSerializer>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<VariantEncoderFactory>()
+                .AsImplementedInterfaces();
         }
     }
 }

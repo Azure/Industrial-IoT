@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
     using System.Threading.Tasks;
     using System.Threading;
     using System.Linq;
-    using System.Collections.Generic;
 
     /// <summary>
     /// SignalR hub client

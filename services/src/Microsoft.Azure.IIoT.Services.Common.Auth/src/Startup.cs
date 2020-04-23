@@ -199,7 +199,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth {
             builder.RegisterModule<HttpClientModule>();
 
             builder.RegisterType<CosmosDbServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ItemContainerFactory>()
                 .AsImplementedInterfaces();
 
@@ -215,7 +215,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth {
                 .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<IdentityServerConfig>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IdentityServerStorageInit>()
                 .AsImplementedInterfaces().SingleInstance();
             // ... and auto start

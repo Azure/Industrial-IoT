@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
             builder.RegisterType<WorkerSupervisor>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<Worker>()
-                .AsImplementedInterfaces().InstancePerDependency();
+                .AsImplementedInterfaces();
 
             base.Load(builder);
         }
