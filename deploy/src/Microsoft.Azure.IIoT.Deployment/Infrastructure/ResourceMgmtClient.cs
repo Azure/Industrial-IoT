@@ -232,7 +232,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IResourceGroup resourceGroup,
             string deploymentName,
             string templateJson,
-            IDictionary<string, string> parameters,
+            IDictionary<string, object> parameters,
             DeploymentMode deploymentMode,
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
@@ -241,20 +241,20 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 throw new ArgumentNullException(nameof(parameters));
             }
 
-            var parametersObj = parameters.ToDictionary(
+            var parametersCopy = parameters.ToDictionary(
                 pair => pair.Key,
-                pair => (object)pair.Value
+                pair => pair.Value
             );
 
             if (!(tags is null) && (tags.Count > 0)) {
                 const string tagsKey = "tags";
-                if (parametersObj.ContainsKey(tagsKey)) {
+                if (parametersCopy.ContainsKey(tagsKey)) {
                     throw new ArgumentException($"{nameof(parameters)} already contains '{tagsKey}' key");
                 }
-                parametersObj.Add(tagsKey, tags);
+                parametersCopy.Add(tagsKey, tags);
             }
 
-            var parametersJson = ToParametersJson(parametersObj);
+            var parametersJson = ToParametersJson(parametersCopy);
 
             var deployment = await CreateResourceGroupDeploymentAsync(
                 resourceGroup,

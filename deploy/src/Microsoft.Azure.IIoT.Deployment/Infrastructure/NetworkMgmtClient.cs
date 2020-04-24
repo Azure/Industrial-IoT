@@ -304,6 +304,28 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return aksSubnet;
         }
 
+        /// <summary>
+        /// Get Public IP address by its name.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="publicIPAddressName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<PublicIPAddressInner> GetPublicIPAddressAsync(
+            IResourceGroup resourceGroup,
+            string publicIPAddressName,
+            CancellationToken cancellationToken = default
+        ) {
+            var publicIPAddress = await _networkManagementClient
+                .PublicIPAddresses.GetAsync(
+                    resourceGroup.Name,
+                    publicIPAddressName,
+                    cancellationToken: cancellationToken
+                );
+
+            return publicIPAddress;
+        }
+
         public async Task<PublicIPAddressInner> CreatePublicIPAddressAsync(
             IResourceGroup resourceGroup,
             string publicIPAddressName,

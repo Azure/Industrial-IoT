@@ -35,7 +35,9 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.3" />
-    
+
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.4.1" />
+
     <PackageReference Include="Portable.BouncyCastle" Version="1.8.6.7" />
 
     <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
@@ -61,6 +63,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>IIoTK8SResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Resources\Scripts.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Scripts.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -75,6 +82,10 @@
     <EmbeddedResource Update="Resources\IIoTK8SResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>IIoTK8SResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Scripts.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Scripts.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

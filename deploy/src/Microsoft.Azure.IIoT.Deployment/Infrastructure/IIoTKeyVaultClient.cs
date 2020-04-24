@@ -297,6 +297,42 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return keyBundle;
         }
 
+        /// <summary>
+        /// Create secret with "application/json" content type.
+        /// </summary>
+        /// <param name="secretName"></param>
+        /// <param name="secretValue"></param>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<SecretBundle> CreateSecretAsync(
+            string secretName,
+            string secretValue,
+            IDictionary<string, string> tags = null,
+            CancellationToken cancellationToken = default
+        ) {
+            if (string.IsNullOrEmpty(secretName)) {
+                throw new ArgumentNullException(nameof(secretName));
+            }
+            if (string.IsNullOrEmpty(secretValue)) {
+                throw new ArgumentNullException(nameof(secretValue));
+            }
+
+            tags ??= new Dictionary<string, string>();
+
+            var secret = await _keyVaultClient
+                .SetSecretAsync(
+                    _keyVault.Properties.VaultUri,
+                    secretName,
+                    secretValue,
+                    tags,
+                    "application/json",
+                    cancellationToken: cancellationToken
+                );
+
+            return secret;
+        }
+
         public void Dispose() {
             if (null != _keyVaultClient) {
                 _keyVaultClient.Dispose();

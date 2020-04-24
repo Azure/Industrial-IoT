@@ -387,17 +387,21 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
+        /// <summary>
+        /// Update Redirect URIs of client application with URIs based on provided applicationURL.
+        /// </summary>
+        /// <param name="applicationURL"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task UpdateClientApplicationRedirectUrisAsync(
             string applicationURL,
             CancellationToken cancellationToken = default
         ) {
-            if (null == applicationURL) {
-                throw new ArgumentNullException("applicationURL");
+            if (string.IsNullOrWhiteSpace(applicationURL)) {
+                throw new ArgumentNullException(nameof(applicationURL));
             }
 
-            if (applicationURL.Trim() == string.Empty) {
-                throw new ArgumentException("Input cannot be empty", "applicationURL");
-            }
+            applicationURL = applicationURL.Trim();
 
             if (!applicationURL.StartsWith("https://") && !applicationURL.StartsWith("http://")) {
                 applicationURL = $"https://{applicationURL}";

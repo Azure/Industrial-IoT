@@ -127,7 +127,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     //PodCidr = "10.244.0.0/16",
                     ServiceCidr = NETWORK_PROFILE_SERVICE_CIDR,
                     DnsServiceIP = NETWORK_PROFILE_DNS_SERVICE_IP,
-                    DockerBridgeCidr = NETWORK_PROFILE_DOCKER_BRIDGE_CIDR
+                    DockerBridgeCidr = NETWORK_PROFILE_DOCKER_BRIDGE_CIDR,
+                    LoadBalancerSku = Management.ContainerService.Fluent.Models.LoadBalancerSku.Standard
                 }
             };
 
