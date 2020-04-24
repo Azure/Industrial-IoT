@@ -19,12 +19,13 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
     /// Telemetry processor service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
-        IEventHubConsumerConfig, IServiceBusConfig,
-        IIoTHubConfig, IEventProcessorConfig {
+        IEventHubConsumerConfig, IServiceBusConfig, IIoTHubConfig,
+        IEventProcessorConfig {
 
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
-            PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS, () => "events");
+            PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS,
+                () => "events");
 
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;

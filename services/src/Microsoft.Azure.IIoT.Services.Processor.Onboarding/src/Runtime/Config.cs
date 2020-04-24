@@ -4,62 +4,35 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
-    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
-    using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.Cors;
-    using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.EventHub;
+    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Storage;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Hosting;
+    using Microsoft.Azure.IIoT.Hub.Processor;
+    using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
     using Microsoft.Extensions.Configuration;
+    using System;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
-        ICorsConfig, IOpenApiConfig, IServiceBusConfig, ICosmosDbConfig,
-        IItemContainerConfig, IForwardedHeadersConfig, IRoleConfig {
+    public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
+        IEventHubConsumerConfig, IServiceBusConfig, IIoTHubConfig,
+        IEventProcessorConfig, ICosmosDbConfig, IItemContainerConfig {
 
         /// <inheritdoc/>
-        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
+        public string ConsumerGroup => GetStringOrDefault(
+            PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING,
+                () => "onboarding");
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
-
-        /// <inheritdoc/>
-        public string CorsWhitelist => _cors.CorsWhitelist;
-        /// <inheritdoc/>
-        public bool CorsEnabled => _cors.CorsEnabled;
-
-        /// <inheritdoc/>
-        public int HttpsRedirectPort => _host.HttpsRedirectPort;
-        /// <inheritdoc/>
-        public string ServicePathBase => GetStringOrDefault(
-            PcsVariable.PCS_ONBOARDING_SERVICE_PATH_BASE,
-            () => _host.ServicePathBase);
-
-        /// <inheritdoc/>
-        public bool UIEnabled => _openApi.UIEnabled;
-        /// <inheritdoc/>
-        public bool WithAuth => _openApi.WithAuth;
-        /// <inheritdoc/>
-        public string OpenApiAppId => _openApi.OpenApiAppId;
-        /// <inheritdoc/>
-        public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
-        /// <inheritdoc/>
-        public bool UseV2 => _openApi.UseV2;
-        /// <inheritdoc/>
-        public string OpenApiServerHost => _openApi.OpenApiServerHost;
 
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
@@ -74,11 +47,30 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
         public string DatabaseName => "iiot_opc";
 
         /// <inheritdoc/>
-        public bool AspNetCoreForwardedHeadersEnabled =>
-            _fh.AspNetCoreForwardedHeadersEnabled;
+        public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
         /// <inheritdoc/>
-        public int AspNetCoreForwardedHeadersForwardLimit =>
-            _fh.AspNetCoreForwardedHeadersForwardLimit;
+        public TimeSpan? SkipEventsOlderThan => TimeSpan.FromMinutes(5);
+        /// <inheritdoc/>
+        public string EndpointSuffix => _ep.EndpointSuffix;
+        /// <inheritdoc/>
+        public string AccountName => _ep.AccountName;
+        /// <inheritdoc/>
+        public string AccountKey => _ep.AccountKey;
+        /// <inheritdoc/>
+        public int ReceiveBatchSize => _ep.ReceiveBatchSize;
+        /// <inheritdoc/>
+        public TimeSpan ReceiveTimeout => _ep.ReceiveTimeout;
+        /// <inheritdoc/>
+        public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
+        /// <inheritdoc/>
+        public string LeaseContainerName => _ep.LeaseContainerName;
+
+        /// <inheritdoc/>
+        public bool UseWebsockets => _eh.UseWebsockets;
+        /// <inheritdoc/>
+        public string EventHubConnString => _eh.EventHubConnString;
+        /// <inheritdoc/>
+        public string EventHubPath => _eh.EventHubPath;
 
         /// <summary>
         /// Configuration constructor
@@ -87,21 +79,17 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _openApi = new OpenApiConfig(configuration);
-            _host = new WebHostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
-            _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
+            _ep = new EventProcessorConfig(configuration);
+            _eh = new IoTHubEventConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
-            _fh = new ForwardedHeadersConfig(configuration);
         }
 
-        private readonly OpenApiConfig _openApi;
-        private readonly WebHostConfig _host;
-        private readonly CorsConfig _cors;
+        private readonly EventProcessorConfig _ep;
+        private readonly IoTHubEventConfig _eh;
         private readonly ServiceBusConfig _sb;
         private readonly CosmosDbConfig _cosmos;
         private readonly IoTHubConfig _hub;
-        private readonly ForwardedHeadersConfig _fh;
     }
 }

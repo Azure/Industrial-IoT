@@ -529,6 +529,10 @@
                                 "value": "[variables('iothubTunnelConsumerGroup')]"
                             },
                             {
+                                "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP4",
+                                "value": "[variables('iothubOnboardingConsumerGroup')]"
+                            },
+                            {
                                 "key": "PCS_STORAGE_CONNSTRING",
                                 "value": "[concat('DefaultEndpointsProtocol=https', ';EndpointSuffix=', environment().suffixes.storage, ';AccountName=', parameters('storageName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]"
                             },

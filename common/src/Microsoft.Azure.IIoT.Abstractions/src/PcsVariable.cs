@@ -31,6 +31,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Iot hub event hub Events Consumer Group </summary>
         public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS =
             "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS";
+        /// <summary> Iot hub event hub Onboarder Consumer Group </summary>
+        public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING =
+            "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING";
         /// <summary> Iot hub event hub Tunnel Consumer Group </summary>
         public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL =
             "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL";

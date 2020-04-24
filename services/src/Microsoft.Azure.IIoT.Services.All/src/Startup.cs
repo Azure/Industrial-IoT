@@ -171,8 +171,8 @@ namespace Microsoft.Azure.IIoT.Services.All {
 
             /// <inheritdoc/>
             public Task StartAsync() {
-                Start();
-                return Task.CompletedTask;
+                // Delay start by 5 seconds to let api boot up
+                return Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ => Start());
             }
 
             /// <inheritdoc/>

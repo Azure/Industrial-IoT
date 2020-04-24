@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
     using System.Collections;
     using System.Diagnostics;
     using Autofac;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Default event hub event processor factory.
@@ -115,6 +116,11 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
 
             /// <inheritdoc/>
             public Task ProcessErrorAsync(PartitionContext context, Exception error) {
+                switch (error) {
+                    case MessagingEntityNotFoundException me:
+                        throw new InvalidConfigurationException(
+                            "Bad consumer group configuration.", me);
+                }
                 _logger.Warning(error, "Processor {id} error", _processorId);
                 return Task.CompletedTask;
             }

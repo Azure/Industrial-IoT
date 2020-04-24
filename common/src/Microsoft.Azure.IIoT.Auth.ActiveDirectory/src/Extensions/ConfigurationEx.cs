@@ -6,6 +6,7 @@
 namespace Microsoft.Extensions.Configuration {
     using Microsoft.Extensions.Primitives;
     using Microsoft.Azure.IIoT.Auth.KeyVault;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
@@ -15,7 +16,6 @@ namespace Microsoft.Extensions.Configuration {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Extension methods
