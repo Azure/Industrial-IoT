@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
 
             // ... as well as signalR client (needed for api)
             builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Register client events
             builder.RegisterType<RegistryServiceEvents>()

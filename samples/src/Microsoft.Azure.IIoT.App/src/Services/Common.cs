@@ -10,17 +10,14 @@ namespace Microsoft.Azure.IIoT.App.Common {
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    public class UICommon : ComponentBase  {
+    public class UICommon : ComponentBase {
 
-        public PagedResult<T> UpdatePage<T>(
-                                        Func<PagedResult<T>,
-                                        Task<PagedResult<T>>> getList, 
-                                        int page, PagedResult<T> list, 
-                                        ref PagedResult<T> pagedList) where T : class {
-         
-            PagedResult<T> newList = list;
+        public PagedResult<T> UpdatePage<T>(Func<PagedResult<T>, Task<PagedResult<T>>> getList,
+            int page, PagedResult<T> list, ref PagedResult<T> pagedList) where T : class {
+
+            var newList = list;
             if (!string.IsNullOrEmpty(list.ContinuationToken) && page > pagedList.PageCount) {
-                    list = Task.Run(async () => await getList(newList)).Result;
+                list = Task.Run(async () => await getList(newList)).Result;
             }
             pagedList = list.GetPaged(page, PageLength, null);
             return list;

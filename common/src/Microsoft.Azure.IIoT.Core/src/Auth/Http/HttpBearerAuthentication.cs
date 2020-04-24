@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
     using System.Linq;
     using System.Net.Http;
     using System.Threading;
-    using System.Security.Authentication;
+    using Serilog;
 
     /// <summary>
     /// Bearer authentication handler
@@ -23,19 +23,14 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
         /// Create bearer auth handler
         /// </summary>
         /// <param name="provider"></param>
-        public HttpBearerAuthentication(ITokenProvider provider) {
+        /// <param name="logger"></param>
+        public HttpBearerAuthentication(ITokenProvider provider, ILogger logger) {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Authenticate request using provider
-        /// </summary>
-        /// <param name="resourceId"></param>
-        /// <param name="headers"></param>
-        /// <param name="content"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public override async Task OnRequestAsync(string resourceId,
+        /// <inheritdoc/>
+        public override async Task OnRequestAsync(string resourceId, Uri requestUri,
             HttpRequestHeaders headers, HttpContent content, CancellationToken ct) {
             if (headers == null) {
                 throw new ArgumentNullException(nameof(headers));
@@ -57,20 +52,18 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
                     headers.Authorization = new AuthenticationHeaderValue(
                         "Bearer", result.RawToken);
                 }
+                else {
+                    _logger.Error("Failed to aquire token calling " +
+                        "{request} ({resource}) - calling without...",
+                        requestUri, resourceId);
+                }
             }
         }
 
-        /// <summary>
-        /// Invalidate if needed
-        /// </summary>
-        /// <param name="resourceId"></param>
-        /// <param name="statusCode"></param>
-        /// <param name="headers"></param>
-        /// <param name="content"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public override async Task OnResponseAsync(string resourceId, HttpStatusCode statusCode,
-            HttpResponseHeaders headers, HttpContent content, CancellationToken ct) {
+        /// <inheritdoc/>
+        public override async Task OnResponseAsync(string resourceId, Uri requestUri,
+            HttpStatusCode statusCode, HttpResponseHeaders headers, HttpContent content,
+            CancellationToken ct) {
             if (headers == null) {
                 throw new ArgumentNullException(nameof(headers));
             }
@@ -83,5 +76,6 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
         }
 
         private readonly ITokenProvider _provider;
+        private readonly ILogger _logger;
     }
 }

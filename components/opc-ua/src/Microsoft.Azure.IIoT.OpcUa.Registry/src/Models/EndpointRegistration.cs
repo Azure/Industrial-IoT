@@ -132,7 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public EndpointActivationState? ActivationState {
             get {
                 if (Activated == true) {
-                    if (Connected) {
+                    if (Connected && !(IsDisabled ?? false) && NotSeenSince == null) {
                         return EndpointActivationState.ActivatedAndConnected;
                     }
                     return EndpointActivationState.Activated;

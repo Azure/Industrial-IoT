@@ -100,13 +100,14 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken) {
             foreach (var h in _handlers) {
-                await h.OnRequestAsync(_resourceId,
+                await h.OnRequestAsync(_resourceId, request.RequestUri,
                     request.Headers, request.Content, cancellationToken);
             }
             var response = await base.SendAsync(request, cancellationToken);
             foreach (var h in _handlers) {
-                await h.OnResponseAsync(_resourceId, response.StatusCode,
-                    response.Headers, response.Content, cancellationToken);
+                await h.OnResponseAsync(_resourceId, request.RequestUri,
+                    response.StatusCode, response.Headers, response.Content,
+                    cancellationToken);
             }
             return response;
         }

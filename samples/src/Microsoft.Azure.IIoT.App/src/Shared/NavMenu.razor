@@ -102,8 +102,15 @@
 
     private async Task<T> GetSecureItemAsync<T>(string key)
     {
-        var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
-        return secureData.UnprotectDeserialize<T>(serializedProtectedData);
+        try
+        {
+            var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
+            return secureData.UnprotectDeserialize<T>(serializedProtectedData);
+        }
+        catch
+        {
+            return default;
+        }
     }
 
     private void SubMenu()

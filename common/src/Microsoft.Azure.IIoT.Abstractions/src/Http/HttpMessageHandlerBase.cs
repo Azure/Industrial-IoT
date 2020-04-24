@@ -28,14 +28,15 @@ namespace Microsoft.Azure.IIoT.Http {
         }
 
         /// <inheritdoc/>
-        public virtual Task OnRequestAsync(string resourceId,
+        public virtual Task OnRequestAsync(string resourceId, Uri requestUri,
             HttpRequestHeaders headers, HttpContent content, CancellationToken ct) {
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
-        public virtual Task OnResponseAsync(string resourceId, HttpStatusCode statusCode,
-            HttpResponseHeaders headers, HttpContent content, CancellationToken ct) {
+        public virtual Task OnResponseAsync(string resourceId, Uri requestUri,
+            HttpStatusCode statusCode, HttpResponseHeaders headers,
+            HttpContent content, CancellationToken ct) {
             return Task.CompletedTask;
         }
     }

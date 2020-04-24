@@ -175,12 +175,26 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
 
             /// <inheritdoc/>
             public virtual async Task UploadAsync(Stream stream, CancellationToken ct) {
-                await _file.UploadAsync(stream, true, cancellationToken: ct);
+                while (true) {
+                    try {
+                        await _file.UploadAsync(stream, true, cancellationToken: ct);
+                    }
+                    catch (Exception ex) {
+                        throw ex;
+                    }
+                }
             }
 
             /// <inheritdoc/>
             public virtual async Task DownloadAsync(Stream stream, CancellationToken ct) {
-                await _file.ReadToAsync(stream, cancellationToken: ct);
+                while (true) {
+                    try {
+                        await _file.ReadToAsync(stream, cancellationToken: ct);
+                    }
+                    catch (Exception ex) {
+                        throw ex;
+                    }
+                }
             }
 
             /// <summary>

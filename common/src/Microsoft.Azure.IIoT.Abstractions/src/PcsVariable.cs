@@ -67,9 +67,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> SignalR connection string </summary>
         public const string PCS_SIGNALR_CONNSTRING =
             "PCS_SIGNALR_CONNSTRING";
-        /// <summary> SignalR Hub name </summary>
-        public const string PCS_SIGNALR_HUBNAME =
-            "PCS_SIGNALR_HUBNAME";
+        /// <summary> SignalR service mode </summary>
+        public const string PCS_SIGNALR_MODE =
+            "PCS_SIGNALR_MODE";
         /// <summary> Secondary event hub connection string </summary>
         public const string PCS_EVENTHUB_CONNSTRING =
             "PCS_EVENTHUB_CONNSTRING";
@@ -140,11 +140,14 @@ namespace Microsoft.Azure.IIoT {
         public const string PCS_AUTH_SERVICE_SERVICE_SECRET =
             "PCS_AUTH_SERVICE_SERVICE_SECRET";
         /// <summary> Client application id </summary>
-        public const string PCS_AAD_CLIENT_APPID =
+        public const string PCS_AAD_CONFIDENTIAL_CLIENT_APPID =
             "PCS_AUTH_CLIENT_APPID";
         /// <summary> Client application secret </summary>
-        public const string PCS_AAD_CLIENT_SECRET =
+        public const string PCS_AAD_CONFIDENTIAL_CLIENT_SECRET =
             "PCS_AUTH_CLIENT_SECRET";
+        /// <summary> Client application id </summary>
+        public const string PCS_AAD_PUBLIC_CLIENT_APPID =
+            "PCS_AUTH_PUBLIC_CLIENT_APPID";
         /// <summary> Built in Auth server service application id </summary>
         public const string PCS_AUTH_SERVICE_CLIENT_APPID =
             "PCS_AUTH_SERVICE_CLIENT_APPID";

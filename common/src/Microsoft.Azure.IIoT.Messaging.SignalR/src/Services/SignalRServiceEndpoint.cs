@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     using System.Security.Claims;
 
     /// <summary>
-    /// Publish subscriber service built using signalr
+    /// SignalR endpoint for serverless mode
     /// </summary>
     public class SignalRServiceEndpoint<THub> : IEndpoint<THub>
         where THub : Hub {
@@ -31,14 +31,13 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         /// <param name="config"></param>
         public SignalRServiceEndpoint(ISignalRServiceConfig config) {
             Resource = NameAttribute.GetName(typeof(THub));
-            if (!string.IsNullOrEmpty(config?.SignalRConnString)) {
+            if (!string.IsNullOrEmpty(config?.SignalRConnString) && config.SignalRServerLess) {
                 _serviceManager = new ServiceManagerBuilder().WithOptions(option => {
                     option.ConnectionString = config.SignalRConnString;
                     option.ServiceTransportType = ServiceTransportType.Persistent;
                 }).Build();
             }
         }
-
 
         /// <inheritdoc/>
         public IdentityTokenModel GenerateIdentityToken(string userId,

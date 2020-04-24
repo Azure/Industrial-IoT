@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     using Autofac;
 
     /// <summary>
-    /// Register default authentication providers
+    /// Register default authentication providers for confidential clients
     /// </summary>
-    public class DefaultClientAuthProviders : Module {
+    public class DefaultConfidentialClientAuthProviders : Module {
 
         /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
@@ -17,16 +17,15 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces();
 
-            builder.RegisterType<AadApiClientConfig>()
+            builder.RegisterType<AadApiWebConfig>()
                 .AsImplementedInterfaces();
 
             // ...
 
-            builder.RegisterType<AuthServiceApiClientConfig>()
+            builder.RegisterType<AuthServiceApiWebConfig>()
                 .AsImplementedInterfaces();
 
             base.Load(builder);
         }
     }
-
 }

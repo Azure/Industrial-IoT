@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
     using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Threading;
-    using System.Linq;
 
     /// <summary>
     /// Hub client factory for signalr

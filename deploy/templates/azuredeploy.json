@@ -31,20 +31,28 @@
             "type": "securestring",
             "defaultValue": "",
             "metadata": {
-                "description": "The registered service application secret used to authenticate against KeyVault."
+                "description": "The registered service application secret used to authenticate the service principal."
             }
         },
         "clientAppId": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "Specifies a registered client application identifier (GUID) in your Azure Active Directory tenant."
+                "description": "A client application identifier (GUID) in your Azure Active Directory tenant for confidential web applications."
             }
         },
         "clientAppSecret": {
             "type": "securestring",
+            "defaultValue": "",
             "metadata": {
-                "description": "The registered client application secret."
+                "description": "The registered client application secret for confidential web applications."
+            }
+        },
+        "publicClientAppId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "A client application identifier (GUID) in your Azure Active Directory tenant for public application such as CLI."
             }
         },
         "keyVaultPrincipalId": {
@@ -268,6 +276,10 @@
                             {
                                 "key": "PCS_AUTH_CLIENT_SECRET",
                                 "value": "[parameters('clientAppSecret')]"
+                            },
+                            {
+                                "key": "PCS_AUTH_PUBLIC_CLIENT_APPID",
+                                "value": "[parameters('publicClientAppId')]"
                             },
                             {
                                 "key": "PCS_AUTH_SERVICE_APPID",

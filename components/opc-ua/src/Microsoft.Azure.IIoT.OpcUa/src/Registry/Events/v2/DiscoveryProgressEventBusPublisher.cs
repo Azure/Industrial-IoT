@@ -24,6 +24,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
 
         /// <inheritdoc/>
         public Task OnDiscoveryProgressAsync(DiscoveryProgressModel message) {
+            if (message.TimeStamp + TimeSpan.FromSeconds(10) < DateTime.UtcNow) {
+                // Do not forward stale events - todo make configurable / add metric
+                return Task.CompletedTask;
+            }
             return _bus.PublishAsync(message);
         }
 

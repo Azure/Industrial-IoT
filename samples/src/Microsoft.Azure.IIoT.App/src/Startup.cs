@@ -90,7 +90,6 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseSession();
 
             var isDevelopment = Environment.IsDevelopment();
-            isDevelopment = true; // TODO Remove when all issues fixed
             if (isDevelopment) {
                 app.UseDeveloperExceptionPage();
             }
@@ -188,11 +187,13 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Use web app openid authentication
+            // builder.RegisterModule<DefaultConfidentialClientAuthProviders>();
             builder.RegisterModule<WebAppAuthentication>();
-            builder.RegisterType<AadApiClientConfig>()
+            builder.RegisterType<AadApiWebConfig>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<AuthServiceApiClientConfig>()
+            builder.RegisterType<AuthServiceApiWebConfig>()
                 .AsImplementedInterfaces();
+
             builder.RegisterType<DistributedProtectedCache>()
                 .AsImplementedInterfaces();
 

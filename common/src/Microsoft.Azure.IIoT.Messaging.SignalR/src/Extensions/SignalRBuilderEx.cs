@@ -24,8 +24,8 @@ namespace Microsoft.Extensions.DependencyInjection {
             if (config == null) {
                 config = builder.Services.BuildServiceProvider().GetService<ISignalRServiceConfig>();
             }
-            if (string.IsNullOrEmpty(config?.SignalRConnString)) {
-                // not using signalr service
+            if (string.IsNullOrEmpty(config?.SignalRConnString) || config.SignalRServerLess) {
+                // not using signalr service because of legacy configuration.
                 return builder;
             }
             builder.AddAzureSignalR().Services.Configure<ServiceOptions>(options => {

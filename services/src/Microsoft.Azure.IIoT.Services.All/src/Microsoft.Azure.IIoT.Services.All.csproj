@@ -19,10 +19,10 @@
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Common.Jobs\src\Microsoft.Azure.IIoT.Services.Common.Jobs.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Events\src\Microsoft.Azure.IIoT.Services.Processor.Events.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Onboarding\src\Microsoft.Azure.IIoT.Services.Processor.Onboarding.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Telemetry\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Events\src\Microsoft.Azure.IIoT.Services.OpcUa.Events.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Publisher\src\Microsoft.Azure.IIoT.Services.OpcUa.Publisher.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway\src\Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.csproj" />

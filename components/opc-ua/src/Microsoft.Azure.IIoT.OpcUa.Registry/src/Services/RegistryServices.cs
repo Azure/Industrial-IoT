@@ -21,34 +21,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
 
             // Services
             builder.RegisterType<EndpointEventBroker>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EndpointRegistry>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<ApplicationEventBroker>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ApplicationRegistry>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<SupervisorEventBroker>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<SupervisorRegistry>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<PublisherEventBroker>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherRegistry>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<DiscovererEventBroker>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DiscovererRegistry>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<GatewayEventBroker>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<GatewayRegistry>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
 
             base.Load(builder);
         }

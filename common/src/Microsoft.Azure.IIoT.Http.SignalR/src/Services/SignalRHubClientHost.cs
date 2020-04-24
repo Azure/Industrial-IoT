@@ -151,6 +151,11 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
                     if (_provider != null) {
                         options.AccessTokenProvider = async () => {
                             var token = await _provider.GetTokenForAsync(_resourceId);
+                            if (token?.RawToken == null) {
+                                _logger.Error("Failed to aquire token for hub calling " +
+                                    "({resource}) - calling without...",
+                                    _resourceId);
+                            }
                             return token?.RawToken;
                         };
                     }

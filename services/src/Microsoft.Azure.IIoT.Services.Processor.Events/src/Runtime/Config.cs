@@ -12,8 +12,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
     using Microsoft.Azure.IIoT.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
 
@@ -21,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
     /// Telemetry processor service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
-        IEventHubConsumerConfig, IOnboardingConfig, IServiceBusConfig,
+        IEventHubConsumerConfig, IServiceBusConfig,
         IIoTHubConfig, IEventProcessorConfig {
 
         /// <inheritdoc/>
@@ -60,9 +58,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
 
-        /// <inheritdoc/>
-        public string OpcUaOnboardingServiceUrl => _ia.OpcUaOnboardingServiceUrl;
-
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -70,14 +65,12 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         public Config(IConfiguration configuration) : base(configuration) {
             _ep = new EventProcessorConfig(configuration);
             _eh = new IoTHubEventConfig(configuration);
-            _ia = new InternalApiConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
             _hub = new IoTHubConfig(configuration);
         }
 
         private readonly EventProcessorConfig _ep;
         private readonly IoTHubEventConfig _eh;
-        private readonly InternalApiConfig _ia;
         private readonly ServiceBusConfig _sb;
         private readonly IoTHubConfig _hub;
     }

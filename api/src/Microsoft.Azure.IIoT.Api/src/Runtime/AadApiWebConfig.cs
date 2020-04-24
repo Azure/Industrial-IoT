@@ -8,41 +8,45 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
-    /// Auth api client configuration
+    /// Auth api web application configuration
     /// </summary>
-    public class AadApiClientConfig : DiagnosticsConfig, IOAuthClientConfig {
+    public class AadApiWebConfig : DiagnosticsConfig, IOAuthClientConfig {
 
         /// <summary>
         /// Client configuration
         /// </summary>
         private const string kAuth_AppIdKey = "Auth:AppId";
+        private const string kAuth_AppSecretKey = "Auth:AppSecret";
         private const string kAuth_TenantIdKey = "Auth:TenantId";
         private const string kAuth_InstanceUrlKey = "Auth:InstanceUrl";
         private const string kAuth_AudienceKey = "Auth:Audience";
 
         /// <inheritdoc/>
         public bool IsValid => ClientId != null && Audience != null;
-        /// <inheritdoc/>
+        /// <summary>Provider</summary>
         public string Provider => AuthProvider.AzureAD;
-        /// <inheritdoc/>
+        /// <summary>Resource</summary>
         public string Resource => Http.Resource.Platform;
-        /// <inheritdoc/>
+        /// <summary>Application id</summary>
         public string ClientId => GetStringOrDefault(kAuth_AppIdKey,
-            () => GetStringOrDefault(PcsVariable.PCS_AAD_PUBLIC_CLIENT_APPID,
-            // TODO: Remove!!
             () => GetStringOrDefault(PcsVariable.PCS_AAD_CONFIDENTIAL_CLIENT_APPID,
+            () => GetStringOrDefault("PCS_WEBUI_AUTH_AAD_APPID",
                 () => null)))?.Trim();
-        /// <inheritdoc/>
-        public string ClientSecret => null;
-        /// <inheritdoc/>
+        /// <summary>App secret</summary>
+        public string ClientSecret => GetStringOrDefault(kAuth_AppSecretKey,
+            () => GetStringOrDefault(PcsVariable.PCS_AAD_CONFIDENTIAL_CLIENT_SECRET,
+            () => GetStringOrDefault("PCS_APPLICATION_SECRET")))?.Trim();
+        /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
-                () => "common"))?.Trim();
-        /// <inheritdoc/>
+            () => GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT",
+                () => "common")))?.Trim();
+        /// <summary>Aad instance url</summary>
         public string InstanceUrl => GetStringOrDefault(kAuth_InstanceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_INSTANCE,
-                () => "https://login.microsoftonline.com"))?.Trim();
-        /// <inheritdoc/>
+            () => GetStringOrDefault("PCS_WEBUI_AUTH_AAD_AUTHORITY",
+                () => "https://login.microsoftonline.com")))?.Trim();
+        /// <summary>Audience</summary>
         public string Audience => GetStringOrDefault(kAuth_AudienceKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
                 () => null))?.Trim();
@@ -51,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public AadApiClientConfig(IConfiguration configuration) :
+        public AadApiWebConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

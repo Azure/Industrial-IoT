@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Processor.Events {
-    using Microsoft.Azure.IIoT.Services.Processor.Events.Runtime;
+namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
+    using Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
+    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
@@ -20,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -30,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// IoT Hub device events event processor host.  Processes all
+    /// IoT Hub device onboarding processor host.  Processes all
     /// events from devices including onboarding and discovery events.
     /// </summary>
     public class Program {
@@ -117,8 +120,13 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             // Add serializers
             builder.RegisterModule<NewtonSoftJsonModule>();
 
-            // Add unattended authentication
-            builder.RegisterModule<UnattendedAuthentication>();
+            // and build on Iot hub services
+            builder.RegisterType<IoTHubServiceHttpClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<IoTHubTwinMethodClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<ChunkMethodClient>()
+                .AsImplementedInterfaces();
 
             // Event processor services for onboarding consumer
             builder.RegisterType<EventProcessorHost>()
@@ -126,23 +134,44 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             builder.RegisterType<EventProcessorFactory>()
                 .AsImplementedInterfaces();
 
-            // Handle iot hub telemetry events...
-            builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces();
+            // Handle device events
             builder.RegisterType<IoTHubDeviceEventHandler>()
                 .AsImplementedInterfaces();
-            // ... and pass to the following handlers:
 
-            // 1.) Handler for discovery progress
-            builder.RegisterType<DiscoveryProgressHandler>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryProgressEventBusPublisher>()
+            // Including discovery events
+            builder.RegisterType<DiscoveryEventHandler>()
                 .AsImplementedInterfaces();
 
-            // 2.) Handlers for twin and device change events ...
-            builder.RegisterModule<RegistryTwinEventHandlers>();
+            // Processor for discovery events plus ...
+            builder.RegisterType<DiscoveryProcessor>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<TaskProcessor>()
+                .AsImplementedInterfaces().SingleInstance();
 
-            // ... publish received events to registered event bus
+            // the dependent registries and repositories
+            builder.RegisterModule<RegistryServices>();
+
+#if !USE_APP_DB // TODO: Decide whether when to switch
+            builder.RegisterType<ApplicationTwins>()
+                .AsImplementedInterfaces().SingleInstance();
+#else
+            // Cosmos db collection as storage
+            builder.RegisterType<ItemContainerFactory>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<CosmosDbServiceClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<ApplicationDatabase>()
+                .AsImplementedInterfaces().SingleInstance();
+#endif
+            // which need additional registry services
+            builder.RegisterType<TwinModuleCertificateClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<TwinModuleActivationClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<OnboardingClient>()
+                .AsImplementedInterfaces();
+
+            // Register event bus for event publishing
             builder.RegisterType<EventBusHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ServiceBusClientFactory>()

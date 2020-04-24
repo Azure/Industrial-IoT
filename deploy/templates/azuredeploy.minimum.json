@@ -190,6 +190,7 @@
         "iotHubContainerName": "[parameters('iotHubName')]",
         "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyName'))]",
         "iothubTelemetryConsumerGroup": "telemetry",
+        "iothubOnboardingConsumerGroup": "onboarding",
         "iothubEventsConsumerGroup": "events",
         "iothubTunnelConsumerGroup": "tunnel",
         "identityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('managedIdentityName'))]",
@@ -401,7 +402,16 @@
             ]
         },
         {
-            "comments": "Edge Http Tunnel Consumer Group in IoT Hub",
+            "comments": "Onboarding Consumer Group in IoT Hub",
+            "apiVersion": "2019-03-22",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubOnboardingConsumerGroup'))]",
+            "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
+            "dependsOn": [
+                "[variables('iotHubResourceId')]"
+            ]
+        },
+        {
+            "comments": "Http Tunnel Consumer Group in IoT Hub",
             "apiVersion": "2019-03-22",
             "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubTunnelConsumerGroup'))]",
             "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",

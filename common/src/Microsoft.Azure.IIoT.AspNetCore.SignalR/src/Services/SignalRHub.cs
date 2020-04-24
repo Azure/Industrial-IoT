@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     using Serilog;
 
     /// <summary>
-    /// Publish subscriber service built using signalr
+    /// Signalr hub for hosting inside Asp.net core host.
     /// </summary>
     public class SignalRHub<THub> : ICallbackInvokerT<THub>,
         IGroupRegistrationT<THub> where THub : Hub {

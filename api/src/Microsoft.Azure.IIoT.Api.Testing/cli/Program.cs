@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
             builder.RegisterModule<HttpClientModule>();
             // ... as well as signalR client (needed for api)
             builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
             // Use default token sources
             builder.RegisterModule<NativeClientAuthentication>();
 

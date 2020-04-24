@@ -22,6 +22,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
 
         /// <inheritdoc/>
         public async Task HandleAsync(DiscoveryProgressModel eventData) {
+            if (eventData.TimeStamp + TimeSpan.FromSeconds(10) < DateTime.UtcNow) {
+                // Do not forward stale events - todo make configurable / add metric
+                return;
+            }
             var requestId = eventData.Request?.Id;
             var arguments = new object[] { eventData.ToApiModel() };
             if (!string.IsNullOrEmpty(requestId)) {

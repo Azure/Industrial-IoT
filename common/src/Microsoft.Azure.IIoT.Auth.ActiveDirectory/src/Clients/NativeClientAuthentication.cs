@@ -28,11 +28,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<AppAuthenticationClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<AdalDeviceCodeClient>()
+            builder.RegisterType<MsalDeviceCodeClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
-
-          //  builder.RegisterType<MsalDeviceCodeClient>()
-          //      .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Use cli token source
             builder.RegisterType<NativeClientTokenSource>()
@@ -48,11 +45,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// Authenticate with device token after trying app and developer authentication.
         /// </summary>
         internal class NativeClientTokenSource : TokenClientAggregateSource, ITokenSource {
-            /// <inheritdoc/>
-            public NativeClientTokenSource(DevAuthenticationClient ld, AppAuthenticationClient aa,
-                AdalDeviceCodeClient dc, IEnumerable<ITokenClient> providers, ILogger logger)
-                    : base(providers, Http.Resource.Platform, logger, ld, aa, dc) {
-            }
             /// <inheritdoc/>
             public NativeClientTokenSource(DevAuthenticationClient ld, AppAuthenticationClient aa,
                 MsalDeviceCodeClient dc, IEnumerable<ITokenClient> providers, ILogger logger)

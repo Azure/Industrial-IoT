@@ -49,22 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             _cdmCorpus = new CdmCorpusDefinition();
             var cdmLogger = _logger.ForContext(typeof(CdmStatusLevel));
             _cdmCorpus.SetEventCallback(new EventCallback {
-                Invoke = (level, msg) => {
-                    switch (level) {
-                        case CdmStatusLevel.Error:
-                            cdmLogger.Error("CDM message: {0}", msg);
-                            break;
-                        case CdmStatusLevel.Warning:
-                            cdmLogger.Warning("CDM message: {0}", msg);
-                            break;
-                        case CdmStatusLevel.Progress:
-                            cdmLogger.Verbose("CDM message: {0}", msg);
-                            break;
-                        case CdmStatusLevel.Info:
-                            cdmLogger.Debug("CDM message: {0}", msg);
-                            break;
-                    }
-                }
+                Invoke = (level, msg) => LogCdm(cdmLogger, level, msg)
             });
             _cdmCorpus.Storage.Mount("adls", _storage.Adapter);
             var gitAdapter = new GithubAdapter();
@@ -84,10 +69,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
             _logger.Information($"Open CDM Processor ...");
             // Load the model.json file from file system
-            Manifest = await _cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(
+            _manifest = await _cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(
                 "adls:/model.json");
 
-            if (Manifest == null) {
+            if (_manifest == null) {
                 //  no manifest loaded from the storage
                 var adlsRoot = _cdmCorpus.Storage.FetchRootFolder("adls");
                 if (adlsRoot == null) {
@@ -96,16 +81,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 }
 
                 // create a new Manifest definition
-                Manifest = _cdmCorpus.MakeObject<CdmManifestDefinition>(
+                _manifest = _cdmCorpus.MakeObject<CdmManifestDefinition>(
                     CdmObjectType.ManifestDef, "IIoTOpcUaPubSub");
-                Manifest.Name = "IIoTOpcUaPubSub";
-                Manifest.ManifestName = "IIoT OPC UA Pub/Sub Manifest";
-                adlsRoot.Documents.Add(Manifest, "IIoTOpcUaPubSub.manifest.cdm.json");
-                Manifest.Imports.Add(kFoundationJsonPath);
-                Manifest.Schema = "cdm:/schema.cdm.json";
-                Manifest.JsonSchemaSemanticVersion = "1.0.0";
-                if (Manifest != null) {
-                    await Manifest.SaveAsAsync("model.json", true);
+                _manifest.Name = "IIoTOpcUaPubSub";
+                _manifest.ManifestName = "IIoT OPC UA Pub/Sub Manifest";
+                adlsRoot.Documents.Add(_manifest, "IIoTOpcUaPubSub.manifest.cdm.json");
+                _manifest.Imports.Add(kFoundationJsonPath);
+                _manifest.Schema = "cdm:/schema.cdm.json";
+                _manifest.JsonSchemaSemanticVersion = "1.0.0";
+                if (_manifest != null) {
+                    await _manifest.SaveAsAsync("model.json", true);
                 }
             }
             Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));
@@ -116,7 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             _logger.Information("Closing CDM Processor ...");
             Try.Op(() => _cacheUploadTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan));
             await PerformWriteCacheAsync();
-            Manifest = null;
+            _manifest = null;
         }
 
         /// <inheritdoc/>
@@ -130,18 +115,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         /// </summary>
         /// <returns></returns>
         private async Task PerformWriteCacheAsync() {
-            var sw = Stopwatch.StartNew();
+            if (_samplesCacheSize == 0) {
+                _logger.Verbose("End sending processed CDM data - empty buffer");
+                return;
+            }
             var writeManifest = false;
-            _logger.Information("Sending processed CDM data ...");
+            var sw = Stopwatch.StartNew();
             try {
-                if (_samplesCacheSize == 0) {
-                    _logger.Information("End sending processed CDM data - empty buffer");
-                    return;
-                }
-                if (Manifest == null) {
+                if (_manifest == null) {
                     _logger.Warning("Manifest is not assigned yet. Retry ... ");
                     await OpenAsync();
                 }
+                _logger.Debug("Writing processed CDM data ...");
                 foreach (var record in _samplesCache) {
                     if (record.Value.Count == 0 || record.Value[0] == null) {
                         _logger.Error("Samples list is empty ...");
@@ -159,9 +144,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                         record.Key, record.Value);
                 }
                 if (writeManifest) {
-                    await Manifest.SaveAsAsync("model.json", true);
+                    await _manifest.SaveAsAsync("model.json", true);
                 }
-                _logger.Information("Finished sending CDM data records - duration {elapsed}).",
+                _logger.Information("Finished writing CDM data records - duration {elapsed}).",
                     sw.Elapsed);
             }
             catch (Exception ex) {
@@ -179,7 +164,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 _dataSetsCache.Clear();
                 _samplesCacheSize = 0;
             }
-            sw.Stop();
         }
 
         /// <summary>
@@ -364,7 +348,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             }
 
             // check if the enetity was aleready added
-            var entityDefinition = Manifest.Entities.Item(key);
+            var entityDefinition = _manifest.Entities.Item(key);
             if (entityDefinition == null) {
                 // add a new entity for the sample
 
@@ -403,7 +387,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 newSampleEntityDoc.Definitions.Add(newSampleEntity);
                 _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
                     newSampleEntityDoc, newSampleEntityDoc.Name);
-                entityDefinition = Manifest.Entities.Add(newSampleEntity);
+                entityDefinition = _manifest.Entities.Add(newSampleEntity);
                 persist |= true;
             }
 
@@ -438,7 +422,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             }
 
             // check if the entity was already added
-            var entityDefinition = Manifest.Entities.Item(key);
+            var entityDefinition = _manifest.Entities.Item(key);
             if (entityDefinition == null) {
                 // add a new entity for the DataSet
                 var newDataSetEntity = _cdmCorpus.MakeObject<CdmEntityDefinition>(
@@ -502,7 +486,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 newEntityDoc.Definitions.Add(newDataSetEntity);
                 _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
                     newEntityDoc, newEntityDoc.Name);
-                entityDefinition = Manifest.Entities.Add(newDataSetEntity);
+                entityDefinition = _manifest.Entities.Add(newDataSetEntity);
                 persist |= true;
             }
 
@@ -579,10 +563,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         }
 
         /// <summary>
-        /// Cdm Manifest handler
+        /// Log cdm messages
         /// </summary>
-        private CdmManifestDefinition Manifest { get; set; }
+        /// <param name="logger"></param>
+        /// <param name="level"></param>
+        /// <param name="msg"></param>
+        private void LogCdm(ILogger logger, CdmStatusLevel level, string msg) {
+            switch (level) {
+                case CdmStatusLevel.Error:
+                    logger.Error("{msg}", msg);
+                    break;
+                case CdmStatusLevel.Warning:
+                    logger.Warning("{msg}", msg);
+                    break;
+                case CdmStatusLevel.Progress:
+                    logger.Verbose("{msg}", msg);
+                    break;
+                case CdmStatusLevel.Info:
+                    if (msg.StartsWith("CdmCorpusDefinition")) {
+                        logger.Verbose("{msg}", msg);
+                    }
+                    else {
+                        logger.Information("{msg}", msg);
+                    }
+                    break;
+            }
+        }
 
+        private CdmManifestDefinition _manifest;
         private readonly CdmCorpusDefinition _cdmCorpus;
         private readonly ILogger _logger;
         private readonly IRecordEncoder _encoder;
@@ -591,7 +599,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private readonly Timer _cacheUploadTimer;
         private readonly TimeSpan _cacheUploadInterval;
         private bool _cacheUploadTriggered;
-
         private int _samplesCacheSize;
         private readonly Dictionary<string, List<MonitoredItemMessageModel>> _samplesCache;
         private readonly Dictionary<string, List<DataSetMessageModel>> _dataSetsCache;

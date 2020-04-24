@@ -207,6 +207,17 @@
                 "description": "The Azure SignalR Service SKU to use."
             }
         },
+        "signalRServiceMode": {
+            "type": "string",
+            "defaultValue": "Default",
+            "allowedValues": [
+                "Default",
+                "Serverless"
+            ],
+            "metadata": {
+                "description": "The Azure SignalR Service mode to use. Defaults to Classic."
+            }
+        },
         "signalRSkuCapacity": {
             "type": "int",
             "defaultValue": 1,
@@ -525,7 +536,7 @@
                 "features": [
                     {
                         "flag": "ServiceMode",
-                        "value": "Default"
+                        "value": "[parameters('signalRServiceMode')]"
                     }
                 ],
                 "cors": {
@@ -609,6 +620,10 @@
                             {
                                 "key": "PCS_SIGNALR_CONNSTRING",
                                 "value": "[listkeys(parameters('signalRName'), '2018-10-01').primaryConnectionString]"
+                            },
+                            {
+                                "key": "PCS_SIGNALR_MODE",
+                                "value": "[parameters('signalRServiceMode')]"
                             },
                             {
                                 "key": "PCS_EVENTHUB_CONNSTRING",

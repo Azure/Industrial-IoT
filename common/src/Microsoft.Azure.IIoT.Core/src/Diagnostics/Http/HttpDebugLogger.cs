@@ -25,34 +25,20 @@ namespace Microsoft.Azure.IIoT.Http.Diagnostics {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Authenticate request using provider
-        /// </summary>
-        /// <param name="resourceId"></param>
-        /// <param name="headers"></param>
-        /// <param name="content"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public override Task OnRequestAsync(string resourceId,
+        /// <inheritdoc/>
+        public override Task OnRequestAsync(string resourceId, Uri requestUri,
             HttpRequestHeaders headers, HttpContent content, CancellationToken ct) {
-            _logger.Debug("REQUEST: {resourceId} {@resourceId} {@content}",
-                resourceId, headers, content);
+            _logger.Debug("REQUEST: {resourceId} {uri} {@headers} {@content}",
+                resourceId, requestUri, headers, content);
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Invalidate if needed
-        /// </summary>
-        /// <param name="resourceId"></param>
-        /// <param name="statusCode"></param>
-        /// <param name="headers"></param>
-        /// <param name="content"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public override Task OnResponseAsync(string resourceId, HttpStatusCode statusCode,
-            HttpResponseHeaders headers, HttpContent content, CancellationToken ct) {
-            _logger.Debug("RESPONSE: {resourceId} {statusCode} {@resourceId} {@content}",
-                resourceId, statusCode, headers, content);
+        /// <inheritdoc/>
+        public override Task OnResponseAsync(string resourceId, Uri requestUri,
+            HttpStatusCode statusCode, HttpResponseHeaders headers, HttpContent content,
+            CancellationToken ct) {
+            _logger.Debug("RESPONSE: {resourceId} {uri} {statusCode} {@headers} {@content}",
+                resourceId, requestUri, statusCode, headers, content);
             return Task.CompletedTask;
         }
 

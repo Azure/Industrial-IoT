@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
 #endif
         /// <summary> Checkpoint timer </summary>
         public TimeSpan? CheckpointInterval => GetDurationOrDefault(kCheckpointIntervalKey,
-            () => TimeSpan.FromMinutes(10));
+            () => TimeSpan.FromMinutes(1));
 
         /// <summary>
         /// Configuration constructor

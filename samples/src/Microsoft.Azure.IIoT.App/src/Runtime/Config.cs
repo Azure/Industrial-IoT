@@ -28,6 +28,8 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
+        /// <inheritdoc/>
+        public bool SignalRServerLess => _sr.SignalRServerLess;
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;

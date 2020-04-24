@@ -63,6 +63,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
+        /// <inheritdoc/>
+        public bool SignalRServerLess => _sr.SignalRServerLess;
 
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
@@ -92,7 +94,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         /// <inheritdoc/>
         public TimeSpan? SkipEventsOlderThan => TimeSpan.FromMinutes(5);
         /// <inheritdoc/>
-        public TimeSpan? CheckpointInterval => null; // Never checkpoint
+        public TimeSpan? CheckpointInterval => TimeSpan.FromMinutes(1);
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
@@ -103,6 +105,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
 
         /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
+
 
         /// <summary>
         /// Configuration constructor

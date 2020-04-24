@@ -190,8 +190,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Auth {
             // Add diagnostics and auth providers
             builder.AddDiagnostics(Config);
             builder.RegisterModule<DefaultServiceAuthProviders>();
-            builder.RegisterModule<DefaultClientAuthProviders>();
-
+            builder.RegisterModule<DefaultPublicClientAuthProviders>();
+            // TODO: builder.RegisterModule<DefaultConfidentialClientAuthProviders>();
             // TODO: Add openid auth providers
             // TODO: Add swagger auth providers (?)
 

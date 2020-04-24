@@ -15,8 +15,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Storage;
@@ -31,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
-        ICorsConfig, IOpenApiConfig, IServiceBusConfig, ISignalRServiceConfig,
+        ICorsConfig, IOpenApiConfig, IServiceBusConfig,
         ICosmosDbConfig, IItemContainerConfig, IForwardedHeadersConfig,
         IContainerRegistryConfig, IRoleConfig {
 
@@ -80,9 +78,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public string DatabaseName => "iiot_opc";
 
         /// <inheritdoc/>
-        public string SignalRConnString => _sr.SignalRConnString;
-
-        /// <inheritdoc/>
         public string DockerServer => _cr.DockerServer;
         /// <inheritdoc/>
         public string DockerUser => _cr.DockerUser;
@@ -113,7 +108,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
-            _sr = new SignalRServiceConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _cr = new ContainerRegistryConfig(configuration);
         }
@@ -124,7 +118,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly CosmosDbConfig _cosmos;
-        private readonly SignalRServiceConfig _sr;
         private readonly IoTHubConfig _hub;
         private readonly ForwardedHeadersConfig _fh;
     }

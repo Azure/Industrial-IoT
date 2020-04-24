@@ -49,7 +49,8 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
                     //
                     client.RegisterMessageHandler(handler,
                         new MessageHandlerOptions(exceptionReceivedHandler) {
-                            MaxConcurrentCalls = 10,
+                            MaxConcurrentCalls = 2,
+                            MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
                             AutoComplete = false
                         });
                 }
@@ -114,12 +115,18 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
             var exists = await managementClient.TopicExistsAsync(topic);
             if (!exists) {
                 await Try.Async(() =>
-                    managementClient.CreateTopicAsync(new TopicDescription(topic)));
+                    managementClient.CreateTopicAsync(new TopicDescription(name) {
+                        EnablePartitioning = true,
+                        EnableBatchedOperations = true
+                    }));
             }
             exists = await managementClient.SubscriptionExistsAsync(topic, name);
             if (!exists) {
                 await managementClient.CreateSubscriptionAsync(
-                    new SubscriptionDescription(topic, name));
+                    new SubscriptionDescription(topic, name) {
+                        EnableBatchedOperations = true,
+                        LockDuration = TimeSpan.FromSeconds(10)
+                    });
             }
             return new SubscriptionClient(_config.ServiceBusConnString, topic, name,
                 ReceiveMode.PeekLock, RetryPolicy.Default);
@@ -134,7 +141,10 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
             var managementClient = new ManagementClient(_config.ServiceBusConnString);
             var exists = await managementClient.QueueExistsAsync(name);
             if (!exists) {
-                await managementClient.CreateQueueAsync(new QueueDescription(name));
+                await managementClient.CreateQueueAsync(new QueueDescription(name) {
+                    EnablePartitioning = true,
+                    EnableBatchedOperations = true
+                });
             }
             return new QueueClient(
                 _config.ServiceBusConnString, GetEntityName(name), ReceiveMode.PeekLock,
@@ -150,10 +160,13 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
             var managementClient = new ManagementClient(_config.ServiceBusConnString);
             var exists = await managementClient.TopicExistsAsync(name);
             if (!exists) {
-                await managementClient.CreateTopicAsync(new TopicDescription(name));
+                await managementClient.CreateTopicAsync(new TopicDescription(name) {
+                    EnablePartitioning = true,
+                    EnableBatchedOperations = true
+                });
             }
-            return new TopicClient(
-                _config.ServiceBusConnString, GetEntityName(name), RetryPolicy.Default);
+            return new TopicClient(_config.ServiceBusConnString, GetEntityName(name),
+                RetryPolicy.Default);
         }
 
         /// <summary>

@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             builder.RegisterModule<HttpClientModule>();
             // ... as well as signalR client (needed for api)
             builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces();
+                .AsImplementedInterfaces().SingleInstance();
 
             // Use bearer authentication
             builder.RegisterModule<NativeClientAuthentication>();
