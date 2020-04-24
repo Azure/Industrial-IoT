@@ -741,57 +741,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 .Where(subnet => subnet.Name == NetworkMgmtClient.VIRTUAL_NETWORK_VM_SUBNET_NAME)
                 .First();
 
-            //networkSecurityGroup = await _networkManagementClient
-            //    .CreateNetworkSecurityGroupAsync(
-            //        _resourceGroup,
-            //        _networkSecurityGroupName,
-            //        _defaultTagsDict,
-            //        cancellationToken
-            //    );
-
-            //routeTable = _networkManagementClient
-            //    .CreateRouteTableAsync(
-            //        _resourceGroup,
-            //        _routTableName,
-            //        networkInterfacePrivateIPAddress,
-            //        _defaultTagsDict,
-            //        cancellationToken    
-            //    ).Result;
-
-            //virtualNetwork = await _networkManagementClient
-            //    .CreateVirtualNetworkAsync(
-            //        _resourceGroup,
-            //        networkSecurityGroup,
-            //        _virtualNetworkName,
-            //        null,
-            //        _defaultTagsDict,
-            //        cancellationToken
-            //    );
-
-            //virtualNetworkAksSubnet = _networkManagementClient.GetAksSubnet(virtualNetwork);
-
-            //publicIPAddress = _networkManagementClient
-            //    .CreatePublicIPAddressAsync(
-            //        _resourceGroup,
-            //        _publicIPAddressName,
-            //        _domainNameLabel,
-            //        _defaultTagsDict,
-            //        cancellationToken
-            //    )
-            //    .Result;
-
-            //networkInterface = _networkManagementClient
-            //    .CreateNetworkInterfaceAsync(
-            //        _resourceGroup,
-            //        networkSecurityGroup,
-            //        virtualNetworkAksSubnet,
-            //        _networkInterfaceName,
-            //        networkInterfacePrivateIPAddress,
-            //        _defaultTagsDict,
-            //        cancellationToken
-            //    )
-            //    .Result;
-
             // Create Azure KeyVault
             VaultInner keyVault;
 
@@ -1086,29 +1035,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            //// Create AppService Plan to host the Application Gateway Web App
-            //var appServicePlan = await _webSiteManagementClient
-            //    .CreateAppServicePlanAsync(
-            //        _resourceGroup,
-            //        _appServicePlanName,
-            //        _defaultTagsDict,
-            //        cancellationToken
-            //    );
-
-            //// This will point to PublicIP address of Ingress.
-            //var emptyRemoteEndpoint = "";
-
-            //var webSiteCreationTask = _webSiteManagementClient
-            //    .CreateSiteAsync(
-            //        _resourceGroup,
-            //        appServicePlan,
-            //        _azureWebsiteName,
-            //        emptyRemoteEndpoint,
-            //        _webAppX509Certificate,
-            //        _defaultTagsDict,
-            //        cancellationToken
-            //    );
-
             // SignalR
             var signalRCreationTask = _signalRManagementClient
                 .CreateAsync(
@@ -1292,32 +1218,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 cancellationToken
             );
 
-            //// Update remote endpoint and certificate thumbprint application settings
-            //// of App Servise.
-            //var iiotIngressRemoteEndpoint = $"https://{iiotIngressIPAdress}";
-            //await _webSiteManagementClient
-            //    .UpdateSiteApplicationSettingsAsync(
-            //        _resourceGroup,
-            //        webSite,
-            //        iiotIngressRemoteEndpoint,
-            //        _webAppX509Certificate,
-            //        cancellationToken
-            //    );
-
-            //// Deploy reverse proxy to App Service. It will consume values of remote
-            //// endpoint and certificate thumbprint application settings of App Service.
-            //var proxySiteSourceControl = await _webSiteManagementClient
-            //    .DeployProxyAsync(
-            //        _resourceGroup,
-            //        webSite,
-            //        _defaultTagsDict,
-            //        cancellationToken
-            //    );
-
-            // After we have deployed proxy to App Service, we will update 
-            // client application to have redirect URIs for App Service.
+            // After we have endpoint for accessing Azure IIoT microservices we
+            // will update client application to have Redirect URIs.
             // This will be performed in UpdateClientApplicationRedirectUrisAsync() call.
-            //_applicationURL = webSite.DefaultHostName;
             _applicationURL = aksPublicIp.DnsSettings.Fqdn;
 
             // Check if we want to save environment to .env file
