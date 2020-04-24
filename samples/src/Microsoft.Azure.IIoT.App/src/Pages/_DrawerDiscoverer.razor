@@ -1,0 +1,116 @@
+﻿@*------------------------------------------------------------
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
+
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage
+
+@inject Registry RegistryHelper
+
+<div class="drawer-content list-group">
+    <div class="list-group-item text-justify list-group-item-heading">
+        <b>Enter configuration parameters for scan.</b>
+        <br><b>To apply default config leave the input field blank and click on apply</b>
+    </div>
+    <hr />
+    <div class="list-group-item text-left">
+        <form>
+            <div class="form-group">
+                <label>Mask address range (CIDR notation)</label>
+                <input @bind="@DiscovererData.RequestedAddressRangesToScan" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveAddressRangesToScan ?? "IP-address/netmask")" />
+            </div>
+            <div class="form-group">
+                <label>Port range</label>
+                <input @bind="@DiscovererData.RequestedPortRangesToScan" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortRangesToScan ?? "StartPort-EndPort")" />
+            </div>
+            <div class="form-group">
+                <label>Max Network Probes</label>
+                <input @bind="@DiscovererData.RequestedMaxNetworkProbes" aria-label="maxNetworkProbes" id="MaxNetworkProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxNetworkProbes ?? "Max Network Probes")" />
+            </div>
+            <div class="form-group">
+                <label>Network Probe Timeout</label>
+                <input @bind="@DiscovererData.RequestedNetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveNetworkProbeTimeout ?? "Network Probe Timeout")" />
+            </div>
+            <div class="form-group">
+                <label>Max Port Probes</label>
+                <input @bind="@DiscovererData.RequestedMaxPortProbes" aria-label="maxPortProbes" id="MaxPortProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxPortProbes ?? "Max Port Probes")" />
+            </div>
+            <div class="form-group">
+                <label>Port Probe Timeout</label>
+                <input @bind="@DiscovererData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortProbeTimeout ?? "Port Probe Timeout")" />
+            </div>
+            <div class="form-group">
+                <label>Idle TimeBetween Scans</label>
+                <input @bind="@DiscovererData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveIdleTimeBetweenScans ?? "Idle Time Between Scans")" />
+            </div>
+            <label>Discovery Urls</label>
+            <div class="flex">
+                <input @bind="@_discoveryUrl" aria-label="DiscoveryUrls" id="DiscoveryUrls" type="text" class="form-control" placeholder="Discovery Url" />
+                <button @onclick="@(() => DiscovererData.AddDiscoveryUrl(_discoveryUrl))" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
+                <button @onclick="@(() => DiscovererData.RemoveDiscoveryUrl(_discoveryUrl))" type="button" class="btn btn-primary shadow-none">Clear</button>
+            </div>
+            <div class="form-group margin-top">
+                <select class="form-control">
+                    @if (DiscovererData.RequestedDiscoveryUrls.Count == 0)
+                    {
+                        <option>(None)</option>
+                    }
+                    else
+                    {
+                        foreach (var discoveryUrl in DiscovererData.RequestedDiscoveryUrls)
+                        {
+                            <option value="@discoveryUrl">@discoveryUrl</option>
+                        }
+                    }
+                </select>
+            </div>
+            <hr />
+            <div>
+                <button @onclick="@(async() => await UpdateDiscovererConfigAsync(DiscovererData))" type="button" class="btn btn-primary shadow-none">@_buttonLabel</button>
+            </div>
+            <ErrorMessage PageError="@null" Status="@_status"></ErrorMessage>
+        </form>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public DiscovererInfo DiscovererData { get; set; }
+
+    [Parameter]
+    public EventCallback Onclick { get; set; }
+
+    private string _discoveryUrl { get; set; }
+    private string _status { get; set; }
+    private string _buttonLabel { get; set; }
+
+    /// <summary>
+    /// OnInitialized
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        if (DiscovererData.isAdHocDiscovery)
+        {
+            _buttonLabel = "Apply & Scan";
+        }
+        else
+        {
+            _buttonLabel = "Apply";
+        }
+    }
+
+    /// <summary>
+    /// Close Drawer and update discovery
+    /// </summary>
+    /// <param name="discoverer"></param>
+    private async Task UpdateDiscovererConfigAsync(DiscovererInfo discoverer)
+    {
+        await Onclick.InvokeAsync(discoverer);
+        if (!discoverer.isAdHocDiscovery)
+        {
+            _status = await RegistryHelper.UpdateDiscovererAsync(discoverer);
+        }
+    }
+}

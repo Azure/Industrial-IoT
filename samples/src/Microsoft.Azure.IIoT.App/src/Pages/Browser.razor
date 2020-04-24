@@ -1,3 +1,8 @@
+@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
 @page "/browser/{applicationId}/{endpointId}"
 @page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
 
@@ -158,6 +163,7 @@
         }
     </tbody>
 </table>
+<div class="@_tableEmpty center">No Nodes found.</div>
 
 <ErrorMessage PageError="@PagedNodeList.Error" Status="@null"></ErrorMessage>
 
@@ -193,7 +199,8 @@
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
     private IAsyncDisposable _publishEvent { get; set; }
-    private string _tableView { get; set; } = "visible";
+    private string _tableView = "visible";
+    private string _tableEmpty = "displayNone";
     private List<string> _parentId { get; set; }
 
 
@@ -241,10 +248,7 @@
             Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
             await BrowseTreeAsync(BrowseDirection.Forward, 0, true, string.Empty, new List<string>());
             CommonHelper.Spinner = string.Empty;
-            if (PagedNodeList.Error != null)
-            {
-                _tableView = "hidden";
-            }
+            CommonHelper.CheckErrorOrEmpty<ListNode>(PagedNodeList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
             _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
                 samples => InvokeAsync(() => GetPublishedNodeData(samples)));
