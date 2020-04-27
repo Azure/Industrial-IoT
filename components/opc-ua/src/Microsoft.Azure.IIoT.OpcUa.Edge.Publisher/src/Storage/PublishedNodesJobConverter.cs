@@ -136,10 +136,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         },
                         WriterGroup = new WriterGroupModel {
                             MessageType = MessageEncoding.Json,
-                            WriterGroupId = _identity.DeviceId + "_"+ _identity.ModuleId,
+                            WriterGroupId = dataSetSource.Connection.Endpoint.Url,
                             DataSetWriters = new List<DataSetWriterModel> {
                                 new DataSetWriterModel {
-                                    DataSetWriterId = _identity.DeviceId + "_"+ _identity.ModuleId,
+                                    DataSetWriterId = dataSetSource.Connection.Endpoint.Url,
                                     DataSet = new PublishedDataSetModel {
                                         DataSetSource = dataSetSource.Clone(),
                                     },
@@ -160,7 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                             DataSetContentMask.DataSetWriterId |
                                             DataSetContentMask.MajorVersion |
                                             DataSetContentMask.MinorVersion |
-                                            DataSetContentMask.SequenceNumber
+                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.SequenceNumber : 0) 
                                     }
                                 }
                             },
