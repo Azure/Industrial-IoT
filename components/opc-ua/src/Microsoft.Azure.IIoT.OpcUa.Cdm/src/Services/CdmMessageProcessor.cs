@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private async Task PerformWriteCacheAsync() {
             if (_samplesCacheSize == 0) {
                 _logger.Verbose("End sending processed CDM data - empty buffer");
-               // return;
+                return;
             }
             var writeManifest = false;
             try {
@@ -309,7 +309,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         }
 
         /// <inheritdoc/>
-        private CdmDataPartitionDefinition GetOrCreateEntityDataPartition(CdmManifestDefinition _manifest,
+        private CdmDataPartitionDefinition GetOrCreateEntityDataPartition(CdmManifestDefinition manifest,
             string key, MonitoredItemMessageModel sample, out bool persist, bool forceNew = false) {
 
             persist = false;
@@ -318,7 +318,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             }
 
             // check if the enetity was aleready added
-            var entityDefinition = _manifest.Entities.Item(key);
+            var entityDefinition = manifest.Entities.Item(key);
             if (entityDefinition == null) {
                 // add a new entity for the sample
 
@@ -357,7 +357,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 newSampleEntityDoc.Definitions.Add(newSampleEntity);
                 _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
                     newSampleEntityDoc, newSampleEntityDoc.Name);
-                entityDefinition = _manifest.Entities.Add(newSampleEntity);
+                entityDefinition = manifest.Entities.Add(newSampleEntity);
                 persist |= true;
             }
 
@@ -383,7 +383,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         }
 
         /// <inheritdoc/>
-        private CdmDataPartitionDefinition GetOrCreateEntityDataPartition(CdmManifestDefinition _manifest,
+        private CdmDataPartitionDefinition GetOrCreateEntityDataPartition(CdmManifestDefinition manifest,
             string key, DataSetMessageModel dataSet, out bool persist, bool forceNew = false) {
 
             persist = false;
@@ -392,7 +392,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             }
 
             // check if the entity was already added
-            var entityDefinition = _manifest.Entities.Item(key);
+            var entityDefinition = manifest.Entities.Item(key);
             if (entityDefinition == null) {
                 // add a new entity for the DataSet
                 var newDataSetEntity = _cdmCorpus.MakeObject<CdmEntityDefinition>(
@@ -456,7 +456,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 newEntityDoc.Definitions.Add(newDataSetEntity);
                 _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
                     newEntityDoc, newEntityDoc.Name);
-                entityDefinition = _manifest.Entities.Add(newDataSetEntity);
+                entityDefinition = manifest.Entities.Add(newDataSetEntity);
                 persist |= true;
             }
 

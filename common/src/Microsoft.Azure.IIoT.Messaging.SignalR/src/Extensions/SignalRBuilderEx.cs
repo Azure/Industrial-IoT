@@ -7,6 +7,8 @@ namespace Microsoft.Extensions.DependencyInjection {
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.SignalR;
+    using System.Linq;
+    using System.Security.Claims;
 
     /// <summary>
     /// SignalR setup extensions
@@ -30,6 +32,8 @@ namespace Microsoft.Extensions.DependencyInjection {
             }
             builder.AddAzureSignalR().Services.Configure<ServiceOptions>(options => {
                 options.ConnectionString = config.SignalRConnString;
+                options.ClaimsProvider = context => context.User.Claims
+                    .Where(c => c.Type == ClaimTypes.NameIdentifier);
             });
             return builder;
         }

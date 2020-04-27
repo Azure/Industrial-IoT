@@ -25,11 +25,13 @@ namespace Microsoft.Azure.IIoT.Auth {
             var authorityUrl = config?.InstanceUrl?.TrimEnd('/');
 
             var tenantId = config?.TenantId;
-            if (config.GetProviderName() == AuthProvider.AzureAD) {
-                if (string.IsNullOrEmpty(authorityUrl)) {
-                    // Default to aad
-                    authorityUrl = kDefaultAuthorityUrl;
-                }
+            var provider = config.GetProviderName();
+
+            if (string.IsNullOrEmpty(authorityUrl)) {
+                // Default to aad
+                authorityUrl = kDefaultAuthorityUrl;
+            }
+            if (provider == AuthProvider.AzureAD) {
 
                 // use v2.0 endpoint of AAD with tenant if set
                 if (string.IsNullOrEmpty(tenantId)) {
@@ -42,9 +44,6 @@ namespace Microsoft.Azure.IIoT.Auth {
                 return authorityUrl;
             }
 
-            if (string.IsNullOrEmpty(authorityUrl)) {
-                throw new ArgumentNullException(nameof(config.InstanceUrl));
-            }
             // Non aad e.g. identity server with optional tenant id.
             if (!string.IsNullOrEmpty(tenantId)) {
                 authorityUrl += "/" + tenantId;
