@@ -415,26 +415,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 $"application to point to '{applicationURL}'");
 
             var redirectUris = new List<string> {
-                $"{applicationURL}",
-                $"{applicationURL}registry/swagger/",
                 $"{applicationURL}registry/swagger/oauth2-redirect.html",
-                $"{applicationURL}twin/swagger/",
                 $"{applicationURL}twin/swagger/oauth2-redirect.html",
-                $"{applicationURL}history/swagger/",
                 $"{applicationURL}history/swagger/oauth2-redirect.html",
-                $"{applicationURL}vault/swagger/",
                 $"{applicationURL}vault/swagger/oauth2-redirect.html",
-                $"{applicationURL}onboarding/swagger/",
                 $"{applicationURL}onboarding/swagger/oauth2-redirect.html",
-                $"{applicationURL}publisher/swagger/",
                 $"{applicationURL}publisher/swagger/oauth2-redirect.html",
-                $"{applicationURL}jobs/swagger/",
                 $"{applicationURL}jobs/swagger/oauth2-redirect.html",
-                $"{applicationURL}configuration/swagger/",
                 $"{applicationURL}configuration/swagger/oauth2-redirect.html",
-                $"{applicationURL}edge/jobs/swagger/",
                 $"{applicationURL}edge/jobs/swagger/oauth2-redirect.html",
-                $"{applicationURL}edge/manage/swagger/",
                 $"{applicationURL}edge/manage/swagger/oauth2-redirect.html",
                 $"{applicationURL}frontend/signin-oidc",
             };
