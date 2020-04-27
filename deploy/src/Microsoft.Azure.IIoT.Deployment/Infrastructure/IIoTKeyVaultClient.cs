@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
     class IIoTKeyVaultClient : IDisposable {
 
-        public const string WEB_APP_CERT_NAME = "webAppCert";
         public const string AKS_CLUSTER_CERT_NAME = "aksClusterCert";
         public const string DATAPROTECTION_KEY_NAME = "dataprotection";
 

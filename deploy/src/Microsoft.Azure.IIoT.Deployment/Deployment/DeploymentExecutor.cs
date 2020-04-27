@@ -98,9 +98,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         private DirectoryObject _owner;
         private bool _ownedApplications = false;
 
-        private const string kWEB_APP_CN = "webapp.services.net"; // ToDo: Assign meaningfull value.
-        private X509Certificate2 _webAppX509Certificate;
-
         private const string kAKS_CLUSTER_CN = "aks.cluster.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _aksClusterX509Certificate;
 
@@ -773,18 +770,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             using (var iiotKeyVaultClient = new IIoTKeyVaultClient(keyVaultAuthenticationCallback, keyVault)) {
                 await iiotKeyVaultClient.CreateCertificateAsync(
-                    IIoTKeyVaultClient.WEB_APP_CERT_NAME,
-                    kWEB_APP_CN,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
-                var webAppX509CertificateGetTask = iiotKeyVaultClient.GetSecretAsync(
-                    IIoTKeyVaultClient.WEB_APP_CERT_NAME,
-                    cancellationToken
-                );
-
-                await iiotKeyVaultClient.CreateCertificateAsync(
                     IIoTKeyVaultClient.AKS_CLUSTER_CERT_NAME,
                     kAKS_CLUSTER_CN,
                     _defaultTagsDict,
@@ -803,7 +788,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-                _webAppX509Certificate = webAppX509CertificateGetTask.Result;
                 _aksClusterX509Certificate = aksClusterX509CertificateGetTask.Result;
             }
 
@@ -1214,7 +1198,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var iiotIngressIPAdress = await DeployResourcesToAksAsync(
                 aksKubeConfig,
                 iiotEnvironment,
-                _webAppX509Certificate,
                 aksPublicIp.DnsSettings.Fqdn,
                 cancellationToken
             );
@@ -1273,7 +1256,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         protected async Task<string> DeployResourcesToAksAsync(
             string kubeConfig,
             IIoTEnvironment iiotEnvironment,
-            X509Certificate2 defaultSslCertificate,
             string ingressHostname,
             CancellationToken cancellationToken = default
         ) {
@@ -1377,7 +1359,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             };
 
             // Certificates
-            disposeIfNotNull(_webAppX509Certificate);
             disposeIfNotNull(_aksClusterX509Certificate);
 
             // Resource management classes
