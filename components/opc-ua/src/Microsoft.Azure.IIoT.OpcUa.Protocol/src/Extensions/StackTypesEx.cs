@@ -550,7 +550,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     UaMonitoredItemMessageContentMask.EndpointUrl |
                     UaMonitoredItemMessageContentMask.ApplicationUri |
                     UaMonitoredItemMessageContentMask.DisplayName |
-                    UaMonitoredItemMessageContentMask.ExtensionFields;
+                    UaMonitoredItemMessageContentMask.ExtensionFields |
+                    UaMonitoredItemMessageContentMask.SequenceNumber;
             }
             else {
                 if (0 != (field & DataSetFieldContentMask.SourceTimestamp)) {
@@ -599,6 +600,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 if (0 != (message & DataSetContentMask.Status)) {
                     result |= UaMonitoredItemMessageContentMask.Status;
                 }
+                if (0 != (message & DataSetContentMask.SequenceNumber)) {
+                    result |= UaMonitoredItemMessageContentMask.SequenceNumber;
+                }
+
             }
             return (uint)result;
         }

@@ -6,14 +6,11 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Storage;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Writes data tables into files on file storage
@@ -50,10 +47,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                     else {
                         var payload = prop.GetValue(obj) as Dictionary<string, DataValueModel>;
                         foreach (var node in payload.OrderBy(i => i.Key)) {
-                            var nodeProperties = node.Value.GetType().GetProperties();
-                            foreach (var nodeProp in nodeProperties) {
-                                AddValueToCsvStringBuilder(nodeProp.GetValue(node.Value), separator, sb);
-                            }
+                            AddValueToCsvStringBuilder(node.Value.Value?.Value, separator, sb);
+                            AddValueToCsvStringBuilder(node.Value.Status, separator, sb);
+                            AddValueToCsvStringBuilder(node.Value.SourceTimestamp, separator, sb);
+                            AddValueToCsvStringBuilder(node.Value.ServerTimestamp, separator, sb);
                         }
                     }
                 }

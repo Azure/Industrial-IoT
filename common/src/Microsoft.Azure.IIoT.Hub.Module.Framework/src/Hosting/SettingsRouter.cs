@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             foreach (var setting in settings) {
                 if (!TryGetInvoker(setting.Key, out var invoker)) {
                     _logger.Error("Setting {key}/{value} unsupported",
-                        setting.Key, setting.Value);
+                        setting.Key, setting.Value.ToJson());
                 }
                 else {
                     try {
@@ -67,7 +67,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                     }
                     catch (Exception ex) {
-                        _logger.Error(ex, "Error processing setting", setting);
+                        _logger.Error(ex, "Error processing setting {key}/{value}", 
+                            setting.Key, setting.Value.ToJson());
                     }
                 }
             }

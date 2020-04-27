@@ -49,6 +49,11 @@ namespace Opc.Ua.PubSub {
         public DataValue Value { get; set; }
 
         /// <summary>
+        /// Sequence number
+        /// </summary>
+        public uint SequenceNumber { get; set; }
+
+        /// <summary>
         /// Extension fields
         /// </summary>
         public Dictionary<string, string> ExtensionFields { get; set; }
@@ -152,6 +157,9 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) == 0) {
                 ExtensionFields = null;
             }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SequenceNumber) == 0) {
+                SequenceNumber = 0;
+            }
             if (Value == null) {
                 // no point to go further
                 return;
@@ -194,6 +202,9 @@ namespace Opc.Ua.PubSub {
                 Timestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.Timestamp));
             }
             Value = decoder.ReadDataValue("Value");
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SequenceNumber) == 0) {
+                SequenceNumber = decoder.ReadUInt32(nameof(MonitoredItemMessageContentMask.SequenceNumber));
+            }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
                 var dictionary = (KeyValuePairCollection)decoder.ReadEncodeableArray("ExtensionFields", typeof(Ua.KeyValuePair));
                 ExtensionFields = new Dictionary<string, string>(dictionary.Count);
@@ -240,6 +251,10 @@ namespace Opc.Ua.PubSub {
             if (Value.StatusCode != 0) {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.StatusCode;
             }
+            SequenceNumber = decoder.ReadUInt32(nameof(MonitoredItemMessageContentMask.SequenceNumber));
+            if (SequenceNumber != 0) {
+                MessageContentMask |= (uint)MonitoredItemMessageContentMask.SequenceNumber;
+            }
             var jsonDecoder = decoder as JsonDecoderEx;
             ExtensionFields = (Dictionary<string,string>)jsonDecoder.ReadStringDictionary(nameof(ExtensionFields));
             if (ExtensionFields != null) {
@@ -267,6 +282,9 @@ namespace Opc.Ua.PubSub {
                 encoder.WriteDateTime(nameof(MonitoredItemMessageContentMask.Timestamp), Timestamp);
             }
             encoder.WriteDataValue("Value", Value);
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SequenceNumber) != 0) {
+                encoder.WriteUInt32(nameof(MonitoredItemMessageContentMask.SequenceNumber), SequenceNumber);
+            }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
                 if (ExtensionFields != null) {
                     var dictionary = new KeyValuePairCollection();
@@ -305,6 +323,9 @@ namespace Opc.Ua.PubSub {
                     StatusCode.LookupSymbolicId(Value.StatusCode.Code));
             }
             encoder.WriteDataValue("Value", Value);
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SequenceNumber) != 0) {
+                encoder.WriteUInt32(nameof(MonitoredItemMessageContentMask.SequenceNumber), SequenceNumber);
+            }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
                 if (ExtensionFields != null) {
                     var jsonEncoder = encoder as JsonEncoderEx;

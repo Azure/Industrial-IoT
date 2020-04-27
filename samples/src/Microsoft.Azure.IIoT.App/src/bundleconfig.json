@@ -16,5 +16,11 @@
     "inputFiles": [
       "wwwroot/css/spinner.css"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/css/blazored-modal.min.css",
+    "inputFiles": [
+      "wwwroot/css/blazored-modal.css"
+    ]
   }
 ]

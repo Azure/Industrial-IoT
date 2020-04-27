@@ -34,7 +34,7 @@
     </a>
     @if (DiscovererData != null)
     {
-        if (DiscovererData.IsSearching)
+        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery)
         {
             <div class="spinnermargin loader"></div>
         }

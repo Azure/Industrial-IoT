@@ -36,6 +36,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Serilog.Events;
     using System;
     using Blazored.SessionStorage;
+    using Blazored.Modal;
 
     /// <summary>
     /// Webapp startup
@@ -163,6 +164,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             services.AddServerSideBlazor();
             services.AddBlazoredSessionStorage();
+            services.AddBlazoredModal();
             services.AddScoped<AuthenticationStateProvider, BlazorAuthStateProvider>();
         }
 

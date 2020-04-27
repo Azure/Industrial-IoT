@@ -508,6 +508,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         return;
                     }
 
+                    if (_currentlyMonitored == null) {
+                        _logger.Information("DataChange for subscription: {Subscription} having no monitored items yet",
+                            subscription.DisplayName);
+                        return;
+                    }
+
                     // check if notification is a keep alive
                     var isKeepAlive = notification?.MonitoredItems?.Count == 1 &&
                                       notification?.MonitoredItems?.First().ClientHandle == 0 &&
@@ -544,23 +550,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
                     if (currentlyMonitored != null) {
-                        foreach (var item in _currentlyMonitored) {
+                        // add the heartbeat for monitored items that did not receive a
+                        // a datachange notification
+                        foreach (var item in currentlyMonitored) {
                             if (isKeepAlive ||
                                 !notification.MonitoredItems.Exists(m => m.ClientHandle == item.Item.ClientHandle)) {
                                 if (item.TriggerHeartbeat(publishTime)) {
                                     var heartbeatValue = item.Item.LastValue.ToMonitoredItemNotification(item.Item);
-                                    heartbeatValue.SequenceNumber = sequenceNumber;
-                                    heartbeatValue.IsHeartbeat = true;
-                                    heartbeatValue.PublishTime = publishTime;
-                                    message.Notifications.Add(heartbeatValue);
+                                    if (heartbeatValue != null) {
+                                        heartbeatValue.SequenceNumber = sequenceNumber;
+                                        heartbeatValue.IsHeartbeat = true;
+                                        heartbeatValue.PublishTime = publishTime;
+                                        message.Notifications.Add(heartbeatValue);
+                                    }
                                 }
                                 else {
-                                    message.IsKeyMessage = false;
+                                    // just reset the heartbeat for the items already processed
+                                    item.TriggerHeartbeat(publishTime);
                                 }
-                            }
-                            else {
-                                // just reset the heartbeat for the items already processed
-                                item.TriggerHeartbeat(publishTime);
                             }
                         }
                     }
