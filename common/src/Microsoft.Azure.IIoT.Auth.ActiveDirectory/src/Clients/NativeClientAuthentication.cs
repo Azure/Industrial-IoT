@@ -24,19 +24,22 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             builder.RegisterType<ClientAuthAggregateConfig>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
+            builder.RegisterType<MemoryCache>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<CachingTokenProvider>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope();
+
             builder.RegisterType<DevAuthenticationClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<AppAuthenticationClient>()
+                .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
+            builder.RegisterType<MsalInteractiveClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<MsalDeviceCodeClient>()
                 .AsSelf().AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Use cli token source
             builder.RegisterType<NativeClientTokenSource>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<MemoryCache>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<CachingTokenProvider>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             base.Load(builder);
         }
@@ -47,8 +50,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         internal class NativeClientTokenSource : TokenClientAggregateSource, ITokenSource {
             /// <inheritdoc/>
             public NativeClientTokenSource(DevAuthenticationClient ld, AppAuthenticationClient aa,
-                MsalDeviceCodeClient dc, IEnumerable<ITokenClient> providers, ILogger logger)
-                    : base(providers, Http.Resource.Platform, logger, ld, aa, dc) {
+                MsalInteractiveClient ic, MsalDeviceCodeClient dc,
+                    IEnumerable<ITokenClient> providers, ILogger logger)
+                    : base(providers, Http.Resource.Platform, logger, ld, aa, ic, dc) {
             }
         }
     }

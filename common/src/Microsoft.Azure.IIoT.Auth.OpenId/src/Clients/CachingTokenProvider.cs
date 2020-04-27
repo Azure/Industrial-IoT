@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             if (token == null) {
                 token = await base.GetTokenForAsync(resource, scopes);
                 if (token != null && !token.Cached) {
-                    await Try.Async(() => _cache.SetAsync(resource,
+                    await Try.Async(() => _cache.SetAsync(GetKey(resource),
                         Encoding.UTF8.GetBytes(token.RawToken), token.ExpiresOn));
                 }
             }
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             if (string.IsNullOrEmpty(resource)) {
                 resource = Http.Resource.Platform;
             }
-            await _cache.RemoveAsync(resource);
+            await _cache.RemoveAsync(GetKey(resource));
             await base.InvalidateAsync(resource);
         }
 
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <returns></returns>
         private async Task<TokenResultModel> GetTokenFromCacheAsync(string resource,
             IEnumerable<string> scopes) {
-            var cached = await _cache.GetAsync(resource);
+            var cached = await _cache.GetAsync(GetKey(resource));
             if (cached != null) {
                 var token = JwtSecurityTokenEx.Parse(Encoding.UTF8.GetString(cached));
                 if (token.ExpiresOn >= DateTimeOffset.UtcNow + TimeSpan.FromSeconds(30)) {
@@ -71,6 +71,15 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Create key for resource
+        /// </summary>
+        /// <param name="resource"></param>
+        /// <returns></returns>
+        private string GetKey(string resource) {
+            return resource + nameof(CachingTokenProvider);
         }
 
         private readonly ICache _cache;

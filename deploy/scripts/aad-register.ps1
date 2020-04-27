@@ -311,6 +311,7 @@ Function New-ADApplications() {
 
         $knownApplications = New-Object System.Collections.Generic.List[System.String]
         $knownApplications.Add($clientAadApplication.AppId)
+        $knownApplications.Add($webAadApplication.AppId)
 
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
@@ -356,6 +357,7 @@ Function New-ADApplications() {
         # Update client application to add reply urls required permissions.
         $replyUrls = New-Object System.Collections.Generic.List[System.String]
         $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
+        $replyUrls.Add("https://localhost")
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName $serviceDisplayName `

@@ -3,10 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth.Clients {
+namespace Microsoft.Azure.IIoT.Auth.Clients.Default{
     using Microsoft.Azure.Services.AppAuthentication;
     using Serilog;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -19,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
             _config = config?.Providers?
                 .Where(c => c.Provider == AuthProvider.AzureAD)
                 .Where(c => !string.IsNullOrEmpty(c.ClientId))
+                .Where(c => !string.IsNullOrEmpty(c.ClientSecret))
                 .Select(CreateProvider)
                 .ToList();
         }
@@ -34,18 +34,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <returns></returns>
         private static KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)> CreateProvider(
             IOAuthClientConfig config) {
-            // See if configured in environment variable
-            var cs = Environment.GetEnvironmentVariable("AzureServicesAuthConnectionString");
-            if (string.IsNullOrEmpty(cs)) {
-                // Run as app
-                cs = $"RunAs=App;AppId={config.ClientId}";
-                if (!string.IsNullOrEmpty(config.TenantId)) {
-                    cs += $";TenantId={config.TenantId}";
-                }
-                if (!string.IsNullOrEmpty(config.ClientSecret)) {
-                    cs += $";AppKey={config.ClientSecret}";
-                }
+            // Run as app
+            var cs = $"RunAs=App;AppId={config.ClientId}";
+            if (!string.IsNullOrEmpty(config.TenantId)) {
+                cs += $";TenantId={config.TenantId}";
             }
+            cs += $";AppKey={config.ClientSecret}";
             return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
                 (config, new AzureServiceTokenProvider(cs, config.GetAuthorityUrl(true))));
         }
