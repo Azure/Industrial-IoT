@@ -113,6 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
+                    chunk.Clear();
                     messageSize = 2;  // array brackets
                     var encoded = new NetworkMessageModel {
                         Body = Encoding.UTF8.GetBytes(writer.ToString()),
@@ -257,7 +258,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             NodeId = notification.NodeId.ToExpandedNodeId(message.ServiceMessageContext.NamespaceUris),
                             Timestamp = message.TimeStamp ?? DateTime.UtcNow,
                             Value = notification.Value,
-                            DisplayName = notification.DisplayName
+                            DisplayName = notification.DisplayName,
+                            SequenceNumber = notification.SequenceNumber.GetValueOrDefault(0)
                         };
                         // force published timestamp into to source timestamp for the legacy heartbeat compatibility
                         if (notification.IsHeartbeat &&
