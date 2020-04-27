@@ -55,7 +55,7 @@
         },
         "virtualMachineUsername": {
             "type": "string",
-            "defaultValue": "sandboxuser",
+            "defaultValue": "jumpboxuser",
             "metadata": {
                 "description": "Username for the IoT Edge virtual machine"
             }

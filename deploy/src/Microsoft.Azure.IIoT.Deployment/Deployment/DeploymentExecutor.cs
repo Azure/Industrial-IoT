@@ -1161,7 +1161,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             const string jumpboxNetworkInterfaceName = "jumpbox-networkInterface";
             const string jumpboxVirtualMachineName = "jumpbox-vm";
 
-            var jumpboxUsername = "sandboxuser";
+            var jumpboxUsername = "jumpboxuser";
             var jumpboxPassword = Guid.NewGuid().ToString();
 
             var aksRoleType = "AzureKubernetesServiceClusterAdminRole";
