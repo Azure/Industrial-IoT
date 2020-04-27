@@ -108,8 +108,6 @@ if [[ $n -eq $iterations ]]; then
 fi
 
 ################################################################################
-# sudo -H bash install.sh
-
 # Install Azure CLI with apt
 wget "https://aka.ms/InstallAzureCLIDeb" -O deb_install.sh
 chmod +x deb_install.sh
@@ -139,13 +137,6 @@ az aks install-cli
 az acr helm install-cli --client-version "3.1.2" -y
 
 ################################################################################
-# sudo -H bash setup.sh \
-#     --resource_group      $RESOURCE_GROUP \
-#     --aks_cluster         $AKS_CLUSTER \
-#     --role                $ROLE \
-#     --load_balancer_ip    $LOAD_BALANCER_IP \
-#     --public_ip_dns_label $PUBLIC_IP_DNS_LABEL
-
 # Login to az using manaed identity
 az login --identity
 
