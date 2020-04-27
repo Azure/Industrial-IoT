@@ -358,6 +358,7 @@ Function New-ADApplications() {
         $replyUrls = New-Object System.Collections.Generic.List[System.String]
         $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
         $replyUrls.Add("https://localhost")
+        $replyUrls.Add("http://localhost")
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName $serviceDisplayName `
