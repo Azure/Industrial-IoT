@@ -271,4 +271,7 @@
   <data name="_82_ingress_nginx_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\82_ingress_nginx_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="_90_letsencrypt_cluster_issuer" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\90_letsencrypt_cluster_issuer.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
 </root>

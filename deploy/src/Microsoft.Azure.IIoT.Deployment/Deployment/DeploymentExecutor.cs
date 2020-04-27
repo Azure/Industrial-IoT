@@ -294,7 +294,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
                 _owner = me;
 
-                if (null != me.Mail) {
+                if (!string.IsNullOrWhiteSpace(me.Mail)) {
                     InitializeDefaultTags(me.Mail);
                 }
                 else {
@@ -1215,6 +1215,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 aksKubeConfig,
                 iiotEnvironment,
                 _webAppX509Certificate,
+                aksPublicIp.DnsSettings.Fqdn,
                 cancellationToken
             );
 
@@ -1273,12 +1274,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             string kubeConfig,
             IIoTEnvironment iiotEnvironment,
             X509Certificate2 defaultSslCertificate,
+            string ingressHostname,
             CancellationToken cancellationToken = default
         ) {
             var iiotK8SClient = new IIoTK8SClient(kubeConfig);
 
             // enable scraping of Prometheus metrics
             await iiotK8SClient.EnablePrometheusMetricsScrapingAsync(cancellationToken);
+
+            // Create a ClusterIssuer that uses Let's Encrypt 
+            await iiotK8SClient.CreateLetsencryptClusterIssuerAsync(cancellationToken);
 
             // industrial-iot namespace
             await iiotK8SClient.CreateIIoTNamespaceAsync(cancellationToken);
@@ -1310,7 +1315,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // After we have NGINX Ingress controller we can create Ingress
             // for our Industrial IoT services and wait for IP address of
             // its LoadBalancer.
-            var iiotIngress = await iiotK8SClient.CreateIIoTIngressAsync(cancellationToken);
+            var iiotIngress = await iiotK8SClient.CreateIIoTIngressAsync(ingressHostname, cancellationToken);
             var iiotIngressIPAddresses = await iiotK8SClient.WaitForIngressIPAsync(iiotIngress, cancellationToken);
             var iiotIngressIPAdress = iiotIngressIPAddresses.FirstOrDefault().Ip;
 

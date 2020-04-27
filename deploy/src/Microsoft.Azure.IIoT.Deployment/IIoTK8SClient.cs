@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using Serilog;
     using System.Linq;
     using System.Diagnostics;
+    using Newtonsoft.Json.Linq;
 
     class IIoTK8SClient {
 
@@ -32,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
         /// </summary>
         /// <param name="kubeConfigContent"></param>
         public IIoTK8SClient(string kubeConfigContent) {
-            if (string.IsNullOrEmpty(kubeConfigContent)) {
+            if (string.IsNullOrWhiteSpace(kubeConfigContent)) {
                 throw new ArgumentNullException(nameof(kubeConfigContent));
             }
 
@@ -55,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string v1NamespaceContent,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(v1NamespaceContent)) {
+            if (string.IsNullOrWhiteSpace(v1NamespaceContent)) {
                 throw new ArgumentNullException(nameof(v1NamespaceContent));
             }
 
@@ -222,7 +223,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             IDictionary<string, string> data = null,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(v1SecretContent)) {
+            if (string.IsNullOrWhiteSpace(v1SecretContent)) {
                 throw new ArgumentNullException(nameof(v1SecretContent));
             }
 
@@ -264,7 +265,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             IDictionary<string, string> data = null,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(v1ConfigMapContent)) {
+            if (string.IsNullOrWhiteSpace(v1ConfigMapContent)) {
                 throw new ArgumentNullException(nameof(v1ConfigMapContent));
             }
 
@@ -305,7 +306,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string namespaceParameter = null,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(v1DeploymentContent)) {
+            if (string.IsNullOrWhiteSpace(v1DeploymentContent)) {
                 throw new ArgumentNullException(nameof(v1DeploymentContent));
             }
 
@@ -343,7 +344,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string namespaceParameter = null,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(v1ServiceContent)) {
+            if (string.IsNullOrWhiteSpace(v1ServiceContent)) {
                 throw new ArgumentNullException(nameof(v1ServiceContent));
             }
 
@@ -626,11 +627,13 @@ namespace Microsoft.Azure.IIoT.Deployment {
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task<Networkingv1beta1Ingress> CreateIIoTIngressAsync(
+            string ingressHostname = null,
             CancellationToken cancellationToken = default
         ) {
             return await CreateNetworkingv1beta1IngressAsync(
                 Resources.IIoTK8SResources._50_industrial_iot_ingress,
                 _iiotNamespace,
+                ingressHostname,
                 cancellationToken
             );
         }
@@ -716,10 +719,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string privateKeyPem,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(certPem)) {
+            if (string.IsNullOrWhiteSpace(certPem)) {
                 throw new ArgumentNullException(nameof(certPem));
             }
-            if (string.IsNullOrEmpty(privateKeyPem)) {
+            if (string.IsNullOrWhiteSpace(privateKeyPem)) {
                 throw new ArgumentNullException(nameof(privateKeyPem));
             }
 
@@ -779,7 +782,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string namespaceParameter = null,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(v1ServiceAccountContent)) {
+            if (string.IsNullOrWhiteSpace(v1ServiceAccountContent)) {
                 throw new ArgumentNullException(nameof(v1ServiceAccountContent));
             }
 
@@ -815,7 +818,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string v1ClusterRoleContent,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(v1ClusterRoleContent)) {
+            if (string.IsNullOrWhiteSpace(v1ClusterRoleContent)) {
                 throw new ArgumentNullException(nameof(v1ClusterRoleContent));
             }
 
@@ -847,7 +850,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string namespaceParameter = null,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(v1RoleContent)) {
+            if (string.IsNullOrWhiteSpace(v1RoleContent)) {
                 throw new ArgumentNullException(nameof(v1RoleContent));
             }
 
@@ -883,7 +886,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string namespaceParameter = null,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(v1RoleBindingContent)) {
+            if (string.IsNullOrWhiteSpace(v1RoleBindingContent)) {
                 throw new ArgumentNullException(nameof(v1RoleBindingContent));
             }
 
@@ -918,7 +921,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string v1ClusterRoleBindingContent,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(v1ClusterRoleBindingContent)) {
+            if (string.IsNullOrWhiteSpace(v1ClusterRoleBindingContent)) {
                 throw new ArgumentNullException(nameof(v1ClusterRoleBindingContent));
             }
 
@@ -949,9 +952,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public async Task<Networkingv1beta1Ingress> CreateNetworkingv1beta1IngressAsync(
             string networkingv1beta1IngressContent,
             string namespaceParameter = null,
+            string ingressHostname = null,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrEmpty(networkingv1beta1IngressContent)) {
+            if (string.IsNullOrWhiteSpace(networkingv1beta1IngressContent)) {
                 throw new ArgumentNullException(nameof(networkingv1beta1IngressContent));
             }
 
@@ -962,8 +966,27 @@ namespace Microsoft.Azure.IIoT.Deployment {
                         networkingv1beta1IngressContent
                     );
 
-                if (null != namespaceParameter) {
+                if (!string.IsNullOrWhiteSpace(namespaceParameter)) {
                     networkingv1beta1IngressDefinition.Metadata.NamespaceProperty = namespaceParameter;
+                }
+
+                // If hostname is provided then we will update Spec
+                if (!string.IsNullOrWhiteSpace(ingressHostname)) {
+                    // Add entry to Spec.Tls
+                    const string secretName = "tls-secret";
+                    var tls = new Networkingv1beta1IngressTLS {
+                        Hosts = new List<string> { ingressHostname },
+                        SecretName = secretName
+                    };
+                    if (networkingv1beta1IngressDefinition.Spec.Tls is null) {
+                        networkingv1beta1IngressDefinition.Spec.Tls = 
+                            new List<Networkingv1beta1IngressTLS> { tls };
+                    } else {
+                        networkingv1beta1IngressDefinition.Spec.Tls.Add(tls);
+                    }
+
+                    // Set host in Spec.Rules[0]
+                    networkingv1beta1IngressDefinition.Spec.Rules.First().Host = ingressHostname;
                 }
 
                 Log.Verbose($"Creating k8s Ingress: " +
@@ -983,6 +1006,65 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 Log.Error(ex, $"Failed to create k8s Ingress");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Create a custom ClusterIssuer object.
+        /// </summary>
+        /// <param name="clusterIssuerContent"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<V1Alpha2ClusterIssuer> CreateV1Alpha2ClusterIssuerAsync(
+            string clusterIssuerContent,
+            CancellationToken cancellationToken = default
+        ) {
+            if (string.IsNullOrWhiteSpace(clusterIssuerContent)) {
+                throw new ArgumentNullException(nameof(clusterIssuerContent));
+            }
+
+            Log.Verbose("Loading k8s ClusterIssuer definition ...");
+            var clusterIssuerDefinition = Yaml
+            .LoadFromString<V1Alpha2ClusterIssuer>(
+                clusterIssuerContent
+            );
+
+            Log.Verbose($"Creating k8s ClusterIssuer: {clusterIssuerDefinition.Metadata.Name} ...");
+            var clusterIssuerObject = await _k8sClient
+                .CreateClusterCustomObjectAsync(
+                    clusterIssuerDefinition,
+                    V1Alpha2ClusterIssuer.KubeGroup,
+                    V1Alpha2ClusterIssuer.KubeApiVersion,
+                    V1Alpha2ClusterIssuer.KubeKindPlural,
+                    cancellationToken: cancellationToken
+                );
+
+            // Convert returned object back to V1Alpha2ClusterIssuer.
+            if (!(clusterIssuerObject is JObject)) {
+                throw new Exception($"Returned object is of unexpected type: {clusterIssuerObject.GetType()}");
+            }
+
+            // Note: Here we will loose extra fields that are not present in our V1Alpha2ClusterIssuer.
+            var clusterIssuerJObject = (JObject) clusterIssuerObject;
+            var clusterIssuer = clusterIssuerJObject.ToObject<V1Alpha2ClusterIssuer>();
+
+            Log.Verbose($"Created k8s ClusterIssuer: {clusterIssuerDefinition.Metadata.Name} ...");
+            return clusterIssuer;
+        }
+
+        /// <summary>
+        /// Create a ClusterIssuer that uses prod endpoint of Let's Encrypt.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<V1Alpha2ClusterIssuer> CreateLetsencryptClusterIssuerAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            var clusterIssuer = await CreateV1Alpha2ClusterIssuerAsync(
+                Resources.IIoTK8SResources._90_letsencrypt_cluster_issuer,
+                cancellationToken
+            );
+
+            return clusterIssuer;
         }
     }
 }

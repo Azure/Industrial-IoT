@@ -71,7 +71,7 @@ lockPath='/var/lib/dpkg/lock'
 lockCount=$(lsof $lockPath | wc -l)
 
 n=0
-iterations=10
+iterations=20
 while [[ $n -lt $iterations ]] && [[ $lockCount -gt 0 ]]
 do
     echo "Wating for 15 seconds before checking the lock again: $lockPath"
@@ -91,7 +91,7 @@ lockPath='/var/lib/dpkg/lock-frontend'
 lockCount=$(lsof $lockPath | wc -l)
 
 n=0
-iterations=10
+iterations=20
 while [[ $n -lt $iterations ]] && [[ $lockCount -gt 0 ]]
 do
     echo "Wating for 15 seconds before checking the lock again: $lockPath"
@@ -177,6 +177,9 @@ helm install nginx-ingress stable/nginx-ingress --namespace nginx-ingress --vers
     --set controller.config.client-header-buffer-size='"32k"' \
     --set controller.metrics.enabled=true \
     --set defaultBackend.nodeSelector."beta\.kubernetes\.io\/os"=linux
+
+# Install the CustomResourceDefinition resources separately
+kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.13/deploy/manifests/00-crds.yaml
 
 # Create cert-manager namespace and label it to disable resource validation
 kubectl create namespace cert-manager

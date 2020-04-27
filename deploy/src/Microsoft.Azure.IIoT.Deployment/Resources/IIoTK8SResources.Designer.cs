@@ -191,11 +191,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///type: Opaque
         ///data:
-        ///  ####################----------2.6.146----------####################
         ///  # IoT Hub
         ///  PCS_IOTHUB_CONNSTRING: null
         ///  PCS_IOTHUB_EVENTHUBENDPOINT: null
-        ///  PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS: nul [rest of string was truncated]&quot;;.
+        ///  PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS: null
+        ///  PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY: null
+        ///  # Cosmos DB
+        ///  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _10_industrial_iot_env_secret {
             get {
@@ -1332,6 +1334,33 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         internal static string _82_ingress_nginx_service {
             get {
                 return ResourceManager.GetString("_82_ingress_nginx_service", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: cert-manager.io/v1alpha2
+        ///kind: ClusterIssuer
+        ///metadata:
+        ///  name: letsencrypt-prod
+        ///spec:
+        ///  acme:
+        ///    # The ACME server URL
+        ///    server: https://acme-v02.api.letsencrypt.org/directory
+        ///    # Email address used for ACME registration
+        ///    # email:
+        ///    # Name of a secret used to store the ACME account private key
+        ///    privateKeySecretRef:
+        ///      name: letsencrypt-prod
+        ///    # Enable the HTTP-01 challenge provider
+        ///    solvers:
+        ///    - http01:
+        ///        ingress:
+        ///          class: nginx
+        ///.
+        /// </summary>
+        internal static string _90_letsencrypt_cluster_issuer {
+            get {
+                return ResourceManager.GetString("_90_letsencrypt_cluster_issuer", resourceCulture);
             }
         }
     }
