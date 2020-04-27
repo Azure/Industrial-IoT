@@ -126,22 +126,16 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
                 .AsImplementedInterfaces();
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
-                .AsImplementedInterfaces().SingleInstance();
 
-            // Handle telemetry events
+            // Handle telemetry
             builder.RegisterType<EventHubDeviceEventHandler>()
                 .AsImplementedInterfaces();
-
-            // Handle opc-ua pub/sub subscriber messages
             builder.RegisterType<MonitoredItemSampleModelHandler>()
                 .AsImplementedInterfaces();
             builder.RegisterType<NetworkMessageModelHandler>()
                 .AsImplementedInterfaces();
 
-            // Handle the CDM handler
+            // Cdm processor
             builder.RegisterType<DatalakeConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<DataLakeStorageService>()
@@ -150,12 +144,13 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
                 .AsImplementedInterfaces();
             builder.RegisterType<CsvEncoder>()
                 .AsImplementedInterfaces();
-
-            // handlers for the legacy publisher (disabled)
             builder.RegisterType<CdmMessageProcessor>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<MonitoredItemSampleCdmProcessor>()
-                .AsImplementedInterfaces();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
+                .AsImplementedInterfaces().SingleInstance();
 
             return builder;
         }

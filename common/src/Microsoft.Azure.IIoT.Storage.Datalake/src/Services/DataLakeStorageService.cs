@@ -6,15 +6,21 @@
 namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Storage;
+    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Http;
     using global::Azure.Storage;
     using global::Azure.Storage.Files.DataLake;
     using global::Azure.Storage.Files.DataLake.Models;
     using global::Azure.Core;
+    using global::Azure;
+    using Serilog;
     using System;
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Collections.Generic;
+    using System.Net;
 
     /// <summary>
     /// Datalake storage service
@@ -28,23 +34,26 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
         /// Azure Data lake storage service
         /// </summary>
         /// <param name="config"></param>
+        /// <param name="logger"></param>
         /// <param name="provider"></param>
-        public DataLakeStorageService(IDatalakeConfig config, ITokenProvider provider = null) {
+        public DataLakeStorageService(IDatalakeConfig config, ILogger logger,
+            ITokenProvider provider = null) {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             // Get token source for storage
             Endpoint = new Uri($"https://{config.AccountName}.{config.EndpointSuffix}");
-            if (provider?.Supports(Http.Resource.Storage) != true) {
-                if (string.IsNullOrEmpty(config.AccountKey)) {
+            if (string.IsNullOrEmpty(config.AccountKey)) {
+                if (provider?.Supports(Http.Resource.Storage) != true) {
                     throw new InvalidConfigurationException(
                         "Missing shared access key or service principal " +
                         "configuration to access storage account.");
                 }
                 _client = new DataLakeServiceClient(Endpoint,
-                    new StorageSharedKeyCredential(config.AccountName, config.AccountKey));
+                    new FileSystemTokenProvider(provider));
             }
             else {
                 _client = new DataLakeServiceClient(Endpoint,
-                    new FileSystemTokenProvider(provider));
+                    new StorageSharedKeyCredential(config.AccountName, config.AccountKey));
             }
         }
 
@@ -55,8 +64,14 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
                 throw new ArgumentNullException(nameof(driveName));
             }
             var filesystem = _client.GetFileSystemClient(driveName);
-            await filesystem.CreateIfNotExistsAsync(cancellationToken: ct);
-            return new FileSystemDrive(filesystem);
+            try {
+                await filesystem.CreateIfNotExistsAsync(cancellationToken: ct);
+                return new FileSystemDrive(filesystem, _logger);
+            }
+            catch (RequestFailedException ex) {
+                ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                return null;
+            }
         }
 
         /// <summary>
@@ -71,22 +86,36 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// Create drive
             /// </summary>
             /// <param name="filesystem"></param>
-            public FileSystemDrive(DataLakeFileSystemClient filesystem) {
+            /// <param name="logger"></param>
+            public FileSystemDrive(DataLakeFileSystemClient filesystem, ILogger logger) {
                 _filesystem = filesystem;
+                _logger = logger.ForContext<FileSystemDrive>();
             }
 
             /// <inheritdoc/>
             public virtual async Task<DateTimeOffset> GetLastModifiedAsync(
                 CancellationToken ct) {
-                return (await GetPropertiesAsync(ct)).LastModified;
+                try {
+                    return (await GetPropertiesAsync(ct)).LastModified;
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                    return default;
+                }
             }
 
             /// <inheritdoc/>
             public async Task<IFile> CreateOrOpenFileAsync(string fileName,
                 CancellationToken ct) {
                 var file = _filesystem.GetFileClient(fileName);
-                await file.CreateIfNotExistsAsync(cancellationToken: ct);
-                return new FileSystemFile(file);
+                return await FileSystemFile.CreateOrOpenAsync(_logger, file, null, ct);
+            }
+
+            /// <inheritdoc/>
+            public async Task<IFileLock> CreateOrOpenLockedFileAsync(string fileName,
+                TimeSpan duration, CancellationToken ct) {
+                var file = _filesystem.GetFileClient(fileName);
+                return await LeasedFileSystemFile.CreateOrOpenAsync(_logger, file, duration, ct);
             }
 
             /// <inheritdoc/>
@@ -94,18 +123,24 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
                 CancellationToken ct) {
                 var folder = _filesystem.GetDirectoryClient(folderName);
                 await folder.CreateIfNotExistsAsync(cancellationToken: ct);
-                return new FileSystemFolder(_filesystem, "/", folder);
+                return new FileSystemFolder(_filesystem, "/", folder, _logger);
             }
 
             /// <inheritdoc />
             public async Task<IEnumerable<string>> GetAllFilesAsync(CancellationToken ct) {
                 var results = new List<string>();
-                await foreach (var item in _filesystem.GetPathsAsync(cancellationToken: ct)) {
-                    if (item.IsDirectory ?? false) {
-                        continue;
+                try {
+                    await foreach (var item in _filesystem.GetPathsAsync(cancellationToken: ct)) {
+                        if (item.IsDirectory ?? false) {
+                            continue;
+                        }
+                        results.Add(item.Name);
                     }
-                    results.Add(item.Name);
                 }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                }
+
                 return results;
             }
 
@@ -113,10 +148,15 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// <inheritdoc />
             public async Task<IEnumerable<string>> GetAllSubFoldersAsync(CancellationToken ct) {
                 var results = new List<string>();
-                await foreach (var item in _filesystem.GetPathsAsync(cancellationToken: ct)) {
-                    if (item.IsDirectory ?? false) {
-                        results.Add(item.Name);
+                try {
+                    await foreach (var item in _filesystem.GetPathsAsync(cancellationToken: ct)) {
+                        if (item.IsDirectory ?? false) {
+                            results.Add(item.Name);
+                        }
                     }
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
                 }
                 return results;
             }
@@ -132,6 +172,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             }
 
             private readonly DataLakeFileSystemClient _filesystem;
+            private readonly ILogger _logger;
         }
 
         /// <summary>
@@ -142,58 +183,104 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// <inheritdoc/>
             public string Name => _file.Name;
 
-            public DateTimeOffset LastModified { get; }
-
             /// <summary>
             /// Create file
             /// </summary>
             /// <param name="file"></param>
-            public FileSystemFile(DataLakeFileClient file) {
+            /// <param name="leaseId"></param>
+            /// <param name="logger"></param>
+            private FileSystemFile(DataLakeFileClient file, string leaseId,
+                ILogger logger) {
                 _file = file;
+                _logger = logger.ForContext<FileSystemFile>();
+                _conditions = leaseId == null ? null :
+                    new DataLakeRequestConditions { LeaseId = leaseId };
+            }
+
+            /// <summary>
+            /// Create
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="file"></param>
+            /// <param name="leaseId"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            internal static async Task<FileSystemFile> CreateOrOpenAsync(ILogger logger,
+                DataLakeFileClient file, string leaseId, CancellationToken ct) {
+                try {
+                    await file.CreateIfNotExistsAsync(cancellationToken: ct);
+                    return new FileSystemFile(file, leaseId, logger);
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                    return null;
+                }
             }
 
             /// <inheritdoc/>
-            public virtual async Task<long> GetSizeAsync(CancellationToken ct) {
-                return (await GetPropertiesAsync(ct)).ContentLength;
+            public async Task<long> GetSizeAsync(CancellationToken ct) {
+                try {
+                    return (await GetPropertiesAsync(ct)).ContentLength;
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                    return default;
+                }
             }
 
             /// <inheritdoc/>
-            public virtual async Task<DateTimeOffset> GetLastModifiedAsync(
+            public async Task<DateTimeOffset> GetLastModifiedAsync(
                 CancellationToken ct) {
-                return (await GetPropertiesAsync(ct)).LastModified;
-            }
-
-            /// <inheritdoc/>
-            public virtual async Task AppendAsync(byte[] stream, int count, CancellationToken ct) {
-                var properties = await GetPropertiesAsync(ct);
-                using (var buffer = new MemoryStream(stream, 0, count)) {
-                    var offset = properties.ContentLength;
-                    await _file.AppendAsync(buffer, offset, cancellationToken: ct);
-                    await _file.FlushAsync(offset + count, cancellationToken: ct);
+                try {
+                    return (await GetPropertiesAsync(ct)).LastModified;
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                    return default;
                 }
             }
 
             /// <inheritdoc/>
-            public virtual async Task UploadAsync(Stream stream, CancellationToken ct) {
-                while (true) {
-                    try {
-                        await _file.UploadAsync(stream, true, cancellationToken: ct);
+            public async Task AppendAsync(byte[] stream, int count, CancellationToken ct) {
+                try {
+                    var properties = await GetPropertiesAsync(ct);
+                    using (var buffer = new MemoryStream(stream, 0, count)) {
+                        var offset = properties.ContentLength;
+                        await _file.AppendAsync(buffer, offset,
+                            leaseId: _conditions.LeaseId, cancellationToken: ct);
+                        await _file.FlushAsync(offset + count,
+                            conditions: _conditions, cancellationToken: ct);
                     }
-                    catch (Exception ex) {
-                        throw ex;
-                    }
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
                 }
             }
 
             /// <inheritdoc/>
-            public virtual async Task DownloadAsync(Stream stream, CancellationToken ct) {
-                while (true) {
-                    try {
-                        await _file.ReadToAsync(stream, cancellationToken: ct);
+            public async Task UploadAsync(Stream stream, CancellationToken ct) {
+                try {
+                    await Retry.WithExponentialBackoff(_logger,
+                        () => _file.UploadAsync(stream, null, _conditions, cancellationToken: ct),
+                        e => e is RequestFailedException re &&
+                            re.Status == (int)HttpStatusCode.PreconditionFailed);
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                }
+            }
+
+            /// <inheritdoc/>
+            public async Task DownloadAsync(Stream stream, CancellationToken ct) {
+                try {
+                    await _file.ReadToAsync(stream, _conditions, cancellationToken: ct);
+                }
+                catch (RequestFailedException ex) {
+                    if (ex.Status == (int)HttpStatusCode.RequestedRangeNotSatisfiable &&
+                        (await GetPropertiesAsync(ct)).ContentLength == 0) {
+                        return;
                     }
-                    catch (Exception ex) {
-                        throw ex;
-                    }
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
                 }
             }
 
@@ -203,11 +290,105 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// <param name="ct"></param>
             /// <returns></returns>
             private async Task<PathProperties> GetPropertiesAsync(CancellationToken ct) {
-                var properties = await _file.GetPropertiesAsync(cancellationToken: ct);
+                var properties = await _file.GetPropertiesAsync(_conditions, ct);
                 return properties.Value;
             }
 
+            private readonly DataLakeRequestConditions _conditions;
             private readonly DataLakeFileClient _file;
+            private readonly ILogger _logger;
+        }
+
+        /// <summary>
+        /// Locked file
+        /// </summary>
+        private class LeasedFileSystemFile : IFileLock {
+
+            /// <inheritdoc/>
+            public IFile File { get; }
+
+            /// <summary>
+            /// Create file
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="file"></param>
+            /// <param name="lease"></param>
+            internal LeasedFileSystemFile(ILogger logger,
+                FileSystemFile file, DataLakeLeaseClient lease) {
+                _logger = logger.ForContext<LeasedFileSystemFile>();
+                File = file;
+                _lease = lease;
+            }
+
+            /// <summary>
+            /// Create or open locked file
+            /// </summary>
+            /// <param name="logger"></param>
+            /// <param name="file"></param>
+            /// <param name="lockDuration"></param>
+            /// <param name="ct"></param>
+            internal static async Task<IFileLock> CreateOrOpenAsync(ILogger logger,
+                DataLakeFileClient file, TimeSpan lockDuration, CancellationToken ct) {
+                // Try acquire lock
+                logger = logger.ForContext<LeasedFileSystemFile>();
+                var leaseId = Guid.NewGuid().ToString();
+                var fileSystemFile = await FileSystemFile.CreateOrOpenAsync(
+                    logger, file, leaseId, ct);
+
+                var leased = new LeasedFileSystemFile(logger, fileSystemFile,
+                    file.GetDataLakeLeaseClient(leaseId));
+                await leased.AcquireAsync(lockDuration, ct);
+                return leased;
+            }
+
+            /// <inheritdoc/>
+            public async ValueTask DisposeAsync() {
+                try {
+                    await _lease.ReleaseAsync();
+                    _logger.Information("Lease {lease} on {file} released.",
+                        _lease.LeaseId, File.Name);
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                }
+            }
+
+            /// <summary>
+            /// Acquire lock
+            /// </summary>
+            /// <param name="lockDuration"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            private async Task AcquireAsync(TimeSpan lockDuration, CancellationToken ct) {
+                if (lockDuration == Timeout.InfiniteTimeSpan) {
+                    lockDuration = DataLakeLeaseClient.InfiniteLeaseDuration;
+                }
+                else if (lockDuration < TimeSpan.FromSeconds(15)) {
+                    lockDuration = TimeSpan.FromSeconds(15);
+                }
+                else if (lockDuration > TimeSpan.FromMinutes(1)) {
+                    lockDuration = TimeSpan.FromMinutes(1);
+                }
+                // Aquire lease
+                _logger.Information("Acquiring lease {lease} on {file} for {duration}...",
+                    _lease.LeaseId, File.Name, lockDuration);
+                try {
+                    await Retry.WithLinearBackoff(_logger, ct,
+                        () => _lease.AcquireAsync(lockDuration, cancellationToken: ct),
+                        e => e is RequestFailedException re &&
+                            re.Status == (int)HttpStatusCode.Conflict,
+                        int.MaxValue);
+
+                    _logger.Information("Lease {lease} on {file} acquired for {duration}.",
+                        _lease.LeaseId, File.Name, lockDuration);
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                }
+            }
+
+            private readonly ILogger _logger;
+            private readonly DataLakeLeaseClient _lease;
         }
 
         /// <summary>
@@ -224,25 +405,39 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             /// <param name="filesystem"></param>
             /// <param name="parentPath"></param>
             /// <param name="folder"></param>
+            /// <param name="logger"></param>
             public FileSystemFolder(DataLakeFileSystemClient filesystem,
-                string parentPath, DataLakeDirectoryClient folder) {
+                string parentPath, DataLakeDirectoryClient folder, ILogger logger) {
                 _filesystem = filesystem;
                 _parentPath = parentPath;
                 _folder = folder;
+                _logger = logger.ForContext<FileSystemFolder>();
             }
 
             /// <inheritdoc/>
             public virtual async Task<DateTimeOffset> GetLastModifiedAsync(
                 CancellationToken ct) {
-                return (await GetPropertiesAsync(ct)).LastModified;
+                try {
+                    return (await GetPropertiesAsync(ct)).LastModified;
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                    return default;
+                }
             }
 
             /// <inheritdoc/>
             public async Task<IFile> CreateOrOpenFileAsync(string fileName,
                 CancellationToken ct) {
                 var file = _folder.GetFileClient(fileName);
-                await file.CreateIfNotExistsAsync(cancellationToken: ct);
-                return new FileSystemFile(file);
+                return await FileSystemFile.CreateOrOpenAsync(_logger, file, null, ct);
+            }
+
+            /// <inheritdoc/>
+            public async Task<IFileLock> CreateOrOpenLockedFileAsync(string fileName,
+                TimeSpan duration, CancellationToken ct) {
+                var file = _folder.GetFileClient(fileName);
+                return await LeasedFileSystemFile.CreateOrOpenAsync(_logger, file, duration, ct);
             }
 
             /// <inheritdoc/>
@@ -250,20 +445,26 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
                 string folderName, CancellationToken ct) {
                 var folder = _folder.GetSubDirectoryClient(folderName);
                 await folder.CreateIfNotExistsAsync(cancellationToken: ct);
-                return new FileSystemFolder(_filesystem, _parentPath + "/" + Name, folder);
+                return new FileSystemFolder(_filesystem, _parentPath + "/" + Name, folder, _logger);
             }
 
             /// <inheritdoc />
             public async Task<IEnumerable<string>> GetAllFilesAsync(CancellationToken ct) {
                 var results = new List<string>();
                 var path = _parentPath + "/" + Name;
-                await foreach (var item in _filesystem.GetPathsAsync(path, cancellationToken: ct)) {
-                    if (item.IsDirectory ?? false) {
-                        continue;
+                try {
+                    await foreach (var item in _filesystem.GetPathsAsync(path, cancellationToken: ct)) {
+                        if (item.IsDirectory ?? false) {
+                            continue;
+                        }
+                        if (item.Name.StartsWith(path, StringComparison.InvariantCultureIgnoreCase)) {
+                            results.Add(item.Name.Substring(path.Length + 1));
+                        }
                     }
-                    if (item.Name.StartsWith(path, StringComparison.InvariantCultureIgnoreCase)) {
-                        results.Add(item.Name.Substring(path.Length + 1));
-                    }
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                    return default;
                 }
                 return results;
             }
@@ -272,12 +473,18 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             public async Task<IEnumerable<string>> GetAllSubFoldersAsync(CancellationToken ct) {
                 var results = new List<string>();
                 var path = _parentPath + "/" + Name;
-                await foreach (var item in _filesystem.GetPathsAsync(path, cancellationToken: ct)) {
-                    if (item.IsDirectory ?? false) {
-                        if (item.Name.StartsWith(path, StringComparison.InvariantCultureIgnoreCase)) {
-                            results.Add(item.Name.Substring(path.Length + 1));
+                try {
+                    await foreach (var item in _filesystem.GetPathsAsync(path, cancellationToken: ct)) {
+                        if (item.IsDirectory ?? false) {
+                            if (item.Name.StartsWith(path, StringComparison.InvariantCultureIgnoreCase)) {
+                                results.Add(item.Name.Substring(path.Length + 1));
+                            }
                         }
                     }
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                    return default;
                 }
                 return results;
             }
@@ -295,6 +502,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             private readonly DataLakeFileSystemClient _filesystem;
             private readonly string _parentPath;
             private readonly DataLakeDirectoryClient _folder;
+            private readonly ILogger _logger;
         }
 
         /// <inheritdoc/>
@@ -325,5 +533,6 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
         }
 
         private readonly DataLakeServiceClient _client;
+        private readonly ILogger _logger;
     }
 }

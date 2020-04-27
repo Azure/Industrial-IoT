@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
     using System.Text;
     using System.Threading.Tasks;
     using System.IO;
+    using System.Collections.Concurrent;
 
     /// <summary>
     /// Writes data tables into files on file storage
@@ -57,6 +58,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <inheritdoc/>
+        public Task LockAsync(string corpusPath) {
+            return _locks.GetOrAdd(FormatCorpusPath(corpusPath),
+                p => GetLockedCorpusFileAsync(p));
+        }
+
+        /// <inheritdoc/>
         public async Task<string> ReadAsync(string corpusPath) {
             try {
                 var file = await GetCorpusFileAsync(corpusPath);
@@ -87,6 +94,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to write data to {corpus}", corpusPath);
                 throw ex;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task UnlockAsync(string corpusPath) {
+            if (_locks.TryRemove(FormatCorpusPath(corpusPath), out var locked)) {
+                var file = await locked;
+                await file.DisposeAsync();
             }
         }
 
@@ -204,11 +219,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <summary>
-        /// Returns the corpus fiile
+        /// Returns a corpus file from the locked ones or a shared one
+        /// if not locked.
         /// </summary>
         /// <param name="corpusPath"></param>
         /// <returns></returns>
         private async Task<IFile> GetCorpusFileAsync(string corpusPath) {
+            if (_locks.TryGetValue(FormatCorpusPath(corpusPath), out var lockedFile)) {
+                var locked = await lockedFile;
+                return locked.File;
+            }
+            return await GetSharedCorpusFileAsync(corpusPath);
+        }
+
+        /// <summary>
+        /// Returns the corpus fiile
+        /// </summary>
+        /// <param name="corpusPath"></param>
+        /// <returns></returns>
+        private async Task<IFile> GetSharedCorpusFileAsync(string corpusPath) {
             var pathElements = FormatCorpusPath(corpusPath).Split('/');
             if (pathElements.Length == 0) {
                 throw new ArgumentException(nameof(corpusPath));
@@ -218,6 +247,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 root = await root.CreateOrOpenSubFolderAsync(pathElements[i]);
             }
             return await root.CreateOrOpenFileAsync(pathElements.Last());
+        }
+
+        /// <summary>
+        /// Returns a locked corpus file
+        /// </summary>
+        /// <param name="corpusPath"></param>
+        /// <returns></returns>
+        private async Task<IFileLock> GetLockedCorpusFileAsync(string corpusPath) {
+            var pathElements = FormatCorpusPath(corpusPath).Split('/');
+            if (pathElements.Length == 0) {
+                throw new ArgumentException(nameof(corpusPath));
+            }
+            var root = await _folder;
+            for (var i = 0; i < pathElements.Length - 1; i++) {
+                root = await root.CreateOrOpenSubFolderAsync(pathElements[i]);
+            }
+            return await root.CreateOrOpenLockedFileAsync(pathElements.Last(),
+                TimeSpan.FromSeconds(60));
         }
 
         /// <summary>
@@ -242,5 +289,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         private readonly Uri _hostName;
         private readonly string _fileSystem;
         private readonly Task<IFolder> _folder;
+        private readonly ConcurrentDictionary<string, Task<IFileLock>> _locks =
+            new ConcurrentDictionary<string, Task<IFileLock>>();
     }
 }

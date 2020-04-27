@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage {
+    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -26,6 +27,16 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <returns></returns>
         Task<IFile> CreateOrOpenFileAsync(string fileName,
             CancellationToken ct = default);
+
+        /// <summary>
+        /// Create locked file
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <param name="duration"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<IFileLock> CreateOrOpenLockedFileAsync(string fileName,
+            TimeSpan duration, CancellationToken ct = default);
 
         /// <summary>
         /// Create folder

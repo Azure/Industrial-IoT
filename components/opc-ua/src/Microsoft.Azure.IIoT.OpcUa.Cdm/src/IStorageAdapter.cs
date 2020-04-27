@@ -18,6 +18,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm {
         StorageAdapter Adapter { get; }
 
         /// <summary>
+        /// Lock file
+        /// </summary>
+        /// <param name="corpusPath"></param>
+        /// <returns></returns>
+        Task LockAsync(string corpusPath);
+
+        /// <summary>
         /// write the data to the corpus
         /// </summary>
         /// <param name="corpusPath"></param>
@@ -25,5 +32,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm {
         /// <returns></returns>
         Task WriteAsync(string corpusPath,
             Func<bool, byte[]> writer);
+
+        /// <summary>
+        /// Unlock file
+        /// </summary>
+        /// <param name="corpusPath"></param>
+        /// <returns></returns>
+        Task UnlockAsync(string corpusPath);
     }
 }
