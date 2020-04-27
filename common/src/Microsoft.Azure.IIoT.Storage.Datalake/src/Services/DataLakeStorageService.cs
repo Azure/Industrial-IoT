@@ -108,14 +108,16 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             public async Task<IFile> CreateOrOpenFileAsync(string fileName,
                 CancellationToken ct) {
                 var file = _filesystem.GetFileClient(fileName);
-                return await FileSystemFile.CreateOrOpenAsync(_logger, file, null, ct);
+                return await FileSystemFile.CreateOrOpenAsync(
+                    _logger, file, null, ct);
             }
 
             /// <inheritdoc/>
-            public async Task<IFileLock> CreateOrOpenLockedFileAsync(string fileName,
+            public async Task<IFileLock> CreateOrOpenFileLockAsync(string fileName,
                 TimeSpan duration, CancellationToken ct) {
                 var file = _filesystem.GetFileClient(fileName);
-                return await LeasedFileSystemFile.CreateOrOpenAsync(_logger, file, duration, ct);
+                return await LeasedFileSystemFile.CreateOrOpenAsync(
+                    _logger, file, duration, ct);
             }
 
             /// <inheritdoc/>
@@ -434,7 +436,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             }
 
             /// <inheritdoc/>
-            public async Task<IFileLock> CreateOrOpenLockedFileAsync(string fileName,
+            public async Task<IFileLock> CreateOrOpenFileLockAsync(string fileName,
                 TimeSpan duration, CancellationToken ct) {
                 var file = _folder.GetFileClient(fileName);
                 return await LeasedFileSystemFile.CreateOrOpenAsync(_logger, file, duration, ct);
@@ -444,8 +446,14 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
             public async Task<IFolder> CreateOrOpenSubFolderAsync(
                 string folderName, CancellationToken ct) {
                 var folder = _folder.GetSubDirectoryClient(folderName);
-                await folder.CreateIfNotExistsAsync(cancellationToken: ct);
-                return new FileSystemFolder(_filesystem, _parentPath + "/" + Name, folder, _logger);
+                try {
+                    await folder.CreateIfNotExistsAsync(cancellationToken: ct);
+                    return new FileSystemFolder(_filesystem, _parentPath + "/" + Name, folder, _logger);
+                }
+                catch (RequestFailedException ex) {
+                    ((HttpStatusCode)ex.Status).Validate(ex.Message, ex);
+                    return null;
+                }
             }
 
             /// <inheritdoc />

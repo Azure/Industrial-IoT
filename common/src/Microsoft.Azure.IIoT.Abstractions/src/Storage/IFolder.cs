@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <param name="duration"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<IFileLock> CreateOrOpenLockedFileAsync(string fileName,
+        Task<IFileLock> CreateOrOpenFileLockAsync(string fileName,
             TimeSpan duration, CancellationToken ct = default);
 
         /// <summary>

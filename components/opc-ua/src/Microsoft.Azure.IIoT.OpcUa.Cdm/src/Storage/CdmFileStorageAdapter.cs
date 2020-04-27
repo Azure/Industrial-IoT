@@ -263,7 +263,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             for (var i = 0; i < pathElements.Length - 1; i++) {
                 root = await root.CreateOrOpenSubFolderAsync(pathElements[i]);
             }
-            return await root.CreateOrOpenLockedFileAsync(pathElements.Last(),
+            return await root.CreateOrOpenFileLockAsync(pathElements.Last(),
                 TimeSpan.FromSeconds(60));
         }
 

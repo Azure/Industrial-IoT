@@ -769,18 +769,15 @@ Function New-Deployment() {
     if (![string]::IsNullOrEmpty($script:aadConfig.Audience)) {
         $templateParameters.Add("serviceAudience", $script:aadConfig.Audience)
     }
-
     if (![string]::IsNullOrEmpty($script:aadConfig.ClientId)) {
-        $templateParameters.Add("cliAppId", $script:aadConfig.ClientId)
+        $templateParameters.Add("publicClientAppId", $script:aadConfig.ClientId)
     }
-
     if (![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
         $templateParameters.Add("clientAppId", $script:aadConfig.WebAppId)
     }
     if (![string]::IsNullOrEmpty($script:aadConfig.WebAppSecret)) {
         $templateParameters.Add("clientAppSecret", $script:aadConfig.WebAppSecret)
     }
-
     if (![string]::IsNullOrEmpty($script:aadConfig.Authority)) {
         $templateParameters.Add("authorityUri", $script:aadConfig.Authority)
     }
