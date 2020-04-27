@@ -43,6 +43,7 @@ namespace Microsoft.Azure.IIoT.App {
     using System.Security.Claims;
 
     using Blazored.SessionStorage;
+    using Blazored.Modal;
     using Microsoft.Azure.IIoT.App.Services.SecureData;
 
     /// <summary>
@@ -211,6 +212,7 @@ namespace Microsoft.Azure.IIoT.App {
                 ;
             services.AddServerSideBlazor();
             services.AddBlazoredSessionStorage();
+            services.AddBlazoredModal();
         }
 
         /// <summary>
