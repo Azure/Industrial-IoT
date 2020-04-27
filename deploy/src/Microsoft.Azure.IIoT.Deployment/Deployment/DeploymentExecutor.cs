@@ -1262,8 +1262,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         }
 
         /// <summary>
-        /// Deploy all necessary resources to AKS, including Azure IIoT components and NGINX Ingress
-        /// Controller. Returns IP address of Azure IIoT Ingress.
+        /// Deploy all necessary resources to AKS, including Azure IIoT components.
+        /// Returns IP address of Azure IIoT Ingress.
         /// </summary>
         /// <param name="kubeConfig"></param>
         /// <param name="iiotEnvironment"></param>
@@ -1290,31 +1290,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             await iiotK8SClient.SetupIIoTServiceAccountAsync(cancellationToken);
             await iiotK8SClient.DeployIIoTServicesAsync(iiotEnvironment.Dict, cancellationToken);
 
-            // ToDo: Remove NGINX Ingress Controller deployment as that will be done through jumpbox.
-
-            //// We will add default SSL certificate for Ingress
-            //// NGINX controler to industrial-iot namespace
-
-            //// Generate default SSL certificate for NGINX Ingress
-            //var webAppPemCertificate = X509CertificateHelper.GetPemCertificate(defaultSslCertificate);
-            ////var webAppPemPublicKey = X509CertificateHelper.GetPemPublicKey(defaultSslCertificate);
-            //var webAppPemPrivateKey = X509CertificateHelper.GetPemPrivateKey(defaultSslCertificate);
-
-            //await iiotK8SClient
-            //    .CreateNGINXDefaultSSLCertificateSecretAsync(
-            //        webAppPemCertificate,
-            //        webAppPemPrivateKey,
-            //        cancellationToken
-            //    );
-
-            //// ingress-nginx namespace
-            //await iiotK8SClient.CreateNGINXNamespaceAsync(cancellationToken);
-            //await iiotK8SClient.SetupNGINXServiceAccountAsync(cancellationToken);
-            //await iiotK8SClient.DeployNGINXIngressControllerAsync(cancellationToken);
-
-            // After we have NGINX Ingress controller we can create Ingress
-            // for our Industrial IoT services and wait for IP address of
-            // its LoadBalancer.
+            // Note that NGINX Ingress Controller is already instaled from jumpbox.
+            // So we will create Ingress for our Industrial IoT services and wait for
+            // IP address of its LoadBalancer.
             var iiotIngress = await iiotK8SClient.CreateIIoTIngressAsync(ingressHostname, cancellationToken);
             var iiotIngressIPAddresses = await iiotK8SClient.WaitForIngressIPAsync(iiotIngress, cancellationToken);
             var iiotIngressIPAdress = iiotIngressIPAddresses.FirstOrDefault().Ip;

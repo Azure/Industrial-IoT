@@ -26,7 +26,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
         private readonly IKubernetes _k8sClient;
 
         private string _iiotNamespace = null;
-        private string _nginxNamespace = null;
 
         /// <summary>
         /// Constructor of IIoTK8SClient.
@@ -44,12 +43,12 @@ namespace Microsoft.Azure.IIoT.Deployment {
             _k8sClient = new Kubernetes(_k8sClientConfiguration);
         }
 
+        /// <summary>
+        /// Set namespace that should be used for Azure IIoT components.
+        /// </summary>
+        /// <param name="namespaceName"></param>
         public void SetIIoTNamespace(string namespaceName) {
             _iiotNamespace = namespaceName;
-        }
-
-        public void SetNGINXIngressControllerNamespace(string namespaceName) {
-            _nginxNamespace = namespaceName;
         }
 
         public async Task<V1Namespace> CreateV1NamespaceAsync(
@@ -91,20 +90,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
         ) {
             return await CreateV1NamespaceAsync(
                 Resources.IIoTK8SResources._00_industrial_iot_namespace,
-                cancellationToken
-            );
-        }
-
-        /// <summary>
-        /// Create namespace for NGINX Ingress Controller.
-        /// </summary>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task<V1Namespace> CreateNGINXNamespaceAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            return await CreateV1NamespaceAsync(
-                Resources.IIoTK8SResources._70_ingress_nginx_namespace,
                 cancellationToken
             );
         }
@@ -166,53 +151,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
             catch (Exception ex) {
                 Log.Error(ex, $"Failed to create configuration for oms agent.");
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Create service account, roles and role bindings for NGINX Ingress Controller components.
-        /// </summary>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task<V1ServiceAccount> SetupNGINXServiceAccountAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            try {
-                // Create ServiceAccount, Role, ClusterRole, RoleBinding and
-                // ClusterRoleBinding for NGINX Ingress controller.
-                var v1ServiceAccount = await CreateV1ServiceAccountAsync(
-                    Resources.IIoTK8SResources._71_nginx_ingress_serviceaccount,
-                    _nginxNamespace,
-                    cancellationToken
-                );
-
-                await CreateV1ClusterRoleAsync(
-                    Resources.IIoTK8SResources._72_nginx_ingress_clusterrole,
-                    cancellationToken
-                );
-
-                await CreateV1RoleAsync(
-                    Resources.IIoTK8SResources._73_nginx_ingress_role,
-                    _nginxNamespace,
-                    cancellationToken
-                );
-
-                await CreateV1RoleBindingAsync(
-                    Resources.IIoTK8SResources._74_nginx_ingress_role_nisa_binding,
-                    _nginxNamespace,
-                    cancellationToken
-                );
-
-                await CreateV1ClusterRoleBindingAsync(
-                    Resources.IIoTK8SResources._75_nginx_ingress_clusterrole_nisa_binding,
-                    cancellationToken
-                );
-
-                return v1ServiceAccount;
-            }
-            catch (Exception ex) {
-                Log.Error(ex, $"Failed to create nginx-ingress-serviceaccount and roles for it");
                 throw;
             }
         }
@@ -705,76 +643,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
 
             throw exception;
-        }
-
-        /// <summary>
-        /// Crete SSL Secret.
-        /// </summary>
-        /// <param name="certPem"></param>
-        /// <param name="privateKeyPem"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task<V1Secret> CreateNGINXDefaultSSLCertificateSecretAsync(
-            string certPem,
-            string privateKeyPem,
-            CancellationToken cancellationToken = default
-        ) {
-            if (string.IsNullOrWhiteSpace(certPem)) {
-                throw new ArgumentNullException(nameof(certPem));
-            }
-            if (string.IsNullOrWhiteSpace(privateKeyPem)) {
-                throw new ArgumentNullException(nameof(privateKeyPem));
-            }
-
-            const string tlsCrt = "tls.crt";
-            const string tlsKey = "tls.key";
-
-            var defaultSslCertificateSecret = await CreateV1SecretAsync(
-                Resources.IIoTK8SResources._45_default_ssl_certificate_secret,
-                _iiotNamespace,
-                new Dictionary<string, string> {
-                    { tlsCrt, certPem },
-                    { tlsKey, privateKeyPem}
-                },
-                cancellationToken
-            );
-
-            return defaultSslCertificateSecret;
-        }
-
-        /// <summary>
-        /// Deploy components of NGINX Ingress Controller.
-        /// </summary>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task DeployNGINXIngressControllerAsync(
-            CancellationToken cancellationToken = default
-        ) {
-            try {
-                await CreateV1ConfigMapAsync(
-                    Resources.IIoTK8SResources._80_nginx_ingress_configuration_configmap,
-                    _nginxNamespace,
-                    cancellationToken: cancellationToken
-                );
-
-                await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._81_nginx_ingress_controller_deployment,
-                    _nginxNamespace,
-                    cancellationToken
-                );
-
-                await CreateV1ServiceAsync(
-                    Resources.IIoTK8SResources._82_ingress_nginx_service,
-                    _nginxNamespace,
-                    cancellationToken
-                );
-
-                Log.Verbose($"Deployed NGINX Ingress Controller to Azure AKS cluster");
-            }
-            catch (Exception ex) {
-                Log.Error(ex, $"Failed to deploy NGINX Ingress Controller to Azure AKS cluster");
-                throw;
-            }
         }
 
         public async Task<V1ServiceAccount> CreateV1ServiceAccountAsync(
