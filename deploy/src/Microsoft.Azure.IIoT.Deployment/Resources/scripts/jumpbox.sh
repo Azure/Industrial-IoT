@@ -114,9 +114,10 @@ chmod +x deb_install.sh
 
 # ./deb_install.sh will fail if run without sudo
 # We need to wrap ./deb_install.sh in retry loop because it sometimes fails to
-# acquire /var/lib/apt/lists/lock lock.
+# acquire /var/lib/dpkg/lock-frontend lock.
 n=0
-until [[ $n -ge 5 ]]
+iterations=20
+until [[ $n -ge $iterations ]]
 do
     ./deb_install.sh && break
     n=$[$n+1]
@@ -125,7 +126,7 @@ do
     sleep 15
 done
 
-if [[ $n -eq 5 ]]; then
+if [[ $n -eq $iterations ]]; then
     echo "Failed to install Azure CLI"
     exit 1
 fi
