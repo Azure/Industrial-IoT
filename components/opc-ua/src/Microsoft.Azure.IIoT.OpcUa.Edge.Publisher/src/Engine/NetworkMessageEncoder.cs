@@ -113,6 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
+                    chunk.Clear();
                     messageSize = 2;
                     var encoded = new NetworkMessageModel {
                         Body = Encoding.UTF8.GetBytes(writer.ToString()),

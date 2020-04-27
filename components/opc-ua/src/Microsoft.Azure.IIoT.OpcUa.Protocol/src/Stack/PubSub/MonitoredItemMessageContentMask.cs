@@ -75,6 +75,11 @@ namespace Opc.Ua {
         /// <summary>
         /// Extra fields included
         /// </summary>
-        ExtensionFields = 0x1000
+        ExtensionFields = 0x1000,
+
+        /// <summary>
+        /// Sequence number included
+        /// </summary>
+        SequenceNumber = 0x2000
     }
 }

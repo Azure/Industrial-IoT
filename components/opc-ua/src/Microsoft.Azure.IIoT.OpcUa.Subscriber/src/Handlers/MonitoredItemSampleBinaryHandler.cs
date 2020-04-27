@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                         DataSetWriterId = (message.ExtensionFields != null &&
                             message.ExtensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
                                 ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
-                        SequenceNumber = 0,
+                        SequenceNumber = message.SequenceNumber,
                         Status = StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
                         MetaDataVersion = "1.0",
                         Timestamp = message.Timestamp,
