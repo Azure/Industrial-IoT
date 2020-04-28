@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
         }
 
         private readonly TestServerFixture _server;
-#if DEBUG
+#if TEST_ALL
         private readonly bool _runAll = true;
 #else
         private readonly bool _runAll = System.Environment.GetEnvironmentVariable("TEST_ALL") != null;
