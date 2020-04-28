@@ -65,8 +65,6 @@ call :retrieve_spec registry
 call :retrieve_spec history
 call :retrieve_spec vault
 call :retrieve_spec events
-rem call :retrieve_spec jobs
-call :retrieve_spec onboarding
 popd
 goto :eof
 
