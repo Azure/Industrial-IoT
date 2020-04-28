@@ -1050,8 +1050,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
 
             var applicationInsightsComponent = applicationInsightsComponentCreationTask.Result;
-            //var webSite = webSiteCreationTask.Result;
-            //var serviceURL = $"https://{webSite.HostNames[0]}";
 
             // Wat for Public IP of AKS before creating IIoTEnvironment
             var aksCluster = aksClusterCreationTask.Result;
