@@ -58,6 +58,18 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         //    throw new NotImplementedException();
         //}
 
+        /// <summary>
+        /// Get definition of default AKS cluster.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="aksApplication"></param>
+        /// <param name="aksApplicationSecret"></param>
+        /// <param name="aksClusterName"></param>
+        /// <param name="sshCertificate"></param>
+        /// <param name="virtualNetworkSubnet"></param>
+        /// <param name="operationalInsightsWorkspace"></param>
+        /// <param name="tags"></param>
+        /// <returns></returns>
         public ManagedClusterInner GetClusterDefinition(
             IResourceGroup resourceGroup,
             Application aksApplication,
@@ -68,6 +80,28 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             Workspace operationalInsightsWorkspace,
             IDictionary<string, string> tags = null
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (aksApplication is null) {
+                throw new ArgumentNullException(nameof(aksApplication));
+            }
+            if (string.IsNullOrWhiteSpace(aksApplicationSecret)) {
+                throw new ArgumentNullException(nameof(aksApplicationSecret));
+            }
+            if (string.IsNullOrWhiteSpace(aksClusterName)) {
+                throw new ArgumentNullException(nameof(aksClusterName));
+            }
+            if (sshCertificate is null) {
+                throw new ArgumentNullException(nameof(sshCertificate));
+            }
+            if (virtualNetworkSubnet is null) {
+                throw new ArgumentNullException(nameof(virtualNetworkSubnet));
+            }
+            if (operationalInsightsWorkspace is null) {
+                throw new ArgumentNullException(nameof(operationalInsightsWorkspace));
+            }
+
             tags ??= new Dictionary<string, string>();
 
             var aksDnsPrefix = aksClusterName + "-dns";
@@ -127,7 +161,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     //PodCidr = "10.244.0.0/16",
                     ServiceCidr = NETWORK_PROFILE_SERVICE_CIDR,
                     DnsServiceIP = NETWORK_PROFILE_DNS_SERVICE_IP,
-                    DockerBridgeCidr = NETWORK_PROFILE_DOCKER_BRIDGE_CIDR
+                    DockerBridgeCidr = NETWORK_PROFILE_DOCKER_BRIDGE_CIDR,
+                    LoadBalancerSku = Management.ContainerService.Fluent.Models.LoadBalancerSku.Standard
                 }
             };
 

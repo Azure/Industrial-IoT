@@ -191,11 +191,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///type: Opaque
         ///data:
-        ///  ####################----------2.6.146----------####################
         ///  # IoT Hub
         ///  PCS_IOTHUB_CONNSTRING: null
         ///  PCS_IOTHUB_EVENTHUBENDPOINT: null
-        ///  PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS: nul [rest of string was truncated]&quot;;.
+        ///  PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS: null
+        ///  PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY: null
+        ///  # Cosmos DB
+        ///  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _10_industrial_iot_env_secret {
             get {
@@ -1064,29 +1066,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to apiVersion: v1
-        ///kind: Secret
-        ///metadata:
-        ///  name: default-ssl-certificate
-        ///  namespace: industrial-iot
-        ///  labels:
-        ///    app.kubernetes.io/name: industrial-iot
-        ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.146
-        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
-        ///type: kubernetes.io/tls
-        ///data:
-        ///  tls.crt: null
-        ///  tls.key: null
-        ///.
-        /// </summary>
-        internal static string _45_default_ssl_certificate_secret {
-            get {
-                return ResourceManager.GetString("_45_default_ssl_certificate_secret", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to apiVersion: networking.k8s.io/v1beta1
         ///kind: Ingress
         ///metadata:
@@ -1110,228 +1089,29 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to apiVersion: v1
-        ///kind: Namespace
+        ///   Looks up a localized string similar to apiVersion: cert-manager.io/v1alpha2
+        ///kind: ClusterIssuer
         ///metadata:
-        ///  name: ingress-nginx
-        ///  labels:
-        ///    app.kubernetes.io/name: ingress-nginx
-        ///    app.kubernetes.io/part-of: ingress-nginx
-        ///.
-        /// </summary>
-        internal static string _70_ingress_nginx_namespace {
-            get {
-                return ResourceManager.GetString("_70_ingress_nginx_namespace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to apiVersion: v1
-        ///kind: ServiceAccount
-        ///metadata:
-        ///  name: nginx-ingress-serviceaccount
-        ///  namespace: ingress-nginx
-        ///  labels:
-        ///    app.kubernetes.io/name: ingress-nginx
-        ///    app.kubernetes.io/part-of: ingress-nginx
-        ///.
-        /// </summary>
-        internal static string _71_nginx_ingress_serviceaccount {
-            get {
-                return ResourceManager.GetString("_71_nginx_ingress_serviceaccount", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to apiVersion: rbac.authorization.k8s.io/v1
-        ///kind: ClusterRole
-        ///metadata:
-        ///  name: nginx-ingress-clusterrole
-        ///  labels:
-        ///    app.kubernetes.io/name: ingress-nginx
-        ///    app.kubernetes.io/part-of: ingress-nginx
-        ///rules:
-        ///  - apiGroups:
-        ///      - &quot;&quot;
-        ///    resources:
-        ///      - configmaps
-        ///      - endpoints
-        ///      - nodes
-        ///      - pods
-        ///      - secrets
-        ///    verbs:
-        ///      - list
-        ///      - watch
-        ///      # Required to get industrial-iot/web-app secret
-        ///      - get
-        ///  # Required to see industrial-iot namespace
-        ///  - apiGroups:
-        ///      - &quot;&quot;
-        ///    resou [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string _72_nginx_ingress_clusterrole {
-            get {
-                return ResourceManager.GetString("_72_nginx_ingress_clusterrole", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to apiVersion: rbac.authorization.k8s.io/v1
-        ///kind: Role
-        ///metadata:
-        ///  name: nginx-ingress-role
-        ///  namespace: ingress-nginx
-        ///  labels:
-        ///    app.kubernetes.io/name: ingress-nginx
-        ///    app.kubernetes.io/part-of: ingress-nginx
-        ///rules:
-        ///  - apiGroups:
-        ///      - &quot;&quot;
-        ///    resources:
-        ///      - configmaps
-        ///      - pods
-        ///      - secrets
-        ///      - namespaces
-        ///    verbs:
-        ///      - get
-        ///  - apiGroups:
-        ///      - &quot;&quot;
-        ///    resources:
-        ///      - configmaps
-        ///    resourceNames:
-        ///      # Defaults to &quot;&lt;election-id&gt;-&lt;ingress-class&gt;&quot;
-        ///      # Here: &quot;&lt;ingress-contro [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string _73_nginx_ingress_role {
-            get {
-                return ResourceManager.GetString("_73_nginx_ingress_role", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to apiVersion: rbac.authorization.k8s.io/v1
-        ///kind: RoleBinding
-        ///metadata:
-        ///  name: nginx-ingress-role-nisa-binding
-        ///  namespace: ingress-nginx
-        ///  labels:
-        ///    app.kubernetes.io/name: ingress-nginx
-        ///    app.kubernetes.io/part-of: ingress-nginx
-        ///roleRef:
-        ///  apiGroup: rbac.authorization.k8s.io
-        ///  kind: Role
-        ///  name: nginx-ingress-role
-        ///subjects:
-        ///  - kind: ServiceAccount
-        ///    name: nginx-ingress-serviceaccount
-        ///    namespace: ingress-nginx
-        ///.
-        /// </summary>
-        internal static string _74_nginx_ingress_role_nisa_binding {
-            get {
-                return ResourceManager.GetString("_74_nginx_ingress_role_nisa_binding", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to apiVersion: rbac.authorization.k8s.io/v1
-        ///kind: ClusterRoleBinding
-        ///metadata:
-        ///  name: nginx-ingress-clusterrole-nisa-binding
-        ///  labels:
-        ///    app.kubernetes.io/name: ingress-nginx
-        ///    app.kubernetes.io/part-of: ingress-nginx
-        ///roleRef:
-        ///  apiGroup: rbac.authorization.k8s.io
-        ///  kind: ClusterRole
-        ///  name: nginx-ingress-clusterrole
-        ///subjects:
-        ///  - kind: ServiceAccount
-        ///    name: nginx-ingress-serviceaccount
-        ///    namespace: ingress-nginx
-        ///.
-        /// </summary>
-        internal static string _75_nginx_ingress_clusterrole_nisa_binding {
-            get {
-                return ResourceManager.GetString("_75_nginx_ingress_clusterrole_nisa_binding", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to apiVersion: v1
-        ///kind: ConfigMap
-        ///metadata:
-        ///  name: nginx-ingress-configuration
-        ///  namespace: ingress-nginx
-        ///data:
-        ///  compute-full-forward-for: &quot;true&quot;
-        ///  use-forward-headers: &quot;true&quot;
-        ///  proxy-buffer-size: &quot;32k&quot;
-        ///  client-header-buffer-size: &quot;32k&quot;
-        ///.
-        /// </summary>
-        internal static string _80_nginx_ingress_configuration_configmap {
-            get {
-                return ResourceManager.GetString("_80_nginx_ingress_configuration_configmap", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to apiVersion: apps/v1
-        ///kind: Deployment
-        ///metadata:
-        ///  name: nginx-ingress-controller
-        ///  namespace: ingress-nginx
-        ///  labels:
-        ///    app.kubernetes.io/name: ingress-nginx
-        ///    app.kubernetes.io/part-of: ingress-nginx
+        ///  name: letsencrypt-prod
         ///spec:
-        ///  replicas: 2
-        ///  selector:
-        ///    matchLabels:
-        ///      app.kubernetes.io/name: ingress-nginx
-        ///      app.kubernetes.io/part-of: ingress-nginx
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        ///        app.kubernetes.io/name: ingress-nginx
-        ///        app.kubernetes.io/part-of: ingress-nginx
-        ///      annotations:
-        ///        promet [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string _81_nginx_ingress_controller_deployment {
-            get {
-                return ResourceManager.GetString("_81_nginx_ingress_controller_deployment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to kind: Service
-        ///apiVersion: v1
-        ///metadata:
-        ///  name: ingress-nginx
-        ///  namespace: ingress-nginx
-        ///  labels:
-        ///    app.kubernetes.io/name: ingress-nginx
-        ///    app.kubernetes.io/part-of: ingress-nginx
-        ///spec:
-        ///  externalTrafficPolicy: Local
-        ///  type: LoadBalancer
-        ///  selector:
-        ///    app.kubernetes.io/name: ingress-nginx
-        ///    app.kubernetes.io/part-of: ingress-nginx
-        ///  ports:
-        ///    # - name: http
-        ///    #   port: 80
-        ///    #   targetPort: http
-        ///    - name: https
-        ///      port: 443
-        ///      targetPort: https
+        ///  acme:
+        ///    # The ACME server URL
+        ///    server: https://acme-v02.api.letsencrypt.org/directory
+        ///    # Email address used for ACME registration
+        ///    # email:
+        ///    # Name of a secret used to store the ACME account private key
+        ///    privateKeySecretRef:
+        ///      name: letsencrypt-prod
+        ///    # Enable the HTTP-01 challenge provider
+        ///    solvers:
+        ///    - http01:
+        ///        ingress:
+        ///          class: nginx
         ///.
         /// </summary>
-        internal static string _82_ingress_nginx_service {
+        internal static string _90_letsencrypt_cluster_issuer {
             get {
-                return ResourceManager.GetString("_82_ingress_nginx_service", resourceCulture);
+                return ResourceManager.GetString("_90_letsencrypt_cluster_issuer", resourceCulture);
             }
         }
     }
