@@ -60,25 +60,25 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
 
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource, IEnumerable<string> scopes) {
-            try {
-                var authenticationState = await GetAuthenticationStateAsync();
-                if (authenticationState?.User == null || !authenticationState.User.Identity.IsAuthenticated) {
-                    return null;
+            var authenticationState = await GetAuthenticationStateAsync();
+            if (authenticationState?.User == null || !authenticationState.User.Identity.IsAuthenticated) {
+                return null;
+            }
+            var exceptions = new List<Exception>();
+            foreach (var client in _clients) {
+                try {
+                    // TODO: Compare provider name and identity and only check those that match.
+                    var result = await client.GetUserTokenAsync(authenticationState.User, scopes);
+                    if (result?.RawToken != null) {
+                        return result;
+                    }
                 }
-                foreach (var client in _clients) {
-                    try {
-                        // TODO: Compare provider name and identity and only check those that match.
-                        var result = await client.GetUserTokenAsync(authenticationState.User, scopes);
-                        if (result?.RawToken != null) {
-                            return result;
-                        }
-                    }
-                    catch {
-                        continue;
-                    }
+                catch (Exception ex) {
+                    exceptions.Add(ex);
                 }
             }
-            catch {
+            if (exceptions.Count != 0) {
+                throw new AggregateException(exceptions);
             }
             return null;
         }

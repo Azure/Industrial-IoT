@@ -40,6 +40,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
+            var exceptions = new List<Exception>();
             foreach (var (config, provider) in Get(resource)) {
                 try {
                     var token = await provider.KeyVaultTokenCallback(
@@ -58,8 +59,12 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                     _logger.Debug(ex,
                         "Failed to retrieve token for {resource} using {config}",
                         resource, config.GetName());
+                    exceptions.Add(ex);
                     continue;
                 }
+            }
+            if (exceptions.Count != 0) {
+                throw new AggregateException(exceptions);
             }
             return null;
         }

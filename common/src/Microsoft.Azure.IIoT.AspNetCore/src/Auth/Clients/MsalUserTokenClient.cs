@@ -61,6 +61,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             if (!schemes.Any(s => s.Name == Provider)) {
                 return null;
             }
+            var exceptions = new List<Exception>();
             foreach (var config in _config.Query(resource, Provider)) {
                 var decorator = CreateConfidentialClientApplication(_ctx.HttpContext.User,
                     config, CreateRedirectUrl());
@@ -74,27 +75,43 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                         return result.ToTokenResult();
                     }
                 }
-                catch (MsalUiRequiredException e) {
-                    var validatedToken = (JwtSecurityToken)_ctx.HttpContext?.Items["pass_through"];
-                    if (validatedToken != null) {
-                        // to get a token for a web api on behalf of the user inside a web api.
-                        // In the case the token is a JWE (encrypted token), we use the decrypted token.
-                        var accessToken = validatedToken.InnerToken == null ?
-                            validatedToken.RawData : validatedToken.InnerToken.RawData;
+                catch (MsalUiRequiredException) {
+                    // Expected if not in cache - continue down
+                }
+                catch (Exception e) {
+                    _logger.Debug(e, "Failed to get token silently for {resource} with {config}.",
+                        resource, config.GetName());
+                    exceptions.Add(e);
+                    continue;
+                }
 
+                var validatedToken = (JwtSecurityToken)_ctx.HttpContext?.Items["pass_through"];
+                if (validatedToken != null) {
+                    // to get a token for a web api on behalf of the user inside a web api.
+                    // In the case the token is a JWE (encrypted token), we use the decrypted token.
+                    var accessToken = validatedToken.InnerToken == null ?
+                        validatedToken.RawData : validatedToken.InnerToken.RawData;
+
+                    try {
                         var result = await decorator.Client.AcquireTokenOnBehalfOf(
-                            GetScopes(config, scopes), new UserAssertion(accessToken))
-                            .ExecuteAsync();
+                            GetScopes(config, scopes), new UserAssertion(accessToken)).ExecuteAsync();
                         _logger.Information(
                             "Successfully acquired on behalf token for {resource} with {config}.",
                                 resource, config.GetName());
                         return result.ToTokenResult();
                     }
-                    else {
-                        _logger.Debug(e, "Failed to get token for {resource} with {config}.",
-                            resource, config.GetName());
+                    catch (Exception ex) {
+                        exceptions.Add(ex);
+                        continue;
                     }
                 }
+                else {
+                    _logger.Debug("Could not find token for {resource} with {config} in http context.",
+                        resource, config.GetName());
+                }
+            }
+            if (exceptions.Count != 0) {
+                throw new AggregateException(exceptions);
             }
             return null;
         }

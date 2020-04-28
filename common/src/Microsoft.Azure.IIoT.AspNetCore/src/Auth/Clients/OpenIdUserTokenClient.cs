@@ -93,6 +93,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 return token;
             }
 
+            var exceptions = new List<Exception>();
             foreach (var config in _config.Query(resource, AuthProvider.AuthService)) {
                 try {
                     _logger.Debug("Token for user {user} needs refreshing.", userName);
@@ -117,8 +118,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 catch (Exception e) {
                     _logger.Debug(e, "Failed to get token for {resource} with {config}.",
                         resource, config.GetName());
+                    exceptions.Add(e);
                     continue;
                 }
+            }
+            if (exceptions.Count != 0) {
+                throw new AggregateException(exceptions);
             }
             return null;
         }

@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
     using Serilog;
 
     /// <summary>
-    /// Token provider aggregate token source - combines token clients into a
+    /// Token client aggregator token source - combines token clients into a
     /// source for tokens for a particular resource.
     /// </summary>
     public class TokenClientAggregateSource : ITokenSource {
@@ -62,14 +62,25 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <inheritdoc/>
         public virtual async Task<TokenResultModel> GetTokenAsync(
             IEnumerable<string> scopes = null) {
+            var exceptions = new List<Exception>();
             foreach (var client in _clients) {
-                _logger.Debug("Try acquiring token using {provider}.", client.GetType());
-                var token = await Try.Async(() => client.GetTokenForAsync(Resource, scopes));
-                if (token != null) {
-                    _logger.Debug("Successfully acquired token using {provider}.",
-                        client.GetType());
-                    return token;
+                _logger.Debug("Try acquiring token for {resource} using {client}.",
+                    Resource, client.GetType());
+                try {
+                    var token = await client.GetTokenForAsync(Resource, scopes);
+                    if (token != null) {
+                        _logger.Debug("Successfully acquired token for {resource} using {client}.",
+                            Resource, client.GetType());
+                        return token;
+                    }
                 }
+                catch (Exception ex) {
+                    exceptions.Add(ex);
+                }
+            }
+            if (exceptions.Count != 0) {
+                var aex = new AggregateException(exceptions).Flatten();
+                _logger.Error(aex, "Failed to acquire a token for {resource}.", Resource);
             }
             return null;
         }
