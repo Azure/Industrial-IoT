@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         public const string STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME = "iothub-default";
         public const string STORAGE_ACCOUNT_DATAPROTECTION_CONTAINER_NAME = "dataprotection";
+        public const string STORAGE_ACCOUNT_DEPLOYMENT_SCRIPTS_CONTAINER_NAME = "deployment-scripts";
         public const string STORAGE_ACCOUNT_POWERBI_CONTAINER_NAME = "powerbi";
 
         public const string POWERBI_ROOT_FOLDER = "IIoTDataFlow";

@@ -387,17 +387,21 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             }
         }
 
+        /// <summary>
+        /// Update Redirect URIs of client application with URIs based on provided applicationURL.
+        /// </summary>
+        /// <param name="applicationURL"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task UpdateClientApplicationRedirectUrisAsync(
             string applicationURL,
             CancellationToken cancellationToken = default
         ) {
-            if (null == applicationURL) {
-                throw new ArgumentNullException("applicationURL");
+            if (string.IsNullOrWhiteSpace(applicationURL)) {
+                throw new ArgumentNullException(nameof(applicationURL));
             }
 
-            if (applicationURL.Trim() == string.Empty) {
-                throw new ArgumentException("Input cannot be empty", "applicationURL");
-            }
+            applicationURL = applicationURL.Trim();
 
             if (!applicationURL.StartsWith("https://") && !applicationURL.StartsWith("http://")) {
                 applicationURL = $"https://{applicationURL}";
@@ -411,26 +415,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 $"application to point to '{applicationURL}'");
 
             var redirectUris = new List<string> {
-                $"{applicationURL}",
-                $"{applicationURL}registry/swagger/",
                 $"{applicationURL}registry/swagger/oauth2-redirect.html",
-                $"{applicationURL}twin/swagger/",
                 $"{applicationURL}twin/swagger/oauth2-redirect.html",
-                $"{applicationURL}history/swagger/",
                 $"{applicationURL}history/swagger/oauth2-redirect.html",
-                $"{applicationURL}vault/swagger/",
                 $"{applicationURL}vault/swagger/oauth2-redirect.html",
-                $"{applicationURL}onboarding/swagger/",
                 $"{applicationURL}onboarding/swagger/oauth2-redirect.html",
-                $"{applicationURL}publisher/swagger/",
                 $"{applicationURL}publisher/swagger/oauth2-redirect.html",
-                $"{applicationURL}jobs/swagger/",
                 $"{applicationURL}jobs/swagger/oauth2-redirect.html",
-                $"{applicationURL}configuration/swagger/",
                 $"{applicationURL}configuration/swagger/oauth2-redirect.html",
-                $"{applicationURL}edge/jobs/swagger/",
                 $"{applicationURL}edge/jobs/swagger/oauth2-redirect.html",
-                $"{applicationURL}edge/manage/swagger/",
                 $"{applicationURL}edge/manage/swagger/oauth2-redirect.html",
                 $"{applicationURL}frontend/signin-oidc",
             };
