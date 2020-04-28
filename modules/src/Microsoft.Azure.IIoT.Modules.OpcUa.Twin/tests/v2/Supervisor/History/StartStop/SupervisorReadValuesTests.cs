@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
 #if DEBUG
         private readonly bool _runAll = true;
 #else
-        private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+        private readonly bool _runAll = System.Environment.GetEnvironmentVariable("TEST_ALL") != null;
 #endif
 
 
