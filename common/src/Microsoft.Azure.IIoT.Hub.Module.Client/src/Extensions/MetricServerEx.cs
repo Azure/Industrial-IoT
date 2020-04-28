@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 logger.Information("Prometheus metric server started.");
             } 
             else {
-                logger.Information("Metrics Collection is disabled. Not starting prometheus server.");
+                logger.Information("Metrics Collection is disabled. Not starting prometheus metric server.");
             }
 
         }
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public static void StopWhenEnabled(this MetricServer server, IModuleConfig config, Serilog.ILogger logger) {
             if (config.EnableMetrics) {
                 server.Stop(); ;
-                logger.Information("Stopped prometheus server");
+                logger.Information("Stopped prometheus metric server");
             }
         }
     }

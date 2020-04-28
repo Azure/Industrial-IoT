@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     sw.Stop();
                     _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
                 }
-                kMessagesSent.Set(messagesCount);
+                kMessagesSent.Set(SentMessagesCount);
                 SentMessagesCount += messagesCount;
             }
             catch (Exception ex) {

@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             _device = _hub.GetRegistrationAsync(twin.Id, twin.ModuleId).Result;
             _running = false;
             var configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string> { { "EnableMetrics", "false" } })
+                .AddInMemoryCollection(new Dictionary<string, string> {{"EnableMetrics", "false"}})
                 .Build();
             _module = new ModuleProcess(configuration, this);
             var tcs = new TaskCompletionSource<bool>();
