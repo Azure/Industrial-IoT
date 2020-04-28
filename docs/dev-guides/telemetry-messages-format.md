@@ -160,26 +160,186 @@ Enhanced compatibility with new version of the IIoT Platform's telemetry process
     "NodeId": "http://test.org/UA/Data/#i=10845",
     "EndpointUrl": "opc.tcp://172.17.126.1:51210/UA/Server",
     "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
-    "DisplayName": "SByteValue",
-    "Timestamp": "2020-03-25T00:33:19.8346363Z",
-    "Status": "Good",
+    "Timestamp": "2020-04-28T11:46:31.8062202Z",
     "Value": {
-      "Value": 8,
-      "SourceTimestamp": "2020-03-25T00:33:19.6377132Z",
-      "ServerTimestamp": "2020-03-25T00:33:19.6377132Z"
+      "Value": 111,
+      "SourceTimestamp": "2020-04-28T11:46:31.5911136Z",
+      "ServerTimestamp": "2020-04-28T11:46:31.5911136Z"
     },
+    "SequenceNumber": 5,
     "ExtensionFields": {
-      "EndpointId": "uat46f9f8f82fd5c1b42a7de31b5dc2c11ef418a62f",
-      "PublisherId": "uat46f9f8f82fd5c1b42a7de31b5dc2c11ef418a62f",
-      "DataSetWriterId": "uat46f9f8f82fd5c1b42a7de31b5dc2c11ef418a62f"
+      "PublisherId": "LegacyPublisher_IndustrialHost01_opcpublisher",
+      "DataSetWriterId": "opc.tcp://172.17.126.1:51210/UA/Server"
     }
   },
-  "enqueuedTime": "2020-03-25T00:33:19.878Z",
+  "enqueuedTime": "2020-04-28T11:46:31.935Z",
   "properties": {
-    "iothub-creation-time-utc": "2020-03-25T00:33:19.8817621Z",
+    "iothub-creation-time-utc": "2020-04-28T11:46:31.8078405Z",
     "$$ContentType": "application/x-monitored-item-json-v1",
+    "iothub-message-schema": "application/opcua+uajson",
     "$$ContentEncoding": "utf-8",
-    "$$CreationTimeUtc": "03/25/20 12:33:19 AM"
+    "$$CreationTimeUtc": "04/28/20 11:46:31 AM"
+  }
+}
+
+
+{
+  "body": {
+    "NodeId": "http://opcfoundation.org/Quickstarts/ReferenceApplications#s=%2fStatic%2fAll+Profiles%2fScalar%2fAccessLevel_CurrentRead_NotUser",
+    "EndpointUrl": "opc.tcp://172.17.126.1:51210/UA/Server",
+    "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+    "Timestamp": "2020-04-28T11:47:54.8324454Z",
+    "Value": {
+      "StatusCode": {
+        "Symbol": "BadUserAccessDenied",
+        "Code": 2149515264
+      },
+      "ServerTimestamp": "2020-04-28T11:46:26.8543789Z"
+    },
+    "SequenceNumber": 84,
+    "ExtensionFields": {
+      "PublisherId": "LegacyPublisher_IndustrialHost01_opcpublisher",
+      "DataSetWriterId": "opc.tcp://172.17.126.1:51210/UA/Server"
+    }
+  },
+  "enqueuedTime": "2020-04-28T11:47:55.882Z",
+  "properties": {
+    "iothub-creation-time-utc": "2020-04-28T11:47:55.6085898Z",
+    "$$ContentType": "application/x-monitored-item-json-v1",
+    "iothub-message-schema": "application/opcua+uajson",
+    "$$ContentEncoding": "utf-8",
+    "$$CreationTimeUtc": "04/28/20 11:47:55 AM"
+  }
+}
+```
+
+Message example with batching/bulk mode enabled  Publisher to be started in standalone mode with *--bs=5* argument, where 5 is the number of datachanges to be batched.
+
+```json
+{
+  "body": [
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10845",
+      "EndpointUrl": "opc.tcp://172.17.126.1:51210/UA/Server",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Timestamp": "2020-04-28T11:57:09.0454051Z",
+      "Value": {
+        "Value": 44,
+        "SourceTimestamp": "2020-04-28T11:57:08.5422702Z",
+        "ServerTimestamp": "2020-04-28T11:57:08.5422702Z"
+      },
+      "SequenceNumber": 261,
+      "ExtensionFields": {
+        "PublisherId": "LegacyPublisher_IndustrialHost01_opcpublisher",
+        "DataSetWriterId": "opc.tcp://172.17.126.1:51210/UA/Server"
+      }
+    },
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10845",
+      "EndpointUrl": "opc.tcp://172.17.126.1:51210/UA/Server",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Timestamp": "2020-04-28T11:57:09.9594358Z",
+      "Value": {
+        "Value": -106,
+        "SourceTimestamp": "2020-04-28T11:57:09.5435278Z",
+        "ServerTimestamp": "2020-04-28T11:57:09.5435278Z"
+      },
+      "SequenceNumber": 262,
+      "ExtensionFields": {
+        "PublisherId": "LegacyPublisher_IndustrialHost01_opcpublisher",
+        "DataSetWriterId": "opc.tcp://172.17.126.1:51210/UA/Server"
+      }
+    },
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10845",
+      "EndpointUrl": "opc.tcp://172.17.126.1:51210/UA/Server",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Timestamp": "2020-04-28T11:57:10.9769455Z",
+      "Value": {
+        "Value": 46,
+        "SourceTimestamp": "2020-04-28T11:57:10.5454371Z",
+        "ServerTimestamp": "2020-04-28T11:57:10.5454371Z"
+      },
+      "SequenceNumber": 263,
+      "ExtensionFields": {
+        "PublisherId": "LegacyPublisher_IndustrialHost01_opcpublisher",
+        "DataSetWriterId": "opc.tcp://172.17.126.1:51210/UA/Server"
+      }
+    },
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10845",
+      "EndpointUrl": "opc.tcp://172.17.126.1:51210/UA/Server",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Timestamp": "2020-04-28T11:57:11.9602092Z",
+      "Value": {
+        "Value": 58,
+        "SourceTimestamp": "2020-04-28T11:57:11.5456693Z",
+        "ServerTimestamp": "2020-04-28T11:57:11.5456693Z"
+      },
+      "SequenceNumber": 264,
+      "ExtensionFields": {
+        "PublisherId": "LegacyPublisher_IndustrialHost01_opcpublisher",
+        "DataSetWriterId": "opc.tcp://172.17.126.1:51210/UA/Server"
+      }
+    },
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10845",
+      "EndpointUrl": "opc.tcp://172.17.126.1:51210/UA/Server",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Timestamp": "2020-04-28T11:57:13.0102308Z",
+      "Value": {
+        "Value": 38,
+        "SourceTimestamp": "2020-04-28T11:57:12.5488694Z",
+        "ServerTimestamp": "2020-04-28T11:57:12.5488694Z"
+      },
+      "SequenceNumber": 265,
+      "ExtensionFields": {
+        "PublisherId": "LegacyPublisher_IndustrialHost01_opcpublisher",
+        "DataSetWriterId": "opc.tcp://172.17.126.1:51210/UA/Server"
+      }
+    },
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10218",
+      "EndpointUrl": "opc.tcp://172.17.126.1:51210/UA/Server",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Timestamp": "2020-04-28T11:57:13.0102308Z",
+      "Value": {
+        "Value": 185,
+        "SourceTimestamp": "2020-04-28T08:00:12.3519286Z",
+        "ServerTimestamp": "2020-04-28T11:52:45.9710681Z"
+      },
+      "SequenceNumber": 265,
+      "ExtensionFields": {
+        "PublisherId": "LegacyPublisher_IndustrialHost01_opcpublisher",
+        "DataSetWriterId": "opc.tcp://172.17.126.1:51210/UA/Server"
+      }
+    },
+    {
+      "NodeId": "http://opcfoundation.org/Quickstarts/ReferenceApplications#s=%2fStatic%2fAll+Profiles%2fScalar%2fAccessLevel_CurrentRead_NotUser",
+      "EndpointUrl": "opc.tcp://172.17.126.1:51210/UA/Server",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Timestamp": "2020-04-28T11:57:13.0102308Z",
+      "Value": {
+        "StatusCode": {
+          "Symbol": "BadUserAccessDenied",
+          "Code": 2149515264
+        },
+        "ServerTimestamp": "2020-04-28T11:52:45.9710681Z"
+      },
+      "SequenceNumber": 265,
+      "ExtensionFields": {
+        "PublisherId": "LegacyPublisher_IndustrialHost01_opcpublisher",
+        "DataSetWriterId": "opc.tcp://172.17.126.1:51210/UA/Server"
+      }
+    }
+  ],
+  "enqueuedTime": "2020-04-28T11:57:13.178Z",
+  "properties": {
+    "iothub-creation-time-utc": "2020-04-28T11:57:13.0189396Z",
+    "$$ContentType": "application/x-monitored-item-json-v1",
+    "iothub-message-schema": "application/ua+json",
+    "$$ContentEncoding": "utf-8",
+    "$$CreationTimeUtc": "04/28/20 11:57:13 AM"
   }
 }
 ```
@@ -193,19 +353,118 @@ Compatible with the Legacy IIoT Platform respective Connected Factory 1.0.Publis
   "body": {
     "NodeId": "http://test.org/UA/Data/#i=10846",
     "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
-    "DisplayName": "ByteValue",
-    "Status": "Good",
     "Value": {
       "Value": 116,
-      "SourceTimestamp": "2020-03-25T00:48:31.3113861Z"
+      "SourceTimestamp": "2020-04-28T11:41:32.3259078Z"
     }
   },
-  "enqueuedTime": "2020-03-25T00:48:31.589Z",
+  "enqueuedTime": "2020-04-28T11:41:33.318Z",
   "properties": {
-    "iothub-creation-time-utc": "2020-03-25T00:48:31.5485509Z",
+    "iothub-creation-time-utc": "2020-04-28T11:41:33.0261813Z",
     "$$ContentType": "application/x-monitored-item-json-v1",
+    "iothub-message-schema": "application/opcua+uajson",
     "$$ContentEncoding": "utf-8",
-    "$$CreationTimeUtc": "03/25/20 12:48:31 AM"
+    "$$CreationTimeUtc": "04/28/20 11:41:33 AM"
+  }
+}
+
+
+{
+  "body": {
+    "NodeId": "http://opcfoundation.org/Quickstarts/ReferenceApplications#s=%2fStatic%2fAll+Profiles%2fScalar%2fAccessLevel_CurrentRead_NotUser",
+    "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+    "Value": {
+      "StatusCode": {
+        "Symbol": "BadUserAccessDenied",
+        "Code": 2149515264
+      },
+      "SourceTimestamp": "2020-04-28T11:41:31.7725401Z"
+    }
+  },
+  "enqueuedTime": "2020-04-28T11:41:32.896Z",
+  "properties": {
+    "iothub-creation-time-utc": "2020-04-28T11:41:32.5830272Z",
+    "$$ContentType": "application/x-monitored-item-json-v1",
+    "iothub-message-schema": "application/opcua+uajson",
+    "$$ContentEncoding": "utf-8",
+    "$$CreationTimeUtc": "04/28/20 11:41:32 AM"
+  }
+}
+
+```
+
+Message example with batching/bulk mode enabled  Publisher to be started in standalone mode with *--bs=5* argument, where 5 is the number of data-changes to be batched.
+
+```json
+{
+  "body": [
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10845",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Value": {
+        "Value": -41,
+        "SourceTimestamp": "2020-04-28T12:06:56.292833Z"
+      }
+    },
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10845",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Value": {
+        "Value": -48,
+        "SourceTimestamp": "2020-04-28T12:06:57.2936057Z"
+      }
+    },
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10845",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Value": {
+        "Value": 73,
+        "SourceTimestamp": "2020-04-28T12:06:58.293828Z"
+      }
+    },
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10845",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Value": {
+        "Value": 113,
+        "SourceTimestamp": "2020-04-28T12:06:59.2945039Z"
+      }
+    },
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10218",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Value": {
+        "Value": 185,
+        "SourceTimestamp": "2020-04-28T12:07:00.255784Z"
+      }
+    },
+    {
+      "NodeId": "http://opcfoundation.org/Quickstarts/ReferenceApplications#s=%2fStatic%2fAll+Profiles%2fScalar%2fAccessLevel_CurrentRead_NotUser",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Value": {
+        "StatusCode": {
+          "Symbol": "BadUserAccessDenied",
+          "Code": 2149515264
+        },
+        "SourceTimestamp": "2020-04-28T12:07:00.255784Z"
+      }
+    },
+    {
+      "NodeId": "http://test.org/UA/Data/#i=10845",
+      "ApplicationUri": "urn:IndustrialHost01:OpcUaServer",
+      "Value": {
+        "Value": 119,
+        "SourceTimestamp": "2020-04-28T12:07:00.3068881Z"
+      }
+    }
+  ],
+  "enqueuedTime": "2020-04-28T12:07:01.347Z",
+  "properties": {
+    "iothub-creation-time-utc": "2020-04-28T12:07:01.2390837Z",
+    "$$ContentType": "application/x-monitored-item-json-v1",
+    "iothub-message-schema": "application/ua+json",
+    "$$ContentEncoding": "utf-8",
+    "$$CreationTimeUtc": "04/28/20 12:07:01 PM"
   }
 }
 ```
