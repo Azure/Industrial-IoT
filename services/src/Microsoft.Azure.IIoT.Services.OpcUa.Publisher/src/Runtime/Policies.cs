@@ -15,16 +15,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth {
     public static class Policies {
 
         /// <summary>
-        /// Allowed to read and browse
+        /// Allowed to read
         /// </summary>
-        public const string CanBrowse =
-            nameof(CanBrowse);
+        public const string CanRead =
+            nameof(CanRead);
 
         /// <summary>
-        /// Allowed to write or execute
+        /// Allowed to update or delete
         /// </summary>
-        public const string CanControl =
-            nameof(CanControl);
+        public const string CanWrite =
+            nameof(CanWrite);
 
         /// <summary>
         /// Allowed to request publish
@@ -44,11 +44,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth {
                         context.User.IsInRole(Roles.Admin) ||
                         context.User.IsInRole(Roles.Sign) ||
                         context.User.HasClaim(c => c.Type == Claims.Execute);
-                case CanControl:
+                case CanWrite:
                     return context =>
                         context.User.IsInRole(Roles.Write) ||
                         context.User.IsInRole(Roles.Admin) ||
-                        context.User.IsInRole(Roles.Sign) ||
                         context.User.HasClaim(c => c.Type == Claims.Execute);
                 default:
                     return null;

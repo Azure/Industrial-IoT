@@ -5,9 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.Api.Runtime;
-    using Microsoft.Azure.IIoT.Api.Jobs.Clients;
-    using Microsoft.Azure.IIoT.Api.Jobs;
-    using Microsoft.Azure.IIoT.Api.Jobs.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
@@ -87,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<JobsServiceClient>()
+            builder.RegisterType<PublisherJobServiceClient>()
                 .AsImplementedInterfaces();
 
             // ... with client event callbacks
@@ -130,7 +127,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             _history = _scope.Resolve<IHistoryServiceApi>();
             _publisher = _scope.Resolve<IPublisherServiceApi>();
             _vault = _scope.Resolve<IVaultServiceApi>();
-            _jobs = _scope.Resolve<IJobsServiceApi>();
+            _jobs = _scope.Resolve<IPublisherJobServiceApi>();
             _serializer = _scope.Resolve<IJsonSerializer>();
         }
 
@@ -3575,7 +3572,7 @@ Commands and Options
 
         private readonly ILifetimeScope _scope;
         private readonly ITwinServiceApi _twin;
-        private readonly IJobsServiceApi _jobs;
+        private readonly IPublisherJobServiceApi _jobs;
         private readonly IPublisherServiceApi _publisher;
         private readonly IRegistryServiceApi _registry;
         private readonly IHistoryServiceApi _history;

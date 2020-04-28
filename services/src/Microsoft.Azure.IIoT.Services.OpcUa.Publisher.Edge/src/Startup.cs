@@ -1,43 +1,36 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Runtime;
+    using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
+    using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients;
-    using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
-    using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
-    using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
-    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
+    using Microsoft.AspNetCore.Authentication;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Hosting;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.OpenApi.Models;
     using Autofac;
+    using Prometheus;
     using Autofac.Extensions.DependencyInjection;
     using System;
     using ILogger = Serilog.ILogger;
-    using Prometheus;
 
     /// <summary>
     /// Webservice startup
@@ -97,19 +90,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             services.AddCors();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
-
             services.AddHttpsRedirect();
-            services.AddAuthentication()
-                .AddJwtBearerProvider(AuthProvider.AzureAD)
-                .AddJwtBearerProvider(AuthProvider.AuthService);
-            services.AddAuthorizationPolicies(
-                Policies.RoleMapping,
-                Policies.CanRead,
-                Policies.CanWrite,
-                Policies.CanPublish);
+            // services.AddJwtBearerAuthentication(); // TODO
+            services.AddAuthorizationPolicies();
 
             // TODO: Remove http client factory and use
             // services.AddHttpClient();
+
+            services.AddHttpContextAccessor();
+            services.AddAuthentication("DeviceTokenAuth")
+                .AddScheme<AuthenticationSchemeOptions, IdentityTokenAuthHandler>(
+                    "DeviceTokenAuth", null);
 
             // Add controllers as services so they'll be resolved.
             services.AddControllers().AddSerializers();
@@ -132,7 +123,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             app.UseRouting();
             app.EnableCors();
 
-            app.UseJwtBearerAuthentication();
+            // app.UseJwtBearerAuthentication(); // TODO
             app.UseAuthorization();
             app.UseHttpsRedirect();
 
@@ -154,11 +145,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
         }
 
         /// <summary>
-        /// Autofac configuration.
+        /// Configure Autofac container
         /// </summary>
         /// <param name="builder"></param>
-        public virtual void ConfigureContainer(ContainerBuilder builder) {
-
+        public void ConfigureContainer(ContainerBuilder builder) {
             // Register service info and configuration interfaces
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces();
@@ -187,46 +177,26 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces();
 
-            // Twin services for browsing and tag selection ...
-            builder.RegisterType<TwinServicesApiAdapter>()
+            // TODO: Use job database service api
+            builder.RegisterType<CosmosDbServiceClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<TwinServiceClient>()
-                .AsImplementedInterfaces();
-
-            // Registry services to lookup endpoints.
-            builder.RegisterType<RegistryServicesApiAdapter>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces();
-
-            // Create Publish jobs using ...
-            builder.RegisterType<PublisherJobService>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublisherJobSerializer>()
-                .AsImplementedInterfaces();
-
-            // ... job services and dependencies
-            builder.RegisterType<DefaultJobService>()
-                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<JobDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<WorkerDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<CosmosDbServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DefaultJobService>()
+            builder.RegisterType<DefaultJobOrchestrator>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<IoTHubJobConfigurationHandler>()
+            builder.RegisterType<DefaultDemandMatcher>()
+                .AsImplementedInterfaces();
+
+            builder.RegisterType<IdentityTokenValidator>()
                 .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces();
-
-            builder.RegisterType<IoTHubConfigurationClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<IoTHubPublisherDeployment>()
+            builder.RegisterType<TwinIdentityTokenStore>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // ... and auto start
+            // Activate all hosts
             builder.RegisterType<HostAutoStart>()
                 .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();

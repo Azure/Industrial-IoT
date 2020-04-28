@@ -199,18 +199,12 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> OPC publisher service endpoint url </summary>
         public const string PCS_PUBLISHER_SERVICE_URL =
             "PCS_PUBLISHER_SERVICE_URL";
+        /// <summary> Publisher orchestrator service endpoint url </summary>
+        public const string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL =
+            "PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL";
         /// <summary> OPC history service endpoint url </summary>
         public const string PCS_HISTORY_SERVICE_URL =
             "PCS_HISTORY_SERVICE_URL";
-        /// <summary> Jobs service endpoint url </summary>
-        public const string PCS_JOBS_SERVICE_URL =
-            "PCS_JOBS_SERVICE_URL";
-        /// <summary> OPC onboarding service endpoint url </summary>
-        public const string PCS_ONBOARDING_SERVICE_URL =
-            "PCS_ONBOARDING_SERVICE_URL";
-        /// <summary> Job orchestrator service endpoint url </summary>
-        public const string PCS_JOB_ORCHESTRATOR_SERVICE_URL =
-            "PCS_JOB_ORCHESTRATOR_SERVICE_URL";
         /// <summary> Events service endpoint url </summary>
         public const string PCS_EVENTS_SERVICE_URL =
             "PCS_EVENTS_SERVICE_URL";
@@ -253,15 +247,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service URL path base for gateway service </summary>
         public const string PCS_GATEWAY_SERVICE_PATH_BASE =
             "PCS_GATEWAY_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for jobs service </summary>
-        public const string PCS_JOBS_SERVICE_PATH_BASE =
-            "PCS_JOBS_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for OPC onboarding service </summary>
-        public const string PCS_ONBOARDING_SERVICE_PATH_BASE =
-            "PCS_ONBOARDING_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for job orchestrator service </summary>
-        public const string PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE =
-            "PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for publisher orchestrator service </summary>
+        public const string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE =
+            "PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for frontend app </summary>
         public const string PCS_FRONTEND_APP_SERVICE_PATH_BASE =
             "PCS_FRONTEND_APP_SERVICE_PATH_BASE";

@@ -11,11 +11,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Agent.Framework;
-    using Microsoft.Azure.IIoT.Api.Jobs.Clients;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Serializers;
     using System;
@@ -165,7 +165,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 builder.RegisterType<PerDependencyClientAccessor>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
                 // Cloud job manager
-                builder.RegisterType<JobOrchestratorClient>()
+                builder.RegisterType<PublisherOrchestratorClient>()
                     .AsImplementedInterfaces();
 
                 // ... plus controllers

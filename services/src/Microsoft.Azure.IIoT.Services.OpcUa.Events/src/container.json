@@ -1,4 +1,4 @@
 {
-    "name": "iot/industrial-iot-signalr-hub",
+    "name": "iot/industrial-iot-events-service",
     "exposes": "9050"
 }
