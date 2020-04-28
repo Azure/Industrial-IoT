@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
             () => !WithAuth || !string.IsNullOrEmpty(OpenApiAppId))); // Disable with auth but no appid
         /// <summary>Auth enabled</summary>
         public bool WithAuth => GetBoolOrDefault(kAuth_RequiredKey,
-            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_RQUIRED,
+            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_REQUIRED,
             () => !string.IsNullOrEmpty(OpenApiAppId))); // Disable if no appid
         /// <summary>Generate swagger.json</summary>
         public bool UseV2 => GetBoolOrDefault(kOpenApi_UseV2Key,

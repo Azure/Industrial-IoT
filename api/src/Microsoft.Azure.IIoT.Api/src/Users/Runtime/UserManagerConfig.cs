@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Runtime {
                 () => GetDefaultUrl("9048", "users")));
 
         /// <inheritdoc/>
-        public  UserManagerConfig(IConfiguration configuration) :
+        public UserManagerConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

@@ -161,8 +161,8 @@ namespace Microsoft.Azure.IIoT {
         public const string PCS_AUTH_ROLES =
             "PCS_AUTH_ROLES";
         /// <summary> Auth required </summary>
-        public const string PCS_AUTH_RQUIRED =
-            "PCS_AUTH_RQUIRED";
+        public const string PCS_AUTH_REQUIRED =
+            "PCS_AUTH_REQUIRED";
         /// <summary> Docker server </summary>
         public const string PCS_DOCKER_SERVER =
             "PCS_DOCKER_SERVER";
