@@ -164,15 +164,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // Client instance per job
                 builder.RegisterType<PerDependencyClientAccessor>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
-                // Cloud job manager
+                // Cloud job orchestrator
                 builder.RegisterType<PublisherOrchestratorClient>()
-                    .AsImplementedInterfaces();
+                    .AsImplementedInterfaces().SingleInstance();
 
                 // ... plus controllers
                 builder.RegisterType<ConfigurationSettingsController>()
-                    .AsImplementedInterfaces();
+                    .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<IdentityTokenSettingsController>()
-                    .AsImplementedInterfaces();
+                    .AsImplementedInterfaces().SingleInstance();
+
+                // Note that they must be singleton so they can
+                // plug as configuration into the orchestrator client.
             }
 
             // Opc specific parts

@@ -16,6 +16,7 @@ namespace Microsoft.Extensions.Configuration {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Net.Sockets;
 
     /// <summary>
     /// Extension methods
@@ -173,8 +174,19 @@ namespace Microsoft.Extensions.Configuration {
                         "on keyvault and authentication provider information is available. " +
                         "Sign into Visual Studio or Azure CLI on this machine and try again.");
                 }
-                else if (!lazyLoad) {
-                    await provider.LoadAllSecretsAsync();
+                if (!lazyLoad) {
+                    while (true) {
+                        try {
+                            await provider.LoadAllSecretsAsync();
+                            break;
+                        }
+                        // try again...
+                        catch (TaskCanceledException) {}
+                        catch (SocketException) {}
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                        Log.Logger.Information(
+                            "Failed loading secrets due to timeout or network - try again ...");
+                    }
                 }
                 return provider;
             }
@@ -185,17 +197,28 @@ namespace Microsoft.Extensions.Configuration {
             /// <param name="secretName"></param>
             /// <returns></returns>
             private async Task<bool> TryReadSecretAsync(string secretName) {
-                try {
-                    var secret = await _keyVault.Client.GetSecretAsync(_keyVaultUri,
-                        GetSecretNameForKey(secretName)).ConfigureAwait(false);
+                for (var retries = 0; ; retries++) {
+                    try {
+                        var secret = await _keyVault.Client.GetSecretAsync(_keyVaultUri,
+                            GetSecretNameForKey(secretName)).ConfigureAwait(false);
 
-                    // Worked - we have a working keyvault client.
-                    return true;
-                }
-                catch (Exception ex) {
-                    Log.Logger.Error(ex, "Failed to access keyvault {url}.",
-                        _keyVaultUri);
-                    return false;
+                        // Worked - we have a working keyvault client.
+                        return true;
+                    }
+                    catch (TaskCanceledException) { }
+                    catch (SocketException) { }
+                    catch (Exception ex) {
+                        Log.Logger.Error(ex, "Failed to access keyvault {url}.",
+                            _keyVaultUri);
+                        return false;
+                    }
+                    if (retries > 3) {
+                        Log.Logger.Error(
+                            "Failed to access keyvault due to timeout or network {url}.",
+                            _keyVaultUri);
+                        return false;
+                    }
+                    await Task.Delay(TimeSpan.FromSeconds(5));
                 }
             }
 
