@@ -1,15 +1,20 @@
-﻿@page "/errorMessage"
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@page "/errorMessage"
 
 @using Microsoft.AspNetCore.Components;
 
 
 @if (PageError != null)
 {
-    <div class="error">Error: @PageError</div>
+    <div class="center">Error: @PageError</div>
 }
 else if (Status != null)
 {
-    <div class="error">Error: @Status</div>
+    <div class="center">Error: @Status</div>
 }
 
 

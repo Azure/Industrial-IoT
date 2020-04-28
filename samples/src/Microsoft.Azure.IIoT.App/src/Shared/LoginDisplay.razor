@@ -1,4 +1,9 @@
-﻿<AuthorizeView>
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+<AuthorizeView>
     <Authorized>
         Hello, @context.User.Identity.Name!
         <a href="AzureAD/Account/SignOut">Log out</a>

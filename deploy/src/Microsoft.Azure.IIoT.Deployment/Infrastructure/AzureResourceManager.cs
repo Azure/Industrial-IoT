@@ -67,25 +67,68 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return subscriptionsList;
         }
 
-        public IEnumerable<IResourceGroup> GetResourceGroups() {
-            var resourceGroups = _azure
+        /// <summary>
+        /// Get all resource groups in the subscription.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<IResourceGroup>> GetResourceGroupsAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            var resourceGroups = await _azure
                 .ResourceGroups
-                .List();
+                .ListAsync(cancellationToken: cancellationToken);
 
             return resourceGroups;
         }
 
+        /// <summary>
+        /// Get resource group by its name.
+        /// </summary>
+        /// <param name="resourceGroupName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<IResourceGroup> GetResourceGroupAsync(
+            string resourceGroupName,
+            CancellationToken cancellationToken = default
+        ) {
+            var resourceGroup = await _azure
+                .ResourceGroups
+                .GetByNameAsync(
+                    resourceGroupName,
+                    cancellationToken
+                );
+
+            return resourceGroup;
+        }
+
+        /// <summary>
+        /// Check if a resource group with a give name exists in the subscription.
+        /// </summary>
+        /// <param name="resourceGroupName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<bool> CheckIfResourceGroupExistsAsync(
             string resourceGroupName,
             CancellationToken cancellationToken = default
         ) {
             var resourceGroupAlreadyExists = await _azure
                 .ResourceGroups
-                .ContainAsync(resourceGroupName, cancellationToken);
+                .ContainAsync(
+                    resourceGroupName,
+                    cancellationToken
+                );
 
             return resourceGroupAlreadyExists;
         }
 
+        /// <summary>
+        /// Create a resource group in the given region.
+        /// </summary>
+        /// <param name="region"></param>
+        /// <param name="resourceGroupName"></param>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<IResourceGroup> CreateResourceGroupAsync(
             Region region,
             string resourceGroupName,
@@ -114,6 +157,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
+        /// <summary>
+        /// Initiate deletion of the resource group.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task BeginDeleteResourceGroupAsync(
             IResourceGroup resourceGroup,
             CancellationToken cancellationToken = default
@@ -132,7 +181,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 Log.Error(ex, $"Failed to initiate deletion of Resource Group: {resourceGroup.Name}");
                 throw;
             }
-
         }
 
         public static async Task<IEnumerable<SubscriptionInner>> GetSubscriptionsUsingRestClientAsync(

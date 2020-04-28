@@ -1,4 +1,11 @@
-﻿@inherits LayoutComponentBase
+﻿@*------------------------------------------------------------
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+    Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
+
+@inherits LayoutComponentBase
+
+<BlazoredModal />
 
 <div class="sidebar">
     <NavMenu />
@@ -8,7 +15,7 @@
     <div class="top-row px-4">
         <TSILink />
         <LoginDisplay />
-        <a href="https://github.com/Azure/Industrial-IoT" target="_blank">About</a>
+        <Help />
     </div>
 
     <div class="content px-4">
@@ -23,3 +30,4 @@
         </AuthorizeView>
     </div>
 </div>
+

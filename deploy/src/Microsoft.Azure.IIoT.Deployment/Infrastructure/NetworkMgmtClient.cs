@@ -25,6 +25,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string VIRTUAL_NETWORK_ADDRESS_PREFIXES = "10.0.0.0/8";
         public const string VIRTUAL_NETWORK_AKS_SUBNET_NAME = "aks-subnet";
         public const string VIRTUAL_NETWORK_AKS_SUBNET_ADDRESS_PREFIXES = "10.240.0.0/16";
+        public const string VIRTUAL_NETWORK_VM_SUBNET_NAME = "vm-subnet";
+        public const string VIRTUAL_NETWORK_VM_SUBNET_ADDRESS_PREFIXES = "10.241.0.0/16";
 
         private readonly NetworkManagementClient _networkManagementClient;
 
@@ -57,6 +59,29 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return iotServicesPrefix + "-public-ip";
         }
 
+        /// <summary>
+        /// Get network security group by its name.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="networkSecurityGroupName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<NetworkSecurityGroupInner> GetNetworkSecurityGroupAsync(
+            IResourceGroup resourceGroup,
+            string networkSecurityGroupName,
+            CancellationToken cancellationToken = default
+        ) {
+            var networkSecurityGroup = await _networkManagementClient
+                .NetworkSecurityGroups
+                .GetAsync(
+                    resourceGroup.Name,
+                    networkSecurityGroupName,
+                    cancellationToken: cancellationToken
+                );
+
+            return networkSecurityGroup;
+        }
+
         public async Task<NetworkSecurityGroupInner> CreateNetworkSecurityGroupAsync(
             IResourceGroup resourceGroup,
             string networkSecurityGroupName,
@@ -76,7 +101,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     SecurityRules = new List<SecurityRuleInner> {
                         new SecurityRuleInner {
                             Name = "UASC",
-
                             Protocol = SecurityRuleProtocol.Tcp,
                             SourcePortRange = "*",
                             DestinationPortRange = "4840",
@@ -88,7 +112,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         },
                         new SecurityRuleInner {
                             Name = "HTTPS",
-
                             Protocol = SecurityRuleProtocol.Tcp,
                             SourcePortRange = "*",
                             DestinationPortRange = "443",
@@ -97,18 +120,27 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                             Access = SecurityRuleAccess.Allow,
                             Priority = 101,
                             Direction = SecurityRuleDirection.Inbound
-
+                        },
+                        new SecurityRuleInner {
+                            Name = "HTTP",
+                            Protocol = SecurityRuleProtocol.Tcp,
+                            SourcePortRange = "*",
+                            DestinationPortRange = "80",
+                            SourceAddressPrefix = "*",
+                            DestinationAddressPrefix = "*",
+                            Access = SecurityRuleAccess.Allow,
+                            Priority = 102,
+                            Direction = SecurityRuleDirection.Inbound
                         },
                         new SecurityRuleInner {
                             Name = "SSH",
-
                             Protocol = SecurityRuleProtocol.Tcp,
                             SourcePortRange = "*",
                             DestinationPortRange = "22",
                             SourceAddressPrefix = "*",
                             DestinationAddressPrefix = "*",
                             Access = SecurityRuleAccess.Deny,
-                            Priority = 102,
+                            Priority = 110,
                             Direction = SecurityRuleDirection.Inbound
                         }
                     }
@@ -172,6 +204,29 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return routeTable;
         }
 
+        /// <summary>
+        /// Get virtual network by its name.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="virtualNetworkName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<VirtualNetworkInner> GetVirtualNetworkAsync(
+            IResourceGroup resourceGroup,
+            string virtualNetworkName,
+            CancellationToken cancellationToken = default
+        ) {
+            var virtualNetwork = await _networkManagementClient
+                .VirtualNetworks
+                .GetAsync(
+                    resourceGroup.Name,
+                    virtualNetworkName,
+                    cancellationToken: cancellationToken
+                );
+
+            return virtualNetwork;
+        }
+
         public async Task<VirtualNetworkInner> CreateVirtualNetworkAsync(
             IResourceGroup resourceGroup,
             NetworkSecurityGroupInner networkSecurityGroup,
@@ -196,9 +251,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                             }
                     },
                     Subnets = new List<SubnetInner> {
-                            new SubnetInner () {
+                            new SubnetInner {
                                 Name = VIRTUAL_NETWORK_AKS_SUBNET_NAME,
                                 AddressPrefix = VIRTUAL_NETWORK_AKS_SUBNET_ADDRESS_PREFIXES,
+                                NetworkSecurityGroup = new SubResource {
+                                    Id = networkSecurityGroup.Id
+                                }
+                            },
+                            new SubnetInner {
+                                Name = VIRTUAL_NETWORK_VM_SUBNET_NAME,
+                                AddressPrefix = VIRTUAL_NETWORK_VM_SUBNET_ADDRESS_PREFIXES,
                                 NetworkSecurityGroup = new SubResource {
                                     Id = networkSecurityGroup.Id
                                 }
@@ -240,6 +302,28 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 .FirstOrDefault();
 
             return aksSubnet;
+        }
+
+        /// <summary>
+        /// Get Public IP address by its name.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="publicIPAddressName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<PublicIPAddressInner> GetPublicIPAddressAsync(
+            IResourceGroup resourceGroup,
+            string publicIPAddressName,
+            CancellationToken cancellationToken = default
+        ) {
+            var publicIPAddress = await _networkManagementClient
+                .PublicIPAddresses.GetAsync(
+                    resourceGroup.Name,
+                    publicIPAddressName,
+                    cancellationToken: cancellationToken
+                );
+
+            return publicIPAddress;
         }
 
         public async Task<PublicIPAddressInner> CreatePublicIPAddressAsync(

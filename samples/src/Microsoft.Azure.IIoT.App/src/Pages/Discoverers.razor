@@ -1,4 +1,9 @@
-﻿@page "/"
+﻿@*------------------------------------------------------------
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
+
+@page "/"
 @page "/discoverers"
 
 @using Microsoft.Azure.IIoT.App.Services
@@ -19,7 +24,26 @@
 
 @implements IDisposable
 
-<h1>Asset Discovery</h1>
+<div class="flex">
+    <h1>Asset Discovery</h1>
+    <a class="adhocmargin" href="javascript: void(0)" @onclick="@(() => OpenDrawer(new DiscovererInfo {
+                                                  DiscovererModel = new DiscovererApiModel(),
+                                                  isAdHocDiscovery = true
+                                              }))">
+        Run ad-hoc discovery
+    </a>
+    @if (DiscovererData != null)
+    {
+        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery)
+        {
+            <div class="spinnermargin loader"></div>
+        }
+        else
+        {
+            <div class="spinnermargin"></div>
+        }
+    }
+</div>
 
 <table class="table @_tableView">
     <thead>
@@ -112,11 +136,15 @@
                     }
                 </td>
             </tr>
-        }
+                        }
     </tbody>
 </table>
+<div class="@_tableEmpty center">No discoverers found.</div>
 <div class="results @_scanResult">
     Scan Results:
+    <div class="closediv">   
+        <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => CloseScanResultView())" class="oi oi-x closebtn"></a>
+    </div>
     <div class="events">
         @_eventResult
     </div>
@@ -125,71 +153,7 @@
 <ErrorMessage PageError="@_pagedDiscovererList.Error" Status="@Status"></ErrorMessage>
 
 <Drawer HeaderText="Discovery Scan Config" ObjectData="@DiscovererData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
-    <div class="drawer-content list-group">
-        <div class="list-group-item text-justify list-group-item-heading">
-            <b>Enter configuration parameters for scan.</b>
-            <br><b>To apply default config leave the input field blank and click on apply</b>
-        </div>
-        <hr />
-        <div class="list-group-item text-left">
-            <form>
-                <div class="form-group">
-                    <label>Mask address range (CIDR notation)</label>
-                    <input @bind="@DiscovererData.RequestedAddressRangesToScan" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveAddressRangesToScan ?? "IP-address/netmask")" />
-                </div>
-                <div class="form-group">
-                    <label>Port range</label>
-                    <input @bind="@DiscovererData.RequestedPortRangesToScan" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortRangesToScan ?? "StartPort-EndPort")" />
-                </div>
-                <div class="form-group">
-                    <label>Max Network Probes</label>
-                    <input @bind="@DiscovererData.RequestedMaxNetworkProbes" aria-label="maxNetworkProbes" id="MaxNetworkProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxNetworkProbes ?? "Max Network Probes")" />
-                </div>
-                <div class="form-group">
-                    <label>Network Probe Timeout</label>
-                    <input @bind="@DiscovererData.RequestedNetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveNetworkProbeTimeout ?? "Network Probe Timeout")" />
-                </div>
-                <div class="form-group">
-                    <label>Max Port Probes</label>
-                    <input @bind="@DiscovererData.RequestedMaxPortProbes" aria-label="maxPortProbes" id="MaxPortProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxPortProbes ?? "Max Port Probes")" />
-                </div>
-                <div class="form-group">
-                    <label>Port Probe Timeout</label>
-                    <input @bind="@DiscovererData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortProbeTimeout ?? "Port Probe Timeout")" />
-                </div>
-                <div class="form-group">
-                    <label>Idle TimeBetween Scans</label>
-                    <input @bind="@DiscovererData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveIdleTimeBetweenScans ?? "Idle Time Between Scans")" />
-                </div>
-                <label>Discovery Urls</label>
-                <div class="flex">
-                    <input @bind="@_discoveryUrl" aria-label="DiscoveryUrls" id="DiscoveryUrls" type="text" class="form-control" placeholder="Discovery Url" />
-                    <button @onclick="@(() => DiscovererData.AddDiscoveryUrl(_discoveryUrl))" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
-                    <button @onclick="@(() => DiscovererData.RemoveDiscoveryUrl(_discoveryUrl))" type="button" class="btn btn-primary shadow-none">Clear</button>
-                </div>
-                <div class="form-group margin-top">
-                    <select class="form-control">
-                        @if (DiscovererData.RequestedDiscoveryUrls.Count == 0)
-                        {
-                            <option>(None)</option>
-                        }
-                        else
-                        {
-                            foreach (var discoveryUrl in DiscovererData.RequestedDiscoveryUrls)
-                            {
-                                <option value="@discoveryUrl">@discoveryUrl</option>
-                            }
-                        }
-                    </select>
-                </div>
-                <hr />
-                <div>
-                    <button @onclick="@(async() => await UpdateDiscovererConfigAsync(DiscovererData))" type="button" class="btn btn-primary shadow-none">Apply</button>
-                </div>
-                <ErrorMessage PageError="@null" Status="@Status"></ErrorMessage>
-            </form>
-        </div>
-    </div>
+    <_DrawerDiscoverer DiscovererData="@DiscovererData" Onclick="((DiscovererData) => ClickHandler((DiscovererInfo)DiscovererData))"></_DrawerDiscoverer>
 </Drawer>
 
 <Pager Result=@_discovererList PageChanged=@((Page) => PagerPageChanged(Page)) />
@@ -211,8 +175,8 @@
     private PagedResult<DiscovererInfo> _pagedDiscovererList = new PagedResult<DiscovererInfo>();
     private string _eventResult { get; set; }
     private string _scanResult { get; set; } = "hidden";
-    private string _tableView { get; set; } = "visible";
-    private string _discoveryUrl { get; set; }
+    private string _tableView = "visible";
+    private string _tableEmpty = "displayNone";
 
     private IAsyncDisposable _discovererEvent { get; set; }
     private IAsyncDisposable _discovery { get; set; }
@@ -257,11 +221,7 @@
             Page = "1";
             _pagedDiscovererList = _discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _discovererList.Error);
             CommonHelper.Spinner = string.Empty;
-
-            if (_pagedDiscovererList.Error != null)
-            {
-                _tableView = "hidden";
-            }
+            CommonHelper.CheckErrorOrEmpty<DiscovererInfo>(_pagedDiscovererList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
 
             _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(
@@ -273,9 +233,6 @@
     /// Enable discoverer scan
     /// </summary>
     /// <param name="discoverer"></param>
-    /// <param name="forceScan"></param>
-    /// <param name="ipMask"></param>
-    /// <param name="portRange"></param>
     private async Task SetScanAsync(DiscovererInfo discoverer)
     {
         _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
@@ -308,11 +265,32 @@
         }
     }
 
-    private async Task UpdateDiscovererConfigAsync(DiscovererInfo discoverer)
+    /// <summary>
+    /// Start ad-hoc scan
+    /// </summary>
+    /// <param name="discoverer"></param>
+    private async Task SetAdHocScanAsync(DiscovererInfo discoverer)
     {
-        Status = await RegistryHelper.UpdateDiscovererAsync(discoverer);
-        CloseDrawer();
-        await this.OnAfterRenderAsync(true);
+        discoverer.DiscoveryRequestId = Guid.NewGuid().ToString();
+        _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
+        discoverer.DiscoveryRequestId, async data =>
+        {
+            await InvokeAsync(() => ScanProgress(data));
+        });
+
+        try
+        {
+            _eventResult = string.Empty;
+
+            discoverer.IsSearching = true;
+            _scanResult = "visible";
+            DiscovererData = discoverer;
+            Status = await RegistryHelper.DiscoverServersAsync(discoverer);
+        }
+        catch
+        {
+            await _discovery.DisposeAsync();
+        }
     }
 
     /// <summary>
@@ -414,6 +392,22 @@
     }
 
     /// <summary>
+    /// ClickHandler
+    /// </summary>
+    async Task ClickHandler(DiscovererInfo discoverer)
+    {
+        CloseDrawer();
+        if (discoverer.isAdHocDiscovery)
+        {
+            await SetAdHocScanAsync(discoverer);
+        }
+        else
+        {
+            await this.OnAfterRenderAsync(true);
+        }
+    }
+
+    /// <summary>
     /// refresh UI on DiscovererEvent
     /// </summary>
     /// <param name="ev"></param>
@@ -425,12 +419,24 @@
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Close the scan result view
+    /// </summary>
+    public void CloseScanResultView()
+    {
+        _scanResult = "hidden";
+    }
+
     public async void Dispose()
     {
         if (_discovererEvent != null)
         {
             await _discovererEvent.DisposeAsync();
         }
-    }
 
+        if (_discovery != null)
+        {
+            await _discovery.DisposeAsync();
+        }
+    }
 }

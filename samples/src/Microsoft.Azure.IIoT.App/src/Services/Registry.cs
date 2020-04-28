@@ -261,6 +261,33 @@ namespace Microsoft.Azure.IIoT.App.Services {
         }
 
         /// <summary>
+        /// Discover servers
+        /// </summary>
+        /// <param name="discoverer"></param>
+        /// <returns></returns>
+        public async Task<string> DiscoverServersAsync(DiscovererInfo discoverer) {
+            try {
+                await _registryService.DiscoverAsync(
+                    new DiscoveryRequestApiModel {
+                        Id = discoverer.DiscoveryRequestId,
+                        Discovery = DiscoveryMode.Fast,
+                        Configuration = discoverer.Patch
+                    });
+                discoverer.Patch = new DiscoveryConfigApiModel();
+            }
+            catch (UnauthorizedAccessException) {
+                return "Unauthorized access: Bad User Access Denied.";
+            }
+            catch (Exception exception) {
+                _logger.Error(exception, "Failed to discoverer servers.");
+                var errorMessageTrace = string.Concat(exception.Message,
+                    exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
+                return errorMessageTrace;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// GetGatewayListAsync
         /// </summary>
         /// <param name="previousPage"></param>

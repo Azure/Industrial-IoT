@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
         public const int IOT_HUB_EVENT_HUB_PARTITIONS_COUNT = 4;
+        public const int IOT_HUB_EVENT_HUB_RETENTION_TIME_IN_DAYS = 2;
 
         public const string IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME = "events";
         public const string IOT_HUB_EVENT_HUB_EVENTS_CONSUMER_GROUP_NAME = "events";
@@ -156,7 +157,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// </summary>
         /// <param name="resourceGroup"></param>
         /// <param name="iotHubName"></param>
-        /// <param name="iotHubEventHubEndpointsPartitionsCount"></param>
+        /// <param name="iotHubEventHubRetentionTimeInDays"></param>
+        /// <param name="iotHubEventHubPartitionsCount"></param>
         /// <param name="storageAccountConectionString"></param>
         /// <param name="storageAccountIotHubContainerName"></param>
         /// <param name="tags"></param>
@@ -165,7 +167,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public async Task<IotHubDescription> CreateIotHubAsync(
             IResourceGroup resourceGroup,
             string iotHubName,
-            int iotHubEventHubEndpointsPartitionsCount,
+            int iotHubEventHubRetentionTimeInDays,
+            int iotHubEventHubPartitionsCount,
             string storageAccountConectionString,
             string storageAccountIotHubContainerName,
             IDictionary<string, string> tags = null,
@@ -191,8 +194,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     EventHubEndpoints = new Dictionary<string, EventHubProperties> {
                         // The only possible keys to this dictionary is 'events'.
                         { IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME, new EventHubProperties {
-                                RetentionTimeInDays = 1,
-                                PartitionCount = iotHubEventHubEndpointsPartitionsCount
+                                RetentionTimeInDays = iotHubEventHubRetentionTimeInDays,
+                                PartitionCount = iotHubEventHubPartitionsCount
                             }
                         }
                     },

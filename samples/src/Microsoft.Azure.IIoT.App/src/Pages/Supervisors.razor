@@ -1,4 +1,9 @@
-﻿@page "/supervisors"
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@page "/supervisors"
 @page "/supervisors/{page}"
 
 @using Microsoft.AspNetCore.Components;
@@ -35,7 +40,7 @@
         {
             <tr>
                 <td>
-                    <a href='endpoints/@RegistryHelper.PathAll/@RegistryHelper.PathAll/@supervisor.Id/@RegistryHelper.PathAll'>
+                    <a href='endpoints/@RegistryHelper.PathAll/@RegistryHelper.PathAll/@supervisor.Id'>
                         @supervisor.Id
                     </a>
                 </td>
@@ -61,6 +66,7 @@
         }
     </tbody>
 </table>
+<div class="@_tableEmpty center">No Twin Modules found.</div>
 
 <Drawer HeaderText="Twin Module Status" ObjectData="@SupervisorId" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
     <_DrawerSupervisorContent SupervisorId="@SupervisorId"></_DrawerSupervisorContent>
@@ -85,7 +91,8 @@
     private PagedResult<SupervisorApiModel> _pagedsupervisorList =
         new PagedResult<SupervisorApiModel>();
     private IAsyncDisposable _supervisorEvent { get; set; }
-    private string _tableView { get; set; } = "visible";
+    private string _tableView = "visible";
+    private string _tableEmpty = "displayNone";
 
     /// <summary>
     /// Notify page change
@@ -118,10 +125,7 @@
         {
             await UpdateSupervisorAsync();
             CommonHelper.Spinner = string.Empty;
-            if (_pagedsupervisorList.Error != null)
-            {
-                _tableView = "hidden";
-            }
+            CommonHelper.CheckErrorOrEmpty<SupervisorApiModel>(_pagedsupervisorList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
 
             _supervisorEvent = await RegistryServiceEvents.SubscribeSupervisorEventsAsync(

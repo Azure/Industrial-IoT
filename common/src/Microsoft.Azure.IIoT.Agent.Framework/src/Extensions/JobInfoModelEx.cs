@@ -18,10 +18,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// </summary>
         /// <returns></returns>
         public static string GetHashSafe(this JobInfoModel model) {
-            if (model == null) {
+            if (model == null || model.JobConfiguration == null) {
                 return "null";
             }
-            return model.JobConfiguration.ToString().ToSha1Hash();
+            return model.JobConfiguration.ToSha1Hash();
         }
 
         /// <summary>
