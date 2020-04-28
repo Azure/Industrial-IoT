@@ -91,6 +91,28 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    &quot;$schema&quot;: &quot;https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#&quot;,
         ///    &quot;contentVersion&quot;: &quot;1.0.0.0&quot;,
         ///    &quot;parameters&quot;: {
+        ///        &quot;keyVaultName&quot;: {
+        ///            &quot;type&quot;: &quot;string&quot;,
+        ///            &quot;metadata&quot;: {
+        ///                &quot;description&quot;: &quot;Name of the provisioned keyvault to store configuration in.&quot;
+        ///            }
+        ///        },
+        ///        &quot;configuration&quot;: {
+        ///            &quot;type&quot;: &quot;array&quot;,
+        ///            &quot;metadata&quot;: {
+        ///                &quot;description&quot;: &quot;Configuration of key value pairs to store in  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string configuration {
+            get {
+                return ResourceManager.GetString("configuration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///    &quot;$schema&quot;: &quot;https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#&quot;,
+        ///    &quot;contentVersion&quot;: &quot;1.0.0.0&quot;,
+        ///    &quot;parameters&quot;: {
         ///        &quot;nsgId&quot;: {
         ///            &quot;type&quot;: &quot;string&quot;,
         ///            &quot;metadata&quot;: {
