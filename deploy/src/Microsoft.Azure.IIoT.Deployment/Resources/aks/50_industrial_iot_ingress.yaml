@@ -16,6 +16,7 @@ metadata:
     nginx.ingress.kubernetes.io/session-cookie-expires: "14400"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "14400"
     nginx.ingress.kubernetes.io/session-cookie-name: affinity
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   rules:
   - http:
