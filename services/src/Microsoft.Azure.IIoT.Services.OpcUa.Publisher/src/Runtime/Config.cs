@@ -124,10 +124,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         /// <inheritdoc/>
         public string ImagesTag => _cr.ImagesTag;
         /// <inheritdoc/>
-        public string WorkspaceId => _cr.WorkspaceId;
-        /// <inheritdoc/>
-        public string WorkspaceKey => _cr.WorkspaceKey;
-        /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
             _fh.AspNetCoreForwardedHeadersEnabled;
         /// <inheritdoc/>

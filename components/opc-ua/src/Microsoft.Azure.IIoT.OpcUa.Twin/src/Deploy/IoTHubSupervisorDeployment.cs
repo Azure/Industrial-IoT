@@ -90,10 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                 // Windows
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator",
-                    Hostname = "opctwin",
-                    Cmd = new[] {
-                    "--aa"
-                    }
+                    Hostname = "opctwin"
                 });
             }
             createOptions = createOptions.Replace("\"", "\\\"");

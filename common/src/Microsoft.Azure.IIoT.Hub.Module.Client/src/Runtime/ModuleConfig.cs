@@ -18,20 +18,24 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
         /// Module configuration
         /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-        public const string EdgeHubConnectionStringKey = "EdgeHubConnectionString";
-        public const string BypassCertVerificationKey = "BypassCertVerification";
-        public const string TransportKey = "Transport";
+        public const string kEdgeHubConnectionStringKey = "EdgeHubConnectionString";
+        public const string kBypassCertVerificationKey = "BypassCertVerification";
+        public const string kTransportKey = "Transport";
+        public const string kEnableMetricsKey = "EnableMetrics";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>Hub connection string</summary>
         public string EdgeHubConnectionString =>
-            GetStringOrDefault(EdgeHubConnectionStringKey);
+            GetStringOrDefault(kEdgeHubConnectionStringKey);
         /// <summary>Whether to bypass cert validation</summary>
         public bool BypassCertVerification =>
-            GetBoolOrDefault(BypassCertVerificationKey, () => false);
+            GetBoolOrDefault(kBypassCertVerificationKey, () => false);
+        /// <summary>Whether to enable metrics collection</summary>
+        public bool EnableMetrics  =>
+            GetBoolOrDefault(kEnableMetricsKey, () => true);
         /// <summary>Transports to use</summary>
         public TransportOption Transport => (TransportOption)Enum.Parse(typeof(TransportOption),
-            GetStringOrDefault(TransportKey, () => nameof(TransportOption.Any)), true);
+            GetStringOrDefault(kTransportKey, () => nameof(TransportOption.Any)), true);
 
         /// <summary>
         /// Create configuration

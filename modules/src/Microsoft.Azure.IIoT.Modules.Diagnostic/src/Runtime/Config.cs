@@ -26,6 +26,8 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Runtime {
         /// <summary>Whether to bypass cert validation</summary>
         public bool BypassCertVerification =>
             GetBoolOrDefault(nameof(BypassCertVerification), () => false);
+        /// <summary>Whether to enable metrics collection</summary>
+        public bool EnableMetrics => false;
         /// <summary>Transports to use</summary>
         public TransportOption Transport => Enum.Parse<TransportOption>(
             GetStringOrDefault(nameof(Transport), () => nameof(TransportOption.Any)), true);

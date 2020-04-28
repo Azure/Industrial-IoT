@@ -95,12 +95,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the transport mode to IoT Hub.
         /// </summary>
-        public const string HubTransport = ModuleConfig.TransportKey;
+        public const string HubTransport = ModuleConfig.kTransportKey;
 
         /// <summary>
         /// Key for the EdgeHub connection string.
         /// </summary>
-        public const string EdgeHubConnectionString = ModuleConfig.EdgeHubConnectionStringKey;
+        public const string EdgeHubConnectionString = ModuleConfig.kEdgeHubConnectionStringKey;
 
         /// <summary>
         /// Key for the operation timeout in milliseconds.

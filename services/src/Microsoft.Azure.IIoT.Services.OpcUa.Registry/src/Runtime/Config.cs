@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig, ICorsConfig,
         IClientConfig, IOpenApiConfig, IServiceBusConfig, ISignalRServiceConfig,
         ICosmosDbConfig, IItemContainerConfig, IForwardedHeadersConfig,
-        IContainerRegistryConfig {
+        IContainerRegistryConfig, ILogWorkspaceConfig {
 
         /// <summary>
         /// Whether to use role based access
@@ -116,9 +116,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         /// <inheritdoc/>
         public string ImagesTag => _cr.ImagesTag;
         /// <inheritdoc/>
-        public string WorkspaceId => _cr.WorkspaceId;
+        public string LogWorkspaceId => _lwc.LogWorkspaceId;
         /// <inheritdoc/>
-        public string WorkspaceKey => _cr.WorkspaceKey;
+        public string LogWorkspaceKey => _lwc.LogWorkspaceKey;
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
@@ -144,9 +144,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
             _sr = new SignalRServiceConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _cr = new ContainerRegistryConfig(configuration);
+            _lwc = new LogWorkspaceConfig(configuration);
         }
 
         private readonly ContainerRegistryConfig _cr;
+        private readonly LogWorkspaceConfig _lwc;
         private readonly OpenApiConfig _openApi;
         private readonly AuthConfig _auth;
         private readonly HostConfig _host;

@@ -89,11 +89,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
+                    var config = new Config(_config);
                     logger.Information("Initiating prometheus at port {0}/metrics", kTwinPrometheusPort);
                     var server = new MetricServer(port: kTwinPrometheusPort);
                     try {
-                        server.Start();
-                        logger.Information("Started prometheus server");
+                        server.StartWhenEnabled(config, logger);
                         // Start module
                         var product = "OpcTwin_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     finally {
                         await module.StopAsync();
                         kTwinModuleStart.Set(0);
-                        server.Stop();
+                        server.StopWhenEnabled(config, logger);
                         OnRunning?.Invoke(this, false);
                     }
                 }
@@ -251,6 +251,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
         private const int kTwinPrometheusPort = 9701;
-        private static readonly Gauge kTwinModuleStart = Metrics.CreateGauge("iiot_edge_twin_module_start", "twin module started");
+        private static readonly Gauge kTwinModuleStart = Metrics
+            .CreateGauge("iiot_edge_twin_module_start", "twin module started");
     }
 }

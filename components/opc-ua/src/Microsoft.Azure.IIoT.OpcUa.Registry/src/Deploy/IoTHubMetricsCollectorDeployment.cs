@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public IoTHubMetricsCollectorDeployment(IIoTHubConfigurationServices service,
-            IContainerRegistryConfig config, IJsonSerializer serializer, ILogger logger) {
+            ILogWorkspaceConfig config, IJsonSerializer serializer, ILogger logger) {
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _config = config ?? throw new ArgumentNullException(nameof(service));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -35,7 +35,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
 
         /// <inheritdoc/>
         public async Task StartAsync() {
-
+            if (string.IsNullOrEmpty(_config.LogWorkspaceId) || string.IsNullOrEmpty(_config.LogWorkspaceKey)) {
+                throw new ArgumentNullException("Azure Log Analytics Workspace configuration is not set. Cannot proceed with metricscollector deployment.");
+            }
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = "__default-metricscollector-linux",
                 Content = new ConfigurationContentModel {
@@ -83,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator"
                 });
-                version = "0.0.4-windows-amd64";
+                version = "0.0.5-windows-amd64";
             }
             createOptions = createOptions.Replace("\"", "\\\"");
             var image = $"veyalla/metricscollector:{version}";
@@ -102,10 +104,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                         ""version"": ""1.0"",
                         ""env"": {
                             ""AzMonWorkspaceId"": {
-                                ""value"": """ + _config.WorkspaceId + @"""
+                                ""value"": """ + _config.LogWorkspaceId + @"""
                             },
                             ""AzMonWorkspaceKey"": {
-                                ""value"": """ + _config.WorkspaceKey + @"""
+                                ""value"": """ + _config.LogWorkspaceKey + @"""
                             }
                         },
                         ""status"": ""running"",
@@ -133,7 +135,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
 
         private const string kDefaultSchemaVersion = "1.0";
         private readonly IIoTHubConfigurationServices _service;
-        private readonly IContainerRegistryConfig _config;
+        private readonly ILogWorkspaceConfig _config;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
     }
