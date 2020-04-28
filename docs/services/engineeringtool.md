@@ -1,7 +1,11 @@
-# SignalR Telemetry Forwarder
+# Engineering tool
 
 [Home](readme.md)
 
 ## Overview
 
-The SignalR telemetry forwarder agent is an event processor that forwards Telemetry event to interested client applications using SignalR.  It connects to the secondary Telemetry EventHub which receives processed and decoded edge telemetry messages, e.g. from the OPC Publisher module (Pub/Sub).   This is the same EventHub that Azure Time Series Insights (TSI) can connect to for historian query capability.
+The Engineering tool is a blazor application that provides a simple frontend for the contained services.  It is a sample and showcases all API's just like the CLI does.
+
+## Docker image
+
+`docker pull mcr.microsoft.com/iot/industrial-iot-frontend:preview`

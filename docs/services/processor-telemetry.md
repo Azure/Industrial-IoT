@@ -12,3 +12,7 @@ The telemetry processor processes all edge telemetry in that it
 * Forwards these and other telemetry to a secondary Event Hub to [forward to applications](ux.md), process through TSI and/or store in [Datalake](cdm.md).
 
 The edge telemetry processor is an event processor host and can be scaled out to handle the configured number of partitions.  It connects to the "telemetry" consumer group on IoT Hub.
+
+## Docker image
+
+`docker pull mcr.microsoft.com/iot/industrial-iot-telemetry-processor:preview`
