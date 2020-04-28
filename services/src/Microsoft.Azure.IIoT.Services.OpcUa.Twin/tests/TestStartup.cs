@@ -62,24 +62,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            builder.RegisterType<TestTokenProvider>()
+            builder.RegisterType<TestAuthConfig>()
                 .AsImplementedInterfaces();
         }
 
-        public class TestTokenProvider : ITokenProvider {
-
-            public Task<TokenResultModel> GetTokenForAsync(
-                string resource, IEnumerable<string> scopes = null) {
-                return Task.FromResult<TokenResultModel>(null);
-            }
-
-            public Task InvalidateAsync(string resource) {
-                return Task.CompletedTask;
-            }
-
-            public bool Supports(string resource) {
-                return true;
-            }
+        public class TestAuthConfig : IServerAuthConfig {
+            public bool AllowAnonymousAccess => true;
+            public IEnumerable<IOAuthServerConfig> JwtBearerProviders { get; }
         }
 
         public class TestIoTHubConfig : IIoTHubConfig, IIoTHubConfigurationServices {
@@ -87,8 +76,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
                 ConnectionString.CreateServiceConnectionString(
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-
-            public string IoTHubResourceId => "";
 
             public Task ApplyConfigurationAsync(string deviceId,
                 ConfigurationContentModel configuration, CancellationToken ct = default) {

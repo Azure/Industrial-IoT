@@ -56,11 +56,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             builder.RegisterType<PublisherServiceEvents>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            builder.RegisterType<TestTokenProvider>()
+            builder.RegisterType<TestAuthConfig>()
                 .AsImplementedInterfaces();
         }
 
-        public class TestTokenProvider : ITokenProvider {
+        public class TestAuthConfig : IServerAuthConfig, ITokenProvider {
+            public bool AllowAnonymousAccess => true;
+            public IEnumerable<IOAuthServerConfig> JwtBearerProviders { get; }
 
             public Task<TokenResultModel> GetTokenForAsync(
                 string resource, IEnumerable<string> scopes = null) {

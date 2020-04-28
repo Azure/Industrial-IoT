@@ -70,7 +70,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
 
             services.AddTransient<IConfigureOptions<AuthorizationOptions>>(provider => {
                 var environment = provider.GetRequiredService<IWebHostEnvironment>();
-                var allowAnonymousAccess = false;
+                var auth = provider.GetService<IServerAuthConfig>();
+                var allowAnonymousAccess = auth?.AllowAnonymousAccess ?? false;
 
                 // Get registered schemes / providers
                 var providers = provider.GetRequiredService<IEnumerable<Provider>>()
