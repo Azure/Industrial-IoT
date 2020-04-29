@@ -5,4 +5,4 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Microsoft.Azure.IIoT.Storage.Datalake.Tests")]
+[assembly: InternalsVisibleTo("Microsoft.Azure.IIoT.Serializers.NewtonSoft.Tests")]
