@@ -41,7 +41,6 @@ stages:
   - template: tools/templates/acrbuild.yml
 - stage: coverage 
   displayName: 'Code Coverage'
-  condition: ${{ or(eq(variables['Build.SourceBranch'], 'refs/heads/master')), startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
   dependsOn:
   - build
   jobs:
