@@ -96,8 +96,6 @@ namespace Microsoft.Azure.IIoT.Services.All {
             app.AddStartupBranch<OpcUa.Publisher.Startup>("/publisher");
             app.AddStartupBranch<OpcUa.Publisher.Edge.Startup>("/edge/publisher");
             app.AddStartupBranch<OpcUa.Events.Startup>("/events");
-            app.AddStartupBranch<Common.Auth.Startup>("/auth");
-            app.AddStartupBranch<Common.Users.Startup>("/users");
 
             if (!Config.IsMinimumDeployment) {
                 app.AddStartupBranch<OpcUa.Twin.Gateway.Startup>("/ua");
@@ -153,12 +151,13 @@ namespace Microsoft.Azure.IIoT.Services.All {
                 // Minimal processes
                 var processes = new List<Task> {
                     Task.Run(() => OpcUa.Registry.Sync.Program.Main(args), _cts.Token),
-                    Task.Run(() => Processor.Onboarding.Program.Main(args), _cts.Token),
-                    Task.Run(() => Processor.Tunnel.Program.Main(args), _cts.Token)
+                    Task.Run(() => Processor.Onboarding.Program.Main(args), _cts.Token)
                 };
 
                 if (!_config.IsMinimumDeployment) {
                     processes.Add(Task.Run(() => Processor.Events.Program.Main(args),
+                        _cts.Token));
+                    processes.Add(Task.Run(() => Processor.Tunnel.Program.Main(args),
                         _cts.Token));
                     processes.Add(Task.Run(() => Processor.Telemetry.Program.Main(args),
                         _cts.Token));

@@ -39,7 +39,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
             const string kAccessTokenKey = "access_token";
-
+            if (_ctx.HttpContext == null) {
+                return null;
+            }
             string token = null;
             if (_providers == null) {
                 token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);

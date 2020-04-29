@@ -156,7 +156,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string dataprotectionKeyName,
             // Application Insights
             ApplicationInsightsComponent applicationInsightsComponent,
-            SiteInner webSite,
+            string serviceURL,
             Application serviceApplication,
             string serviceApplicationSecret,
             Application clientApplication,
@@ -200,7 +200,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_APPINSIGHTS_INSTRUMENTATIONKEY = applicationInsightsComponent.InstrumentationKey;
 
             // Service URLs
-            PCS_SERVICE_URL = $"https://{webSite.HostNames[0]}";
+            PCS_SERVICE_URL = serviceURL;
 
             var iiotNamespace = "industrial-iot";
 
@@ -214,13 +214,14 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_EVENTS_SERVICE_URL_INTERNAL = $"http://{"events-service"}.{iiotNamespace}:{9050}";
 
             // Externally accessible service URLs
-            PCS_TWIN_REGISTRY_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/registry/";
-            PCS_TWIN_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/twin/";
-            PCS_HISTORY_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/history/";
-            PCS_VAULT_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/vault/";
-            PCS_PUBLISHER_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/publisher/";
-            PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/edge/publisher/";
-            PCS_EVENTS_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/events/";
+            serviceURL = serviceURL.TrimEnd('/');
+            PCS_TWIN_REGISTRY_URL_EXTERNAL = $"{serviceURL}/registry/";
+            PCS_TWIN_SERVICE_URL_EXTERNAL = $"{serviceURL}/twin/";
+            PCS_HISTORY_SERVICE_URL_EXTERNAL = $"{serviceURL}/history/";
+            PCS_VAULT_SERVICE_URL_EXTERNAL = $"{serviceURL}/vault/";
+            PCS_PUBLISHER_SERVICE_URL_EXTERNAL = $"{serviceURL}/publisher/";
+            PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL_EXTERNAL = $"{serviceURL}/edge/publisher/";
+            PCS_EVENTS_SERVICE_URL_EXTERNAL = $"{serviceURL}/events/";
 
             // Service URLs that will be consumed by microservices.
             PCS_TWIN_REGISTRY_URL = PCS_TWIN_REGISTRY_URL_INTERNAL;

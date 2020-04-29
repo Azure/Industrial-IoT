@@ -33,11 +33,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="app"></param>
         /// <returns></returns>
         public static IApplicationBuilder UseJwtBearerAuthentication(this IApplicationBuilder app) {
-            var auth = app.ApplicationServices.GetService<IServerAuthConfig>();
-            if (auth != null && auth.JwtBearerProviders.Any() && !auth.AllowAnonymousAccess) {
-                app.UseAuthentication();
-            }
-            return app;
+            return app.UseAuthentication();
         }
 
         /// <summary>
@@ -54,12 +50,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
 
             // Add provider configuration
             builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>>(services => {
-                var schemes = services.GetRequiredService<IServerAuthConfig>();
+                var auth = services.GetRequiredService<IServerAuthConfig>();
                 var environment = services.GetRequiredService<IWebHostEnvironment>();
                 return new ConfigureNamedOptions<JwtBearerOptions>(provider, options => {
 
                     // Find whether the scheme is configurable
-                    var config = schemes.JwtBearerProviders?
+                    var config = auth.JwtBearerProviders?
                         .FirstOrDefault(s => s.GetProviderName() == provider);
                     if (config == null) {
                         // Not configurable - this is ok as this might not be enabled

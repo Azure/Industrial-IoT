@@ -43,6 +43,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
+            var exceptions = new List<Exception>();
             foreach (var config in _config.Query(resource, AuthProvider.AuthService)) {
                 if (string.IsNullOrEmpty(config.ClientSecret)) {
                     continue;
@@ -67,9 +68,13 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                     return result;
                 }
                 catch (Exception exc) {
-                    _logger.Information(exc, "Failed to get token for {resource} using {config}",
+                    _logger.Debug(exc, "Failed to get token for {resource} using {config}",
                         resource, config.GetName());
+                    exceptions.Add(exc);
                 }
+            }
+            if (exceptions.Count != 0) {
+                throw new AggregateException(exceptions);
             }
             return null;
         }

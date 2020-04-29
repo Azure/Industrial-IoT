@@ -40,6 +40,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <inheritdoc/>
         public async Task<TokenResultModel> GetTokenForAsync(string resource,
             IEnumerable<string> scopes) {
+            var exceptions = new List<Exception>();
             foreach (var client in _config.Where(c => c.config.Resource == resource)) {
                 var decorator = client.Item2;
                 var config = client.config;
@@ -61,7 +62,8 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                     catch (Exception ex) {
                         _logger.Debug(ex, "Failed to get token for {resource} from cache...",
                             resource);
-                        // Continue down
+                        exceptions.Add(ex);
+                        continue;
                     }
                 }
                 try {
@@ -72,18 +74,21 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                            resource, config.GetName());
                         return token;
                     }
-                    return token;
                 }
                 catch (MsalException ex) {
-                    _logger.Error(ex, "Failed to get token for {resource} with {config} " +
+                    _logger.Debug(ex, "Failed to get token for {resource} with {config} " +
                         "- error: {error}",
                         resource, config.GetName(), ex.ErrorCode);
+                    exceptions.Add(ex);
                 }
                 catch (Exception e) {
                     _logger.Debug(e, "Failed to get token for {resource} with {config}.",
                         resource, config.GetName());
+                    exceptions.Add(e);
                 }
-                return null;
+            }
+            if (exceptions.Count != 0) {
+                throw new AggregateException(exceptions);
             }
             return null;
         }

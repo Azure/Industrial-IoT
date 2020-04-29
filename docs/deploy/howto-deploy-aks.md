@@ -31,6 +31,9 @@ Kubernetes Service (AKS) cluster, while `deploy.ps1` runs the entire platform as
 
 `Microsoft.Azure.IIoT.Deployment` deploys `2.6.146` version of Industrial IoT microservices.
 
+Source codes of `Microsoft.Azure.IIoT.Deployment` can be found in the following directory:
+[deploy/src/Microsoft.Azure.IIoT.Deployment/](../../deploy/src/Microsoft.Azure.IIoT.Deployment/)
+
 ## Running Microsoft.Azure.IIoT.Deployment
 
 `Microsoft.Azure.IIoT.Deployment` application can be run with either user or Service Principal credentials.

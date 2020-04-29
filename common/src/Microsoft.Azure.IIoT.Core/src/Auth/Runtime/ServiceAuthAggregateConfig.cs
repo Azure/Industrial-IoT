@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
 
         /// <inheritdoc/>
         public bool AllowAnonymousAccess => !GetBoolOrDefault(kAuth_RequiredKey,
-            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_RQUIRED,
+            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_REQUIRED,
                 () => true));
 
         /// <inheritdoc/>

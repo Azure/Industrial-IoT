@@ -151,16 +151,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         DataSetFieldContentMask.DisplayName |
                                         DataSetFieldContentMask.ApplicationUri |
                                         (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.EndpointUrl : 0) |
-                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ExtensionFields : 0) ,
+                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ExtensionFields : 0),
                                     MessageSettings = new DataSetWriterMessageSettingsModel() {
                                         DataSetMessageContentMask =
                                             (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Timestamp : 0) |
                                             DataSetContentMask.MetaDataVersion |
-                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Status : 0) |
                                             DataSetContentMask.DataSetWriterId |
                                             DataSetContentMask.MajorVersion |
                                             DataSetContentMask.MinorVersion |
-                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.SequenceNumber : 0) 
+                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.SequenceNumber : 0)
                                     }
                                 }
                             },

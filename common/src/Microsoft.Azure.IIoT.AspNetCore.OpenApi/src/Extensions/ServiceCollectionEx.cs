@@ -8,15 +8,15 @@ namespace Microsoft.OpenApi.Models {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc.Infrastructure;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
+    using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Controllers;
-    using Swashbuckle.AspNetCore.SwaggerGen;
 
     /// <summary>
     /// Configure OpenApi

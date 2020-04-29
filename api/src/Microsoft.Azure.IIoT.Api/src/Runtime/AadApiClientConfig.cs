@@ -29,9 +29,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <inheritdoc/>
         public string ClientId => GetStringOrDefault(kAuth_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_PUBLIC_CLIENT_APPID,
-            // TODO: Remove!!
-            () => GetStringOrDefault(PcsVariable.PCS_AAD_CONFIDENTIAL_CLIENT_APPID,
-                () => null)))?.Trim();
+                () => null))?.Trim();
         /// <inheritdoc/>
         public string ClientSecret => null;
         /// <inheritdoc/>

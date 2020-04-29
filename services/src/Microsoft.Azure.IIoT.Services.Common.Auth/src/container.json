@@ -1,4 +1,0 @@
-{
-    "name": "iot/industrial-iot-auth-service",
-    "exposes": [ 9090 ]
-}
