@@ -396,7 +396,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             private readonly ModuleClient _client;
             private int _reconnectCounter;
             private static readonly Gauge kReconnectionStatus = Metrics.CreateGauge("iiot_edge_reconnected", "reconnected count",
-                    new GaugeConfiguration {
+                new GaugeConfiguration {
                     LabelNames = new[] { "module", "device"}
                 });
             private static readonly Gauge kDisconnectionStatus = Metrics.CreateGauge("iiot_edge_disconnected", "reconnected count",
