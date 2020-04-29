@@ -63,14 +63,10 @@ GET /vault/v2/certificates/{serialNumber}
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="getissuercrlchain"></a>
@@ -96,14 +92,10 @@ GET /vault/v2/certificates/{serialNumber}/crl
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="distribution_resource"></a>
@@ -196,14 +188,10 @@ Get all certificate requests in paged form or continue a current listing or quer
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="startnewkeypairrequest"></a>
@@ -237,18 +225,15 @@ The request is in the 'New' state after this call. Requires Writer or Manager ro
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="finishnewkeypairrequest"></a>
@@ -278,14 +263,10 @@ Can be called in any state. Fetches private key in 'Completed' state. After a su
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="queryrequests"></a>
@@ -320,18 +301,15 @@ Get all certificate requests in paged form. The returned model can contain a lin
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="startsigningrequest"></a>
@@ -365,18 +343,15 @@ The request is in the 'New' state after this call. Requires Writer or Manager ro
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="finishsigningrequest"></a>
@@ -406,14 +381,10 @@ Can be called in any state. After a successful fetch in 'Completed' state, the r
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="getrequest"></a>
@@ -439,14 +410,10 @@ GET /vault/v2/requests/{requestId}
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="deleterequest"></a>
@@ -474,13 +441,6 @@ By purging the request it is actually physically deleted from the database, incl
 |**200**|Success|No Content|
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="acceptrequest"></a>
 #### Cancel request
 ```
@@ -504,13 +464,6 @@ The request is in the 'Accepted' state after this call. Requires Writer role.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="approverequest"></a>
@@ -538,13 +491,6 @@ Validates the request with the application database. - If Approved: - New Key Pa
 |**200**|Success|No Content|
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="rejectrequest"></a>
 #### Reject the certificate request.
 ```
@@ -568,13 +514,6 @@ The request is in the 'Rejected' state after this call. Requires Approver role. 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="trustgroups_resource"></a>
@@ -610,14 +549,10 @@ A trust group has a root certificate which issues certificates to entities. Enti
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="creategroup"></a>
@@ -651,18 +586,15 @@ Requires manager role.
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="createroot"></a>
@@ -696,18 +628,15 @@ Requires manager role.
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="updategroup"></a>
@@ -742,13 +671,7 @@ Use this function with care and only if you are aware of the security implicatio
 * `application/json`
 * `text/json`
 * `application/*+json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `application/x-msgpack`
 
 
 <a name="getgroup"></a>
@@ -778,14 +701,10 @@ A trust group has a root certificate which issues certificates to entities. Enti
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="deletegroup"></a>
@@ -813,13 +732,6 @@ After this operation the Issuer CA, CRLs and keys become inaccessible. Use this 
 |**200**|Success|No Content|
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="renewissuercertificate"></a>
 #### Renew a group CA Certificate.
 ```
@@ -839,13 +751,6 @@ POST /vault/v2/groups/{groupId}/renew
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="trustlists_resource"></a>
@@ -882,14 +787,10 @@ Returns all certificates the entity should trust based on the applied trust conf
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="addtrustrelationship"></a>
@@ -918,13 +819,6 @@ Define trust between two entities. The entities are identifiers of application, 
 |**200**|Success|No Content|
 
 
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="removetrustrelationship"></a>
 #### Remove a trust relationship
 ```
@@ -949,13 +843,6 @@ Removes trust between two entities. The entities are identifiers of application,
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

@@ -23,13 +23,205 @@ Azure Industrial IoT OPC UA Publisher Service
 
 ### Tags
 
+* Jobs : Jobs controller
 * Publish : Value and Event publishing services
+* Workers : Agent controller
 
 
 
 
 <a name="paths"></a>
 ## Resources
+
+<a name="jobs_resource"></a>
+### Jobs
+Jobs controller
+
+
+<a name="queryjobs"></a>
+#### Query jobs
+```
+POST /publisher/v2/jobs
+```
+
+
+##### Description
+List all jobs that are registered or continues a query.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**pageSize**  <br>*optional*|Optional number of results to return|integer (int32)|
+|**Body**|**body**  <br>*optional*|Query specification to use as filter.|[JobInfoQueryApiModel](definitions.md#jobinfoqueryapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[JobInfoListApiModel](definitions.md#jobinfolistapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="listjobs"></a>
+#### Get list of jobs
+```
+GET /publisher/v2/jobs
+```
+
+
+##### Description
+List all jobs that are registered or continues a query.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**continuationToken**  <br>*optional*|Optional Continuation token|string|
+|**Query**|**pageSize**  <br>*optional*|Optional number of results to return|integer (int32)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[JobInfoListApiModel](definitions.md#jobinfolistapimodel)|
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="getjob"></a>
+#### Get job by id
+```
+GET /publisher/v2/jobs/{id}
+```
+
+
+##### Description
+Returns a job with the provided identifier.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**id**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[JobInfoApiModel](definitions.md#jobinfoapimodel)|
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="deletejob"></a>
+#### Delete job by id
+```
+DELETE /publisher/v2/jobs/{id}
+```
+
+
+##### Description
+Deletes a job.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**id**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="canceljob"></a>
+#### Cancel job by id
+```
+GET /publisher/v2/jobs/{id}/cancel
+```
+
+
+##### Description
+Cancels a job execution.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**id**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
+
+<a name="restartjob"></a>
+#### Restart job by id
+```
+GET /publisher/v2/jobs/{id}/restart
+```
+
+
+##### Description
+Restarts a cancelled job which sets it back to active.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**id**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
+
 
 <a name="publish_resource"></a>
 ### Publish
@@ -68,18 +260,15 @@ Returns currently published node ids for an endpoint. The endpoint must be activ
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="getnextlistofpublishednodes"></a>
@@ -110,14 +299,10 @@ Returns next set of currently published node ids for an endpoint. The endpoint m
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="bulkpublishvalues"></a>
@@ -152,18 +337,15 @@ Adds or removes in bulk values that should be published from a particular endpoi
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="startpublishingvalues"></a>
@@ -198,18 +380,15 @@ Start publishing variable node values to IoT Hub. The endpoint must be activated
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+* `text/json`
+* `application/x-msgpack`
 
 
 <a name="stoppublishingvalues"></a>
@@ -244,18 +423,112 @@ Stop publishing variable node values to IoT Hub. The endpoint must be activated 
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 ##### Produces
 
+* `text/plain`
 * `application/json`
+* `text/json`
+* `application/x-msgpack`
 
 
-##### Security
+<a name="workers_resource"></a>
+### Workers
+Agent controller
 
-|Type|Name|Scopes|
+
+<a name="listworkers"></a>
+#### Get list of workers
+```
+GET /publisher/v2/workers
+```
+
+
+##### Description
+List all workers that are registered or continues a query.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**continuationToken**  <br>*optional*|Optional Continuation token|string|
+|**Query**|**pageSize**  <br>*optional*|Optional number of results to return|integer (int32)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
 |---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+|**200**|Success|[WorkerInfoListApiModel](definitions.md#workerinfolistapimodel)|
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="getworker"></a>
+#### Get worker
+```
+GET /publisher/v2/workers/{id}
+```
+
+
+##### Description
+Returns a worker with the provided identifier.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**id**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[WorkerInfoApiModel](definitions.md#workerinfoapimodel)|
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+<a name="deleteworker"></a>
+#### Delete worker by id
+```
+DELETE /publisher/v2/workers/{id}
+```
+
+
+##### Description
+Deletes an worker in the registry.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**id**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|No Content|
 
 
 
