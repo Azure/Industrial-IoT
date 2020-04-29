@@ -756,7 +756,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     _authConf.TenantId,
                     _resourceGroup,
                     _applicationsManager.GetServiceApplicationSP(),
-                    _owner
+                    _owner,
+                    _defaultTagsDict
                 );
 
             var keyVault = await _keyVaultManagementClient
@@ -1106,7 +1107,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 _applicationsManager.GetClientApplicationSecret()
             );
 
-
+            // We will push iiotEnvironment to KeyVault so that Azure IIoT
+            // components can consume configuration from there.
+            var keyVaultConfCreationTask = PushIIoTEnvironmentToKeyVaultAsync(
+                keyVault, iiotEnvironment, cancellationToken);
 
             // Create and setup a jumpbox for AKS.
 
@@ -1202,6 +1206,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // This will be performed in UpdateClientApplicationRedirectUrisAsync() call.
             _applicationURL = aksPublicIp.DnsSettings.Fqdn;
 
+            // Waiting for unfinished tasks.
+            keyVaultConfCreationTask.Wait();
+
             // Check if we want to save environment to .env file
             try {
                 if (_configurationProvider.IfSaveEnvFile()) {
@@ -1261,6 +1268,64 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
 
                 _aksClusterX509Certificate = aksClusterX509CertificateGetTask.Result;
+            }
+        }
+
+        /// <summary>
+        /// Push elements of IIoTEnvironment to KeyVault.
+        /// </summary>
+        /// <param name="keyVault"></param>
+        /// <param name="iioTEnvironment"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        protected async Task PushIIoTEnvironmentToKeyVaultAsync(
+            VaultInner keyVault,
+            IIoTEnvironment iioTEnvironment,
+            CancellationToken cancellationToken = default
+        ) {
+            if (keyVault is null) {
+                throw new ArgumentNullException(nameof(keyVault));
+            }
+            if (iioTEnvironment is null) {
+                throw new ArgumentNullException(nameof(iioTEnvironment));
+            }
+
+            const string keyK = "key";
+            const string valueK = "value";
+
+            const string deploymentName = "configuration";
+
+            try {
+                var configurationList = new List<Dictionary<string, string>>();
+                foreach (var kvp in iioTEnvironment.Dict) {
+                    configurationList.Add(new Dictionary<string, string> {
+                        { keyK,  kvp.Key },
+                        { valueK, kvp.Value }
+                    });
+                }
+
+                var parameters = new Dictionary<string, object> {
+                    {"keyVaultName", keyVault.Name},
+                    {"configuration", configurationList}
+                };
+
+                Log.Information("Pushing IIoT configuration parameters to Key Vault...");
+                await _resourceManagementClient
+                    .CreateResourceGroupDeploymentAsync(
+                        _resourceGroup,
+                        deploymentName,
+                        Resources.ArmTemplates.configuration,
+                        parameters,
+                        DeploymentMode.Incremental,
+                        _defaultTagsDict,
+                        cancellationToken
+                    );
+
+                Log.Information("Pushed IIoT configuration parameters to Key Vault.");
+            }
+            catch (Exception) {
+                Log.Information("Failed to push IIoT configuration parameters to Key Vault.");
+                throw;
             }
         }
 

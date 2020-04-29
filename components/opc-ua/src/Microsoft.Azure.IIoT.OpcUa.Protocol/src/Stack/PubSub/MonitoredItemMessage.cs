@@ -202,7 +202,7 @@ namespace Opc.Ua.PubSub {
                 Timestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.Timestamp));
             }
             Value = decoder.ReadDataValue("Value");
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SequenceNumber) == 0) {
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SequenceNumber) != 0) {
                 SequenceNumber = decoder.ReadUInt32(nameof(MonitoredItemMessageContentMask.SequenceNumber));
             }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {

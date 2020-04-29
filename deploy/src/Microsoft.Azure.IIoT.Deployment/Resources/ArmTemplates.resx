@@ -121,6 +121,9 @@
   <data name="aks_public_ip" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>deployments\aks-public-ip.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="configuration" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>deployments\configuration.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
   <data name="jumpbox_vm" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>deployments\jumpbox-vm.json;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
