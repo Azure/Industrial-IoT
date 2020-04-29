@@ -635,7 +635,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
             var expected = _serializer.Parse(@"
 {
-    ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+    ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
     ""Encoding"": ""Json"",
     ""Body"": {
         ""BooleanValue"": false,
