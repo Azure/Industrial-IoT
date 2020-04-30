@@ -65,7 +65,6 @@ jobs:
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/get-matrix.ps1
-      # arguments: -FileName Directory.Build.props
       arguments: -FileName azure-pipelines.yml
 - job: testall
   displayName: Run Tests for
@@ -76,7 +75,6 @@ jobs:
     skipComponentGovernanceDetection: true
     DOTNET_CLI_TELEMETRY_OPTOUT: true
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-    disable.coverage.autogenerate: true
     runCodesignValidationInjection: false
   pool:
     vmImage: $(poolImage)
@@ -99,25 +97,4 @@ jobs:
     inputs:
       command: test
       projects: '**/tests/*.csproj'
-      arguments: '--configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
-  - task: DotNetCoreCLI@2
-    condition: eq(variables['agent'], 'linux')
-    inputs:
-      command: custom
-      custom: tool
-      arguments: install --tool-path tools dotnet-reportgenerator-globaltool 
-    displayName: Install ReportGenerator tool
-  - script: |
-      tools/reportgenerator -reports:$(Build.SourcesDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage "-reporttypes:Cobertura;HtmlSummary" "-title:.Net Standard Test Coverage" "-assemblyfilters:-*.Tests"
-      mv $(Build.SourcesDirectory)/CodeCoverage/summary.htm $(Build.SourcesDirectory)/CodeCoverage/index.html 
-
-    displayName: Create Code coverage report
-    condition: eq(variables['agent'], 'linux')
-    continueOnError: true
-  - task: PublishCodeCoverageResults@1
-    condition: eq(variables['agent'], 'linux')
-    displayName: 'Publish code coverage'
-    inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
-      reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
+      arguments: '--configuration Release'
