@@ -175,7 +175,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     ct.ThrowIfCancellationRequested();
                     if (jobProcessInstruction?.Job?.JobConfiguration == null ||
                         jobProcessInstruction?.ProcessMode == null) {
-                        _logger.Information("Worker: {Id}, no job received, wait {delay} ...",
+                        _logger.Debug("Worker: {Id}, no job received, wait {delay} ...",
                             WorkerId, _jobCheckerInterval);
                         await Task.Delay(_jobCheckerInterval, ct);
                         continue;

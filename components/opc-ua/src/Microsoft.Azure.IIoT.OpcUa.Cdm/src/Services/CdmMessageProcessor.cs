@@ -268,7 +268,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             key = string.Join("", key.Split(Path.GetInvalidFileNameChars()));
             return key.Replace('#', '_').Replace('.', '_')
                 .Replace('/', '_').Replace(':', '_')
-                .Replace('"', '_').Replace('\'', '_');
+                .Replace('"', '_').Replace('\'', '_')
+                .Replace('\\', '_');
         }
 
         /// <summary>
