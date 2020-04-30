@@ -105,6 +105,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             public TransportOption Transport => TransportOption.Any;
 
+            public bool EnableMetrics => false;
+
             private readonly DeviceModel _device;
         }
 

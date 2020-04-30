@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Prometheus;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -37,6 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         /// <inheritdoc/>
         public async Task<PublishStartResultModel> NodePublishStartAsync(
             string endpointId, PublishStartRequestModel request) {
+            kNodePublishStart.Inc();
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
@@ -136,6 +138,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         /// <inheritdoc/>
         public async Task<PublishStopResultModel> NodePublishStopAsync(
             string endpointId, PublishStopRequestModel request) {
+            kNodePublishStop.Inc();
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
@@ -409,5 +412,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         private readonly IEndpointRegistry _endpoints;
         private readonly IJobScheduler _jobs;
         private readonly IJobSerializer _serializer;
+        private static readonly Counter kNodePublishStart = Metrics.CreateCounter("iiot_edge_publisher_node_publish_start", "calls to nodePublishStartAsync");
+        private static readonly Counter kNodePublishStop = Metrics.CreateCounter("iiot_edge_publisher_node_publish_stop", "calls to nodePublishStopAsync");
+
     }
 }

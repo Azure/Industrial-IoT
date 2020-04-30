@@ -21,6 +21,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         bool BypassCertVerification { get; }
 
         /// <summary>
+        /// Enable metrics collection
+        /// </summary>
+        bool EnableMetrics { get; }
+
+        /// <summary>
         /// Transports to use
         /// </summary>
         TransportOption Transport { get; }

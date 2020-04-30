@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Autofac;
     using Microsoft.Extensions.Configuration;
     using Serilog;
+    using Prometheus;
     using Microsoft.Azure.IIoT.Module;
 
     /// <summary>
@@ -85,9 +86,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var events = hostScope.Resolve<IEventEmitter>();
                     var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
                     var logger = hostScope.Resolve<ILogger>();
+                    var config = new Config(_config);
+                    logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
+                    var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
+                        server.StartWhenEnabled(config, logger);
                         var product = "OpcPublisher_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
+                        kPublisherModuleStart.Inc();
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             product, this);
@@ -108,6 +114,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     finally {
                         await workerSupervisor.StopAsync();
                         await module.StopAsync();
+                        kPublisherModuleStart.Set(0);
+                        server.Stop();
                         OnRunning?.Invoke(this, false);
                     }
                 }
@@ -190,5 +198,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         private readonly TaskCompletionSource<bool> _exit;
         private int _exitCode;
         private TaskCompletionSource<bool> _reset;
+        private const int kPublisherPrometheusPort = 9702;
+        private static readonly Gauge kPublisherModuleStart = Metrics
+            .CreateGauge("iiot_edge_publisher_module_start", "publisher module started");
     }
 }

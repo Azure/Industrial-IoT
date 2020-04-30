@@ -22,6 +22,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
     using System.Diagnostics;
     using System.Threading;
     using Serilog;
+    using Prometheus;
+    using System.Net;
 
     /// <summary>
     /// Module Process
@@ -70,6 +72,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
 #pragma warning restore IDE0067 // Dispose objects before losing scope
         }
 
+
         /// <summary>
         /// Run module host
         /// </summary>
@@ -80,10 +83,15 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
+                    var config = new Config(_config);
+                    logger.Information("Initiating prometheus at port {0}/metrics", kDiscoveryPrometheusPort);
+                    var server = new MetricServer(port: kDiscoveryPrometheusPort);
                     try {
+                        server.StartWhenEnabled(config, logger);
                         // Start module
                         var product = "OpcDiscovery_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
+                        kDiscoveryModuleStart.Inc();
                         await module.StartAsync(IdentityType.Discoverer, SiteId,
                             product, this);
                         OnRunning?.Invoke(this, true);
@@ -100,6 +108,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     }
                     finally {
                         await module.StopAsync();
+                        kDiscoveryModuleStart.Set(0);
+                        server.StopWhenEnabled(config, logger);
                         OnRunning?.Invoke(this, false);
                     }
                 }
@@ -158,5 +168,9 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
+        private const int kDiscoveryPrometheusPort = 9700;
+        private static readonly Gauge kDiscoveryModuleStart = Metrics
+            .CreateGauge("iiot_edge_discovery_module_start", "discovery module started");
+
     }
 }

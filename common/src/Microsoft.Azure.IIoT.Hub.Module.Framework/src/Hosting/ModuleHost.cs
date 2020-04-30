@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Text;
+    using Prometheus;
 
     /// <summary>
     /// Module host implementation
@@ -112,6 +113,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     if (Client == null) {
                         // Create client
                         _logger.Debug("Starting Module Host...");
+                        kModuleStart.WithLabels(type, _factory.DeviceId, Guid.NewGuid().ToString(), DateTime.UtcNow.ToString()).Set(1);
                         Client = await _factory.CreateAsync(serviceInfo, reset);
                         DeviceId = _factory.DeviceId;
                         ModuleId = _factory.ModuleId;
@@ -523,5 +525,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, VariantValue> _reported =
             new Dictionary<string, VariantValue>();
+        private static readonly Gauge kModuleStart = Metrics.CreateGauge("iiot_edge_module_start", "starting module",
+                new GaugeConfiguration {
+                    LabelNames = new[] { "module", "device", "guid", "timestamp_utc" }
+                });
     }
 }

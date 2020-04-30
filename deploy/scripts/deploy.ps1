@@ -11,9 +11,6 @@
  .PARAMETER version
     Set to "preview" or another mcr image tag to deploy - if not set deploys last released images ("latest").
 
- .PARAMETER version
-    Set to "preview" or another mcr image tag to deploy - if not set deploys last released images ("latest").
-
  .PARAMETER resourceGroupName
     Can be the name of an existing or a new resource group
 

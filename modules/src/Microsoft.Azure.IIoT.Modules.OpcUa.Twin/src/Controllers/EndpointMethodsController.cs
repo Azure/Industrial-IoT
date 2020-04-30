@@ -16,6 +16,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
     using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading.Tasks;
+    using Prometheus;
+    using Microsoft.Azure.IIoT.Module;
 
     /// <summary>
     /// Endpoint methods controller
@@ -50,6 +52,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<ModelUploadStartResponseApiModel> ModelUploadStartAsync(
             ModelUploadStartRequestApiModel request) {
+            kModelUploadStartAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -65,13 +68,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<BrowseResponseApiModel> BrowseAsync(
             BrowseRequestInternalApiModel request) {
-
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
+            kBrowseAsync.Inc();
+            BrowseResponseApiModel model;
+            using (kBrowseHistAsync.NewTimer()) {
+                if (request == null) {
+                    throw new ArgumentNullException(nameof(request));
+                }
+                var result = await _browse.NodeBrowseFirstAsync(
+                    await _twin.GetEndpointAsync(), request.ToServiceModel());
+                model = result.ToApiModel();
             }
-            var result = await _browse.NodeBrowseFirstAsync(
-                await _twin.GetEndpointAsync(), request.ToServiceModel());
-            return result.ToApiModel();
+            return model;
         }
 
         /// <summary>
@@ -81,6 +88,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<BrowseNextResponseApiModel> BrowseNextAsync(
             BrowseNextRequestInternalApiModel request) {
+            kBrowseNextAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -96,6 +104,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<BrowsePathResponseApiModel> BrowsePathAsync(
             BrowsePathRequestInternalApiModel request) {
+            kBrowsePathAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -111,12 +120,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<ValueReadResponseApiModel> ValueReadAsync(
             ValueReadRequestApiModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
+            kValueReadAsync.Inc();
+            ValueReadResponseApiModel model;
+            using (kValueReadHistAsync.NewTimer()) {
+                if (request == null) {
+                    throw new ArgumentNullException(nameof(request));
+                }
+                var result = await _nodes.NodeValueReadAsync(
+                    await _twin.GetEndpointAsync(), request.ToServiceModel());
+                model = result.ToApiModel();
             }
-            var result = await _nodes.NodeValueReadAsync(
-                await _twin.GetEndpointAsync(), request.ToServiceModel());
-            return result.ToApiModel();
+            return model;
         }
 
         /// <summary>
@@ -126,6 +140,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<ValueWriteResponseApiModel> ValueWriteAsync(
             ValueWriteRequestApiModel request) {
+            kValueWriteAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -141,6 +156,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<MethodMetadataResponseApiModel> MethodMetadataAsync(
             MethodMetadataRequestApiModel request) {
+            kMethodMetadataAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -156,6 +172,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<MethodCallResponseApiModel> MethodCallAsync(
             MethodCallRequestApiModel request) {
+            kMethodCallAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -171,6 +188,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<ReadResponseApiModel> NodeReadAsync(
             ReadRequestApiModel request) {
+            kNodeReadAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -186,6 +204,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<WriteResponseApiModel> NodeWriteAsync(
             WriteRequestApiModel request) {
+            kNodeWriteAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -201,6 +220,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<HistoryReadResponseApiModel<VariantValue>> HistoryReadAsync(
             HistoryReadRequestApiModel<VariantValue> request) {
+            kHistoryReadAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -231,6 +251,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public async Task<HistoryUpdateResponseApiModel> HistoryUpdateAsync(
             HistoryUpdateRequestApiModel<VariantValue> request) {
+            kHistoryUpdateAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -244,5 +265,34 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         private readonly INodeServices<EndpointModel> _nodes;
         private readonly ITwinServices _twin;
         private readonly IUploadServices<EndpointModel> _export;
+        private static readonly string kTwinMetricsPrefix = "iiot_edge_twin_";
+        private static readonly Counter kBrowseAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "browse", "call to browseAsync");
+        private static readonly Histogram kBrowseHistAsync = Metrics
+            .CreateHistogram(kTwinMetricsPrefix + "browse_hist", "call to browseAsync");
+        private static readonly Counter kBrowseNextAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "browse_next", "call to browseNextAsync");
+        private static readonly Counter kBrowsePathAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "browse_path", "call to browsePathAsync");
+        private static readonly Counter kHistoryReadAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "history_read", "call to historyReadAsync");
+        private static readonly Counter kHistoryUpdateAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "history_update", "call to historyUpdateAsync");
+        private static readonly Counter kNodeReadAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "node_read", "call to nodeReadAsync");
+        private static readonly Counter kNodeWriteAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "node_write", "call to nodeWriteAsync");
+        private static readonly Counter kValueReadAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "value_read", "call to valueReadAsync");
+        private static readonly Histogram kValueReadHistAsync = Metrics
+            .CreateHistogram(kTwinMetricsPrefix + "value_read_hist", "call to valueReadAsync");
+        private static readonly Counter kValueWriteAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "value_write", "call to valueWriteAsync");
+        private static readonly Counter kModelUploadStartAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "model_upload_start", "call to modelUploadStartrAsync");
+        private static readonly Counter kMethodCallAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "method_call", "call to methodCallAsync");
+        private static readonly Counter kMethodMetadataAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "method_metadata", "call to methodMetadataAsync");
     }
 }

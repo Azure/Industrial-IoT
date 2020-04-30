@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     using System.Threading;
     using System.Threading.Tasks;
     using Serilog;
+    using Prometheus;
 
     /// <summary>
     /// Provides discovery services
@@ -68,6 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
 
         /// <inheritdoc/>
         public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct) {
+            kDiscoverAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -94,6 +96,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
 
         /// <inheritdoc/>
         public async Task CancelAsync(DiscoveryCancelModel request, CancellationToken ct) {
+            kCancelAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -111,7 +114,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
 
         /// <inheritdoc/>
         public Task ScanAsync() {
-
+            kScanAsync.Inc();
             // Fire timer now so that new request is scheduled
             _timer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
             return Task.CompletedTask;
@@ -382,6 +385,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
             DiscoveryRequest request, Dictionary<IPEndPoint, Uri> discoveryUrls,
             List<string> locales) {
+            kDiscoverServersAsync.Inc();
             var discovered = new List<ApplicationRegistrationModel>();
             var count = 0;
             _progress.OnServerDiscoveryStarted(request.Request, 1, count, discoveryUrls.Count);
@@ -661,6 +665,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
         private DiscoveryRequest _request = new DiscoveryRequest();
+        private static readonly string kDiscoveryMetricsPrefix = "iiot_edge_discovery_";
 #pragma warning restore IDE0069 // Disposable fields should be disposed
+        private static readonly Counter kDiscoverAsync = Metrics
+    .CreateCounter(kDiscoveryMetricsPrefix + "discover", "call to discover");
+        private static readonly Counter kCancelAsync = Metrics
+    .CreateCounter(kDiscoveryMetricsPrefix + "cancel", "call to cancel");
+        private static readonly Counter kDiscoverServersAsync = Metrics
+    .CreateCounter(kDiscoveryMetricsPrefix + "discover_servers", "call to discoverServersAsync");
+        private static readonly Counter kScanAsync = Metrics
+            .CreateCounter(kDiscoveryMetricsPrefix + "scan", "call to scanAsync");
     }
 }
