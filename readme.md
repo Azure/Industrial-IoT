@@ -4,13 +4,13 @@
 
 ## Welcome!
 
-The Azure Industrial IoT Cloud Platform is a Microsoft product that has fully embraced openness. We use Azure's managed Platform as a Service (PaaS) services, open-source software leveraging the MIT license throughout, open international standards for communication (OPC UA, MQTT) and interfaces (Open API) and open industrial data models (OPC UA) on the edge and in the cloud. This means you are **not** locked in to our platform when using it!
+The Azure Industrial IoT Cloud Platform is a Microsoft product that has fully embraced openness. We use Azure's managed Platform as a Service (PaaS) services, open-source software leveraging the MIT license throughout, open international standards for communication (OPC UA, MQTT) and interfaces (Open API) and open industrial data models (OPC UA) on the edge and in the cloud.
 
 ## Discover, register and manage your industrial assets with Azure
 
 The Azure Industrial IoT Cloud Platform allows you to discover industrial assets on-site and automatically registers them in the cloud for easy access there. It leverages managed Azure PaaS services so you don't have to manage the platform yourself. On top of the Azure PaaS services, we have built a number of edge and cloud services that work in harmony, leveraging OPC UA as the data model. This is also the first cloud platform to leverage the OPC UA PubSub telemetry format (both JSON and binary, on top of MQTT). If your assets don't support OPC UA as an interface, we have worked with our large partner network to support all types of industrial interfaces through the use of adapters, fully integrated with our platform. Please check out the [Azure IoT Edge Marketplace](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/category/internet-of-things?page=1&subcategories=iot-edge-modules) for a list of adapters available.
 
-The edge services are implemented as Azure IoT Edge modules and run on on-premises [Kubernetes](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-kubernetes), or stand-alone on Docker. The  cloud services are implemented as ASP.NET micro-services with a REST interface and run on managed Azure Kubernetes Services (AKS) or stand-alone on Azure App Service . For both edge and cloud services, we have provided pre-built Docker containers in the Microsoft Container Registry (MCR), so you don't have to build them yourself. The edge and cloud services are leveraging each other and must be used together. We have also provided easy-to-use deployment scripts that allow you to deploy the entire platform in a step-by-step fashion.
+The edge services are implemented as Azure IoT Edge modules and run on on-premises [Kubernetes](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-kubernetes) (currently in preview), or stand-alone on an on-premises gateway that supports Docker. The  cloud services are implemented as ASP.NET micro-services with a REST interface and run on managed Azure Kubernetes Services (currently in preview) or stand-alone on Azure App Service. For both edge and cloud services, we have provided pre-built Docker containers in the Microsoft Container Registry (MCR), so you don't have to build them yourself. The edge and cloud services are leveraging each other and must be used together. We have also provided easy-to-use deployment scripts that allow you to deploy the entire platform in a step-by-step fashion.
 
 We have also built a configuration application running on Azure that lets you access the services through a simple UI.
 
@@ -34,7 +34,7 @@ The minimal deployment script deploys the following managed Azure services into 
 - 1 Blob Storage V2, Standard LRS SKU
 - 1 App Service, B3 SKU (for hosting the cloud micro-services)
 
-Optionally, Azure Kubernetes Services can be used to host the cloud micro-services (see documentation).
+Optionally, Azure Kubernetes Services can be used to host the cloud micro-services (this is currently in preview, please see our documentation).
 
 The full deployment script deploys the following additional managed Azure services into your Azure subscription:
 
