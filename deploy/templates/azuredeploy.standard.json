@@ -315,7 +315,8 @@
         "datalakeResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('datalakeName'))]",
         "appinsightsResourceId": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
         "signalRResourceId": "[resourceId('Microsoft.SignalRService/SignalR', parameters('signalRName'))]",
-        "standardConfigurationResourceName": "infrastructure.configuration"
+        "standardConfigurationResourceName": "infrastructure.configuration",
+        "omsid": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name , '/providers/','Microsoft.OperationalInsights/workspaces/', parameters('workspaceName'))]"
     },
     "resources": [
         {
@@ -617,6 +618,14 @@
                             {
                                 "key": "PCS_WORKSPACE_NAME",
                                 "value": "[parameters('workspaceName')]"
+                            },
+                            {
+                                "key": "PCS_WORKSPACE_ID",
+                                "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName')), '2017-03-15-preview').customerId]"
+                            },
+                            {
+                                "key": "PCS_WORKSPACE_KEY",
+                                "value": "[listKeys(variables('omsid'), '2015-11-01-preview').primarySharedKey]"
                             },
                             {
                                 "key": "PCS_APPINSIGHTS_INSTRUMENTATIONKEY",

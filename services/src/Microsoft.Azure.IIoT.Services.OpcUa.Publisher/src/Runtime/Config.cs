@@ -123,7 +123,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         public string ImagesNamespace => _cr.ImagesNamespace;
         /// <inheritdoc/>
         public string ImagesTag => _cr.ImagesTag;
-
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
             _fh.AspNetCoreForwardedHeadersEnabled;

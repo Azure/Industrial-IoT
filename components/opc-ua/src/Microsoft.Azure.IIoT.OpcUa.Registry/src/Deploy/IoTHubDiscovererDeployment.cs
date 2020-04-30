@@ -102,7 +102,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             }
             else {
                 // Windows
-                createOptions = "{}";
+                createOptions = _serializer.SerializeToString(new {
+                    User = "ContainerAdministrator"
+                });
             }
             createOptions = createOptions.Replace("\"", "\\\"");
 

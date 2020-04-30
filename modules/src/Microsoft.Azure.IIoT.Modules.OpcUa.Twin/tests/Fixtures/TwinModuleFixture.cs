@@ -34,6 +34,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Microsoft.Extensions.Configuration;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Harness for opc twin module
@@ -76,8 +78,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             // Get device registration and create module host with controller
             _device = _hub.GetRegistrationAsync(twin.Id, twin.ModuleId).Result;
             _running = false;
-
-            _module = new ModuleProcess(null, this);
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string> {{"EnableMetrics", "false"}})
+                .Build();
+            _module = new ModuleProcess(configuration, this);
             var tcs = new TaskCompletionSource<bool>();
             _module.OnRunning += (_, e) => tcs.TrySetResult(e);
             _process = Task.Run(() => _module.RunAsync());
@@ -244,6 +248,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
 
             /// <inheritdoc/>
             public TransportOption Transport => TransportOption.Any;
+
+            /// <inheritdoc/>
+            public bool EnableMetrics => false;
 
             private readonly DeviceModel _device;
         }
