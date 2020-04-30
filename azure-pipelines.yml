@@ -39,3 +39,10 @@ stages:
   - build
   jobs:
   - template: tools/templates/acrbuild.yml
+- stage: coverage 
+  displayName: 'Code Coverage'
+  condition: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+  dependsOn:
+  - build
+  jobs:
+  - template: tools/templates/cc.yml

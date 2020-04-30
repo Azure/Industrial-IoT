@@ -330,7 +330,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
         public void SerializerFromJsonToObject() {
             var expected = Json.Parse(@"
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Encoding"": ""Json"",
         ""Body"": {
             ""BooleanValue"": false,
@@ -354,25 +354,25 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             var expected = Json.Parse(@"
 [
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Body"": {
             ""UInt64Value"": 10042278942021613161
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Body"": {
             ""UInt64Value"": 11790719998462990154
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Body"": {
             ""UInt64Value"": 9999999999999999999999
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Body"": {
             ""UInt64Value"": 11790719998462990154
         }
