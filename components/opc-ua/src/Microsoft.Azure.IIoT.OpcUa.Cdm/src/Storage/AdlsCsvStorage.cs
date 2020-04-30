@@ -64,10 +64,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                     else {
                         var payload = prop.GetValue(obj) as Dictionary<string, DataValueModel>;
                         foreach (var node in payload.OrderBy(i => i.Key)) {
-                            var nodeProperties = node.Value.GetType().GetProperties();
-                            foreach (var nodeProp in nodeProperties) {
-                                AddAddValueToCsvStringBuilder(nodeProp.GetValue(node.Value), separator, sb);
-                            }
+                            AddAddValueToCsvStringBuilder(node.Value.Value?.Value, separator, sb);
+                            AddAddValueToCsvStringBuilder(node.Value.Status, separator, sb);
+                            AddAddValueToCsvStringBuilder(node.Value.SourceTimestamp, separator, sb);
+                            AddAddValueToCsvStringBuilder(node.Value.ServerTimestamp, separator, sb);
                         }
                     }
                 }
