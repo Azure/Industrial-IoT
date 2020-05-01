@@ -102,7 +102,7 @@
             "type": "int",
             "defaultValue": 1,
             "maxValue": 255,
-            "minValue": 0,
+            "minValue": 1,
             "metadata": {
                 "description": "Number of simulated factories to deploy."
             }
@@ -876,7 +876,7 @@
             "comments": "Deploy factory network simulation.",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2017-05-10",
-            "name": "[variables('simulationName')]",
+            "name": "[concat(variables('simulationName'), copyIndex())]",
             "condition": "[not(equals(parameters('numberOfSimulations'), 0))]",
             "copy": {
                 "count": "[if(not(equals(0, parameters('numberOfSimulations'))), parameters('numberOfSimulations'), 1)]",
@@ -973,7 +973,7 @@
                 }
             },
             "dependsOn": [
-                "[variables('vnetResourceId')]",
+                "[variables('vnetResourceId')]"
             ]
         }
     ],
