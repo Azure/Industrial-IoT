@@ -767,7 +767,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var expected = _serializer.Parse(@"
 [
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Encoding"": ""Json"",
         ""Body"": {
             ""BooleanValue"": true,
@@ -831,7 +831,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Encoding"": ""Json"",
         ""Body"": {
             ""BooleanValue"": true,
@@ -893,7 +893,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Encoding"": ""Json"",
         ""Body"": {
             ""BooleanValue"": false,
@@ -956,7 +956,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Encoding"": ""Json"",
         ""Body"": {
             ""BooleanValue"": false,
@@ -1019,7 +1019,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Encoding"": ""Json"",
         ""Body"": {
             ""BooleanValue"": false,
@@ -1084,7 +1084,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11438"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9669"",
         ""Encoding"": ""Json"",
         ""Body"": {
             ""BooleanValue"": [ false, false, false, false, true ],
@@ -1193,7 +1193,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
         ""Encoding"": ""Json"",
         ""Body"": {
             ""BooleanValue"": true,

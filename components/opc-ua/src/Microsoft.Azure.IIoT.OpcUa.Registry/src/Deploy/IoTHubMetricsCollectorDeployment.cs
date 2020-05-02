@@ -14,9 +14,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Deploys discovery module
+    /// Deploys metricscollector module
     /// </summary>
-    public sealed class IoTHubDiscovererDeployment : IHostProcess {
+    public sealed class IoTHubMetricsCollectorDeployment : IHostProcess {
 
         /// <summary>
         /// Create deployer
@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         /// <param name="config"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public IoTHubDiscovererDeployment(IIoTHubConfigurationServices service,
-            IContainerRegistryConfig config, IJsonSerializer serializer, ILogger logger) {
+        public IoTHubMetricsCollectorDeployment(IIoTHubConfigurationServices service,
+            ILogWorkspaceConfig config, IJsonSerializer serializer, ILogger logger) {
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _config = config ?? throw new ArgumentNullException(nameof(service));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -35,25 +35,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
 
         /// <inheritdoc/>
         public async Task StartAsync() {
-
+            if (string.IsNullOrEmpty(_config.LogWorkspaceId) || string.IsNullOrEmpty(_config.LogWorkspaceKey)) {
+                throw new ArgumentNullException("Azure Log Analytics Workspace configuration is not set. Cannot proceed with metricscollector deployment.");
+            }
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-discoverer-linux",
+                Id = "__default-metricscollector-linux",
                 Content = new ConfigurationContentModel {
                     ModulesContent = CreateLayeredDeployment(true)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Linux'",
-                Priority = 1
+                Priority = 2
             }, true);
 
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-discoverer-windows",
+                Id = "__default-metricscollector-windows",
                 Content = new ConfigurationContentModel {
                     ModulesContent = CreateLayeredDeployment(false)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Windows'",
-                Priority = 1
+                Priority = 2
             }, true);
         }
 
@@ -70,72 +72,62 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(
             bool isLinux) {
 
-            var registryCredentials = "";
-            if (!string.IsNullOrEmpty(_config.DockerServer) &&
-                _config.DockerServer != "mcr.microsoft.com") {
-                var registryId = _config.DockerServer.Split('.')[0];
-                registryCredentials = @"
-                    ""properties.desired.runtime.settings.registryCredentials." + registryId + @""": {
-                        ""address"": """ + _config.DockerServer + @""",
-                        ""password"": """ + _config.DockerPassword + @""",
-                        ""username"": """ + _config.DockerUser + @"""
-                    },
-                ";
-            }
-
-            // Configure create options per os specified
+            // Configure create options and version per os specified
             string createOptions;
+            string version;
             if (isLinux) {
                 // Linux
-                createOptions = _serializer.SerializeToString(new {
-                    NetworkingConfig = new {
-                        EndpointsConfig = new {
-                            host = new {
-                            }
-                        }
-                    },
-                    HostConfig = new {
-                        NetworkMode = "host",
-                        CapAdd = new[] { "NET_ADMIN" }
-                    }
-                });
+                createOptions = "{}";
+                version = "0.0.4-amd64";
             }
             else {
                 // Windows
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator"
                 });
+                version = "0.0.5-windows-amd64";
             }
             createOptions = createOptions.Replace("\"", "\\\"");
-
-            var server = string.IsNullOrEmpty(_config.DockerServer) ?
-                "mcr.microsoft.com" : _config.DockerServer;
-            var ns = string.IsNullOrEmpty(_config.ImagesNamespace) ?
-                "" : _config.ImagesNamespace.TrimEnd('/') + "/";
-            var version = _config.ImagesTag ?? "latest";
-            var image = $"{server}/{ns}iotedge/discovery:{version}";
-
-            _logger.Information("Updating discovery module deployment with image {image} for {os}",
-                image, isLinux ? "Linux" : "Windows");
+            var image = $"veyalla/metricscollector:{version}";
+            _logger.Information("Updating metrics collector module deployment for {os}", isLinux ? "Linux" : "Windows");
 
             // Return deployment modules object
             var content = @"
             {
                 ""$edgeAgent"": {
-                    " + registryCredentials + @"
-                    ""properties.desired.modules.discovery"": {
+                    ""properties.desired.modules.metricscollector"": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""
                         },
                         ""type"": ""docker"",
+                        ""version"": ""1.0"",
+                        ""env"": {
+                            ""AzMonWorkspaceId"": {
+                                ""value"": """ + _config.LogWorkspaceId + @"""
+                            },
+                            ""AzMonWorkspaceKey"": {
+                                ""value"": """ + _config.LogWorkspaceKey + @"""
+                            }
+                        },
                         ""status"": ""running"",
-                        ""restartPolicy"": ""always"",
-                        ""version"": """ + (version == "latest" ? "1.0" : version) + @"""
+                        ""restartPolicy"": ""always""
                     }
                 },
                 ""$edgeHub"": {
                     ""properties.desired.routes.upstream"": ""FROM /messages/* INTO $upstream""
+                },
+                ""metricscollector"": {
+                    ""properties.desired"": {
+                        ""schemaVersion"": ""1.0"",
+                        ""scrapeFrequencySecs"": 120,
+                        ""metricsFormat"": ""Json"",
+                        ""syncTarget"": ""AzureLogAnalytics"",
+                        ""endpoints"": {
+                            ""opctwin"": ""http://opctwin:9701/metrics"",
+                            ""opcpublisher"": ""http://opcpublisher:9702/metrics""
+                        }
+                    }
                 }
             }";
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(content);
@@ -143,7 +135,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
 
         private const string kDefaultSchemaVersion = "1.0";
         private readonly IIoTHubConfigurationServices _service;
-        private readonly IContainerRegistryConfig _config;
+        private readonly ILogWorkspaceConfig _config;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
     }

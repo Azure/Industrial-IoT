@@ -23,6 +23,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <inheritdoc/>
         public bool BypassCertVerification => _module.BypassCertVerification;
         /// <inheritdoc/>
+        public bool EnableMetrics => _module.EnableMetrics;
+        /// <inheritdoc/>
         public TransportOption Transport => _module.Transport;
         /// <inheritdoc/>
         public string ApplicationName => _opc.ApplicationName;

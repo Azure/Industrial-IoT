@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
         ICorsConfig, IOpenApiConfig, IServiceBusConfig,
         ICosmosDbConfig, IItemContainerConfig, IForwardedHeadersConfig,
-        IContainerRegistryConfig, IRoleConfig {
+        IContainerRegistryConfig, ILogWorkspaceConfig, IRoleConfig {
 
         /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
@@ -87,6 +87,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public string ImagesNamespace => _cr.ImagesNamespace;
         /// <inheritdoc/>
         public string ImagesTag => _cr.ImagesTag;
+        /// <inheritdoc/>
+        public string LogWorkspaceId => _lwc.LogWorkspaceId;
+        /// <inheritdoc/>
+        public string LogWorkspaceKey => _lwc.LogWorkspaceKey;
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
@@ -110,9 +114,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
             _cosmos = new CosmosDbConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _cr = new ContainerRegistryConfig(configuration);
+            _lwc = new LogWorkspaceConfig(configuration);
         }
 
         private readonly ContainerRegistryConfig _cr;
+        private readonly LogWorkspaceConfig _lwc;
         private readonly OpenApiConfig _openApi;
         private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;

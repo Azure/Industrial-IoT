@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
+    using Prometheus;
 
     /// <summary>
     /// Dataflow engine
@@ -146,6 +147,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             sb.AppendLine($"   # SinkBlock input count: {_sinkBlock?.InputCount}");
             sb.AppendLine("   =======================");
             _logger.Information(sb.ToString());
+            kNumberOfInvokedMessages.Set(_messageTrigger.NumberOfInvokedMessages);
+            kSentMessagesCount.Set(_messageSink.SentMessagesCount);
+            kNumberOfConnectionRetries.Set(_messageTrigger.NumberOfConnectionRetries);
             // TODO: Use structured logging!
         }
 
@@ -171,5 +175,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private BatchBlock<NetworkMessageModel> _batchNetworkMessageBlock;
         private TransformManyBlock<DataSetMessageModel[], NetworkMessageModel> _encodingBlock;
         private ActionBlock<NetworkMessageModel[]> _sinkBlock;
+        private static readonly Gauge kNumberOfInvokedMessages = Metrics.CreateGauge("iiot_edge_publisher_messages_invoked", "invoke messages in trigger");
+        private static readonly Gauge kSentMessagesCount = Metrics.CreateGauge("iiot_edge_publisher_messages_sink", "messages sent to sink");
+        private static readonly Gauge kNumberOfConnectionRetries = Metrics.CreateGauge("iiot_edge_publisher_connection_retries", "retries in trigger");
+
     }
 }

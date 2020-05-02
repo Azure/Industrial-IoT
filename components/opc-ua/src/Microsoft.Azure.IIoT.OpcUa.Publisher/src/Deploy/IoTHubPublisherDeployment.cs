@@ -37,12 +37,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         public async Task StartAsync() {
 
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-opcpublisher",
+                Id = "__default-opcpublisher-linux",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment()
+                    ModulesContent = CreateLayeredDeployment(true)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}'",
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Linux'",
+                Priority = 1
+            }, true);
+            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
+                Id = "__default-opcpublisher-windows",
+                Content = new ConfigurationContentModel {
+                    ModulesContent = CreateLayeredDeployment(false)
+                },
+                SchemaVersion = kDefaultSchemaVersion,
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Windows'",
                 Priority = 1
             }, true);
         }
@@ -56,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         /// Get base edge configuration
         /// </summary>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment() {
+        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(bool isLinux) {
 
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_config.DockerServer) &&
@@ -72,12 +81,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             }
 
             // Configure create options per os specified
-            var createOptions = _serializer.SerializeToString(new {
-                Hostname = "opcpublisher",
-                Cmd = new[] {
+            string createOptions;
+            if (isLinux) {
+                createOptions = _serializer.SerializeToString(new {
+                    Hostname = "opcpublisher",
+                    Cmd = new[] {
+                    "--aa"
+                    }
+                }).Replace("\"", "\\\"");
+            } else {
+                createOptions = _serializer.SerializeToString(new {
+                    User = "ContainerAdministrator",
+                    Hostname = "opcpublisher",
+                    Cmd = new[] {
                     "--aa"
                 }
-            }).Replace("\"", "\\\"");
+                }).Replace("\"", "\\\"");
+            }
+
 
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;

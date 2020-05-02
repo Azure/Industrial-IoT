@@ -2,11 +2,11 @@
 
 [Home](../readme.md)
 
-The Industrial IoT Microservices depend on several other services and technology. This includes
+The Industrial IoT Microservices depend on several other services and technology:
 
 ## OPC UA Reference Stack
 
-All OPC UA components use the [OPC Foundation](https://opcfoundation.org/)'s OPC UA [reference stack](https://github.com/OPCFoundation/UA-.NETStandard) as nuget packages and therefore licensing of their nuget packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
+All OPC UA components use the [OPC Foundation](https://opcfoundation.org/)'s OPC UA [reference stack](https://github.com/OPCFoundation/UA-.NETStandard) as NuGet packages and therefore licensing of their NuGet packages apply. Visit https://opcfoundation.org/license/redistributables/1.3/ for the licensing terms.
 
 ## Azure Services
 

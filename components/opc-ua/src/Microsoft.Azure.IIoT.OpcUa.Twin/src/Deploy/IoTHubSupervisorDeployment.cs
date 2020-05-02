@@ -36,12 +36,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
         /// <inheritdoc/>
         public async Task StartAsync() {
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-opctwin",
+                Id = "__default-opctwin-linux",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment()
+                    ModulesContent = CreateLayeredDeployment(true)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}'",
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Linux'",
+                Priority = 1
+            }, true);
+            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
+                Id = "__default-opctwin-windows",
+                Content = new ConfigurationContentModel {
+                    ModulesContent = CreateLayeredDeployment(false)
+                },
+                SchemaVersion = kDefaultSchemaVersion,
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Windows'",
                 Priority = 1
             }, true);
         }
@@ -55,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
         /// Get base edge configuration
         /// </summary>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment() {
+        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(bool isLinux) {
 
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_config.DockerServer) &&
@@ -69,6 +78,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     },
                 ";
             }
+
+
+            // Configure create options per os specified
+            string createOptions;
+            if (isLinux) {
+                // Linux
+                createOptions = "{}";
+            }
+            else {
+                // Windows
+                createOptions = _serializer.SerializeToString(new {
+                    User = "ContainerAdministrator",
+                    Hostname = "opctwin"
+                });
+            }
+            createOptions = createOptions.Replace("\"", "\\\"");
+
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
             var ns = string.IsNullOrEmpty(_config.ImagesNamespace) ? "" :
@@ -85,7 +111,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     " + registryCredentials + @"
                     ""properties.desired.modules.twin"": {
                         ""settings"": {
-                            ""image"": """ + image + @"""
+                            ""image"": """ + image + @""",
+                            ""createOptions"": """ + createOptions + @"""
                         },
                         ""type"": ""docker"",
                         ""status"": ""running"",

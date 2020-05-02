@@ -252,6 +252,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubDiscovererDeployment>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubMetricsCollectorDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // ... and auto start
             builder.RegisterType<HostAutoStart>()

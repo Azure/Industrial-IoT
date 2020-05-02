@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Prometheus;
 
     /// <summary>
     /// Subscription services implementation
@@ -371,6 +372,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     var count = rawSubscription.MonitoredItems.Count(m => m.Status.Error == null);
+                    kMonitoredItems.WithLabels(rawSubscription.Id.ToString()).Set(count);
                     _logger.Information("Now monitoring {count} nodes in subscription " +
                         "{subscriptionId} (Session: {sessionId}).", count, rawSubscription.Id,
                         rawSubscription.Session.SessionName);
@@ -621,6 +623,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private readonly SemaphoreSlim _lock;
             private readonly Timer _timer;
             private List<MonitoredItemWrapper> _currentlyMonitored;
+            private static readonly Gauge kMonitoredItems = Metrics.CreateGauge("iiot_edge_publisher_monitored_items", "monitored items count",
+                new GaugeConfiguration {
+                    LabelNames = new[] { "subscription" }
+                });
         }
 
         /// <summary>
