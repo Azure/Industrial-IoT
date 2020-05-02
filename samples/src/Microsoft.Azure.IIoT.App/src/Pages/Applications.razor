@@ -42,9 +42,16 @@
                     @{
                         CommonHelper.ApplicationUri.AddOrUpdate(application.ApplicationId, application.ApplicationUri);
                     }
+                    @if (application.NotSeenSince != null)
+                    {
+                        @application.ApplicationName
+                    }
+                    else
+                    {
                     <a href='endpoints/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
                         @application.ApplicationName
                     </a>
+                    }
                 </td>
                 <td>@application.ApplicationUri</td>
                 <td>@application.SiteId</td>

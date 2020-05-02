@@ -1,0 +1,4 @@
+{
+    "name": "iot/opc-publisher-edge-service",
+    "exposes": [9051]
+}

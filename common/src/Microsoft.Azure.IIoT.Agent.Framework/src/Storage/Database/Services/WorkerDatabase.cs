@@ -51,6 +51,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                         await _documents.ReplaceAsync(existing, workerDocument);
                         return;
                     }
+                    catch (ResourceOutOfDateException) {
+                        continue; // try again refreshing the etag
+                    }
                     catch (ResourceNotFoundException) {
                         continue;
                     }

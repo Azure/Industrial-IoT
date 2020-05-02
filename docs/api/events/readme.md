@@ -69,6 +69,7 @@ Register a client to receive discovery progress events through SignalR for a par
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 <a name="unsubscribebyrequestid"></a>
@@ -129,6 +130,7 @@ Register a client to receive discovery progress events through SignalR from a pa
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 <a name="unsubscribebydiscovererid"></a>
@@ -194,6 +196,7 @@ Register a client to receive publisher samples through SignalR.
 * `application/json`
 * `text/json`
 * `application/*+json`
+* `application/x-msgpack`
 
 
 <a name="unsubscribe"></a>

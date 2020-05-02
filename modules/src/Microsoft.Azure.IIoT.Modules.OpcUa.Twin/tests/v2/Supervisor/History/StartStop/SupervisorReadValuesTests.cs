@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
-    using System;
 
     [Collection(ReadHistoryCollection.Name)]
     public class SupervisorReadValuesTests {
@@ -38,10 +37,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
         }
 
         private readonly HistoryServerFixture _server;
-#if DEBUG
+#if TEST_ALL
         private readonly bool _runAll = true;
 #else
-        private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+        private readonly bool _runAll = System.Environment.GetEnvironmentVariable("TEST_ALL") != null;
 #endif
 
 

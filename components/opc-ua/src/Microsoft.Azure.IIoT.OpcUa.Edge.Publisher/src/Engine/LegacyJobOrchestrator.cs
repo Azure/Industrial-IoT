@@ -4,17 +4,17 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.Agent.Framework;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Module;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Security.Cryptography;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Agent.Framework;
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Serilog;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -29,12 +29,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="logger">Logger to write log messages.</param>
         /// <param name="identity">Module's identity provider.</param>
 
-        public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter, 
-            ILegacyCliModelProvider legacyCliModelProvider, IJobSerializer jobSerializer, 
+        public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter,
+            ILegacyCliModelProvider legacyCliModelProvider, IJobSerializer jobSerializer,
             ILogger logger, IIdentity identity) {
             _publishedNodesJobConverter = publishedNodesJobConverter
                 ?? throw new ArgumentNullException(nameof(publishedNodesJobConverter));
-            _legacyCliModel = legacyCliModelProvider.LegacyCliModel 
+            _legacyCliModel = legacyCliModelProvider.LegacyCliModel
                     ?? throw new ArgumentNullException(nameof(legacyCliModelProvider));
             _jobSerializer = jobSerializer ?? throw new ArgumentNullException(nameof(jobSerializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _lastKnownFileHash = currentFileHash;
 
                         using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
-                            
+
                             var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
                             _availableJobs = new Queue<JobProcessingInstructionModel>();
                             _assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();

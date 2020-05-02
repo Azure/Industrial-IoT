@@ -65,14 +65,14 @@
         },
         "eventHubRetentionInDays": {
             "type": "int",
-            "defaultValue": 1,
+            "defaultValue": 2,
             "metadata": {
                 "description": "The event hub message retention in days."
             }
         },
         "eventHubPartitionCount": {
             "type": "int",
-            "defaultValue": 2,
+            "defaultValue": 4,
             "metadata": {
                 "description": "The event hub partition count."
             }
@@ -207,6 +207,17 @@
                 "description": "The Azure SignalR Service SKU to use."
             }
         },
+        "signalRServiceMode": {
+            "type": "string",
+            "defaultValue": "Default",
+            "allowedValues": [
+                "Default",
+                "Serverless"
+            ],
+            "metadata": {
+                "description": "The Azure SignalR Service mode to use. Defaults to Classic."
+            }
+        },
         "signalRSkuCapacity": {
             "type": "int",
             "defaultValue": 1,
@@ -269,7 +280,7 @@
         },
         "workspaceName": {
             "type": "string",
-            "defaultValue": "[concat('logs-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 8))]",
+            "defaultValue": "[concat('logs-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 10))]",
             "metadata": {
                 "description": "Specifies the name of the Azure Log Analytics workspace created as part of the deployment."
             }
@@ -526,7 +537,7 @@
                 "features": [
                     {
                         "flag": "ServiceMode",
-                        "value": "Default"
+                        "value": "[parameters('signalRServiceMode')]"
                     }
                 ],
                 "cors": {
@@ -604,8 +615,16 @@
                                 "value": "[parameters('datalakeName')]"
                             },
                             {
+                                "key": "PCS_ADLSG2_ACCOUNT_KEY",
+                                "value": "[listKeys(variables('datalakeResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
+                            },
+                            {
                                 "key": "PCS_SIGNALR_CONNSTRING",
                                 "value": "[listkeys(parameters('signalRName'), '2018-10-01').primaryConnectionString]"
+                            },
+                            {
+                                "key": "PCS_SIGNALR_MODE",
+                                "value": "[parameters('signalRServiceMode')]"
                             },
                             {
                                 "key": "PCS_EVENTHUB_CONNSTRING",

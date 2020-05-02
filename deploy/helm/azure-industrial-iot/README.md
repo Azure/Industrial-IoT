@@ -257,12 +257,11 @@ Configuration parameter for data protection key in Azure Key Vault is `azure.key
 
 You would need to have an existing Azure SignalR instance. Here are the steps to
 [create an Azure SignalR Service instance](https://docs.microsoft.com/azure/azure-signalr/signalr-quickstart-azure-functions-csharp#create-an-azure-signalr-service-instance).
-Please note that we recommend `Serverless` service mode.
 
 You can also create an Azure SignalR service using [Azure CLI](https://docs.microsoft.com/cli/azure/signalr?view=azure-cli-latest#az-signalr-create):
 
 ```bash
-$ az signalr create --name MySignalR --resource-group MyResourceGroup --sku Standard_S1 --unit-count 1 --service-mode Serverless
+$ az signalr create --name MySignalR --resource-group MyResourceGroup --sku Standard_S1 --unit-count 1
 ```
 
 The following details of Azure SignalR service would be required:
@@ -448,7 +447,7 @@ The following details of the Azure Storage account would be required:
 
 ## Installing the Chart
 
-This chart installs `2.6.146` version of components by default.
+This chart installs `2.7.22` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -511,7 +510,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.6.146`           |
+| `image.tag`         | Image tag                                | `2.7.22`           |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
@@ -599,23 +598,20 @@ following aspects of application runtime for microservices:
   request came to to determine server host for OpenAPI definitions. So with this parameter you can enforce
   value of server host that should be used.
 
-| Parameter                                       | Description                                                                      | Default          |
-|-------------------------------------------------|----------------------------------------------------------------------------------|------------------|
-| `apps.urlPathBase.registry`                     | URL path base for `registry` component                                           | `/registry`      |
-| `apps.urlPathBase.twin`                         | URL path base for `twin` component                                               | `/twin`          |
-| `apps.urlPathBase.history`                      | URL path base for `history` component                                            | `/history`       |
-| `apps.urlPathBase.gateway`                      | URL path base for `gateway` component                                            | `/ua`            |
-| `apps.urlPathBase.vault`                        | URL path base for `vault` component                                              | `/vault`         |
-| `apps.urlPathBase.onboarding`                   | URL path base for `onboarding` component                                         | `/onboarding`    |
-| `apps.urlPathBase.publisher`                    | URL path base for `publisher` component                                          | `/publisher`     |
-| `apps.urlPathBase.configuration`                | URL path base for `configuration` component                                      | `/configuration` |
-| `apps.urlPathBase.edgeManager`                  | URL path base for `edgeManager` component                                        | `/edge/manage`   |
-| `apps.urlPathBase.engineeringTool.`             | URL path base for `engineeringTool` component                                    | `/frontend`      |
-| `apps.urlPathBase.edgeJobs`                     | URL path base for `edgeJobs` component                                           | `/edge/jobs`     |
-| `apps.urlPathBase.publisherJobs`                | URL path base for `publisherJobs` component                                      | `/jobs`          |
-| `apps.aspNetCore.forwardedHeaders.enabled`      | Determines whether processing of HTTP forwarded headers should be enabled or not | `true`           |
-| `apps.aspNetCore.forwardedHeaders.forwardLimit` | Determines limit on number of entries in HTTP forwarded headers                  | `1`              |
-| `apps.openApi.serverHost`                       | Determines OpenAPI (Swagger) server host                                         | `null`           |
+| Parameter                                       | Description                                                                      | Default           |
+|-------------------------------------------------|----------------------------------------------------------------------------------|-------------------|
+| `apps.urlPathBase.registry`                     | URL path base for `registry` component                                           | `/registry`       |
+| `apps.urlPathBase.twin`                         | URL path base for `twin` component                                               | `/twin`           |
+| `apps.urlPathBase.history`                      | URL path base for `history` component                                            | `/history`        |
+| `apps.urlPathBase.gateway`                      | URL path base for `gateway` component                                            | `/ua`             |
+| `apps.urlPathBase.vault`                        | URL path base for `vault` component                                              | `/vault`          |
+| `apps.urlPathBase.publisher`                    | URL path base for `publisher` component                                          | `/publisher`      |
+| `apps.urlPathBase.edgeJobs`                     | URL path base for `edgeJobs` component                                           | `/edge/publisher` |
+| `apps.urlPathBase.events`                       | URL path base for `events` component                                             | `/events`         |
+| `apps.urlPathBase.engineeringTool.`             | URL path base for `engineeringTool` component                                    | `/frontend`       |
+| `apps.aspNetCore.forwardedHeaders.enabled`      | Determines whether processing of HTTP forwarded headers should be enabled or not | `true`            |
+| `apps.aspNetCore.forwardedHeaders.forwardLimit` | Determines limit on number of entries in HTTP forwarded headers                  | `1`               |
+| `apps.openApi.serverHost`                       | Determines OpenAPI (Swagger) server host                                         | `null`            |
 
 ### Deployed Components
 
@@ -636,30 +632,23 @@ parameters.
 Here is the list of all Azure Industrial IoT components that are deployed by this chart. Currently only
 `engineeringTool` and `telemetryCdmProcessor` are disabled by default.
 
-| Name in `values.yaml`     | Description                                                                                                           | Enabled by Default | Default Image                                                            |
-|---------------------------|-----------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------|
-| `registry`                | [Registry Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry.md)                | `true`             | `mcr.microsoft.com/iot/opc-registry-service:2.6.146`                     |
-| `twin`                    | [OPC Twin Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin.md)                    | `true`             | `mcr.microsoft.com/iot/opc-twin-service:2.6.146`                         |
-| `history`                 | [OPC Historian Access Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/history.md)     | `true`             | `mcr.microsoft.com/iot/opc-history-service:2.6.146`                      |
-| `gateway`                 | [OPC Gateway Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/gateway.md)              | `true`             | `mcr.microsoft.com/iot/opc-gateway-service:2.6.146`                      |
-| `vault`                   | [OPC Vault Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/vault.md)                  | `true`             | `mcr.microsoft.com/iot/opc-vault-service:2.6.146`                        |
-| `alerting`                | [Registry Security Alerting Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/security.md)     | `true`             | `mcr.microsoft.com/iot/opc-alerting-service:2.6.146`                     |
-| `onboarding`              | [Registry Onboarding Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/onboarding.md)   | `true`             | `mcr.microsoft.com/iot/opc-onboarding-service:2.6.146`                   |
-| `jobs`                    | [Discovery Multiplexer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/discovery.md)         | `true`             | `mcr.microsoft.com/iot/opc-jobs-service:2.6.146`                         |
-| `modelProcessor`          | [Model Importer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/graph.md)                    | `true`             | `mcr.microsoft.com/iot/opc-processor-service:2.6.146`                    |
-| `blobNotification`        | Blob Notification Service                                                                                             | `true`             | `mcr.microsoft.com/iot/blob-notification-service:2.6.146`                |
-| `publisher`               | [OPC Publisher Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/publisher.md)               | `true`             | `mcr.microsoft.com/iot/opc-publisher-service:2.6.146`                    |
-| `configuration`           | [Configuration Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/configuration.md)           | `true`             | `mcr.microsoft.com/iot/industrial-iot-configuration-service:2.6.146`     |
-| `edgeManager`             | [Edge Management Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/edgemanager.md)           | `true`             | `mcr.microsoft.com/iot/industrial-iot-edge-manager-service:2.6.146`      |
-| `eventsProcessor`         | [Edge Event Processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/events.md)                   | `true`             | `mcr.microsoft.com/iot/industrial-iot-events-processor:2.6.146`          |
-| `engineeringTool`         | [Engineering Tool](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/engineeringtool.md)              | `false`            | `mcr.microsoft.com/iot/industrial-iot-frontend:2.6.146`                  |
-| `identity`                | [Identity Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/identity.md)                       | `true`             | `mcr.microsoft.com/iot/industrial-iot-identity-service:2.6.146`          |
-| `edgeJobs`                | [Jobs Service and Edge endpoint](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/jobs.md)           | `true`             | `mcr.microsoft.com/iot/industrial-iot-jobs-orchestrator-service:2.6.146` |
-| `publisherJobs`           |                                                                                                                       | `true`             | `mcr.microsoft.com/iot/industrial-iot-jobs-service:2.6.146`              |
-| `telemetryCdmProcessor`   | [Datalake and CDM Telemetry export](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/cdm.md)         | `false`            | `mcr.microsoft.com/iot/industrial-iot-telemetry-cdm-processor:2.6.146`   |
-| `telemetryProcessor`      | [Edge Telemetry processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/telemetry.md)            | `true`             | `mcr.microsoft.com/iot/industrial-iot-telemetry-processor:2.6.146`       |
-| `telemetryUxProcessor`    | [SignalR Telemetry Forwarder](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/ux.md)                | `true`             | `mcr.microsoft.com/iot/industrial-iot-telemetry-ux-processor:2.6.146`    |
-| `registryEventsForwarder` | [Registry Event Publisher Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registryevents.md) | `true`             | `mcr.microsoft.com/iot/opc-registry-events-forwarder:2.6.146`            |
+| Name in `values.yaml`     | Description                                                                                                           | Enabled by Default |
+|---------------------------|-----------------------------------------------------------------------------------------------------------------------|--------------------|
+| `registry`                | [Registry Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry.md)                | `true`             |
+| `sync`                    | [Registry Synchronization Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry-sync.md)  | `true`             |
+| `twin`                    | [OPC Twin Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin.md)                    | `true`             |
+| `history`                 | [OPC Historian Access Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin-history.md)| `true`             |
+| `gateway`                 | [OPC Gateway Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin-gateway.md)         | `true`             |
+| `vault`                   | [OPC Vault Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/vault.md)                  | `true`             |
+| `publisher`               | [OPC Publisher Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/publisher.md)               | `true`             |
+| `events`                  | [Events Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/events.md)                         | `true`             |
+| `edgeJobs`                | [Publisher jobs orchestrator service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/publisher.md) | `true`             |
+| `onboarding`              | [Onboarding Processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/processor-onboarding.md)     | `true`             |
+| `eventsProcessor`         | [Edge Event Processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/processor-events.md)         | `true`             |
+| `telemetryCdmProcessor`   | [Datalake export](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/processor-telemetry-cdm.md)       | `false`            |
+| `telemetryProcessor`      | [Edge Telemetry processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/processor-telemetry.md)  | `true`             |
+| `tunnelProcessor`         | [Http Tunnel processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/processor-tunnel.md)        | `true`             |
+| `engineeringTool`         | [Engineering Tool](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/engineeringtool.md)              | `false`            |
 
 #### Deployment Resource Configuration
 
@@ -686,27 +675,20 @@ Those are the values of `imageRepository` for all components:
 | Configuration Parameter for Components                             | Default Image Repository                       |
 |--------------------------------------------------------------------|------------------------------------------------|
 | `deployment.microServices.registry.imageRepository`                | `iot/opc-registry-service`                     |
+| `deployment.microServices.sync.imageRepository`                    | `iot/opc-registry-sync-service`                |
 | `deployment.microServices.twin.imageRepository`                    | `iot/opc-twin-service`                         |
 | `deployment.microServices.history.imageRepository`                 | `iot/opc-history-service`                      |
 | `deployment.microServices.gateway.imageRepository`                 | `iot/opc-gateway-service`                      |
 | `deployment.microServices.vault.imageRepository`                   | `iot/opc-vault-service`                        |
-| `deployment.microServices.alerting.imageRepository`                | `iot/opc-alerting-service`                     |
-| `deployment.microServices.onboarding.imageRepository`              | `iot/opc-onboarding-service`                   |
-| `deployment.microServices.jobs.imageRepository`                    | `iot/opc-jobs-service`                         |
-| `deployment.microServices.modelProcessor.imageRepository`          | `iot/opc-processor-service`                    |
-| `deployment.microServices.blobNotification.imageRepository`        | `iot/blob-notification-service`                |
 | `deployment.microServices.publisher.imageRepository`               | `iot/opc-publisher-service`                    |
-| `deployment.microServices.configuration.imageRepository`           | `iot/industrial-iot-configuration-service`     |
-| `deployment.microServices.edgeManager.imageRepository`             | `iot/industrial-iot-edge-manager-service`      |
+| `deployment.microServices.edgeJobs.imageRepository`                | `iot/opc-publisher-edge-service`               |
+| `deployment.microServices.events.imageRepository`                  | `iot/industrial-iot-events-service`            |
+| `deployment.microServices.onboarding.imageRepository`              | `iot/opc-onboarding-service`                   |
 | `deployment.microServices.eventsProcessor.imageRepository`         | `iot/industrial-iot-events-processor`          |
-| `deployment.microServices.engineeringTool.imageRepository`         | `iot/industrial-iot-frontend`                  |
-| `deployment.microServices.identity.imageRepository`                | `iot/industrial-iot-identity-service`          |
-| `deployment.microServices.edgeJobs.imageRepository`                | `iot/industrial-iot-jobs-orchestrator-service` |
-| `deployment.microServices.publisherJobs.imageRepository`           | `iot/industrial-iot-jobs-service`              |
 | `deployment.microServices.telemetryCdmProcessor.imageRepository`   | `iot/industrial-iot-telemetry-cdm-processor`   |
 | `deployment.microServices.telemetryProcessor.imageRepository`      | `iot/industrial-iot-telemetry-processor`       |
-| `deployment.microServices.telemetryUxProcessor.imageRepository`    | `iot/industrial-iot-telemetry-ux-processor`    |
-| `deployment.microServices.registryEventsForwarder.imageRepository` | `iot/opc-registry-events-forwarder`            |
+| `deployment.microServices.tunnelProcessor.imageRepository`         | `iot/industrial-iot-tunnel-processor`          |
+| `deployment.microServices.engineeringTool.imageRepository`         | `iot/industrial-iot-frontend`                  |
 
 #### Service Resource Configuration
 
@@ -737,14 +719,11 @@ Those are the service ports exposed by components:
 | `deployment.microServices.gateway.service.port`              | `9040`               |
 | `deployment.microServices.gateway.service.opcPort`           | `51111`              |
 | `deployment.microServices.vault.service.port`                | `9044`               |
-| `deployment.microServices.onboarding.service.port`           | `9060`               |
 | `deployment.microServices.publisher.service.port`            | `9045`               |
-| `deployment.microServices.configuration.service.port`        | `9050`               |
-| `deployment.microServices.edgeManager.service.port`          | `9047`               |
+| `deployment.microServices.edgeJobs.service.port`             | `9046`               |
+| `deployment.microServices.events.service.port`               | `9050`               |
 | `deployment.microServices.engineeringTool.service.httpPort`  | `80`                 |
 | `deployment.microServices.engineeringTool.service.httpsPort` | `443`                |
-| `deployment.microServices.edgeJobs.service.port`             | `9051`               |
-| `deployment.microServices.publisherJobs.service.port`        | `9046`               |
 
 #### Ingress Resource Configuration
 
@@ -755,25 +734,22 @@ configuration to expose components with web APIs or UI.
 Here are [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) resource parameters
 in `values.yaml`. Note that Ingress is disabled by default.
 
-| Parameter                                  | Description                                                                                                 | Default          |
-|--------------------------------------------|-------------------------------------------------------------------------------------------------------------|------------------|
-| `deployment.ingress.enabled`               | If true, one Ingress resource will be created for enabled Services                                          | `false`          |
-| `deployment.ingress.hostName`              | Host for the Ingress rule, multiple hosts are not supported                                                 | `null`           |
-| `deployment.ingress.extraLabels`           | Extra labels for the Ingress resource                                                                       | `{}`             |
-| `deployment.ingress.annotations`           | Annotations for the Ingress resource                                                                        | `{}`             |
-| `deployment.ingress.tls`                   | Ingress [TLS configuration](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)           | `[]`             |
-| `deployment.ingress.paths.registry`        | Path on which `registry` component should be exposed. Should be set to enable for `registry`.               | `/registry`      |
-| `deployment.ingress.paths.twin`            | Path on which `twin` component should be exposed. Should be set to enable for `twin`.                       | `/twin`          |
-| `deployment.ingress.paths.history`         | Path on which `history` component should be exposed. Should be set to enable for `history`.                 | `/history`       |
-| `deployment.ingress.paths.gateway`         | Path on which `gateway` component should be exposed. Should be set to enable for `gateway`.                 | `/ua`            |
-| `deployment.ingress.paths.vault`           | Path on which `vault` component should be exposed. Should be set to enable for `vault`.                     | `/vault`         |
-| `deployment.ingress.paths.onboarding`      | Path on which `onboarding` component should be exposed. Should be set to enable for `onboarding`.           | `/onboarding`    |
-| `deployment.ingress.paths.publisher`       | Path on which `publisher` component should be exposed. Should be set to enable for `publisher`.             | `/publisher`     |
-| `deployment.ingress.paths.publisherJobs`   | Path on which `publisherJobs` component should be exposed. Should be set to enable for `publisherJobs`.     | `/jobs`          |
-| `deployment.ingress.paths.configuration`   | Path on which `configuration` component should be exposed. Should be set to enable for `configuration`.     | `/configuration` |
-| `deployment.ingress.paths.edgeJobs`        | Path on which `edgeJobs` component should be exposed. Should be set to enable for `edgeJobs`.               | `/edge/jobs`     |
-| `deployment.ingress.paths.edgeManager`     | Path on which `edgeManager` component should be exposed. Should be set to enable for `edgeManager`.         | `/edge/manage`   |
-| `deployment.ingress.paths.engineeringTool` | Path on which `engineeringTool` component should be exposed. Should be set to enable for `engineeringTool`. | `/frontend`      |
+| Parameter                                  | Description                                                                                                 | Default           |
+|--------------------------------------------|-------------------------------------------------------------------------------------------------------------|-------------------|
+| `deployment.ingress.enabled`               | If true, one Ingress resource will be created for enabled Services                                          | `false`           |
+| `deployment.ingress.hostName`              | Host for the Ingress rule, multiple hosts are not supported                                                 | `null`            |
+| `deployment.ingress.extraLabels`           | Extra labels for the Ingress resource                                                                       | `{}`              |
+| `deployment.ingress.annotations`           | Annotations for the Ingress resource                                                                        | `{}`              |
+| `deployment.ingress.tls`                   | Ingress [TLS configuration](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)           | `[]`              |
+| `deployment.ingress.paths.registry`        | Path on which `registry` component should be exposed. Should be set to enable for `registry`.               | `/registry`       |
+| `deployment.ingress.paths.twin`            | Path on which `twin` component should be exposed. Should be set to enable for `twin`.                       | `/twin`           |
+| `deployment.ingress.paths.history`         | Path on which `history` component should be exposed. Should be set to enable for `history`.                 | `/history`        |
+| `deployment.ingress.paths.gateway`         | Path on which `gateway` component should be exposed. Should be set to enable for `gateway`.                 | `/ua`             |
+| `deployment.ingress.paths.vault`           | Path on which `vault` component should be exposed. Should be set to enable for `vault`.                     | `/vault`          |
+| `deployment.ingress.paths.publisher`       | Path on which `publisher` component should be exposed. Should be set to enable for `publisher`.             | `/publisher`      |
+| `deployment.ingress.paths.events`          | Path on which `events` component should be exposed. Should be set to enable for `events`.                   | `/events`         |
+| `deployment.ingress.paths.edgeJobs`        | Path on which `edgeJobs` component should be exposed. Should be set to enable for `edgeJobs`.               | `/edge/publisher` |
+| `deployment.ingress.paths.engineeringTool` | Path on which `engineeringTool` component should be exposed. Should be set to enable for `engineeringTool`. | `/frontend`       |
 
 > **NOTE:** `deployment.ingress.paths` values here should be aligned with value of `apps.urlPathBase`. They are separated because one might want to have a regex in Ingress paths.
 
@@ -955,12 +931,9 @@ Here is the full list of components with Swagger UIs:
 | `twin`          | `9041`               | `/twin/swagger/index.html`          |
 | `history`       | `9043`               | `/history/swagger/index.html`       |
 | `vault`         | `9044`               | `/vault/swagger/index.html`         |
-| `onboarding`    | `9060`               | `/onboarding/swagger/index.html`    |
 | `publisher`     | `9045`               | `/publisher/swagger/index.html`     |
-| `configuration` | `9050`               | `/configuration/swagger/index.html` |
-| `edgeManager`   | `9047`               | `/edge/manage/swagger/index.html`   |
-| `edgeJobs`      | `9051`               | `/edge/jobs/swagger/index.html`     |
-| `publisherJobs` | `9046`               | `/jobs/swagger/index.html`          |
+| `events`        | `9050`               | `/events/swagger/index.html`        |
+| `edgeJobs`      | `9051`               | `/edge/publisher/swagger/index.html`|
 
 ### NGINX Ingress Controller
 

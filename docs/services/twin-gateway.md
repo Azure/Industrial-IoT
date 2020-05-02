@@ -22,6 +22,10 @@ OPC Gateway enables existing UA applications to use your OPC Twin infrastructure
   * This will be addressed in a future version.  The Gateway will then support **JWT token validation** (as per OPC UA version 1.04), note however that all known UA clients today do not support this authentication mode yet.
 * OPC UA Subscription services (i.e. monitored items) are not supported.
 
+## Docker image
+
+`docker pull mcr.microsoft.com/iot/opc-gateway-service:preview`
+
 ## Next steps
 
 * [Learn more about the OPC Registry](registry.md)

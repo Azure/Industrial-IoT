@@ -30,6 +30,8 @@
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject SecureData secureData
 
+@implements IDisposable
+
 <h1>Endpoint Control</h1>
 
 <div>
@@ -38,7 +40,7 @@
         <a href="/discoverers/">/ @DiscovererId</a>
     }
     @if (ApplicationId != string.Empty && ApplicationId != RegistryHelper.PathAll)
-    {  
+    {
         <a href="/applications/">/ @CommonHelper.ApplicationUri[ApplicationId]</a>
     }
     @if (SupervisorId != string.Empty && SupervisorId != RegistryHelper.PathAll)

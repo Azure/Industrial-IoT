@@ -16,19 +16,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Runtime {
         /// Twin configuration
         /// </summary>
         private const string kOpcUaTwinServiceUrlKey = "OpcTwinServiceUrl";
-        private const string kOpcUaTwinServiceIdKey = "OpcTwinServiceResourceId";
 
         /// <summary>OPC twin service endpoint url</summary>
         public string OpcUaTwinServiceUrl => GetStringOrDefault(
             kOpcUaTwinServiceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_TWIN_SERVICE_URL,
                 () => GetDefaultUrl("9041", "twin")));
-        /// <summary>OPC twin service audience</summary>
-        public string OpcUaTwinServiceResourceId => GetStringOrDefault(
-            kOpcUaTwinServiceIdKey,
-            () => GetStringOrDefault("OPC_TWIN_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
-                    () => null)));
 
         /// <inheritdoc/>
         public TwinConfig(IConfiguration configuration) :

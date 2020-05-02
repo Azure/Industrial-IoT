@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/publish")]
     [ExceptionsFilter]
-    [Authorize(Policy = Policies.CanBrowse)]
+    [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class PublishController : ControllerBase {
 

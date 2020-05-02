@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
-    using Microsoft.Azure.IIoT.Cdm;
-    using Microsoft.Azure.IIoT.Cdm.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Cdm;
+    using Microsoft.Azure.IIoT.OpcUa.Cdm.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
@@ -17,25 +17,33 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
     /// <summary>
     /// Cdm processor service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IEventProcessorConfig,
-        IEventHubConsumerConfig, ICdmClientConfig, IEventProcessorHostConfig {
+    public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
+        IEventHubConsumerConfig, ICdmFolderConfig, IEventProcessorConfig {
+
+        /// <inheritdoc/>
+        public string ConsumerGroup => GetStringOrDefault(
+            PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM,
+                () => "telemetrycdm");
 
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
         /// <inheritdoc/>
-        public string ConsumerGroup => GetStringOrDefault(
-            PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM,
-                () => "telemetrycdm");
-        /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
+
         /// <inheritdoc/>
         public int ReceiveBatchSize => _ep.ReceiveBatchSize;
         /// <inheritdoc/>
         public TimeSpan ReceiveTimeout => _ep.ReceiveTimeout;
         /// <inheritdoc/>
-        public string BlobStorageConnString => _ep.BlobStorageConnString;
+        public string EndpointSuffix => _ep.EndpointSuffix;
+        /// <inheritdoc/>
+        public string AccountName => _ep.AccountName;
+        /// <inheritdoc/>
+        public string AccountKey => _ep.AccountKey;
+        /// <inheritdoc/>
+        public TimeSpan? SkipEventsOlderThan => _ep.SkipEventsOlderThan;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
         /// <inheritdoc/>
@@ -44,21 +52,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
         public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
 
         /// <inheritdoc/>
-        public string ADLSg2HostName => _cdm.ADLSg2HostName;
+        public string StorageDrive => _cdm.StorageDrive;
         /// <inheritdoc/>
-        public string ADLSg2ContainerName => _cdm.ADLSg2ContainerName;
-        /// <inheritdoc/>
-        public string RootFolder => _cdm.RootFolder;
-        /// <inheritdoc/>
-        public string TenantId => _cdm.TenantId;
-        /// <inheritdoc/>
-        public string Domain => _cdm.Domain;
-        /// <inheritdoc/>
-        public string AppId => _cdm.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _cdm.AppSecret;
-        /// <inheritdoc/>
-        public string InstanceUrl => _cdm.InstanceUrl;
+        public string StorageFolder => _cdm.StorageFolder;
 
         /// <summary>
         /// Configuration constructor
@@ -67,11 +63,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
         public Config(IConfiguration configuration) : base(configuration) {
             _ep = new EventProcessorConfig(configuration);
             _eh = new EventHubConsumerConfig(configuration);
-            _cdm = new CdmClientConfig(configuration);
+            _cdm = new CdmFolderConfig(configuration);
         }
 
         private readonly EventProcessorConfig _ep;
         private readonly EventHubConsumerConfig _eh;
-        private readonly CdmClientConfig _cdm;
+        private readonly CdmFolderConfig _cdm;
     }
 }

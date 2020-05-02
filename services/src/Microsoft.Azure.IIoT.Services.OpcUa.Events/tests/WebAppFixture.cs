@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
                             .AddInMemoryCollection(new Dictionary<string, string> {
                                 ["PCS_EVENTS_SERVICE_URL"] = BaseAddress
                             });
-                    }
+                        }
                     )
                     .UseStartup<TestStartup>()
                     .UseSerilog()

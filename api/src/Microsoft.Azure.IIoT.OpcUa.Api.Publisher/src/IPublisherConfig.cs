@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// Opc publisher service url
         /// </summary>
         string OpcUaPublisherServiceUrl { get; }
-
-        /// <summary>
-        /// The publisher service resource id
-        /// </summary>
-        string OpcUaPublisherServiceResourceId { get; }
     }
 }

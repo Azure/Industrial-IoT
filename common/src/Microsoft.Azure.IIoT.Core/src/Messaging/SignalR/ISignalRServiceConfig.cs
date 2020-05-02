@@ -14,5 +14,10 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR {
         /// SignalR connection string
         /// </summary>
         string SignalRConnString { get; }
+
+        /// <summary>
+        /// Whether SignalR is configured to be serverless
+        /// </summary>
+        bool SignalRServerLess { get; }
     }
 }

@@ -6,13 +6,12 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Crypto.KeyVault;
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -27,20 +26,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// Web service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig, ICorsConfig,
-        IClientConfig, IOpenApiConfig, IVaultConfig, ICosmosDbConfig,
+    public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
+        ICorsConfig, IOpenApiConfig, IVaultConfig, ICosmosDbConfig, IRoleConfig,
         IItemContainerConfig, IKeyVaultConfig, IServiceBusConfig, IRegistryConfig,
         IForwardedHeadersConfig {
 
-        /// <summary>
-        /// Whether to use role based access
-        /// </summary>
+        /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>
@@ -49,28 +46,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         public bool CorsEnabled => _cors.CorsEnabled;
 
         /// <inheritdoc/>
-        public string AppId => _auth.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
-        /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
-        /// <inheritdoc/>
-        public string Audience => _auth.Audience;
-        /// <inheritdoc/>
-        public string Domain => _auth.Domain;
-        /// <inheritdoc/>
-        public bool AuthRequired => _auth.AuthRequired;
-        /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
-        /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
-
-        /// <inheritdoc/>
         public bool UIEnabled => _openApi.UIEnabled;
         /// <inheritdoc/>
-        public bool WithAuth => !string.IsNullOrEmpty(_auth.AppId) && _openApi.WithAuth;
+        public bool WithAuth => _openApi.WithAuth;
         /// <inheritdoc/>
         public string OpenApiAppId => _openApi.OpenApiAppId;
         /// <inheritdoc/>
@@ -93,8 +71,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         /// <inheritdoc/>
         public string KeyVaultBaseUrl => _keyVault.KeyVaultBaseUrl;
         /// <inheritdoc/>
-        public string KeyVaultResourceId => _keyVault.KeyVaultResourceId;
-        /// <inheritdoc/>
         public bool KeyVaultIsHsm => _keyVault.KeyVaultIsHsm;
 
         /// <inheritdoc/>
@@ -111,13 +87,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
-        /// <inheritdoc/>
-        public string IoTHubResourceId => _hub.IoTHubResourceId;
 
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _registry.OpcUaRegistryServiceUrl;
-        /// <inheritdoc/>
-        public string OpcUaRegistryServiceResourceId => _registry.OpcUaRegistryServiceResourceId;
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
@@ -136,8 +108,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
             _keyVault = new KeyVaultConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
             _openApi = new OpenApiConfig(configuration);
-            _auth = new AuthConfig(configuration);
-            _host = new HostConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
             _hub = new IoTHubConfig(configuration);
@@ -149,8 +120,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         private readonly KeyVaultConfig _keyVault;
         private readonly ICosmosDbConfig _cosmos;
         private readonly OpenApiConfig _openApi;
-        private readonly AuthConfig _auth;
-        private readonly HostConfig _host;
+        private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly IoTHubConfig _hub;

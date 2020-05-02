@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.Api.Json {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections;
     using System.Linq;

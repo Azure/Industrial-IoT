@@ -28,8 +28,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
         /// <param name="provider"></param>
         /// <param name="jsonSettings"></param>
         public SignalRHubClient(ISignalRClientConfig config, ILogger logger,
-            ITokenProvider provider = null,
-            IJsonSerializerSettingsProvider jsonSettings = null) {
+            ITokenProvider provider = null, IJsonSerializerSettingsProvider jsonSettings = null) {
             _jsonSettings = jsonSettings;
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -53,9 +52,14 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
                 if (!string.IsNullOrEmpty(resourceId)) {
                     lookup += resourceId;
                 }
-                if (!_clients.TryGetValue(lookup, out var client)) {
-                    client = await SignalRClientRegistrar.CreateAsync(
-                        _config, endpointUrl, _logger, resourceId, _provider, _jsonSettings);
+                if (!_clients.TryGetValue(lookup, out var client) ||
+                    client.ConnectionId == null) {
+                    if (client != null) {
+                        await client.DisposeAsync();
+                        _clients.Remove(lookup);
+                    }
+                    client = await SignalRClientRegistrar.CreateAsync(_config,
+                        endpointUrl, _logger, resourceId, _provider, _jsonSettings);
                     _clients.Add(lookup, client);
                 }
                 return client;
@@ -122,8 +126,8 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
             /// <param name="provider"></param>
             /// <returns></returns>
             internal static async Task<SignalRClientRegistrar> CreateAsync(
-                ISignalRClientConfig config, string endpointUrl,
-                ILogger logger, string resourceId, ITokenProvider provider,
+                ISignalRClientConfig config, string endpointUrl, ILogger logger,
+                string resourceId, ITokenProvider provider,
                 IJsonSerializerSettingsProvider jsonSettings = null) {
 
                 if (string.IsNullOrEmpty(endpointUrl)) {

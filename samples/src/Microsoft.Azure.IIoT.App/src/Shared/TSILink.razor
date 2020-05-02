@@ -15,7 +15,7 @@
         @if(!String.IsNullOrEmpty(_tsiLink))
         {
             <a href="@_tsiLink" class="tsi_link" target="_blank">Go to Timeseries Insights</a>
-        }   
+        }
     </Authorized>
     <NotAuthorized>
     </NotAuthorized>
@@ -43,7 +43,7 @@
             var index = Configuration.TsiDataAccessFQDN.IndexOf('.');
             if (index > 0)
             {
-                _tsiLink = "https://insights.timeseries.azure.com/preview?environmentId=" + Configuration.TsiDataAccessFQDN.Substring(0, index) + "&tid=" + Configuration.TenantId;
+                _tsiLink = "https://insights.timeseries.azure.com/preview?environmentId=" + Configuration.TsiDataAccessFQDN.Substring(0, index) + "&tid=" + Configuration.TsiTenantId;
             }
         }
     }

@@ -18,19 +18,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Events.Runtime {
         /// Events configuration
         /// </summary>
         private const string kEventsServiceUrlKey = "EventsServiceUrl";
-        private const string kEventsServiceIdKey = "EventsServiceResourceId";
 
         /// <summary>Events configuration endpoint</summary>
         public string OpcUaEventsServiceUrl => GetStringOrDefault(
             kEventsServiceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_EVENTS_SERVICE_URL,
                 () => GetDefaultUrl("9050", "events")));
-        /// <summary>Events service audience</summary>
-        public string OpcUaEventsServiceResourceId => GetStringOrDefault(
-            kEventsServiceIdKey,
-            () => GetStringOrDefault("EVENTS_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
-                    () => null)));
 
         /// <summary> Use message pack </summary>
         public bool UseMessagePackProtocol => false;

@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.App.Services.SecureData {
     using Newtonsoft.Json;
     using System;
 
-    public class SecureData{
+    public class SecureData {
 
         /// <summary>
         /// Create SecureData
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.App.Services.SecureData {
         /// <returns>string</returns>
         public string ProtectSerialize<T>(T data) {
             var serializedData = JsonConvert.SerializeObject(data);
-            return _protector.Protect(serializedData);        
+            return _protector.Protect(serializedData);
         }
 
         private readonly IDataProtector _protector;

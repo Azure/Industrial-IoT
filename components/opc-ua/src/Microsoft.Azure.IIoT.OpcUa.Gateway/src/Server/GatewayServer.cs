@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         public GatewayServer(IApplicationRegistry registry, ISessionServices sessions,
             INodeServices<string> nodes, IHistoricAccessServices<string> historian,
             IBrowseServices<string> browser, IVariantEncoderFactory codec,
-            IAuthConfig auth, ITokenValidator validator, ILogger logger) {
+            IServerAuthConfig auth, ITokenValidator validator, ILogger logger) {
 
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
@@ -1766,7 +1766,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             var policies = new UserTokenPolicyCollection();
 
             // Allow anonymous access through the endpoints
-            if (!_auth.AuthRequired) {
+            if (_auth.AllowAnonymousAccess) {
                 policies.Add(new UserTokenPolicy {
                     PolicyId = kGatewayPolicyPrefix + "Anonymous",
                     TokenType = UserTokenType.Anonymous,
@@ -1774,17 +1774,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 });
             }
 
-            // Authenticate and then use endpoints
-            if (!string.IsNullOrEmpty(_auth.InstanceUrl)) {
-                policies.Add(new UserTokenPolicy {
-                    PolicyId = kGatewayPolicyPrefix + "Jwt",
-                    TokenType = UserTokenType.IssuedToken,
-                    IssuedTokenType = "http://opcfoundation.org/UA/UserToken#JWT",
-                    IssuerEndpointUrl = _auth.InstanceUrl,
-                    SecurityPolicyUri =
-                        description.SecurityMode == MessageSecurityMode.None ?
-                            SecurityPolicies.Basic256Sha256 : SecurityPolicies.None
-                });
+            foreach (var scheme in _auth.JwtBearerProviders) {
+                // Authenticate and then use endpoints
+                if (!string.IsNullOrEmpty(scheme.InstanceUrl)) {
+                    policies.Add(new UserTokenPolicy {
+                        PolicyId = kGatewayPolicyPrefix + "Jwt",
+                        TokenType = UserTokenType.IssuedToken,
+                        IssuedTokenType = "http://opcfoundation.org/UA/UserToken#JWT",
+                        IssuerEndpointUrl = scheme.GetAuthorityUrl(),
+                        SecurityPolicyUri =
+                            description.SecurityMode == MessageSecurityMode.None ?
+                                SecurityPolicies.Basic256Sha256 : SecurityPolicies.None
+                    });
+                }
             }
             return policies;
         }
@@ -1840,7 +1842,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 args.CurrentIdentities.Count == 0) {
                 switch (args.Token) {
                     case AnonymousIdentityToken at:
-                        if (_auth.AuthRequired) {
+                        if (_auth.AllowAnonymousAccess) {
                             args.ValidationException = ServiceResultException.Create(
                                 StatusCodes.BadIdentityTokenRejected,
                                     "Anonymous session not allowed against gateway server.");
@@ -1851,11 +1853,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                             args.ValidationException = ServiceResultException.Create(
                                 StatusCodes.BadIdentityTokenRejected,
                                     "Token type not supported on gateway server.");
-                        }
-                        else if (string.IsNullOrEmpty(_auth.TrustedIssuer)) {
-                            args.ValidationException = ServiceResultException.Create(
-                                StatusCodes.BadIdentityTokenRejected,
-                                    "Gateway server not configured for JWT authentication.");
                         }
                         else {
                             var validatedToken = _validator.ValidateAsync(
@@ -2073,7 +2070,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         private readonly IBrowseServices<string> _browser;
         private readonly IHistoricAccessServices<string> _historian;
         private readonly INodeServices<string> _nodes;
-        private readonly IAuthConfig _auth;
+        private readonly IServerAuthConfig _auth;
         private readonly ITokenValidator _validator;
         private readonly RequestState _requestState;
         private readonly EndpointDescriptionCollection _endpoints;

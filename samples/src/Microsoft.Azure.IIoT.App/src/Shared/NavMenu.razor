@@ -7,15 +7,19 @@
 @using Microsoft.Azure.IIoT.App.Common
 @using Microsoft.Azure.IIoT.App.Services.SecureData
 
+@implements IDisposable
 
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject UICommon CommonHelper
 @inject SecureData secureData
+@inject NavigationManager NavigationManager
+
 
 
 <nav class="top-row pl-3 navbar navbar-dark ">
+    @{ var releaseVersion = this.GetType().Assembly.GetReleaseVersion().ToString(3); }
     <a class="navbar-brand" href="">
-        Azure IIoT Platform @this.GetType().Assembly.GetReleaseVersion().ToString(3)
+        Azure IIoT Platform @releaseVersion
     </a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
@@ -91,8 +95,27 @@
     /// <param name="firstRender"></param>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += HandleLocationChanged;
+    }
+
+    private async void HandleLocationChanged(object sender, LocationChangedEventArgs e)
+    {
         Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
     }
 
     void ToggleNavMenu()
@@ -102,8 +125,15 @@
 
     private async Task<T> GetSecureItemAsync<T>(string key)
     {
-        var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
-        return secureData.UnprotectDeserialize<T>(serializedProtectedData);
+        try
+        {
+            var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
+            return secureData.UnprotectDeserialize<T>(serializedProtectedData);
+        }
+        catch
+        {
+            return default;
+        }
     }
 
     private void SubMenu()

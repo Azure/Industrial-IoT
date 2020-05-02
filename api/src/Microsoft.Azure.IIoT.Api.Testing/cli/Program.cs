@@ -3,13 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Api.Cli {
+namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
     using Microsoft.Azure.IIoT.Api.Runtime;
-    using Microsoft.Azure.IIoT.Api.Jobs.Clients;
-    using Microsoft.Azure.IIoT.Api.Jobs;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
@@ -19,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.Utils;
@@ -34,7 +32,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
 
     /// <summary>
     /// Api command line interface
@@ -45,51 +42,53 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Configure Dependency injection
         /// </summary>
         public static IContainer ConfigureContainer(
-            IConfiguration configuration) {
+            IConfiguration configuration, bool useMsgPack) {
             var builder = new ContainerBuilder();
 
             var config = new ApiConfig(configuration);
 
             // Register configuration interfaces and logger
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterInstance(new ApiClientConfig(configuration))
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(config.Configuration)
+                .AsImplementedInterfaces();
+
+            // Configure aad
+            builder.RegisterType<AadApiClientConfig>()
+                .AsImplementedInterfaces();
 
             // Register logger
             builder.AddDiagnostics(config, addConsole: false);
             builder.RegisterModule<NewtonSoftJsonModule>();
+            if (useMsgPack) {
+                builder.RegisterModule<MessagePackModule>();
+            }
 
             // Register http client module ...
             builder.RegisterModule<HttpClientModule>();
             // ... as well as signalR client (needed for api)
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces().SingleInstance();
-
-            // Use bearer authentication
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            // Use device code token provider to get tokens
-            builder.RegisterType<CliAuthenticationProvider>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Use default token sources
+            builder.RegisterModule<NativeClientAuthentication>();
 
             // Register twin, vault, and registry services clients
             builder.RegisterType<TwinServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<VaultServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JobsServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterType<PublisherJobServiceClient>()
+                .AsImplementedInterfaces();
 
             // ... with client event callbacks
             builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             return builder.Build();
         }
@@ -107,7 +106,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .AddFromKeyVault()
                 .Build();
 
-            using (var scope = new Program(config)) {
+            using (var scope = new Program(config,
+                args.Any(arg => arg.EqualsIgnoreCase("--useMsgPack")))) {
                 scope.RunAsync(args).Wait();
             }
         }
@@ -116,14 +116,14 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Configure Dependency injection
         /// </summary>
-        public Program(IConfiguration configuration) {
-            var container = ConfigureContainer(configuration);
+        public Program(IConfiguration configuration, bool useMsgPack) {
+            var container = ConfigureContainer(configuration, useMsgPack);
             _scope = container.BeginLifetimeScope();
             _twin = _scope.Resolve<ITwinServiceApi>();
             _registry = _scope.Resolve<IRegistryServiceApi>();
             _publisher = _scope.Resolve<IPublisherServiceApi>();
             _vault = _scope.Resolve<IVaultServiceApi>();
-            _jobs = _scope.Resolve<IJobsServiceApi>();
+            _jobs = _scope.Resolve<IPublisherJobServiceApi>();
         }
 
         /// <inheritdoc/>
@@ -697,7 +697,7 @@ Commands and Options
         private readonly Random _rand = new Random();
         private readonly ILifetimeScope _scope;
         private readonly ITwinServiceApi _twin;
-        private readonly IJobsServiceApi _jobs;
+        private readonly IPublisherJobServiceApi _jobs;
         private readonly IPublisherServiceApi _publisher;
         private readonly IRegistryServiceApi _registry;
         private readonly IVaultServiceApi _vault;

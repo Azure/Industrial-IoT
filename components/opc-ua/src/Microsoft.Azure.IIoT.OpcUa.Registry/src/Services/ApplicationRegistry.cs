@@ -158,7 +158,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <inheritdoc/>
         public Task<ApplicationInfoListModel> ListApplicationsAsync(
             string continuation, int? pageSize, CancellationToken ct) {
-            return _database.ListAsync(continuation, pageSize, false, ct);
+            return _database.ListAsync(continuation, pageSize, ct);
         }
 
         /// <inheritdoc/>
@@ -168,7 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var absolute = DateTime.UtcNow - notSeenSince;
             string continuation = null;
             do {
-                var applications = await _database.ListAsync(continuation, null, true, ct);
+                var applications = await _database.ListAsync(continuation, null, ct);
                 continuation = applications?.ContinuationToken;
                 if (applications?.Items == null) {
                     continue;
@@ -296,6 +296,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     try {
                         // Only touch applications the discoverer owns.
                         if (removal.DiscovererId == discovererId) {
+                            var wasUpdated = false;
+
                             // Disable if not already disabled
                             var app = await _database.UpdateAsync(removal.ApplicationId,
                                 (application, disabled) => {
@@ -304,14 +306,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                                         application.NotSeenSince = DateTime.UtcNow;
                                         application.Updated = context;
                                         removed++;
+                                        wasUpdated = true;
                                         return (true, true);
                                     }
                                     unchanged++;
                                     return (null, null);
                                 });
 
-                            await _broker.NotifyAllAsync(
-                                l => l.OnApplicationDisabledAsync(context, app));
+                            if (wasUpdated) {
+                                await _broker.NotifyAllAsync(l => l.OnApplicationUpdatedAsync(context, app));
+                            }
+                            await _broker.NotifyAllAsync(l => l.OnApplicationDisabledAsync(context, app));
                         }
                         else {
                             // Skip the ones owned by other discoverers
@@ -432,6 +437,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private readonly IEndpointBulkProcessor _bulk;
         private readonly IApplicationEndpointRegistry _endpoints;
         private readonly IRegistryEventBroker<IApplicationRegistryListener> _broker;
+
         private static readonly Gauge kAppsAdded = Metrics
             .CreateGauge("iiot_registry_applicationAdded", "Number of applications added ");
         private static readonly Gauge kAppsUpdated = Metrics

@@ -181,6 +181,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 _lock.Release();
             }
         }
+
         /// <inheritdoc/>
         public async Task SendEventAsync(IEnumerable<byte[]> batch, string contentType,
             string eventSchema, string contentEncoding) {

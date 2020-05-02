@@ -15,6 +15,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
     using System.Threading.Tasks;
     using System.Collections;
     using System.Diagnostics;
+    using Autofac;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Default event hub event processor factory.
@@ -24,13 +26,13 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         /// <summary>
         /// Create processor factory
         /// </summary>
-        /// <param name="handler"></param>
+        /// <param name="context"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public EventProcessorFactory(IEventProcessingHandler handler,
+        public EventProcessorFactory(IComponentContext context,
             IEventProcessorConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
@@ -47,14 +49,18 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// <summary>
             /// Create processor
             /// </summary>
-            /// <param name="factory"></param>
+            /// <param name="outer"></param>
             /// <param name="logger"></param>
-            public DefaultProcessor(EventProcessorFactory factory, ILogger logger) {
-                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-                _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            public DefaultProcessor(EventProcessorFactory outer, ILogger logger) {
+                _outer = outer ?? throw new ArgumentNullException(nameof(outer));
                 _processorId = Guid.NewGuid().ToString();
-                _interval = (long?)_factory._config.CheckpointInterval?.TotalMilliseconds
+                _logger = logger?.ForContext("ProcessorId", _processorId)
+                    ?? throw new ArgumentNullException(nameof(logger));
+
+                _handler = outer._context.Resolve<IEventProcessingHandler>();
+                _interval = (long?)_outer._config.CheckpointInterval?.TotalMilliseconds
                     ?? long.MaxValue;
+
                 _sw = Stopwatch.StartNew();
                 logger.Information("EventProcessor {id} created", _processorId);
             }
@@ -66,6 +72,12 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                     return;
                 }
                 foreach (var eventData in messages) {
+                    if (_outer._config.SkipEventsOlderThan != null &&
+                        eventData.SystemProperties.TryGetValue("x-opt-enqueued-time", out var enqueued) &&
+                        (DateTime)enqueued + _outer._config.SkipEventsOlderThan < DateTime.UtcNow ) {
+                        continue;
+                    }
+
                     var properties = new EventProperties(eventData.SystemProperties,
                         eventData.Properties);
                     if (eventData.Body.Array == null) {
@@ -73,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                             properties);
                         continue;
                     }
-                    await _factory._handler.HandleAsync(eventData.Body.Array, properties,
+                    await _handler.HandleAsync(eventData.Body.Array, properties,
                         () => CheckpointAsync(context, eventData));
                 }
 
@@ -93,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                         }
                     }
                 }
-                await Try.Async(_factory._handler.OnBatchCompleteAsync);
+                await Try.Async(_handler.OnBatchCompleteAsync);
             }
 
             /// <inheritdoc/>
@@ -262,14 +274,15 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             }
 
             private readonly ILogger _logger;
-            private readonly EventProcessorFactory _factory;
+            private readonly IEventProcessingHandler _handler;
+            private readonly EventProcessorFactory _outer;
             private readonly string _processorId;
             private readonly long? _interval;
             private readonly Stopwatch _sw;
         }
 
         private readonly ILogger _logger;
-        private readonly IEventProcessingHandler _handler;
+        private readonly IComponentContext _context;
         private readonly IEventProcessorConfig _config;
     }
 }

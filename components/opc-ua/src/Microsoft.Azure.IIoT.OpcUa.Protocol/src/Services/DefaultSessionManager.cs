@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -46,70 +47,128 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             await _lock.WaitAsync();
             try {
                 if (!_sessions.TryGetValue(id, out var wrapper) && createIfNotExists) {
-                    var sessionName = id.ToString();
-                    var applicationConfiguration = _clientConfig.ToApplicationConfiguration(true);
-                    var endpointConfiguration = _clientConfig.ToEndpointConfiguration();
-                    var endpointDescription = SelectEndpoint(id.Connection.Endpoint.Url,
-                        id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy,
-                        (int)(connection.OperationTimeout.HasValue ?
-                            connection.OperationTimeout.Value.TotalMilliseconds :
-                            kDefaultOperationTimeout));
-
-                    if (endpointDescription == null) {
-                        throw new EndpointNotAvailableException(id.Connection.Endpoint.Url,
-                            id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy);
+                    var endpointUrlCandidates = id.Connection.Endpoint.Url.YieldReturn();
+                    if (id.Connection.Endpoint.AlternativeUrls != null) {
+                        endpointUrlCandidates = endpointUrlCandidates.Concat(
+                            id.Connection.Endpoint.AlternativeUrls);
                     }
-
-                    if (id.Connection.Endpoint.SecurityMode.HasValue &&
-                        id.Connection.Endpoint.SecurityMode != SecurityMode.None &&
-                        endpointDescription.SecurityMode == MessageSecurityMode.None) {
-                        _logger.Warning("Although the use of security was configured, " +
-                            "there was no security-enabled endpoint available at url " +
-                            "{endpointUrl}. An endpoint with no security will be used.",
-                            id.Connection.Endpoint.Url);
-                    }
-
-                    var configuredEndpoint = new ConfiguredEndpoint(
-                        null, endpointDescription, endpointConfiguration);
-
-                    _logger.Information("Trying to create session {sessionName}...",
-                        sessionName);
-                    using (new PerfMarker(_logger, sessionName)) {
-                        var userIdentity = connection.User.ToStackModel() ??
-                            new UserIdentity(new AnonymousIdentityToken());
-                        var session = await Session.Create(
-                            applicationConfiguration, configuredEndpoint,
-                            true, sessionName, _clientConfig.DefaultSessionTimeout,
-                            userIdentity, null);
-
-                        _logger.Information($"Session '{sessionName}' created.");
-                        _logger.Information("Loading Complex Type System....");
+                    var exceptions = new List<Exception>();
+                    foreach (var endpointUrl in endpointUrlCandidates) {
                         try {
-                            var complexTypeSystem = new ComplexTypeSystem(session);
-                            await complexTypeSystem.Load();
-                            _logger.Information("Complex Type system loaded.");
+                            wrapper = await CreateSessionAsync(endpointUrl, id);
+                            if (wrapper?.Session != null) {
+                                _logger.Information("Connected on {endpointUrl}", endpointUrl);
+                                _sessions.Add(id, wrapper);
+                                return wrapper?.Session;
+                            }
                         }
                         catch (Exception ex) {
-                            _logger.Error(ex, "Failed to load Complex Type System");
+                            _logger.Debug("Failed to connect on {endpointUrl}: {message} - try again...",
+                                endpointUrl, ex.Message);
+                            exceptions.Add(ex);
                         }
-
-                        if (_clientConfig.KeepAliveInterval > 0) {
-                            session.KeepAliveInterval = _clientConfig.KeepAliveInterval;
-                            session.KeepAlive += Session_KeepAlive;
-                            session.Notification += Session_Notification;
-                        }
-                        wrapper = new SessionWrapper {
-                            MissedKeepAlives = 0,
-                            MaxKeepAlives = _clientConfig.MaxKeepAliveCount,
-                            Session = session
-                        };
-                        _sessions.Add(id, wrapper);
                     }
+                    throw new AggregateException(exceptions);
                 }
                 return wrapper?.Session;
             }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to get or create session.");
+                return null;
+            }
             finally {
                 _lock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Create session against endpoint
+        /// </summary>
+        /// <param name="endpointUrl"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private async Task<SessionWrapper> CreateSessionAsync(string endpointUrl,
+            ConnectionIdentifier id) {
+            var sessionName = id.ToString();
+
+            // Validate certificates
+            void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e) {
+                if (!e.Accept && e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
+                    // Validate thumbprint provided
+                    if (e.Certificate.RawData != null &&
+                        id.Connection.Endpoint.Certificate != null &&
+                        e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate) {
+                        // Validate
+                        e.Accept = true;
+                    }
+                    else if(_clientConfig.AutoAcceptUntrustedCertificates) {
+                        _logger.Warning("Publisher is configured to accept untrusted certs.  " +
+                            "Accepting untrusted certificate on endpoint {endpointUrl}",
+                            endpointUrl);
+                        e.Accept = true;
+                    }
+                }
+            };
+
+            var applicationConfiguration = _clientConfig.ToApplicationConfiguration(
+                true, OnValidate);
+            var endpointConfiguration = _clientConfig.ToEndpointConfiguration();
+
+            var endpointDescription = SelectEndpoint(endpointUrl,
+                id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy,
+                (int)(id.Connection.OperationTimeout.HasValue ?
+                    id.Connection.OperationTimeout.Value.TotalMilliseconds :
+                    kDefaultOperationTimeout));
+
+            if (endpointDescription == null) {
+                throw new EndpointNotAvailableException(endpointUrl,
+                    id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy);
+            }
+
+            if (id.Connection.Endpoint.SecurityMode.HasValue &&
+                id.Connection.Endpoint.SecurityMode != SecurityMode.None &&
+                endpointDescription.SecurityMode == MessageSecurityMode.None) {
+                _logger.Warning("Although the use of security was configured, " +
+                    "there was no security-enabled endpoint available at url " +
+                    "{endpointUrl}. An endpoint with no security will be used.",
+                    endpointUrl);
+            }
+
+            var configuredEndpoint = new ConfiguredEndpoint(
+                null, endpointDescription, endpointConfiguration);
+
+            _logger.Information("Trying to create session {sessionName}...",
+                sessionName);
+            using (new PerfMarker(_logger, sessionName)) {
+                var userIdentity = id.Connection.User.ToStackModel() ??
+                    new UserIdentity(new AnonymousIdentityToken());
+                var session = await Session.Create(
+                    applicationConfiguration, configuredEndpoint,
+                    true, sessionName, _clientConfig.DefaultSessionTimeout,
+                    userIdentity, null);
+
+                _logger.Information($"Session '{sessionName}' created.");
+                _logger.Information("Loading Complex Type System....");
+                try {
+                    var complexTypeSystem = new ComplexTypeSystem(session);
+                    await complexTypeSystem.Load();
+                    _logger.Information("Complex Type system loaded.");
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Failed to load Complex Type System");
+                }
+
+                if (_clientConfig.KeepAliveInterval > 0) {
+                    session.KeepAliveInterval = _clientConfig.KeepAliveInterval;
+                    session.KeepAlive += Session_KeepAlive;
+                    session.Notification += Session_Notification;
+                }
+                var wrapper = new SessionWrapper {
+                    MissedKeepAlives = 0,
+                    MaxKeepAlives = _clientConfig.MaxKeepAliveCount,
+                    Session = session
+                };
+                return wrapper;
             }
         }
 

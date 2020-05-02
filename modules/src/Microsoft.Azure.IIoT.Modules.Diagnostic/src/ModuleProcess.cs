@@ -113,9 +113,9 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(this)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // register logger
             builder.AddConsoleLogger();

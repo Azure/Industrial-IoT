@@ -8,16 +8,18 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
     using Microsoft.Azure.IIoT.OpcUa.Cdm.Services;
     using Microsoft.Azure.IIoT.OpcUa.Cdm.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
+    using Microsoft.Azure.IIoT.Storage.Datalake.Runtime;
+    using Microsoft.Azure.IIoT.Storage.Datalake.Default;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.Auth;
+    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.Auth.Clients.Default;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using Serilog;
@@ -95,55 +97,59 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
             var builder = new ContainerBuilder();
 
             builder.RegisterInstance(serviceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
-            // register diagnostics
+            // Add diagnostics
             builder.AddDiagnostics(config);
+
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
             builder.RegisterModule<NewtonSoftJsonModule>();
+
+            // Add unattended and storage authentication
+            builder.RegisterModule<UnattendedAuthentication>();
+            builder.RegisterModule<StorageAuthentication>();
 
             // Event processor services for onboarding consumer
             builder.RegisterType<EventProcessorHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+
+            // Handle telemetry
+            builder.RegisterType<EventHubDeviceEventHandler>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<MonitoredItemSampleModelHandler>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<NetworkMessageModelHandler>()
+                .AsImplementedInterfaces();
+
+            // Cdm processor
+            builder.RegisterType<DatalakeConfig>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<DataLakeStorageService>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<CdmFileStorageAdapter>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<CsvEncoder>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<CdmMessageProcessor>()
+                .AsImplementedInterfaces();
+
             // ... and auto start
             builder.RegisterType<HostAutoStart>()
                 .AutoActivate()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // Handle telemetry events
-            builder.RegisterType<EventHubDeviceEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // ... requires the corresponding services
-            // Register http client module (needed for api)
-            builder.RegisterModule<HttpClientModule>();
-            // Use bearer authentication
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            // Use device code token provider to get tokens
-            builder.RegisterType<AppAuthenticationProvider>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // Handle opc-ua pub/sub subscriber messages
-            builder.RegisterType<MonitoredItemSampleModelHandler>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<NetworkMessageModelHandler>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // Handle the CDM handler
-            builder.RegisterType<AdlsCsvStorage>()
-                .AsImplementedInterfaces().SingleInstance();
-              // handlers for the legacy publisher (disabled)
-            builder.RegisterType<CdmMessageProcessor>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<MonitoredItemSampleCdmProcessor>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder;

@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
         public async Task MigrateAsync() {
             string continuation = null;
             do {
-                var results = await _source.ListAsync(continuation, null, null);
+                var results = await _source.ListAsync(continuation, null);
                 continuation = results.ContinuationToken;
                 foreach (var application in results.Items) {
                     try {

@@ -23,6 +23,10 @@ OPC Twin Microservice in cloud exposes a [REST API](../api/twin/readme.md) to ca
 * **Browse** first / next (with and without reading the browsed target nodes)
 * Get **meta data** of methods (to display input arguments to a user)
 
+## Docker image
+
+`docker pull mcr.microsoft.com/iot/opc-twin-service:preview`
+
 ## Next steps
 
 * [Learn more about the OPC Twin module](../modules/twin.md)

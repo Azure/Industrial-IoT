@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         /// Opc History service url
         /// </summary>
         string OpcUaHistoryServiceUrl { get; }
-
-        /// <summary>
-        /// The History service resource id
-        /// </summary>
-        string OpcUaHistoryServiceResourceId { get; }
     }
 }

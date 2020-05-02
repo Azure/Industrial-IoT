@@ -5,7 +5,6 @@
 namespace Microsoft.Azure.IIoT.Api.MsgPack {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.MessagePack;
-    using Newtonsoft.Json.Linq;
     using System;
     using Xunit;
     using AutoFixture;

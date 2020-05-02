@@ -28,9 +28,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         public override void ConfigureContainer(ContainerBuilder builder) {
             // Register service info and configuration interfaces
             builder.RegisterInstance(ServiceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(Config);

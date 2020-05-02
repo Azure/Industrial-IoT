@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.ServiceBus;
     using Microsoft.Azure.ServiceBus.Management;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Net;
@@ -22,8 +23,10 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
         /// Create factory
         /// </summary>
         /// <param name="config"></param>
-        public ServiceBusClientFactory(IServiceBusConfig config) {
+        /// <param name="logger"></param>
+        public ServiceBusClientFactory(IServiceBusConfig config, ILogger logger) {
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -40,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
                 var key = $"{topic}/subscriptions/{name}";
                 if (!_subscriptionClients.TryGetValue(key, out var client) ||
                     client.IsClosedOrClosing) {
-                    client = await NewSubscriptionClientAsync(GetEntityName(topic), name);
+                    client = await NewSubscriptionClientAsync(topic, name);
                     _subscriptionClients.Add(key, client);
 
                     //
@@ -49,7 +52,8 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
                     //
                     client.RegisterMessageHandler(handler,
                         new MessageHandlerOptions(exceptionReceivedHandler) {
-                            MaxConcurrentCalls = 10,
+                            MaxConcurrentCalls = 2,
+                            MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
                             AutoComplete = false
                         });
                 }
@@ -111,18 +115,35 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
         private async Task<ISubscriptionClient> NewSubscriptionClientAsync(
             string topic, string name) {
             var managementClient = new ManagementClient(_config.ServiceBusConnString);
-            var exists = await managementClient.TopicExistsAsync(topic);
-            if (!exists) {
-                await Try.Async(() =>
-                    managementClient.CreateTopicAsync(new TopicDescription(topic)));
+            while (true) {
+                try {
+                    var exists = await managementClient.TopicExistsAsync(topic);
+                    if (!exists) {
+                        await managementClient.CreateTopicAsync(new TopicDescription(topic) {
+                            EnablePartitioning = true,
+                            EnableBatchedOperations = true
+                        });
+                    }
+                    exists = await managementClient.SubscriptionExistsAsync(topic, name);
+                    if (!exists) {
+                        await managementClient.CreateSubscriptionAsync(
+                            new SubscriptionDescription(topic, name) {
+                                EnableBatchedOperations = true,
+                                LockDuration = TimeSpan.FromSeconds(10)
+                            });
+                    }
+                    return new SubscriptionClient(_config.ServiceBusConnString, topic, name,
+                        ReceiveMode.PeekLock, RetryPolicy.Default);
+                }
+                catch (ServiceBusException ex) {
+                    if (IsRetryableException(ex)) {
+                        await Task.Delay(2000);
+                        continue;
+                    }
+                    _logger.Error(ex, "Failed to create subscription client.");
+                    throw ex;
+                }
             }
-            exists = await managementClient.SubscriptionExistsAsync(topic, name);
-            if (!exists) {
-                await managementClient.CreateSubscriptionAsync(
-                    new SubscriptionDescription(topic, name));
-            }
-            return new SubscriptionClient(_config.ServiceBusConnString, topic, name,
-                ReceiveMode.PeekLock, RetryPolicy.Default);
         }
 
         /// <summary>
@@ -132,13 +153,28 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
         /// <returns></returns>
         private async Task<IQueueClient> NewQueueClientAsync(string name) {
             var managementClient = new ManagementClient(_config.ServiceBusConnString);
-            var exists = await managementClient.QueueExistsAsync(name);
-            if (!exists) {
-                await managementClient.CreateQueueAsync(new QueueDescription(name));
+            while (true) {
+                try {
+                    var exists = await managementClient.QueueExistsAsync(name);
+                    if (!exists) {
+                        await managementClient.CreateQueueAsync(new QueueDescription(name) {
+                            EnablePartitioning = true,
+                            EnableBatchedOperations = true
+                        });
+                    }
+                    return new QueueClient(
+                        _config.ServiceBusConnString, GetEntityName(name), ReceiveMode.PeekLock,
+                        RetryPolicy.Default);
+                }
+                catch (ServiceBusException ex) {
+                    if (IsRetryableException(ex)) {
+                        await Task.Delay(2000);
+                        continue; // 429
+                    }
+                    _logger.Error(ex, "Failed to create queue client.");
+                    throw ex;
+                }
             }
-            return new QueueClient(
-                _config.ServiceBusConnString, GetEntityName(name), ReceiveMode.PeekLock,
-                RetryPolicy.Default);
         }
 
         /// <summary>
@@ -148,12 +184,41 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
         /// <returns></returns>
         private async Task<TopicClient> NewTopicClientAsync(string name) {
             var managementClient = new ManagementClient(_config.ServiceBusConnString);
-            var exists = await managementClient.TopicExistsAsync(name);
-            if (!exists) {
-                await managementClient.CreateTopicAsync(new TopicDescription(name));
+            while (true) {
+                try {
+                    var exists = await managementClient.TopicExistsAsync(name);
+                    if (!exists) {
+                        await managementClient.CreateTopicAsync(new TopicDescription(name) {
+                            EnablePartitioning = true,
+                            EnableBatchedOperations = true
+                        });
+                    }
+                    return new TopicClient(_config.ServiceBusConnString, GetEntityName(name),
+                        RetryPolicy.Default);
+                }
+                catch (ServiceBusException ex) {
+                    if (IsRetryableException(ex)) {
+                        await Task.Delay(2000);
+                        continue; // 429
+                    }
+                    _logger.Error(ex, "Failed to create topic client.");
+                    throw ex;
+                }
             }
-            return new TopicClient(
-                _config.ServiceBusConnString, GetEntityName(name), RetryPolicy.Default);
+        }
+
+        /// <summary>
+        /// Check whether the subcode points to 429
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <returns></returns>
+        private static bool IsRetryableException(ServiceBusException ex) {
+            return
+    // https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-resource-manager-exceptions
+            ex.Message.StartsWith("Resource Conflict", StringComparison.InvariantCultureIgnoreCase) ||
+                ex.Message.StartsWith("SubCode=40900", StringComparison.InvariantCultureIgnoreCase) ||
+                ex.Message.StartsWith("SubCode=40901", StringComparison.InvariantCultureIgnoreCase) ||
+                ex.Message.StartsWith("SubCode=50004", StringComparison.InvariantCultureIgnoreCase);
         }
 
         /// <summary>
@@ -190,10 +255,11 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
             if (string.IsNullOrEmpty(name)) {
                 name = "iiotmessaging";
             }
-            return name;
+            return name.ToLowerInvariant();
         }
 
         private readonly IServiceBusConfig _config;
+        private readonly ILogger _logger;
         private readonly SemaphoreSlim _topicLock = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, ITopicClient> _topicClients =
             new Dictionary<string, ITopicClient>();

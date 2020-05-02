@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.Services.All {
     using Microsoft.Azure.IIoT.Services.All.Runtime;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -67,12 +67,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <param name="services"></param>
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
-
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Configure processing of forwarded headers
-                services.ConfigureForwardedHeaders(Config);
-            }
-
+            services.AddHeaderForwarding();
             services.AddHttpContextAccessor();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
@@ -87,32 +82,20 @@ namespace Microsoft.Azure.IIoT.Services.All {
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
 
-            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
-                app.UsePathBase(Config.ServicePathBase);
-            }
-
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Enable processing of forwarded headers
-                app.UseForwardedHeaders();
-            }
-
-            if (Config.HttpsRedirectPort > 0) {
-                app.UseHsts();
-                app.UseHttpsRedirection();
-            }
+            app.UsePathBase();
+            app.UseHeaderForwarding();
+            app.UseHttpsRedirect();
 
             // Configure branches for business
             app.UseWelcomePage("/");
 
             // Minimal API surface
             app.AddStartupBranch<OpcUa.Registry.Startup>("/registry");
-            app.AddStartupBranch<OpcUa.Registry.Onboarding.Startup>("/onboarding");
             app.AddStartupBranch<OpcUa.Vault.Startup>("/vault");
             app.AddStartupBranch<OpcUa.Twin.Startup>("/twin");
             app.AddStartupBranch<OpcUa.Publisher.Startup>("/publisher");
+            app.AddStartupBranch<OpcUa.Publisher.Edge.Startup>("/edge/publisher");
             app.AddStartupBranch<OpcUa.Events.Startup>("/events");
-            app.AddStartupBranch<Common.Jobs.Startup>("/jobs");
-            app.AddStartupBranch<Common.Jobs.Edge.Startup>("/edge/jobs");
 
             if (!Config.IsMinimumDeployment) {
                 app.AddStartupBranch<OpcUa.Twin.Gateway.Startup>("/ua");
@@ -135,10 +118,15 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <param name="builder"></param>
         public void ConfigureContainer(ContainerBuilder builder) {
 
-            // Add diagnostics based on configuration
+            // Register service info and configuration interfaces
+            builder.RegisterInstance(Config)
+                .AsImplementedInterfaces().AsSelf();
+            builder.RegisterInstance(Config.Configuration)
+                .AsImplementedInterfaces();
+
+            // Add diagnostics and auth providers
             builder.AddDiagnostics(Config);
-            builder.RegisterInstance(Config.Configuration);
-            builder.RegisterInstance(Config);
+            builder.RegisterModule<DefaultServiceAuthProviders>();
 
             builder.RegisterType<ProcessorHost>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -163,10 +151,14 @@ namespace Microsoft.Azure.IIoT.Services.All {
                 // Minimal processes
                 var processes = new List<Task> {
                     Task.Run(() => OpcUa.Registry.Sync.Program.Main(args), _cts.Token),
-                    Task.Run(() => Processor.Events.Program.Main(args), _cts.Token),
+                    Task.Run(() => Processor.Onboarding.Program.Main(args), _cts.Token)
                 };
 
                 if (!_config.IsMinimumDeployment) {
+                    processes.Add(Task.Run(() => Processor.Events.Program.Main(args),
+                        _cts.Token));
+                    processes.Add(Task.Run(() => Processor.Tunnel.Program.Main(args),
+                        _cts.Token));
                     processes.Add(Task.Run(() => Processor.Telemetry.Program.Main(args),
                         _cts.Token));
                     processes.Add(Task.Run(() => Processor.Telemetry.Cdm.Program.Main(args),
@@ -177,8 +169,8 @@ namespace Microsoft.Azure.IIoT.Services.All {
 
             /// <inheritdoc/>
             public Task StartAsync() {
-                Start();
-                return Task.CompletedTask;
+                // Delay start by 5 seconds to let api boot up
+                return Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ => Start());
             }
 
             /// <inheritdoc/>

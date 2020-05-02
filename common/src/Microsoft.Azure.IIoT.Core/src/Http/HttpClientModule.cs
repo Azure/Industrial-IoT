@@ -18,10 +18,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         protected override void Load(ContainerBuilder builder) {
 
             // Http client services ...
-            builder.RegisterType<HttpClient>().SingleInstance()
+            builder.RegisterType<HttpClient>()
                 .AsImplementedInterfaces()
                 .IfNotRegistered(typeof(IHttpClient));
-            builder.RegisterType<HttpHandlerFactory>().SingleInstance()
+            builder.RegisterType<HttpHandlerFactory>()
                 .AsImplementedInterfaces()
                 .IfNotRegistered(typeof(IHttpHandlerFactory));
             builder.RegisterType<HttpClientFactory>().SingleInstance()

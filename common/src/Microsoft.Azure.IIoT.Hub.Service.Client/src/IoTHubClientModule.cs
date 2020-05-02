@@ -19,11 +19,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
 
             // Services
             builder.RegisterType<IoTHubServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubConfigurationClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubFileNotificationHost>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             base.Load(builder);
         }

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using System;
     using System.Security.Cryptography.X509Certificates;
     using Opc.Ua;
@@ -18,11 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Create application configuration
         /// </summary>
         /// <param name="opcConfig"></param>
+        /// <param name="handler"></param>
         /// <param name="createSelfSignedCertIfNone"></param>
         /// <returns></returns>
-        public static ApplicationConfiguration ToApplicationConfiguration(this IClientServicesConfig2 opcConfig, bool createSelfSignedCertIfNone) {
+        public static ApplicationConfiguration ToApplicationConfiguration(
+            this IClientServicesConfig2 opcConfig, bool createSelfSignedCertIfNone,
+            CertificateValidationEventHandler handler) {
             if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName)) {
-                throw new ArgumentNullException($"{nameof(opcConfig)}.{nameof(ClientServicesConfig2.ApplicationName)}");
+                throw new ArgumentNullException(nameof(opcConfig.ApplicationName));
             }
 
             var applicationConfiguration = new ApplicationConfiguration {
@@ -36,15 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 CertificateValidator = new CertificateValidator()
             };
 
-            applicationConfiguration.CertificateValidator.CertificateValidation += (validator, e) => {
-                if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
-                    e.Accept = opcConfig.AutoAcceptUntrustedCertificates;
-
-                    if (e.Accept) {
-                        //Logger.Information($"Certificate '{e.Certificate.Subject}' will be trusted, because of corresponding command line option.");
-                    }
-                }
-            };
+            applicationConfiguration.CertificateValidator.CertificateValidation += handler;
 
             X509Certificate2 certificate = null;
 
@@ -72,7 +66,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     certificate ??
                     throw new Exception(
                         "OPC UA application certificate can not be created! Cannot continue without it!");
-                //await applicationConfiguration.CertificateValidator.UpdateCertificate(applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
+                //await applicationConfiguration.CertificateValidator.UpdateCertificate(
+                   //applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
             }
 
             applicationConfiguration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);

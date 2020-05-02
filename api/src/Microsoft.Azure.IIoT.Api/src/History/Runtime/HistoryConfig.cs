@@ -16,19 +16,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Runtime {
         /// History configuration
         /// </summary>
         private const string kOpcUaHistoryServiceUrlKey = "OpcHistoryServiceUrl";
-        private const string kOpcUaHistoryServiceIdKey = "OpcHistoryServiceResourceId";
 
         /// <summary>OPC history service endpoint url</summary>
         public string OpcUaHistoryServiceUrl => GetStringOrDefault(
             kOpcUaHistoryServiceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_HISTORY_SERVICE_URL,
                 () => GetDefaultUrl("9043", "history")));
-        /// <summary>OPC vault audience</summary>
-        public string OpcUaHistoryServiceResourceId => GetStringOrDefault(
-            kOpcUaHistoryServiceIdKey,
-            () => GetStringOrDefault("OPC_HISTORY_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
-                    () => null)));
 
         /// <inheritdoc/>
         public HistoryConfig(IConfiguration configuration) :

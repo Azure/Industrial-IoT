@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.History;
-    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -263,9 +262,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                 ConnectionString.CreateServiceConnectionString(
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-
-            /// <inheritdoc/>
-            public string IoTHubResourceId => null;
         }
 
         /// <summary>
@@ -284,14 +280,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
 
             // Twin and history clients
             builder.RegisterType<TwinModuleControlClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleSupervisorClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             builder.RegisterType<HistoryRawSupervisorAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinSupervisorAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<HistoryModuleClient>()
@@ -299,11 +295,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
 
             // Adapts to expanded hda
             builder.RegisterType<HistoricAccessAdapter<string>>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<HistoricAccessAdapter<EndpointRegistrationModel>>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<HistoricAccessAdapter<EndpointApiModel>>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Supervisor clients
             builder.RegisterType<TwinModuleActivationClient>()

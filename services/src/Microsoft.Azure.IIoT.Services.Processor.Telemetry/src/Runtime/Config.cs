@@ -15,32 +15,39 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
     /// <summary>
     /// Telemetry processor service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IEventProcessorConfig,
-        IEventHubConsumerConfig, IEventProcessorHostConfig {
+    public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
+        IEventHubConsumerConfig, IEventProcessorConfig {
 
-        /// <inheritdoc/>
-        public string EventHubConnString => _eh.EventHubConnString;
-        /// <inheritdoc/>
-        public string EventHubPath => _eh.EventHubPath;
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
             PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY,
                 () => "telemetry");
 
         /// <inheritdoc/>
+        public string EventHubConnString => _eh.EventHubConnString;
+        /// <inheritdoc/>
+        public string EventHubPath => _eh.EventHubPath;
+        /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
+
         /// <inheritdoc/>
         public int ReceiveBatchSize => _ep.ReceiveBatchSize;
         /// <inheritdoc/>
         public TimeSpan ReceiveTimeout => _ep.ReceiveTimeout;
-        /// <inheritdoc/>
-        public string BlobStorageConnString => _ep.BlobStorageConnString;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
         /// <inheritdoc/>
         public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
         /// <inheritdoc/>
         public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
+        /// <inheritdoc/>
+        public TimeSpan? SkipEventsOlderThan => _ep.SkipEventsOlderThan;
+        /// <inheritdoc/>
+        public string EndpointSuffix => _ep.EndpointSuffix;
+        /// <inheritdoc/>
+        public string AccountName => _ep.AccountName;
+        /// <inheritdoc/>
+        public string AccountKey => _ep.AccountKey;
 
         /// <summary>
         /// Configuration constructor

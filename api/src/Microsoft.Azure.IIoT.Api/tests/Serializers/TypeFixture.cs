@@ -4,7 +4,6 @@
 
 namespace Microsoft.Azure.IIoT.Api {
     using Microsoft.Azure.IIoT.Api.Identity.Clients;
-    using Microsoft.Azure.IIoT.Api.Jobs.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
@@ -24,13 +23,12 @@ namespace Microsoft.Azure.IIoT.Api {
 
         public static IEnumerable<object[]> GetDataContractTypes() {
             return      GetAllApiModelTypes<BrowseDirection>()
-                .Concat(GetAllApiModelTypes<IdentityServiceClient>())
+                .Concat(GetAllApiModelTypes<UsersServiceClient>())
                 .Concat(GetAllApiModelTypes<VaultServiceClient>())
                 .Concat(GetAllApiModelTypes<TwinServiceClient>())
                 .Concat(GetAllApiModelTypes<RegistryServiceClient>())
                 .Concat(GetAllApiModelTypes<PublisherServiceClient>())
                 .Concat(GetAllApiModelTypes<HistoryServiceClient>())
-                .Concat(GetAllApiModelTypes<JobsServiceClient>())
                 .Distinct()
                 .Select(t => new object[] { t });
         }

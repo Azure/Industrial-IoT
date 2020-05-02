@@ -233,11 +233,11 @@
     }
   },
   "securityDefinitions": {
-    "oauth2": {
-      "type": "oauth2",
-      "flow": "implicit",
-      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
-      "description": "Implicit oauth2 token flow."
+    "bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Authorization token in the form of 'bearer <token>'"
     }
   },
   "tags": [

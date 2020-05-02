@@ -27,13 +27,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
         /// <inheritdoc/>
         public override void ConfigureContainer(ContainerBuilder builder) {
-            builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().SingleInstance();
-            // Add diagnostics based on configuration
-            builder.AddDiagnostics(Config);
             // Register service info and configuration interfaces
             builder.RegisterInstance(ServiceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(Config)
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(Config.Configuration)
+                .AsImplementedInterfaces();
+
+            // Add diagnostics and auth providers
+            builder.AddDiagnostics(Config);
             builder.RegisterType<MemoryDatabase>()
                .AsImplementedInterfaces().SingleInstance();
         }

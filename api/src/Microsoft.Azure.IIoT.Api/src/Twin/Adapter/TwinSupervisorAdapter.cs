@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Implements node services as adapter on top of supervisor api.

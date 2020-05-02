@@ -74,11 +74,6 @@ namespace Microsoft.Azure.IIoT.Utils {
         public string DeviceId => this[Id.DeviceId];
 
         /// <summary>
-        /// Get module id
-        /// </summary>
-        public string ModuleId => this[Id.ModuleId];
-
-        /// <summary>
         /// Get shared access key name
         /// </summary>
         public string SharedAccessKeyName => this[Id.SharedAccessKeyName];
@@ -89,9 +84,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         public string SharedAccessKey => this[Id.SharedAccessKey] ?? this[Id.AccountKey] ?? this[Id.AccessKey];
 
         /// <summary>
-        /// Get shared access key
+        /// Get endpoint suffix
         /// </summary>
-        public string SharedAccessToken => this[Id.SharedAccessToken];
+        public string EndpointSuffix => this[Id.EndpointSuffix];
 
         /// <summary>
         /// Get account endpoint

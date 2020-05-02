@@ -4,16 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Crypto.KeyVault;
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime;
-    using Microsoft.Azure.IIoT.Storage.Blob;
-    using Microsoft.Azure.IIoT.Storage.Blob.Runtime;
+    using Microsoft.Azure.IIoT.Storage.Datalake;
+    using Microsoft.Azure.IIoT.Storage.Datalake.Runtime;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Auth.KeyVault;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
     using Microsoft.Azure.KeyVault.WebKey;
-    using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Azure.Storage;
     using Microsoft.Azure.Storage.Blob;
     using Microsoft.Extensions.Configuration;
@@ -51,24 +51,20 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
         public static IDataProtectionBuilder AddAzureKeyVaultDataProtection(
-            this IDataProtectionBuilder builder, IConfiguration configuration = null) {
-            if (configuration == null) {
-                configuration = builder.Services.BuildServiceProvider()
-                    .GetRequiredService<IConfiguration>();
-            }
-
+            this IDataProtectionBuilder builder, IConfiguration configuration) {
             var config = new DataProtectionConfig(configuration);
             if (string.IsNullOrEmpty(config.KeyVaultBaseUrl)) {
-                return builder;
+                throw new InvalidConfigurationException(
+                    "Keyvault base url is missing in your configuration " +
+                    "for dataprotection to be able to store the root key.");
             }
             var keyName = config.KeyVaultKeyDataProtection;
-            var client = TryKeyVaultClientAsync(config.KeyVaultBaseUrl,
-                config, keyName).Result;
-            if (client == null) {
+            var keyVault = new KeyVaultClientBootstrap(configuration);
+            if (!TryInititalizeKeyAsync(keyVault.Client, config.KeyVaultBaseUrl, keyName).Result) {
                 throw new UnauthorizedAccessException("Cannot access keyvault");
             }
             var identifier = $"{config.KeyVaultBaseUrl.TrimEnd('/')}/keys/{keyName}";
-            return builder.ProtectKeysWithAzureKeyVault(client, identifier);
+            return builder.ProtectKeysWithAzureKeyVault(keyVault.Client, identifier);
         }
 
         /// <summary>
@@ -77,19 +73,17 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
         public static IDataProtectionBuilder AddAzureBlobKeyStorage(
-            this IDataProtectionBuilder builder, IConfiguration configuration = null) {
-            if (configuration == null) {
-                configuration = builder.Services.BuildServiceProvider()
-                    .GetRequiredService<IConfiguration>();
-            }
+            this IDataProtectionBuilder builder, IConfiguration configuration) {
 
             var storage = new DataProtectionConfig(configuration);
             var containerName = storage.BlobStorageContainerDataProtection;
-            if (string.IsNullOrEmpty(storage.BlobStorageConnString)) {
-                return builder;
+            var connectionString = storage.GetStorageConnString();
+            if (string.IsNullOrEmpty(connectionString)) {
+               throw new InvalidConfigurationException(
+                   "Storage configuration is missing in your configuration for " +
+                   "dataprotection to store all keys across all instances.");
             }
-
-            var storageAccount = CloudStorageAccount.Parse(storage.BlobStorageConnString);
+            var storageAccount = CloudStorageAccount.Parse(storage.GetStorageConnString());
             var relativePath = $"{containerName}/keys.xml";
             var uriBuilder = new UriBuilder(storageAccount.BlobEndpoint);
             uriBuilder.Path = uriBuilder.Path.TrimEnd('/') + "/" + relativePath.TrimStart('/');
@@ -99,59 +93,15 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         }
 
         /// <summary>
-        /// Try create new keyvault client using provided configuration. Will
-        /// try several combinations including managed service identity and
-        /// if allowed, visual studio tooling access.
-        /// </summary>
-        /// <param name="vaultUri"></param>
-        /// <param name="client"></param>
-        /// <param name="keyName"></param>
-        /// <returns></returns>
-        private static async Task<KeyVaultClient> TryKeyVaultClientAsync(string vaultUri,
-            IClientConfig client, string keyName) {
-            KeyVaultClient keyVault;
-
-            // Try reading with app and secret if available.
-            if (!string.IsNullOrEmpty(client.AppId) &&
-                !string.IsNullOrEmpty(client.AppSecret) &&
-                !string.IsNullOrEmpty(client.TenantId)) {
-                var connectionString =
-                    $"RunAs=App; " +
-                    $"AppId={client.AppId}; " +
-                    $"AppKey={client.AppSecret}; " +
-                    $"TenantId={client.TenantId}";
-                keyVault = await TryInititalizeKeyAsync("Application",
-                    vaultUri, keyName, connectionString);
-                if (keyVault != null) {
-                    return keyVault;
-                }
-            }
-
-            // Try using aims
-            keyVault = await TryInititalizeKeyAsync("Managed Service Identity",
-                vaultUri, keyName);
-            if (keyVault != null) {
-                return keyVault;
-            }
-            return null;
-        }
-
-        /// <summary>
         /// Read configuration secret
         /// </summary>
-        /// <param name="method"></param>
+        /// <param name="keyVaultClient"></param>
         /// <param name="vaultUri"></param>
         /// <param name="keyName"></param>
-        /// <param name="connectionString"></param>
         /// <returns></returns>
-        private static async Task<KeyVaultClient> TryInititalizeKeyAsync(
-            string method, string vaultUri, string keyName, string connectionString = null) {
-            var tokenProvider = new AzureServiceTokenProvider(connectionString);
+        private static async Task<bool> TryInititalizeKeyAsync(
+            KeyVaultClient keyVaultClient, string vaultUri, string keyName) {
             try {
-                var keyVaultClient = new KeyVaultClient(
-                    new KeyVaultClient.AuthenticationCallback(
-                        tokenProvider.KeyVaultTokenCallback));
-
                 try {
                     var key = await keyVaultClient.GetKeyAsync(vaultUri, keyName);
                 }
@@ -166,48 +116,25 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                     });
                 }
                 // Worked - we have a working keyvault client.
-                return keyVaultClient;
+                return true;
             }
             catch (Exception ex) {
-                Log.Logger.Debug("Failed to authenticate to keyvault {url} using " +
-                    "{method}: {message}",
-                    vaultUri, method, ex.Message);
-                return null;
+                Log.Logger.Debug("Failed to authenticate to keyvault {url}: {message}",
+                    vaultUri, ex.Message);
+                return false;
             }
         }
 
         /// <summary>
         /// Data protection default configuration
         /// </summary>
-        internal sealed class DataProtectionConfig : ConfigBase, IClientConfig,
-            IKeyVaultConfig, IStorageConfig {
+        internal sealed class DataProtectionConfig : ConfigBase, IKeyVaultConfig, IBlobConfig  {
 
-            private const string kTenantIdDefault = "common";
             private const string kKeyVaultKeyDataProtectionDefault = "dataprotection";
             private const string kBlobStorageContainerDataProtectionDefault = "dataprotection";
 
-            /// <summary>Application id</summary>
-            public string AppId => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_APPID,
-                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_APPID))?.Trim();
-            /// <summary>App secret</summary>
-            public string AppSecret => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_SECRET,
-                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_SECRET))?.Trim();
-            /// <summary>Optional tenant</summary>
-            public string TenantId => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
-                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT) ??
-                    kTenantIdDefault).Trim();
-
-            /// <summary>Aad instance url</summary>
-            public string InstanceUrl => null;
-            /// <summary>Aad domain</summary>
-            public string Domain => null;
-
-            /// <inheritdoc/>
-            public string BlobStorageConnString => _stg.BlobStorageConnString;
             /// <inheritdoc/>
             public string KeyVaultBaseUrl => _kv.KeyVaultBaseUrl;
-            /// <inheritdoc/>
-            public string KeyVaultResourceId => _kv.KeyVaultResourceId;
             /// <inheritdoc/>
             public bool KeyVaultIsHsm => _kv.KeyVaultIsHsm;
 
@@ -225,17 +152,24 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         PcsVariable.PCS_STORAGE_CONTAINER_DATAPROTECTION) ??
                         kBlobStorageContainerDataProtectionDefault).Trim();
 
+            /// <inheritdoc/>
+            public string EndpointSuffix => _stg.EndpointSuffix;
+            /// <inheritdoc/>
+            public string AccountName => _stg.AccountName;
+            /// <inheritdoc/>
+            public string AccountKey => _stg.AccountKey;
+
             /// <summary>
             /// Configuration constructor
             /// </summary>
             /// <param name="configuration"></param>
             public DataProtectionConfig(IConfiguration configuration) :
                 base(configuration) {
-                _stg = new StorageConfig(configuration);
+                _stg = new BlobConfig(configuration);
                 _kv = new KeyVaultConfig(configuration);
             }
 
-            private readonly StorageConfig _stg;
+            private readonly BlobConfig _stg;
             private readonly KeyVaultConfig _kv;
         }
     }

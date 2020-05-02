@@ -54,6 +54,10 @@ An operator must inspect an endpoint certificate and actively activate endpoints
 
 The Registry Microservice provides REST APIs to activate and deactivate endpoints.  Once activated you can interact with endpoint identities using the OPC Twin REST API.
 
+## Docker image
+
+`docker pull mcr.microsoft.com/iot/opc-registry-service:preview`
+
 ## Next steps
 
 * [Learn about Registry Onboarding](onboarding.md)

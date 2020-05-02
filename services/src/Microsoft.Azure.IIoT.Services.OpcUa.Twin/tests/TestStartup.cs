@@ -11,10 +11,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Auth.Models;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Serializers.MessagePack;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
@@ -25,11 +28,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using System.Text;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Hub.Models;
     using System.Threading;
     using System.Linq;
-    using Microsoft.AspNetCore.TestHost;
-    using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
     /// Startup class for tests
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             base.ConfigureContainer(builder);
 
             builder.RegisterType<TestIoTHubConfig>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TestModule>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ClientServices>()
@@ -61,6 +61,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
                 .AsImplementedInterfaces();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterType<TestAuthConfig>()
+                .AsImplementedInterfaces();
+        }
+
+        public class TestAuthConfig : IServerAuthConfig {
+            public bool AllowAnonymousAccess => true;
+            public IEnumerable<IOAuthServerConfig> JwtBearerProviders { get; }
         }
 
         public class TestIoTHubConfig : IIoTHubConfig, IIoTHubConfigurationServices {
@@ -68,8 +76,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
                 ConnectionString.CreateServiceConnectionString(
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-
-            public string IoTHubResourceId => "";
 
             public Task ApplyConfigurationAsync(string deviceId,
                 ConfigurationContentModel configuration, CancellationToken ct = default) {

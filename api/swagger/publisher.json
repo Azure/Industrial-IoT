@@ -18,6 +18,197 @@
     "https"
   ],
   "paths": {
+    "/publisher/v2/jobs": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get list of jobs",
+        "description": "List all jobs that are registered or continues a query.",
+        "operationId": "ListJobs",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "continuationToken",
+            "description": "Optional Continuation token",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "description": "Optional number of results to return",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/JobInfoListApiModel"
+            }
+          }
+        },
+        "x-ms-pageable": {
+          "nextLinkName": "continuationToken"
+        }
+      },
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Query jobs",
+        "description": "List all jobs that are registered or continues a query.",
+        "operationId": "QueryJobs",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json",
+          "application/x-msgpack"
+        ],
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageSize",
+            "description": "Optional number of results to return",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Query specification to use as filter.",
+            "schema": {
+              "$ref": "#/definitions/JobInfoQueryApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/JobInfoListApiModel"
+            }
+          }
+        }
+      }
+    },
+    "/publisher/v2/jobs/{id}": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get job by id",
+        "description": "Returns a job with the provided identifier.",
+        "operationId": "GetJob",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/JobInfoApiModel"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Delete job by id",
+        "description": "Deletes a job.",
+        "operationId": "DeleteJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/publisher/v2/jobs/{id}/cancel": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Cancel job by id",
+        "description": "Cancels a job execution.",
+        "operationId": "CancelJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/publisher/v2/jobs/{id}/restart": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Restart job by id",
+        "description": "Restarts a cancelled job which sets it back to active.",
+        "operationId": "RestartJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/publisher/v2/publish/{endpointId}/start": {
       "post": {
         "tags": [
@@ -64,14 +255,7 @@
               "$ref": "#/definitions/PublishStartResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/publisher/v2/publish/{endpointId}/bulk": {
@@ -120,14 +304,7 @@
               "$ref": "#/definitions/PublishBulkResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/publisher/v2/publish/{endpointId}/stop": {
@@ -176,14 +353,7 @@
               "$ref": "#/definitions/PublishStopResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/publisher/v2/publish/{endpointId}": {
@@ -232,14 +402,7 @@
               "$ref": "#/definitions/PublishedItemListResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -278,20 +441,300 @@
             }
           }
         },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ],
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
+        }
+      }
+    },
+    "/publisher/v2/workers": {
+      "get": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Get list of workers",
+        "description": "List all workers that are registered or continues a query.",
+        "operationId": "ListWorkers",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "continuationToken",
+            "description": "Optional Continuation token",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "description": "Optional number of results to return",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/WorkerInfoListApiModel"
+            }
+          }
+        },
+        "x-ms-pageable": {
+          "nextLinkName": "continuationToken"
+        }
+      }
+    },
+    "/publisher/v2/workers/{id}": {
+      "get": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Get worker",
+        "description": "Returns a worker with the provided identifier.",
+        "operationId": "GetWorker",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/WorkerInfoApiModel"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Delete worker by id",
+        "description": "Deletes an worker in the registry.",
+        "operationId": "DeleteWorker",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
         }
       }
     }
   },
   "definitions": {
+    "DemandOperators": {
+      "description": "Demand operator",
+      "enum": [
+        "Equals",
+        "Match",
+        "Exists"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "DemandOperators",
+        "modelAsString": false
+      }
+    },
+    "DemandApiModel": {
+      "description": "Demand model",
+      "required": [
+        "key"
+      ],
+      "type": "object",
+      "properties": {
+        "key": {
+          "description": "Key",
+          "type": "string"
+        },
+        "operator": {
+          "$ref": "#/definitions/DemandOperators"
+        },
+        "value": {
+          "description": "Value",
+          "type": "string"
+        }
+      }
+    },
+    "RedundancyConfigApiModel": {
+      "description": "Redundancy configuration",
+      "type": "object",
+      "properties": {
+        "desiredActiveAgents": {
+          "format": "int32",
+          "description": "Number of desired active agents",
+          "type": "integer"
+        },
+        "desiredPassiveAgents": {
+          "format": "int32",
+          "description": "Number of passive agents",
+          "type": "integer"
+        }
+      }
+    },
+    "JobStatus": {
+      "description": "Job status",
+      "enum": [
+        "Active",
+        "Canceled",
+        "Completed",
+        "Error",
+        "Deleted"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "JobStatus",
+        "modelAsString": false
+      }
+    },
+    "ProcessMode": {
+      "description": "Processing mode for processing engine",
+      "enum": [
+        "Active",
+        "Passive"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "ProcessMode",
+        "modelAsString": false
+      }
+    },
+    "ProcessingStatusApiModel": {
+      "description": "processing status",
+      "type": "object",
+      "properties": {
+        "lastKnownHeartbeat": {
+          "format": "date-time",
+          "description": "Last known heartbeat",
+          "type": "string"
+        },
+        "lastKnownState": {
+          "description": "Last known state"
+        },
+        "processMode": {
+          "$ref": "#/definitions/ProcessMode"
+        }
+      }
+    },
+    "JobLifetimeDataApiModel": {
+      "description": "Lifetime data",
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/JobStatus"
+        },
+        "processingStatus": {
+          "description": "Processing status",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ProcessingStatusApiModel"
+          }
+        },
+        "updated": {
+          "format": "date-time",
+          "description": "Updated at",
+          "type": "string"
+        },
+        "created": {
+          "format": "date-time",
+          "description": "Created at",
+          "type": "string"
+        }
+      }
+    },
+    "JobInfoApiModel": {
+      "description": "Job info model",
+      "required": [
+        "id"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Job id",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name",
+          "type": "string"
+        },
+        "jobConfigurationType": {
+          "description": "Configuration type",
+          "type": "string"
+        },
+        "jobConfiguration": {
+          "description": "Job configuration"
+        },
+        "demands": {
+          "description": "Demands",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DemandApiModel"
+          }
+        },
+        "redundancyConfig": {
+          "$ref": "#/definitions/RedundancyConfigApiModel"
+        },
+        "lifetimeData": {
+          "$ref": "#/definitions/JobLifetimeDataApiModel"
+        }
+      }
+    },
+    "JobInfoListApiModel": {
+      "description": "Job info list model",
+      "type": "object",
+      "properties": {
+        "continuationToken": {
+          "description": "Continuation token",
+          "type": "string"
+        },
+        "jobs": {
+          "description": "Jobs",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/JobInfoApiModel"
+          }
+        }
+      }
+    },
+    "JobInfoQueryApiModel": {
+      "description": "Job info query model",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Name",
+          "type": "string"
+        },
+        "jobConfigurationType": {
+          "description": "Configuration type",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/JobStatus"
+        }
+      }
+    },
     "PublishedItemApiModel": {
       "description": "A monitored and published item",
       "required": [
@@ -313,6 +756,11 @@
           "type": "string"
         },
         "samplingInterval": {
+          "format": "date-span",
+          "description": "Sampling interval to use",
+          "type": "string"
+        },
+        "heartbeatInterval": {
           "format": "date-span",
           "description": "Sampling interval to use",
           "type": "string"
@@ -341,8 +789,7 @@
           "$ref": "#/definitions/CredentialType"
         },
         "value": {
-          "description": "Value to pass to server",
-          "type": "string"
+          "description": "Value to pass to server"
         }
       }
     },
@@ -427,8 +874,7 @@
           "type": "string"
         },
         "diagnostics": {
-          "description": "Additional diagnostics information",
-          "type": "string"
+          "description": "Additional diagnostics information"
         }
       }
     },
@@ -535,23 +981,81 @@
           "type": "string"
         }
       }
+    },
+    "WorkerStatus": {
+      "description": "Worker state",
+      "enum": [
+        "Stopped",
+        "Stopping",
+        "WaitingForJob",
+        "ProcessingJob"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "WorkerStatus",
+        "modelAsString": false
+      }
+    },
+    "WorkerInfoApiModel": {
+      "description": "Worker info",
+      "type": "object",
+      "properties": {
+        "workerId": {
+          "description": "Identifier of the worker instance",
+          "type": "string"
+        },
+        "agentId": {
+          "description": "Identifier of the agent",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/WorkerStatus"
+        },
+        "lastSeen": {
+          "format": "date-time",
+          "description": "Last seen",
+          "type": "string"
+        }
+      }
+    },
+    "WorkerInfoListApiModel": {
+      "description": "Worker info list model",
+      "type": "object",
+      "properties": {
+        "continuationToken": {
+          "description": "Continuation token",
+          "type": "string"
+        },
+        "workers": {
+          "description": "Workers",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WorkerInfoApiModel"
+          }
+        }
+      }
     }
   },
   "securityDefinitions": {
-    "oauth2": {
-      "type": "oauth2",
-      "flow": "implicit",
-      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
-      "scopes": {
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
-      },
-      "description": "Implicit oauth2 token flow."
+    "bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Authorization token in the form of 'bearer <token>'"
     }
   },
   "tags": [
     {
+      "name": "Jobs",
+      "description": "Jobs controller"
+    },
+    {
       "name": "Publish",
       "description": "Value and Event publishing services"
+    },
+    {
+      "name": "Workers",
+      "description": "Agent controller"
     }
   ]
 }

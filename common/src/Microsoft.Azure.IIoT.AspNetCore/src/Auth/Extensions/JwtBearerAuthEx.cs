@@ -5,15 +5,22 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.Azure.IIoT.Auth.Server;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
-    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Authentication;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.Options;
     using Microsoft.IdentityModel.Tokens;
     using System;
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
     using System.Threading.Tasks;
+    using System.Linq;
+
 
     /// <summary>
     /// Configure JWT bearer authentication
@@ -21,35 +28,44 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     public static class JwtBearerAuthEx {
 
         /// <summary>
+        /// Use jwt bearer auth
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public static IApplicationBuilder UseJwtBearerAuthentication(this IApplicationBuilder app) {
+            return app.UseAuthentication();
+        }
+
+        /// <summary>
         /// Helper to add jwt bearer authentication
         /// </summary>
-        /// <param name="services"></param>
-        /// <param name="config"></param>
-        /// <param name="inDevelopment"></param>
-        public static void AddJwtBearerAuthentication(this IServiceCollection services,
-            IAuthConfig config, bool inDevelopment) {
+        /// <param name="builder"></param>
+        /// <param name="provider"></param>
+        public static AuthenticationBuilder AddJwtBearerProvider(this AuthenticationBuilder builder,
+            string provider) {
 
-            if (config.HttpsRedirectPort > 0) {
-                services.AddHsts(options => {
-                    options.Preload = true;
-                    options.IncludeSubDomains = true;
-                    options.MaxAge = TimeSpan.FromDays(60);
-                });
-                services.AddHttpsRedirection(options => {
-                    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-                    options.HttpsPort = config.HttpsRedirectPort;
-                });
-            }
-
+            builder.Services.TryAddTransient<IServerAuthConfig, ServiceAuthAggregateConfig>();
             // Allow access to context from within token providers and other client auth
-            services.AddHttpContextAccessor();
+            builder.Services.AddHttpContextAccessor();
 
-            // Add jwt bearer auth
-            services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options => {
-                    options.Authority = config.GetAuthorityUrl() + "/v2.0";
+            // Add provider configuration
+            builder.Services.AddTransient<IConfigureOptions<JwtBearerOptions>>(services => {
+                var auth = services.GetRequiredService<IServerAuthConfig>();
+                var environment = services.GetRequiredService<IWebHostEnvironment>();
+                return new ConfigureNamedOptions<JwtBearerOptions>(provider, options => {
+
+                    // Find whether the scheme is configurable
+                    var config = auth.JwtBearerProviders?
+                        .FirstOrDefault(s => s.GetProviderName() == provider);
+                    if (config == null) {
+                        // Not configurable - this is ok as this might not be enabled
+                        // Will not be enabled for authorization
+                        return;
+                    }
+                    options.Authority = config.GetAuthorityUrl();
                     options.SaveToken = true; // Save token to allow request on behalf
+                    options.RequireHttpsMetadata =
+                       !new Uri(options.Authority).DnsSafeHost.EqualsIgnoreCase("localhost");
 
                     options.TokenValidationParameters = new TokenValidationParameters {
                         ClockSkew = config.AllowedClockSkew,
@@ -59,14 +75,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         ValidAudience = config.Audience
                     };
                     options.Events = new JwtBearerEvents {
-                        OnAuthenticationFailed = ctx => {
-                            if (config.AuthRequired) {
-                                ctx.NoResult();
-                                return WriteErrorAsync(ctx.Response, inDevelopment ?
-                                    ctx.Exception : null);
-                            }
-                            return Task.CompletedTask;
-                        },
                         OnTokenValidated = ctx => {
                             if (ctx.SecurityToken is JwtSecurityToken accessToken) {
                                 if (ctx.Principal.Identity is ClaimsIdentity identity) {
@@ -78,22 +86,29 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         }
                     };
                 });
+            });
+            builder.Services.AddSingleton(new Provider(provider, JwtBearerDefaults.AuthenticationScheme));
+            return builder.AddJwtBearer(provider, configureOptions: null);
         }
 
         /// <summary>
-        /// Validate the issuer. The issuer is considered as valid if it
-        /// has the same http scheme and authority as the trusted issuer uri
-        /// from the configuration file or default uri, plus it has to have
-        /// a tenant Id, and optionally v2.0 but nothing more..
+        /// Validate the issuer. The issuer is considered as valid if it is the same
+        /// uri or it has the same http scheme and authority as the trusted issuer uri
+        /// from the configuration file or default uri, plus if it is not fully the
+        /// same it has to have a tenant Id, and optionally v2.0 but nothing more...
         /// </summary>
         /// <param name="issuer">Issuer to validate (will be tenanted)</param>
         /// <param name="config">Authentication configuration</param>
         /// <returns>The <c>issuer</c> if it's valid</returns>
-        private static string ValidateIssuer(string issuer, IAuthConfig config) {
+        private static string ValidateIssuer(string issuer, IOAuthServerConfig config) {
             var uri = new Uri(issuer);
-            var authorityUri = new Uri(config?.TrustedIssuer ?? kDefaultIssuerUri);
-            if (uri.Scheme != authorityUri.Scheme ||
-                uri.Authority != authorityUri.Authority) {
+            var trustedIssuer = new Uri(string.IsNullOrEmpty(config?.TrustedIssuer) ?
+                kDefaultIssuerUri : config.TrustedIssuer);
+            if (uri == trustedIssuer) {
+                return issuer; // Configured issuer correct.
+            }
+            if (uri.Scheme != trustedIssuer.Scheme ||
+                uri.Authority != trustedIssuer.Authority) {
                 throw new SecurityTokenInvalidIssuerException(
                     "Issuer has wrong authority.");
             }
@@ -103,7 +118,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                 throw new SecurityTokenInvalidIssuerException(
                     "Issuer is not tenanted.");
             }
-            if (parts.Length >= 1 && !Guid.TryParse(parts[0], out var tenantId)) {
+            if (parts.Length >= 1 && !Guid.TryParse(parts[0], out _)) {
                 throw new SecurityTokenInvalidIssuerException(
                     "No valid tenant Id for the issuer.");
             }
@@ -112,23 +127,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                     "Only accepted protocol versions are AAD v1.0 or V2.0");
             }
             return issuer;
-        }
-
-        /// <summary>
-        /// Helper to write response error
-        /// </summary>
-        /// <param name="response"></param>
-        /// <param name="ex"></param>
-        /// <returns></returns>
-        private static Task WriteErrorAsync(HttpResponse response, Exception ex) {
-            response.StatusCode = 500;
-            response.ContentType = "text/plain";
-            if (ex != null) {
-                // Debug only, in production do not share exceptions with the remote host.
-                return response.WriteAsync(ex.ToString());
-            }
-            return response.WriteAsync(
-                "An error occurred processing your authentication.");
         }
 
         private const string kDefaultIssuerUri = "https://sts.windows.net/";

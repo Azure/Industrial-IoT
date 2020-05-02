@@ -24,9 +24,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         /// <param name="config"></param>
         /// <param name="serializer"></param>
         public PublisherServiceClient(IHttpClient httpClient, IPublisherConfig config,
-            ISerializer serializer) : this(httpClient,
-                config?.OpcUaPublisherServiceUrl, config?.OpcUaPublisherServiceResourceId,
-                serializer) {
+            ISerializer serializer) :
+            this(httpClient, config?.OpcUaPublisherServiceUrl, serializer) {
         }
 
         /// <summary>
@@ -34,21 +33,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
-        /// <param name="resourceId"></param>
         /// <param name="serializer"></param>
-        public PublisherServiceClient(IHttpClient httpClient, string serviceUri, string resourceId,
+        public PublisherServiceClient(IHttpClient httpClient, string serviceUri,
             ISerializer serializer) {
             _serializer = serializer ?? new NewtonSoftJsonSerializer();
             _serviceUri = serviceUri ?? throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the endpoint micro service.");
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _resourceId = resourceId;
         }
 
         /// <inheritdoc/>
         public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
             var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
-                _resourceId);
+                Resource.Platform);
             try {
                 var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
                 response.Validate();
@@ -72,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                 throw new ArgumentNullException(nameof(content.Item));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/start",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -89,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/bulk",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -103,7 +100,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -120,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                 throw new ArgumentNullException(nameof(content));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/stop",
-                _resourceId);
+                Resource.Platform);
             _serializer.SerializeToRequest(request, content);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -130,6 +127,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         private readonly IHttpClient _httpClient;
         private readonly ISerializer _serializer;
         private readonly string _serviceUri;
-        private readonly string _resourceId;
     }
 }

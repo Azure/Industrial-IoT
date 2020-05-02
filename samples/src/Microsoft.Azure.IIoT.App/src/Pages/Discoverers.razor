@@ -142,11 +142,11 @@
 <div class="@_tableEmpty center">No discoverers found.</div>
 <div class="results @_scanResult">
     Scan Results:
-    <div class="closediv">   
+    <div class="closediv">
         <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => CloseScanResultView())" class="oi oi-x closebtn"></a>
     </div>
     <div class="events">
-        @_eventResult
+@_eventResult
     </div>
 </div>
 
@@ -199,14 +199,10 @@
     /// <summary>
     /// OnInitialized
     /// </summary>
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
         CommonHelper.Spinner = "loader-big";
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (authState.User?.Identity.IsAuthenticated != true)
-        {
-            NavigationManager.NavigateTo("AzureAD/Account/SignIn", true);
-        }
+        return base.OnInitializedAsync();
     }
 
     /// <summary>
@@ -318,54 +314,55 @@
     /// <param name="ev"></param>
     private void ScanProgress(DiscoveryProgressApiModel ev)
     {
+        var ts = ev.TimeStamp.ToLocalTime();
         switch (ev.EventType)
         {
             case DiscoveryProgressType.Pending:
-                _eventResult += string.Format("{0}: {1} waiting...", ev.DiscovererId, ev.Total) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Total} waiting..." + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.Started:
-                _eventResult += string.Format("{0}: Started.", ev.DiscovererId) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: Started." + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.NetworkScanStarted:
-                _eventResult += string.Format("{0}: Scanning network...", ev.DiscovererId) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: Scanning network..." + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.NetworkScanResult:
-                _eventResult += string.Format("{0}: {1}/{2}: {3} addresses found - NEW: {4}...", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.Result) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found - NEW: {ev.Result}..." + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.NetworkScanProgress:
-                _eventResult += string.Format("{0}: {1}/{2}: {3} addresses found", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found" + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.NetworkScanFinished:
-                _eventResult += string.Format("{0}: {1}/{2}: {3} addresses found - complete!", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found - complete!" + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.PortScanStarted:
-                _eventResult += string.Format("{0}: Scanning ports...", ev.DiscovererId) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: Scanning ports..." + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.PortScanResult:
-                _eventResult += string.Format("{0}: {1}/{2}: {3} ports found - NEW: {4}", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.Result) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found - NEW: {ev.Result}" + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.PortScanProgress:
-                _eventResult += string.Format("{0}: {1}/{2}: {3} ports found", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found" + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.PortScanFinished:
-                _eventResult += string.Format("{0}: {1}/{2}: {3} ports found - complete!", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found - complete!" + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.ServerDiscoveryStarted:
                 _eventResult += "==========================================" + System.Environment.NewLine;
-                _eventResult += string.Format("{0}: {1}/{2}: Finding servers...", ev.DiscovererId, ev.Progress, ev.Total) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: Finding servers..." + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.EndpointsDiscoveryStarted:
-                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found - find endpoints on {4}...", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.RequestDetails["url"]) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found - find endpoints on {ev.RequestDetails["url"]}..." + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.EndpointsDiscoveryFinished:
-                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found - {4} endpoints found on {5}...", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.Result, ev.RequestDetails["url"]) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found - {ev.Result} endpoints found on {ev.RequestDetails["url"]}..." + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.ServerDiscoveryFinished:
-                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found.", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found." + System.Environment.NewLine;
                 break;
             case DiscoveryProgressType.Cancelled:
                 _eventResult += "==========================================" + System.Environment.NewLine;
-                _eventResult += string.Format("{0}: Cancelled.", ev.DiscovererId) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: Cancelled." + System.Environment.NewLine;
                 if (DiscovererData != null)
                 {
                     DiscovererData.IsSearching = false;
@@ -373,7 +370,7 @@
                 break;
             case DiscoveryProgressType.Error:
                 _eventResult += "==========================================" + System.Environment.NewLine;
-                _eventResult += string.Format("{0}: Failure.", ev.DiscovererId) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: Failure." + System.Environment.NewLine;
                 if (DiscovererData != null)
                 {
                     DiscovererData.IsSearching = false;
@@ -381,7 +378,7 @@
                 break;
             case DiscoveryProgressType.Finished:
                 _eventResult += "==========================================" + System.Environment.NewLine;
-                _eventResult += string.Format("{0}: Completed.", ev.DiscovererId) + System.Environment.NewLine;
+                _eventResult += $"[{ts}] {ev.DiscovererId}: Completed." + System.Environment.NewLine;
                 if (DiscovererData != null)
                 {
                     DiscovererData.IsSearching = false;

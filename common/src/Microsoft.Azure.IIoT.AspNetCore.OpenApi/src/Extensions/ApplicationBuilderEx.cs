@@ -5,7 +5,7 @@
 
 namespace Microsoft.OpenApi.Models {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
-    using Microsoft.Azure.IIoT.Auth.Server;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -26,8 +26,8 @@ namespace Microsoft.OpenApi.Models {
         /// <param name="app"></param>
         public static void UseSwagger(this IApplicationBuilder app) {
 
-
             var config = app.ApplicationServices.GetRequiredService<IOpenApiConfig>();
+            var auth = app.ApplicationServices.GetService<IServerAuthConfig>();
             var server = app.ApplicationServices.GetRequiredService<IServer>();
             var addresses = app.ServerFeatures.Get<IServerAddressesFeature>()?.Addresses
                 .Select(a => new Uri(a.Replace("://*", "://localhost")))
@@ -84,7 +84,7 @@ namespace Microsoft.OpenApi.Models {
                         if (!string.IsNullOrEmpty(config.OpenApiAppSecret)) {
                             options.OAuthClientSecret(config.OpenApiAppSecret);
                         }
-                        var resource = config as IAuthConfig;
+                        var resource = auth?.JwtBearerProviders?.FirstOrDefault();
                         if (!string.IsNullOrEmpty(resource?.Audience)) {
                             options.OAuthAdditionalQueryStringParams(
                                 new Dictionary<string, string> {

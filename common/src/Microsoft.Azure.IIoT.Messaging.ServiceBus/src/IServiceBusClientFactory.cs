@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus {
         Task<ISubscriptionClient> CreateOrGetSubscriptionClientAsync(
             Func<Message, CancellationToken, Task> handler,
             Func<ExceptionReceivedEventArgs, Task> exceptions,
-            string name = null, string topicName = null);
+            string name, string topicName = null);
 
         /// <summary>
         /// Create topic client

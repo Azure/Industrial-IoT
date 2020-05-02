@@ -22,13 +22,11 @@ namespace Microsoft.Azure.IIoT.App.Data {
         public static void Update(this IList<EndpointInfo> results, EndpointEventApiModel ev) {
             var endpoint = results.FirstOrDefault(e => e.EndpointModel.Registration.Id == ev.Id);
             if (endpoint == null &&
-                ev.EventType != EndpointEventType.New &&
-                ev.EventType != EndpointEventType.Enabled) {
+                ev.EventType != EndpointEventType.New) {
                 return;
             }
             switch (ev.EventType) {
                 case EndpointEventType.New:
-                case EndpointEventType.Enabled:
                     if (endpoint == null) {
                         // Add if not already in list
                         results.Insert(0, new EndpointInfo {
@@ -36,13 +34,13 @@ namespace Microsoft.Azure.IIoT.App.Data {
                         });
                     }
                     break;
-                case EndpointEventType.Activated:
                 case EndpointEventType.Deactivated:
-                    break;
+                case EndpointEventType.Activated:
+                case EndpointEventType.Enabled:
+                case EndpointEventType.Disabled:
                 case EndpointEventType.Updated:
                     ev.Endpoint.Patch(endpoint.EndpointModel);
                     break;
-                case EndpointEventType.Disabled:
                 case EndpointEventType.Deleted:
                     results.Remove(endpoint);
                     break;

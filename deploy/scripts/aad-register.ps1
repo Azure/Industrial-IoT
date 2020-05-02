@@ -169,7 +169,7 @@ Function New-AppRole() {
 }
 
 #*******************************************************************************************************
-# Get configuration object for service and client applications
+# Get configuration object for service, web and client applications
 #*******************************************************************************************************
 Function New-ADApplications() {
     param(
@@ -214,12 +214,11 @@ Function New-ADApplications() {
             Write-Verbose "Getting user principal for $($creds.Account.Id) failed."
         }
 
-        # Get or create client application
+        # Get or create native client application
         $clientDisplayName = $applicationName + "-client"
         $clientAadApplication = Get-AzureADApplication -Filter "DisplayName eq '$clientDisplayName'"
         if (!$clientAadApplication) {
-            $clientAadApplication = New-AzureADApplication -DisplayName $clientDisplayName `
-                -PublicClient $True
+            $clientAadApplication = New-AzureADApplication -DisplayName $clientDisplayName -PublicClient $True
             Write-Host "Created new AAD client application '$($clientDisplayName)' in Tenant '$($tenantName)'."
             if ($user) {
                 Write-Host "Adding '$($user.UserPrincipalName)' as owner ..."
@@ -232,13 +231,38 @@ Function New-ADApplications() {
                 }
             }
         }
-        $clientSecret = New-AzureADApplicationPasswordCredential -ObjectId $clientAadApplication.ObjectId `
-            -CustomKeyIdentifier "Client Key" -EndDate (get-date).AddYears(2)
 
         # Find client service principal
         $clientServicePrincipal = Get-AzureADServicePrincipal -Filter "AppId eq '$($clientAadApplication.AppId)'"
         if (!$clientServicePrincipal) {
             $clientServicePrincipal = New-AzureADServicePrincipal -AppId $clientAadApplication.AppId `
+                -Tags { WindowsAzureActiveDirectoryIntegratedApp }
+        }
+
+        # Get or create web application
+        $webDisplayName = $applicationName + "-web"
+        $webAadApplication = Get-AzureADApplication -Filter "DisplayName eq '$webDisplayName'"
+        if (!$webAadApplication) {
+            $webAadApplication = New-AzureADApplication -DisplayName $webDisplayName 
+            Write-Host "Created new AAD web app '$($webDisplayName)' in Tenant '$($tenantName)'."
+            if ($user) {
+                Write-Host "Adding '$($user.UserPrincipalName)' as owner ..."
+                try {
+                    Add-AzureADApplicationOwner -ObjectId $webAadApplication.ObjectId `
+                        -RefObjectId $user.ObjectId
+                }
+                catch {
+                    Write-Verbose "Adding $($user.UserPrincipalName) as owner failed."
+                }
+            }
+        }
+        $webSecret = New-AzureADApplicationPasswordCredential -ObjectId $webAadApplication.ObjectId `
+            -CustomKeyIdentifier "Client Key" -EndDate (get-date).AddYears(2)
+
+        # Find web service principal
+        $webServicePrincipal = Get-AzureADServicePrincipal -Filter "AppId eq '$($webAadApplication.AppId)'"
+        if (!$webServicePrincipal) {
+            $webServicePrincipal = New-AzureADServicePrincipal -AppId $webAadApplication.AppId `
                 -Tags { WindowsAzureActiveDirectoryIntegratedApp }
         }
 
@@ -287,6 +311,7 @@ Function New-ADApplications() {
 
         $knownApplications = New-Object System.Collections.Generic.List[System.String]
         $knownApplications.Add($clientAadApplication.AppId)
+        $knownApplications.Add($webAadApplication.AppId)
 
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
@@ -332,6 +357,8 @@ Function New-ADApplications() {
         # Update client application to add reply urls required permissions.
         $replyUrls = New-Object System.Collections.Generic.List[System.String]
         $replyUrls.Add("urn:ietf:wg:oauth:2.0:oob")
+        $replyUrls.Add("https://localhost")
+        $replyUrls.Add("http://localhost")
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName $serviceDisplayName `
@@ -340,19 +367,32 @@ Function New-ADApplications() {
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Microsoft Graph" `
             -requiredDelegatedPermissions "User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
+        
         Set-AzureADApplication -ObjectId $clientAadApplication.ObjectId `
             -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `
-            -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True | Out-Null
-
-        Write-Host "'$($clientDisplayName)' updated with required resource access."
-        # Grant permissions to app
+            -Oauth2AllowImplicitFlow $False -Oauth2AllowUrlPathMatching $True | Out-Null
+        # Grant permissions to native client
         try {
             Add-AdminConsentGrant -azureAppId $clientAadApplication.AppId -context $context | Out-Null
-            Write-Host "Admin consent granted to client application."
+            Write-Host "Admin consent granted to native client application."
         }
         catch {
             Write-Host "$($_.Exception) - this must be done manually with appropriate permissions."
         }
+        Write-Host "'$($clientDisplayName)' updated with required resource access."
+
+        Set-AzureADApplication -ObjectId $webAadApplication.ObjectId `
+            -RequiredResourceAccess $requiredResourcesAccess `
+            -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True | Out-Null
+        # Grant permissions to web app
+        try {
+            Add-AdminConsentGrant -azureAppId $webAadApplication.AppId -context $context | Out-Null
+            Write-Host "Admin consent granted to web application."
+        }
+        catch {
+            Write-Host "$($_.Exception) - this must be done manually with appropriate permissions."
+        }
+        Write-Host "'$($webDisplayName)' updated with required resource access."
 
         return [pscustomobject] @{
             TenantId           = $creds.Tenant.Id
@@ -366,8 +406,12 @@ Function New-ADApplications() {
 
             ClientId           = $clientAadApplication.AppId
             ClientPrincipalId  = $clientAadApplication.ObjectId
-            ClientSecret       = $clientSecret.Value
             ClientDisplayName  = $clientDisplayName
+
+            WebAppId           = $webAadApplication.AppId
+            WebAppPrincipalId  = $webAadApplication.ObjectId
+            WebAppSecret       = $webSecret.Value
+            WebAppDisplayName  = $webDisplayName
         }
     }
     catch {

@@ -41,13 +41,15 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
             try {
                 var endpoints = new EndpointInfoListApiModel();
-                var model = new EndpointRegistrationQueryApiModel();
-                model.DiscovererId = discovererId == PathAll ? null : discovererId;
-                model.ApplicationId = applicationId == PathAll ? null : applicationId;
-                model.SupervisorId = supervisorId == PathAll ? null : supervisorId;
+                var query = new EndpointRegistrationQueryApiModel {
+                    DiscovererId = discovererId == PathAll ? null : discovererId,
+                    ApplicationId = applicationId == PathAll ? null : applicationId,
+                    SupervisorId = supervisorId == PathAll ? null : supervisorId,
+                    IncludeNotSeenSince = true
+                };
 
                 if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
-                    endpoints = await _registryService.QueryEndpointsAsync(model, null, _commonHelper.PageLength);
+                    endpoints = await _registryService.QueryEndpointsAsync(query, null, _commonHelper.PageLength);
                     if (!string.IsNullOrEmpty(endpoints.ContinuationToken)) {
                         pageResult.PageCount = 2;
                     }
@@ -166,11 +168,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
             var pageResult = new PagedResult<ApplicationInfoApiModel>();
 
             try {
-                var applicationModel = new ApplicationRegistrationQueryApiModel();
+                var query = new ApplicationRegistrationQueryApiModel {
+                    IncludeNotSeenSince = true
+                };
                 var applications = new ApplicationInfoListApiModel();
 
                 if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
-                    applications = await _registryService.QueryApplicationsAsync(applicationModel, _commonHelper.PageLength);
+                    applications = await _registryService.QueryApplicationsAsync(query, _commonHelper.PageLength);
                     if (!string.IsNullOrEmpty(applications.ContinuationToken)) {
                         pageResult.PageCount = 2;
                     }

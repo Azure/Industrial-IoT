@@ -23,12 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Runtime {
             kOpcUaPublisherServiceUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_PUBLISHER_SERVICE_URL,
                 () => GetDefaultUrl("9045", "publisher")));
-        /// <summary>OPC twin service audience</summary>
-        public string OpcUaPublisherServiceResourceId => GetStringOrDefault(
-            kOpcUaPublisherServiceIdKey,
-            () => GetStringOrDefault("OPC_PUBLISHER_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
-                    () => null)));
 
         /// <inheritdoc/>
         public PublisherConfig(IConfiguration configuration) :

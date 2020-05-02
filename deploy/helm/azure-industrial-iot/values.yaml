@@ -5,7 +5,7 @@ image:
   # image.registry is URL of Docker registry from where images will be pulled.
   registry: mcr.microsoft.com
   # image.tag defines which version of Docker images to pull.
-  tag: 2.6.146
+  tag: 2.7.22
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
@@ -37,8 +37,12 @@ azure:
       consumerGroup:
         # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for eventsProcessor microservices. Its recommended value is 'events'.
         events: null
-        # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for telemetryProcessor microservices. Its recommended value is 'telemetry'.
+        # azure.iotHub.eventHub.consumerGroup.telemetry is name of consumer group of built-in EventHub for telemetryProcessor microservices. Its recommended value is 'telemetry'.
         telemetry: null
+        # azure.iotHub.eventHub.consumerGroup.tunnel is name of consumer group of built-in EventHub for tunnelprocessor microservices. Its recommended value is 'tunnel'.
+        tunnel: null
+        # azure.iotHub.eventHub.consumerGroup.onboarding is name of consumer group of built-in EventHub for onboarding microservices. Its recommended value is 'onboarding'.
+        onboarding: null
 
     sharedAccessPolicies:
       iothubowner:
@@ -199,13 +203,10 @@ apps:
     history: /history
     gateway: /ua
     vault: /vault
-    onboarding: /onboarding
     publisher: /publisher
-    configuration: /configuration
-    edgeManager: /edge/manage
+    events: /events
     engineeringTool: /frontend
-    edgeJobs: /edge/jobs
-    publisherJobs: /jobs
+    edgeJobs: /edge/publisher
 
   # apps.aspNetCore determines global ASP .Net Core configuration.
   aspNetCore:
@@ -419,135 +420,6 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
-    # deployment.microServices.alerting contains values specific to yaml definitions of deployment kubernetes resource for opc-alerting-service.
-    alerting:
-      enabled: true
-      deploymentAnnotations: {}
-      podAnnotations: {}
-      extraLabels: {}
-      replicas: 1
-      imageRepository: iot/opc-alerting-service
-      extraArgs: []
-
-      # resources:
-      #   requests:
-      #     memory: "64Mi"
-      #     cpu: "50m"
-      #   limits:
-      #     memory: "256Mi"
-      #     cpu: "150m"
-      resources: {}
-
-      # .Values.deployment.microServices.alerting.extraEnv defines additional environment variables for the container.
-      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
-      extraEnv: []
-
-    # deployment.microServices.onboarding contains values specific to yaml definitions of deployment kubernetes resource for opc-onboarding-service.
-    onboarding:
-      enabled: true
-      deploymentAnnotations: {}
-      podAnnotations: {}
-      extraLabels: {}
-      replicas: 1
-      imageRepository: iot/opc-onboarding-service
-      extraArgs: []
-
-      # resources:
-      #   requests:
-      #     memory: "64Mi"
-      #     cpu: "50m"
-      #   limits:
-      #     memory: "256Mi"
-      #     cpu: "150m"
-      resources: {}
-
-      # .Values.deployment.microServices.onboarding.extraEnv defines additional environment variables for the container.
-      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
-      extraEnv: []
-
-      service:
-        annotations: {}
-        type: ClusterIP
-        port: 9060
-        # Exposed as a headless service:
-        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
-        clusterIP: null
-        # List of IP addresses at which the service is available
-        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
-        externalIPs: []
-        loadBalancerIP: null
-        loadBalancerSourceRanges: []
-        nodePort: null
-
-    # deployment.microServices.jobs contains values specific to yaml definitions of deployment kubernetes resource for opc-jobs-service.
-    jobs:
-      enabled: true
-      deploymentAnnotations: {}
-      podAnnotations: {}
-      extraLabels: {}
-      replicas: 1
-      imageRepository: iot/opc-jobs-service
-      extraArgs: []
-
-      # resources:
-      #   requests:
-      #     memory: "64Mi"
-      #     cpu: "50m"
-      #   limits:
-      #     memory: "256Mi"
-      #     cpu: "150m"
-      resources: {}
-
-      # .Values.deployment.microServices.jobs.extraEnv defines additional environment variables for the container.
-      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
-      extraEnv: []
-
-    # deployment.microServices.modelProcessor contains values specific to yaml definitions of deployment kubernetes resource for opc-processor-service.
-    modelProcessor:
-      enabled: true
-      deploymentAnnotations: {}
-      podAnnotations: {}
-      extraLabels: {}
-      replicas: 1
-      imageRepository: iot/opc-processor-service
-      extraArgs: []
-
-      # resources:
-      #   requests:
-      #     memory: "64Mi"
-      #     cpu: "50m"
-      #   limits:
-      #     memory: "256Mi"
-      #     cpu: "150m"
-      resources: {}
-
-      # .Values.deployment.microServices.modelProcessor.extraEnv defines additional environment variables for the container.
-      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
-      extraEnv: []
-
-    # deployment.microServices.blobNotification contains values specific to yaml definitions of deployment kubernetes resource for blob-notification-service.
-    blobNotification:
-      enabled: true
-      deploymentAnnotations: {}
-      podAnnotations: {}
-      extraLabels: {}
-      replicas: 1
-      imageRepository: iot/industrial-iot-fileupload-forwarder
-      extraArgs: []
-
-      # resources:
-      #   requests:
-      #     memory: "64Mi"
-      #     cpu: "50m"
-      #   limits:
-      #     memory: "256Mi"
-      #     cpu: "150m"
-      resources: {}
-
-      # .Values.deployment.microServices.blobNotification.extraEnv defines additional environment variables for the container.
-      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
-      extraEnv: []
-
     # deployment.microServices.publisher contains values specific to yaml definitions of deployment and service kubernetes resources for opc-publisher-service.
     publisher:
       enabled: true
@@ -585,14 +457,14 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
-    # deployment.microServices.configuration contains values specific to yaml definitions of deployment and service kubernetes resources for configuration service.
-    configuration:
+    # deployment.microServices.events contains values specific to yaml definitions of deployment and service kubernetes resources for events service.
+    events:
       enabled: true
       deploymentAnnotations: {}
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
-      imageRepository: iot/industrial-iot-configuration-service
+      imageRepository: iot/industrial-iot-events-service
       extraArgs: []
 
       # resources:
@@ -604,7 +476,7 @@ deployment:
       #     cpu: "150m"
       resources: {}
 
-      # .Values.deployment.microServices.configuration.extraEnv defines additional environment variables for the container.
+      # .Values.deployment.microServices.events.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
@@ -621,66 +493,6 @@ deployment:
         loadBalancerIP: null
         loadBalancerSourceRanges: []
         nodePort: null
-
-    # deployment.microServices.edgeManager contains values specific to yaml definitions of deployment and service kubernetes resources for edge management service.
-    edgeManager:
-      enabled: true
-      deploymentAnnotations: {}
-      podAnnotations: {}
-      extraLabels: {}
-      replicas: 1
-      imageRepository: iot/industrial-iot-edge-manager-service
-      extraArgs: []
-
-      # resources:
-      #   requests:
-      #     memory: "64Mi"
-      #     cpu: "50m"
-      #   limits:
-      #     memory: "256Mi"
-      #     cpu: "150m"
-      resources: {}
-
-      # .Values.deployment.microServices.edgeManager.extraEnv defines additional environment variables for the container.
-      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
-      extraEnv: []
-
-      service:
-        annotations: {}
-        type: ClusterIP
-        port: 9047
-        # Exposed as a headless service:
-        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
-        clusterIP: null
-        # List of IP addresses at which the service is available
-        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
-        externalIPs: []
-        loadBalancerIP: null
-        loadBalancerSourceRanges: []
-        nodePort: null
-
-    # deployment.microServices.eventsProcessor contains values specific to yaml definitions of deployment and service kubernetes resources for edge event processor.
-    eventsProcessor:
-      enabled: true
-      deploymentAnnotations: {}
-      podAnnotations: {}
-      extraLabels: {}
-      replicas: 1
-      imageRepository: iot/industrial-iot-events-processor
-      extraArgs: []
-
-      # resources:
-      #   requests:
-      #     memory: "64Mi"
-      #     cpu: "50m"
-      #   limits:
-      #     memory: "256Mi"
-      #     cpu: "150m"
-      resources: {}
-
-      # .Values.deployment.microServices.eventsProcessor.extraEnv defines additional environment variables for the container.
-      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
-      extraEnv: []
 
     # deployment.microServices.engineeringTool contains values specific to yaml definitions of deployment and service kubernetes resources for Engineering Tool.
     # NOTE: engineeringTool can be enabled only if authentication is enabled and auth details are provided.
@@ -722,37 +534,14 @@ deployment:
         httpNodePort: null
         httpsNodePort: null
 
-    # deployment.microServices.identity contains values specific to yaml definitions of deployment and service kubernetes resources for identity agent.
-    identity:
-      enabled: true
-      deploymentAnnotations: {}
-      podAnnotations: {}
-      extraLabels: {}
-      replicas: 1
-      imageRepository: iot/industrial-iot-identity-service
-      extraArgs: []
-
-      # resources:
-      #   requests:
-      #     memory: "64Mi"
-      #     cpu: "50m"
-      #   limits:
-      #     memory: "256Mi"
-      #     cpu: "150m"
-      resources: {}
-
-      # .Values.deployment.microServices.identity.extraEnv defines additional environment variables for the container.
-      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
-      extraEnv: []
-
-    # deployment.microServices.edgeJobs contains values specific to yaml definitions of deployment and service kubernetes resources for jobs-orchestrator-service.
+    # deployment.microServices.edgeJobs contains values specific to yaml definitions of deployment and service kubernetes resources for opc-publisher-edge-service.
     edgeJobs:
       enabled: true
       deploymentAnnotations: {}
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
-      imageRepository: iot/industrial-iot-jobs-orchestrator-service
+      imageRepository: iot/opc-publisher-edge-service
       extraArgs: []
 
       # resources:
@@ -782,14 +571,14 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
-    # deployment.microServices.publisherJobs contains values specific to yaml definitions of deployment and service kubernetes resources for publisherJobs service.
-    publisherJobs:
+    # deployment.microServices.sync contains values specific to yaml definitions of deployment kubernetes resource for opc-registry-sync-service.
+    sync:
       enabled: true
       deploymentAnnotations: {}
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
-      imageRepository: iot/industrial-iot-jobs-service
+      imageRepository: iot/opc-registry-sync-service
       extraArgs: []
 
       # resources:
@@ -801,26 +590,34 @@ deployment:
       #     cpu: "150m"
       resources: {}
 
-      # .Values.deployment.microServices.publisherJobs.extraEnv defines additional environment variables for the container.
+      # .Values.deployment.microServices.sync.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
-      service:
-        annotations: {}
-        type: ClusterIP
-        port: 9046
-        # Exposed as a headless service:
-        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
-        clusterIP: null
-        # List of IP addresses at which the service is available
-        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
-        externalIPs: []
-        loadBalancerIP: null
-        loadBalancerSourceRanges: []
-        nodePort: null
+    # deployment.microServices.onboarding contains values specific to yaml definitions of deployment kubernetes resource for onboarding processor.
+    onboarding:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-onboarding-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.onboarding.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
 
     # deployment.microServices.telemetryCdmProcessor contains values specific to yaml definitions of deployment and service kubernetes resources for telemetry cdm processor.
-    # NOTE: telemetryCdmProcessor can be enabled only if authentication is enabled and auth details are provided.
     telemetryCdmProcessor:
       enabled: false
       deploymentAnnotations: {}
@@ -840,6 +637,29 @@ deployment:
       resources: {}
 
       # .Values.deployment.microServices.telemetryCdmProcessor.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+    # deployment.microServices.eventsProcessor contains values specific to yaml definitions of deployment and service kubernetes resources for edge event processor.
+    eventsProcessor:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/industrial-iot-events-processor
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.eventsProcessor.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
@@ -866,14 +686,14 @@ deployment:
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
-    # deployment.microServices.telemetryUxProcessor contains values specific to yaml definitions of deployment and service kubernetes resources for SignalR telemetry forwarder.
-    telemetryUxProcessor:
+    # deployment.microServices.tunnelProcessor contains values specific to yaml definitions of deployment and service kubernetes resources for edge http tunnel processor.
+    tunnelProcessor:
       enabled: true
       deploymentAnnotations: {}
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
-      imageRepository: iot/industrial-iot-telemetry-ux-processor
+      imageRepository: iot/industrial-iot-tunnel-processor
       extraArgs: []
 
       # resources:
@@ -885,30 +705,7 @@ deployment:
       #     cpu: "150m"
       resources: {}
 
-      # .Values.deployment.microServices.telemetryUxProcessor.extraEnv defines additional environment variables for the container.
-      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
-      extraEnv: []
-
-    # deployment.microServices.registryEventsForwarder contains values specific to yaml definitions of deployment and service kubernetes resources for registry event publisher agent.
-    registryEventsForwarder:
-      enabled: true
-      deploymentAnnotations: {}
-      podAnnotations: {}
-      extraLabels: {}
-      replicas: 1
-      imageRepository: iot/opc-registry-events-forwarder
-      extraArgs: []
-
-      # resources:
-      #   requests:
-      #     memory: "64Mi"
-      #     cpu: "50m"
-      #   limits:
-      #     memory: "256Mi"
-      #     cpu: "150m"
-      resources: {}
-
-      # .Values.deployment.microServices.registryEventsForwarder.extraEnv defines additional environment variables for the container.
+      # .Values.deployment.microServices.tunnelProcessor.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
@@ -943,12 +740,9 @@ deployment:
       history: /history
       gateway: /ua
       vault: /vault
-      onboarding: /onboarding
       publisher: /publisher
-      publisherJobs: /jobs
-      configuration: /configuration
-      edgeJobs: /edge/jobs
-      edgeManager: /edge/manage
+      events: /events
+      edgeJobs: /edge/publisher
       engineeringTool: /frontend
 
     # Ingress TLS configuration. Secrets must be manually created in the namespace.

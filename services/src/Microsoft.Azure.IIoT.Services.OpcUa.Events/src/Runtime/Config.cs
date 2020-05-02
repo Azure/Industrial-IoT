@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
@@ -18,20 +19,19 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
     using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Extensions.Configuration;
     using System;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IAuthConfig, IServiceBusConfig,
-        ICorsConfig, IClientConfig, IOpenApiConfig, ISignalRServiceConfig,
+    public class Config : DiagnosticsConfig, IWebHostConfig, IServiceBusConfig,
+        ICorsConfig, IOpenApiConfig, ISignalRServiceConfig,
         IEventProcessorConfig, IEventHubConsumerConfig, IForwardedHeadersConfig,
-        IEventProcessorHostConfig {
+        IEventProcessorHostConfig, IRoleConfig {
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
@@ -44,25 +44,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_EVENTS_SERVICE_PATH_BASE,
             () => _host.ServicePathBase);
-
-        /// <inheritdoc/>
-        public string AppId => _auth.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
-        /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
-        /// <inheritdoc/>
-        public bool AuthRequired => false; //  _auth.AuthRequired;
-        /// <inheritdoc/>
-        public string Audience => _auth.Audience;
-        /// <inheritdoc/>
-        public string Domain => _auth.Domain;
-        /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
-        /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
 
         /// <inheritdoc/>
         public bool UIEnabled => _openApi.UIEnabled;
@@ -82,6 +63,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
+        /// <inheritdoc/>
+        public bool SignalRServerLess => _sr.SignalRServerLess;
 
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
@@ -99,13 +82,19 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         /// <inheritdoc/>
         public TimeSpan ReceiveTimeout => _ep.ReceiveTimeout;
         /// <inheritdoc/>
-        public string BlobStorageConnString => _ep.BlobStorageConnString;
+        public string EndpointSuffix => _ep.EndpointSuffix;
+        /// <inheritdoc/>
+        public string AccountName => _ep.AccountName;
+        /// <inheritdoc/>
+        public string AccountKey => _ep.AccountKey;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
         /// <inheritdoc/>
-        public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
+        public bool InitialReadFromEnd => true;
         /// <inheritdoc/>
-        public TimeSpan? CheckpointInterval => null; // Never checkpoint
+        public TimeSpan? SkipEventsOlderThan => TimeSpan.FromMinutes(5);
+        /// <inheritdoc/>
+        public TimeSpan? CheckpointInterval => TimeSpan.FromMinutes(1);
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
@@ -114,10 +103,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         public int AspNetCoreForwardedHeadersForwardLimit =>
             _fh.AspNetCoreForwardedHeadersForwardLimit;
 
-        /// <summary>
-        /// Whether to use role based access
-        /// </summary>
+        /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
+
 
         /// <summary>
         /// Configuration constructor
@@ -127,8 +115,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
             base(configuration) {
 
             _openApi = new OpenApiConfig(configuration);
-            _host = new HostConfig(configuration);
-            _auth = new AuthConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
@@ -138,8 +125,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         }
 
         private readonly OpenApiConfig _openApi;
-        private readonly AuthConfig _auth;
-        private readonly HostConfig _host;
+        private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly SignalRServiceConfig _sr;

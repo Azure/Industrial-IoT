@@ -64,14 +64,7 @@
               "$ref": "#/definitions/BrowseResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -108,14 +101,7 @@
               "$ref": "#/definitions/BrowseResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/twin/v2/browse/{endpointId}/next": {
@@ -164,14 +150,7 @@
               "$ref": "#/definitions/BrowseNextResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -210,13 +189,6 @@
             }
           }
         },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ],
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
         }
@@ -268,14 +240,7 @@
               "$ref": "#/definitions/BrowsePathResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/twin/v2/call/{endpointId}/metadata": {
@@ -324,14 +289,7 @@
               "$ref": "#/definitions/MethodMetadataResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/twin/v2/call/{endpointId}": {
@@ -380,14 +338,7 @@
               "$ref": "#/definitions/MethodCallResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/twin/v2/read/{endpointId}": {
@@ -436,14 +387,7 @@
               "$ref": "#/definitions/ValueReadResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       },
       "get": {
         "tags": [
@@ -481,14 +425,7 @@
               "$ref": "#/definitions/ValueReadResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/twin/v2/read/{endpointId}/attributes": {
@@ -537,14 +474,7 @@
               "$ref": "#/definitions/ReadResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/twin/v2/write/{endpointId}": {
@@ -593,14 +523,7 @@
               "$ref": "#/definitions/ValueWriteResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     },
     "/twin/v2/write/{endpointId}/attributes": {
@@ -649,14 +572,7 @@
               "$ref": "#/definitions/WriteResponseApiModel"
             }
           }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
+        }
       }
     }
   },
@@ -737,8 +653,7 @@
           "$ref": "#/definitions/CredentialType"
         },
         "value": {
-          "description": "Value to pass to server",
-          "type": "string"
+          "description": "Value to pass to server"
         }
       }
     },
@@ -869,8 +784,7 @@
           "type": "string"
         },
         "diagnostics": {
-          "description": "Additional diagnostics information",
-          "type": "string"
+          "description": "Additional diagnostics information"
         }
       }
     },
@@ -1006,8 +920,7 @@
           "type": "string"
         },
         "value": {
-          "description": "Value of variable or default value of the\r\nsubtyped variable in case node is a variable\r\ntype, otherwise null.",
-          "type": "string"
+          "description": "Value of variable or default value of the\r\nsubtyped variable in case node is a variable\r\ntype, otherwise null."
         },
         "sourcePicoseconds": {
           "format": "int32",
@@ -1065,8 +978,7 @@
           "type": "boolean"
         },
         "dataTypeDefinition": {
-          "description": "Data type definition in case node is a\r\ndata type node and definition is available,\r\notherwise null.",
-          "type": "string"
+          "description": "Data type definition in case node is a\r\ndata type node and definition is available,\r\notherwise null."
         },
         "accessLevel": {
           "$ref": "#/definitions/NodeAccessLevel"
@@ -1323,8 +1235,7 @@
           "$ref": "#/definitions/NodeApiModel"
         },
         "defaultValue": {
-          "description": "Default value",
-          "type": "string"
+          "description": "Default value"
         },
         "valueRank": {
           "$ref": "#/definitions/NodeValueRank"
@@ -1371,8 +1282,7 @@
       "type": "object",
       "properties": {
         "value": {
-          "description": "Initial value or value to use",
-          "type": "string"
+          "description": "Initial value or value to use"
         },
         "dataType": {
           "description": "Data type Id of the value (from meta data)",
@@ -1463,8 +1373,7 @@
       "type": "object",
       "properties": {
         "value": {
-          "description": "Value read",
-          "type": "string"
+          "description": "Value read"
         },
         "dataType": {
           "description": "Built in data type of the value read.",
@@ -1571,8 +1480,7 @@
       "type": "object",
       "properties": {
         "value": {
-          "description": "Attribute value",
-          "type": "string"
+          "description": "Attribute value"
         },
         "errorInfo": {
           "$ref": "#/definitions/ServiceResultApiModel"
@@ -1611,8 +1519,7 @@
           }
         },
         "value": {
-          "description": "Value to write. The system tries to convert\r\nthe value according to the data type value,\r\ne.g. convert comma seperated value strings\r\ninto arrays.  (Mandatory)",
-          "type": "string"
+          "description": "Value to write. The system tries to convert\r\nthe value according to the data type value,\r\ne.g. convert comma seperated value strings\r\ninto arrays.  (Mandatory)"
         },
         "dataType": {
           "description": "A built in datatype for the value. This can\r\nbe a data type from browse, or a built in\r\ntype.\r\n(default: best effort)",
@@ -1653,8 +1560,7 @@
           "$ref": "#/definitions/NodeAttribute"
         },
         "value": {
-          "description": "Value to write (mandatory)",
-          "type": "string"
+          "description": "Value to write (mandatory)"
         }
       }
     },
@@ -1701,14 +1607,11 @@
     }
   },
   "securityDefinitions": {
-    "oauth2": {
-      "type": "oauth2",
-      "flow": "implicit",
-      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
-      "scopes": {
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
-      },
-      "description": "Implicit oauth2 token flow."
+    "bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Authorization token in the form of 'bearer <token>'"
     }
   },
   "tags": [

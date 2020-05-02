@@ -4,45 +4,39 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Runtime {
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Api.Runtime;
+    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Azure.IIoT.App.TSI.Runtime;
 
     /// <summary>
     /// Configuration aggregation
     /// </summary>
-    public class Config : ApiConfig, IClientConfig, ISignalRServiceConfig,
-        IHostConfig, IForwardedHeadersConfig {
+    public class Config : ApiConfig, ISignalRServiceConfig,
+        IWebHostConfig, IForwardedHeadersConfig {
 
-        /// <inheritdoc/>
-        public string AppId => _auth.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
-        /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
-        /// <inheritdoc/>
-        public string Domain => _auth.Domain;
-        /// <inheritdoc/>
-        public string TsiDataAccessFQDN => _tsi.DataAccessFQDN;
+        /// <summary>Url</summary>
+        public string TsiDataAccessFQDN =>
+            GetStringOrDefault(PcsVariable.PCS_TSI_URL)?.Trim();
+        /// <summary>Tenant</summary>
+        public string TsiTenantId =>
+            GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT)?.Trim();
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
+        /// <inheritdoc/>
+        public bool SignalRServerLess => _sr.SignalRServerLess;
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
         /// <inheritdoc/>
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_FRONTEND_APP_SERVICE_PATH_BASE,
-            () => _host.ServicePathBase);
+                () => _host.ServicePathBase);
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
@@ -58,17 +52,13 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _auth = new ApiClientConfig(configuration);
-            _host = new HostConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
-            _tsi = new TsiConfig(configuration);
         }
 
-        private readonly ApiClientConfig _auth;
         private readonly SignalRServiceConfig _sr;
-        private readonly HostConfig _host;
+        private readonly WebHostConfig _host;
         private readonly ForwardedHeadersConfig _fh;
-        private readonly TsiConfig _tsi;
     }
 }

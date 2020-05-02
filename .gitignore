@@ -1,4 +1,5 @@
 /**/*.user
+/**/*.cache
 /**/*.user.json
 /**/*.nupkg
 /**/obj/**
@@ -32,6 +33,7 @@
 *.crt
 *.key
 *.user
+*.cache
 CodeCoverage
 coverage.cobertura.xml
 

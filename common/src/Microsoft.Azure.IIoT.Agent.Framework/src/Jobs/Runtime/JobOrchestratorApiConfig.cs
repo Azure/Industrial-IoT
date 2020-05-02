@@ -21,8 +21,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
 
         /// <inheritdoc/>
         public string JobOrchestratorUrl => GetStringOrDefault(kJobOrchestratorUrlKey,
-            () => GetStringOrDefault(PcsVariable.PCS_JOB_ORCHESTRATOR_SERVICE_URL,
-                () => GetDefaultUrl("9051", "edge/jobs")));
+            () => GetStringOrDefault(PcsVariable.PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL,
+                () => GetDefaultUrl("9051", "edge/publisher")));
 
         /// <summary>
         /// Create endpoint config

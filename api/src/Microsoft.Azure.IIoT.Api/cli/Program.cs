@@ -5,9 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.Api.Runtime;
-    using Microsoft.Azure.IIoT.Api.Jobs.Clients;
-    using Microsoft.Azure.IIoT.Api.Jobs;
-    using Microsoft.Azure.IIoT.Api.Jobs.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
@@ -24,7 +21,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.Utils;
@@ -55,9 +51,11 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
 
             // Register configuration interfaces and logger
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterInstance(new ApiClientConfig(configuration))
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(config.Configuration)
+                .AsImplementedInterfaces();
+            builder.RegisterType<AadApiClientConfig>()
+                .AsImplementedInterfaces();
 
             // Register logger
             builder.AddDiagnostics(config, addConsole: false);
@@ -73,31 +71,27 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Use bearer authentication
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            // Use device code token provider to get tokens
-            builder.RegisterType<CliAuthenticationProvider>()
-                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterModule<NativeClientAuthentication>();
 
             // Register twin, vault, and registry services clients
             builder.RegisterType<TwinServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<HistoryServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<VaultServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JobsServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterType<PublisherJobServiceClient>()
+                .AsImplementedInterfaces();
 
             // ... with client event callbacks
             builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             return builder.Build();
         }
@@ -133,7 +127,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             _history = _scope.Resolve<IHistoryServiceApi>();
             _publisher = _scope.Resolve<IPublisherServiceApi>();
             _vault = _scope.Resolve<IVaultServiceApi>();
-            _jobs = _scope.Resolve<IJobsServiceApi>();
+            _jobs = _scope.Resolve<IPublisherJobServiceApi>();
             _serializer = _scope.Resolve<IJsonSerializer>();
         }
 
@@ -3578,7 +3572,7 @@ Commands and Options
 
         private readonly ILifetimeScope _scope;
         private readonly ITwinServiceApi _twin;
-        private readonly IJobsServiceApi _jobs;
+        private readonly IPublisherJobServiceApi _jobs;
         private readonly IPublisherServiceApi _publisher;
         private readonly IRegistryServiceApi _registry;
         private readonly IHistoryServiceApi _history;

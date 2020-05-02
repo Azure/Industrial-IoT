@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -139,6 +140,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 await _lock.WaitAsync();
                 try {
                     var subscription = await GetSubscriptionAsync();
+                    if (subscription == null) {
+                        return null;
+                    }
                     return new SubscriptionNotificationModel {
                         ServiceMessageContext = subscription.Session.MessageContext,
                         ApplicationUri = subscription.Session.Endpoint.Server.ApplicationUri,
@@ -161,11 +165,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 await _lock.WaitAsync();
                 try {
                     var rawSubscription = await GetSubscriptionAsync(configuration);
+                    if (rawSubscription == null) {
+                        throw new ResourceNotFoundException("Subscription not found");
+                    }
 
                     ReviseConfiguration(rawSubscription, configuration);
 
+                    if (monitoredItems == null) {
+                        // Apply currently monitoring
+                        monitoredItems = _currentlyMonitored?.Select(m => m.Template);
+                        if (monitoredItems == null) {
+                            return;
+                        }
+                    }
+
                     if (configuration?.ResolveDisplayName ?? false) {
-                        await ResolveDisplayName(rawSubscription, monitoredItems);
+                        await ResolveDisplayNameAsync(monitoredItems);
                     }
 
                     await SetMonitoredItemsAsync(rawSubscription, monitoredItems);
@@ -252,16 +267,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// reads the display name of the nodes to be monitored
             /// </summary>
-            /// <param name="rawSubscription"></param>
             /// <param name="monitoredItems"></param>
             /// <returns></returns>
-            private async Task ResolveDisplayName(Subscription rawSubscription, IEnumerable<MonitoredItemModel> monitoredItems) {
+            private async Task ResolveDisplayNameAsync(IEnumerable<MonitoredItemModel> monitoredItems) {
                 var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true);
+                if (session == null) {
+                    return;
+                }
                 var nodeIds = monitoredItems.Select(n => n.StartNodeId.ToNodeId(session.MessageContext));
                 session.ReadDisplayName(nodeIds.ToList(), out var displayNames, out var errors);
                 var index = 0;
                 foreach (var monitoredItem in monitoredItems) {
-                    monitoredItem.DisplayName ??= StatusCode.IsGood(errors[index].StatusCode) ? displayNames[index] : null;
+                    monitoredItem.DisplayName ??= StatusCode.IsGood(errors[index].StatusCode) ?
+                        displayNames[index] : null;
                     index++;
                 }
             }
@@ -344,12 +362,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     rawSubscription.ApplyChanges();
 
                     foreach (var monitoredItem in nowMonitored) {
-                        if (monitoredItem.Item.Status.Error != null && StatusCode.IsBad(monitoredItem.Item.Status.Error.StatusCode)) {
-                            _logger.Error("Error while monitoring node {id} in subscription {subscriptionId}, status code: {code}", monitoredItem.Item.StartNodeId, monitoredItem.Item.Subscription.Id, monitoredItem.Item.Status.Error.StatusCode);
+                        if (monitoredItem.Item.Status.Error != null &&
+                            StatusCode.IsBad(monitoredItem.Item.Status.Error.StatusCode)) {
+                            _logger.Error("Error while monitoring node {id} in subscription " +
+                                "{subscriptionId}, status code: {code}",
+                                monitoredItem.Item.StartNodeId, monitoredItem.Item.Subscription.Id,
+                                monitoredItem.Item.Status.Error.StatusCode);
                         }
                     }
-                    kMonitoredItems.WithLabels(rawSubscription.Id.ToString()).Set(rawSubscription.MonitoredItems.Count(m => m.Status.Error == null));
-                    _logger.Information("Now monitoring {count} nodes in subscription {subscriptionId} (Session: {sessionId}).", rawSubscription.MonitoredItems.Count(m => m.Status.Error == null), rawSubscription.Id, rawSubscription.Session.SessionName);
+
+                    var count = rawSubscription.MonitoredItems.Count(m => m.Status.Error == null);
+                    kMonitoredItems.WithLabels(rawSubscription.Id.ToString()).Set(count);
+                    _logger.Information("Now monitoring {count} nodes in subscription " +
+                        "{subscriptionId} (Session: {sessionId}).", count, rawSubscription.Id,
+                        rawSubscription.Session.SessionName);
                 }
 
                 var map = nowMonitored.ToDictionary(
@@ -393,7 +419,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// </summary>
             private async Task OnCheckAsync() {
                 try {
-                    await ApplyAsync(_currentlyMonitored.Select(m => m.Template), _subscription.Configuration);
+                    await ApplyAsync(null, _subscription.Configuration);
                     // Changes the timer to check connection if items is not empty
                 }
                 catch (Exception e) { // TODO Catch exceptions related to connection
@@ -417,6 +443,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private async Task<Subscription> GetSubscriptionAsync(
                 SubscriptionConfigurationModel configuration = null) {
                 var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true);
+                if (session == null) {
+                    return null;
+                }
                 var subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
                 if (subscription == null) {
 
@@ -495,7 +524,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var publishTime = (notification?.MonitoredItems?.First().Message?.PublishTime).
                         GetValueOrDefault(DateTime.MinValue);
 
-                    _logger.Debug("DataChange for subscription: {Subscription}, sequence#: {Sequence} isKeepAlive{KeepAlive}, publishTime: {PublishTime}",
+                    _logger.Debug("DataChange for subscription: {Subscription}, sequence#: " +
+                        "{Sequence} isKeepAlive{KeepAlive}, publishTime: {PublishTime}",
                         subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
 
                     var message = new SubscriptionNotificationModel {
@@ -510,27 +540,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     };
                     message.IsKeyMessage = true;
 
-                    // add the heartbeat for monitored items that did not receive a
-                    // a datachange notification
-                    foreach (var item in _currentlyMonitored) {
-                        if (isKeepAlive ||
-                            !notification.MonitoredItems.Exists(m => m.ClientHandle == item.Item.ClientHandle)) {
-                            if (item.TriggerHeartbeat(publishTime)) {
-                                var heartbeatValue = item.Item.LastValue.ToMonitoredItemNotification(item.Item);
-                                if (heartbeatValue != null) {
-                                    heartbeatValue.SequenceNumber = sequenceNumber;
-                                    heartbeatValue.IsHeartbeat = true;
-                                    heartbeatValue.PublishTime = publishTime;
-                                    message.Notifications.Add(heartbeatValue);
+                    // add the heartbeat for monitored items that did not receive a a datachange notification
+                    // Try access lock if we cannot continue...
+                    List<MonitoredItemWrapper> currentlyMonitored = null;
+                    if (_lock.Wait(0)) {
+                        try {
+                            currentlyMonitored = _currentlyMonitored;
+                        }
+                        finally {
+                            _lock.Release();
+                        }
+                    }
+                    if (currentlyMonitored != null) {
+                        // add the heartbeat for monitored items that did not receive a
+                        // a datachange notification
+                        foreach (var item in currentlyMonitored) {
+                            if (isKeepAlive ||
+                                !notification.MonitoredItems.Exists(m => m.ClientHandle == item.Item.ClientHandle)) {
+                                if (item.TriggerHeartbeat(publishTime)) {
+                                    var heartbeatValue = item.Item.LastValue.ToMonitoredItemNotification(item.Item);
+                                    if (heartbeatValue != null) {
+                                        heartbeatValue.SequenceNumber = sequenceNumber;
+                                        heartbeatValue.IsHeartbeat = true;
+                                        heartbeatValue.PublishTime = publishTime;
+                                        message.Notifications.Add(heartbeatValue);
+                                    }
+                                }
+                                else {
+                                    // just reset the heartbeat for the items already processed
+                                    item.TriggerHeartbeat(publishTime);
                                 }
                             }
-                            else {
-                                message.IsKeyMessage = false;
-                            }
-                        }
-                        else {
-                            // just reset the heartbeat for the items already processed
-                            item.TriggerHeartbeat(publishTime);
                         }
                     }
                     OnSubscriptionChange?.Invoke(this, message);
@@ -619,7 +659,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// </summary>
             /// <returns></returns>
             public bool TriggerHeartbeat(DateTime currentPublish) {
-                if (TimeSpan.Zero == 
+                if (TimeSpan.Zero ==
                     Template?.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero)) {
                     return false;
                 }

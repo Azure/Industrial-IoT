@@ -9,6 +9,8 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Storage;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
@@ -38,12 +40,19 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
         /// <param name="provider"></param>
         public KeyVaultServiceClient(ICertificateRepository certificates,
             ICertificateFactory factory, IKeyVaultConfig config, IJsonSerializer serializer,
-            Auth.ITokenProvider provider) : this (certificates, factory, config, serializer,
+            ITokenProvider provider) : this(certificates, factory, config, serializer,
                 new KeyVaultClient(async (_, resource, scope) => {
+                    if (resource != "https://vault.azure.net") {
+                        // Tunnels the resource through to the provider
+                        scope = resource + "/" + scope;
+                    }
                     var token = await provider.GetTokenForAsync(
-                        resource, scope.YieldReturn());
+                        Resource.KeyVault, scope.YieldReturn());
                     return token.RawToken;
                 })) {
+            if (provider?.Supports(Resource.KeyVault) != true) {
+                throw new ArgumentNullException(nameof(provider));
+            }
         }
 
         /// <summary>

@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <returns></returns>
         protected bool GetBoolOrDefault(string key, Func<bool> defaultValue = null) {
             var result = GetBoolOrNull(key);
-            if (result.HasValue) {
+            if (result != null) {
                 return result.Value;
             }
             return defaultValue?.Invoke() ?? false;
@@ -66,8 +66,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Read boolean
         /// </summary>
         /// <param name="key"></param>
+        /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected bool? GetBoolOrNull(string key) {
+        protected bool? GetBoolOrNull(string key, Func<bool?> defaultValue = null) {
             var value = GetStringOrDefault(key, () => "").ToLowerInvariant();
             var knownTrue = new HashSet<string> { "true", "yes", "y", "1" };
             var knownFalse = new HashSet<string> { "false", "no", "n", "0" };
@@ -77,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Utils {
             if (knownFalse.Contains(value)) {
                 return false;
             }
-            return null;
+            return defaultValue?.Invoke();
         }
 
         /// <summary>
@@ -88,29 +89,27 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <returns></returns>
         protected TimeSpan GetDurationOrDefault(string key,
             Func<TimeSpan> defaultValue = null) {
-            if (!TimeSpan.TryParse(GetStringOrDefault(key), out var result)) {
+            var result = GetDurationOrNull(key);
+            if (result == null) {
                 if (defaultValue != null) {
                     return defaultValue.Invoke();
                 }
                 throw new InvalidConfigurationException(
                     $"Unable to load timespan value for '{key}' from configuration.");
             }
-            return result;
+            return result.Value;
         }
 
         /// <summary>
         /// Get time span
         /// </summary>
         /// <param name="key"></param>
+        /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected TimeSpan? GetDurationOrNull(string key) {
+        protected TimeSpan? GetDurationOrNull(string key,
+            Func<TimeSpan?> defaultValue = null) {
             if (!TimeSpan.TryParse(GetStringOrDefault(key), out var result)) {
-                // Try read as integer
-                var value = GetIntOrNull(key);
-                if (value.HasValue) {
-                    return TimeSpan.FromMilliseconds(value.Value);
-                }
-                return null;
+                return defaultValue?.Invoke();
             }
             return result;
         }
@@ -133,18 +132,40 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Read int
         /// </summary>
         /// <param name="key"></param>
+        /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected int? GetIntOrNull(string key) {
+        protected int? GetIntOrNull(string key, Func<int?> defaultValue = null) {
             try {
                 var value = GetStringOrDefault(key, null);
                 if (string.IsNullOrEmpty(value)) {
-                    return null;
+                    return defaultValue?.Invoke();
                 }
                 return Convert.ToInt32(value);
             }
             catch {
-                return null;
+                return defaultValue?.Invoke();
             }
+        }
+
+        /// <summary>
+        /// Read variable and get connection string token from it
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="getter"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        protected string GetConnectonStringTokenOrDefault(string key,
+            Func<ConnectionString, string> getter, Func<string> defaultValue = null) {
+            var value = Configuration.GetValue<string>(key);
+            if (string.IsNullOrEmpty(value)
+                || !ConnectionString.TryParse(value.Trim(), out var cs)
+                || string.IsNullOrEmpty(value = getter(cs))) {
+                if (defaultValue == null) {
+                    return string.Empty;
+                }
+                return defaultValue.Invoke();
+            }
+            return value;
         }
     }
 }

@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using System;
     using System.Net;
     using System.Threading.Tasks;
     using Xunit;
@@ -36,10 +35,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         }
 
         private readonly TestServerFixture _server;
-#if DEBUG
+#if TEST_ALL
         private readonly bool _runAll = true;
 #else
-        private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+        private readonly bool _runAll = System.Environment.GetEnvironmentVariable("TEST_ALL") != null;
 #endif
 
         [SkippableFact]

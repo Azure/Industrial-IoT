@@ -763,17 +763,20 @@ Function New-Deployment() {
     if (![string]::IsNullOrEmpty($script:aadConfig.ServiceSecret)) {
         $templateParameters.Add("serviceAppSecret", $script:aadConfig.ServiceSecret)
     }
-    if (![string]::IsNullOrEmpty($script:aadConfig.ClientId)) {
-        $templateParameters.Add("clientAppId", $script:aadConfig.ClientId)
+    if (![string]::IsNullOrEmpty($script:aadConfig.Audience)) {
+        $templateParameters.Add("serviceAudience", $script:aadConfig.Audience)
     }
-    if (![string]::IsNullOrEmpty($script:aadConfig.ClientSecret)) {
-        $templateParameters.Add("clientAppSecret", $script:aadConfig.ClientSecret)
+    if (![string]::IsNullOrEmpty($script:aadConfig.ClientId)) {
+        $templateParameters.Add("publicClientAppId", $script:aadConfig.ClientId)
+    }
+    if (![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
+        $templateParameters.Add("clientAppId", $script:aadConfig.WebAppId)
+    }
+    if (![string]::IsNullOrEmpty($script:aadConfig.WebAppSecret)) {
+        $templateParameters.Add("clientAppSecret", $script:aadConfig.WebAppSecret)
     }
     if (![string]::IsNullOrEmpty($script:aadConfig.Authority)) {
         $templateParameters.Add("authorityUri", $script:aadConfig.Authority)
-    }
-    if (![string]::IsNullOrEmpty($script:aadConfig.Audience)) {
-        $templateParameters.Add("serviceAudience", $script:aadConfig.Audience)
     }
 
     # register providers
@@ -813,7 +816,7 @@ Function New-Deployment() {
             $replyUrls = New-Object System.Collections.Generic.List[System.String]
             if ($aadAddReplyUrls) {
                 # retrieve existing urls
-                $app = Get-AzADApplication -ObjectId $aadConfig.ClientPrincipalId
+                $app = Get-AzADApplication -ObjectId $aadConfig.WebAppPrincipalId
                 if ($app.ReplyUrls -and ($app.ReplyUrls.Count -ne 0)) {
                     $replyUrls = $app.ReplyUrls;
                 }
@@ -824,10 +827,10 @@ Function New-Deployment() {
                 Write-Host "The deployed application can be found at:"
                 Write-Host $website
                 Write-Host
-                if (![string]::IsNullOrEmpty($script:aadConfig.ClientPrincipalId)) {
+                if (![string]::IsNullOrEmpty($script:aadConfig.WebAppPrincipalId)) {
                     if (!$aadAddReplyUrls) {
                         Write-Host "To be able to use the application you need to register the following"
-                        Write-Host "reply url for AAD application $($script:aadConfig.ClientPrincipalId):"
+                        Write-Host "reply url for AAD application $($script:aadConfig.WebAppPrincipalId):"
                         Write-Host "$($website)/signin-oidc"
                     }
                     else {
@@ -836,7 +839,7 @@ Function New-Deployment() {
                 }
             }
 
-            if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.ClientPrincipalId)) {
+            if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.WebAppPrincipalId)) {
                 $serviceUri = $deployment.Outputs["serviceUrl"].Value
 
                 if (![string]::IsNullOrEmpty($serviceUri)) {
@@ -845,11 +848,8 @@ Function New-Deployment() {
                     $replyUrls.Add($serviceUri + "/history/swagger/oauth2-redirect.html")
                     $replyUrls.Add($serviceUri + "/vault/swagger/oauth2-redirect.html")
                     $replyUrls.Add($serviceUri + "/publisher/swagger/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/onboarding/swagger/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/configuration/swagger/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/edge/manage/swagger/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/edge/jobs/swagger/oauth2-redirect.html")
-                    $replyUrls.Add($serviceUri + "/jobs/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/edge/publisher/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/events/swagger/oauth2-redirect.html")
                 }
 
                 $replyUrls.Add("http://localhost:9080/twin/swagger/oauth2-redirect.html")
@@ -857,20 +857,17 @@ Function New-Deployment() {
                 $replyUrls.Add("http://localhost:9080/history/swagger/oauth2-redirect.html")
                 $replyUrls.Add("http://localhost:9080/vault/swagger/oauth2-redirect.html")
                 $replyUrls.Add("http://localhost:9080/publisher/swagger/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/onboarding/swagger/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/configuration/swagger/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/edge/manage/swagger/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/edge/jobs/swagger/oauth2-redirect.html")
-                $replyUrls.Add("http://localhost:9080/jobs/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/edge/publisher/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/events/swagger/oauth2-redirect.html")
 
                 $replyUrls.Add("http://localhost:5000/signin-oidc")
                 $replyUrls.Add("https://localhost:5001/signin-oidc")
             }
 
             if ($aadAddReplyUrls) {
-                # register reply urls in client application registration
+                # register reply urls in web application registration
                 Write-Host
-                Write-Host "Registering reply urls for $($aadConfig.ClientPrincipalId)..."
+                Write-Host "Registering reply urls for $($aadConfig.WebAppPrincipalId)..."
 
                 try {
                     # assumes we are still connected
@@ -880,18 +877,18 @@ Function New-Deployment() {
                     # TODO
                     #    & (Join-Path $script:ScriptDir "aad-update.ps1") `
                     #        $context `
-                    #        -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
-                    Update-AzADApplication -ObjectId $aadConfig.ClientPrincipalId -ReplyUrl $replyUrls `
+                    #        -ObjectId $aadConfig.WebAppPrincipalId -ReplyUrls $replyUrls
+                    Update-AzADApplication -ObjectId $aadConfig.WebAppPrincipalId -ReplyUrl $replyUrls `
                         | Out-Null
 
-                    Write-Host "Reply urls registered in client app $($aadConfig.ClientPrincipalId)..."
+                    Write-Host "Reply urls registered in web app $($aadConfig.WebAppPrincipalId)..."
                     Write-Host
                 }
                 catch {
                     Write-Host $_.Exception.Message
                     Write-Host
                     Write-Host "Registering reply urls failed. Please add the following urls to"
-                    Write-Host "the client app '$($aadConfig.ClientPrincipalId)' manually:"
+                    Write-Host "the web app '$($aadConfig.WebAppPrincipalId)' manually:"
                     $replyUrls | ForEach-Object { Write-Host $_ }
                 }
             }

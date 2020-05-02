@@ -29,16 +29,26 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             if (provider == null) {
                 throw new ArgumentNullException(nameof(provider));
             }
-            if (_instance == null) {
-                lock (kSingleton) {
-                    if (_instance == null) {
-                        _instance = provider;
+            if (singleton) {
+                if (_instance == null) {
+                    lock (kSingleton) {
+                        if (_instance == null) {
+                            _instance = provider;
+                        }
                     }
                 }
-            }
-            if (singleton) {
                 _provider = _instance;
             }
+            else {
+                _provider = provider;
+            }
+        }
+
+        /// <summary>
+        /// Logger provider modules with pass through logger (static logger)
+        /// </summary>
+        public LoggerProviderModule() :
+            this (new DefaultProvider(), false) {
         }
 
         /// <inheritdoc/>
@@ -83,6 +93,13 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
                 var log = args.Context.Resolve<ILogger>().ForContext(registration.Activator.LimitType);
                 args.Parameters = new[] { TypedParameter.From(log) }.Concat(args.Parameters);
             };
+        }
+
+        private class DefaultProvider : ILoggerProvider {
+
+            /// <inheritdoc/>
+            public ILogger Logger { get; } = Log.Logger ??
+                new LoggerConfiguration().Console().CreateLogger();
         }
 
         private const string kTargetTypeParameterName = "Autofac.AutowiringPropertyInjector.InstanceType";

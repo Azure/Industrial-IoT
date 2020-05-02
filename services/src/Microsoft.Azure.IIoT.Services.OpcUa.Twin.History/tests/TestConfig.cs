@@ -20,8 +20,5 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
 
         /// <inheritdoc/>
         public string OpcUaHistoryServiceUrl { get; }
-
-        /// <inheritdoc/>
-        public string OpcUaHistoryServiceResourceId => null;
     }
 }

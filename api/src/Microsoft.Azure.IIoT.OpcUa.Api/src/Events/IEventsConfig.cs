@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Events {
         /// Opc events service url
         /// </summary>
         string OpcUaEventsServiceUrl { get; }
-
-        /// <summary>
-        /// The events service resource id
-        /// </summary>
-        string OpcUaEventsServiceResourceId { get; }
     }
 }

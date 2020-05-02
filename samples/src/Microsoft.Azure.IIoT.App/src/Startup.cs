@@ -4,15 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App {
+    using Microsoft.Azure.IIoT.App.Services.SecureData;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Common;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
-    using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Storage;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
@@ -21,30 +22,21 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Authentication.AzureAD.UI;
-    using Microsoft.AspNetCore.Authentication.OpenIdConnect;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Rewrite;
     using Microsoft.AspNetCore.Components.Authorization;
-    using Microsoft.AspNetCore.Components.Server;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Autofac.Extensions.DependencyInjection;
     using Autofac;
+    using Serilog;
+    using Serilog.Events;
     using System;
-    using System.Security.Authentication;
-    using System.Threading.Tasks;
-    using System.Security.Claims;
-
     using Blazored.SessionStorage;
     using Blazored.Modal;
-    using Microsoft.Azure.IIoT.App.Services.SecureData;
 
     /// <summary>
     /// Webapp startup
@@ -94,36 +86,21 @@ namespace Microsoft.Azure.IIoT.App {
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
 
-            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
-                app.UsePathBase(Config.ServicePathBase);
-            }
-
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Enable processing of forwarded headers
-                app.UseForwardedHeaders();
-            }
+            app.UsePathBase();
+            app.UseHeaderForwarding();
+            app.UseSession();
 
             var isDevelopment = Environment.IsDevelopment();
-            isDevelopment = true; // TODO Remove when all issues fixed
             if (isDevelopment) {
                 app.UseDeveloperExceptionPage();
             }
             else {
                 app.UseExceptionHandler("/Error");
-                app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseHttpsRedirect();
             app.UseStaticFiles();
             app.UseRouting();
-            app.UseRewriter(
-                new RewriteOptions().Add(context => {
-                    if (context.HttpContext.Request.Path == Config.ServicePathBase +  "/AzureAD/Account/SignedOut") {
-                        context.HttpContext.Response.Redirect(Config.ServicePathBase + "/discoverers");
-                        context.HttpContext.SignOutAsync("Cookies");
-                    }
-                })
-            );
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -148,15 +125,16 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            services.AddLogging(o => o.AddConsole().AddDebug());
+            // services.AddLogging(o => o.AddConsole().AddDebug());
+            services.AddHeaderForwarding();
 
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Configure processing of forwarded headers
-                services.ConfigureForwardedHeaders(Config);
-            }
+            services.AddSession(option => {
+                option.Cookie.IsEssential = true;
+            });
 
             // Protect anything using keyvault and storage persisted keys
             services.AddAzureDataProtection(Config.Configuration);
+            services.AddDistributedMemoryCache();
 
             services.Configure<CookiePolicyOptions>(options => {
                 // This lambda determines whether user consent for non-essential cookies
@@ -169,40 +147,13 @@ namespace Microsoft.Azure.IIoT.App {
                 options.Cookie.SameSite = SameSiteMode.Strict;
             });
 
-            services.AddHttpContextAccessor();
-            services
-                .AddAuthentication(AzureADDefaults.AuthenticationScheme)
-                .AddAzureAD(options => {
-                    options.Instance = Config.InstanceUrl;
-                    options.Domain = Config.Domain;
-                    options.TenantId = Config.TenantId;
-                    options.ClientId = Config.AppId;
-                    options.ClientSecret = Config.AppSecret;
-                    options.CallbackPath = "/signin-oidc";
-                });
+            services.AddAuthentication(AuthProvider.AzureAD)
+                .AddOpenIdConnect(AuthProvider.AzureAD)
+             //   .AddOpenIdConnect(AuthScheme.AuthService)
+                ;
 
-            //
-            // Without overriding the response type (which by default is id_token),
-            // the OnAuthorizationCodeReceived event is not called but instead
-            // OnTokenValidated event is called. Here we request both so that
-            // OnTokenValidated is called first which ensures that context.Principal
-            // has a non-null value when OnAuthorizationCodeReceived is called
-            //
-            services
-                .Configure<OpenIdConnectOptions>(AzureADDefaults.OpenIdScheme, options => {
-                    options.SaveTokens = true;
-                    options.ResponseType = "id_token code";
-                    options.Resource = Config.AppId;
-                    options.Scope.Add("offline_access");
-                    options.Events.OnAuthenticationFailed = OnAuthenticationFailedAsync;
-                    options.Events.OnAuthorizationCodeReceived = OnAuthorizationCodeReceivedAsync;
-                });
-
+            services.AddAuthorizationPolicies();
             services.AddControllersWithViews();
-
-            services.AddAuthorization(options => {
-                options.AddPolicy("Auth", c => c.RequireAuthenticatedUser());
-            });
 
             services.AddRazorPages();
             services.AddSignalR()
@@ -210,9 +161,11 @@ namespace Microsoft.Azure.IIoT.App {
                 .AddMessagePackSerializer()
              //   .AddAzureSignalRService(Config)
                 ;
+
             services.AddServerSideBlazor();
             services.AddBlazoredSessionStorage();
             services.AddBlazoredModal();
+            services.AddScoped<AuthenticationStateProvider, BlazorAuthStateProvider>();
         }
 
         /// <summary>
@@ -223,115 +176,60 @@ namespace Microsoft.Azure.IIoT.App {
 
             // Register configuration interfaces and logger
             builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
+            builder.RegisterInstance(Config.Configuration)
+                .AsImplementedInterfaces();
 
             // Register logger
-            builder.AddDiagnostics(Config);
+            builder.AddDiagnostics(Config, new LoggerConfiguration()
+                .MinimumLevel.Override("Microsoft.AspNetCore.Components", LogEventLevel.Information)
+                .MinimumLevel.Override("Microsoft.AspNetCore.SignalR", LogEventLevel.Information));
+
             builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
+
+            // Use web app openid authentication
+            // builder.RegisterModule<DefaultConfidentialClientAuthProviders>();
+            builder.RegisterModule<WebAppAuthentication>();
+            builder.RegisterType<AadApiWebConfig>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<AuthServiceApiWebConfig>()
+                .AsImplementedInterfaces();
+
+            builder.RegisterType<DistributedProtectedCache>()
+                .AsImplementedInterfaces();
 
             // Register http client module (needed for api)...
             builder.RegisterModule<HttpClientModule>();
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces(); // Per request
 
-            // Use bearer authentication
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
-            // Use behalf of token provider to get tokens from user
-            builder.RegisterType<BehalfOfTokenProvider>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<SignOutHandler>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DistributedTokenCache>()
-                .AsImplementedInterfaces().SingleInstance();
-
             // Register twin, vault, and registry services clients
             builder.RegisterType<TwinServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<VaultServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // ... with client event callbacks
             builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<PublisherServiceEvents>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
 
             builder.RegisterType<Registry>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<Browser>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<Publisher>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
-
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<UICommon>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
-
+                .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<SecureData>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
-        }
-
-
-        /// <summary>
-        /// Redeems the authorization code by calling AcquireTokenByAuthorizationCodeAsync
-        /// in order to ensure
-        /// that the cache has a token for the signed-in user, which will then enable
-        /// the controllers
-        /// to call AcquireTokenSilentAsync successfully.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        private async Task OnAuthorizationCodeReceivedAsync(AuthorizationCodeReceivedContext context) {
-            // Acquire a Token for the API and cache it.
-            var credential = new ClientCredential(context.Options.ClientId,
-                context.Options.ClientSecret);
-
-            // TODO : Refactor!!!
-            var provider = context.HttpContext.RequestServices.GetRequiredService<ITokenCacheProvider>();
-            var tokenCache = provider.GetCache($"OID:{context.Principal.GetObjectId()}");
-            var authContext = new AuthenticationContext(context.Options.Authority, tokenCache);
-
-            var authResult = await authContext.AcquireTokenByAuthorizationCodeAsync(
-                context.TokenEndpointRequest.Code,
-                new Uri(context.TokenEndpointRequest.RedirectUri, UriKind.RelativeOrAbsolute),
-                credential, context.Options.Resource);
-
-            // Notify the OIDC middleware that we already took care of code redemption.
-            context.HandleCodeRedemption(authResult.AccessToken, context.ProtocolMessage.IdToken);
-        }
-
-        /// <summary>
-        /// Handle failures
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        private Task OnAuthenticationFailedAsync(AuthenticationFailedContext context) {
-            context.Response.Redirect("/Error");
-            context.HandleResponse(); // Suppress the exception
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        private class SignOutHandler : IAuthenticationErrorHandler {
-
-            /// <inheritdoc/>
-            public bool AcquireTokenIfSilentFails => true;
-
-            /// <inheritdoc/>
-            public void Handle(HttpContext context, AuthenticationException ex) {
-                // Force signout
-                var provider = context?.RequestServices.GetService<AuthenticationStateProvider>();
-                if (provider is ServerAuthenticationStateProvider s) {
-                    var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
-                    var anonymousState = new AuthenticationState(anonymousUser);
-                    s.SetAuthenticationState(Task.FromResult(anonymousState));
-                }
-            }
+                .AsImplementedInterfaces().AsSelf();
         }
     }
 }

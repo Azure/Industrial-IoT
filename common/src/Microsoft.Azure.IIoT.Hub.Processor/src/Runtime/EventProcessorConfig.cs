@@ -4,14 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
-    using Microsoft.Azure.IIoT.Storage.Blob.Runtime;
+    using Microsoft.Azure.IIoT.Storage.Datalake.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
 
     /// <summary>
     /// Event processor configuration - wraps a configuration root
     /// </summary>
-    public class EventProcessorConfig : StorageConfig, IEventProcessorHostConfig,
+    public class EventProcessorConfig : BlobConfig, IEventProcessorHostConfig,
         IEventProcessorConfig {
 
         /// <summary>
@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
         private const string kReceiveTimeoutKey = "ReceiveTimeout";
         private const string kLeaseContainerNameKey = "LeaseContainerName";
         private const string kInitialReadFromEnd = "InitialReadFromEnd";
+        private const string kSkipEventsOlderThanKey = "SkipEventsOlderThan";
         private const string kCheckpointIntervalKey = "CheckpointIntervalKey";
 
         /// <summary> Checkpoint storage </summary>
@@ -32,12 +33,19 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
         /// <summary> Receive timeout </summary>
         public TimeSpan ReceiveTimeout => GetDurationOrDefault(kReceiveTimeoutKey,
             () => TimeSpan.FromSeconds(5));
-        /// <summary> Read from end </summary>
+        /// <summary> First time from end </summary>
         public bool InitialReadFromEnd => GetBoolOrDefault(kInitialReadFromEnd,
             () => false);
+        /// <summary> Skip events older than </summary>
+        public TimeSpan? SkipEventsOlderThan => GetDurationOrNull(kSkipEventsOlderThanKey,
+#if DEBUG
+            () => TimeSpan.FromMinutes(5)); // Skip in debug builds where we always restarted.
+#else
+            () => null);
+#endif
         /// <summary> Checkpoint timer </summary>
         public TimeSpan? CheckpointInterval => GetDurationOrDefault(kCheckpointIntervalKey,
-            () => TimeSpan.FromSeconds(10));
+            () => TimeSpan.FromMinutes(1));
 
         /// <summary>
         /// Configuration constructor

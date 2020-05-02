@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     using Serilog;
 
     /// <summary>
-    /// Publish subscriber service built using signalr
+    /// Signalr service host for serverless
     /// </summary>
     public sealed class SignalRServiceHost<THub> : SignalRServiceEndpoint<THub>,
         ICallbackInvokerT<THub>, IGroupRegistrationT<THub>, IHostProcess,
@@ -33,6 +33,13 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             if (string.IsNullOrEmpty(config?.SignalRConnString)) {
                 throw new ArgumentNullException(nameof(config.SignalRConnString));
+            }
+            if (!config.SignalRServerLess) {
+                throw new ArgumentException(
+                    "SignalR is not configured to be in serverless mode according to " +
+                    "the configuration. SignalR service should be configured serverless " +
+                    "mode for the service host to work. Otherwise you should use " +
+                    "Asp.net core as hosting environment.");
             }
             _renewHubTimer = new Timer(RenewHubTimer_ElapesedAsync);
             _renewHubInterval = TimeSpan.FromMinutes(3);

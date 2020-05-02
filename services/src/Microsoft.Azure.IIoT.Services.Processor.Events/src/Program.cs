@@ -5,8 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using Microsoft.Azure.IIoT.Services.Processor.Events.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
@@ -19,9 +17,10 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using Serilog;
@@ -98,68 +97,63 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             var builder = new ContainerBuilder();
 
             builder.RegisterInstance(serviceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
-            // register diagnostics
+            // Add diagnostics
             builder.AddDiagnostics(config);
+
+            // Register http client module
+            builder.RegisterModule<HttpClientModule>();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
             builder.RegisterModule<NewtonSoftJsonModule>();
+
+            // Add unattended authentication
+            builder.RegisterModule<UnattendedAuthentication>();
 
             // Event processor services for onboarding consumer
             builder.RegisterType<EventProcessorHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
-                .AsImplementedInterfaces().SingleInstance();
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Handle iot hub telemetry events...
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubDeviceEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             // ... and pass to the following handlers:
 
-            // 1.) Handler for discovery events
-            builder.RegisterType<DiscoveryEventHandler>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // ... requires the corresponding services
-            // Call onboarder
-            builder.RegisterType<OnboardingServicesApiAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<OnboardingServiceClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            // using Http client module (needed for api)
-            builder.RegisterModule<HttpClientModule>();
-            // with Managed or service principal authentication
-            builder.RegisterType<AppAuthenticationProvider>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // 2.) Handler for discovery progress
+            // 1.) Handler for discovery progress
             builder.RegisterType<DiscoveryProgressHandler>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<DiscoveryProgressEventBusPublisher>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
-            // 3.) Handlers for twin and device change events ...
+            // 2.) Handlers for twin and device change events ...
             builder.RegisterModule<RegistryTwinEventHandlers>();
 
             // ... publish received events to registered event bus
             builder.RegisterType<EventBusHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ServiceBusClientFactory>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ServiceBusEventBus>()
                 .AsImplementedInterfaces().SingleInstance();
 
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
+                .AsImplementedInterfaces().SingleInstance();
             return builder;
         }
     }

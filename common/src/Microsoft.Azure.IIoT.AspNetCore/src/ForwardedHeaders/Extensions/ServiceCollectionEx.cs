@@ -3,11 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders {
-
+namespace Microsoft.Extensions.DependencyInjection {
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.HttpOverrides;
-    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
 
     /// <summary>
     /// Extension to configure processing of forwarded headers
@@ -15,14 +14,27 @@ namespace Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders {
     public static class ServiceCollectionEx {
 
         /// <summary>
+        /// Use header forwarding
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IApplicationBuilder UseHeaderForwarding(this IApplicationBuilder builder) {
+            var fhConfig = builder.ApplicationServices.GetService<IForwardedHeadersConfig>();
+            if (fhConfig == null || !fhConfig.AspNetCoreForwardedHeadersEnabled) {
+                return builder;
+            }
+            return builder.UseForwardedHeaders();
+        }
+
+        /// <summary>
         /// Configure processing of forwarded headers
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="fhConfig"></param>
-        public static void ConfigureForwardedHeaders(
-            this IServiceCollection services,
-            IForwardedHeadersConfig fhConfig
-        ) {
+        public static IServiceCollection AddHeaderForwarding(this IServiceCollection services) {
+            var fhConfig = services.BuildServiceProvider().GetService<IForwardedHeadersConfig>();
+            if (fhConfig == null || !fhConfig.AspNetCoreForwardedHeadersEnabled) {
+                return services;
+            }
             services.Configure<ForwardedHeadersOptions>(options => {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
                     ForwardedHeaders.XForwardedProto;
@@ -37,7 +49,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders {
                 options.KnownNetworks.Clear();
                 options.KnownProxies.Clear();
             });
-
+            return services;
         }
     }
 }

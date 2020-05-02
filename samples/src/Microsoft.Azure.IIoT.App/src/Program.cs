@@ -21,13 +21,16 @@ namespace Microsoft.Azure.IIoT.App {
         public static void Main(string[] args) {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .MinimumLevel.Override("Microsoft.AspNetCore.Components", LogEventLevel.Information)
+                .MinimumLevel.Override("Microsoft.AspNetCore.SignalR", LogEventLevel.Information)
+                .MinimumLevel.ControlledBy(Diagnostics.LogControl.Level)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .CreateLogger();
-
+#if DEBUG
+            Diagnostics.LogControl.Level.MinimumLevel = LogEventLevel.Debug;
+#endif
             try {
-                Log.Information("Starting web host");
                 CreateHostBuilder(args).Build().Run();
             }
             catch (Exception ex) {
