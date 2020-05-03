@@ -107,8 +107,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         private async Task EnsureWorkersAsync() {
             var workerStartTasks = new List<Task>();
 
-            var maxWorkers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
-            while (_instances.Count < maxWorkers) {
+            while (_instances.Count < (_agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers)) {
                 _logger.Information("Creating new worker...");
                 var worker = await CreateWorker();
             }
