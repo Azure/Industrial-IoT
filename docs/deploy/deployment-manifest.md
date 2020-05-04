@@ -129,7 +129,7 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
             "restartPolicy": "always",
             "settings": {
               "image": "mcr.microsoft.com/iotedge/discovery:latest",
-              "createOptions": "{\"Hostname\":\"opctwin\",\"HostConfig\":{\"CapAdd\":[\"NET_ADMIN\"]}}"
+              "createOptions": "{\"Hostname\":\"discovery\",\"HostConfig\":{\"CapAdd\":[\"NET_ADMIN\"]}}"
             }
           },
           "opctwin": {
