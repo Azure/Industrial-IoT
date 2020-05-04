@@ -13,13 +13,6 @@
                 "description": "Specifies the level of resources that should be deployed (e.g. for a 'Minimum' deployment)."
             }
         },
-        "servicePrincipalId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Specifies the object ID of the service principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
-            }
-        },
         "serviceAppId": {
             "type": "string",
             "defaultValue": "",
@@ -57,7 +50,7 @@
         },
         "keyVaultPrincipalId": {
             "type": "string",
-            "defaultValue": "[parameters('servicePrincipalId')]",
+            "defaultValue": "",
             "metadata": {
                 "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access keyvault."
             }

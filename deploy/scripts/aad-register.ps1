@@ -1,4 +1,4 @@
-<#
+﻿<#
  .SYNOPSIS
     Registers required applications
 
@@ -412,6 +412,8 @@ Function New-ADApplications() {
             WebAppPrincipalId  = $webAadApplication.ObjectId
             WebAppSecret       = $webSecret.Value
             WebAppDisplayName  = $webDisplayName
+
+            UserPrincipalId    = $user.UserPrincipalId
         }
     }
     catch {

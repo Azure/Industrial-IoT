@@ -470,29 +470,14 @@ Function Get-EnvironmentVariables() {
     if (![string]::IsNullOrEmpty($script:resourceGroupName)) {
         Write-Output "PCS_RESOURCE_GROUP=$($script:resourceGroupName)"
     }
-
     $var = $deployment.Outputs["keyVaultUri"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_KEYVAULT_URL=$($var)"
     }
-    $var = $script:aadConfig.ServiceId
-    if (![string]::IsNullOrEmpty($var)) {
-        Write-Output "PCS_KEYVAULT_APPID=$($var)"
-        $var = $script:aadConfig.ServiceSecret
-        if (![string]::IsNullOrEmpty($var)) {
-            Write-Output "PCS_KEYVAULT_SECRET=$($var)"
-        }
-        $var = $deployment.Outputs["tenantId"].Value
-        if (![string]::IsNullOrEmpty($var)) {
-            Write-Output "PCS_AUTH_TENANT=$($var)"
-        }
-    }
-
     $var = $deployment.Outputs["tsiUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_TSI_URL=$($var)"
     }
-
     $var = $deployment.Outputs["serviceUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_SERVICE_URL=$($var)"
@@ -754,9 +739,7 @@ Function New-Deployment() {
         $script:aadConfig = Get-Content -Raw -Path $script:aadConfig | ConvertFrom-Json
     }
 
-    if (![string]::IsNullOrEmpty($script:aadConfig.ServicePrincipalId)) {
-        $templateParameters.Add("servicePrincipalId", $script:aadConfig.ServicePrincipalId)
-    }
+    # Register registered aad applications
     if (![string]::IsNullOrEmpty($script:aadConfig.ServiceId)) {
         $templateParameters.Add("serviceAppId", $script:aadConfig.ServiceId)
     }
@@ -777,6 +760,11 @@ Function New-Deployment() {
     }
     if (![string]::IsNullOrEmpty($script:aadConfig.Authority)) {
         $templateParameters.Add("authorityUri", $script:aadConfig.Authority)
+    }
+
+    # Register current aad user to access keyvault
+    if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
+        $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.UserPrincipalId)
     }
 
     # register providers

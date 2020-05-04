@@ -313,10 +313,11 @@
                 ]
             },
             "dependsOn": [
+                "[variables('identityResourceId')]"
             ]
         },
         {
-            "comments": "KeyVault service principal access permissions.",
+            "comments": "Optional KeyVault principal access permissions for configuration secrets.",
             "condition": "[not(empty(parameters('keyVaultPrincipalId')))]",
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
             "name": "[concat(parameters('keyVaultName'), '/add')]",
@@ -327,34 +328,18 @@
                         "tenantId": "[subscription().tenantId]",
                         "objectId": "[parameters('keyVaultPrincipalId')]",
                         "permissions": {
-                            "keys": [
-                                "get",
-                                "list",
-                                "sign",
-                                "unwrapKey",
-                                "wrapKey",
-                                "create"
-                            ],
                             "secrets": [
                                 "get",
                                 "list",
                                 "set",
                                 "delete"
-                            ],
-                            "certificates": [
-                                "get",
-                                "list",
-                                "update",
-                                "create",
-                                "import"
                             ]
                         }
                     }
                 ]
             },
             "dependsOn": [
-                "[variables('identityResourceId')]",
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                "[variables('keyVaultResourceId')]"
             ]
         },
         {
