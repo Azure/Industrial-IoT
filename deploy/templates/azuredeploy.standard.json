@@ -274,7 +274,7 @@
                 "Dev(No SLA)_Standard_D11_v2"
             ],
             "metadata": {
-                "description": "Sku name for kusto"
+                "description": "Sku name for kusto service."
             }
         },
         "kustoSkuCapacity": {
@@ -283,7 +283,7 @@
             "minValue": 1,
             "maxValue": 3,
             "metadata": {
-                "description": "Kusto sku capacity"
+                "description": "Kusto sku capacity."
             }
         },
         "kustoSkuTier": {
@@ -294,14 +294,14 @@
                 "Standard"
             ],
             "metadata": {
-                "description": "Sku tier for Kusto service"
+                "description": "Sku tier for Kusto service."
             }
         },
         "kustoDatabaseName": {
             "type": "string",
             "defaultValue": "kustodb",
             "metadata": {
-                "description": "Name of the database to create"
+                "description": "Name of the Kusto database to create."
             }
         },
         "workspaceSku": {
@@ -346,8 +346,9 @@
         "kustoResourceId": "[resourceId('Microsoft.Kusto/clusters', parameters('kustoClusterName'))]",
         "kustoDatabaseResourceId": "[resourceId('Microsoft.Kusto/clusters/databases', parameters('kustoClusterName'), parameters('kustoDatabaseName'))]",
         "kustoEventHubDataFormat": "json",
-        "kustoEventHubMappingRule": "kustomapping",
-        "kustoEventHubTable": "kustotable",
+        "kustoEventHubMappingRule": "opcuamapping",
+        "kustoEventHubTable": "opcua",
+        "kustoEventHubDataConnection": "opcuaeventhub",
         "kustoEventHubConsumerGroup": "telemetrykusto",
         "omsResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
         "standardConfigurationResourceName": "infrastructure.configuration"
@@ -530,7 +531,7 @@
             }
         },
         {
-            "comments": "Kusto database instance",
+            "comments": "The Kusto database instance",
             "name": "[concat(parameters('kustoClusterName'), '/', parameters('kustoDatabaseName'))]",
             "type": "Microsoft.Kusto/clusters/databases",
             "apiVersion": "2020-02-15",
@@ -544,8 +545,19 @@
             ]
         },
         {
-            "comments": "Kusto event hub connection",
-            "name": "[concat(parameters('kustoClusterName'), '/', parameters('kustoDatabaseName'), '/', variables('kustoEventHubConsumerGroup'))]",
+            "comments": "Kusto Consumer Group for Device Telemetry EventHub",
+            "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+            "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('kustoEventHubConsumerGroup'))]",
+            "apiVersion": "2017-04-01",
+            "properties": {
+                "userMetadata": "Kusto Telemetry Consumer Group"
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "comments": "Kusto event hub data connection",
+            "name": "[concat(parameters('kustoClusterName'), '/', parameters('kustoDatabaseName'), '/', variables('kustoEventHubDataConnection'))]",
             "type": "Microsoft.Kusto/Clusters/Databases/DataConnections",
             "apiVersion": "2020-02-15",
             "location": "[resourceGroup().location]",
@@ -558,18 +570,8 @@
                 "dataFormat": "[variables('kustoEventHubDataFormat')]"
             },
             "dependsOn": [
-                "[variables('kustoDatabaseResourceId')]"
-            ]
-        },
-        {
-            "comments": "Kusto Consumer Group for Device Telemetry EventHub",
-            "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
-            "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('kustoEventHubConsumerGroup'))]",
-            "apiVersion": "2017-04-01",
-            "properties": {
-                "userMetadata": "Kusto Telemetry Consumer Group"
-            },
-            "dependsOn": [
+                "[variables('kustoDatabaseResourceId')]",
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', parameters('eventHubNamespaceName'), parameters('eventHubName'), variables('kustoEventHubConsumerGroup'))]"
             ]
         },
         {
