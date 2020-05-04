@@ -429,12 +429,6 @@
                     "templateUrl": {
                         "value": "[parameters('templateUrl')]"
                     },
-                    "keyVaultAppId": {
-                        "value": "[parameters('serviceAppId')]"
-                    },
-                    "keyVaultAppSecret": {
-                        "value": "[parameters('serviceAppSecret')]"
-                    },
                     "keyVaultName": {
                         "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
                     },
