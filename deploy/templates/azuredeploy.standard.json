@@ -248,39 +248,48 @@
                 "description": "Name of the cluster to create"
             }
         },
-		"kustoSkuName": { 
-			"type": "string", 
-			"defaultValue": "Dev(No SLA)_Standard_D11_v2",
+        "kustoSkuName": {
+            "type": "string",
+            "defaultValue": "Dev(No SLA)_Standard_E2a_v4",
             "allowedValues": [
-                "Dev(No SLA)_Standard_D11_v2",
-                "Standard_D11_v2",
-                "Standard_D12_v2",
-                "Standard_D13_v2",
-                "Standard_D14_v2",
                 "Standard_DS13_v2+1TB_PS",
                 "Standard_DS13_v2+2TB_PS",
                 "Standard_DS14_v2+3TB_PS",
                 "Standard_DS14_v2+4TB_PS",
-                "Standard_L4s",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
                 "Standard_L8s",
-                "Standard_L16s"
+                "Standard_L16s",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_L4s",
+                "Standard_E2a_v4",
+                "Standard_E4a_v4",
+                "Standard_E8a_v4",
+                "Standard_E16a_v4",
+                "Standard_E8as_v4+1TB_PS",
+                "Standard_E8as_v4+2TB_PS",
+                "Standard_E16as_v4+3TB_PS",
+                "Standard_E16as_v4+4TB_PS",
+                "Dev(No SLA)_Standard_E2a_v4",
+                "Dev(No SLA)_Standard_D11_v2"
             ],
             "metadata": {
                 "description": "Sku name for kusto"
             }
-		},
-		"kustoSkuCapacity": { 
-			"type": "int", 
-			"defaultValue": 2,
+        },
+        "kustoSkuCapacity": {
+            "type": "int",
+            "defaultValue": 2,
             "minValue": 1,
             "maxValue": 3,
             "metadata": {
                 "description": "Kusto sku capacity"
             }
-		},
-		"kustoSkuTier": { 
-			"type": "string", 
-			"defaultValue": "Standard",
+        },
+        "kustoSkuTier": {
+            "type": "string",
+            "defaultValue": "Basic",
             "allowedValues": [
                 "Basic",
                 "Standard"
@@ -288,7 +297,7 @@
             "metadata": {
                 "description": "Sku tier for Kusto service"
             }
-		},
+        },
         "kustoDatabaseName": {
             "type": "string",
             "defaultValue": "kustodb",
@@ -317,7 +326,7 @@
         }
     },
     "variables": {
-		"eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
+        "eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
         "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]",
         "tsiEventSourceName": "TelemetryEventHub",
         "tsiEventHubConsumerGroup": "telemetrytsi",
@@ -335,11 +344,11 @@
         "appinsightsResourceId": "[resourceId('Microsoft.Insights/components', parameters('appInsightsName'))]",
         "signalRResourceId": "[resourceId('Microsoft.SignalRService/SignalR', parameters('signalRName'))]",
         "signalREventHubConsumerGroup": "telemetryux",
-		"kustoResourceId": "[resourceId('Microsoft.Kusto/clusters', parameters('kustoClusterName'))]",
+        "kustoResourceId": "[resourceId('Microsoft.Kusto/clusters', parameters('kustoClusterName'))]",
         "kustoDatabaseResourceId": "[resourceId('Microsoft.Kusto/clusters/databases', parameters('kustoClusterName'), parameters('kustoDatabaseName'))]",
-		"kustoEventHubDataFormat": "json",
-		"kustoEventHubMappingRule": "kustomapping",
-		"kustoEventHubTable": "kustotable",
+        "kustoEventHubDataFormat": "json",
+        "kustoEventHubMappingRule": "kustomapping",
+        "kustoEventHubTable": "kustotable",
         "kustoEventHubConsumerGroup": "telemetrykusto",
         "omsResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
         "standardConfigurationResourceName": "infrastructure.configuration"
@@ -513,7 +522,7 @@
             "comments": "Kusto cluster for alternative visualization and analytics",
             "name": "[parameters('kustoClusterName')]",
             "type": "Microsoft.Kusto/clusters",
-            "apiVersion": "2019-09-07",
+            "apiVersion": "2020-02-15",
             "location": "[resourceGroup().location]",
             "sku": {
                 "name": "[parameters('kustoSkuName')]",
@@ -525,7 +534,7 @@
             "comments": "Kusto database instance",
             "name": "[concat(parameters('kustoClusterName'), '/', parameters('kustoDatabaseName'))]",
             "type": "Microsoft.Kusto/clusters/databases",
-            "apiVersion": "2019-09-07",
+            "apiVersion": "2020-02-15",
             "location": "[resourceGroup().location]",
             "properties": {
                 "softDeletePeriodInDays": 365,
@@ -539,7 +548,7 @@
             "comments": "Kusto event hub connection",
             "name": "[concat(parameters('kustoClusterName'), '/', parameters('kustoDatabaseName'), '/', variables('kustoEventHubConsumerGroup'))]",
             "type": "Microsoft.Kusto/Clusters/Databases/DataConnections",
-            "apiVersion": "2019-09-07",
+            "apiVersion": "2020-02-15",
             "location": "[resourceGroup().location]",
             "kind": "EventHub",
             "properties": {
