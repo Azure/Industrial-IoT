@@ -134,7 +134,7 @@ Function Select-Context() {
             if (!$script:interactive) {
                 throw "Provide a subscription to use using -subscriptionId or -subscriptionName"
             }
-            Write-Host "Please choose a subscription from this list (using its Index):"
+            Write-Host "Please choose a subscription from this list (using its index):"
             $script:index = 0
             $subscriptions | Format-Table -AutoSize -Property `
                  @{Name="Index"; Expression = {($script:index++)}},`
@@ -170,10 +170,10 @@ Function Select-Context() {
     }
     # If file does not exist yet - ask
     if (!(Test-Path $contextFile) -and $script:interactive) {
-        $reply = Read-Host -Prompt "Save credentials in .user file [y/n]"
+        $reply = Read-Host -Prompt "To avoid logging in again next time, would you like to save your credentials? [y/n]"
         if ($reply -match "[yY]") {
-            Write-Host ".user file will be used as persisted context."
-            Write-Host "Enure you do not share it and do delete it when no longer needed."
+            Write-Host "Your Azure login context will be saved into a .user file in the root of the local repo."
+            Write-Host "Make sure you do not share it and delete it when no longer needed."
             $writeProfile = $true
         }
     }
@@ -616,7 +616,7 @@ Function New-Deployment() {
                 }
             }
             catch {
-                Write-Warning "$($_.Exception.Message).  Using master branch."
+                Write-Warning "Unable to detect current branch. Using master branch to deploy from."
                 $script:repo = "https://github.com/Azure/Industrial-IoT"
                 $script:branchName = "master"
             }

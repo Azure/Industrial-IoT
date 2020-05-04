@@ -325,8 +325,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             if (!string.IsNullOrEmpty(moduleId)) {
                 msg.Properties.Add(CommonProperties.ModuleId, moduleId);
             }
-            msg.Properties.Add(CommonProperties.CreationTimeUtc,
-                msg.CreationTimeUtc.ToString());
             return msg;
         }
 
