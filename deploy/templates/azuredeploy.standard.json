@@ -528,6 +528,15 @@
                 "name": "[parameters('kustoSkuName')]",
                 "tier": "[parameters('kustoSkuTier')]",
                 "capacity": "[parameters('kustoSkuCapacity')]"
+            },
+            "properties": {
+                "trustedExternalTenants": [
+                    {
+                        "value": "*"
+                    }
+                ],
+                "enableDiskEncryption": false,
+                "enableStreamingIngest": true
             }
         },
         {
@@ -536,9 +545,10 @@
             "type": "Microsoft.Kusto/clusters/databases",
             "apiVersion": "2020-02-15",
             "location": "[resourceGroup().location]",
+            "kind": "ReadWrite",
             "properties": {
-                "softDeletePeriodInDays": 365,
-                "hotCachePeriodInDays": 31
+                "softDeletePeriod": "P365D",
+                "hotCachePeriod": "P31D"
             },
             "dependsOn": [
                 "[variables('kustoResourceId')]"
@@ -553,6 +563,23 @@
                 "userMetadata": "Kusto Telemetry Consumer Group"
             },
             "dependsOn": [
+            ]
+        },
+        {
+            "comments": "Kusto event hub data connection",
+            "name": "[concat(parameters('kustoClusterName'), '/', parameters('kustoDatabaseName'), '/', variables('kustoEventHubDataConnection'))]",
+            "type": "Microsoft.Kusto/Clusters/Databases/DataConnections",
+            "apiVersion": "2020-02-15",
+            "location": "[resourceGroup().location]",
+            "kind": "EventHub",
+            "properties": {
+                "eventHubResourceId": "[variables('eventHubResourceId')]",
+                "consumerGroup": "[variables('kustoEventHubConsumerGroup')]",
+                "compression": "None"
+            },
+            "dependsOn": [
+                "[variables('kustoDatabaseResourceId')]",
+                "[resourceId('Microsoft.EventHub/namespaces/eventhubs/consumergroups', parameters('eventHubNamespaceName'), parameters('eventHubName'), variables('kustoEventHubConsumerGroup'))]"
             ]
         },
         {
