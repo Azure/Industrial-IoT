@@ -474,6 +474,14 @@ Function Get-EnvironmentVariables() {
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_KEYVAULT_URL=$($var)"
     }
+    $var = $script:aadConfig.ClientId
+    if (![string]::IsNullOrEmpty($var)) {
+        Write-Output "PCS_AAD_PUBLIC_CLIENT_APPID=$($var)"
+    }
+    $var = $deployment.Outputs["tenantId"].Value
+    if (![string]::IsNullOrEmpty($var)) {
+        Write-Output "PCS_AUTH_TENANT=$($var)"
+    }
     $var = $deployment.Outputs["tsiUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_TSI_URL=$($var)"

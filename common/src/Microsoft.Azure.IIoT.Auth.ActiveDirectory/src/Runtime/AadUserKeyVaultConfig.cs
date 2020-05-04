@@ -8,15 +8,14 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
-    /// Auth service principal to keyvault configuration
+    /// User principal to keyvault configuration
     /// </summary>
-    public class AadSpKeyVaultConfig : ConfigBase, IOAuthClientConfig {
+    public class AadUserKeyVaultConfig : ConfigBase, IOAuthClientConfig {
 
         /// <summary>
         /// Client configuration
         /// </summary>
         private const string kAuth_AppIdKey = "Aad:AppId";
-        private const string kAuth_AppSecretKey = "Aad:AppSecret";
         private const string kAuth_TenantIdKey = "Aad:TenantId";
         private const string kAuth_AuthorityUrlKey = "Aad:AuthorityUrl";
 
@@ -25,18 +24,15 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <summary>Resource</summary>
         public string Resource => Http.Resource.KeyVault;
         /// <inheritdoc/>
-        public bool IsValid =>
-            ClientId != null && ClientSecret != null && TenantId != null;
+        public bool IsValid => ClientId != null && TenantId != null;
         /// <summary>Provider</summary>
         public string Provider => AuthProvider.AzureAD;
         /// <summary>Application id</summary>
         public string ClientId => GetStringOrDefault(kAuth_AppIdKey,
-            () => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_APPID,
+            () => GetStringOrDefault(PcsVariable.PCS_AAD_PUBLIC_CLIENT_APPID,
                 () => null))?.Trim();
         /// <summary>App secret</summary>
-        public string ClientSecret => GetStringOrDefault(kAuth_AppSecretKey,
-            () => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_SECRET,
-                () => null))?.Trim();
+        public string ClientSecret => null;
         /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
@@ -50,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public AadSpKeyVaultConfig(IConfiguration configuration) :
+        public AadUserKeyVaultConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

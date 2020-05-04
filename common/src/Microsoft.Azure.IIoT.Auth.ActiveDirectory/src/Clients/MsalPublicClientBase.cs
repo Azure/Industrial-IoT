@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="logger"></param>
         protected MsalPublicClientBase(IClientAuthConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _config = config?.Query(AuthProvider.AzureAD)
+            _config = config?.Providers(AuthProvider.AzureAD)
                 .Select(config => (config, CreatePublicClientApplication(config)))
                 .ToList();
         }
