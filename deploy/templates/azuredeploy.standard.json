@@ -248,6 +248,47 @@
                 "description": "Name of the cluster to create"
             }
         },
+		"kustoSkuName": { 
+			"type": "string", 
+			"defaultValue": "Dev(No SLA)_Standard_D11_v2",
+            "allowedValues": [
+                "Dev(No SLA)_Standard_D11_v",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_DS13_v2+1TB_PS",
+                "Standard_DS13_v2+2TB_PS",
+                "Standard_DS14_v2+3TB_PS",
+                "Standard_DS14_v2+4TB_PS",
+                "Standard_L4s",
+                "Standard_L8s",
+                "Standard_L16s"
+            ],
+            "metadata": {
+                "description": "Sku name for kusto"
+            }
+		},
+		"kustoSkuCapacity": { 
+			"type": "int", 
+			"defaultValue": 2,
+            "minValue": 1,
+            "maxValue": 3,
+            "metadata": {
+                "description": "Kusto sku capacity"
+            }
+		},
+		"kustoSkuTier": { 
+			"type": "string", 
+			"defaultValue": "Standard",
+            "allowedValues": [
+                "Basic",
+                "Standard"
+            ],
+            "metadata": {
+                "description": "Sku tier for Kusto service"
+            }
+		},
         "kustoDatabaseName": {
             "type": "string",
             "defaultValue": "kustodb",
@@ -276,9 +317,6 @@
         }
     },
     "variables": {
-		"kustoEventHubDataFormat": "csv",
-		"kustoEventHubMappingRule": "kustomapping",
-		"kustoEventHubTable": "kustotable",
 		"eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
         "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]",
         "tsiEventSourceName": "TelemetryEventHub",
@@ -299,6 +337,9 @@
         "signalREventHubConsumerGroup": "telemetryux",
 		"kustoResourceId": "[resourceId('Microsoft.Kusto/clusters', parameters('kustoClusterName'))]",
         "kustoDatabaseResourceId": "[resourceId('Microsoft.Kusto/clusters/databases', parameters('kustoClusterName'), parameters('kustoDatabaseName'))]",
+		"kustoEventHubDataFormat": "json",
+		"kustoEventHubMappingRule": "kustomapping",
+		"kustoEventHubTable": "kustotable",
         "kustoEventHubConsumerGroup": "telemetrykusto",
         "omsResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
         "standardConfigurationResourceName": "infrastructure.configuration"
@@ -475,9 +516,9 @@
             "apiVersion": "2019-09-07",
             "location": "[resourceGroup().location]",
             "sku": {
-                "name": "D13_v2",
-                "tier": "Standard",
-                "capacity": 2
+                "name": "[parameters('kustoSkuName')]",
+                "tier": "[parameters('kustoSkuTier')]",
+                "capacity": "[parameters('kustoSkuCapacity')]"
             }
         },
         {
