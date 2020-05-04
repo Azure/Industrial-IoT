@@ -250,7 +250,7 @@
         },
         "kustoSkuName": {
             "type": "string",
-            "defaultValue": "Dev(No SLA)_Standard_E2a_v4",
+            "defaultValue": "Dev(No SLA)_Standard_D11_v2",
             "allowedValues": [
                 "Standard_DS13_v2+1TB_PS",
                 "Standard_DS13_v2+2TB_PS",
@@ -271,7 +271,6 @@
                 "Standard_E8as_v4+2TB_PS",
                 "Standard_E16as_v4+3TB_PS",
                 "Standard_E16as_v4+4TB_PS",
-                "Dev(No SLA)_Standard_E2a_v4",
                 "Dev(No SLA)_Standard_D11_v2"
             ],
             "metadata": {
