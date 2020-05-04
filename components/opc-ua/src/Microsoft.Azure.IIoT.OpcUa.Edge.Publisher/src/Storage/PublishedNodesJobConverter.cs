@@ -78,14 +78,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             return items
                 // Group by connection
                 .GroupBy(item => new ConnectionModel {
-                        OperationTimeout = legacyCliModel.OperationTimeout,
-                        Endpoint = new EndpointModel {
-                            Url = item.EndpointUrl.OriginalString,
-                            SecurityMode = item.UseSecurity == false ?
+                    OperationTimeout = legacyCliModel.OperationTimeout,
+                    Endpoint = new EndpointModel {
+                        Url = item.EndpointUrl.OriginalString,
+                        SecurityMode = item.UseSecurity == false ?
                                 SecurityMode.None : SecurityMode.Best
-                        },
-                        User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
-                            null :ToUserNamePasswordCredentialAsync(item).Result
+                    },
+                    User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
+                            null : ToUserNamePasswordCredentialAsync(item).Result
                     },
                     // Select and batch nodes into published data set sources
                     item => GetNodeModels(item),
@@ -118,53 +118,50 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     // Force the queue size to 2 so that we avoid data 
                                     // loss in case publishing interval and sampling interval are equal
                                     QueueSize = 2
-                                        // TODO: skip first? 
+                                    // TODO: skip first? 
                                     // SkipFirst = opcNode.SkipFirst,
-
-                                })
-                                .ToList()
+                                }).ToList()
                         }
                     }))
-                .SelectMany(dataSetSourceBatches => dataSetSourceBatches
-                    .Select(dataSetSource => new WriterGroupJobModel {
-
-                        MessagingMode = legacyCliModel.MessagingMode,
-                        Engine = _config == null ? null : new EngineConfigurationModel {
-                            BatchSize = _config.BatchSize,
-                            DiagnosticsInterval = _config.DiagnosticsInterval,
-                            MaxMessageSize = _config.MaxMessageSize
-                        },
-                        WriterGroup = new WriterGroupModel {
-                            MessageType = MessageEncoding.Json,
-                            WriterGroupId = dataSetSource.Connection.Endpoint.Url,
-                            DataSetWriters = new List<DataSetWriterModel> {
-                                new DataSetWriterModel {
-                                    DataSetWriterId = dataSetSource.Connection.Endpoint.Url,
-                                    DataSet = new PublishedDataSetModel {
-                                        DataSetSource = dataSetSource.Clone(),
-                                    },
-                                    DataSetFieldContentMask =
-                                        DataSetFieldContentMask.StatusCode |
-                                        DataSetFieldContentMask.SourceTimestamp |
-                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ServerTimestamp : 0) |
-                                        DataSetFieldContentMask.NodeId |
-                                        DataSetFieldContentMask.DisplayName |
-                                        DataSetFieldContentMask.ApplicationUri |
-                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.EndpointUrl : 0) |
-                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ExtensionFields : 0),
-                                    MessageSettings = new DataSetWriterMessageSettingsModel() {
-                                        DataSetMessageContentMask =
-                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Timestamp : 0) |
-                                            DataSetContentMask.MetaDataVersion |
-                                            DataSetContentMask.DataSetWriterId |
-                                            DataSetContentMask.MajorVersion |
-                                            DataSetContentMask.MinorVersion |
-                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.SequenceNumber : 0)
-                                    }
-                                }
+                .Select(dataSetSourceBatches => new WriterGroupJobModel {
+                    MessagingMode = legacyCliModel.MessagingMode,
+                    Engine = _config == null ? null : new EngineConfigurationModel {
+                        BatchSize = _config.BatchSize,
+                        DiagnosticsInterval = _config.DiagnosticsInterval,
+                        MaxMessageSize = _config.MaxMessageSize
+                    },
+                    WriterGroup = new WriterGroupModel {
+                        MessageType = MessageEncoding.Json,
+                        WriterGroupId = dataSetSourceBatches.First().Connection.Endpoint.Url +
+                            dataSetSourceBatches.First().Connection.CreateConsistentHash().ToString(),
+                        DataSetWriters = dataSetSourceBatches.Select(dataSetSource => new DataSetWriterModel {
+                            DataSetWriterId = $"{dataSetSource.Connection.Endpoint.Url}_" +
+                                $"{ dataSetSource.Connection.CreateConsistentHash()}_" +
+                                $"{ dataSetSource.SubscriptionSettings.GetHashCode()}",
+                            DataSet = new PublishedDataSetModel {
+                                DataSetSource = dataSetSource.Clone(),
                             },
-                            MessageSettings = new WriterGroupMessageSettingsModel() {
-                                NetworkMessageContentMask =
+                            DataSetFieldContentMask =
+                                    DataSetFieldContentMask.StatusCode |
+                                    DataSetFieldContentMask.SourceTimestamp |
+                                    (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ServerTimestamp : 0) |
+                                    DataSetFieldContentMask.NodeId |
+                                    DataSetFieldContentMask.DisplayName |
+                                    DataSetFieldContentMask.ApplicationUri |
+                                    (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.EndpointUrl : 0) |
+                                    (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ExtensionFields : 0),
+                            MessageSettings = new DataSetWriterMessageSettingsModel() {
+                                DataSetMessageContentMask =
+                                        (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Timestamp : 0) |
+                                        DataSetContentMask.MetaDataVersion |
+                                        DataSetContentMask.DataSetWriterId |
+                                        DataSetContentMask.MajorVersion |
+                                        DataSetContentMask.MinorVersion |
+                                        (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.SequenceNumber : 0)
+                            }
+                        }).ToList(),
+                        MessageSettings = new WriterGroupMessageSettingsModel() {
+                            NetworkMessageContentMask =
                                     NetworkMessageContentMask.PublisherId |
                                     NetworkMessageContentMask.WriterGroupId |
                                     NetworkMessageContentMask.NetworkMessageNumber |
@@ -174,9 +171,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     NetworkMessageContentMask.DataSetClassId |
                                     NetworkMessageContentMask.NetworkMessageHeader |
                                     NetworkMessageContentMask.DataSetMessageHeader
-                            }
                         }
-                    }));
+                    }
+                }).ToList();
         }
 
         /// <summary>
