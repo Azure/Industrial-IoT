@@ -33,6 +33,11 @@ jobs:
       projects: '**/tests/*.csproj'
       arguments: '--configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
       publishTestResults: false
+  - script: |
+      bash <(curl -s https://codecov.io/bash)
+
+    continueOnError: true
+    displayName: 'Upload to codecov.io'
   - task: DotNetCoreCLI@2
     inputs:
       command: custom
@@ -51,3 +56,13 @@ jobs:
       codeCoverageTool: Cobertura
       summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
       reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
+  - script: |
+      bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r $REPORT_LOCATION --commit-uuid $COMMIT_UUID
+
+    condition: ne( variables['CODACY_PROJECT_TOKEN'], '')
+    env:
+      CODACY_PROJECT_TOKEN: $(CODACY_PROJECT_TOKEN)
+      REPORT_LOCATION: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
+      COMMIT_UUID: '$(Build.SourceVersion)'
+    continueOnError: true
+    displayName: 'Upload to Codacy'
