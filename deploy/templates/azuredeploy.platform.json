@@ -99,18 +99,6 @@
                 "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
             }
         },
-        "keyVaultAppId": {
-            "type": "string",
-            "metadata": {
-                "description": "Specifies the registered service application identifier (GUID) in your Azure Active Directory tenant."
-            }
-        },
-        "keyVaultAppSecret": {
-            "type": "securestring",
-            "metadata": {
-                "description": "The registered service application secret used to authenticate against KeyVault."
-            }
-        },
         "keyVaultName": {
             "type": "string",
             "metadata": {
@@ -125,9 +113,21 @@
         },
         "managedIdentityResourceId": {
             "type": "string",
+            "metadata": {
+                "description": "A user created managed identity to use for service to service access."
+            }
+        },
+        "managedIdentityClientId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the registered managed identity client application id."
+            }
+        },
+        "managedIdentityTenantId": {
+            "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "A user created managed identity to use for service to service access.  If not provided, client and service principal will be used to gain access to keyvault."
+                "description": "The tenant the managed identity was registered in."
             }
         },
         "dockerServer": {
@@ -193,13 +193,6 @@
     },
     "variables": {
         "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]",
-        "identity": {
-            "type": "UserAssigned",
-            "userAssignedIdentities": {
-                "[parameters('managedIdentityResourceId')]": {
-                }
-            }
-        },
         "simulationConfigurationResourceName": "simulation.configuration",
         "serviceSiteResourceName": "[if(empty(parameters('serviceSiteName')), concat('svc', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('serviceSiteName'))]",
         "serviceSiteResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceSiteResourceName'))]",
@@ -239,7 +232,12 @@
             "name": "[variables('serviceSiteResourceName')]",
             "apiVersion": "2018-11-01",
             "location": "[resourceGroup().location]",
-            "identity": "[if(not(empty(parameters('managedIdentityResourceId'))), variables('identity'), '')]",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                   "[parameters('managedIdentityResourceId')]": {}
+                }
+            },
             "condition": "[not(empty(parameters('serviceSiteName')))]",
             "properties": {
                 "enabled": true,
@@ -288,12 +286,12 @@
                             "value": "[parameters('keyVaultUri')]"
                         },
                         {
-                            "name": "PCS_KEYVAULT_APPID",
-                            "value": "[if(empty(parameters('managedIdentityResourceId')), parameters('keyVaultAppId'), '')]"
+                            "name": "PCS_MSI_APPID",
+                            "value": "[parameters('managedIdentityClientId')]"
                         },
                         {
-                            "name": "PCS_KEYVAULT_SECRET",
-                            "value": "[if(empty(parameters('managedIdentityResourceId')), parameters('keyVaultAppSecret'), '')]"
+                            "name": "PCS_MSI_TENANT",
+                            "value": "[parameters('managedIdentityTenantId')]"
                         },
                         {
                             "name": "PCS_SERVICE_URL",
@@ -313,8 +311,8 @@
                         "PROJECT": "[if(not(parameters('deployFromSource')), '', 'services/src/Microsoft.Azure.IIoT.Services.All/src/Microsoft.Azure.IIoT.Services.All.csproj')]",
                         "PCS_SERVICE_URL": "[if(empty(parameters('serviceSiteName')), '', concat('https://', reference(variables('serviceSiteResourceId'), '2018-11-01').hostNames[0]))]",
                         "PCS_KEYVAULT_URL": "[parameters('keyVaultUri')]",
-                        "PCS_KEYVAULT_APPID": "[if(empty(parameters('managedIdentityResourceId')), parameters('keyVaultAppId'), '')]",
-                        "PCS_KEYVAULT_SECRET": "[if(empty(parameters('managedIdentityResourceId')), parameters('keyVaultAppSecret'), '')]",
+                        "PCS_MSI_APPID": "[parameters('managedIdentityClientId')]",
+                        "PCS_MSI_TENANT": "[parameters('managedIdentityTenantId')]",
                         "DOCKER_ENABLE_CI": "[if(parameters('deployFromSource'), '', 'false')]",
                         "DOCKER_REGISTRY_SERVER_URL": "[if(parameters('deployFromSource'), '', concat('https://', parameters('dockerServer')))]",
                         "DOCKER_REGISTRY_SERVER_USERNAME": "[if(parameters('deployFromSource'), '', parameters('dockerUser'))]",
@@ -389,7 +387,12 @@
             "name": "[variables('appSiteResourceName')]",
             "apiVersion": "2018-11-01",
             "location": "[resourceGroup().location]",
-            "identity": "[if(not(empty(parameters('managedIdentityResourceId'))), variables('identity'), '')]",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                   "[parameters('managedIdentityResourceId')]": {}
+                }
+            },
             "properties": {
                 "enabled": true,
                 "clientAffinityEnabled": false,
@@ -433,12 +436,12 @@
                             "value": "[parameters('keyVaultUri')]"
                         },
                         {
-                            "name": "PCS_KEYVAULT_APPID",
-                            "value": "[if(empty(parameters('managedIdentityResourceId')), parameters('keyVaultAppId'), '')]"
+                            "name": "PCS_MSI_APPID",
+                            "value": "[parameters('managedIdentityClientId')]"
                         },
                         {
-                            "name": "PCS_KEYVAULT_SECRET",
-                            "value": "[if(empty(parameters('managedIdentityResourceId')), parameters('keyVaultAppSecret'), '')]"
+                            "name": "PCS_MSI_TENANT",
+                            "value": "[parameters('managedIdentityTenantId')]"
                         },
                         {
                             "name": "PCS_SERVICE_URL",
