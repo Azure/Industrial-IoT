@@ -45,10 +45,17 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
+                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddFromDotEnvFile()
+                .AddCommandLine(args)
+                // Above configuration providers will provide connection
+                // details for KeyVault configuration provider.
                 .AddFromKeyVault()
+                .AddJsonFile("appsettings.json", true)
+                .AddFromDotEnvFile()
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddCommandLine(args)
                 .Build();
 

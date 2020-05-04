@@ -52,10 +52,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
             string deviceId = null, moduleId = null;
             Console.WriteLine("Twin module command line interface.");
             var configuration = new ConfigurationBuilder()
+                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddFromDotEnvFile()
+                // Above configuration providers will provide connection
+                // details for KeyVault configuration provider.
                 .AddFromKeyVault()
+                .AddFromDotEnvFile()
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .Build();
             var cs = configuration.GetValue<string>(PcsVariable.PCS_IOTHUB_CONNSTRING, null);
             if (string.IsNullOrEmpty(cs)) {

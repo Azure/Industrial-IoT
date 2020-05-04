@@ -31,9 +31,10 @@ namespace Microsoft.Extensions.Configuration {
         /// <param name="keyVaultUrlVarName"></param>
         /// <returns></returns>
         public static IConfigurationBuilder AddFromKeyVault(
-            this IConfigurationBuilder builder, bool singleton = true,
-            string keyVaultUrlVarName = null) {
-
+            this IConfigurationBuilder builder,
+            bool singleton = true,
+            string keyVaultUrlVarName = null
+        ) {
             var provider = KeyVaultConfigurationProvider.CreateInstanceAsync(
                 singleton, builder.Build(), keyVaultUrlVarName).Result;
             if (provider != null) {
@@ -121,7 +122,10 @@ namespace Microsoft.Extensions.Configuration {
             /// <param name="keyVaultUrlVarName"></param>
             /// <returns></returns>
             public static async Task<KeyVaultConfigurationProvider> CreateInstanceAsync(
-                bool singleton, IConfigurationRoot configuration, string keyVaultUrlVarName) {
+                bool singleton,
+                IConfigurationRoot configuration,
+                string keyVaultUrlVarName
+            ) {
                 if (string.IsNullOrEmpty(keyVaultUrlVarName)) {
                     keyVaultUrlVarName = PcsVariable.PCS_KEYVAULT_URL;
                 }
@@ -150,8 +154,10 @@ namespace Microsoft.Extensions.Configuration {
             /// <param name="lazyLoad"></param>
             /// <returns></returns>
             private static async Task<KeyVaultConfigurationProvider> CreateInstanceAsync(
-                IConfigurationRoot configuration, string keyVaultUrlVarName, bool lazyLoad) {
-
+                IConfigurationRoot configuration,
+                string keyVaultUrlVarName,
+                bool lazyLoad
+            ) {
                 var vaultUri = configuration.GetValue<string>(keyVaultUrlVarName, null);
                 if (string.IsNullOrEmpty(vaultUri)) {
                     Log.Logger.Debug("No keyvault uri found in configuration under {key}. ",
