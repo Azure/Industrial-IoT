@@ -80,7 +80,7 @@
         },
         "deployFromSource": {
             "type": "bool",
-            "defaultValue": true,
+            "defaultValue": false,
             "metadata": {
                 "description": "Whether to deploy app services from the repo source."
             }
