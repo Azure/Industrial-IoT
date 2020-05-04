@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (_assignedJobs.TryGetValue(workerId, out var job)) {
                 return Task.FromResult(job);
             }
-            if (_availableJobs.Count() > 0 && (job = _availableJobs.Dequeue()) != null) {
+            if (_availableJobs.Count > 0 && (job = _availableJobs.Dequeue()) != null) {
                 _assignedJobs[workerId] = job;
             }
             else {
@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             HeartbeatResultModel heartbeatResultModel;
 
             if (_updated && heartbeat.Job != null) {
-                if (_availableJobs.Count() == 0) {
+                if (_availableJobs.Count == 0) {
                     _updated = false;
                 }
 
