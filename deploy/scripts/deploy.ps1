@@ -786,17 +786,16 @@ Function New-Deployment() {
 
     while ($true) {
         try {
-            Write-Host "Starting deployment..."
-
             if (![string]::IsNullOrEmpty($adminUser) -and ![string]::IsNullOrEmpty($adminPassword)) {
                 Write-Host
-                Write-Host "To troubleshoot simulation use the following User and Password to log into the VM's:"
+                Write-Host "The following User and Password can be used to log into deployed VM's:"
                 Write-Host
                 Write-Host $adminUser
                 Write-Host $adminPassword
                 Write-Host
             }
 
+            Write-Host "Starting deployment..."
             # Start the deployment
             $templateFilePath = Join-Path (Join-Path (Split-Path $ScriptDir) "templates") "azuredeploy.json"
             $deployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
