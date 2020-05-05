@@ -24,20 +24,35 @@ namespace Microsoft.Extensions.Configuration {
     public static class ConfigurationEx {
 
         /// <summary>
-        /// Add configuration from azure keyvault.
+        /// Add configuration from Azure KeyVault. Providers configured prior to
+        /// this one will be used to get Azure KeyVault connection details.
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="allowInteractiveLogon"></param>
         /// <param name="singleton"></param>
         /// <param name="keyVaultUrlVarName"></param>
+        /// <param name="providerPriority"> Determines where in the configuration
+        /// providers chain current provider should be added. Default to lowest
+        /// </param>
         /// <returns></returns>
-        public static IConfigurationBuilder AddFromKeyVault(
-            this IConfigurationBuilder builder, bool allowInteractiveLogon = false,
-            bool singleton = true, string keyVaultUrlVarName = null) {
+        public static IConfigurationBuilder AddFromKeyVault(this IConfigurationBuilder builder,
+            ConfigurationProviderPriority providerPriority = ConfigurationProviderPriority.Lowest,
+            bool allowInteractiveLogon = false, bool singleton = true, string keyVaultUrlVarName = null) {
+            var configuration = builder.Build();
             var provider = KeyVaultConfigurationProvider.CreateInstanceAsync(
-                allowInteractiveLogon, singleton, builder.Build(), keyVaultUrlVarName).Result;
+                allowInteractiveLogon, singleton, configuration, keyVaultUrlVarName).Result;
             if (provider != null) {
-                builder.Add(provider);
+                switch (providerPriority) {
+                    case ConfigurationProviderPriority.Highest:
+                        builder.Add(provider);
+                        break;
+                    case ConfigurationProviderPriority.Lowest:
+                        builder.Sources.Insert(0, provider);
+                        break;
+                    default:
+                        throw new ArgumentException(
+                            $"Unknown ConfigurationProviderPriority value: {providerPriority}");
+                }
             }
             return builder;
         }
@@ -157,7 +172,6 @@ namespace Microsoft.Extensions.Configuration {
             private static async Task<KeyVaultConfigurationProvider> CreateInstanceAsync(
                 IConfigurationRoot configuration, bool allowInteractiveLogon, string keyVaultUrlVarName,
                 bool lazyLoad) {
-
                 var vaultUri = configuration.GetValue<string>(keyVaultUrlVarName, null);
                 if (string.IsNullOrEmpty(vaultUri)) {
                     Log.Logger.Debug("No keyvault uri found in configuration under {key}. ",
