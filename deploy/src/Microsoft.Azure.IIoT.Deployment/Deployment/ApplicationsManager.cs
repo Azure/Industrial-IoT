@@ -419,9 +419,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 $"{applicationURL}twin/swagger/oauth2-redirect.html",
                 $"{applicationURL}history/swagger/oauth2-redirect.html",
                 $"{applicationURL}vault/swagger/oauth2-redirect.html",
+                $"{applicationURL}onboarding/swagger/oauth2-redirect.html",
                 $"{applicationURL}publisher/swagger/oauth2-redirect.html",
-                $"{applicationURL}events/swagger/oauth2-redirect.html",
-                $"{applicationURL}edge/publisher/swagger/oauth2-redirect.html",
+                $"{applicationURL}jobs/swagger/oauth2-redirect.html",
+                $"{applicationURL}configuration/swagger/oauth2-redirect.html",
+                $"{applicationURL}edge/jobs/swagger/oauth2-redirect.html",
+                $"{applicationURL}edge/manage/swagger/oauth2-redirect.html",
                 $"{applicationURL}frontend/signin-oidc",
             };
 
