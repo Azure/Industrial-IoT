@@ -20,7 +20,6 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             _config = config?.Providers?
                 .Where(c => c.Provider == AuthProvider.Msi)
                 .Where(c => !string.IsNullOrEmpty(c.ClientId))
-                .Where(c => c.IsValid)
                 .Select(c => CreateProvider(c, logger))
                 .ToList();
             if (!_config.Any()) {

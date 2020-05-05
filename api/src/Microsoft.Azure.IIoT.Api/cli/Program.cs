@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
                 .AddFromDotEnvFile()
-                .AddFromKeyVault()
+                .AddFromKeyVault(true)
                 .Build();
 
             using (var scope = new Program(config,

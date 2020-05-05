@@ -476,7 +476,7 @@ Function Get-EnvironmentVariables() {
     }
     $var = $script:aadConfig.ClientId
     if (![string]::IsNullOrEmpty($var)) {
-        Write-Output "PCS_AAD_PUBLIC_CLIENT_APPID=$($var)"
+        Write-Output "PCS_AUTH_PUBLIC_CLIENT_APPID=$($var)"
     }
     $var = $deployment.Outputs["tenantId"].Value
     if (![string]::IsNullOrEmpty($var)) {

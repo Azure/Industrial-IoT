@@ -313,6 +313,10 @@ Function New-ADApplications() {
         $knownApplications.Add($clientAadApplication.AppId)
         $knownApplications.Add($webAadApplication.AppId)
 
+        # Add 1) Azure CLI and 2) Visual Studio to allow logging into the platform using them as clients
+        $knownApplications.Add("04b07795-8ddb-461a-bbee-02f9e1bf7b46")
+        $knownApplications.Add("872cd9fa-d31f-45e0-9eab-6e460a02d1f1")
+
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Microsoft Graph" `
@@ -413,7 +417,7 @@ Function New-ADApplications() {
             WebAppSecret       = $webSecret.Value
             WebAppDisplayName  = $webDisplayName
 
-            UserPrincipalId    = $user.UserPrincipalId
+            UserPrincipalId    = $user.ObjectId
         }
     }
     catch {
