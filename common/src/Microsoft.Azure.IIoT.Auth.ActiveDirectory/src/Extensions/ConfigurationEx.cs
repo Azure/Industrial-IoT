@@ -19,26 +19,60 @@ namespace Microsoft.Extensions.Configuration {
     using System.Net.Sockets;
 
     /// <summary>
+    /// Determines where in the configuration providers chain current provider should be added.
+    /// </summary>
+    public enum ConfigurationProviderPriority {
+        /// <summary>
+        /// Configuratoin provider should be added at the end of providers list,
+        /// thus having highest priority.
+        /// </summary>
+        Highest,
+
+        /// <summary>
+        /// Configuratoin provider should be added at the beginning of providers list,
+        /// thus having lowest priority.
+        /// </summary>
+        Lowest
+    };
+
+    /// <summary>
     /// Extension methods
     /// </summary>
     public static class ConfigurationEx {
 
         /// <summary>
-        /// Add configuration from azure keyvault.
+        /// Add configuration from Azure KeyVault.
+        /// Providers configured prior to this one will be used to get Azure KeyVault connection details.
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="singleton"></param>
         /// <param name="keyVaultUrlVarName"></param>
+        /// <param name="providerPriority"> Determines where in the configuration providers chain current provider should be added. </param>
         /// <returns></returns>
         public static IConfigurationBuilder AddFromKeyVault(
             this IConfigurationBuilder builder,
             bool singleton = true,
-            string keyVaultUrlVarName = null
+            string keyVaultUrlVarName = null,
+            ConfigurationProviderPriority providerPriority = default
         ) {
-            var provider = KeyVaultConfigurationProvider.CreateInstanceAsync(
-                singleton, builder.Build(), keyVaultUrlVarName).Result;
+            var configuration = builder.Build();
+            var provider = KeyVaultConfigurationProvider
+                .CreateInstanceAsync(
+                    singleton,
+                    configuration,
+                    keyVaultUrlVarName
+                ).Result;
             if (provider != null) {
-                builder.Add(provider);
+                switch (providerPriority) {
+                    case ConfigurationProviderPriority.Highest: 
+                        builder.Add(provider);
+                        break;
+                    case ConfigurationProviderPriority.Lowest:
+                        builder.Sources.Insert(0, provider);
+                        break;
+                    default:
+                        throw new ArgumentException($"Unknown ConfigurationProviderPriority value: {providerPriority}");
+                }
             }
             return builder;
         }

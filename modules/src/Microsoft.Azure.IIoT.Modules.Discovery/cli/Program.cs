@@ -41,10 +41,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 // Above configuration providers will provide connection
                 // details for KeyVault configuration provider.
-                .AddFromKeyVault()
-                .AddFromDotEnvFile()
-                .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
                 .Build();
             var cs = configuration.GetValue<string>(PcsVariable.PCS_IOTHUB_CONNSTRING, null);
             if (string.IsNullOrEmpty(cs)) {

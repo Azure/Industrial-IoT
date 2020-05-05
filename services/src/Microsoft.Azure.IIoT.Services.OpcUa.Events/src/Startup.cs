@@ -70,10 +70,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 // Above configuration providers will provide connection
                 // details for KeyVault configuration provider.
-                .AddFromKeyVault()
-                .AddFromDotEnvFile()
-                .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
                 .Build())) {
         }
 

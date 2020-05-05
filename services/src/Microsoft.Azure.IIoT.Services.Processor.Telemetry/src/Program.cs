@@ -49,12 +49,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
                 .AddCommandLine(args)
                 // Above configuration providers will provide connection
                 // details for KeyVault configuration provider.
-                .AddFromKeyVault()
-                .AddJsonFile("appsettings.json", true)
-                .AddFromDotEnvFile()
-                .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddCommandLine(args)
+                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
                 .Build();
 
             // Set up dependency injection for the event processor host
