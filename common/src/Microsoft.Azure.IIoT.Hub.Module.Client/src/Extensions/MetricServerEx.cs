@@ -23,10 +23,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     logger.Information("Prometheus metric server started.");
                 }
                 catch (HttpListenerException e){
-                    logger.Error(e, "Unable to start metric server. To enable edge metrics collection, please run the following commands in an elevated window:\n" +
-                        "\nnetsh http add urlacl url=http://+:9700/metrics user=Everyone" +
-                        "\nnetsh http add urlacl url=http://+:9701/metrics user=Everyone" +
-                        "\nnetsh http add urlacl url=http://+:9702/metrics user=Everyone\n");
+                    logger.Error(e, "Unable to start metric server. For more info, please check troubleshooting guide for edge metrics collection");
                 }
 
             } 
