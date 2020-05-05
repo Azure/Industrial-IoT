@@ -19,25 +19,60 @@ namespace Microsoft.Extensions.Configuration {
     using System.Net.Sockets;
 
     /// <summary>
+    /// Determines where in the configuration providers chain current provider should be added.
+    /// </summary>
+    public enum ConfigurationProviderPriority {
+        /// <summary>
+        /// Configuratoin provider should be added at the end of providers list,
+        /// thus having highest priority.
+        /// </summary>
+        Highest,
+
+        /// <summary>
+        /// Configuratoin provider should be added at the beginning of providers list,
+        /// thus having lowest priority.
+        /// </summary>
+        Lowest
+    };
+
+    /// <summary>
     /// Extension methods
     /// </summary>
     public static class ConfigurationEx {
 
         /// <summary>
-        /// Add configuration from azure keyvault.
+        /// Add configuration from Azure KeyVault.
+        /// Providers configured prior to this one will be used to get Azure KeyVault connection details.
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="singleton"></param>
         /// <param name="keyVaultUrlVarName"></param>
+        /// <param name="providerPriority"> Determines where in the configuration providers chain current provider should be added. </param>
         /// <returns></returns>
         public static IConfigurationBuilder AddFromKeyVault(
-            this IConfigurationBuilder builder, bool singleton = true,
-            string keyVaultUrlVarName = null) {
-
-            var provider = KeyVaultConfigurationProvider.CreateInstanceAsync(
-                singleton, builder.Build(), keyVaultUrlVarName).Result;
+            this IConfigurationBuilder builder,
+            bool singleton = true,
+            string keyVaultUrlVarName = null,
+            ConfigurationProviderPriority providerPriority = default
+        ) {
+            var configuration = builder.Build();
+            var provider = KeyVaultConfigurationProvider
+                .CreateInstanceAsync(
+                    singleton,
+                    configuration,
+                    keyVaultUrlVarName
+                ).Result;
             if (provider != null) {
-                builder.Add(provider);
+                switch (providerPriority) {
+                    case ConfigurationProviderPriority.Highest: 
+                        builder.Add(provider);
+                        break;
+                    case ConfigurationProviderPriority.Lowest:
+                        builder.Sources.Insert(0, provider);
+                        break;
+                    default:
+                        throw new ArgumentException($"Unknown ConfigurationProviderPriority value: {providerPriority}");
+                }
             }
             return builder;
         }
@@ -121,7 +156,10 @@ namespace Microsoft.Extensions.Configuration {
             /// <param name="keyVaultUrlVarName"></param>
             /// <returns></returns>
             public static async Task<KeyVaultConfigurationProvider> CreateInstanceAsync(
-                bool singleton, IConfigurationRoot configuration, string keyVaultUrlVarName) {
+                bool singleton,
+                IConfigurationRoot configuration,
+                string keyVaultUrlVarName
+            ) {
                 if (string.IsNullOrEmpty(keyVaultUrlVarName)) {
                     keyVaultUrlVarName = PcsVariable.PCS_KEYVAULT_URL;
                 }
@@ -150,8 +188,10 @@ namespace Microsoft.Extensions.Configuration {
             /// <param name="lazyLoad"></param>
             /// <returns></returns>
             private static async Task<KeyVaultConfigurationProvider> CreateInstanceAsync(
-                IConfigurationRoot configuration, string keyVaultUrlVarName, bool lazyLoad) {
-
+                IConfigurationRoot configuration,
+                string keyVaultUrlVarName,
+                bool lazyLoad
+            ) {
                 var vaultUri = configuration.GetValue<string>(keyVaultUrlVarName, null);
                 if (string.IsNullOrEmpty(vaultUri)) {
                     Log.Logger.Debug("No keyvault uri found in configuration under {key}. ",
