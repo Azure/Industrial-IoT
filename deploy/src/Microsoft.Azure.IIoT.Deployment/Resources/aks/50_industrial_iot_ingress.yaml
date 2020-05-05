@@ -41,18 +41,30 @@ spec:
         backend:
           serviceName: vault-service
           servicePort: 9044
+      - path: /onboarding/
+        backend:
+          serviceName: onboarding-service
+          servicePort: 9060
       - path: /publisher/
         backend:
           serviceName: publisher-service
           servicePort: 9045
-      - path: /events/
+      - path: /jobs/
         backend:
-          serviceName: events-service
+          serviceName: publisher-jobs-service
+          servicePort: 9046
+      - path: /configuration/
+        backend:
+          serviceName: configuration-service
           servicePort: 9050
-      - path: /edge/publisher/
+      - path: /edge/jobs/
         backend:
           serviceName: edge-jobs-service
           servicePort: 9051
+      - path: /edge/manage/
+        backend:
+          serviceName: edge-manager-service
+          servicePort: 9047
       - path: /frontend/
         backend:
           serviceName: engineering-tool-service
