@@ -791,8 +791,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // Create AKS cluster
             // We have to wait for setupKeyVaultTask to finish before using _aksClusterX509Certificate.
-            setupKeyVaultTask.Wait();
-            var operationalInsightsWorkspace = operationalInsightsWorkspaceCreationTask.Result;
+            await setupKeyVaultTask;
+            var operationalInsightsWorkspace = await operationalInsightsWorkspaceCreationTask;
 
             var clusterDefinition = _aksManagementClient.GetClusterDefinition(
                 _resourceGroup,
@@ -1019,7 +1019,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            var cosmosDBAccount = cosmosDBAccountCreationTask.Result;
+            var cosmosDBAccount = await cosmosDBAccountCreationTask;
             var cosmosDBAccountConnectionString = await _cosmosDBManagementClient
                 .GetCosmosDBAccountConnectionStringAsync(
                     _resourceGroup,
@@ -1034,7 +1034,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            var serviceBusNamespace = serviceBusNamespaceCreationTask.Result;
+            var serviceBusNamespace = await serviceBusNamespaceCreationTask;
             var serviceBusNamespaceConnectionString = await _serviceBusManagementClient
                 .GetServiceBusNamespaceConnectionStringAsync(
                     _resourceGroup,
@@ -1042,7 +1042,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            var signalR = signalRCreationTask.Result;
+            var signalR = await signalRCreationTask;
             var signalRConnectionString = await _signalRManagementClient
                 .GetConnectionStringAsync(
                     _resourceGroup,
@@ -1050,10 +1050,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            var applicationInsightsComponent = applicationInsightsComponentCreationTask.Result;
+            var applicationInsightsComponent = await applicationInsightsComponentCreationTask;
 
             // Wat for Public IP of AKS before creating IIoTEnvironment
-            var aksCluster = aksClusterCreationTask.Result;
+            var aksCluster = await aksClusterCreationTask;
 
             // Create a PublicIP address in AKS node resource group
             var aksPublicIpName = "aks-public-ip";
@@ -1207,7 +1207,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             _applicationURL = aksPublicIp.DnsSettings.Fqdn;
 
             // Waiting for unfinished tasks.
-            keyVaultConfCreationTask.Wait();
+            await keyVaultConfCreationTask;
 
             // Check if we want to save environment to .env file
             try {
@@ -1267,7 +1267,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-                _aksClusterX509Certificate = aksClusterX509CertificateGetTask.Result;
+                _aksClusterX509Certificate = await aksClusterX509CertificateGetTask;
             }
         }
 

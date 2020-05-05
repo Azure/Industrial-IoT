@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using System.Linq;
 
     using Microsoft.Azure.Management.ApplicationInsights.Management.Models;
-    using Microsoft.Azure.Management.AppService.Fluent.Models;
     using Microsoft.Azure.Management.EventHub.Fluent.Models;
     using Microsoft.Azure.Management.IotHub.Models;
     using Microsoft.Azure.Management.KeyVault.Fluent.Models;
