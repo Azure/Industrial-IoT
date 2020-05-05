@@ -53,6 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             var gitAdapter = new GithubAdapter();
             _cdmCorpus.Storage.Mount("cdm", gitAdapter);
             _cdmCorpus.Storage.DefaultNamespace = "adls";
+            _cdmCorpus.AppId = "Azure Industrial IoT";
+            _manifestResolved = null;
             _cacheUploadInterval = TimeSpan.FromSeconds(20);
             _cacheUploadTimer = new Timer(CacheTimer_ElapsedAsync, null,
                 _cacheUploadInterval, Timeout.InfiniteTimeSpan);
@@ -353,11 +355,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 var newSampleEntityDoc = _cdmCorpus.MakeObject<CdmDocumentDefinition>(
                     CdmObjectType.DocumentDef, $"{newSampleEntity.EntityName}.cdm.json", false);
                 newSampleEntityDoc.Imports.Add($"{newSampleEntity.EntityName}.cdm.json");
-                // TODO: remove - apparently not necessary
                 newSampleEntityDoc.Imports.Add(kFoundationJsonPath);
                 newSampleEntityDoc.Definitions.Add(newSampleEntity);
-                _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
-                    newSampleEntityDoc, newSampleEntityDoc.Name);
+                _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(newSampleEntityDoc);
                 entityDefinition = manifest.Entities.Add(newSampleEntity);
                 persist |= true;
             }
@@ -455,8 +455,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 newEntityDoc.Imports.Add($"{newDataSetEntity.EntityName}.cdm.json");
                 newEntityDoc.Imports.Add(kFoundationJsonPath);
                 newEntityDoc.Definitions.Add(newDataSetEntity);
-                _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
-                    newEntityDoc, newEntityDoc.Name);
+                _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(newEntityDoc);
                 entityDefinition = manifest.Entities.Add(newDataSetEntity);
                 persist |= true;
             }
@@ -492,7 +491,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             var sw = Stopwatch.StartNew();
             _logger.Information("Fetching manifest ...");
             var manifest = await _cdmCorpus.FetchObjectAsync<CdmManifestDefinition>(
-                "adls:/" + fileName);
+                "adls:/" + fileName, _manifestResolved, true);
+
             if (manifest == null) {
                 _logger.Information("Could not find manifest after {elapsed}", sw.Elapsed);
                 sw.Restart();
@@ -513,19 +513,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 if (manifest != null) {
                     manifest.Name = "IIoTOpcUaPubSub";
                     manifest.ManifestName = "IIoT OPC UA Pub/Sub Manifest";
-                    adlsRoot.Documents.Add(manifest, "IIoTOpcUaPubSub.manifest.cdm.json");
                     manifest.Imports.Add(kFoundationJsonPath);
                     manifest.Schema = "cdm:/schema.cdm.json";
                     manifest.JsonSchemaSemanticVersion = "1.0.0";
+                    if (adlsRoot.Documents.Item(manifest.Name) == null) {
+                        adlsRoot.Documents.Add(manifest);
+                    }
 
                     sw.Restart();
                     await manifest.SaveAsAsync(fileName, true);
                     _logger.Information("Saving manifest took {elapsed}", sw.Elapsed);
+                    _manifestResolved = manifest;
                 }
             }
             else {
                 _logger.Information("Loading manifest took {elapsed}", sw.Elapsed);
             }
+
             return manifest;
         }
 
@@ -613,6 +617,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         }
 
         private readonly CdmCorpusDefinition _cdmCorpus;
+        private CdmManifestDefinition _manifestResolved;
         private readonly ILogger _logger;
         private readonly IRecordEncoder _encoder;
         private readonly IStorageAdapter _storage;
