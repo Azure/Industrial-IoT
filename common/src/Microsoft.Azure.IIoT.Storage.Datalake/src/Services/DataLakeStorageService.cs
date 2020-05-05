@@ -249,7 +249,7 @@ namespace Microsoft.Azure.IIoT.Storage.Datalake.Default {
                     using (var buffer = new MemoryStream(stream, 0, count)) {
                         var offset = properties.ContentLength;
                         await _file.AppendAsync(buffer, offset,
-                            leaseId: _conditions.LeaseId, cancellationToken: ct);
+                            leaseId: _conditions?.LeaseId, cancellationToken: ct);
                         await _file.FlushAsync(offset + count,
                             conditions: _conditions, cancellationToken: ct);
                     }
