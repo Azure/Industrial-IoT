@@ -132,12 +132,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     },
                     WriterGroup = new WriterGroupModel {
                         MessageType = MessageEncoding.Json,
-                        WriterGroupId = dataSetSourceBatches.First().Connection.Endpoint.Url +
-                            dataSetSourceBatches.First().Connection.CreateConsistentHash().ToString(),
+                        WriterGroupId = $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
+                            $"{dataSetSourceBatches.First().GetHashSafe()}",
                         DataSetWriters = dataSetSourceBatches.Select(dataSetSource => new DataSetWriterModel {
                             DataSetWriterId = $"{dataSetSource.Connection.Endpoint.Url}_" +
-                                $"{ dataSetSource.Connection.CreateConsistentHash()}_" +
-                                $"{ dataSetSource.SubscriptionSettings.GetHashCode()}",
+                                $"{dataSetSource.GetHashSafe()}",
                             DataSet = new PublishedDataSetModel {
                                 DataSetSource = dataSetSource.Clone(),
                             },
