@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: opc-sync
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.sync.component" . }}
     app.kubernetes.io/part-of: azure-industrial-iot
 {{- if .Values.deployment.microServices.sync.extraLabels }}
 {{ toYaml .Values.deployment.microServices.sync.extraLabels | indent 4 }}
@@ -25,7 +25,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/component: opc-sync
+      app.kubernetes.io/component: {{ template "azure-industrial-iot.sync.component" . }}
       app.kubernetes.io/part-of: azure-industrial-iot
   template:
     metadata:
@@ -35,7 +35,7 @@ spec:
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
-        app.kubernetes.io/component: opc-sync
+        app.kubernetes.io/component: {{ template "azure-industrial-iot.sync.component" . }}
         app.kubernetes.io/part-of: azure-industrial-iot
 {{- if .Values.deployment.microServices.sync.extraLabels }}
 {{ toYaml .Values.deployment.microServices.sync.extraLabels | indent 8 }}
@@ -53,7 +53,7 @@ spec:
 {{ toYaml .Values.image.pullSecrets | indent 6 }}
 {{- end }}
       containers:
-      - name: sync-service-container
+      - name: {{ template "azure-industrial-iot.sync.component" . }}-container
         image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.sync.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.sync.extraArgs }}

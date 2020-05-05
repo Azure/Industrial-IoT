@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: opc-registry
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.registry.component" . }}
     app.kubernetes.io/part-of: azure-industrial-iot
 {{- if .Values.deployment.microServices.registry.extraLabels }}
 {{ toYaml .Values.deployment.microServices.registry.extraLabels | indent 4 }}
@@ -24,7 +24,7 @@ spec:
   selector:
     app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/component: opc-registry
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.registry.component" . }}
     app.kubernetes.io/part-of: azure-industrial-iot
 {{- if .Values.deployment.microServices.registry.service.clusterIP }}
   clusterIP: {{ .Values.deployment.microServices.registry.service.clusterIP }}
