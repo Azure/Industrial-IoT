@@ -814,7 +814,6 @@ Function New-Deployment() {
     # Register current aad user to access keyvault
     if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
         $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.UserPrincipalId)
-        $templateParameters.Add("datalakeServicePrincipalId", $script:aadConfig.UserPrincipalId)
     }
 
     # register providers

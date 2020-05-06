@@ -142,7 +142,7 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "simulation": {
+                    "simulationProfile": {
                         "value": "[parameters('simulationProfile')]"
                     },
                     "edgeName": {
@@ -226,7 +226,7 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "simulation": {
+                    "simulationProfile": {
                         "value": "[parameters('simulationProfile')]"
                     },
                     "edgeName": {
