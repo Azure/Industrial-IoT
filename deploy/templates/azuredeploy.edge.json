@@ -8,7 +8,7 @@
                 "description": "Name of the IoT Edge virtual machine."
             }
         },
-        "simulation": {
+        "simulationProfile": {
             "type": "string",
             "defaultValue": "default",
             "allowedValues": [
@@ -969,11 +969,11 @@
                                 "settings": {
                                     "fileUris": [
                                         "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/simulation.sh')]",
-                                        "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/', parameters('simulation'), '.yml')]"
+                                        "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/', parameters('simulationProfile'), '.yml')]"
                                     ]
                                 },
                                 "protectedSettings": {
-                                    "commandToExecute": "[concat('sudo bash simulation.sh ', ' --admin ', parameters('edgeUsername'), ' --name ', parameters('simulation'), ' --imagesNamespace ', concat('\"', parameters('imagesNamespace'), '\"'), ' --imagesTag ', concat('\"', parameters('imagesTag'), '\"'), ' --dockerServer ', concat('\"', parameters('dockerServer'), '\"'), ' --dockerUser ', concat('\"', parameters('dockerUser'), '\"'), ' --dockerPassword ', concat('\"', parameters('dockerPassword'), '\"'))]"
+                                    "commandToExecute": "[concat('sudo bash simulation.sh ', ' --admin ', parameters('edgeUsername'), ' --name ', parameters('simulationProfile'), ' --imagesNamespace ', concat('\"', parameters('imagesNamespace'), '\"'), ' --imagesTag ', concat('\"', parameters('imagesTag'), '\"'), ' --dockerServer ', concat('\"', parameters('dockerServer'), '\"'), ' --dockerUser ', concat('\"', parameters('dockerUser'), '\"'), ' --dockerPassword ', concat('\"', parameters('dockerPassword'), '\"'))]"
                                 }
                             },
                             "dependsOn": [

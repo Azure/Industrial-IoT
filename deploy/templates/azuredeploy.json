@@ -118,7 +118,7 @@
                 "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
             }
         },
-        "simulation": {
+        "simulationProfile": {
             "type": "string",
             "defaultValue": "default",
             "allowedValues": [
@@ -473,8 +473,8 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "simulation": {
-                        "value": "[parameters('simulation')]"
+                    "simulationProfile": {
+                        "value": "[parameters('simulationProfile')]"
                     },
                     "numberOfLinuxGateways": {
                         "value": "[parameters('numberOfLinuxGateways')]"

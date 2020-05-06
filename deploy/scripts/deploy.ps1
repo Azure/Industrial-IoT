@@ -47,11 +47,17 @@
  .PARAMETER environmentName
     The cloud environment to use (defaults to Azure Cloud).
 
- .PARAMETER simulationName
-    The cloud environment to use (defaults to Azure Cloud).
+ .PARAMETER simulationProfile
+    If you are deploying a simulation, the simulation profile to use if not default.
 
- .PARAMETER simulationCount
-    The cloud environment to use (defaults to Azure Cloud).
+ .PARAMETER numberOfSimulationsPerEdge
+    Number of simulations to deploy per edge
+
+ .PARAMETER numberOfLinuxGateways
+    Number of linux gateways to deploy into the simulation
+
+ .PARAMETER numberOfWindowsGateways
+    Number of windows gateways to deploy into the simulation
 #>
 
 param(
@@ -69,8 +75,10 @@ param(
     $aadConfig,
     $context = $null,
     [switch] $testAllDeploymentOptions,
-    [string] $simulationName,
-    [int] $simulationCount = 0,
+    [string] $simulationProfile,
+    [int] $numberOfLinuxGateways = 0,
+    [int] $numberOfWindowsGateways = 0,
+    [int] $numberOfSimulationsPerEdge = 0,
     [string] $environmentName = "AzureCloud"
 )
 
@@ -635,7 +643,7 @@ Function New-Deployment() {
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
             $script:applicationName = $script:resourceGroupName.Replace('_', '-')
         }
-        if ($script:type -eq "minimum") {
+        if (($script:type -eq "minimum") -or ($script:type -eq "simulation")) {
             $templateParameters.Add("deploymentLevel", "Minimum")
         }
     }
@@ -702,10 +710,30 @@ Function New-Deployment() {
 
     # Configure simulation
     if (($script:type -eq "all") -or ($script:type -eq "simulation")) {
-        $templateParameters.Add("numberOfLinuxGateways", 1)
-        $templateParameters.Add("numberOfWindowsGateways", 1)
-        $templateParameters.Add("numberOfSimulations", 1)
-        $templateParameters.Add("simulation", "default")
+        if ([string]::IsNullOrEmpty($script:simulationProfile)) {
+            $templateParameters.Add("simulationProfile", "default")
+        }
+        else {
+            $templateParameters.Add("simulationProfile", $script:simulationProfile)
+        }
+        if ((-not $numberOfLinuxGateways) -or ($numberOfLinuxGateways -eq 0)) {
+            $templateParameters.Add("numberOfLinuxGateways", 1)
+        }
+        else {
+            $templateParameters.Add("numberOfLinuxGateways", 1)
+        }
+        if ((-not $numberOfWindowsGateways) -or ($numberOfWindowsGateways -eq 0)) {
+            $templateParameters.Add("numberOfWindowsGateways", 1)
+        }
+        else {
+            $templateParameters.Add("numberOfWindowsGateways", 1)
+        }
+        if ((-not $numberOfSimulations) -or ($numberOfSimulations -eq 0)) {
+            $templateParameters.Add("numberOfSimulations", 1)
+        }
+        else {
+            $templateParameters.Add("numberOfSimulations", 1)
+        }
 
         # Get all vm skus available in the location and in the account
         $availableVms = Get-AzComputeResourceSku | Where-Object {
