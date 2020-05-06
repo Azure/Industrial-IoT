@@ -643,7 +643,7 @@ Function New-Deployment() {
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
             $script:applicationName = $script:resourceGroupName.Replace('_', '-')
         }
-        if (($script:type -eq "minimum") -or ($script:type -eq "simulation")) {
+        if ($script:type -eq "minimum") {
             $templateParameters.Add("deploymentLevel", "Minimum")
         }
     }
