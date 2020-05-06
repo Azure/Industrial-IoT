@@ -141,7 +141,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                             StoreType = "Directory",
                             StorePath = "pki/rejected",
                         },
-                        AutoAcceptUntrustedCertificates = false
+                        AutoAcceptUntrustedCertificates = true,
+                        AddAppCertToTrustedStore = true
                     },
                     TransportConfigurations = new TransportConfigurationCollection(),
                     TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),

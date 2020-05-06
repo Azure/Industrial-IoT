@@ -62,15 +62,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             _client = new Lazy<ClientServices>(() => {
                 return new ClientServices(Logger, _config);
             }, false);
-            _serverHost = new ServerConsoleHost(
-                new ServerFactory(Logger, nodes) {
-                    LogStatus = false
-                }, Logger) {
-                AutoAccept = true
-            };
             var port = Interlocked.Increment(ref _nextPort);
             for (var i = 0; i < 200; i++) { // Retry 200 times
                 try {
+                    _serverHost = new ServerConsoleHost(
+                        new ServerFactory(Logger, nodes) {
+                            LogStatus = false
+                        }, Logger) {
+                        AutoAccept = true
+                    };
                     Logger.Information("Starting server host on {port}...",
                         port);
                     _serverHost.StartAsync(new int[] { port }).Wait();

@@ -104,11 +104,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _logger.Information("Server created...");
 
             config = ApplicationInstance.FixupAppConfig(config);
-
-
             _logger.Information("Validate configuration...");
             await config.Validate(ApplicationType.Server);
 
+            config.SecurityConfiguration.AutoAcceptUntrustedCertificates = AutoAccept;
             config.CertificateValidator = new CertificateValidator();
             config.CertificateValidator.CertificateValidation += (v, e) => {
                 if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
@@ -120,10 +119,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             _logger.Information("Initialize certificate validation...");
             await config.CertificateValidator.Update(config.SecurityConfiguration);
+            var cert = config.SecurityConfiguration.ApplicationCertificate.Certificate;
 
-            // Use existing certificate, if it is there.
-            var cert = await config.SecurityConfiguration.ApplicationCertificate
-                .Find(true);
             if (cert == null) {
                 _logger.Information("Creating new certificate in {path}...",
                     config.SecurityConfiguration.ApplicationCertificate.StorePath);
@@ -139,13 +136,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     CertificateFactory.defaultLifeTime,
                     CertificateFactory.defaultHashSize);
 #pragma warning restore IDE0067 // Dispose objects before losing scope
-            }
-
-            if (cert != null) {
                 config.SecurityConfiguration.ApplicationCertificate.Certificate = cert;
-                config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
                 await config.CertificateValidator.UpdateCertificate(config.SecurityConfiguration);
             }
+            config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
 
             var application = new ApplicationInstance(config);
 
@@ -153,17 +147,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var haveAppCertificate =
                 await application.CheckApplicationInstanceCertificate(false, 0);
             if (!haveAppCertificate) {
-                _logger.Error("Failed validating certificate!");
+                _logger.Error("Failed validating own certificate!");
                 throw new Exception("Application instance certificate invalid!");
             }
 
-            // Set certificate
+            // Set Certificate
             try {
                 // just take the public key
-                Certificate = new X509Certificate2(cert.RawData);
+                Certificate = new X509Certificate2(config.SecurityConfiguration.ApplicationCertificate.Certificate.RawData);
             }
             catch {
-                Certificate = cert;
+                Certificate = config.SecurityConfiguration.ApplicationCertificate.Certificate;
             }
 
             _logger.Information("Starting server ...");

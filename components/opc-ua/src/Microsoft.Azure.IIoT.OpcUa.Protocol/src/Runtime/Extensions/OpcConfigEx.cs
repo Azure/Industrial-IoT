@@ -48,9 +48,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             applicationConfiguration.CertificateValidator
                 .Update(applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
 
-            // use existing certificate, if it is there
+            // use existing certificate, if present
             var certificate = applicationConfiguration.SecurityConfiguration
-                .ApplicationCertificate.Find(true).Result;
+                .ApplicationCertificate.Certificate;
 
             // create a self signed certificate if there is none
             if (certificate == null && createSelfSignedCertIfNone) {
@@ -77,7 +77,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
 
                 applicationConfiguration.SecurityConfiguration
                     .ApplicationCertificate.Certificate = certificate;
-
                 try {
                     // copy the certificate *public key only* into the trusted certificates list
                     using (ICertificateStore trustedStore = applicationConfiguration
@@ -88,16 +87,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     }
                 }
                 catch { }
-
                 // update security information
                 applicationConfiguration.CertificateValidator.UpdateCertificate(
                     applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
             }
 
             applicationConfiguration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);
-            applicationConfiguration.CertificateValidator
-                .Update(applicationConfiguration).ConfigureAwait(false);
-
             return applicationConfiguration;
         }
     }
