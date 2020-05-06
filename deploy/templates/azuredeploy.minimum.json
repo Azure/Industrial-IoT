@@ -83,6 +83,52 @@
                 "description": "When Azure Cosmos DB consistencyLevel is set to BoundedStaleness, then this value is required, otherwise it can be ignored."
             }
         },
+        "eventHubNamespaceName": {
+            "type": "string",
+            "defaultValue": "[concat('eventhubnamespace-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+            "metadata": {
+                "description": "The name of the Event Hub namespace created as part of the deployment."
+            }
+        },
+        "eventHubName": {
+            "type": "string",
+            "defaultValue": "[concat('eventhub-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+            "metadata": {
+                "description": "The name of the Event Hub created as part of the deployment."
+            }
+        },
+        "eventHubRetentionInDays": {
+            "type": "int",
+            "defaultValue": 2,
+            "metadata": {
+                "description": "The event hub message retention in days."
+            }
+        },
+        "eventHubPartitionCount": {
+            "type": "int",
+            "defaultValue": 4,
+            "metadata": {
+                "description": "The event hub partition count."
+            }
+        },
+        "eventHubSkuTier": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "allowedValues": [
+                "Basic",
+                "Standard"
+            ],
+            "metadata": {
+                "description": "The Azure Event Hub SKU Tier."
+            }
+        },
+        "eventHubSkuCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The Azure Event Hub SKU Capacity to use."
+            }
+        },
         "serviceBusNamespaceName": {
             "type": "string",
             "defaultValue": "[concat('sb-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
@@ -99,6 +145,17 @@
             ],
             "metadata": {
                 "description": "The Azure Service Bus SKU Tier to use."
+            }
+        },
+        "serviceBusEndpointSuffix": {
+            "type": "string",
+            "defaultValue": "servicebus.windows.net",
+            "allowedValues": [
+                "servicebus.windows.net",
+                "servicebus.chinacloudapi.cn"
+            ],
+            "metadata": {
+                "description": "Suffix added to Service Bus endpoint"
             }
         },
         "iotHubName": {
@@ -185,6 +242,10 @@
         "serviceBusKeyName": "RootManageSharedAccessKey",
         "serviceBusKeyResourceId": "[resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('serviceBusNamespaceName'), variables('serviceBusKeyName'))]",
         "serviceBusNamespaceResourceId": "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusNamespaceName'))]",
+        "eventHubKeyName": "RootManageSharedAccessKey",
+        "eventHubKeyResourceId": "[resourceId('Microsoft.EventHub/namespaces/AuthorizationRules', parameters('eventHubNamespaceName'), variables('eventHubKeyName'))]",
+        "eventHubNamespaceResourceId": "[resourceId('Microsoft.EventHub/namespaces', parameters('eventHubNamespaceName'))]",
+        "eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
         "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
         "iotHubKeyName": "iothubowner",
         "iotHubContainerName": "[parameters('iotHubName')]",
@@ -252,10 +313,11 @@
                 ]
             },
             "dependsOn": [
+                "[variables('identityResourceId')]"
             ]
         },
         {
-            "comments": "KeyVault service principal access permissions.",
+            "comments": "Optional KeyVault principal access permissions for configuration secrets.",
             "condition": "[not(empty(parameters('keyVaultPrincipalId')))]",
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
             "name": "[concat(parameters('keyVaultName'), '/add')]",
@@ -266,34 +328,18 @@
                         "tenantId": "[subscription().tenantId]",
                         "objectId": "[parameters('keyVaultPrincipalId')]",
                         "permissions": {
-                            "keys": [
-                                "get",
-                                "list",
-                                "sign",
-                                "unwrapKey",
-                                "wrapKey",
-                                "create"
-                            ],
                             "secrets": [
                                 "get",
                                 "list",
                                 "set",
                                 "delete"
-                            ],
-                            "certificates": [
-                                "get",
-                                "list",
-                                "update",
-                                "create",
-                                "import"
                             ]
                         }
                     }
                 ]
             },
             "dependsOn": [
-                "[variables('identityResourceId')]",
-                "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                "[variables('keyVaultResourceId')]"
             ]
         },
         {
@@ -417,6 +463,39 @@
             "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
             "dependsOn": [
                 "[variables('iotHubResourceId')]"
+            ]
+        },
+        {
+            "comments": "Azure Event Hub Namespace",
+            "type": "Microsoft.EventHub/namespaces",
+            "apiVersion": "2017-04-01",
+            "name": "[parameters('eventHubNamespaceName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[parameters('eventHubSkuTier')]",
+                "tier": "[parameters('eventHubSkuTier')]",
+                "capacity": "[parameters('eventHubSkuCapacity')]"
+            },
+            "properties": {
+                "isAutoInflateEnabled": false,
+                "maximumThroughputUnits": 0
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "comments": "Azure Event Hub for processed Device Telemetry",
+            "type": "Microsoft.EventHub/namespaces/eventhubs",
+            "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'))]",
+            "apiVersion": "2017-04-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "messageRetentionInDays": "[parameters('eventHubRetentionInDays')]",
+                "partitionCount": "[parameters('eventHubPartitionCount')]",
+                "status": "Active"
+            },
+            "dependsOn": [
+                "[variables('eventHubNamespaceResourceId')]"
             ]
         },
         {
@@ -545,6 +624,14 @@
                                 "value": "[concat('AccountEndpoint=', reference(variables('cosmosDbResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('cosmosDbResourceId'), '2016-03-19').primaryMasterKey, ';')]"
                             },
                             {
+                                "key": "PCS_EVENTHUB_CONNSTRING",
+                                "value": "[concat('Endpoint=sb://', parameters('eventHubNamespaceName'), '.', parameters('serviceBusEndpointSuffix'), '/;SharedAccessKeyName=', variables('eventHubKeyName'), ';SharedAccessKey=', listkeys(variables('eventHubKeyResourceId'), '2017-04-01').primaryKey, ';')]"
+                            },
+                            {
+                                "key": "PCS_EVENTHUB_NAME",
+                                "value": "[parameters('eventHubName')]"
+                            },
+                            {
                                 "key": "PCS_SERVICEBUS_CONNSTRING",
                                 "value": "[listkeys(variables('serviceBusKeyResourceId'), '2017-04-01').primaryConnectionString]"
                             },
@@ -572,6 +659,7 @@
                 "[variables('serviceBusNamespaceResourceId')]",
                 "[variables('cosmosDbResourceId')]",
                 "[variables('iotHubResourceId')]",
+                "[variables('eventHubResourceId')]",
                 "[variables('storageResourceId')]",
                 "[variables('keyVaultResourceId')]"
             ]
@@ -594,6 +682,10 @@
             "type": "string",
             "value": "[reference(variables('identityResourceId'), '2018-11-30').clientId]"
         },
+        "managedIdentityPrincipalId": {
+            "type": "string",
+            "value": "[reference(variables('identityResourceId'), '2018-11-30').principalId]"
+        },
         "managedIdentityTenantId": {
             "type": "string",
             "value": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]"
@@ -613,6 +705,14 @@
         "iotHubName": {
             "type": "string",
             "value": "[parameters('iotHubName')]"
+        },
+        "eventHubNamespaceName": {
+            "type": "string",
+            "value": "[parameters('eventHubNamespaceName')]"
+        },
+        "eventHubName": {
+            "type": "string",
+            "value": "[parameters('eventHubName')]"
         }
     }
 }

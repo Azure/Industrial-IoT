@@ -31,20 +31,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="clients"></param>
         /// <param name="logger"></param>
         public TokenClientAggregateSource(IEnumerable<ITokenClient> clients, ILogger logger) :
-            this (clients, Http.Resource.Platform, logger) {
-        }
-
-        /// <summary>
-        /// Create aggregate
-        /// </summary>
-        /// <param name="clients"></param>
-        /// <param name="resource"></param>
-        /// <param name="logger"></param>
-        protected TokenClientAggregateSource(IEnumerable<ITokenClient> clients,
-            string resource, ILogger logger) {
-            _clients = clients?.ToList() ?? throw new ArgumentNullException(nameof(clients));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            Resource = resource ?? throw new ArgumentNullException(nameof(resource));
+            this (Reorder(clients), Http.Resource.Platform, logger) {
         }
 
         /// <summary>
@@ -57,6 +44,19 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         protected TokenClientAggregateSource(IEnumerable<ITokenClient> clients,
             string resource, ILogger logger, params ITokenClient[] prefer)
             : this (Reorder(clients, prefer), resource, logger) {
+        }
+
+        /// <summary>
+        /// Create aggregate
+        /// </summary>
+        /// <param name="clients"></param>
+        /// <param name="resource"></param>
+        /// <param name="logger"></param>
+        private TokenClientAggregateSource(List<ITokenClient> clients, string resource,
+            ILogger logger) {
+            _clients = clients ?? throw new ArgumentNullException(nameof(clients));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            Resource = resource ?? throw new ArgumentNullException(nameof(resource));
         }
 
         /// <inheritdoc/>
@@ -97,14 +97,15 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         /// <param name="clients"></param>
         /// <param name="prefer"></param>
         /// <returns></returns>
-        private static IEnumerable<ITokenClient> Reorder(IEnumerable<ITokenClient> clients,
+        private static List<ITokenClient> Reorder(IEnumerable<ITokenClient> clients,
             params ITokenClient[] prefer) {
+            if (clients == null) {
+                return prefer?.ToList();
+            }
             return prefer
-                .Concat(clients ?? throw new ArgumentNullException(nameof(clients)))
-                    .Where(p => prefer
-                        .Select(t => t.GetType())
-                        .Any(t => t == p.GetType()))
-                .Distinct();
+                .Concat(clients)  // Add unique clients to the list
+                .Distinct(Compare.Using<ITokenClient>((x, y) => x.GetType() == y.GetType()))
+                .ToList();
         }
 
         private readonly List<ITokenClient> _clients;

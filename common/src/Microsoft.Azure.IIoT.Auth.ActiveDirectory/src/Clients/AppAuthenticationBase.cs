@@ -50,6 +50,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                         return null;
                     }
                     var result = JwtSecurityTokenEx.Parse(token);
+                    if (result.ExpiresOn < DateTime.UtcNow) {
+                        return null;
+                    }
                     _logger.Information(
                         "Successfully acquired token for {resource} with {config}.",
                         resource, config.GetName());

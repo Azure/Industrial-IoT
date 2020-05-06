@@ -24,20 +24,35 @@ namespace Microsoft.Extensions.Configuration {
     public static class ConfigurationEx {
 
         /// <summary>
-        /// Add configuration from azure keyvault.
+        /// Add configuration from Azure KeyVault. Providers configured prior to
+        /// this one will be used to get Azure KeyVault connection details.
         /// </summary>
         /// <param name="builder"></param>
+        /// <param name="allowInteractiveLogon"></param>
         /// <param name="singleton"></param>
         /// <param name="keyVaultUrlVarName"></param>
+        /// <param name="providerPriority"> Determines where in the configuration
+        /// providers chain current provider should be added. Default to lowest
+        /// </param>
         /// <returns></returns>
-        public static IConfigurationBuilder AddFromKeyVault(
-            this IConfigurationBuilder builder, bool singleton = true,
-            string keyVaultUrlVarName = null) {
-
+        public static IConfigurationBuilder AddFromKeyVault(this IConfigurationBuilder builder,
+            ConfigurationProviderPriority providerPriority = ConfigurationProviderPriority.Lowest,
+            bool allowInteractiveLogon = false, bool singleton = true, string keyVaultUrlVarName = null) {
+            var configuration = builder.Build();
             var provider = KeyVaultConfigurationProvider.CreateInstanceAsync(
-                singleton, builder.Build(), keyVaultUrlVarName).Result;
+                allowInteractiveLogon, singleton, configuration, keyVaultUrlVarName).Result;
             if (provider != null) {
-                builder.Add(provider);
+                switch (providerPriority) {
+                    case ConfigurationProviderPriority.Highest:
+                        builder.Add(provider);
+                        break;
+                    case ConfigurationProviderPriority.Lowest:
+                        builder.Sources.Insert(0, provider);
+                        break;
+                    default:
+                        throw new ArgumentException(
+                            $"Unknown ConfigurationProviderPriority value: {providerPriority}");
+                }
             }
             return builder;
         }
@@ -53,9 +68,10 @@ namespace Microsoft.Extensions.Configuration {
             /// </summary>
             /// <param name="configuration"></param>
             /// <param name="keyVaultUri"></param>
+            /// <param name="allowInteractiveLogon"></param>
             private KeyVaultConfigurationProvider(IConfigurationRoot configuration,
-                string keyVaultUri) {
-                _keyVault = new KeyVaultClientBootstrap(configuration);
+                string keyVaultUri, bool allowInteractiveLogon) {
+                _keyVault = new KeyVaultClientBootstrap(configuration, allowInteractiveLogon);
                 _keyVaultUri = keyVaultUri;
                 _cache = new ConcurrentDictionary<string, Task<SecretBundle>>();
                 _reloadToken = new ConfigurationReloadToken();
@@ -116,22 +132,24 @@ namespace Microsoft.Extensions.Configuration {
             /// <summary>
             /// Create configuration provider
             /// </summary>
+            /// <param name="allowInteractiveLogon"></param>
             /// <param name="singleton"></param>
             /// <param name="configuration"></param>
             /// <param name="keyVaultUrlVarName"></param>
             /// <returns></returns>
             public static async Task<KeyVaultConfigurationProvider> CreateInstanceAsync(
-                bool singleton, IConfigurationRoot configuration, string keyVaultUrlVarName) {
+                bool allowInteractiveLogon, bool singleton, IConfigurationRoot configuration,
+                string keyVaultUrlVarName) {
                 if (string.IsNullOrEmpty(keyVaultUrlVarName)) {
                     keyVaultUrlVarName = PcsVariable.PCS_KEYVAULT_URL;
                 }
-                if (singleton) {
+                if (singleton && !allowInteractiveLogon) {
                     // Save singleton creation
                     if (_singleton == null) {
                         lock (kLock) {
                             if (_singleton == null) {
                                 // Create instance
-                                _singleton = CreateInstanceAsync(configuration,
+                                _singleton = CreateInstanceAsync(configuration, false,
                                     keyVaultUrlVarName, false);
                             }
                         }
@@ -139,19 +157,21 @@ namespace Microsoft.Extensions.Configuration {
                     return await _singleton;
                 }
                 // Create new instance
-                return await CreateInstanceAsync(configuration, keyVaultUrlVarName, true);
+                return await CreateInstanceAsync(configuration, allowInteractiveLogon,
+                    keyVaultUrlVarName, true);
             }
 
             /// <summary>
             /// Create new instance
             /// </summary>
             /// <param name="configuration"></param>
+            /// <param name="allowInteractiveLogon"></param>
             /// <param name="keyVaultUrlVarName"></param>
             /// <param name="lazyLoad"></param>
             /// <returns></returns>
             private static async Task<KeyVaultConfigurationProvider> CreateInstanceAsync(
-                IConfigurationRoot configuration, string keyVaultUrlVarName, bool lazyLoad) {
-
+                IConfigurationRoot configuration, bool allowInteractiveLogon, string keyVaultUrlVarName,
+                bool lazyLoad) {
                 var vaultUri = configuration.GetValue<string>(keyVaultUrlVarName, null);
                 if (string.IsNullOrEmpty(vaultUri)) {
                     Log.Logger.Debug("No keyvault uri found in configuration under {key}. ",
@@ -165,7 +185,8 @@ namespace Microsoft.Extensions.Configuration {
                     }
                 }
 
-                var provider = new KeyVaultConfigurationProvider(configuration, vaultUri);
+                var provider = new KeyVaultConfigurationProvider(configuration, vaultUri,
+                    allowInteractiveLogon);
                 if (!await provider.TryReadSecretAsync(keyVaultUrlVarName)) {
                     throw new InvalidConfigurationException(
                         "A keyvault uri was provided could not access keyvault at the address. " +

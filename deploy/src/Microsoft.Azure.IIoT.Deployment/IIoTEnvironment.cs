@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using System.Linq;
 
     using Microsoft.Azure.Management.ApplicationInsights.Management.Models;
-    using Microsoft.Azure.Management.AppService.Fluent.Models;
     using Microsoft.Azure.Management.EventHub.Fluent.Models;
     using Microsoft.Azure.Management.IotHub.Models;
     using Microsoft.Azure.Management.KeyVault.Fluent.Models;
@@ -64,27 +63,33 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_TWIN_SERVICE_URL_INTERNAL;
         public readonly string PCS_HISTORY_SERVICE_URL_INTERNAL;
         public readonly string PCS_VAULT_SERVICE_URL_INTERNAL;
+        public readonly string PCS_ONBOARDING_SERVICE_URL_INTERNAL;
         public readonly string PCS_PUBLISHER_SERVICE_URL_INTERNAL;
-        public readonly string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL_INTERNAL;
-        public readonly string PCS_EVENTS_SERVICE_URL_INTERNAL;
+        public readonly string PCS_JOBS_SERVICE_URL_INTERNAL;
+        public readonly string PCS_JOB_ORCHESTRATOR_SERVICE_URL_INTERNAL;
+        public readonly string PCS_CONFIGURATION_SERVICE_URL_INTERNAL;
 
         // Externally accessible service URLs
         public readonly string PCS_TWIN_REGISTRY_URL_EXTERNAL;
         public readonly string PCS_TWIN_SERVICE_URL_EXTERNAL;
         public readonly string PCS_HISTORY_SERVICE_URL_EXTERNAL;
         public readonly string PCS_VAULT_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_ONBOARDING_SERVICE_URL_EXTERNAL;
         public readonly string PCS_PUBLISHER_SERVICE_URL_EXTERNAL;
-        public readonly string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
-        public readonly string PCS_EVENTS_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_JOBS_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_CONFIGURATION_SERVICE_URL_EXTERNAL;
 
         // Service URLs that will be consumed by microservices.
         public readonly string PCS_TWIN_REGISTRY_URL;
         public readonly string PCS_TWIN_SERVICE_URL;
         public readonly string PCS_HISTORY_SERVICE_URL;
         public readonly string PCS_VAULT_SERVICE_URL;
+        public readonly string PCS_ONBOARDING_SERVICE_URL;
         public readonly string PCS_PUBLISHER_SERVICE_URL;
-        public readonly string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL;
-        public readonly string PCS_EVENTS_SERVICE_URL;
+        public readonly string PCS_JOBS_SERVICE_URL;
+        public readonly string PCS_JOB_ORCHESTRATOR_SERVICE_URL;
+        public readonly string PCS_CONFIGURATION_SERVICE_URL;
 
         // SignalR
         public readonly string PCS_SIGNALR_CONNSTRING;
@@ -110,10 +115,13 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_HISTORY_SERVICE_PATH_BASE;
         public readonly string PCS_GATEWAY_SERVICE_PATH_BASE;
         public readonly string PCS_VAULT_SERVICE_PATH_BASE;
+        public readonly string PCS_ONBOARDING_SERVICE_PATH_BASE;
         public readonly string PCS_PUBLISHER_SERVICE_PATH_BASE;
-        public readonly string PCS_EVENTS_SERVICE_PATH_BASE;
+        public readonly string PCS_CONFIGURATION_SERVICE_PATH_BASE;
+        public readonly string PCS_EDGE_MANAGER_SERVICE_PATH_BASE;
         public readonly string PCS_FRONTEND_APP_SERVICE_PATH_BASE;
-        public readonly string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE;
+        public readonly string PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE;
+        public readonly string PCS_JOBS_SERVICE_PATH_BASE;
 
         // AspNetCore
         public readonly string ASPNETCORE_FORWARDEDHEADERS_ENABLED;
@@ -209,9 +217,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_TWIN_SERVICE_URL_INTERNAL = $"http://{"twin-service"}.{iiotNamespace}:{9041}";
             PCS_HISTORY_SERVICE_URL_INTERNAL = $"http://{"history-service"}.{iiotNamespace}:{9043}";
             PCS_VAULT_SERVICE_URL_INTERNAL = $"http://{"vault-service"}.{iiotNamespace}:{9044}";
+            PCS_ONBOARDING_SERVICE_URL_INTERNAL = $"http://{"onboarding-service"}.{iiotNamespace}:{9060}";
             PCS_PUBLISHER_SERVICE_URL_INTERNAL = $"http://{"publisher-service"}.{iiotNamespace}:{9045}";
-            PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL_INTERNAL = $"http://{"edge-jobs-service"}.{iiotNamespace}:{9051}";
-            PCS_EVENTS_SERVICE_URL_INTERNAL = $"http://{"events-service"}.{iiotNamespace}:{9050}";
+            PCS_JOBS_SERVICE_URL_INTERNAL = $"http://{"publisher-jobs-service"}.{iiotNamespace}:{9046}";
+            PCS_JOB_ORCHESTRATOR_SERVICE_URL_INTERNAL = $"http://{"edge-jobs-service"}.{iiotNamespace}:{9051}";
+            PCS_CONFIGURATION_SERVICE_URL_INTERNAL = $"http://{"configuration-service"}.{iiotNamespace}:{9050}";
 
             // Externally accessible service URLs
             serviceURL = serviceURL.TrimEnd('/');
@@ -219,19 +229,23 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_TWIN_SERVICE_URL_EXTERNAL = $"{serviceURL}/twin/";
             PCS_HISTORY_SERVICE_URL_EXTERNAL = $"{serviceURL}/history/";
             PCS_VAULT_SERVICE_URL_EXTERNAL = $"{serviceURL}/vault/";
+            PCS_ONBOARDING_SERVICE_URL_EXTERNAL = $"{serviceURL}/onboarding/";
             PCS_PUBLISHER_SERVICE_URL_EXTERNAL = $"{serviceURL}/publisher/";
-            PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL_EXTERNAL = $"{serviceURL}/edge/publisher/";
-            PCS_EVENTS_SERVICE_URL_EXTERNAL = $"{serviceURL}/events/";
+            PCS_JOBS_SERVICE_URL_EXTERNAL = $"{serviceURL}/jobs/";
+            PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL = $"{serviceURL}/edge/jobs/";
+            PCS_CONFIGURATION_SERVICE_URL_EXTERNAL = $"{serviceURL}/configuration/";
 
             // Service URLs that will be consumed by microservices.
             PCS_TWIN_REGISTRY_URL = PCS_TWIN_REGISTRY_URL_INTERNAL;
             PCS_TWIN_SERVICE_URL = PCS_TWIN_SERVICE_URL_INTERNAL;
             PCS_HISTORY_SERVICE_URL = PCS_HISTORY_SERVICE_URL_INTERNAL;
             PCS_VAULT_SERVICE_URL = PCS_VAULT_SERVICE_URL_INTERNAL;
+            PCS_ONBOARDING_SERVICE_URL = PCS_ONBOARDING_SERVICE_URL_INTERNAL;
             PCS_PUBLISHER_SERVICE_URL = PCS_PUBLISHER_SERVICE_URL_INTERNAL;
-            // NOTE: PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL should be externally accessible URL.
-            PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL = PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
-            PCS_EVENTS_SERVICE_URL = PCS_EVENTS_SERVICE_URL_INTERNAL;
+            PCS_JOBS_SERVICE_URL = PCS_JOBS_SERVICE_URL_INTERNAL;
+            // NOTE: PCS_JOB_ORCHESTRATOR_SERVICE_URL should be externally accessible URL.
+            PCS_JOB_ORCHESTRATOR_SERVICE_URL = PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
+            PCS_CONFIGURATION_SERVICE_URL = PCS_CONFIGURATION_SERVICE_URL_INTERNAL;
 
             // SignalR
             PCS_SIGNALR_CONNSTRING = signalRConnectionString;
@@ -259,10 +273,13 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_HISTORY_SERVICE_PATH_BASE = "/history";
             PCS_GATEWAY_SERVICE_PATH_BASE = "/ua";
             PCS_VAULT_SERVICE_PATH_BASE = "/vault";
+            PCS_ONBOARDING_SERVICE_PATH_BASE = "/onboarding";
             PCS_PUBLISHER_SERVICE_PATH_BASE = "/publisher";
-            PCS_EVENTS_SERVICE_PATH_BASE = "/events";
+            PCS_CONFIGURATION_SERVICE_PATH_BASE = "/configuration";
+            PCS_EDGE_MANAGER_SERVICE_PATH_BASE = "/edge/manage";
             PCS_FRONTEND_APP_SERVICE_PATH_BASE = "/frontend";
-            PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE = "/edge/publisher";
+            PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE = "/edge/jobs";
+            PCS_JOBS_SERVICE_PATH_BASE = "/jobs";
 
             // AspNetCore
             ASPNETCORE_FORWARDEDHEADERS_ENABLED = $"{true}";
@@ -314,9 +331,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_TWIN_SERVICE_URL)}", PCS_TWIN_SERVICE_URL },
                 { $"{nameof(PCS_HISTORY_SERVICE_URL)}", PCS_HISTORY_SERVICE_URL },
                 { $"{nameof(PCS_VAULT_SERVICE_URL)}", PCS_VAULT_SERVICE_URL },
+                { $"{nameof(PCS_ONBOARDING_SERVICE_URL)}", PCS_ONBOARDING_SERVICE_URL },
                 { $"{nameof(PCS_PUBLISHER_SERVICE_URL)}", PCS_PUBLISHER_SERVICE_URL },
-                { $"{nameof(PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL)}", PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL },
-                { $"{nameof(PCS_EVENTS_SERVICE_URL)}", PCS_EVENTS_SERVICE_URL },
+                { $"{nameof(PCS_JOBS_SERVICE_URL)}", PCS_JOBS_SERVICE_URL },
+                { $"{nameof(PCS_JOB_ORCHESTRATOR_SERVICE_URL)}", PCS_JOB_ORCHESTRATOR_SERVICE_URL },
+                { $"{nameof(PCS_CONFIGURATION_SERVICE_URL)}", PCS_CONFIGURATION_SERVICE_URL },
 
                 // SignalR
                 { $"{nameof(PCS_SIGNALR_CONNSTRING)}", PCS_SIGNALR_CONNSTRING },
@@ -342,10 +361,13 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_HISTORY_SERVICE_PATH_BASE)}", PCS_HISTORY_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_GATEWAY_SERVICE_PATH_BASE)}", PCS_GATEWAY_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_VAULT_SERVICE_PATH_BASE)}", PCS_VAULT_SERVICE_PATH_BASE },
+                { $"{nameof(PCS_ONBOARDING_SERVICE_PATH_BASE)}", PCS_ONBOARDING_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_PUBLISHER_SERVICE_PATH_BASE)}", PCS_PUBLISHER_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_EVENTS_SERVICE_PATH_BASE)}", PCS_EVENTS_SERVICE_PATH_BASE },
+                { $"{nameof(PCS_CONFIGURATION_SERVICE_PATH_BASE)}", PCS_CONFIGURATION_SERVICE_PATH_BASE },
+                { $"{nameof(PCS_EDGE_MANAGER_SERVICE_PATH_BASE)}", PCS_EDGE_MANAGER_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_FRONTEND_APP_SERVICE_PATH_BASE)}", PCS_FRONTEND_APP_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE)}", PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE },
+                { $"{nameof(PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE)}", PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE },
+                { $"{nameof(PCS_JOBS_SERVICE_PATH_BASE)}", PCS_JOBS_SERVICE_PATH_BASE },
 
                 // AspNetCore
                 { $"{nameof(ASPNETCORE_FORWARDEDHEADERS_ENABLED)}", ASPNETCORE_FORWARDEDHEADERS_ENABLED },
@@ -376,9 +398,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 extDict[nameof(PCS_TWIN_SERVICE_URL)] = PCS_TWIN_SERVICE_URL_EXTERNAL;
                 extDict[nameof(PCS_HISTORY_SERVICE_URL)] = PCS_HISTORY_SERVICE_URL_EXTERNAL;
                 extDict[nameof(PCS_VAULT_SERVICE_URL)] = PCS_VAULT_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_ONBOARDING_SERVICE_URL)] = PCS_ONBOARDING_SERVICE_URL_EXTERNAL;
                 extDict[nameof(PCS_PUBLISHER_SERVICE_URL)] = PCS_PUBLISHER_SERVICE_URL_EXTERNAL;
-                extDict[nameof(PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL)] = PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
-                extDict[nameof(PCS_EVENTS_SERVICE_URL)] = PCS_EVENTS_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_JOBS_SERVICE_URL)] = PCS_JOBS_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_JOB_ORCHESTRATOR_SERVICE_URL)] = PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_CONFIGURATION_SERVICE_URL)] = PCS_CONFIGURATION_SERVICE_URL_EXTERNAL;
 
                 var iiotEnvVarLines = extDict
                     .Select(kvp => $"{kvp.Key}={kvp.Value}")

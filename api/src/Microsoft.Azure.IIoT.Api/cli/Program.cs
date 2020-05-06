@@ -106,7 +106,11 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
                 .AddFromDotEnvFile()
-                .AddFromKeyVault()
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                // Above configuration providers will provide connection
+                // details for KeyVault configuration provider.
+                .AddFromKeyVault(ConfigurationProviderPriority.Lowest, true)
                 .Build();
 
             using (var scope = new Program(config,

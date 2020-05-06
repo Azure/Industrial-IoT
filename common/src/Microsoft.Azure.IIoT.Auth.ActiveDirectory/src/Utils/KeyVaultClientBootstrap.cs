@@ -27,7 +27,10 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
         /// <summary>
         /// Create bootstrap
         /// </summary>
-        public KeyVaultClientBootstrap(IConfiguration configuration = null) {
+        /// <param name="configuration"></param>
+        /// <param name="allowInteractiveLogon"></param>
+        public KeyVaultClientBootstrap(IConfiguration configuration,
+            bool allowInteractiveLogon = false) {
             configuration ??= new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
@@ -41,6 +44,12 @@ namespace Microsoft.Azure.IIoT.Auth.KeyVault {
                 .AsImplementedInterfaces();
             builder.RegisterModule(new LoggerProviderModule());
             builder.RegisterModule<KeyVaultAuthentication>();
+
+            if (allowInteractiveLogon) {
+                // Allow user authentication through public client auth
+                // Overrides the non-interactive token source in keyvault auth.
+                builder.RegisterModule<NativeClientAuthentication>();
+            }
 
             // Register keyvaultclient factory
             builder.Register(context => {
