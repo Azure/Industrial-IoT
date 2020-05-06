@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public CertificateInfo ApplicationCertificate => new CertificateInfo {
             StorePath = GetStringOrDefault(ApplicationCertificateStorePathKey,
                 () => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                "CurrentUser\\My" : "/pki/own"),
+                "CurrentUser\\UA_MachineDefault" : "pki/own"),
             StoreType = GetStringOrDefault(ApplicationCertificateStoreTypeKey,
                 () => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                 "X509Store" : "Directory"),
@@ -45,19 +45,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
 
         /// <inheritdoc/>
         public CertificateStore TrustedIssuerCertificates => new CertificateStore {
-            StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey, () => "/pki/trusted"),
+            StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey, () => "pki/trusted"),
             StoreType = GetStringOrDefault(TrustedIssuerCertificatesTypeKey, () => "Directory"),
         };
 
         /// <inheritdoc/>
         public CertificateStore TrustedPeerCertificates => new CertificateStore {
-            StorePath = GetStringOrDefault(TrustedPeerCertificatesPathKey, () => "/pki/trusted"),
+            StorePath = GetStringOrDefault(TrustedPeerCertificatesPathKey, () => "pki/trusted"),
             StoreType = GetStringOrDefault(TrustedPeerCertificatesTypeKey, () => "Directory"),
         };
 
         /// <inheritdoc/>
         public CertificateStore RejectedCertificateStore => new CertificateStore {
-            StorePath = GetStringOrDefault(RejectedCertificateStorePathKey, () => "/pki/trusted"),
+            StorePath = GetStringOrDefault(RejectedCertificateStorePathKey, () => "pki/trusted"),
             StoreType = GetStringOrDefault(RejectedCertificateStoreTypeKey, () => "Directory"),
         };
 

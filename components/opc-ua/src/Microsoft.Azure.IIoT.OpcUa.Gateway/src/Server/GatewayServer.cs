@@ -15,8 +15,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using Opc.Ua;
     using Opc.Ua.Configuration;
@@ -27,10 +27,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using System.Text;
-    using Microsoft.Azure.IIoT.Serializers;
+    
 
     /// <summary>
     /// Gateway server controller implementation
@@ -1605,9 +1606,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
 
                 SecurityConfiguration = new SecurityConfiguration {
                     ApplicationCertificate = new CertificateIdentifier {
-                        StoreType = "Directory",
-                        StorePath =
-                "OPC Foundation/CertificateStores/MachineDefault",
+                        StoreType = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                                "X509Store" : "Directory",
+                        StorePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                                "CurrentUser\\UA_MachineDefault" :
+                                "OPC Foundation/CertificateStores/MachineDefault",
                         SubjectName = "Opc UA Gateway Server"
                     },
                     TrustedPeerCertificates = new CertificateTrustList {

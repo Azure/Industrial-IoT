@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
     using System.Threading.Tasks;
     using System.Xml;
     using System.IdentityModel.Selectors;
+    using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
@@ -119,25 +120,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                     ProductUri = "http://opcfoundation.org/UA/SampleServer",
                     SecurityConfiguration = new SecurityConfiguration {
                         ApplicationCertificate = new CertificateIdentifier {
-                            StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/MachineDefault",
-                            SubjectName = "UA Core Sample Server"
+                            StoreType = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                                CertificateStoreType.X509Store :
+                                CertificateStoreType.Directory,
+                            StorePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                                "CurrentUser\\UA_MachineDefault" :
+                                "OPC Foundation/CertificateStores/MachineDefault",
+                            SubjectName = "CN=UA Core Sample Server, C=US, O=OPC Foundation, DC=localhost"
                         },
                         TrustedPeerCertificates = new CertificateTrustList {
                             StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/UA Applications",
+                            StorePath = "OPC Foundation/CertificateStores/UA Applications",
                         },
                         TrustedIssuerCertificates = new CertificateTrustList {
                             StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/UA Certificate Authorities",
+                            StorePath = "OPC Foundation/CertificateStores/UA Certificate Authorities",
                         },
                         RejectedCertificateStore = new CertificateTrustList {
                             StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/RejectedCertificates",
+                            StorePath = "OPC Foundation/CertificateStores/RejectedCertificates",
                         },
                         AutoAcceptUntrustedCertificates = false
                     },

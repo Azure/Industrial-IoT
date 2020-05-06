@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Security.Cryptography.X509Certificates;
-    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Console host for servers
@@ -106,12 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             config = ApplicationInstance.FixupAppConfig(config);
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                config.SecurityConfiguration.ApplicationCertificate.StoreType =
-                    CertificateStoreType.X509Store;
-                config.SecurityConfiguration.ApplicationCertificate.StorePath =
-                    "CurrentUser\\UA_MachineDefault";
-            }
+
             _logger.Information("Validate configuration...");
             await config.Validate(ApplicationType.Server);
 
@@ -125,6 +119,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             };
 
             _logger.Information("Initialize certificate validation...");
+            var subjectName =
+                config.SecurityConfiguration.ApplicationCertificate.SubjectName;
+            config.SecurityConfiguration.ApplicationCertificate.SubjectName =
+                config.ApplicationName;
             await config.CertificateValidator.Update(config.SecurityConfiguration);
 
             // Use existing certificate, if it is there.
@@ -139,18 +137,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     config.SecurityConfiguration.ApplicationCertificate.StoreType,
                     config.SecurityConfiguration.ApplicationCertificate.StorePath,
                     null, config.ApplicationUri, config.ApplicationName,
-                    config.SecurityConfiguration.ApplicationCertificate.SubjectName,
+                    subjectName,
                     null, CertificateFactory.defaultKeySize,
                     DateTime.UtcNow - TimeSpan.FromDays(1),
                     CertificateFactory.defaultLifeTime,
-                    CertificateFactory.defaultHashSize,
-                    false, null, null);
+                    CertificateFactory.defaultHashSize);
 #pragma warning restore IDE0067 // Dispose objects before losing scope
             }
 
             if (cert != null) {
                 config.SecurityConfiguration.ApplicationCertificate.Certificate = cert;
                 config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
+                await config.CertificateValidator.UpdateCertificate(config.SecurityConfiguration);
             }
 
             var application = new ApplicationInstance(config);

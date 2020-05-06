@@ -11,14 +11,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
     using Microsoft.Azure.IIoT.Hub.Module.Client.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
-    using System.Runtime.InteropServices;
-    using System;
 
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
     public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig2,
-        ISecurityConfig, ITransportQuotaConfig, IClientServicesConfig {
+        ISecurityConfig, ITransportQuotaConfig {
 
         /// <inheritdoc/>
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
@@ -72,51 +70,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         public int OperationTimeout => _opc.OperationTimeout;
         /// <inheritdoc/>
         public int SecurityTokenLifetime => _opc.SecurityTokenLifetime;
-
-        /// <summary>
-        /// ClientServicesConfig
-        /// </summary>
-        private const string kAppCertStoreType = "AppCertStoreType";
-        private const string kPkiRootPath = "PkiRootPath";
-        private const string kOwnCertPath = "OwnCertPath";
-        private const string kTrustedCertPath = "TrustedCertPath";
-        private const string kIssuerCertPath = "IssuerCertPath";
-        private const string kRejectedCertPath = "RejectedCertPath";
-        private const string kAutoAccept = "AutoAccept";
-        private const string kOwnCertX509StorePathDefault = "OwnCertX509StorePathDefault";
-        private const string kSessionTimeout = "SessionTimeout";
-        private const string kOperationTimeout = "OperationTimeout";
-
-        /// <inheritdoc/>
-        public string AppCertStoreType => GetStringOrDefault(kAppCertStoreType,
-            () => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory");
-        /// <inheritdoc/>
-        public string PkiRootPath =>
-            GetStringOrDefault(kPkiRootPath, () => "pki");
-        /// <inheritdoc/>
-        public string OwnCertPath =>
-            GetStringOrDefault(kOwnCertPath, () => PkiRootPath + "/own");
-        /// <inheritdoc/>
-        public string TrustedCertPath =>
-            GetStringOrDefault(kTrustedCertPath, () => PkiRootPath + "/trusted");
-        /// <inheritdoc/>
-        public string IssuerCertPath =>
-            GetStringOrDefault(kIssuerCertPath, () => PkiRootPath + "/issuer");
-        /// <inheritdoc/>
-        public string RejectedCertPath =>
-            GetStringOrDefault(kRejectedCertPath, () => PkiRootPath + "/rejected");
-        /// <inheritdoc/>
-        public string OwnCertX509StorePathDefault =>
-            GetStringOrDefault(kOwnCertX509StorePathDefault, () => "CurrentUser\\UA_MachineDefault");
-        /// <inheritdoc/>
-        bool IClientServicesConfig.AutoAcceptUntrustedCertificates =>
-            GetBoolOrDefault(kAutoAccept, () => false);
-        /// <inheritdoc/>
-        TimeSpan? IClientServicesConfig.DefaultSessionTimeout =>
-            GetDurationOrNull(kSessionTimeout);
-        /// <inheritdoc/>
-        TimeSpan? IClientServicesConfig.OperationTimeout =>
-            GetDurationOrNull(kOperationTimeout);
 
         /// <summary>
         /// Configuration constructor

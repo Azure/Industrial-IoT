@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System;
     using System.Security.Cryptography.X509Certificates;
+    using System.Linq;
     using Opc.Ua;
 
     /// <summary>
@@ -40,20 +41,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
 
             applicationConfiguration.CertificateValidator.CertificateValidation += handler;
 
-            X509Certificate2 certificate = null;
+            var configuredSubject = applicationConfiguration.SecurityConfiguration
+                .ApplicationCertificate.SubjectName;
+            applicationConfiguration.SecurityConfiguration.ApplicationCertificate.SubjectName = 
+                applicationConfiguration.ApplicationName;
+            applicationConfiguration.CertificateValidator
+                .Update(applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
 
             // use existing certificate, if it is there
-            certificate = applicationConfiguration.SecurityConfiguration.ApplicationCertificate.Find(true).Result;
+            var certificate = applicationConfiguration.SecurityConfiguration
+                .ApplicationCertificate.Find(true).Result;
 
             // create a self signed certificate if there is none
             if (certificate == null && createSelfSignedCertIfNone) {
                 certificate = CertificateFactory.CreateCertificate(
-                    applicationConfiguration.SecurityConfiguration.ApplicationCertificate.StoreType,
-                    applicationConfiguration.SecurityConfiguration.ApplicationCertificate.StorePath,
+                    applicationConfiguration.SecurityConfiguration
+                        .ApplicationCertificate.StoreType,
+                    applicationConfiguration.SecurityConfiguration
+                        .ApplicationCertificate.StorePath,
                     null,
                     applicationConfiguration.ApplicationUri,
                     applicationConfiguration.ApplicationName,
-                    applicationConfiguration.ApplicationName,
+                    configuredSubject,
                     null,
                     CertificateFactory.defaultKeySize,
                     DateTime.UtcNow - TimeSpan.FromDays(1),
@@ -61,16 +70,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     CertificateFactory.defaultHashSize
                 );
 
-                // update security information
-                applicationConfiguration.SecurityConfiguration.ApplicationCertificate.Certificate =
-                    certificate ??
+                if (certificate == null) {
                     throw new Exception(
                         "OPC UA application certificate can not be created! Cannot continue without it!");
-                //await applicationConfiguration.CertificateValidator.UpdateCertificate(
-                   //applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
+                }
+
+                applicationConfiguration.SecurityConfiguration
+                    .ApplicationCertificate.Certificate = certificate;
+
+                try {
+                    // copy the certificate *public key only* into the trusted certificates list
+                    using (ICertificateStore trustedStore = applicationConfiguration
+                        .SecurityConfiguration.TrustedPeerCertificates.OpenStore()) {
+                        using (var publicKey = new X509Certificate2(certificate.RawData)) {
+                            trustedStore.Add(publicKey.YieldReturn());
+                        }
+                    }
+                }
+                catch { }
+
+                // update security information
+                applicationConfiguration.CertificateValidator.UpdateCertificate(
+                    applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
             }
 
             applicationConfiguration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);
+            applicationConfiguration.CertificateValidator
+                .Update(applicationConfiguration).ConfigureAwait(false);
 
             return applicationConfiguration;
         }

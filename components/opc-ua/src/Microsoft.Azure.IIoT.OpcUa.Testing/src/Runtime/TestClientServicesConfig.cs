@@ -5,50 +5,74 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.IO;
-    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Client's application configuration implementation
     /// </summary>
-    public class TestClientServicesConfig : IClientServicesConfig, IDisposable {
+    public class TestClientServicesConfig : IClientServicesConfig2, IDisposable {
 
-        /// <summary>
-        /// Pki root
-        /// </summary>
-        public const string Pki = "pki";
-
-        /// <inheritdoc/>
-        public string AppCertStoreType =>
-             RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                "X509Store" : "Directory";
 
         /// <inheritdoc/>
         public string PkiRootPath { get; }
+        
         /// <inheritdoc/>
-        public string OwnCertPath => Path.Combine(PkiRootPath, "own");
+        public string ApplicationName => _opc.ApplicationName;
         /// <inheritdoc/>
-        public string TrustedCertPath => Path.Combine(PkiRootPath, "trusted");
+        public string ApplicationUri => _opc.ApplicationUri;
         /// <inheritdoc/>
-        public string IssuerCertPath => Path.Combine(PkiRootPath, "issuer");
+        public string ProductUri => _opc.ProductUri;
         /// <inheritdoc/>
-        public string RejectedCertPath => Path.Combine(PkiRootPath, "rejected");
+        public uint DefaultSessionTimeout => _opc.DefaultSessionTimeout;
         /// <inheritdoc/>
-        public string OwnCertX509StorePathDefault => "CurrentUser\\UA_MachineDefault";
+        public int KeepAliveInterval => _opc.KeepAliveInterval;
         /// <inheritdoc/>
-        public bool AutoAcceptUntrustedCertificates { get; }
+        public uint MaxKeepAliveCount => _opc.MaxKeepAliveCount;
         /// <inheritdoc/>
-        public TimeSpan? DefaultSessionTimeout => null;
+        public int MinSubscriptionLifetime => _opc.MinSubscriptionLifetime;
         /// <inheritdoc/>
-        public TimeSpan? OperationTimeout => null;
+        public CertificateInfo ApplicationCertificate => _opc.ApplicationCertificate;
+        /// <inheritdoc/>
+        public bool AutoAcceptUntrustedCertificates { get; private set; }
+        /// <inheritdoc/>
+        public ushort MinimumCertificateKeySize => _opc.MinimumCertificateKeySize;
+        /// <inheritdoc/>
+        public CertificateStore RejectedCertificateStore => _opc.RejectedCertificateStore;
+        /// <inheritdoc/>
+        public bool RejectSha1SignedCertificates => _opc.RejectSha1SignedCertificates;
+        /// <inheritdoc/>
+        public CertificateStore TrustedIssuerCertificates => _opc.TrustedIssuerCertificates;
+        /// <inheritdoc/>
+        public CertificateStore TrustedPeerCertificates => _opc.TrustedPeerCertificates;
+        /// <inheritdoc/>
+        public int ChannelLifetime => _opc.ChannelLifetime;
+        /// <inheritdoc/>
+        public int MaxArrayLength => _opc.MaxArrayLength;
+        /// <inheritdoc/>
+        public int MaxBufferSize => _opc.MaxBufferSize;
+        /// <inheritdoc/>
+        public int MaxByteStringLength => _opc.MaxByteStringLength;
+        /// <inheritdoc/>
+        public int MaxMessageSize => _opc.MaxMessageSize;
+        /// <inheritdoc/>
+        public int MaxStringLength => _opc.MaxStringLength;
+        /// <inheritdoc/>
+        public int OperationTimeout => _opc.OperationTimeout;
+        /// <inheritdoc/>
+        public int SecurityTokenLifetime => _opc.SecurityTokenLifetime;
 
         /// <inheritdoc/>
         public TestClientServicesConfig(bool autoAccept = false) {
             AutoAcceptUntrustedCertificates = autoAccept;
-            PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), Pki,
-                Guid.NewGuid().ToByteArray().ToBase16String());
+            PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki");
+            // TODO check if add guid to ppki path?
+            //PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), Pki,
+            //    Guid.NewGuid().ToByteArray().ToBase16String());
+
+            _opc = new ClientServicesConfig2();
         }
 
         /// <inheritdoc/>
@@ -57,5 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
                 Try.Op(() => Directory.Delete(PkiRootPath, true));
             }
         }
+
+        private readonly ClientServicesConfig2 _opc;
     }
 }
