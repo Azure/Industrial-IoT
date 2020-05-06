@@ -15,8 +15,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig2,
-        ISecurityConfig, ITransportQuotaConfig {
+    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig2{
 
         /// <inheritdoc/>
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
@@ -40,6 +39,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public uint MaxKeepAliveCount => _opc.MaxKeepAliveCount;
         /// <inheritdoc/>
         public int MinSubscriptionLifetime => _opc.MinSubscriptionLifetime;
+        /// <inheritdoc/>
+        public string PkiRootPath => _opc.PkiRootPath;
         /// <inheritdoc/>
         public CertificateInfo ApplicationCertificate => _opc.ApplicationCertificate;
         /// <inheritdoc/>

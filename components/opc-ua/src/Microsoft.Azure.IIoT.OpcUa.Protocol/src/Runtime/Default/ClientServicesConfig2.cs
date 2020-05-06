@@ -49,6 +49,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public uint MaxKeepAliveCount =>
             (uint)GetIntOrDefault(MaxKeepAliveCountKey, () => 5);
 
+        /// <inheritdoc/>
+        public string PkiRootPath => _security.PkiRootPath;
 
         /// <inheritdoc/>
         public CertificateInfo ApplicationCertificate => _security.ApplicationCertificate;

@@ -15,10 +15,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
     /// </summary>
     public class TestClientServicesConfig : IClientServicesConfig2, IDisposable {
 
-
         /// <inheritdoc/>
-        public string PkiRootPath { get; }
-        
+        public string PkiRootPath { get;}
         /// <inheritdoc/>
         public string ApplicationName => _opc.ApplicationName;
         /// <inheritdoc/>
@@ -67,11 +65,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
         /// <inheritdoc/>
         public TestClientServicesConfig(bool autoAccept = false) {
             AutoAcceptUntrustedCertificates = autoAccept;
-            PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki");
-            // TODO check if add guid to ppki path?
-            //PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), Pki,
-            //    Guid.NewGuid().ToByteArray().ToBase16String());
-
+            PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
+                Guid.NewGuid().ToByteArray().ToBase16String());
             _opc = new ClientServicesConfig2();
         }
 

@@ -12,6 +12,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface ISecurityConfig {
 
         /// <summary>
+        /// PkiRootPath
+        /// </summary>
+        string PkiRootPath { get; }
+
+        /// <summary>
         /// Certificate
         /// </summary>
         CertificateInfo ApplicationCertificate { get; }
