@@ -503,6 +503,9 @@
                     "keyVaultName": {
                         "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
                     },
+                    "managedIdentityResourceId": {
+                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityResourceId.value]"
+                    },
                     "dockerServer": {
                         "value": "[parameters('dockerServer')]"
                     },
