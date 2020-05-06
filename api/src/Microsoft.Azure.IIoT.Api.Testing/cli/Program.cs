@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
                 .AddFromDotEnvFile()
-                .AddFromKeyVault()
+                .AddFromKeyVault(ConfigurationProviderPriority.Lowest, true)
                 .Build();
 
             using (var scope = new Program(config,

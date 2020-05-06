@@ -13,13 +13,6 @@
                 "description": "Specifies the level of resources that should be deployed (e.g. for a 'Minimum' deployment)."
             }
         },
-        "servicePrincipalId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Specifies the object ID of the service principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
-            }
-        },
         "serviceAppId": {
             "type": "string",
             "defaultValue": "",
@@ -57,7 +50,7 @@
         },
         "keyVaultPrincipalId": {
             "type": "string",
-            "defaultValue": "[parameters('servicePrincipalId')]",
+            "defaultValue": "",
             "metadata": {
                 "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access keyvault."
             }
@@ -340,8 +333,8 @@
                     "branchName": {
                         "value": "[parameters('branchName')]"
                     },
-                    "servicePrincipalId": {
-                        "value": "[parameters('servicePrincipalId')]"
+                    "datalakeServicePrincipalId": {
+                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityPrincipalId.value]"
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
@@ -351,6 +344,12 @@
                     },
                     "dpsIotHubLocation": {
                         "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.iotHubLocation.value]"
+                    },
+                    "eventHubNamespaceName": {
+                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.eventHubNamespaceName.value]"
+                    },
+                    "eventHubName": {
+                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.eventHubName.value]"
                     },
                     "dpsIotHubConnectionString": {
                         "reference": {
@@ -423,12 +422,6 @@
                     "templateUrl": {
                         "value": "[parameters('templateUrl')]"
                     },
-                    "keyVaultAppId": {
-                        "value": "[parameters('serviceAppId')]"
-                    },
-                    "keyVaultAppSecret": {
-                        "value": "[parameters('serviceAppSecret')]"
-                    },
                     "keyVaultName": {
                         "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
                     },
@@ -437,6 +430,12 @@
                     },
                     "managedIdentityResourceId": {
                         "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityResourceId.value]"
+                    },
+                    "managedIdentityClientId": {
+                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityClientId.value]"
+                    },
+                    "managedIdentityTenantId": {
+                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityTenantId.value]"
                     },
                     "dockerServer": {
                         "value": "[parameters('dockerServer')]"

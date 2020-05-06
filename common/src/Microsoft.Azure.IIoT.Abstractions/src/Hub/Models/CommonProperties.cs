@@ -29,10 +29,5 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// Content encoding of message
         /// </summary>
         public const string ContentEncoding = "$$ContentEncoding";
-
-        /// <summary>
-        /// Message creation time at sender
-        /// </summary>
-        public const string CreationTimeUtc = "$$CreationTimeUtc";
     }
 }

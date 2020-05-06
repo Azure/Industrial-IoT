@@ -43,11 +43,9 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                     (config, new AzureServiceTokenProvider(
                         "RunAs=Developer; DeveloperTool=VisualStudio", authority)));
             }
-            else {
-                yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
-                    (config, new AzureServiceTokenProvider(
-                        "RunAs=Developer; DeveloperTool=AzureCli", authority)));
-            }
+            yield return KeyValuePair.Create(config.Resource ?? Http.Resource.Platform,
+                (config, new AzureServiceTokenProvider(
+                    "RunAs=Developer; DeveloperTool=AzureCli", authority)));
         }
 
         private readonly List<KeyValuePair<string, (IOAuthClientConfig, AzureServiceTokenProvider)>> _config;

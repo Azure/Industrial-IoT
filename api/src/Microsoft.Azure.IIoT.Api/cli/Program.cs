@@ -110,7 +110,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 // Above configuration providers will provide connection
                 // details for KeyVault configuration provider.
-                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
+                .AddFromKeyVault(ConfigurationProviderPriority.Lowest, true)
                 .Build();
 
             using (var scope = new Program(config,

@@ -19,6 +19,10 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_TenantIdKey = "Msi:TenantId";
 
         /// <inheritdoc/>
+        public string Audience => "https://vault.azure.net";
+        /// <inheritdoc/>
+        public string Resource => Http.Resource.KeyVault;
+        /// <inheritdoc/>
         public bool IsValid => ClientId != null && TenantId != null;
         /// <inheritdoc/>
         public string Provider => AuthProvider.Msi;
@@ -35,10 +39,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// <inheritdoc/>
         public string ClientSecret => null;
 
-        /// <inheritdoc/>
-        public string Audience => null;
-        /// <inheritdoc/>
-        public string Resource => Http.Resource.KeyVault;
 
         /// <summary>
         /// Configuration constructor

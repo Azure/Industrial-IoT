@@ -153,16 +153,13 @@ namespace Microsoft.Azure.IIoT.Services.All {
                 // Minimal processes
                 var processes = new List<Task> {
                     Task.Run(() => OpcUa.Registry.Sync.Program.Main(args), _cts.Token),
-                    Task.Run(() => Processor.Onboarding.Program.Main(args), _cts.Token)
+                    Task.Run(() => Processor.Onboarding.Program.Main(args), _cts.Token),
+                    Task.Run(() => Processor.Tunnel.Program.Main(args), _cts.Token),
+                    Task.Run(() => Processor.Events.Program.Main(args), _cts.Token),
+                    Task.Run(() => Processor.Telemetry.Program.Main(args), _cts.Token),
                 };
 
                 if (!_config.IsMinimumDeployment) {
-                    processes.Add(Task.Run(() => Processor.Events.Program.Main(args),
-                        _cts.Token));
-                    processes.Add(Task.Run(() => Processor.Tunnel.Program.Main(args),
-                        _cts.Token));
-                    processes.Add(Task.Run(() => Processor.Telemetry.Program.Main(args),
-                        _cts.Token));
                     processes.Add(Task.Run(() => Processor.Telemetry.Cdm.Program.Main(args),
                         _cts.Token));
                 }
@@ -171,8 +168,8 @@ namespace Microsoft.Azure.IIoT.Services.All {
 
             /// <inheritdoc/>
             public Task StartAsync() {
-                // Delay start by 5 seconds to let api boot up
-                return Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ => Start());
+                // Delay start by 10 seconds to let api boot up first
+                return Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ => Start());
             }
 
             /// <inheritdoc/>

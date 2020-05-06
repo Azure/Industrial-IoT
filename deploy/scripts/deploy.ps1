@@ -134,7 +134,7 @@ Function Select-Context() {
             if (!$script:interactive) {
                 throw "Provide a subscription to use using -subscriptionId or -subscriptionName"
             }
-            Write-Host "Please choose a subscription from this list (using its Index):"
+            Write-Host "Please choose a subscription from this list (using its index):"
             $script:index = 0
             $subscriptions | Format-Table -AutoSize -Property `
                  @{Name="Index"; Expression = {($script:index++)}},`
@@ -170,10 +170,10 @@ Function Select-Context() {
     }
     # If file does not exist yet - ask
     if (!(Test-Path $contextFile) -and $script:interactive) {
-        $reply = Read-Host -Prompt "Save credentials in .user file [y/n]"
+        $reply = Read-Host -Prompt "To avoid logging in again next time, would you like to save your credentials? [y/n]"
         if ($reply -match "[yY]") {
-            Write-Host ".user file will be used as persisted context."
-            Write-Host "Enure you do not share it and do delete it when no longer needed."
+            Write-Host "Your Azure login context will be saved into a .user file in the root of the local repo."
+            Write-Host "Make sure you do not share it and delete it when no longer needed."
             $writeProfile = $true
         }
     }
@@ -470,29 +470,22 @@ Function Get-EnvironmentVariables() {
     if (![string]::IsNullOrEmpty($script:resourceGroupName)) {
         Write-Output "PCS_RESOURCE_GROUP=$($script:resourceGroupName)"
     }
-
     $var = $deployment.Outputs["keyVaultUri"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_KEYVAULT_URL=$($var)"
     }
-    $var = $script:aadConfig.ServiceId
+    $var = $script:aadConfig.ClientId
     if (![string]::IsNullOrEmpty($var)) {
-        Write-Output "PCS_KEYVAULT_APPID=$($var)"
-        $var = $script:aadConfig.ServiceSecret
-        if (![string]::IsNullOrEmpty($var)) {
-            Write-Output "PCS_KEYVAULT_SECRET=$($var)"
-        }
-        $var = $deployment.Outputs["tenantId"].Value
-        if (![string]::IsNullOrEmpty($var)) {
-            Write-Output "PCS_AUTH_TENANT=$($var)"
-        }
+        Write-Output "PCS_AUTH_PUBLIC_CLIENT_APPID=$($var)"
     }
-
+    $var = $deployment.Outputs["tenantId"].Value
+    if (![string]::IsNullOrEmpty($var)) {
+        Write-Output "PCS_AUTH_TENANT=$($var)"
+    }
     $var = $deployment.Outputs["tsiUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_TSI_URL=$($var)"
     }
-
     $var = $deployment.Outputs["serviceUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_SERVICE_URL=$($var)"
@@ -616,7 +609,7 @@ Function New-Deployment() {
                 }
             }
             catch {
-                Write-Warning "$($_.Exception.Message).  Using master branch."
+                Write-Warning "Unable to detect current branch. Using master branch to deploy from."
                 $script:repo = "https://github.com/Azure/Industrial-IoT"
                 $script:branchName = "master"
             }
@@ -754,9 +747,7 @@ Function New-Deployment() {
         $script:aadConfig = Get-Content -Raw -Path $script:aadConfig | ConvertFrom-Json
     }
 
-    if (![string]::IsNullOrEmpty($script:aadConfig.ServicePrincipalId)) {
-        $templateParameters.Add("servicePrincipalId", $script:aadConfig.ServicePrincipalId)
-    }
+    # Register registered aad applications
     if (![string]::IsNullOrEmpty($script:aadConfig.ServiceId)) {
         $templateParameters.Add("serviceAppId", $script:aadConfig.ServiceId)
     }
@@ -779,6 +770,11 @@ Function New-Deployment() {
         $templateParameters.Add("authorityUri", $script:aadConfig.Authority)
     }
 
+    # Register current aad user to access keyvault
+    if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
+        $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.UserPrincipalId)
+    }
+
     # register providers
     $script:requiredProviders | ForEach-Object {
         Register-AzResourceProvider -ProviderNamespace $_
@@ -786,17 +782,16 @@ Function New-Deployment() {
 
     while ($true) {
         try {
-            Write-Host "Starting deployment..."
-
             if (![string]::IsNullOrEmpty($adminUser) -and ![string]::IsNullOrEmpty($adminPassword)) {
                 Write-Host
-                Write-Host "To troubleshoot simulation use the following User and Password to log into the VM's:"
+                Write-Host "The following User and Password can be used to log into deployed VM's:"
                 Write-Host
                 Write-Host $adminUser
                 Write-Host $adminPassword
                 Write-Host
             }
 
+            Write-Host "Starting deployment..."
             # Start the deployment
             $templateFilePath = Join-Path (Join-Path (Split-Path $ScriptDir) "templates") "azuredeploy.json"
             $deployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `

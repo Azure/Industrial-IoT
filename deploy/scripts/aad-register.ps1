@@ -1,4 +1,4 @@
-<#
+﻿<#
  .SYNOPSIS
     Registers required applications
 
@@ -183,13 +183,14 @@ Function New-ADApplications() {
                 -TenantId $context.Tenant.Id `
                 -AccountId $context.Account.Id `
                 -Credential $context.Account.Credential
-            }
+        }
         catch {
             # For some accounts $context.Account.Id may be first.last@something.com which might 
             # not be correct UserPrincipalName. In those cases we will prompt for another login.
             $creds = Connect-AzureAD `
                 -AzureEnvironmentName $context.Environment.Name `
                 -TenantId $context.Tenant.Id `
+        
         }
 
         if (!$creds) {
@@ -309,10 +310,6 @@ Function New-ADApplications() {
         $appRoles.Add($approverRole)
         $appRoles.Add($adminRole)
 
-        $knownApplications = New-Object System.Collections.Generic.List[System.String]
-        $knownApplications.Add($clientAadApplication.AppId)
-        $knownApplications.Add($webAadApplication.AppId)
-
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Microsoft Graph" `
@@ -322,14 +319,29 @@ Function New-ADApplications() {
             -requiredDelegatedPermissions "user_impersonation"
         $requiredResourcesAccess.Add($requiredPermissions)
 
+        $knownApplications = New-Object System.Collections.Generic.List[System.String]
+        $knownApplications.Add($clientAadApplication.AppId)
+        $knownApplications.Add($webAadApplication.AppId)
+        $knownApplications.Add("04b07795-8ddb-461a-bbee-02f9e1bf7b46")
+        $knownApplications.Add("872cd9fa-d31f-45e0-9eab-6e460a02d1f1")
+
         Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
             -KnownClientApplications $knownApplications `
             -AppRoles $appRoles `
             -RequiredResourceAccess $requiredResourcesAccess | Out-Null
-        Write-Host "'$($serviceDisplayName)' updated with required resource access, app roles and known applications."
 
-        # Read updated app roles for service principal
+        # Read updated service principal
         $serviceServicePrincipal = Get-AzureADServicePrincipal -Filter "AppId eq '$($serviceAadApplication.AppId)'"
+
+        # Add 1) Azure CLI and 2) Visual Studio to allow log onto the platform with them as clients
+        Add-PreauthorizedApplication -servicePrincipal $serviceServicePrincipal `
+            -azureAppObjectId $serviceAadApplication.ObjectId `
+            -azurePreAuthAppId "04b07795-8ddb-461a-bbee-02f9e1bf7b46" -context $context | Out-Null
+        Add-PreauthorizedApplication -servicePrincipal $serviceServicePrincipal `
+            -azureAppObjectId $serviceAadApplication.ObjectId `
+            -azurePreAuthAppId "872cd9fa-d31f-45e0-9eab-6e460a02d1f1" -context $context | Out-Null
+
+        Write-Host "'$($serviceDisplayName)' updated with required resource access, app roles and known applications."
 
         # Add current user as Writer, Approver and Administrator for service application
         try {
@@ -412,6 +424,8 @@ Function New-ADApplications() {
             WebAppPrincipalId  = $webAadApplication.ObjectId
             WebAppSecret       = $webSecret.Value
             WebAppDisplayName  = $webDisplayName
+
+            UserPrincipalId    = $user.ObjectId
         }
     }
     catch {
@@ -441,12 +455,12 @@ Function Add-AdminConsentGrant() {
     $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/$($azureAppId)/Consent?onBehalfOfAll=true"
     for ($i = 0; $i -lt 20; $i++) {
         # try 20 times * 3 seconds = 1 minute
+        $token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate( `
+            $context.Account, $context.Environment, $context.Tenant.Id, $null, "Never", $null, "74658136-14ec-4630-ad9b-26e160ff0fc6")
+        if (!$token) {
+            throw "Failed to get auth token for $($context.Tenant.Id)."
+        }
         try {
-            $token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate( `
-                    $context.Account, $context.Environment, $context.Tenant.Id, $null, "Never", $null, "74658136-14ec-4630-ad9b-26e160ff0fc6")
-            if (!$token) {
-                throw "Failed to get auth token for $($context.Tenant.Id)."
-            }
             $header = @{
                 "Authorization"          = "Bearer $($token.AccessToken)"
                 "X-Requested-With"       = "XMLHttpRequest"
@@ -463,6 +477,48 @@ Function Add-AdminConsentGrant() {
         }
     }
     throw "Failed to grant consent for $($azureAppId)."
+}
+
+#*******************************************************************************************************
+# Add preauthorize application
+#*******************************************************************************************************
+Function Add-PreauthorizedApplication() {
+    Param(
+        $servicePrincipal,
+        [string] $azureAppObjectId,
+        [string] $azurePreAuthAppId,
+        [Microsoft.Azure.Commands.Profile.Models.Core.PSAzureContext] $context
+    )
+
+    $url = "https://graph.microsoft.com/beta/applications/" + $azureAppObjectId
+    for ($i = 0; $i -lt 3; $i++) {
+        $token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate( `
+            $context.Account, $context.Environment, $context.Tenant.Id, $null, "Never", $null, "https://graph.microsoft.com")
+        if (!$token) {
+            break
+        }
+        try {
+            $header = @{
+                "Authorization" = "Bearer $($token.AccessToken)"
+                "Content-Type"  = "application/json"
+            }
+            $preAuthBody = "{`"api`": {`"preAuthorizedApplications`": [{`"appId`": `"" + $azurePreAuthAppId + "`","
+            $preAuthBody += "`"permissionIds`": [" 
+            foreach ($permission in $servicePrincipal.Oauth2Permissions) {
+                $preAuthBody += "`"" + $permission.Id + "`","
+            }
+            $preAuthBody = $preAuthBody.Trim(',');
+            $preAuthBody += "]}]}}"
+            Invoke-RestMethod -Uri $url -Method PATCH -Body $preAuthBody -Headers $header
+            # success
+            return
+        }
+        catch {
+            Write-Verbose "$($_.Exception.Message) at $($url) - Retrying..."
+            Start-Sleep -s 3
+        }
+    }
+    Write-Verbose "Give up - manually pre-authorize application $($azurePreAuthAppId) in Expose Api..."
 }
 
 #*******************************************************************************************************

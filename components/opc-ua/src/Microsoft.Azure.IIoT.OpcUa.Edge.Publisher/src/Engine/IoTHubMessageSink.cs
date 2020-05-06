@@ -111,15 +111,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 msg.Properties.Add(CommonProperties.ContentEncoding, contentEncoding);
                 msg.ContentEncoding = contentEncoding;
             }
-            msg.Properties.Add(CommonProperties.CreationTimeUtc,
-                msg.CreationTimeUtc.ToString());
             return msg;
         }
 
         private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
         private readonly ILogger _logger;
         private readonly IClientAccessor _clientAccessor;
-        private static readonly Gauge kMessagesSent = Metrics.CreateGauge("iiot_edge_publisher_messages", "Number of messages sent to IotHub");
-        private static readonly Histogram kSendingDuration = Metrics.CreateHistogram("iiot_edge_publisher_messages_duration", "Histogram of message sending durations");
+        private static readonly Gauge kMessagesSent =
+            Metrics.CreateGauge("iiot_edge_publisher_messages", "Number of messages sent to IotHub");
+        private static readonly Histogram kSendingDuration =
+            Metrics.CreateHistogram("iiot_edge_publisher_messages_duration", "Histogram of message sending durations");
     }
 }
