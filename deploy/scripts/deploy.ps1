@@ -72,13 +72,13 @@ param(
     [string] $aadApplicationName,
     [string] $acrRegistryName,
     [string] $acrSubscriptionName,
-    $aadConfig,
-    $context = $null,
-    [switch] $testAllDeploymentOptions,
     [string] $simulationProfile,
     [int] $numberOfLinuxGateways = 0,
     [int] $numberOfWindowsGateways = 0,
     [int] $numberOfSimulationsPerEdge = 0,
+    $aadConfig,
+    $context = $null,
+    [switch] $testAllDeploymentOptions,
     [string] $environmentName = "AzureCloud"
 )
 
@@ -716,23 +716,23 @@ Function New-Deployment() {
         else {
             $templateParameters.Add("simulationProfile", $script:simulationProfile)
         }
-        if ((-not $numberOfLinuxGateways) -or ($numberOfLinuxGateways -eq 0)) {
+        if ((-not $script:numberOfLinuxGateways) -or ($script:numberOfLinuxGateways -eq 0)) {
             $templateParameters.Add("numberOfLinuxGateways", 1)
         }
         else {
-            $templateParameters.Add("numberOfLinuxGateways", 1)
+            $templateParameters.Add("numberOfLinuxGateways", $script:numberOfLinuxGateways)
         }
-        if ((-not $numberOfWindowsGateways) -or ($numberOfWindowsGateways -eq 0)) {
+        if ((-not $script:numberOfWindowsGateways) -or ($script:numberOfWindowsGateways -eq 0)) {
             $templateParameters.Add("numberOfWindowsGateways", 1)
         }
         else {
-            $templateParameters.Add("numberOfWindowsGateways", 1)
+            $templateParameters.Add("numberOfWindowsGateways", $script:numberOfWindowsGateways)
         }
-        if ((-not $numberOfSimulations) -or ($numberOfSimulations -eq 0)) {
+        if ((-not $script:numberOfSimulationsPerEdge) -or ($script:numberOfSimulationsPerEdge -eq 0)) {
             $templateParameters.Add("numberOfSimulations", 1)
         }
         else {
-            $templateParameters.Add("numberOfSimulations", 1)
+            $templateParameters.Add("numberOfSimulations", $script:numberOfSimulationsPerEdge)
         }
 
         # Get all vm skus available in the location and in the account
