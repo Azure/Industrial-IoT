@@ -46,10 +46,16 @@
 
  .PARAMETER environmentName
     The cloud environment to use (defaults to Azure Cloud).
+
+ .PARAMETER simulationName
+    The cloud environment to use (defaults to Azure Cloud).
+
+ .PARAMETER simulationCount
+    The cloud environment to use (defaults to Azure Cloud).
 #>
 
 param(
-    [ValidateSet("minimum", "local", "services", "app", "all")] [string] $type = "all",
+    [ValidateSet("minimum", "local", "services", "simulation", "app", "all")] [string] $type = "all",
     [string] $version,
     [string] $applicationName,
     [string] $resourceGroupName,
@@ -63,6 +69,8 @@ param(
     $aadConfig,
     $context = $null,
     [switch] $testAllDeploymentOptions,
+    [string] $simulationName,
+    [int] $simulationCount = 0,
     [string] $environmentName = "AzureCloud"
 )
 
@@ -621,10 +629,11 @@ Function New-Deployment() {
     $templateParameters.Add("branchName", $script:branchName)
     $templateParameters.Add("repoUrl", $script:repo)
 
-    if (($script:type -eq "local") -or ($script:type -eq "minimum")) {
+    # Select an application name
+    if (($script:type -eq "local") -or ($script:type -eq "minimum") -or ($script:type -eq "simulation")) {
         if ([string]::IsNullOrEmpty($script:applicationName) `
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
-            $script:applicationName = $script:resourceGroupName
+            $script:applicationName = $script:resourceGroupName.Replace('_', '-')
         }
         if ($script:type -eq "minimum") {
             $templateParameters.Add("deploymentLevel", "Minimum")
@@ -653,7 +662,16 @@ Function New-Deployment() {
                 $script:applicationName = $script:resourceGroupName
             }
         }
-
+        if (($script:type -eq "all") -or ($script:type -eq "app")) {
+            $templateParameters.Add("siteName", $script:applicationName)
+        }
+        if ($script:type -eq "services") {
+            $templateParameters.Add("serviceSiteName", $script:applicationName)
+        }
+    }
+    
+    # Select docker images to use
+    if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
         if ([string]::IsNullOrEmpty($script:version)) {
             $script:version = "latest"
         }
@@ -680,50 +698,45 @@ Function New-Deployment() {
             $templateParameters.Add("dockerServer", "mcr.microsoft.com")
             Write-Host "Using $($script:version) images from mcr.microsoft.com."
         }
+    }
 
-        if ($script:type -eq "all") {
-            $templateParameters.Add("siteName", $script:applicationName)
-            $templateParameters.Add("numberOfLinuxGateways", 1)
-            $templateParameters.Add("numberOfWindowsGateways", 1)
-            $templateParameters.Add("numberOfSimulations", 1)
+    # Configure simulation
+    if (($script:type -eq "all") -or ($script:type -eq "simulation")) {
+        $templateParameters.Add("numberOfLinuxGateways", 1)
+        $templateParameters.Add("numberOfWindowsGateways", 1)
+        $templateParameters.Add("numberOfSimulations", 1)
+        $templateParameters.Add("simulation", "default")
 
-            # Get all vm skus available in the location and in the account
-            $availableVms = Get-AzComputeResourceSku | Where-Object {
-                ($_.ResourceType.Contains("virtualMachines")) -and `
-                ($_.Locations -icontains $script:resourceGroupLocation) -and `
-                ($_.Restrictions.Count -eq 0)
-            }
-            # Sort based on sizes and filter minimum requirements
-            $availableVmNames = $availableVms `
-                | Select-Object -ExpandProperty Name -Unique
-            $vmSizes = Get-AzVMSize $script:resourceGroupLocation `
-                | Where-Object { $availableVmNames -icontains $_.Name } `
-                | Where-Object {
-                    ($_.NumberOfCores -ge 2) -and `
-                    ($_.MemoryInMB -ge 8192) -and `
-                    ($_.OSDiskSizeInMB -ge 1047552) -and `
-                    ($_.ResourceDiskSizeInMB -gt 8192)
-                } `
-                | Sort-Object -Property `
-                    NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
-            # Pick top
-            if ($vmSizes.Count -ne 0) {
-                $vmSize = $vmSizes[0].Name
-                Write-Host "Using $($vmSize) as VM size for all edge simulation hosts..."
-                $templateParameters.Add("edgeVmSize", $vmSize)
-            }
+        # Get all vm skus available in the location and in the account
+        $availableVms = Get-AzComputeResourceSku | Where-Object {
+            ($_.ResourceType.Contains("virtualMachines")) -and `
+            ($_.Locations -icontains $script:resourceGroupLocation) -and `
+            ($_.Restrictions.Count -eq 0)
+        }
+        # Sort based on sizes and filter minimum requirements
+        $availableVmNames = $availableVms `
+            | Select-Object -ExpandProperty Name -Unique
+        $vmSizes = Get-AzVMSize $script:resourceGroupLocation `
+            | Where-Object { $availableVmNames -icontains $_.Name } `
+            | Where-Object {
+                ($_.NumberOfCores -ge 2) -and `
+                ($_.MemoryInMB -ge 8192) -and `
+                ($_.OSDiskSizeInMB -ge 1047552) -and `
+                ($_.ResourceDiskSizeInMB -gt 8192)
+            } `
+            | Sort-Object -Property `
+                NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
+        # Pick top
+        if ($vmSizes.Count -ne 0) {
+            $vmSize = $vmSizes[0].Name
+            Write-Host "Using $($vmSize) as VM size for all edge simulation hosts..."
+            $templateParameters.Add("edgeVmSize", $vmSize)
+        }
 
-            $adminUser = "sandboxuser"
-            $adminPassword = New-Password
-            $templateParameters.Add("edgePassword", $adminPassword)
-            $templateParameters.Add("edgeUserName", $adminUser)
-        }
-        if ($script:type -eq "app") {
-            $templateParameters.Add("siteName", $script:applicationName)
-        }
-        if ($script:type -eq "services") {
-            $templateParameters.Add("serviceSiteName", $script:applicationName)
-        }
+        $adminUser = "sandboxuser"
+        $adminPassword = New-Password
+        $templateParameters.Add("edgePassword", $adminPassword)
+        $templateParameters.Add("edgeUserName", $adminUser)
     }
 
     $aadAddReplyUrls = $false
@@ -773,6 +786,7 @@ Function New-Deployment() {
     # Register current aad user to access keyvault
     if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
         $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.UserPrincipalId)
+        $templateParameters.Add("datalakeServicePrincipalId", $script:aadConfig.UserPrincipalId)
     }
 
     # register providers
