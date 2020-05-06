@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Net;
     using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
@@ -1601,7 +1602,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 ApplicationName = "Opc UA Gateway Server",
                 ApplicationType = Opc.Ua.ApplicationType.ClientAndServer,
                 ApplicationUri =
-                    $"urn:{Utils.GetHostName()}:Microsoft:OpcGatewayServer",
+                    $"urn:{Dns.GetHostName()}:Microsoft:OpcGatewayServer",
                 ProductUri = "http://opcfoundation.org/UA/SampleServer",
 
                 SecurityConfiguration = new SecurityConfiguration {

@@ -119,10 +119,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             };
 
             _logger.Information("Initialize certificate validation...");
-            var subjectName =
-                config.SecurityConfiguration.ApplicationCertificate.SubjectName;
-            config.SecurityConfiguration.ApplicationCertificate.SubjectName =
-                config.ApplicationName;
             await config.CertificateValidator.Update(config.SecurityConfiguration);
 
             // Use existing certificate, if it is there.
@@ -137,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     config.SecurityConfiguration.ApplicationCertificate.StoreType,
                     config.SecurityConfiguration.ApplicationCertificate.StorePath,
                     null, config.ApplicationUri, config.ApplicationName,
-                    subjectName,
+                    config.SecurityConfiguration.ApplicationCertificate.SubjectName,
                     null, CertificateFactory.defaultKeySize,
                     DateTime.UtcNow - TimeSpan.FromDays(1),
                     CertificateFactory.defaultLifeTime,
@@ -162,7 +158,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             // Set certificate
-            Certificate = cert;
+            try {
+                // just take the public key
+                Certificate = new X509Certificate2(cert.RawData);
+            }
+            catch {
+                Certificate = cert;
+            }
 
             _logger.Information("Starting server ...");
             // start the server.

@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
@@ -112,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
                     ApplicationUri =
-                $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
+                $"urn:{Dns.GetHostName()}:OPCFoundation:CoreSampleServer",
 
                     Extensions = new XmlElementCollection(
                         extensions.Select(XmlElementEx.SerializeObject)),
@@ -125,20 +126,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                                 CertificateStoreType.Directory,
                             StorePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                                 "CurrentUser\\UA_MachineDefault" :
-                                "OPC Foundation/CertificateStores/MachineDefault",
-                            SubjectName = "CN=UA Core Sample Server, C=US, O=OPC Foundation, DC=localhost"
+                                "pki/own",
+                            SubjectName = "UA Core Sample Server"
                         },
                         TrustedPeerCertificates = new CertificateTrustList {
                             StoreType = "Directory",
-                            StorePath = "OPC Foundation/CertificateStores/UA Applications",
+                            StorePath = "pki/trusted",
                         },
                         TrustedIssuerCertificates = new CertificateTrustList {
                             StoreType = "Directory",
-                            StorePath = "OPC Foundation/CertificateStores/UA Certificate Authorities",
+                            StorePath = "pki/issuer",
                         },
                         RejectedCertificateStore = new CertificateTrustList {
                             StoreType = "Directory",
-                            StorePath = "OPC Foundation/CertificateStores/RejectedCertificates",
+                            StorePath = "pki/rejected",
                         },
                         AutoAcceptUntrustedCertificates = false
                     },
