@@ -33,13 +33,13 @@ azure:
       endpoint: null
 
       # Details of two consumer groups that are required by microservices.
-      # NOTE: consumer groups should have different values.
+      # NOTE: all consumer groups should have different values.
       consumerGroup:
         # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for eventsProcessor microservices. Its recommended value is 'events'.
         events: null
         # azure.iotHub.eventHub.consumerGroup.telemetry is name of consumer group of built-in EventHub for telemetryProcessor microservices. Its recommended value is 'telemetry'.
         telemetry: null
-        # azure.iotHub.eventHub.consumerGroup.tunnel is name of consumer group of built-in EventHub for tunnelprocessor microservices. Its recommended value is 'tunnel'.
+        # azure.iotHub.eventHub.consumerGroup.tunnel is name of consumer group of built-in EventHub for tunnelProcessor microservices. Its recommended value is 'tunnel'.
         tunnel: null
         # azure.iotHub.eventHub.consumerGroup.onboarding is name of consumer group of built-in EventHub for onboarding microservices. Its recommended value is 'onboarding'.
         onboarding: null
