@@ -110,7 +110,7 @@ azure:
       consumerGroup:
         # azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm is name of consumer group for telemetryCdmProcessor microservices. Its recommended value is 'telemetry_cdm'.
         telemetryCdm: null
-        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx is name of consumer group for telemetryUxProcessor microservices. Its recommended value is 'telemetry_ux'.
+        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx is name of consumer group for events microservices. Its recommended value is 'telemetry_ux'.
         telemetryUx: null
 
   # Details of Azure Service Bus Namespace that microservices will use.

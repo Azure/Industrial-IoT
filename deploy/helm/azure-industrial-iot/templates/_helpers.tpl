@@ -101,10 +101,6 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "telemetry-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.telemetry-ux-processor.fullname" -}}
-{{- printf "%s-%s" .Release.Name "telemetry-ux-processor" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{/*
 app.kubernetes.io/component labels of Industrial-IoT microservices.
 
@@ -164,10 +160,6 @@ Those are used in Service selectors so they have to be unique for each microserv
 
 {{- define "azure-industrial-iot.telemetry-processor.component" -}}
 {{- "industrial-iot-telemetry-processor" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.telemetry-ux-processor.component" -}}
-{{- "industrial-iot-telemetry-ux-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
