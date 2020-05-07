@@ -136,6 +136,13 @@ azure:
     # azure.applicationInsights.instrumentationKey is the instrumentation key of Application Insights instance.
     instrumentationKey: null
 
+  # Provide details of Azure Log Analytics Workspace instance to enable metrics and log collection from IoT Edge modules.
+  logAnalyticsWorkspace:
+    # azure.logAnalyticsWorkspace.id is the ID of Log Analytics Workspace instance.
+    id: null
+    # azure.logAnalyticsWorkspace.key is the key for connecting a device to Log Analytics Workspace instance.
+    key: null
+
   # Details of SignalR service.
   signalR:
     # azure.signalR.connectionString is the connection string for your SignalR instance.
