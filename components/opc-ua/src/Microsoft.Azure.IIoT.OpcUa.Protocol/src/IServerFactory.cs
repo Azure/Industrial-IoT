@@ -17,6 +17,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <returns></returns>
         ApplicationConfiguration CreateServer(IEnumerable<int> ports,
-            out ServerBase server);
+            string pkiRootPath, out ServerBase server);
     }
 }

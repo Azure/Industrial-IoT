@@ -62,10 +62,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
         }
 
         /// <inheritdoc/>
-        public ApplicationConfiguration CreateServer(IEnumerable<int> ports,
+        public ApplicationConfiguration CreateServer(IEnumerable<int> ports, string applicationName,
             out ServerBase server) {
             server = new Server(LogStatus, _nodes, _logger);
-            return Server.CreateServerConfiguration(ports);
+            return Server.CreateServerConfiguration(ports, applicationName);
         }
 
         /// <inheritdoc/>
@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
             /// <param name="ports"></param>
             /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(
-                IEnumerable<int> ports) {
+                IEnumerable<int> ports, string pkiRootPath) {
                 var extensions = new List<object> {
                     new MemoryBuffer.MemoryBufferConfiguration {
                         Buffers = new MemoryBuffer.MemoryBufferInstanceCollection {
@@ -109,12 +109,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
 
                     /// ...
                 };
+                if (string.IsNullOrEmpty(pkiRootPath)) {
+                    pkiRootPath = "pki";
+                }
                 return new ApplicationConfiguration {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
-                    ApplicationUri =
-                $"urn:{Dns.GetHostName()}:OPCFoundation:CoreSampleServer",
-
+                    ApplicationUri = $"urn:{Dns.GetHostName()}:OPCFoundation:CoreSampleServer",
                     Extensions = new XmlElementCollection(
                         extensions.Select(XmlElementEx.SerializeObject)),
 
@@ -126,20 +127,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                                 CertificateStoreType.Directory,
                             StorePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                                 "CurrentUser\\UA_MachineDefault" :
-                                "pki/own",
-                            SubjectName = "UA Core Sample Server"
+                                $"{pkiRootPath}/own",
+                            SubjectName = "UA Core Sample Server",
                         },
                         TrustedPeerCertificates = new CertificateTrustList {
                             StoreType = "Directory",
-                            StorePath = "pki/trusted",
+                            StorePath = $"{pkiRootPath}/trusted",
                         },
                         TrustedIssuerCertificates = new CertificateTrustList {
                             StoreType = "Directory",
-                            StorePath = "pki/issuer",
+                            StorePath = $"{pkiRootPath}/issuer",
                         },
                         RejectedCertificateStore = new CertificateTrustList {
                             StoreType = "Directory",
-                            StorePath = "pki/rejected",
+                            StorePath = $"{pkiRootPath}/rejected",
                         },
                         AutoAcceptUntrustedCertificates = true,
                         AddAppCertToTrustedStore = true

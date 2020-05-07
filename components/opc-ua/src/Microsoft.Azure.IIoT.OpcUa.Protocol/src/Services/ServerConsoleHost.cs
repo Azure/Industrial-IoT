@@ -20,7 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public X509Certificate2 Certificate { get; private set; }
-
+        /// <inheritdoc/>
+        public string PkiRootPath { get; set; }
         /// <inheritdoc/>
         public bool AutoAccept { get; set; }
 
@@ -69,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 await _lock.WaitAsync();
                 try {
                     if (_server == null) {
-                        await StartServerInternalAsync(ports);
+                        await StartServerInternalAsync(ports, PkiRootPath);
                         return;
                     }
                 }
@@ -96,11 +97,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Start server
         /// </summary>
         /// <param name="ports"></param>
+        /// <param name="pkiRootPath"></param>
         /// <returns></returns>
-        private async Task StartServerInternalAsync(IEnumerable<int> ports) {
+        private async Task StartServerInternalAsync(IEnumerable<int> ports, string pkiRootPath) {
             ApplicationInstance.MessageDlg = new DummyDialog();
 
-            var config = _factory.CreateServer(ports, out _server);
+            var config = _factory.CreateServer(ports, pkiRootPath, out _server);
             _logger.Information("Server created...");
 
             config = ApplicationInstance.FixupAppConfig(config);
