@@ -338,6 +338,14 @@
                         "tenantId": "[subscription().tenantId]",
                         "objectId": "[parameters('keyVaultPrincipalId')]",
                         "permissions": {
+                            "keys": [
+                                "get",
+                                "list",
+                                "sign",
+                                "unwrapKey",
+                                "wrapKey",
+                                "create"
+                            ],
                             "secrets": [
                                 "get",
                                 "list",
