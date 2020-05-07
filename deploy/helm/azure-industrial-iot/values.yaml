@@ -147,6 +147,8 @@ azure:
   signalR:
     # azure.signalR.connectionString is the connection string for your SignalR instance.
     connectionString: null
+    # azure.signalR.serviceMode is the service mode of your SignalR instance.
+    serviceMode: null
 
   auth:
     # azure.auth.required defines whether to require authentication for all exposed web APIs.
