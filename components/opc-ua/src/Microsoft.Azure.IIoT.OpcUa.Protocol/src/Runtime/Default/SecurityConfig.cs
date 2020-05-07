@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
 
         /// <inheritdoc/>
         public CertificateStore TrustedIssuerCertificates => new CertificateStore {
-            StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey, () => $"{PkiRootPath}/trusted"),
+            StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey, () => $"{PkiRootPath}/issuers"),
             StoreType = GetStringOrDefault(TrustedIssuerCertificatesTypeKey, () => "Directory"),
         };
 
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
 
         /// <inheritdoc/>
         public CertificateStore RejectedCertificateStore => new CertificateStore {
-            StorePath = GetStringOrDefault(RejectedCertificateStorePathKey, () => $"{PkiRootPath}/trusted"),
+            StorePath = GetStringOrDefault(RejectedCertificateStorePathKey, () => $"{PkiRootPath}/rejected"),
             StoreType = GetStringOrDefault(RejectedCertificateStoreTypeKey, () => "Directory"),
         };
 
