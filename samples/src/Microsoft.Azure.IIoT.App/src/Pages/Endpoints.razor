@@ -60,7 +60,7 @@
     <tbody>
         @foreach (var endpoint in _pagedendpointList.Results)
         {
-            <tr>
+            <tr class="activated-@IsEndpointActivated(endpoint).ToString().ToLower()">
                 @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
                      endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
                 {
@@ -83,8 +83,7 @@
                 <td>@endpoint.EndpointModel.Registration.SecurityLevel</td>
                 <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
                 <td>
-                    @if (endpoint.EndpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                      endpoint.EndpointModel.ActivationState == EndpointActivationState.Activated)
+                    @if (IsEndpointActivated(endpoint))
                     {
                         @if (endpoint.EndpointModel.NotSeenSince != null)
                         {
@@ -210,6 +209,17 @@
         {
             await _endpointEvents.DisposeAsync();
         }
+    }
+
+    /// <summary>
+    /// Checks whether the endpoint is activated
+    /// </summary>
+    /// <param name="endpoint">The endpoint info</param>
+    /// <returns>True if the endpoint is activated, false otherwise</returns>
+    private bool IsEndpointActivated(EndpointInfo endpoint)
+    {
+        return endpoint.EndpointModel.ActivationState == EndpointActivationState.Activated ||
+               endpoint.EndpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected;
     }
 
     /// <summary>
