@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using System;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Linq;
     using Opc.Ua;
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Configuration extensions
@@ -21,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="handler"></param>
         /// <param name="createSelfSignedCertIfNone"></param>
         /// <returns></returns>
-        public static ApplicationConfiguration ToApplicationConfiguration(
+        public static async Task<ApplicationConfiguration> ToApplicationConfiguration(
             this IClientServicesConfig2 opcConfig, bool createSelfSignedCertIfNone,
             CertificateValidationEventHandler handler) {
             if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName)) {
@@ -45,8 +46,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 .ApplicationCertificate.SubjectName;
             applicationConfiguration.SecurityConfiguration.ApplicationCertificate.SubjectName = 
                 applicationConfiguration.ApplicationName;
-            applicationConfiguration.CertificateValidator
-                .Update(applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
+            await applicationConfiguration.CertificateValidator
+                .Update(applicationConfiguration.SecurityConfiguration);
 
             // use existing certificate, if present
             var certificate = applicationConfiguration.SecurityConfiguration
@@ -88,8 +89,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 }
                 catch { }
                 // update security information
-                applicationConfiguration.CertificateValidator.UpdateCertificate(
-                    applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
+                await applicationConfiguration.CertificateValidator.UpdateCertificate(
+                    applicationConfiguration.SecurityConfiguration);
             }
 
             applicationConfiguration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);

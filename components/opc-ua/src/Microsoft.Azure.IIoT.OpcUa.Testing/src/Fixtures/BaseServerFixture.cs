@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             Logger.Information("Disposing server and client fixture...");
             _serverHost.Dispose();
             // Clean up all created certificates
-            var certFolder = Path.Combine(Directory.GetCurrentDirectory(), "OPC Foundation");
+            var certFolder = Path.Combine(Directory.GetCurrentDirectory(), "pki");
             if (Directory.Exists(certFolder)) {
                 Logger.Information("Server disposed - cleaning up server certificates...");
                 Try.Op(() => Directory.Delete(certFolder, true));

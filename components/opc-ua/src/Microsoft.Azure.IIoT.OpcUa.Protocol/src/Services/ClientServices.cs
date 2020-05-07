@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _clientConfig = clientConfig ??
                 throw new ArgumentNullException(nameof(clientConfig));
             _maxOpTimeout = maxOpTimeout;
-            _appConfig = _clientConfig.ToApplicationConfiguration(true, VerifyCertificate);
+            _appConfig = _clientConfig.ToApplicationConfiguration(true, VerifyCertificate).Result;
             // Create discovery config and client certificate
             _timer = new Timer(_ => OnTimer(), null, kEvictionCheck, Timeout.InfiniteTimeSpan);
         }

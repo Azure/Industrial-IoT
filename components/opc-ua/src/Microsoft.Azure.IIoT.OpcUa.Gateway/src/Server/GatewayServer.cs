@@ -1599,11 +1599,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         /// </summary>
         private async Task InitAsync() {
             var config = new ApplicationConfiguration {
-                ApplicationName = "Opc UA Gateway Server",
+                // TODO provide proper naming here
+                ApplicationName = "Microsoft.Azure.IIoT.Gateway",
                 ApplicationType = Opc.Ua.ApplicationType.ClientAndServer,
                 ApplicationUri =
-                    $"urn:{Dns.GetHostName()}:Microsoft:OpcGatewayServer",
-                ProductUri = "http://opcfoundation.org/UA/SampleServer",
+                    $"urn:{Dns.GetHostName()}:Microsoft:Azure.IIoT.Gateway",
+                ProductUri = "https://www.github.com/Azure/Industrial-IoT",
 
                 SecurityConfiguration = new SecurityConfiguration {
                     ApplicationCertificate = new CertificateIdentifier {
@@ -1611,23 +1612,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                                 "X509Store" : "Directory",
                         StorePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
                                 "CurrentUser\\UA_MachineDefault" :
-                                "OPC Foundation/CertificateStores/MachineDefault",
-                        SubjectName = "Opc UA Gateway Server"
+                                "pki/own",
+                        SubjectName = "Microsoft.Azure.IIoT.Gateway"
                     },
                     TrustedPeerCertificates = new CertificateTrustList {
                         StoreType = "Directory",
-                        StorePath =
-                "OPC Foundation/CertificateStores/UA Applications",
+                        StorePath = "pki/trusted",
                     },
                     TrustedIssuerCertificates = new CertificateTrustList {
                         StoreType = "Directory",
-                        StorePath =
-                "OPC Foundation/CertificateStores/UA Certificate Authorities",
+                        StorePath = "pki/issuers",
                     },
                     RejectedCertificateStore = new CertificateTrustList {
                         StoreType = "Directory",
-                        StorePath =
-                "OPC Foundation/CertificateStores/RejectedCertificates",
+                        StorePath = "pki/rejected"
                     },
                     AutoAcceptUntrustedCertificates = false
                 },
@@ -1690,8 +1688,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
 
             await config.CertificateValidator.Update(config.SecurityConfiguration);
             // Use existing certificate, if it is there.
-            var cert = await config.SecurityConfiguration.ApplicationCertificate
-                .Find(true);
+            var cert = config.SecurityConfiguration.ApplicationCertificate.Certificate;
             if (cert == null) {
                 // Create cert
 #pragma warning disable IDE0067 // Dispose objects before losing scope
@@ -1706,12 +1703,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     CertificateFactory.defaultHashSize,
                     false, null, null);
 #pragma warning restore IDE0067 // Dispose objects before losing scope
-            }
-
-            if (cert != null) {
+                
                 config.SecurityConfiguration.ApplicationCertificate.Certificate = cert;
-                config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
+                await config.CertificateValidator.UpdateCertificate(config.SecurityConfiguration);
             }
+            config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
 
             var application = new ApplicationInstance(config);
 

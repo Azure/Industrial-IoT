@@ -110,7 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             };
 
-            var applicationConfiguration = _clientConfig.ToApplicationConfiguration(
+            var applicationConfiguration = await _clientConfig.ToApplicationConfiguration(
                 true, OnValidate);
             var endpointConfiguration = _clientConfig.ToEndpointConfiguration();
 
