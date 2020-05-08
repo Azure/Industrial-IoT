@@ -83,6 +83,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string MaxMessageSize = "MaxMessageSize";
 
         /// <summary>
+        /// Key for the trusted issuer certificates.
+        /// </summary>
+        public const string MassMonitoredItems = "MassMonitoredItems";
+
+        /// <summary>
         /// Key for the time for the logfile to flush to disc in seconds.
         /// </summary>
         public const string LogFileFlushTimeSpanSec = "LogFileFlushTimeSpan";
