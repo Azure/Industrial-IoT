@@ -1,0 +1,75 @@
+﻿@*------------------------------------------------------------
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+    Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
+
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.AspNetCore.Components;
+@using OpcUa.Api.Publisher.Models;
+
+@inject Registry RegistryHelper
+
+<div class="drawer-content list-group">
+    <div class="list-group-item text-justify list-group-item-heading">
+        <b>Enter configuration parameters.</b>
+        <br><b>To apply default config leave the input field blank and click on apply</b>
+    </div>
+    <hr />
+    <div class="list-group-item text-left">
+        <div class="label">
+            Node Id:
+            <div class="body">@NodeData.Id</div>
+        </div><br />
+        <div class="label">
+            Display Name:
+            <div class="body">@NodeData.NodeName</div>
+        </div><br />
+        <form>
+            <div class="form-group">
+                <div class="label">Publishing Interval ms</div>
+                <input @bind="@NodeData.RequestedPublishingInterval" aria-label="PublishingInterval" type="text" class="form-control" placeholder="@(NodeData.RequestedPublishingInterval)" />
+            </div><br />
+            <div class="form-group"> 
+                <div class="label">Sampling Interval ms </div>
+                <input @bind="@NodeData.RequestedSamplingInterval" aria-label="SamplingInterval" type="text" class="form-control" placeholder="@(NodeData.RequestedSamplingInterval)" />
+            </div><br />
+            <div class="form-group">
+                <div class="label">Heartbeat Interval sec</div>
+                <input @bind="@NodeData.RequestedHeartbeatInterval" aria-label="HeartbeatInterval" type="text" class="form-control" placeholder="@(NodeData.RequestedHeartbeatInterval)" />
+            </div><br />
+            <hr />
+            <div>
+                <button @onclick="@(async() => await UpdatePublishedNodeConfigAsync(NodeData))" type="button" class="btn btn-primary shadow-none">Apply</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public ListNode NodeData { get; set; }
+
+    [Parameter]
+    public EventCallback Onclick { get; set; }
+
+    /// <summary>
+    /// OnInitialized
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        if (NodeData.PublishedItem == null)
+        {
+            NodeData.PublishedItem = new PublishedItemApiModel();
+        }
+    }
+
+
+    /// <summary>
+    /// Close Drawer and update discovery
+    /// </summary>
+    /// <param name="discoverer"></param>
+    private async Task UpdatePublishedNodeConfigAsync(ListNode node)
+    {
+        await Onclick.InvokeAsync(node);
+    }
+}
