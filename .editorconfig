@@ -15,6 +15,13 @@ tab_width = 4
 end_of_line = crlf
 insert_final_newline = false
 
+# JSON files, shell scripts
+[*.json, *.sh]
+
+# New line preferences
+end_of_line = lf
+insert_final_newline = true
+
 #### .NET Coding Conventions ####
 
 # Organize usings
