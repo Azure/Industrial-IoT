@@ -763,3 +763,8 @@ deployment:
     #   hosts:
     #   - myapp.domain.com
     tls: []
+
+# Prometheus metrics values. 
+prometheus:
+  # prometheus.scrape determines whether to add Pod annotations for Prometheus metrics scraping or not.
+  scrape: true
