@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="createSelfSignedCertIfNone"></param>
         /// <returns></returns>
         public static async Task<ApplicationConfiguration> ToApplicationConfigurationAsync(
-            this IClientServicesConfig2 opcConfig, bool createSelfSignedCertIfNone,
+            this IClientServicesConfig opcConfig, bool createSelfSignedCertIfNone,
             CertificateValidationEventHandler handler) {
             if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName)) {
                 throw new ArgumentNullException(nameof(opcConfig.ApplicationName));

@@ -115,17 +115,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the OPC Session creation timeout in seconds.
         /// </summary>
-        public const string OpcSessionCreationTimeout = ClientServicesConfig2.DefaultSessionTimeoutKey;
+        public const string OpcSessionCreationTimeout = ClientServicesConfig.DefaultSessionTimeoutKey;
 
         /// <summary>
         /// Key for the OPC Keep Alive Interval in seconds.
         /// </summary>
-        public const string OpcKeepAliveIntervalInSec = ClientServicesConfig2.KeepAliveIntervalKey;
+        public const string OpcKeepAliveIntervalInSec = ClientServicesConfig.KeepAliveIntervalKey;
 
         /// <summary>
         /// Key for the disconnect thresholt for missed keep alive signals.
         /// </summary>
-        public const string OpcKeepAliveDisconnectThreshold = ClientServicesConfig2.MaxKeepAliveCountKey;
+        public const string OpcKeepAliveDisconnectThreshold = ClientServicesConfig.MaxKeepAliveCountKey;
 
         /// <summary>
         /// Key for the flag to trust own certificate.

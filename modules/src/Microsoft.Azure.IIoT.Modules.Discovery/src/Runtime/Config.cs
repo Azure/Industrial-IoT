@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Runtime {
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig2{
+    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig{
 
         /// <inheritdoc/>
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
@@ -79,10 +79,10 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
             _module = new ModuleConfig(configuration);
-            _opc = new ClientServicesConfig2(configuration);
+            _opc = new ClientServicesConfig(configuration);
         }
 
-        private readonly ClientServicesConfig2 _opc;
+        private readonly ClientServicesConfig _opc;
         private readonly ModuleConfig _module;
     }
 }

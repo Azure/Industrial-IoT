@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="clientConfig"></param>
         /// <param name="logger"></param>
         /// <param name="maxOpTimeout"></param>
-        public ClientServices(ILogger logger, IClientServicesConfig2 clientConfig,
+        public ClientServices(ILogger logger, IClientServicesConfig clientConfig,
             TimeSpan? maxOpTimeout = null) {
 
             _logger = logger ??
@@ -520,7 +520,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private const int kMaxDiscoveryAttempts = 3;
         private readonly ILogger _logger;
         private readonly TimeSpan? _maxOpTimeout;
-        private readonly IClientServicesConfig2 _clientConfig;
+        private readonly IClientServicesConfig _clientConfig;
         private readonly ApplicationConfiguration _appConfig;
         private readonly Dictionary<ConnectionIdentifier, IClientSession> _clients =
             new Dictionary<ConnectionIdentifier, IClientSession>();
