@@ -2,9 +2,9 @@
 
 [Home](readme.md)
 
-All the cloud microservices of Industrial IoT platform have been instrumented with Prometheus already. 
+All the cloud microservices of Industrial IoT platform have been instrumented with Prometheus already. Edge modules are instrumented with Prometheus as well.
 
-Four types of metrics are available in Prometheus: Counter, Gauge, Summary and Histogram. Please check the documentation on [metric types](http://prometheus.io/docs/concepts/metric_types/) and [instrumentation best practices](http://prometheus.io/docs/practices/instrumentation/#counter-vs.-gauge-vs.-summary) to learn what each is good for.
+Four types of metrics are available in Prometheus: Counter, Gauge, Summary and Histogram. Please check the official documentation on [metric types](http://prometheus.io/docs/concepts/metric_types/) and [instrumentation best practices](http://prometheus.io/docs/practices/instrumentation/#counter-vs.-gauge-vs.-summary) to learn what each is good for.
 
 **The Metrics class is the main entry point to the API of this library.** The most common practice in C# code is to have a `static readonly` field for each metric that you wish to export from a given class.
 
@@ -128,3 +128,8 @@ When monitor_kubernetes_pods = true, replicaset will scrape Kubernetes pods for 
   - prometheus.io/path: If the metrics path is not /metrics, define it with this annotation.
   - prometheus.io/port: If port is not 9102 use this annotation
 ```
+
+## Next steps
+
+* [Learn about edge diagnostics using prometheus](../modules/metricscollector.md)
+* [Learn how to install iot edge](../deploy/howto-install-iot-edge.md)
