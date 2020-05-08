@@ -37,7 +37,7 @@
     <tbody>
         @foreach (var application in _pagedapplicationList.Results)
         {
-            <tr>
+            <tr class="@((application.NotSeenSince != null? "enabled-false" : "enabled-true"))">
                 <td>
                     @{
                         CommonHelper.ApplicationUri.AddOrUpdate(application.ApplicationId, application.ApplicationUri);

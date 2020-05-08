@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Test {
         /// <param name="config"></param>
         public ControllerTestClient(IHttpClient httpClient, ITwinConfig config,
             ISerializer serializer) {
-            _serviceUri = config?.OpcUaTwinServiceUrl ??
+            _serviceUri = config?.OpcUaTwinServiceUrl?.TrimEnd('/') ??
                 throw new ArgumentNullException(nameof(config));
             _httpClient = httpClient ??
                 throw new ArgumentNullException(nameof(httpClient));
