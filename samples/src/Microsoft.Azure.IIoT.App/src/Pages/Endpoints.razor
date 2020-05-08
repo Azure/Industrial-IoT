@@ -239,15 +239,15 @@
     {
         if (!this.IsEndpointSeen(endpoint))
         {
-            return "seen-false";
+            return "enabled-false";
         }
         else if (this.IsEndpointActivated(endpoint))
         {
-            return "seen-true activated-true";
+            return "enabled-true activated-true";
         }
         else
         {
-            return "seen-true";
+            return "enabled-true";
         }
     }
 

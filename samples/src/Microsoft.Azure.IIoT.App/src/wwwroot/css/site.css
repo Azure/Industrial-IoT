@@ -274,11 +274,11 @@ a.adhocmargin {
     font-weight: bold;
 }
 
-.seen-true {
+.enabled-true {
     color: black
 }
 
-.seen-false {
+.enabled-false {
     color: gray
 }
 
