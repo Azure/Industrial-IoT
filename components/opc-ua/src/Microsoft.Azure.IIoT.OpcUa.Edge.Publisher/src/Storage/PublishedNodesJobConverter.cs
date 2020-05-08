@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             null : ToUserNamePasswordCredentialAsync(item).Result
                     },
                     // Select and batch nodes into published data set sources
-                    item => GetNodeModels(item, legacyCliModel.MassMonitoredItems.GetValueOrDefault(1)),
+                    item => GetNodeModels(item, legacyCliModel.ScaleTestCount.GetValueOrDefault(1)),
                     // Comparer for connection information
                     new FuncCompare<ConnectionModel>((x, y) => x.IsSameAs(y)))
                 .Select(group => group
@@ -180,10 +180,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Get the node models from entry
         /// </summary>
         /// <param name="item"></param>
-        /// <param name="massMonitoredItems"></param>
+        /// <param name="scaleTestCount"></param>
         /// <returns></returns>
         private IEnumerable<OpcNodeModel> GetNodeModels(PublishedNodesEntryModel item,
-            int massMonitoredItems = 1) {
+            int scaleTestCount = 1) {
 
             if (item.OpcNodes != null) {
                 foreach (var node in item.OpcNodes) {
@@ -193,11 +193,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     if (string.IsNullOrEmpty(node.DisplayName)) {
                         node.DisplayName = node.Id;
                     }
-                    if (massMonitoredItems == 1) {
+                    if (scaleTestCount == 1) {
                         yield return node;
                     }
                     else {
-                        for (var i = 0; i < massMonitoredItems; i++) {
+                        for (var i = 0; i < scaleTestCount; i++) {
                             yield return new OpcNodeModel {
                                 Id = node.Id,
                                 DisplayName = $"{node.DisplayName}_{i}",

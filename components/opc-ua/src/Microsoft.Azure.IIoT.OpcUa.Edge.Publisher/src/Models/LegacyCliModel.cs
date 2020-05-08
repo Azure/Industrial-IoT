@@ -164,6 +164,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// force mass monitored item clones
         /// </summary>
-        public int? MassMonitoredItems { get; set; }
+        public int? ScaleTestCount { get; set; }
     }
 }
