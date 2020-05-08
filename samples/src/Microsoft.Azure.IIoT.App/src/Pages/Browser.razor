@@ -76,6 +76,7 @@
             <th>Node Type</th>
             <th>Value</th>
             <th>Publishing</th>
+            <th>Publishing Config</th>
             <th>
                 @if (PagedNodeList.Results.Count > 0)
                 {
@@ -115,6 +116,7 @@
                 else if (node.NodeClass == NodeClass.Method)
                 {
                     <td>
+                        @{_drawerType = drawer.Action;}
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
                             @node.NodeClass
                         </a>
@@ -150,15 +152,35 @@
                 @if (node.NodeClass == NodeClass.Variable)
                 {
                     <td>
-                        <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishing(EndpointId, node, EventArgs))" />
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                            @{string output = (node.Publishing == true && node.PublishedItem != null) ? $"On, sampling {node.PublishedItem?.SamplingInterval.Value.TotalMilliseconds} ms" : "Off";}
-                            @output
-                        </a>
+                        <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishingAsync(EndpointId, node, EventArgs))" />
+                        @{string output = (node.Publishing == true) ? "On" : "Off";}
+                        @output 
+                    </td>
+                    <td>
+                        @{_drawerType = drawer.Publisher;}
+                        @if (node.Publishing == true && node.PublishedItem != null)
+                        {
+                            <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                                @(node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
+                            </a>
+                            <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                                @(node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
+                            </a>
+                            <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                                @(node.PublishedItem.HeartbeatInterval == null ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
+                               <br />
+                            </a>
+                        }
+                        else
+                        {
+                            <label>N/A</label>
+                        }
+
                     </td>
                 }
                 else
                 {
+                    <td>N/A</td>
                     <td>N/A</td>
                 }
             </tr>
@@ -170,7 +192,14 @@
 <ErrorMessage PageError="@PagedNodeList.Error" Status="@null"></ErrorMessage>
 
 <Drawer HeaderText="Select Action" ObjectData="@NodeData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
-    <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" PagedNodeList="@PagedNodeList" Credential="@Credential"></_DrawerActionContent>
+    @if (_drawerType == drawer.Action)
+    {
+        <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" PagedNodeList="@PagedNodeList" Credential="@Credential"></_DrawerActionContent>
+    }
+    else
+    {
+        <_DrawerPublisherContent NodeData="@NodeData" Onclick="((NodeData) => ClickHandler((ListNode)NodeData))"></_DrawerPublisherContent>
+    }
 </Drawer>
 
 <Pager Result=@NodeList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
@@ -204,6 +233,12 @@
     private string _tableView = "visible";
     private string _tableEmpty = "displayNone";
     private List<string> _parentId { get; set; }
+    private enum drawer
+    {
+        Action = 0,
+        Publisher
+    }
+    private drawer _drawerType { get; set; }
 
 
     /// <summary>
@@ -333,40 +368,64 @@
     }
 
     /// <summary>
+    /// Manage Publishing a node
+    /// </summary>
+    /// <param name="endpointId"></param>
+    /// <param name="node"></param>
+    private async Task SetPublishingAsync(string endpointId, ListNode node, ChangeEventArgs ev)
+    {
+        if ((bool)ev?.Value)
+        {
+            await PublishNodeAsync(endpointId, node);
+        }
+        else
+        {
+            await UnPublishNodeAsync(endpointId, node);
+        }
+    }
+
+    /// <summary>
     /// Publish a node
     /// </summary>
     /// <param name="endpointId"></param>
     /// <param name="node"></param>
-    private async Task SetPublishing(string endpointId, ListNode node, ChangeEventArgs ev)
+    private async Task PublishNodeAsync(string endpointId, ListNode node)
     {
-        if ((bool)ev.Value)
+        node.Publishing = true;
+        var publishingInterval = node.PublishedItem?.PublishingInterval == null ? TimeSpan.FromMilliseconds(1000) : node.PublishedItem.PublishingInterval;
+        var samplingInterval = node.PublishedItem?.SamplingInterval == null ? TimeSpan.FromMilliseconds(1000) : node.PublishedItem.SamplingInterval;
+        var heartbeatInterval = node.PublishedItem?.HeartbeatInterval;
+        var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, samplingInterval, publishingInterval, heartbeatInterval, Credential);
+        if (result)
         {
-            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, 1000, 1000, Credential);
-            if (result)
+            node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel()
             {
-                node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel()
-                {
-                    NodeId = node.Id,
-                    DisplayName = node.NodeName,
-                    PublishingInterval = TimeSpan.FromMilliseconds(1000),
-                    SamplingInterval = TimeSpan.FromMilliseconds(1000)
-                };
-                node.Publishing = true;
-            }
-            else
-            {
-                node.PublishedItem = null;
-                node.Publishing = false;
-            }
+                NodeId = node.Id,
+                DisplayName = node.NodeName,
+                PublishingInterval = publishingInterval,
+                SamplingInterval = samplingInterval,
+                HeartbeatInterval = heartbeatInterval
+            };
         }
         else
         {
-            var result = await Publisher.StopPublishingAsync(endpointId, node.Id, Credential);
-            if (result)
-            {
-                node.PublishedItem = null;
-                node.Publishing = false;
-            }
+            node.PublishedItem = null;
+            node.Publishing = false;
+        }
+    }
+
+    /// <summary>
+    /// UnPublish a node
+    /// </summary>
+    /// <param name="endpointId"></param>
+    /// <param name="node"></param>
+    private async Task UnPublishNodeAsync(string endpointId, ListNode node)
+    {
+        var result = await Publisher.StopPublishingAsync(endpointId, node.Id, Credential);
+        if (result)
+        {
+            node.PublishedItem = null;
+            node.Publishing = false;
         }
     }
 
@@ -407,6 +466,15 @@
             }
         }
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// ClickHandler
+    /// </summary>
+    async Task ClickHandler(ListNode node)
+    {
+        CloseDrawer();
+        await PublishNodeAsync(EndpointId, node);
     }
 
     /// <summary>

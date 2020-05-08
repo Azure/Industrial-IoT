@@ -38,6 +38,7 @@
             <th>Security Policy</th>
             <th>Security Level</th>
             <th>Endpoint State</th>
+            <th>Toggle Endpoint</th>
             <th>Activation Status</th>
             <th> </th>
             <th>
@@ -77,7 +78,8 @@
                     <td>@endpoint.EndpointModel.Registration.Endpoint.Url</td>
                 }
                 <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityMode</td>
-                <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy</td>
+            	 @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
+            	<td>@securityPolicy</td>
                 <td>@endpoint.EndpointModel.Registration.SecurityLevel</td>
                 <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
                 <td>
@@ -93,7 +95,7 @@
                             <input type="checkbox" checked
                                    @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
                         }
-                        @endpoint.EndpointModel.ActivationState.ToString()
+                        <label>Active</label>
                     }
                     else
                     {
@@ -106,9 +108,10 @@
                             <input type="checkbox"
                                    @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
                         }
-                        @endpoint.EndpointModel.ActivationState.ToString()
+               			<label></label>
                     }
                 </td>
+				<td>@endpoint.EndpointModel.ActivationState.ToString()</td>
                 <td>
                     <a class="ellipsis-space" href='publishedNodes/@endpoint.EndpointModel.Registration.Id'>Published Nodes</a>
                 </td>
