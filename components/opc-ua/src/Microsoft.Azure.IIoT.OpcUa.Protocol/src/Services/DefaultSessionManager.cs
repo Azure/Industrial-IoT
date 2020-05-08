@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="clientConfig"></param>
         /// <param name="logger"></param>
-        public DefaultSessionManager(IClientServicesConfig2 clientConfig, ILogger logger) {
+        public DefaultSessionManager(IClientServicesConfig clientConfig, ILogger logger) {
             _logger = logger;
             _clientConfig = clientConfig;
             _lock = new SemaphoreSlim(1, 1);
@@ -110,7 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             };
 
-            var applicationConfiguration = _clientConfig.ToApplicationConfiguration(
+            var applicationConfiguration = await _clientConfig.ToApplicationConfigurationAsync(
                 true, OnValidate);
             var endpointConfiguration = _clientConfig.ToEndpointConfiguration();
 
@@ -403,7 +403,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         private readonly ILogger _logger;
-        private readonly IClientServicesConfig2 _clientConfig;
+        private readonly IClientServicesConfig _clientConfig;
         private readonly Dictionary<ConnectionIdentifier, SessionWrapper> _sessions =
             new Dictionary<ConnectionIdentifier, SessionWrapper>();
         private readonly SemaphoreSlim _lock;
