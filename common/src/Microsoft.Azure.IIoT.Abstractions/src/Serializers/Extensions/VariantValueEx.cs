@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// <returns></returns>
         public static T GetValueOrDefault<T>(this Dictionary<string, VariantValue> dict,
             string key, T defaultValue) {
-            if (dict != null && dict.TryGetValue(key, out var token)) {
+            if (dict != null && dict.TryGetValue(key, out var token) && token != null) {
                 try {
                     return token.ConvertTo<T>();
                 }
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// <returns></returns>
         public static T? GetValueOrDefault<T>(this Dictionary<string, VariantValue> dict,
             string key, T? defaultValue) where T : struct {
-            if (dict != null && dict.TryGetValue(key, out var token)) {
+            if (dict != null && dict.TryGetValue(key, out var token) && token != null) {
                 try {
                     // Handle enumerations serialized as string
                     if (typeof(T).IsEnum &&
