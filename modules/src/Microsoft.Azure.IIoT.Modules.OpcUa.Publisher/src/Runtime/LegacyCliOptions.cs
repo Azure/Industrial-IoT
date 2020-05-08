@@ -149,6 +149,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int i) => this[LegacyCliConfigKeys.BatchSize] = i.ToString() },
                     { "ms|iothubmessagesize=", "the maximum size of the (IoT D2C) message.",
                         (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
+                    { "sc|scaletestcount=", "the number of monitored item clones in scale tests",
+                        (int i) => this[LegacyCliConfigKeys.ScaleTestCount] = i.ToString() },
 
                     // Legacy unsupported
                     { "si|iothubsendinterval=", "Legacy - do not use.", _ => {} },
@@ -271,7 +273,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 RejectedCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcRejectedCertStorePath),
                 TrustedIssuerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcIssuerCertStorePath),
                 BatchSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.BatchSize, 1),
-                MaxMessageSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.MaxMessageSize, 0)
+                MaxMessageSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.MaxMessageSize, 0),
+                ScaleTestCount = GetValueOrDefault<int?>(LegacyCliConfigKeys.ScaleTestCount, 1)
             };
         }
 
