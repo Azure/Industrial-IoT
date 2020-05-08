@@ -60,7 +60,7 @@
     <tbody>
         @foreach (var endpoint in _pagedendpointList.Results)
         {
-            <tr class="activated-@IsEndpointActivated(endpoint).ToString().ToLower()">
+            <tr class="@GetEndpointVisibilityString(endpoint)">
                 @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
                      endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
                 {
@@ -85,7 +85,7 @@
                 <td>
                     @if (IsEndpointActivated(endpoint))
                     {
-                        @if (endpoint.EndpointModel.NotSeenSince != null)
+                        @if (!IsEndpointSeen(endpoint))
                         {
                             <input type="checkbox" checked disabled />
                         }
@@ -98,7 +98,7 @@
                     }
                     else
                     {
-                        @if (endpoint.EndpointModel.NotSeenSince != null)
+                        @if (!IsEndpointSeen(endpoint))
                         {
                             <input type="checkbox" disabled />
                         }
@@ -111,9 +111,12 @@
                     }
                 </td>
 				<td>@endpoint.EndpointModel.ActivationState.ToString()</td>
-                <td>
-                    <a class="ellipsis-space" href='publishedNodes/@endpoint.EndpointModel.Registration.Id'>Published Nodes</a>
-                </td>
+                @if (IsEndpointSeen(endpoint) && IsEndpointActivated(endpoint))
+                {
+                    <td>
+                        <a class="ellipsis-space" href='publishedNodes/@endpoint.EndpointModel.Registration.Id'>Published Nodes</a>
+                    </td>
+                }
                 <td></td>
             </tr>
         }
@@ -211,6 +214,11 @@
         }
     }
 
+    private bool IsEndpointSeen(EndpointInfo endpoint)
+    {
+        return endpoint.EndpointModel?.NotSeenSince == null;
+    }
+
     /// <summary>
     /// Checks whether the endpoint is activated
     /// </summary>
@@ -219,7 +227,28 @@
     private bool IsEndpointActivated(EndpointInfo endpoint)
     {
         return endpoint.EndpointModel.ActivationState == EndpointActivationState.Activated ||
-               endpoint.EndpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected;
+             endpoint.EndpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected;
+    }
+
+    /// <summary>
+    /// Creates a css string for an endpoint row based on activity and availability of the endpoint
+    /// </summary>
+    /// <param name="endpoint">The endpoint info</param>
+    /// <returns>The css string</returns>
+    private string GetEndpointVisibilityString(EndpointInfo endpoint)
+    {
+        if (!this.IsEndpointSeen(endpoint))
+        {
+            return "seen-false";
+        }
+        else if (this.IsEndpointActivated(endpoint))
+        {
+            return "seen-true activated-true";
+        }
+        else
+        {
+            return "seen-true";
+        }
     }
 
     /// <summary>

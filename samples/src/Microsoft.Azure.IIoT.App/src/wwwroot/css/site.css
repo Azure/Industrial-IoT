@@ -271,10 +271,14 @@ a.adhocmargin {
 }
 
 .activated-true {
+    font-weight: bold;
+}
+
+.seen-true {
     color: black
 }
 
-.activated-false {
+.seen-false {
     color: gray
 }
 
