@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
@@ -32,15 +31,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <param name="serializer"></param>
         /// <param name="config"></param>
         /// <param name="cryptoProvider"></param>
-        /// <param name="identity"></param>
         public PublishedNodesJobConverter(ILogger logger,
-            IJsonSerializer serializer, IIdentity identity,
-            IEngineConfiguration config = null, ISecureElement cryptoProvider = null) {
+            IJsonSerializer serializer, IEngineConfiguration config = null,
+            ISecureElement cryptoProvider = null) {
             _config = config;
             _cryptoProvider = cryptoProvider;
             _serializer = serializer ?? throw new ArgumentNullException(nameof(logger));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _identity = identity ?? throw new ArgumentNullException(nameof(identity));
         }
 
         /// <summary>
@@ -88,7 +85,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             null : ToUserNamePasswordCredentialAsync(item).Result
                     },
                     // Select and batch nodes into published data set sources
-                    item => GetNodeModels(item),
+                    item => GetNodeModels(item, legacyCliModel.ScaleTestCount.GetValueOrDefault(1)),
                     // Comparer for connection information
                     new FuncCompare<ConnectionModel>((x, y) => x.IsSameAs(y)))
                 .Select(group => group
@@ -97,7 +94,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     .Flatten()
                     .GroupBy(n => n.OpcPublishingInterval)
                     .SelectMany(n => n
-                        .Distinct((a, b) => a.Id == b.Id && a.OpcSamplingInterval == b.OpcSamplingInterval)
+                        .Distinct((a, b) => a.Id == b.Id && a.DisplayName == b.DisplayName && 
+                                    a.OpcSamplingInterval == b.OpcSamplingInterval)
                         .Batch(1000))
                     .Select(opcNodes => new PublishedDataSetSourceModel {
                         Connection = group.Key.Clone(),
@@ -108,7 +106,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         PublishedVariables = new PublishedDataItemsModel {
                             PublishedData = opcNodes
                                 .Select(node => new PublishedDataSetVariableModel {
-                                    Id = node.Id,
+                                    // this is the monitopred item id, not the nodeId!
+                                    // Use the display name if any otherwisw the nodeId
+                                    Id = string.IsNullOrEmpty(node.DisplayName)
+                                        ? node.Id : node.DisplayName,
                                     PublishedVariableNodeId = node.Id,
                                     PublishedVariableDisplayName = node.DisplayName,
                                     SamplingInterval = node.OpcSamplingIntervalTimespan ??
@@ -179,14 +180,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Get the node models from entry
         /// </summary>
         /// <param name="item"></param>
+        /// <param name="scaleTestCount"></param>
         /// <returns></returns>
-        private IEnumerable<OpcNodeModel> GetNodeModels(PublishedNodesEntryModel item) {
+        private IEnumerable<OpcNodeModel> GetNodeModels(PublishedNodesEntryModel item,
+            int scaleTestCount = 1) {
+
             if (item.OpcNodes != null) {
                 foreach (var node in item.OpcNodes) {
                     if (string.IsNullOrEmpty(node.Id)) {
                         node.Id = node.ExpandedNodeId;
                     }
-                    yield return node;
+                    if (string.IsNullOrEmpty(node.DisplayName)) {
+                        node.DisplayName = node.Id;
+                    }
+                    if (scaleTestCount == 1) {
+                        yield return node;
+                    }
+                    else {
+                        for (var i = 0; i < scaleTestCount; i++) {
+                            yield return new OpcNodeModel {
+                                Id = node.Id,
+                                DisplayName = $"{node.DisplayName}_{i}",
+                                ExpandedNodeId = node.ExpandedNodeId,
+                                HeartbeatInterval = node.HeartbeatInterval,
+                                HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
+                                OpcPublishingInterval = node.OpcPublishingInterval,
+                                OpcPublishingIntervalTimespan = node.OpcPublishingIntervalTimespan,
+                                OpcSamplingInterval = node.OpcSamplingInterval,
+                                OpcSamplingIntervalTimespan = node.OpcSamplingIntervalTimespan,
+                                SkipFirst = node.SkipFirst
+                            };
+                        }
+                    }
                 }
             }
             if (item.NodeId?.Identifier != null) {
@@ -377,6 +402,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         private readonly ISecureElement _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
-        private readonly IIdentity _identity;
     }
 }

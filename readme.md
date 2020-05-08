@@ -27,25 +27,25 @@ We have also built a configuration application running on Azure that lets you ac
 
 The minimal deployment script deploys the following managed Azure services into your Azure subscription:
 
-- 1 IoT Hub with 4 partitions, S1 SKU (to communicate with the edge and ingress raw OPC UA telemetry data)
-- 1 Key Vault, Premium SKU (to manage secrets and certificates)
-- 1 Service Bus, Standard SKU (as integration event bus)
-- 1 Event Hub with 4 partitions and 2 day retention, Standard SKU (contains processed and contextualized OPC UA telemetry data)
-- 1 Cosmos DB with Session consistency level (to persist state that is not persisted in IoT Hub)
-- 1 Blob Storage V2, Standard LRS SKU (for event hub checkpointing)
+- 1 [IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/) with 4 partitions, S1 SKU (to communicate with the edge and ingress raw OPC UA telemetry data)
+- 1 [Key Vault](https://azure.microsoft.com/en-us/services/key-vault/), Premium SKU (to manage secrets and certificates)
+- 1 [Service Bus](https://azure.microsoft.com/en-us/services/service-bus/), Standard SKU (as integration event bus)
+- 1 [Event Hubs](https://azure.microsoft.com/en-us/services/event-hubs/) with 4 partitions and 2 day retention, Standard SKU (contains processed and contextualized OPC UA telemetry data)
+- 1 [Cosmos DB](https://azure.microsoft.com/en-us/services/cosmos-db/) with Session consistency level (to persist state that is not persisted in IoT Hub)
+- 1 [Blob Storage](https://azure.microsoft.com/en-us/services/storage/) V2, Standard LRS SKU (for event hub checkpointing)
 
-Optionally, Azure Kubernetes Services can be used to host the cloud micro-services (this is currently in preview, please see our documentation).
+[Azure Kubernetes Services](https://azure.microsoft.com/en-us/services/kubernetes-service/) should be used to host the cloud micro-services (this is currently in preview, please see our documentation).
 
-The full deployment script deploys the following additional managed Azure services into your Azure subscription:
+Alternatively, the full deployment script deploys the following additional managed Azure services into your Azure subscription and deploys the cloud micro-services into an App Service instance:
 
-- 1 Data Lake Storage V2, Standard LRS SKU (used to connect Power BI to the platform, see tutorial)
-- 1 Time Series Insights, Pay As You Go SKU, 1 Scale Unit
-- 1 Blob Storage V2, Standard LRS SKU (used for long-term storage for Time Series Insights)
-- 1 App Service and 2 Azure Webapps, B3 SKU (for hosting the engineering tool application and all-in-on cloud services application)
-- 1 SignalR, Standard SKU (used to scale out asynchronous API notifications)
-- 3 VMs, B2 SKU (1 Linux IoT Edge gateway, 1 Windows IoT Edge gateway, 1 OPC UA server. (used for a factory simulation to show the capabilities of the platform and to generate sample telemetry)
-- 1 Device Provisioning Service, S1 SKU (used for deploying and provisioning the simulation gateways)
-- 1 Application Insights and 1 Log Analytics Workspace for Operations Monitoring
+- 1 [Data Lake Storage](https://azure.microsoft.com/en-us/services/storage/data-lake-storage/) V2, Standard LRS SKU (used to connect Power BI to the platform, see tutorial)
+- 1 [Time Series Insights](https://azure.microsoft.com/en-us/services/time-series-insights), Pay As You Go SKU, 1 Scale Unit
+- 1 [Blob Storage](https://azure.microsoft.com/en-us/services/storage/) V2, Standard LRS SKU (used for long-term storage for Time Series Insights)
+- 1 [App Service](https://azure.microsoft.com/en-us/services/app-service/), B3 SKU (for hosting the Industrial IoT Engineering Tool cloud application and for hosting the cloud micro-services [all-in-one](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/all-in-one.md))
+- 1 [SignalR](https://azure.microsoft.com/en-us/services/signalr-service/), Standard SKU (used to scale out asynchronous API notifications)
+- 3 [Virtual Machines](https://azure.microsoft.com/en-us/services/virtual-machines/), B2 SKU (1 Linux IoT Edge gateway, 1 Windows IoT Edge gateway, 1 OPC UA server. (used for a factory simulation to show the capabilities of the platform and to generate sample telemetry)
+- 1 [Device Provisioning Service](https://docs.microsoft.com/en-us/azure/iot-dps/), S1 SKU (used for deploying and provisioning the simulation gateways)
+- 1 [Application Insights](https://azure.microsoft.com/en-us/services/monitor/) and 1 Log Analytics Workspace for Operations Monitoring
 
 ## Give feedback and report bugs
 

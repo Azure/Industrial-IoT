@@ -84,7 +84,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
             string createOptions;
             if (isLinux) {
                 // Linux
-                createOptions = "{}";
+                createOptions = _serializer.SerializeToString(new {
+                    Hostname = "opctwin"
+                });
             }
             else {
                 // Windows

@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Security.Cryptography.X509Certificates;
-    using System.Runtime.InteropServices;
 
     /// <summary>
     /// Console host for servers
@@ -21,7 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public X509Certificate2 Certificate { get; private set; }
-
+        /// <inheritdoc/>
+        public string PkiRootPath { get; set; }
         /// <inheritdoc/>
         public bool AutoAccept { get; set; }
 
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 await _lock.WaitAsync();
                 try {
                     if (_server == null) {
-                        await StartServerInternalAsync(ports);
+                        await StartServerInternalAsync(ports, PkiRootPath);
                         return;
                     }
                 }
@@ -97,24 +97,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Start server
         /// </summary>
         /// <param name="ports"></param>
+        /// <param name="pkiRootPath"></param>
         /// <returns></returns>
-        private async Task StartServerInternalAsync(IEnumerable<int> ports) {
+        private async Task StartServerInternalAsync(IEnumerable<int> ports, string pkiRootPath) {
             ApplicationInstance.MessageDlg = new DummyDialog();
 
-            var config = _factory.CreateServer(ports, out _server);
+            var config = _factory.CreateServer(ports, pkiRootPath, out _server);
             _logger.Information("Server created...");
 
             config = ApplicationInstance.FixupAppConfig(config);
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                config.SecurityConfiguration.ApplicationCertificate.StoreType =
-                    CertificateStoreType.X509Store;
-                config.SecurityConfiguration.ApplicationCertificate.StorePath =
-                    "CurrentUser\\UA_MachineDefault";
-            }
             _logger.Information("Validate configuration...");
             await config.Validate(ApplicationType.Server);
 
+            config.SecurityConfiguration.AutoAcceptUntrustedCertificates = AutoAccept;
             config.CertificateValidator = new CertificateValidator();
             config.CertificateValidator.CertificateValidation += (v, e) => {
                 if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
@@ -126,10 +121,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             _logger.Information("Initialize certificate validation...");
             await config.CertificateValidator.Update(config.SecurityConfiguration);
+            var cert = config.SecurityConfiguration.ApplicationCertificate.Certificate;
 
-            // Use existing certificate, if it is there.
-            var cert = await config.SecurityConfiguration.ApplicationCertificate
-                .Find(true);
             if (cert == null) {
                 _logger.Information("Creating new certificate in {path}...",
                     config.SecurityConfiguration.ApplicationCertificate.StorePath);
@@ -143,15 +136,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     null, CertificateFactory.defaultKeySize,
                     DateTime.UtcNow - TimeSpan.FromDays(1),
                     CertificateFactory.defaultLifeTime,
-                    CertificateFactory.defaultHashSize,
-                    false, null, null);
+                    CertificateFactory.defaultHashSize);
 #pragma warning restore IDE0067 // Dispose objects before losing scope
-            }
-
-            if (cert != null) {
                 config.SecurityConfiguration.ApplicationCertificate.Certificate = cert;
-                config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
+                await config.CertificateValidator.UpdateCertificate(config.SecurityConfiguration);
             }
+            config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
 
             var application = new ApplicationInstance(config);
 
@@ -159,12 +149,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var haveAppCertificate =
                 await application.CheckApplicationInstanceCertificate(false, 0);
             if (!haveAppCertificate) {
-                _logger.Error("Failed validating certificate!");
+                _logger.Error("Failed validating own certificate!");
                 throw new Exception("Application instance certificate invalid!");
             }
 
-            // Set certificate
-            Certificate = cert;
+            // Set Certificate
+            try {
+                // just take the public key
+                Certificate = new X509Certificate2(config.SecurityConfiguration.ApplicationCertificate.Certificate.RawData);
+            }
+            catch {
+                Certificate = config.SecurityConfiguration.ApplicationCertificate.Certificate;
+            }
 
             _logger.Information("Starting server ...");
             // start the server.

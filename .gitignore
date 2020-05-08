@@ -5,6 +5,7 @@
 /**/obj/**
 /**/.vs
 /**/bin/**
+/**/pki/**
 /**/csx/**
 /**/ecf/**
 /**/*.log
@@ -36,4 +37,3 @@
 *.cache
 CodeCoverage
 coverage.cobertura.xml
-
