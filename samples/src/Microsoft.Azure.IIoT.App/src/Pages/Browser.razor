@@ -152,7 +152,7 @@
                 @if (node.NodeClass == NodeClass.Variable)
                 {
                     <td>
-                        <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishing(EndpointId, node, EventArgs))" />
+                        <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishingAsync(EndpointId, node, EventArgs))" />
                         @{string output = (node.Publishing == true) ? "On" : "Off";}
                         @output 
                     </td>
@@ -167,7 +167,7 @@
                                 @(node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
                             </a>
                             <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                                @(node.PublishedItem.HeartbeatInterval == null ? "-" : node.PublishedItem.HeartbeatInterval?.TotalMilliseconds.ToString() + " ms")
+                                @(node.PublishedItem.HeartbeatInterval == null ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
                                <br />
                             </a>
                         }
@@ -372,15 +372,15 @@
     /// </summary>
     /// <param name="endpointId"></param>
     /// <param name="node"></param>
-    private async Task SetPublishing(string endpointId, ListNode node, ChangeEventArgs ev)
+    private async Task SetPublishingAsync(string endpointId, ListNode node, ChangeEventArgs ev)
     {
         if ((bool)ev?.Value)
         {
-            await Publish(endpointId, node);
+            await PublishNodeAsync(endpointId, node);
         }
         else
         {
-            await UnPublish(endpointId, node);
+            await UnPublishNodeAsync(endpointId, node);
         }
     }
 
@@ -389,7 +389,7 @@
     /// </summary>
     /// <param name="endpointId"></param>
     /// <param name="node"></param>
-    private async Task Publish(string endpointId, ListNode node)
+    private async Task PublishNodeAsync(string endpointId, ListNode node)
     {
         node.Publishing = true;
         var publishingInterval = node.PublishedItem?.PublishingInterval == null ? TimeSpan.FromMilliseconds(1000) : node.PublishedItem.PublishingInterval;
@@ -419,7 +419,7 @@
     /// </summary>
     /// <param name="endpointId"></param>
     /// <param name="node"></param>
-    private async Task UnPublish(string endpointId, ListNode node)
+    private async Task UnPublishNodeAsync(string endpointId, ListNode node)
     {
         var result = await Publisher.StopPublishingAsync(endpointId, node.Id, Credential);
         if (result)
@@ -474,7 +474,7 @@
     async Task ClickHandler(ListNode node)
     {
         CloseDrawer();
-        await Publish(EndpointId, node);
+        await PublishNodeAsync(EndpointId, node);
     }
 
     /// <summary>

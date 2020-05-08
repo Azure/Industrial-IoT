@@ -12,7 +12,7 @@
 <div class="drawer-content list-group">
     <div class="list-group-item text-justify list-group-item-heading">
         <b>Enter configuration parameters.</b>
-        @*<br><b>To apply default config leave the input field blank and click on apply</b>*@
+        <br><b>To apply default config leave the input field blank and click on apply</b>
     </div>
     <hr />
     <div class="list-group-item text-left">
@@ -34,7 +34,7 @@
                 <input @bind="@NodeData.RequestedSamplingInterval" aria-label="SamplingInterval" type="text" class="form-control" placeholder="@(NodeData.RequestedSamplingInterval)" />
             </div><br />
             <div class="form-group">
-                <div class="label">Heartbeat Interval ms</div>
+                <div class="label">Heartbeat Interval sec</div>
                 <input @bind="@NodeData.RequestedHeartbeatInterval" aria-label="HeartbeatInterval" type="text" class="form-control" placeholder="@(NodeData.RequestedHeartbeatInterval)" />
             </div><br />
             <hr />
