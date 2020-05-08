@@ -66,9 +66,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
         public string RequestedHeartbeatInterval {
             get => (PublishedItem?.HeartbeatInterval ?? TimeSpan.MinValue)
                 == TimeSpan.MinValue ?
-                null : PublishedItem.HeartbeatInterval.Value.TotalMilliseconds.ToString();
+                null : PublishedItem.HeartbeatInterval.Value.TotalSeconds.ToString();
             set {
-                PublishedItem.HeartbeatInterval = string.IsNullOrWhiteSpace(value) ? TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(value));
+                PublishedItem.HeartbeatInterval = string.IsNullOrWhiteSpace(value) ? TimeSpan.MinValue : TimeSpan.FromSeconds(Convert.ToDouble(value));
             }
         }
     }
