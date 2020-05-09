@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: opc-registry
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.registry.component" . }}
     app.kubernetes.io/part-of: azure-industrial-iot
 {{- if .Values.deployment.microServices.registry.extraLabels }}
 {{ toYaml .Values.deployment.microServices.registry.extraLabels | indent 4 }}
@@ -25,7 +25,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/component: opc-registry
+      app.kubernetes.io/component: {{ template "azure-industrial-iot.registry.component" . }}
       app.kubernetes.io/part-of: azure-industrial-iot
   template:
     metadata:
@@ -35,7 +35,7 @@ spec:
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
-        app.kubernetes.io/component: opc-registry
+        app.kubernetes.io/component: {{ template "azure-industrial-iot.registry.component" . }}
         app.kubernetes.io/part-of: azure-industrial-iot
 {{- if .Values.deployment.microServices.registry.extraLabels }}
 {{ toYaml .Values.deployment.microServices.registry.extraLabels | indent 8 }}
@@ -43,6 +43,11 @@ spec:
       annotations:
         # Required to detect deployment change when 10_industrial_iot_env_secret.yaml is changed.
         checksum/config: {{ include (print $.Template.BasePath "/10_industrial_iot_env_secret.yaml") . | sha256sum }}
+        {{- if .Values.prometheus.scrape }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "9042"
+        {{- end }}
 {{- if .Values.deployment.microServices.registry.podAnnotations }}
 {{ toYaml .Values.deployment.microServices.registry.podAnnotations | indent 8 }}
 {{- end }}
@@ -53,7 +58,7 @@ spec:
 {{ toYaml .Values.image.pullSecrets | indent 6 }}
 {{- end }}
       containers:
-      - name: registry-service-container
+      - name: {{ template "azure-industrial-iot.registry.component" . }}-container
         image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.registry.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.registry.extraArgs }}
