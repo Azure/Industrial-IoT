@@ -31,7 +31,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             .Select(sc => sc.Subscription).Sum(sc => sc.NumberOfConnectionRetries);
 
         /// <inheritdoc/>
-        public long NumberOfInvokedMessages { get; private set; } = 0;
+        public long ValueChangesCount { get; private set; } = 0;
+        
+        /// <inheritdoc/>
+        public long DataChangesCount { get; private set; } = 0;
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
@@ -220,14 +223,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         WriterGroup = _outer._writerGroup
                     };
                     lock (_lock) {
-                        if (_outer.NumberOfInvokedMessages >= kNumberOfInvokedMessagesResetThreshold) {
-                            _outer._logger.Debug("Message counter has been reset to prevent overflow. " +
-                                                 "So far, {NumberOfInvokedMessages} messages has been invoked by message source.",
-                                _outer.NumberOfInvokedMessages);
-                            _outer.NumberOfInvokedMessages = 0;
+                        if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
+                            _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
+                            // reset both 
+                            _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
+                                "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
+                                " value changes were invoked by message source.",
+                                _outer.DataChangesCount, _outer.ValueChangesCount);
+                            _outer.DataChangesCount = 0;
+                            _outer.ValueChangesCount = 0;
                         }
 
-                        _outer.NumberOfInvokedMessages += message.Notifications.Count();
+                        _outer.ValueChangesCount += message.Notifications.Count();
+                        _outer.DataChangesCount++;
                         _outer.OnMessage?.Invoke(sender, message);
                     }
                 }
