@@ -36,7 +36,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         /// <inheritdoc/>
         public async Task StartAsync() {
             if (string.IsNullOrEmpty(_config.LogWorkspaceId) || string.IsNullOrEmpty(_config.LogWorkspaceKey)) {
-                throw new ArgumentNullException("Azure Log Analytics Workspace configuration is not set. Cannot proceed with metricscollector deployment.");
+                _logger.Warning("Azure Log Analytics Workspace configuration is not set. Cannot proceed with metricscollector deployment.");
+                return;
             }
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = "__default-metricscollector-linux",

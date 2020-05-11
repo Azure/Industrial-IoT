@@ -351,7 +351,8 @@
         "kustoEventHubDataConnection": "opcuaeventhub",
         "kustoEventHubConsumerGroup": "telemetrykusto",
         "omsResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
-        "standardConfigurationResourceName": "infrastructure.configuration"
+        "standardConfigurationResourceName": "infrastructure.configuration",
+        "workbookConfigurationResourceName": "workbook.configuration"
     },
     "resources": [
         {
@@ -732,6 +733,26 @@
                 "[variables('signalRResourceId')]",
                 "[variables('tsiEnvironmentResourceId')]",
                 "[variables('omsResourceId')]"
+            ]
+        },
+        {
+            "comments": "Create azure workbook",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "[variables('workbookConfigurationResourceName')]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "workbookSourceId": {
+                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+                    }
+                },
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.workbook.json')]"
+                }
+            },
+            "dependsOn": [
             ]
         }
     ],
