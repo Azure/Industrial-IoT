@@ -51,8 +51,19 @@
                 "description": "The name of the Azure Cosmos DB instance created as part of the deployment."
             }
         },
+		"cosmosDbAccountOfferType": { 
+			"type": "string", 
+			"defaultValue": "Standard",
+            "allowedValues": [
+                "Standard"
+            ],
+            "metadata": {
+                "description": "The Azure Cosmos DB offer type."
+            }
+		},
         "cosmosDbConsistencyLevel": {
             "type": "string",
+            "defaultValue": "Eventual",
             "allowedValues": [
                 "Strong",
                 "BoundedStaleness",
@@ -60,7 +71,6 @@
                 "ConsistentPrefix",
                 "Eventual"
             ],
-            "defaultValue": "Session",
             "metadata": {
                 "description": "The Azure Cosmos DB default consistency level for the account."
             }
@@ -556,7 +566,7 @@
                         "locationName": "[resourceGroup().location]"
                     }
                 ],
-                "databaseAccountOfferType": "Standard",
+                "databaseAccountOfferType": "[parameters('cosmosDbAccountOfferType')]",
                 "consistencyPolicy": {
                     "defaultConsistencyLevel": "[parameters('cosmosDbConsistencyLevel')]",
                     "maxStalenessPrefix": "[parameters('cosmosDbMaxStalenessPrefix')]",

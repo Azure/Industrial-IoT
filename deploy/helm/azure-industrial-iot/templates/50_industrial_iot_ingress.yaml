@@ -66,41 +66,23 @@ spec:
           serviceName: {{ template "azure-industrial-iot.vault.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.vault.service.port }}
 {{- end }}
-{{- if and .Values.deployment.microServices.onboarding.enabled .Values.deployment.ingress.paths.onboarding }}
-      - path: {{ .Values.deployment.ingress.paths.onboarding }}
-        backend:
-          serviceName: {{ template "azure-industrial-iot.onboarding.fullname" . }}
-          servicePort: {{ .Values.deployment.microServices.onboarding.service.port }}
-{{- end }}
 {{- if and .Values.deployment.microServices.publisher.enabled .Values.deployment.ingress.paths.publisher }}
       - path: {{ .Values.deployment.ingress.paths.publisher }}
         backend:
           serviceName: {{ template "azure-industrial-iot.publisher.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.publisher.service.port }}
 {{- end }}
-{{- if and .Values.deployment.microServices.publisherJobs.enabled .Values.deployment.ingress.paths.publisherJobs }}
-      - path: {{ .Values.deployment.ingress.paths.publisherJobs }}
+{{- if and .Values.deployment.microServices.events.enabled .Values.deployment.ingress.paths.events }}
+      - path: {{ .Values.deployment.ingress.paths.events }}
         backend:
-          serviceName: {{ template "azure-industrial-iot.publisher-jobs.fullname" . }}
-          servicePort: {{ .Values.deployment.microServices.publisherJobs.service.port }}
-{{- end }}
-{{- if and .Values.deployment.microServices.configuration.enabled .Values.deployment.ingress.paths.configuration }}
-      - path: {{ .Values.deployment.ingress.paths.configuration }}
-        backend:
-          serviceName: {{ template "azure-industrial-iot.configuration.fullname" . }}
-          servicePort: {{ .Values.deployment.microServices.configuration.service.port }}
+          serviceName: {{ template "azure-industrial-iot.events.fullname" . }}
+          servicePort: {{ .Values.deployment.microServices.events.service.port }}
 {{- end }}
 {{- if and .Values.deployment.microServices.edgeJobs.enabled .Values.deployment.ingress.paths.edgeJobs }}
       - path: {{ .Values.deployment.ingress.paths.edgeJobs }}
         backend:
           serviceName: {{ template "azure-industrial-iot.edge-jobs.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.edgeJobs.service.port }}
-{{- end }}
-{{- if and .Values.deployment.microServices.edgeManager.enabled .Values.deployment.ingress.paths.edgeManager }}
-      - path: {{ .Values.deployment.ingress.paths.edgeManager }}
-        backend:
-          serviceName: {{ template "azure-industrial-iot.edge-manager.fullname" . }}
-          servicePort: {{ .Values.deployment.microServices.edgeManager.service.port }}
 {{- end }}
 {{- if and .Values.deployment.microServices.engineeringTool.enabled .Values.deployment.ingress.paths.engineeringTool }}
       - path: {{ .Values.deployment.ingress.paths.engineeringTool }}

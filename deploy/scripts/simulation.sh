@@ -6,6 +6,7 @@ IMAGES_TAG=
 DOCKER_SERVER=
 DOCKER_USER=
 DOCKER_PASSWORD=
+DOCKER_COMPOSE_FILE="default.yml"
 DEBIAN_FRONTEND=noninteractive
 
 APP_PATH="/app"
@@ -16,6 +17,7 @@ ENVVARS="${APP_PATH}/.env"
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --admin)                ADMIN="$2" ;;
+        --name)                 DOCKER_COMPOSE_FILE="$2.yml" ;;
         --imagesNamespace)      IMAGES_NAMESPACE="$2" ;;
         --imagesTag)            IMAGES_TAG="$2" ;;
         --dockerServer)         DOCKER_SERVER="$2" ;;
@@ -45,7 +47,7 @@ chmod +x /usr/local/bin/docker-compose
 
 mkdir -p ${APP_PATH}
 chmod ugo+rX ${APP_PATH}
-cp -f simulation.yml ${APP_PATH}/docker-compose.yml
+cp -f ${DOCKER_COMPOSE_FILE} ${APP_PATH}/docker-compose.yml
 cp -f simulation.sh ${APP_PATH}/simulation.sh
 cd ${APP_PATH}
 touch docker-compose.yml && chmod 644 docker-compose.yml
