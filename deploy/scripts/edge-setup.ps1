@@ -78,7 +78,7 @@ else {
     $domainUser="Everyone"
     $ports = @('9700', '9701', '9702')
     foreach ($port in $ports) {
-        netsh http add urlacl url=https://+:$port/metrics user=$domainUser
+        netsh http add urlacl url=http://+:$port/metrics user=$domainUser
     }
     Write-Host "Configure and initialize IoT Edge on Windows using enrollment information."
     . { Invoke-WebRequest -useb https://aka.ms/iotedge-win } | Invoke-Expression; `

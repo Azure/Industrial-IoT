@@ -126,8 +126,6 @@
         if (firstRender)
         {
             await UpdateApplicationAsync();
-            CommonHelper.Spinner = string.Empty;
-            CommonHelper.CheckErrorOrEmpty<ApplicationInfoApiModel>(_pagedapplicationList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
 
             _applicationEvent = await RegistryServiceEvents.SubscribeApplicationEventsAsync(
@@ -173,13 +171,14 @@
     }
 
     /// <summary>
-    /// action on ApplicationEvent
+    /// Action on ApplicationEvent
     /// </summary>
     /// <param name="ev"></param>
     private Task ApplicationEvent(ApplicationEventApiModel ev)
     {
         _applicationList.Results.Update(ev);
         _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
+        CommonHelper.CheckErrorOrEmpty<ApplicationInfoApiModel>(_pagedapplicationList, ref _tableView, ref _tableEmpty);
         StateHasChanged();
         return Task.CompletedTask;
     }
@@ -192,6 +191,7 @@
         _applicationList = await RegistryHelper.GetApplicationListAsync();
         Page = "1";
         _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
+        CommonHelper.CheckErrorOrEmpty<ApplicationInfoApiModel>(_pagedapplicationList, ref _tableView, ref _tableEmpty);
         CommonHelper.Spinner = string.Empty;
     }
 
