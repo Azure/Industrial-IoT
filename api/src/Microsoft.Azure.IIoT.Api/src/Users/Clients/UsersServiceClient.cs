@@ -35,11 +35,11 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Clients {
         /// <param name="serializer"></param>
         public UsersServiceClient(IHttpClient httpClient, string serviceUri,
             ISerializer serializer) {
-            if (string.IsNullOrEmpty(serviceUri)) {
+            if (string.IsNullOrWhiteSpace(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the onboarding micro service.");
             }
-            _serviceUri = serviceUri;
+            _serviceUri = serviceUri.TrimEnd('/');
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }

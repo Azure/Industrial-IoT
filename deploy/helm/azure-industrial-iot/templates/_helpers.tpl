@@ -65,36 +65,20 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "vault" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.alerting.fullname" -}}
-{{- printf "%s-%s" .Release.Name "alerting" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{- define "azure-industrial-iot.onboarding.fullname" -}}
 {{- printf "%s-%s" .Release.Name "onboarding" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.jobs.fullname" -}}
-{{- printf "%s-%s" .Release.Name "jobs" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.model-processor.fullname" -}}
-{{- printf "%s-%s" .Release.Name "model-processor" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.blob-notification.fullname" -}}
-{{- printf "%s-%s" .Release.Name "blob-notification" | trunc 63 | trimSuffix "-" -}}
+{{- define "azure-industrial-iot.sync.fullname" -}}
+{{- printf "%s-%s" .Release.Name "sync" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "azure-industrial-iot.publisher.fullname" -}}
 {{- printf "%s-%s" .Release.Name "publisher" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.configuration.fullname" -}}
-{{- printf "%s-%s" .Release.Name "configuration" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.edge-manager.fullname" -}}
-{{- printf "%s-%s" .Release.Name "edge-manager" | trunc 63 | trimSuffix "-" -}}
+{{- define "azure-industrial-iot.events.fullname" -}}
+{{- printf "%s-%s" .Release.Name "events" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "azure-industrial-iot.events-processor.fullname" -}}
@@ -105,16 +89,8 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "engineering-tool" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.identity.fullname" -}}
-{{- printf "%s-%s" .Release.Name "identity" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{- define "azure-industrial-iot.edge-jobs.fullname" -}}
 {{- printf "%s-%s" .Release.Name "edge-jobs" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.publisher-jobs.fullname" -}}
-{{- printf "%s-%s" .Release.Name "publisher-jobs" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "azure-industrial-iot.telemetry-cdm-processor.fullname" -}}
@@ -125,12 +101,8 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "telemetry-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.telemetry-ux-processor.fullname" -}}
-{{- printf "%s-%s" .Release.Name "telemetry-ux-processor" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.registry-events-forwarder.fullname" -}}
-{{- printf "%s-%s" .Release.Name "registry-events-forwarder" | trunc 63 | trimSuffix "-" -}}
+{{- define "azure-industrial-iot.tunnelProcessor.fullname" -}}
+{{- printf "%s-%s" .Release.Name "tunnel-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -158,36 +130,20 @@ Those are used in Service selectors so they have to be unique for each microserv
 {{- "opc-vault-service" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.alerting.component" -}}
-{{- "opc-alerting-service" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{- define "azure-industrial-iot.onboarding.component" -}}
 {{- "opc-onboarding-service" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.jobs.component" -}}
-{{- "opc-jobs-service" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.model-processor.component" -}}
-{{- "opc-processor-service" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.blob-notification.component" -}}
-{{- "industrial-iot-fileupload-forwarder" | trunc 63 | trimSuffix "-" -}}
+{{- define "azure-industrial-iot.sync.component" -}}
+{{- "opc-sync-service" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "azure-industrial-iot.publisher.component" -}}
 {{- "opc-publisher-service" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.configuration.component" -}}
-{{- "industrial-iot-configuration-service" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.edge-manager.component" -}}
-{{- "industrial-iot-edge-manager-service" | trunc 63 | trimSuffix "-" -}}
+{{- define "azure-industrial-iot.events.component" -}}
+{{- "industrial-iot-events-service" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "azure-industrial-iot.events-processor.component" -}}
@@ -198,16 +154,8 @@ Those are used in Service selectors so they have to be unique for each microserv
 {{- "industrial-iot-engineering-tool" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.identity.component" -}}
-{{- "industrial-iot-identity-service" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{- define "azure-industrial-iot.edge-jobs.component" -}}
 {{- "industrial-iot-jobs-orchestrator-service" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.publisher-jobs.component" -}}
-{{- "industrial-iot-jobs-service" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "azure-industrial-iot.telemetry-cdm-processor.component" -}}
@@ -218,12 +166,8 @@ Those are used in Service selectors so they have to be unique for each microserv
 {{- "industrial-iot-telemetry-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.telemetry-ux-processor.component" -}}
-{{- "industrial-iot-telemetry-ux-processor" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.registry-events-forwarder.component" -}}
-{{- "opc-registry-events-forwarder" | trunc 63 | trimSuffix "-" -}}
+{{- define "azure-industrial-iot.tunnelProcessor.component" -}}
+{{- "industrial-iot-tunnel-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*

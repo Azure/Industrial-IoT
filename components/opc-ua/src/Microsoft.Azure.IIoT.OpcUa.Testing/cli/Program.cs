@@ -32,6 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
+    using System.Net;
     using System.Runtime.Loader;
     using System.Text;
     using System.Threading;
@@ -62,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cli {
             var op = Op.None;
             var endpoint = new EndpointModel();
             string fileName = null;
-            var host = Utils.GetHostName();
+            var host = Dns.GetHostName();
             var ports = new List<int>();
             try {
                 for (var i = 0; i < args.Length; i++) {
@@ -622,7 +623,7 @@ Operations (Mutually exclusive):
                 _cts = new CancellationTokenSource();
                 if (endpoint.Url == null) {
                     _server = RunSampleServerAsync(_cts.Token, logger.Logger);
-                    endpoint.Url = "opc.tcp://" + Utils.GetHostName() +
+                    endpoint.Url = "opc.tcp://" + Dns.GetHostName() +
                         ":51210/UA/SampleServer";
                 }
                 else {

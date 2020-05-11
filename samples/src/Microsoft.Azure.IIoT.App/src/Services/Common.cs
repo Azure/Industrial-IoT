@@ -30,6 +30,10 @@ namespace Microsoft.Azure.IIoT.App.Common {
             else if (list.Results.Count == 0) {
                 emptyCssClass = "displayBlock";
             }
+            else
+            {
+                emptyCssClass = "displayNone";
+            }
         }
 
         public int PageLength { get; set; } = 10;
