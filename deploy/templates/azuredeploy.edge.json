@@ -1,0 +1,997 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "edgeName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the IoT Edge virtual machine."
+            }
+        },
+        "simulationProfile": {
+            "type": "string",
+            "defaultValue": "default",
+            "allowedValues": [
+                "default",
+                "testing"
+            ],
+            "metadata": {
+                "description": "The name of the simulation docker-compose file on github without extension."
+            }
+        },
+        "dpsIdScope": {
+            "type": "string",
+            "metadata": {
+                "description": "Device provisioning service id scope."
+            }
+        },
+        "dpsConnString": {
+            "type": "secureString",
+            "metadata": {
+                "description": "Azure Device Provisioning service connection string."
+            }
+        },
+        "edgeOs": {
+            "type": "string",
+            "allowedValues": [
+                "linux",
+                "windows"
+            ],
+            "defaultValue": "linux",
+            "metadata": {
+                "description": "Operating system to use for the virtual edge."
+            }
+        },
+        "edgeUsername": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Username for the IoT Edge virtual machine."
+            }
+        },
+        "edgePassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Password for the IoT Edge virtual machine."
+            }
+        },
+        "edgeVmSize": {
+            "type": "string",
+            "defaultValue": "",
+            "allowedValues": [
+                "",
+                "Standard_B2s",
+                "Standard_B2ms",
+                "Standard_A2",
+                "Standard_A3",
+                "Standard_A4",
+                "Standard_A5",
+                "Standard_A6",
+                "Standard_A7",
+                "Standard_A8",
+                "Standard_A9",
+                "Standard_A10",
+                "Standard_A11",
+                "Standard_A2_v2",
+                "Standard_A4_v2",
+                "Standard_A8_v2",
+                "Standard_A2m_v2",
+                "Standard_A4m_v2",
+                "Standard_A8m_v2",
+                "Standard_D2",
+                "Standard_D3",
+                "Standard_D4",
+                "Standard_D11",
+                "Standard_D12",
+                "Standard_D13",
+                "Standard_D14",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_G1",
+                "Standard_G2",
+                "Standard_G3",
+                "Standard_G4",
+                "Standard_G5",
+                "Standard_F2",
+                "Standard_F4",
+                "Standard_F8",
+                "Standard_F16"
+            ],
+            "metadata": {
+                "description": "The size of the gateway VM to provision."
+            }
+        },
+        "numberOfSimulations": {
+            "type": "int",
+            "defaultValue": 1,
+            "maxValue": 255,
+            "minValue": 1,
+            "metadata": {
+                "description": "Number of simulated factories to deploy."
+            }
+        },
+        "simulationVmSize": {
+            "type": "string",
+            "defaultValue": "",
+            "allowedValues": [
+                "",
+                "Standard_B2s",
+                "Standard_B2ms",
+                "Standard_A2",
+                "Standard_A3",
+                "Standard_A4",
+                "Standard_A5",
+                "Standard_A6",
+                "Standard_A7",
+                "Standard_A8",
+                "Standard_A9",
+                "Standard_A10",
+                "Standard_A11",
+                "Standard_A2_v2",
+                "Standard_A4_v2",
+                "Standard_A8_v2",
+                "Standard_A2m_v2",
+                "Standard_A4m_v2",
+                "Standard_A8m_v2",
+                "Standard_D2",
+                "Standard_D3",
+                "Standard_D4",
+                "Standard_D11",
+                "Standard_D12",
+                "Standard_D13",
+                "Standard_D14",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_G1",
+                "Standard_G2",
+                "Standard_G3",
+                "Standard_G4",
+                "Standard_G5",
+                "Standard_F2",
+                "Standard_F4",
+                "Standard_F8",
+                "Standard_F16"
+            ],
+            "metadata": {
+                "description": "The size of the simulation VM to provision."
+            }
+        },
+        "dockerServer": {
+            "type": "string",
+            "defaultValue": "mcr.microsoft.com",
+            "metadata": {
+                "description": "Specifies the endpoint of the Container Registry."
+            }
+        },
+        "dockerUser": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the user to log into the Container Registry."
+            }
+        },
+        "dockerPassword": {
+            "type": "secureString",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the password to the Container Registry."
+            }
+        },
+        "imagesNamespace": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the namespace prefix for the images in the Container Registry."
+            }
+        },
+        "imagesTag": {
+            "type": "string",
+            "defaultValue": "latest",
+            "metadata": {
+                "description": "Specifies the image version tag to use for all images."
+            }
+        },
+        "templateUrl": {
+            "type": "string",
+            "defaultValue": "https://raw.githubusercontent.com/Azure/Industrial-IoT",
+            "metadata": {
+                "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
+            }
+        },
+        "branchName": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "The branch from which to deploy deploy services and application.  Default to master."
+            }
+        },
+        "managedIdentityResourceId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "A user created managed identity to use for keyvault access.  If not provided, above secret will be used to gain access to keyvault."
+            }
+        }
+    },
+    "variables": {
+        "instanceId": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('edgeName'), parameters('edgeOs')), 7)]",
+        "vmPrefix": "[if(equals(parameters('edgeOs'), 'windows'), take(parameters('edgeName'), 6), parameters('edgeName'))]",
+        "vmName": "[tolower(concat(variables('vmPrefix'), '-', variables('instanceId')))]",
+        "vmResourceId": "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]",
+        "nicResourceName": "[concat(variables('vmName'), '-nic')]",
+        "nicResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces', variables('nicResourceName'))]",
+        "vnetResourceName": "[concat(variables('vmName'), '-vnet')]",
+        "vnetResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetResourceName'))]",
+        "simulationName": "[concat(variables('vmName'), '-sim')]",
+        "identity": {
+            "type": "UserAssigned",
+            "userAssignedIdentities": {
+                "[parameters('managedIdentityResourceId')]": {
+                }
+            }
+        },
+        "windowsOsProfile": {
+            "computerName": "[variables('vmName')]",
+            "adminUsername": "[parameters('edgeUsername')]",
+            "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]",
+            "windowsConfiguration": {
+                "enableAutomaticUpdates": true,
+                "provisionVmAgent": true
+            }
+        },
+        "windowsVmExtension": {
+            "publisher": "Microsoft.Compute",
+            "type": "CustomScriptExtension",
+            "typeHandlerVersion": "1.9",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": [
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]"
+                ]
+            },
+            "protectedSettings": {
+                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./edge-setup.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
+            }
+        },
+        "windowsImage": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2019-Datacenter-Core-with-Containers",
+            "version": "latest"
+        },
+        "linuxImage": {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "16.04.0-LTS",
+            "version": "latest"
+        },
+        "linuxOsProfile": {
+            "computerName": "[variables('vmName')]",
+            "adminUsername": "[parameters('edgeUsername')]",
+            "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]"
+        },
+        "linuxVmExtension": {
+            "publisher": "Microsoft.Azure.Extensions",
+            "type": "CustomScript",
+            "typeHandlerVersion": "2.0",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": [
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.sh')]"
+                ]
+            },
+            "protectedSettings": {
+                "commandToExecute": "[concat('sudo bash edge-setup.sh --idScope \"', parameters('dpsIdScope'), '\" --dpsConnString \"', parameters('dpsConnString'), '\"')]"
+            }
+        },
+        "edgeVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",
+        "simulationVmSku": "[if(not(empty(parameters('simulationVmSize'))), parameters('simulationVmSize'), variables('edgeVmSku'))]",
+        "workspaceName": "[concat('logs-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 8))]",
+        "dashboardName": "[concat('dashboard-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 8))]",
+        "dashboardId": "[concat(uniquestring(resourceGroup().id), uniquestring(variables('dashboardName')))]"
+    },
+    "resources": [
+        {
+            "comments": "Virtual edge network.",
+            "name": "[variables('vnetResourceName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2019-09-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.1.8.0/22"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "vm-subnet",
+                        "properties": {
+                            "addressPrefix": "10.1.8.0/24"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "comments": "Network interface for edge virtual machine to use.",
+            "name": "[variables('nicResourceName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-09-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[concat(variables('vnetResourceId'), '/subnets/', 'vm-subnet')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[variables('vnetResourceId')]"
+            ]
+        },
+        {
+            "comments": "Virtual machine hosting the IoT Edge installation.",
+            "name": "[variables('vmName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-03-01",
+            "location": "[resourceGroup().location]",
+            "identity": "[if(not(empty(parameters('managedIdentityResourceId'))), variables('identity'), '')]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('edgeVmSku')]"
+                },
+                "osProfile": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxOsProfile'), variables('windowsOsProfile'))]",
+                "storageProfile": {
+                    "imageReference": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxImage'), variables('windowsImage'))]",
+                    "osDisk": {
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('nicResourceId')]"
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[variables('nicResourceId')]"
+            ]
+        },
+        {
+            "comments": "One time script execution to install and onboard IoT Edge and deploy workloads",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vmName'), '/', 'scriptextensions')]",
+            "apiVersion": "2019-03-01",
+            "location": "[resourceGroup().location]",
+            "properties": "[if (equals(parameters('edgeOs'), 'linux'), variables('linuxVmExtension'), variables('windowsVmExtension'))]",
+            "dependsOn": [
+                "[variables('vmResourceId')]"
+            ]
+        },
+        {
+            "properties": {
+                "lenses": {
+                    "0": {
+                        "order": 0,
+                        "parts": {
+                            "0": {
+                                "position": {
+                                    "x": 0,
+                                    "y": 0,
+                                    "colSpan": 5,
+                                    "rowSpan": 4
+                                },
+                                "metadata": {
+                                    "inputs": [{
+                                            "name": "ComponentId",
+                                            "value": {
+                                                "SubscriptionId": "[subscription().subscriptionId]",
+                                                "ResourceGroup": "[resourceGroup().name]",
+                                                "Name": "[variables('workspaceName')]",
+                                                "ResourceId": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name , '/providers/','Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                                            }
+                                        }, {
+                                            "name": "Query",
+                                            "value": "promMetrics_CL\n| where Name_s startswith \"iiot_edge_discovery\" \n| summarize max(Value_s) by Name_s\n"
+                                        }, {
+                                            "name": "TimeRange",
+                                            "value": "P1D"
+                                        }, {
+                                            "name": "Version",
+                                            "value": "1.0"
+                                        }, {
+                                            "name": "PartId",
+                                            "value": "[concat(uniquestring(variables('dashboardId')), 'Part1')]"
+                                        }, {
+                                            "name": "PartTitle",
+                                            "value": "Analytics"
+                                        }, {
+                                            "name": "PartSubTitle",
+                                            "value": "[variables('workspaceName')]"
+                                        }, {
+                                            "name": "resourceTypeMode",
+                                            "value": "workspace"
+                                        }, {
+                                            "name": "ControlType",
+                                            "value": "AnalyticsGrid"
+                                        }, {
+                                            "name": "Dimensions",
+                                            "isOptional": true
+                                        }, {
+                                            "name": "DashboardId",
+                                            "isOptional": true
+                                        }, {
+                                            "name": "SpecificChart",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                                    "settings": {
+                                        "content": {
+                                            "PartTitle": "Discovery Module Metrics",
+                                            "PartSubTitle": "[variables('workspaceName')]",
+                                            "Query": "promMetrics_CL\n| where Name_s startswith \"iiot_edge_discovery\" \n| summarize Count = max(Value_s) by Name_s\n",
+                                            "GridColumnsWidth": {
+                                                "Name_s": "276px",
+                                                "max_Value_s": "121px",
+                                                "Count": "80px"
+                                            }
+                                        }
+                                    },
+                                    "asset": {
+                                        "idInputName": "ComponentId",
+                                        "type": "ApplicationInsights"
+                                    }
+                                }
+                            },
+                            "1": {
+                                "position": {
+                                    "x": 5,
+                                    "y": 0,
+                                    "colSpan": 4,
+                                    "rowSpan": 7
+                                },
+                                "metadata": {
+                                    "inputs": [{
+                                            "name": "ComponentId",
+                                            "value": {
+                                                "SubscriptionId": "[subscription().subscriptionId]",
+                                                "ResourceGroup": "[resourceGroup().name]",
+                                                "Name": "[variables('workspaceName')]",
+                                                "ResourceId": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name , '/providers/','Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                                            }
+                                        }, {
+                                            "name": "Query",
+                                            "value": "promMetrics_CL\n| where Name_s startswith \"iiot_edge_twin\" \n| summarize max(Value_s) by Name_s\n"
+                                        }, {
+                                            "name": "TimeRange",
+                                            "value": "P1D"
+                                        }, {
+                                            "name": "Version",
+                                            "value": "1.0"
+                                        }, {
+                                            "name": "PartId",
+                                            "value": "[concat(uniquestring(variables('dashboardId')), 'Part2')]"
+                                        }, {
+                                            "name": "PartTitle",
+                                            "value": "Analytics"
+                                        }, {
+                                            "name": "PartSubTitle",
+                                            "value": "[variables('workspaceName')]"
+                                        }, {
+                                            "name": "resourceTypeMode",
+                                            "value": "workspace"
+                                        }, {
+                                            "name": "ControlType",
+                                            "value": "AnalyticsGrid"
+                                        }, {
+                                            "name": "Dimensions",
+                                            "isOptional": true
+                                        }, {
+                                            "name": "DashboardId",
+                                            "isOptional": true
+                                        }, {
+                                            "name": "SpecificChart",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                                    "settings": {
+                                        "content": {
+                                            "PartTitle": "Twin Module Metrics",
+                                            "PartSubTitle": "[variables('workspaceName')]",
+                                            "Query": "promMetrics_CL\n| where Name_s startswith \"iiot_edge_twin\" \n| summarize Count = max(Value_s) by Name_s\n",
+                                            "GridColumnsWidth": {
+                                                "Name_s": "250px",
+                                                "max_Value_s": "114px",
+                                                "Count": "77px"
+                                            }
+                                        }
+                                    },
+                                    "asset": {
+                                        "idInputName": "ComponentId",
+                                        "type": "ApplicationInsights"
+                                    }
+                                }
+                            },
+                            "2": {
+                                "position": {
+                                    "x": 9,
+                                    "y": 0,
+                                    "colSpan": 6,
+                                    "rowSpan": 7
+                                },
+                                "metadata": {
+                                    "inputs": [{
+                                            "name": "ComponentId",
+                                            "value": {
+                                                "SubscriptionId": "[subscription().subscriptionId]",
+                                                "ResourceGroup": "[resourceGroup().name]",
+                                                "Name": "[variables('workspaceName')]",
+                                                "ResourceId": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name , '/providers/','Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                                            }
+                                        }, {
+                                            "name": "Query",
+                                            "value": "promMetrics_CL\n| where  Name_s startswith \"iiot\"  and Name_s endswith \"reconnected\" \n| extend module = tostring(parse_json(Tags_s).module) \n| extend device = tostring(parse_json(Tags_s).device) \n| summarize max(Value_s) by Name_s, module, device \n"
+                                        }, {
+                                            "name": "TimeRange",
+                                            "value": "P1D"
+                                        }, {
+                                            "name": "Version",
+                                            "value": "1.0"
+                                        }, {
+                                            "name": "PartId",
+                                            "value": "[concat(uniquestring(variables('dashboardId')), 'Part3')]"
+                                        }, {
+                                            "name": "PartTitle",
+                                            "value": "Analytics"
+                                        }, {
+                                            "name": "PartSubTitle",
+                                            "value": "[variables('workspaceName')]"
+                                        }, {
+                                            "name": "resourceTypeMode",
+                                            "value": "workspace"
+                                        }, {
+                                            "name": "ControlType",
+                                            "value": "AnalyticsGrid"
+                                        }, {
+                                            "name": "Dimensions",
+                                            "isOptional": true
+                                        }, {
+                                            "name": "DashboardId",
+                                            "isOptional": true
+                                        }, {
+                                            "name": "SpecificChart",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                                    "settings": {
+                                        "content": {
+                                            "PartTitle": "Reconnection Status",
+                                            "PartSubTitle": "[variables('workspaceName')]",
+                                            "Query": "promMetrics_CL\n| where  Name_s startswith \"iiot\"  and Name_s endswith \"reconnected\" \n| extend module = tostring(parse_json(Tags_s).module) \n| extend device = tostring(parse_json(Tags_s).device) \n| summarize Count = max(Value_s) by Name_s, module, device \n",
+                                            "GridColumnsWidth": {
+                                                "Name_s": "185px",
+                                                "module": "106px",
+                                                "max_Value_s": "110px"
+                                            }
+                                        }
+                                    },
+                                    "asset": {
+                                        "idInputName": "ComponentId",
+                                        "type": "ApplicationInsights"
+                                    }
+                                }
+                            },
+                            "3": {
+                                "position": {
+                                    "x": 15,
+                                    "y": 0,
+                                    "colSpan": 6,
+                                    "rowSpan": 7
+                                },
+                                "metadata": {
+                                    "inputs": [{
+                                            "name": "ComponentId",
+                                            "value": {
+                                                "SubscriptionId": "[subscription().subscriptionId]",
+                                                "ResourceGroup": "[resourceGroup().name]",
+                                                "Name": "[variables('workspaceName')]",
+                                                "ResourceId": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name , '/providers/','Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                                            }
+                                        }, {
+                                            "name": "Query",
+                                            "value": "promMetrics_CL\n| where  Name_s startswith \"iiot\"  and Name_s endswith \"disconnected\" \n| extend module = tostring(parse_json(Tags_s).module) \n| extend device = tostring(parse_json(Tags_s).device) \n| summarize max(Value_s) by Name_s, module, device \n"
+                                        }, {
+                                            "name": "TimeRange",
+                                            "value": "P1D"
+                                        }, {
+                                            "name": "Version",
+                                            "value": "1.0"
+                                        }, {
+                                            "name": "PartId",
+                                            "value": "[concat(uniquestring(variables('dashboardId')), 'Part4')]"
+                                        }, {
+                                            "name": "PartTitle",
+                                            "value": "Analytics"
+                                        }, {
+                                            "name": "PartSubTitle",
+                                            "value": "[variables('workspaceName')]"
+                                        }, {
+                                            "name": "resourceTypeMode",
+                                            "value": "workspace"
+                                        }, {
+                                            "name": "ControlType",
+                                            "value": "AnalyticsGrid"
+                                        }, {
+                                            "name": "Dimensions",
+                                            "isOptional": true
+                                        }, {
+                                            "name": "DashboardId",
+                                            "isOptional": true
+                                        }, {
+                                            "name": "SpecificChart",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                                    "settings": {
+                                        "content": {
+                                            "PartTitle": "Disconnection Status",
+                                            "PartSubTitle": "[variables('workspaceName')]",
+                                            "Query": "promMetrics_CL\n| where  Name_s startswith \"iiot\"  and Name_s endswith \"disconnected\" \n| extend module = tostring(parse_json(Tags_s).module) \n| extend device = tostring(parse_json(Tags_s).device) \n| summarize Count = max(Value_s) by Name_s, module, device \n",
+                                            "GridColumnsWidth": {
+                                                "module": "93px",
+                                                "Name_s": "187px"
+                                            }
+                                        }
+                                    },
+                                    "asset": {
+                                        "idInputName": "ComponentId",
+                                        "type": "ApplicationInsights"
+                                    }
+                                }
+                            },
+                            "4": {
+                                "position": {
+                                    "x": 0,
+                                    "y": 4,
+                                    "colSpan": 5,
+                                    "rowSpan": 3
+                                },
+                                "metadata": {
+                                    "inputs": [{
+                                            "name": "ComponentId",
+                                            "value": {
+                                                "SubscriptionId": "[subscription().subscriptionId]",
+                                                "ResourceGroup": "[resourceGroup().name]",
+                                                "Name": "[variables('workspaceName')]",
+                                                "ResourceId": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name , '/providers/','Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                                            }
+                                        }, {
+                                            "name": "Query",
+                                            "value": "promMetrics_CL\n| where Name_s startswith \"iiot_edge_publisher\" \n| summarize max(Value_s) by Name_s\n"
+                                        }, {
+                                            "name": "TimeRange",
+                                            "value": "P1D"
+                                        }, {
+                                            "name": "Version",
+                                            "value": "1.0"
+                                        }, {
+                                            "name": "PartId",
+                                            "value": "[concat(uniquestring(variables('dashboardId')), 'Part5')]"
+                                        }, {
+                                            "name": "PartTitle",
+                                            "value": "Analytics"
+                                        }, {
+                                            "name": "PartSubTitle",
+                                            "value": "[variables('workspaceName')]"
+                                        }, {
+                                            "name": "resourceTypeMode",
+                                            "value": "workspace"
+                                        }, {
+                                            "name": "ControlType",
+                                            "value": "AnalyticsGrid"
+                                        }, {
+                                            "name": "Dimensions",
+                                            "isOptional": true
+                                        }, {
+                                            "name": "DashboardId",
+                                            "isOptional": true
+                                        }, {
+                                            "name": "SpecificChart",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                                    "settings": {
+                                        "content": {
+                                            "PartTitle": "Publisher Module Metrics",
+                                            "PartSubTitle": "[variables('workspaceName')]",
+                                            "Query": "promMetrics_CL\n| where Name_s startswith \"iiot_edge_publisher\" \n| summarize Count = max(Value_s) by Name_s\n",
+                                            "GridColumnsWidth": {
+                                                "Name_s": "376px",
+                                                "max_Value_s": "116px",
+                                                "Count": "81px"
+                                            }
+                                        }
+                                    },
+                                    "asset": {
+                                        "idInputName": "ComponentId",
+                                        "type": "ApplicationInsights"
+                                    }
+                                }
+                            },
+                            "5": {
+                                "position": {
+                                    "x": 0,
+                                    "y": 7,
+                                    "colSpan": 21,
+                                    "rowSpan": 6
+                                },
+                                "metadata": {
+                                    "inputs": [{
+                                            "name": "ComponentId",
+                                            "value": {
+                                                "SubscriptionId": "[subscription().subscriptionId]",
+                                                "ResourceGroup": "[resourceGroup().name]",
+                                                "Name": "[variables('workspaceName')]",
+                                                "ResourceId": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name , '/providers/','Microsoft.OperationalInsights/workspaces/', variables('workspaceName'))]"
+                                            }
+                                        }, {
+                                            "name": "Query",
+                                            "value": "promMetrics_CL\r\n| where  Name_s startswith \"iiot_edge\"  and Name_s endswith \"connected\" and Name_s !contains \"device\" \r\n| extend module = tostring(parse_json(Tags_s).module) \r\n| extend device = tostring(parse_json(Tags_s).device) \r\n//| summarize Count = max(Value_s)  by Name_s, module, device \r\n| project TimeGenerated, strcat(device ,\"-\", module ,\"-\", Name_s) , toint(Value_s)   \r\n| render timechart \r\n"
+                                        }, {
+                                            "name": "TimeRange",
+                                            "value": "P7D"
+                                        }, {
+                                            "name": "Dimensions",
+                                            "value": {
+                                                "xAxis": {
+                                                    "name": "TimeGenerated",
+                                                    "type": "datetime"
+                                                },
+                                                "yAxis": [{
+                                                        "name": "Value_s",
+                                                        "type": "int"
+                                                    }
+                                                ],
+                                                "splitBy": [{
+                                                        "name": "Column1",
+                                                        "type": "string"
+                                                    }
+                                                ],
+                                                "aggregation": "Sum"
+                                            }
+                                        }, {
+                                            "name": "Version",
+                                            "value": "1.0"
+                                        }, {
+                                            "name": "PartId",
+                                            "value": "[concat(uniquestring(variables('dashboardId')), 'Part6')]"
+                                        }, {
+                                            "name": "PartTitle",
+                                            "value": "Analytics"
+                                        }, {
+                                            "name": "PartSubTitle",
+                                            "value": "[variables('workspaceName')]"
+                                        }, {
+                                            "name": "resourceTypeMode",
+                                            "value": "workspace"
+                                        }, {
+                                            "name": "ControlType",
+                                            "value": "AnalyticsChart"
+                                        }, {
+                                            "name": "SpecificChart",
+                                            "value": "Line"
+                                        }, {
+                                            "name": "DashboardId",
+                                            "isOptional": true
+                                        }
+                                    ],
+                                    "type": "Extension/AppInsightsExtension/PartType/AnalyticsPart",
+                                    "settings": {
+                                        "content": {
+                                            "PartTitle": "Connection Status",
+                                            "PartSubTitle": "[variables('workspaceName')]"
+                                        }
+                                    },
+                                    "asset": {
+                                        "idInputName": "ComponentId",
+                                        "type": "ApplicationInsights"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "metadata": {
+                    "model": {
+                        "timeRange": {
+                            "value": {
+                                "relative": {
+                                    "duration": 24,
+                                    "timeUnit": 1
+                                }
+                            },
+                            "type": "MsPortalFx.Composition.Configuration.ValueTypes.TimeRange"
+                        },
+                        "filterLocale": {
+                            "value": "en-us"
+                        },
+                        "filters": {
+                            "value": {
+                                "MsPortalFx_TimeRange": {
+                                    "model": {
+                                        "format": "utc",
+                                        "granularity": "auto",
+                                        "relative": "7d"
+                                    },
+                                    "displayCache": {
+                                        "name": "UTC Time",
+                                        "value": "Past 7 days"
+                                    },
+                                    "filteredPartIds": [
+                                        "StartboardPart-AnalyticsPart-e81514b6-9530-4b30-b790-bff91e2a0006",
+                                        "StartboardPart-AnalyticsPart-e81514b6-9530-4b30-b790-bff91e2a0008",
+                                        "StartboardPart-AnalyticsPart-e81514b6-9530-4b30-b790-bff91e2a000a",
+                                        "StartboardPart-AnalyticsPart-e81514b6-9530-4b30-b790-bff91e2a000c",
+                                        "StartboardPart-AnalyticsPart-e81514b6-9530-4b30-b790-bff91e2a000e",
+                                        "StartboardPart-AnalyticsPart-e81514b6-9530-4b30-b790-bff91e2a0010"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "name": "[variables('dashboardName')]",
+            "type": "Microsoft.Portal/dashboards",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "hidden-title": "[variables('dashboardName')]"
+            },
+            "apiVersion": "2015-08-01-preview"
+        },
+        {
+            "comments": "Deploy factory network simulation.",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "[concat(variables('simulationName'), copyIndex())]",
+            "condition": "[not(equals(parameters('numberOfSimulations'), 0))]",
+            "copy": {
+                "count": "[if(not(equals(0, parameters('numberOfSimulations'))), parameters('numberOfSimulations'), 1)]",
+                "mode": "Parallel",
+                "name": "simulationcopies"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "comments": "Network interface for simulation virtual machine to use.",
+                            "name": "[concat(variables('simulationName'), copyIndex(), '-nic')]",
+                            "type": "Microsoft.Network/networkInterfaces",
+                            "apiVersion": "2019-09-01",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "ipConfigurations": [
+                                    {
+                                        "name": "ipconfig1",
+                                        "properties": {
+                                            "subnet": {
+                                                "id": "[concat(variables('vnetResourceId'), '/subnets/', 'vm-subnet')]"
+                                            },
+                                            "privateIPAllocationMethod": "Dynamic"
+                                        }
+                                    }
+                                ]
+                            },
+                            "dependsOn": [
+                            ]
+                        },
+                        {
+                            "comments": "VM running the simulation",
+                            "type": "Microsoft.Compute/virtualMachines",
+                            "name": "[concat(variables('simulationName'), copyIndex())]",
+                            "apiVersion": "2019-03-01",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "hardwareProfile": {
+                                    "vmSize": "[variables('simulationVmSku')]"
+                                },
+                                "osProfile": {
+                                    "computerName": "[concat(variables('simulationName'), copyIndex())]",
+                                    "adminUsername": "[parameters('edgeUsername')]",
+                                    "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]"
+                                },
+                                "storageProfile": {
+                                    "imageReference": "[variables('linuxImage')]",
+                                    "osDisk": {
+                                        "createOption": "FromImage"
+                                    }
+                                },
+                                "networkProfile": {
+                                    "networkInterfaces": [
+                                        {
+                                            "id": "[resourceId('Microsoft.Network/networkInterfaces/', concat(variables('simulationName'), copyIndex(), '-nic'))]"
+                                        }
+                                    ]
+                                }
+                            },
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/networkInterfaces/', concat(variables('simulationName'), copyIndex(), '-nic'))]"
+                            ]
+                        },
+                        {
+                            "comments": "One time script execution to prepare the VM environment",
+                            "type": "Microsoft.Compute/virtualMachines/extensions",
+                            "name": "[concat(variables('simulationName'), copyIndex(), '/', 'scriptextensions')]",
+                            "apiVersion": "2019-03-01",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "publisher": "Microsoft.Azure.Extensions",
+                                "type": "CustomScript",
+                                "typeHandlerVersion": "2.0",
+                                "autoUpgradeMinorVersion": true,
+                                "settings": {
+                                    "fileUris": [
+                                        "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/simulation.sh')]",
+                                        "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/', parameters('simulationProfile'), '.yml')]"
+                                    ]
+                                },
+                                "protectedSettings": {
+                                    "commandToExecute": "[concat('sudo bash simulation.sh ', ' --admin ', parameters('edgeUsername'), ' --name ', parameters('simulationProfile'), ' --imagesNamespace ', concat('\"', parameters('imagesNamespace'), '\"'), ' --imagesTag ', concat('\"', parameters('imagesTag'), '\"'), ' --dockerServer ', concat('\"', parameters('dockerServer'), '\"'), ' --dockerUser ', concat('\"', parameters('dockerUser'), '\"'), ' --dockerPassword ', concat('\"', parameters('dockerPassword'), '\"'))]"
+                                }
+                            },
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Compute/virtualMachines/', concat(variables('simulationName'), copyIndex()))]"
+                            ]
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[variables('vnetResourceId')]"
+            ]
+        }
+    ],
+    "outputs": {
+        "edgeUsername": {
+            "type": "string",
+            "value": "[parameters('edgeUsername')]"
+        }
+    }
+}

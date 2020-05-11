@@ -43,6 +43,11 @@ spec:
       annotations:
         # Required to detect deployment change when 10_industrial_iot_env_secret.yaml is changed.
         checksum/config: {{ include (print $.Template.BasePath "/10_industrial_iot_env_secret.yaml") . | sha256sum }}
+        {{- if .Values.prometheus.scrape }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "9045"
+        {{- end }}
 {{- if .Values.deployment.microServices.publisher.podAnnotations }}
 {{ toYaml .Values.deployment.microServices.publisher.podAnnotations | indent 8 }}
 {{- end }}

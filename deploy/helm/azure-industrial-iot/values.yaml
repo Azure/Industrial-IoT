@@ -5,7 +5,7 @@ image:
   # image.registry is URL of Docker registry from where images will be pulled.
   registry: mcr.microsoft.com
   # image.tag defines which version of Docker images to pull.
-  tag: 2.7.22
+  tag: 2.7.45
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
@@ -33,13 +33,13 @@ azure:
       endpoint: null
 
       # Details of two consumer groups that are required by microservices.
-      # NOTE: consumer groups should have different values.
+      # NOTE: all consumer groups should have different values.
       consumerGroup:
         # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for eventsProcessor microservices. Its recommended value is 'events'.
         events: null
         # azure.iotHub.eventHub.consumerGroup.telemetry is name of consumer group of built-in EventHub for telemetryProcessor microservices. Its recommended value is 'telemetry'.
         telemetry: null
-        # azure.iotHub.eventHub.consumerGroup.tunnel is name of consumer group of built-in EventHub for tunnelprocessor microservices. Its recommended value is 'tunnel'.
+        # azure.iotHub.eventHub.consumerGroup.tunnel is name of consumer group of built-in EventHub for tunnelProcessor microservices. Its recommended value is 'tunnel'.
         tunnel: null
         # azure.iotHub.eventHub.consumerGroup.onboarding is name of consumer group of built-in EventHub for onboarding microservices. Its recommended value is 'onboarding'.
         onboarding: null
@@ -110,7 +110,7 @@ azure:
       consumerGroup:
         # azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm is name of consumer group for telemetryCdmProcessor microservices. Its recommended value is 'telemetry_cdm'.
         telemetryCdm: null
-        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx is name of consumer group for telemetryUxProcessor microservices. Its recommended value is 'telemetry_ux'.
+        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx is name of consumer group for events microservices. Its recommended value is 'telemetry_ux'.
         telemetryUx: null
 
   # Details of Azure Service Bus Namespace that microservices will use.
@@ -136,10 +136,19 @@ azure:
     # azure.applicationInsights.instrumentationKey is the instrumentation key of Application Insights instance.
     instrumentationKey: null
 
+  # Provide details of Azure Log Analytics Workspace instance to enable metrics and log collection from IoT Edge modules.
+  logAnalyticsWorkspace:
+    # azure.logAnalyticsWorkspace.id is the workspace id of Log Analytics Workspace instance.
+    id: null
+    # azure.logAnalyticsWorkspace.key is the shared key for connecting a device to Log Analytics Workspace instance.
+    key: null
+
   # Details of SignalR service.
   signalR:
     # azure.signalR.connectionString is the connection string for your SignalR instance.
     connectionString: null
+    # azure.signalR.serviceMode is the service mode of your SignalR instance.
+    serviceMode: null
 
   auth:
     # azure.auth.required defines whether to require authentication for all exposed web APIs.
@@ -754,3 +763,8 @@ deployment:
     #   hosts:
     #   - myapp.domain.com
     tls: []
+
+# Prometheus metrics values. 
+prometheus:
+  # prometheus.scrape determines whether to add Pod annotations for Prometheus metrics scraping or not.
+  scrape: true

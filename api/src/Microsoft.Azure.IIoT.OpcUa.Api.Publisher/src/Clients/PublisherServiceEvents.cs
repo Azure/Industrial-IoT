@@ -41,12 +41,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// <param name="serializer"></param>
         public PublisherServiceEvents(IHttpClient httpClient, ICallbackClient client,
             string serviceUri, ISerializer serializer = null) {
-            if (string.IsNullOrEmpty(serviceUri)) {
+            if (string.IsNullOrWhiteSpace(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the events micro service.");
             }
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _serviceUri = serviceUri;
+            _serviceUri = serviceUri.TrimEnd('/');
             _serializer = serializer ?? new NewtonSoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }

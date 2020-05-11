@@ -46,10 +46,22 @@
 
  .PARAMETER environmentName
     The cloud environment to use (defaults to Azure Cloud).
+
+ .PARAMETER simulationProfile
+    If you are deploying a simulation, the simulation profile to use if not default.
+
+ .PARAMETER numberOfSimulationsPerEdge
+    Number of simulations to deploy per edge
+
+ .PARAMETER numberOfLinuxGateways
+    Number of linux gateways to deploy into the simulation
+
+ .PARAMETER numberOfWindowsGateways
+    Number of windows gateways to deploy into the simulation
 #>
 
 param(
-    [ValidateSet("minimum", "local", "services", "app", "all")] [string] $type = "all",
+    [ValidateSet("minimum", "local", "services", "simulation", "app", "all")] [string] $type = "all",
     [string] $version,
     [string] $applicationName,
     [string] $resourceGroupName,
@@ -60,6 +72,10 @@ param(
     [string] $aadApplicationName,
     [string] $acrRegistryName,
     [string] $acrSubscriptionName,
+    [string] $simulationProfile,
+    [int] $numberOfLinuxGateways = 0,
+    [int] $numberOfWindowsGateways = 0,
+    [int] $numberOfSimulationsPerEdge = 0,
     $aadConfig,
     $context = $null,
     [switch] $testAllDeploymentOptions,
@@ -621,10 +637,11 @@ Function New-Deployment() {
     $templateParameters.Add("branchName", $script:branchName)
     $templateParameters.Add("repoUrl", $script:repo)
 
-    if (($script:type -eq "local") -or ($script:type -eq "minimum")) {
+    # Select an application name
+    if (($script:type -eq "local") -or ($script:type -eq "minimum") -or ($script:type -eq "simulation")) {
         if ([string]::IsNullOrEmpty($script:applicationName) `
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
-            $script:applicationName = $script:resourceGroupName
+            $script:applicationName = $script:resourceGroupName.Replace('_', '-')
         }
         if ($script:type -eq "minimum") {
             $templateParameters.Add("deploymentLevel", "Minimum")
@@ -653,7 +670,16 @@ Function New-Deployment() {
                 $script:applicationName = $script:resourceGroupName
             }
         }
-
+        if (($script:type -eq "all") -or ($script:type -eq "app")) {
+            $templateParameters.Add("siteName", $script:applicationName)
+        }
+        if ($script:type -eq "services") {
+            $templateParameters.Add("serviceSiteName", $script:applicationName)
+        }
+    }
+    
+    # Select docker images to use
+    if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
         if ([string]::IsNullOrEmpty($script:version)) {
             $script:version = "latest"
         }
@@ -680,50 +706,65 @@ Function New-Deployment() {
             $templateParameters.Add("dockerServer", "mcr.microsoft.com")
             Write-Host "Using $($script:version) images from mcr.microsoft.com."
         }
+    }
 
-        if ($script:type -eq "all") {
-            $templateParameters.Add("siteName", $script:applicationName)
+    # Configure simulation
+    if (($script:type -eq "all") -or ($script:type -eq "simulation")) {
+        if ([string]::IsNullOrEmpty($script:simulationProfile)) {
+            $templateParameters.Add("simulationProfile", "default")
+        }
+        else {
+            $templateParameters.Add("simulationProfile", $script:simulationProfile)
+        }
+        if ((-not $script:numberOfLinuxGateways) -or ($script:numberOfLinuxGateways -eq 0)) {
             $templateParameters.Add("numberOfLinuxGateways", 1)
+        }
+        else {
+            $templateParameters.Add("numberOfLinuxGateways", $script:numberOfLinuxGateways)
+        }
+        if ((-not $script:numberOfWindowsGateways) -or ($script:numberOfWindowsGateways -eq 0)) {
             $templateParameters.Add("numberOfWindowsGateways", 1)
+        }
+        else {
+            $templateParameters.Add("numberOfWindowsGateways", $script:numberOfWindowsGateways)
+        }
+        if ((-not $script:numberOfSimulationsPerEdge) -or ($script:numberOfSimulationsPerEdge -eq 0)) {
             $templateParameters.Add("numberOfSimulations", 1)
+        }
+        else {
+            $templateParameters.Add("numberOfSimulations", $script:numberOfSimulationsPerEdge)
+        }
 
-            # Get all vm skus available in the location and in the account
-            $availableVms = Get-AzComputeResourceSku | Where-Object {
-                ($_.ResourceType.Contains("virtualMachines")) -and `
-                ($_.Locations -icontains $script:resourceGroupLocation) -and `
-                ($_.Restrictions.Count -eq 0)
-            }
-            # Sort based on sizes and filter minimum requirements
-            $availableVmNames = $availableVms `
-                | Select-Object -ExpandProperty Name -Unique
-            $vmSizes = Get-AzVMSize $script:resourceGroupLocation `
-                | Where-Object { $availableVmNames -icontains $_.Name } `
-                | Where-Object {
-                    ($_.NumberOfCores -ge 2) -and `
-                    ($_.MemoryInMB -ge 8192) -and `
-                    ($_.OSDiskSizeInMB -ge 1047552) -and `
-                    ($_.ResourceDiskSizeInMB -gt 8192)
-                } `
-                | Sort-Object -Property `
-                    NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
-            # Pick top
-            if ($vmSizes.Count -ne 0) {
-                $vmSize = $vmSizes[0].Name
-                Write-Host "Using $($vmSize) as VM size for all edge simulation hosts..."
-                $templateParameters.Add("edgeVmSize", $vmSize)
-            }
+        # Get all vm skus available in the location and in the account
+        $availableVms = Get-AzComputeResourceSku | Where-Object {
+            ($_.ResourceType.Contains("virtualMachines")) -and `
+            ($_.Locations -icontains $script:resourceGroupLocation) -and `
+            ($_.Restrictions.Count -eq 0)
+        }
+        # Sort based on sizes and filter minimum requirements
+        $availableVmNames = $availableVms `
+            | Select-Object -ExpandProperty Name -Unique
+        $vmSizes = Get-AzVMSize $script:resourceGroupLocation `
+            | Where-Object { $availableVmNames -icontains $_.Name } `
+            | Where-Object {
+                ($_.NumberOfCores -ge 2) -and `
+                ($_.MemoryInMB -ge 8192) -and `
+                ($_.OSDiskSizeInMB -ge 1047552) -and `
+                ($_.ResourceDiskSizeInMB -gt 8192)
+            } `
+            | Sort-Object -Property `
+                NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
+        # Pick top
+        if ($vmSizes.Count -ne 0) {
+            $vmSize = $vmSizes[0].Name
+            Write-Host "Using $($vmSize) as VM size for all edge simulation hosts..."
+            $templateParameters.Add("edgeVmSize", $vmSize)
+        }
 
-            $adminUser = "sandboxuser"
-            $adminPassword = New-Password
-            $templateParameters.Add("edgePassword", $adminPassword)
-            $templateParameters.Add("edgeUserName", $adminUser)
-        }
-        if ($script:type -eq "app") {
-            $templateParameters.Add("siteName", $script:applicationName)
-        }
-        if ($script:type -eq "services") {
-            $templateParameters.Add("serviceSiteName", $script:applicationName)
-        }
+        $adminUser = "sandboxuser"
+        $adminPassword = New-Password
+        $templateParameters.Add("edgePassword", $adminPassword)
+        $templateParameters.Add("edgeUserName", $adminUser)
     }
 
     $aadAddReplyUrls = $false
