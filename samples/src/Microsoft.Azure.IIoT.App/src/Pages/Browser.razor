@@ -20,6 +20,7 @@
 @using Microsoft.Azure.IIoT.App.Common
 @using Microsoft.Azure.IIoT.App.Models
 @using Microsoft.Azure.IIoT.App.Services.SecureData
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser BrowseManager
@@ -29,10 +30,16 @@
 @inject UICommon CommonHelper
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject SecureData secureData
+@inject IRegistryServiceApi registryService
 
 @implements IDisposable
 
 <h1>Endpoint Control</h1>
+
+@if (EndpointUrl != null)
+{
+    <p>Url: @EndpointUrl</p>
+}
 
 <div>
     @if (DiscovererId != string.Empty && DiscovererId != RegistryHelper.PathAll)
@@ -229,6 +236,7 @@
     public CredentialModel Credential = new CredentialModel();
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
+    public string EndpointUrl { get; set; } = null;
     private IAsyncDisposable _publishEvent { get; set; }
     private string _tableView = "visible";
     private string _tableEmpty = "displayNone";
@@ -282,6 +290,8 @@
     {
         if (firstRender)
         {
+            var endpoint = await registryService.GetEndpointAsync(EndpointId); 
+            EndpointUrl = endpoint?.Registration?.EndpointUrl;
             Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
             await BrowseTreeAsync(BrowseDirection.Forward, 0, true, string.Empty, new List<string>());
             CommonHelper.Spinner = string.Empty;
