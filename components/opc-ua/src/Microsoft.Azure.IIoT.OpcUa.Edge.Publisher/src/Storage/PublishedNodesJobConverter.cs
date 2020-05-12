@@ -128,6 +128,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     MessagingMode = legacyCliModel.MessagingMode,
                     Engine = _config == null ? null : new EngineConfigurationModel {
                         BatchSize = _config.BatchSize,
+                        BatchTriggerInterval = _config.BatchTriggerInterval,
                         DiagnosticsInterval = _config.DiagnosticsInterval,
                         MaxMessageSize = _config.MaxMessageSize
                     },

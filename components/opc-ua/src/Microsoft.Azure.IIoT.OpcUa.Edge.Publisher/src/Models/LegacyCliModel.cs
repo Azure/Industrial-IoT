@@ -67,6 +67,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public int? BatchSize { get; set; }
 
         /// <summary>
+        /// The interval to trigger batching
+        /// </summary>
+        public TimeSpan? BatchTriggerInterval { get; set; }
+
+        /// <summary>
         /// The maximum size of the (IoT D2C ) message
         /// </summary>
         public int? MaxMessageSize { get; set; }

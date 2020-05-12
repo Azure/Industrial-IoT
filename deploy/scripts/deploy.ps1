@@ -6,7 +6,7 @@
     Deploys the Industrial IoT services dependencies and optionally micro services and UI to Azure.
 
  .PARAMETER type
-    The type of deployment (minimum, local, services, app, all)
+    The type of deployment (minimum, local, services, simulation, app, all)
 
  .PARAMETER version
     Set to "preview" or another mcr image tag to deploy - if not set deploys last released images ("latest").
