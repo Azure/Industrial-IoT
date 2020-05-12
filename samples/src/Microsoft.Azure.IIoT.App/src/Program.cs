@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.App {
     using System.IO;
     using Serilog;
     using Serilog.Events;
-    using EnvironmentName = Microsoft.AspNetCore.Hosting.EnvironmentName;
 
     public class Program {
 
@@ -57,7 +56,6 @@ namespace Microsoft.Azure.IIoT.App {
                     .UseKestrel(o => o.AddServerHeader = false)
                     .UseIISIntegration()
                     .UseSetting(WebHostDefaults.DetailedErrorsKey, "true"))
-                .UseEnvironment(EnvironmentName.Development)
                 .UseSerilog();
         }
     }
