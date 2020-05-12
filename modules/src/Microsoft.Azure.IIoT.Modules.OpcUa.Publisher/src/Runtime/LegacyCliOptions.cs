@@ -147,13 +147,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "it|issuercertstoretype=", "Legacy - do not use.", _ => {} },
                     { "bs|batchsize=", "the size of message batching buffer.",
                         (int i) => this[LegacyCliConfigKeys.BatchSize] = i.ToString() },
+                    { "si|iothubsendinterval=", "the trigger batching intervaql in seconds",
+                        (int k) => this[LegacyCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
                     { "ms|iothubmessagesize=", "the maximum size of the (IoT D2C) message.",
                         (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
                     { "sc|scaletestcount=", "the number of monitored item clones in scale tests",
                         (int i) => this[LegacyCliConfigKeys.ScaleTestCount] = i.ToString() },
 
                     // Legacy unsupported
-                    { "si|iothubsendinterval=", "Legacy - do not use.", _ => {} },
                     { "tc|telemetryconfigfile=", "Legacy - do not use.", _ => {} },
                     { "ic|iotcentral=", "Legacy - do not use.", _ => {} },
                     { "mq|monitoreditemqueuecapacity=", "Legacy - do not use.", _ => {} },
@@ -207,11 +208,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public event ConfigUpdatedEventHandler OnConfigUpdated;
 #pragma warning restore 67
 
-
         /// <summary>
         /// The batch size 
         /// </summary>
         public int? BatchSize => LegacyCliModel.BatchSize;
+
+        /// <summary>
+        /// The interval to show diagnostic information in the log.
+        /// </summary>
+        public TimeSpan? BatchTriggerInterval => LegacyCliModel.BatchTriggerInterval;
 
         /// <summary>
         /// The interval to show diagnostic information in the log.
@@ -273,6 +278,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 RejectedCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcRejectedCertStorePath),
                 TrustedIssuerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcIssuerCertStorePath),
                 BatchSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.BatchSize, 1),
+                BatchTriggerInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.BatchTriggerInterval),
                 MaxMessageSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.MaxMessageSize, 0),
                 ScaleTestCount = GetValueOrDefault<int?>(LegacyCliConfigKeys.ScaleTestCount, 1)
             };
