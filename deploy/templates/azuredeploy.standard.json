@@ -316,13 +316,20 @@
                 "description": "Specifies the service tier of the Azure Log Analytics workspace."
             }
         },
-      "appInsightsName": {
-        "type": "string",
-        "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
-        "metadata": {
-          "description": "Specifies the name of Azure Application Insights instance created as part of this deployment."
+        "appInsightsName": {
+          "type": "string",
+          "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+          "metadata": {
+            "description": "Specifies the name of Azure Application Insights instance created as part of this deployment."
+          }
+        },
+        "workbookId": {
+          "type": "string",
+          "defaultValue": "[newGuid()]",
+          "metadata": {
+            "description": "The unique guid for this workbook instance"
+          }
         }
-      }
     },
     "variables": {
         "eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
@@ -352,8 +359,7 @@
         "kustoEventHubConsumerGroup": "telemetrykusto",
         "omsResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
         "standardConfigurationResourceName": "infrastructure.configuration",
-        "workbookConfigurationResourceName": "workbook.configuration",
-        "workbookId": "[newGuid()]"
+        "workbookConfigurationResourceName": "workbook.configuration"
     },
     "resources": [
         {
@@ -721,7 +727,7 @@
                           },
                           {
                             "key": "PCS_WORKBOOK_ID",
-                            "value": "[reference(variables('workbookId'))]"
+                            "value": "[parameters('workbookId')]"
                           }
                         ]
                     }
@@ -752,7 +758,7 @@
                     "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
                   },
                   "workbookId": {
-                    "value": "[reference(variables('workbookId'))]"
+                    "value": "[parameters('workbookId')]"
                   }
                 },
                 "templateLink": {
