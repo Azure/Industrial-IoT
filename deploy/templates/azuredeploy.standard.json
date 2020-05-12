@@ -714,21 +714,25 @@
                                 "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName')), '2017-03-15-preview').customerId]"
                             },
                             {
-                                "key": "PCS_WORKSPACE_KEY",
-                                "value": "[listKeys(variables('omsResourceId'), '2015-11-01-preview').primarySharedKey]"
+                              "key": "PCS_WORKSPACE_KEY",
+                              "value": "[listKeys(variables('omsResourceId'), '2015-11-01-preview').primarySharedKey]"
+                            },
+                            {
+                              "key": "PCS_WORKBOOK_ID",
+                              "value": "[parameters('workbookId')]"
                             },
                             {
                                 "key": "PCS_APPINSIGHTS_INSTRUMENTATIONKEY",
                                 "value": "[reference(variables('appinsightsResourceId'), '2015-05-01').InstrumentationKey]"
                             },
-                          {
-                            "key": "PCS_TSI_URL",
-                            "value": "[reference(variables('tsiEnvironmentResourceId'), '2018-08-15-preview').dataAccessFQDN]"
-                          },
-                          {
-                            "key": "PCS_WORKBOOK_ID",
-                            "value": "[parameters('workbookId')]"
-                          }
+                            {
+                              "key": "PCS_TSI_URL",
+                              "value": "[reference(variables('tsiEnvironmentResourceId'), '2018-08-15-preview').dataAccessFQDN]"
+                            },
+                            {
+                              "key": "PCS_SUBSCRIPTION_ID",
+                              "value": "[subscription().subscriptionId]"
+                            }
                         ]
                     }
                 },

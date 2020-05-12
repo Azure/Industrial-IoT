@@ -19,5 +19,10 @@ namespace Microsoft.Azure.IIoT.Deploy {
         /// Log Analytics Workspace Key
         /// </summary>
         string LogWorkspaceKey { get; }
+
+        /// <summary>
+        /// Log Analytics Workbook Id
+        /// </summary>
+        string LogWorkbookId { get; }
     }
 }
