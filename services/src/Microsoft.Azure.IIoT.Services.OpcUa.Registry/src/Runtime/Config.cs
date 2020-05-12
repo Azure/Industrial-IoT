@@ -91,8 +91,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public string LogWorkspaceId => _lwc.LogWorkspaceId;
         /// <inheritdoc/>
         public string LogWorkspaceKey => _lwc.LogWorkspaceKey;
-        /// <inheritdoc/>
-        public string LogWorkbookId => _lwc.LogWorkbookId;
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>

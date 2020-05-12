@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
 
         private const string kWorkspaceId = "Docker:WorkspaceId";
         private const string kWorkspaceKey = "Docker:WorkspaceKey";
-        private const string kWorkBookId = "Docker:WorkbookId";
 
         /// <inheritdoc/>
         public string LogWorkspaceId => GetStringOrDefault(kWorkspaceId,
@@ -23,10 +22,6 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
         /// <inheritdoc/>
         public string LogWorkspaceKey => GetStringOrDefault(kWorkspaceKey,
             () => GetStringOrDefault(PcsVariable.PCS_WORKSPACE_KEY));
-
-        /// <inheritdoc/>
-        public string LogWorkbookId => GetStringOrDefault(kWorkBookId,
-            () => GetStringOrDefault(PcsVariable.PCS_WORKBOOK_ID));
 
         /// <summary>
         /// Configuration constructor
