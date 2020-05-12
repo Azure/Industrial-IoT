@@ -316,13 +316,13 @@
                 "description": "Specifies the service tier of the Azure Log Analytics workspace."
             }
         },
-        "appInsightsName": {
-            "type": "string",
-            "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
-            "metadata": {
-                "description": "Specifies the name of Azure Application Insights instance created as part of this deployment."
-            }
+      "appInsightsName": {
+        "type": "string",
+        "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+        "metadata": {
+          "description": "Specifies the name of Azure Application Insights instance created as part of this deployment."
         }
+      }
     },
     "variables": {
         "eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
@@ -352,7 +352,8 @@
         "kustoEventHubConsumerGroup": "telemetrykusto",
         "omsResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]",
         "standardConfigurationResourceName": "infrastructure.configuration",
-        "workbookConfigurationResourceName": "workbook.configuration"
+        "workbookConfigurationResourceName": "workbook.configuration",
+        "workbookId": "[newGuid()]"
     },
     "resources": [
         {
@@ -714,10 +715,14 @@
                                 "key": "PCS_APPINSIGHTS_INSTRUMENTATIONKEY",
                                 "value": "[reference(variables('appinsightsResourceId'), '2015-05-01').InstrumentationKey]"
                             },
-                            {
-                                "key": "PCS_TSI_URL",
-                                "value": "[reference(variables('tsiEnvironmentResourceId'), '2018-08-15-preview').dataAccessFQDN]"
-                            }
+                          {
+                            "key": "PCS_TSI_URL",
+                            "value": "[reference(variables('tsiEnvironmentResourceId'), '2018-08-15-preview').dataAccessFQDN]"
+                          },
+                          {
+                            "key": "PCS_WORKBOOK_ID",
+                            "value": "[reference(variables('workbookId'))]"
+                          }
                         ]
                     }
                 },
@@ -743,9 +748,12 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "workbookSourceId": {
-                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
-                    }
+                  "workbookSourceId": {
+                    "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+                  },
+                  "workbookId": {
+                    "value": "[reference(variables('workbookId'))]"
+                  }
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
