@@ -316,19 +316,19 @@
                 "description": "Specifies the service tier of the Azure Log Analytics workspace."
             }
         },
-        "appInsightsName": {
-          "type": "string",
-          "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
-          "metadata": {
-            "description": "Specifies the name of Azure Application Insights instance created as part of this deployment."
-          }
-        },
-        "workbookId": {
-          "type": "string",
-          "defaultValue": "[newGuid()]",
-          "metadata": {
-            "description": "The unique guid for this workbook instance"
-          }
+            "appInsightsName": {
+              "type": "string",
+              "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+              "metadata": {
+                "description": "Specifies the name of Azure Application Insights instance created as part of this deployment."
+              }
+            },
+            "workbookId": {
+              "type": "string",
+              "defaultValue": "[newGuid()]",
+              "metadata": {
+              "description": "The unique guid for this workbook instance"
+            }
         }
     },
     "variables": {
