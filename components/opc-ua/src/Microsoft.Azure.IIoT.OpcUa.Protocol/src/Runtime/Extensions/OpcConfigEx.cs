@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Opc.Ua;
+    using Opc.Ua.Configuration;
+    using Microsoft.Azure.IIoT.Exceptions;
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
-    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Configuration extensions
@@ -39,61 +39,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 ClientConfiguration = new ClientConfiguration(),
                 CertificateValidator = new CertificateValidator()
             };
+            await applicationConfiguration.Validate(applicationConfiguration.ApplicationType);
+            var application = new ApplicationInstance(applicationConfiguration);
+            var hasAppCertificate = await application.CheckApplicationInstanceCertificate(true,
+                CertificateFactory.defaultKeySize);
+            if (!hasAppCertificate) {
+                throw new InvalidConfigurationException("OPC UA application certificate can not be validated");
+            }
 
             applicationConfiguration.CertificateValidator.CertificateValidation += handler;
-
-            var configuredSubject = applicationConfiguration.SecurityConfiguration
-                .ApplicationCertificate.SubjectName;
-            applicationConfiguration.SecurityConfiguration.ApplicationCertificate.SubjectName = 
-                applicationConfiguration.ApplicationName;
             await applicationConfiguration.CertificateValidator
                 .Update(applicationConfiguration.SecurityConfiguration);
 
-            // use existing certificate, if present
-            var certificate = applicationConfiguration.SecurityConfiguration
-                .ApplicationCertificate.Certificate;
-
-            // create a self signed certificate if there is none
-            if (certificate == null && createSelfSignedCertIfNone) {
-                certificate = CertificateFactory.CreateCertificate(
-                    applicationConfiguration.SecurityConfiguration
-                        .ApplicationCertificate.StoreType,
-                    applicationConfiguration.SecurityConfiguration
-                        .ApplicationCertificate.StorePath,
-                    null,
-                    applicationConfiguration.ApplicationUri,
-                    applicationConfiguration.ApplicationName,
-                    configuredSubject,
-                    null,
-                    CertificateFactory.defaultKeySize,
-                    DateTime.UtcNow - TimeSpan.FromDays(1),
-                    CertificateFactory.defaultLifeTime,
-                    CertificateFactory.defaultHashSize
-                );
-
-                if (certificate == null) {
-                    throw new Exception(
-                        "OPC UA application certificate can not be created! Cannot continue without it!");
-                }
-
-                applicationConfiguration.SecurityConfiguration
-                    .ApplicationCertificate.Certificate = certificate;
-                try {
-                    // copy the certificate *public key only* into the trusted certificates list
-                    using (ICertificateStore trustedStore = applicationConfiguration
-                        .SecurityConfiguration.TrustedPeerCertificates.OpenStore()) {
-                        using (var publicKey = new X509Certificate2(certificate.RawData)) {
-                            trustedStore.Add(publicKey.YieldReturn());
-                        }
-                    }
-                }
-                catch { }
-                // update security information
-                await applicationConfiguration.CertificateValidator.UpdateCertificate(
-                    applicationConfiguration.SecurityConfiguration);
-            }
-
-            applicationConfiguration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);
             return applicationConfiguration;
         }
     }

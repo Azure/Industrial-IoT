@@ -30,6 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public const string AutoAcceptUntrustedCertificatesKey = "AutoAcceptUntrustedCertificates";
         public const string RejectSha1SignedCertificatesKey = "RejectSha1SignedCertificates";
         public const string MinimumCertificateKeySizeKey = "MinimumCertificateKeySize";
+        public const string AddAppCertToTrustedStoreKey = "AddAppCertToTrustedStore";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -75,7 +76,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// <inheritdoc/>
         public ushort MinimumCertificateKeySize =>
             (ushort)GetIntOrDefault(MinimumCertificateKeySizeKey, () => 1024);
-
+        /// <inheritdoc/>
+        public bool AddAppCertToTrustedStore =>
+            GetBoolOrDefault(AddAppCertToTrustedStoreKey, () => true);
 
         /// <summary>
         /// Create configuration

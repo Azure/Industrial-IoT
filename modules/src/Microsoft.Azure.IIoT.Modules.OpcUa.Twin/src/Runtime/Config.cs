@@ -52,6 +52,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime {
         /// <inheritdoc/>
         public bool RejectSha1SignedCertificates => _opc.RejectSha1SignedCertificates;
         /// <inheritdoc/>
+        public bool AddAppCertToTrustedStore => _opc.AddAppCertToTrustedStore;
+        /// <inheritdoc/>
         public CertificateStore TrustedIssuerCertificates => _opc.TrustedIssuerCertificates;
         /// <inheritdoc/>
         public CertificateStore TrustedPeerCertificates => _opc.TrustedPeerCertificates;

@@ -142,6 +142,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                             StoreType = "Directory",
                             StorePath = $"{pkiRootPath}/rejected",
                         },
+                        MinimumCertificateKeySize = 1024,
+                        RejectSHA1SignedCertificates = false,
                         AutoAcceptUntrustedCertificates = true,
                         AddAppCertToTrustedStore = true
                     },

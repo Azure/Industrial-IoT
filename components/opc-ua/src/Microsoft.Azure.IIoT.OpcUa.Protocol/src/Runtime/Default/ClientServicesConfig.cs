@@ -51,7 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
 
         /// <inheritdoc/>
         public string PkiRootPath => _security.PkiRootPath;
-
         /// <inheritdoc/>
         public CertificateInfo ApplicationCertificate => _security.ApplicationCertificate;
         /// <inheritdoc/>
@@ -63,10 +62,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// <inheritdoc/>
         public bool RejectSha1SignedCertificates => _security.RejectSha1SignedCertificates;
         /// <inheritdoc/>
+        public bool AddAppCertToTrustedStore => _security.AddAppCertToTrustedStore;
+        /// <inheritdoc/>
         public CertificateStore TrustedIssuerCertificates => _security.TrustedIssuerCertificates;
         /// <inheritdoc/>
         public CertificateStore TrustedPeerCertificates => _security.TrustedPeerCertificates;
-
 
         /// <inheritdoc/>
         public int ChannelLifetime => _transport.ChannelLifetime;
