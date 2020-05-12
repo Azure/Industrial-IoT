@@ -17,6 +17,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public int? BatchSize { get; set; }
 
         /// <summary>
+        /// Diagnostics setting
+        /// </summary>
+        public TimeSpan? BatchTriggerInterval { get; set; }
+
+        /// <summary>
         /// IoT Hub Maximum message size
         /// </summary>
         public int? MaxMessageSize { get; set; }
