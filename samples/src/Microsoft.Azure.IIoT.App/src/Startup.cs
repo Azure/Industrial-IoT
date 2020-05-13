@@ -229,7 +229,7 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<Publisher>()
                 .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<UICommon>()
-                .AsImplementedInterfaces().AsSelf();
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<SecureData>()
                 .AsImplementedInterfaces().AsSelf();
         }
