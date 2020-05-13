@@ -169,9 +169,6 @@ Options:
                 if (acceptAll) {
                     arguments.Add("--aa");
                 }
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    arguments.Add("--at=X509Store");
-                }
                 Publisher.Program.Main(arguments.ToArray());
                 Console.WriteLine("Publisher module exited.");
             }

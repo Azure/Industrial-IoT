@@ -29,7 +29,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using System.Diagnostics;
     using System.Linq;
     using System.Net;
-    using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using System.Text;
@@ -1609,23 +1608,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
 
                 SecurityConfiguration = new SecurityConfiguration {
                     ApplicationCertificate = new CertificateIdentifier {
-                        StoreType = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                                "X509Store" : "Directory",
-                        StorePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                                "CurrentUser\\UA_MachineDefault" :
-                                "pki/own",
+                        StoreType = CertificateStoreType.Directory,
+                        StorePath = "pki/own",
                         SubjectName = "Microsoft.Azure.IIoT.Gateway"
                     },
                     TrustedPeerCertificates = new CertificateTrustList {
-                        StoreType = "Directory",
+                        StoreType = CertificateStoreType.Directory,
                         StorePath = "pki/trusted",
                     },
                     TrustedIssuerCertificates = new CertificateTrustList {
-                        StoreType = "Directory",
+                        StoreType = CertificateStoreType.Directory,
                         StorePath = "pki/issuers",
                     },
                     RejectedCertificateStore = new CertificateTrustList {
-                        StoreType = "Directory",
+                        StoreType = CertificateStoreType.Directory,
                         StorePath = "pki/rejected"
                     },
                     MinimumCertificateKeySize = 1024,
