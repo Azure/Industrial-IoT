@@ -54,6 +54,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Automatically add application certificate to the trusted store
         /// </summary>
-        public bool AddAppCertToTrustedStore { get; }
+        bool AddAppCertToTrustedStore { get; }
     }
 }

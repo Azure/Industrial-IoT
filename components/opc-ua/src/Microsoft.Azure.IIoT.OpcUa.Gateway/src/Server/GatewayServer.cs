@@ -1625,7 +1625,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         StorePath = "pki/rejected"
                     },
                     MinimumCertificateKeySize = 1024,
-                    RejectSHA1SignedCertificates = true,
+                    RejectSHA1SignedCertificates = false,
                     AddAppCertToTrustedStore = true,
                     AutoAcceptUntrustedCertificates = false
                 },
