@@ -161,7 +161,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // Local orchestrator
                 builder.RegisterType<LegacyJobOrchestrator>()
                     .AsImplementedInterfaces().SingleInstance();
-
                 // Create jobs from published nodes file
                 builder.RegisterType<PublishedNodesJobConverter>()
                     .SingleInstance();
