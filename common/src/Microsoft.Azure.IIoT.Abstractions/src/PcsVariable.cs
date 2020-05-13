@@ -280,5 +280,8 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Subscription id </summary>
         public const string PCS_SUBSCRIPTION_ID =
             "PCS_SUBSCRIPTION_ID";
+        /// <summary> Resource group </summary>
+        public const string PCS_RESOURCE_GROUP =
+            "PCS_RESOURCE_GROUP";
     }
 }

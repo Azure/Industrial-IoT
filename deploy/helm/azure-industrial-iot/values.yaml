@@ -181,18 +181,6 @@ azure:
       # azure.auth.clientsApp.secret is client secret (password) of AAD App Registration for ClientsApp.
       secret: null
 
-  # Those are details used to create Tsi url.
-  tsi:
-     # Data Access FQDN
-     url: null
-
-  # Those are details used to create workbook url.
-  logAnalyticsWorkbook:
-    # azure.logAnalyticsWorkbook.workbookId is the workbook id of Log Analytics Workbook instance.
-    workbookId: null
-    # azure.logAnalyticsWorkbook.subscriptionId is the Id that identifies your subscription.
-    subscriptionId: null
-
 # externalServiceUrl is URL on which components of Azure Industrial IoT solution will be available externally.
 # This property is required so that Publisher Edge Module can communicate with jobs orchestrator service (edgeJobs) for reporting its status and requesting publisher jobs.
 # NOTE: If this parameter is not set, then Publisher Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within Kubernetes cluster. 

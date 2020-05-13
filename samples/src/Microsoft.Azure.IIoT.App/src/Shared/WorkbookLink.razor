@@ -39,17 +39,12 @@
     private void CreateWorkbookLink()
     {
         if (!String.IsNullOrEmpty(Configuration.WorkbookId))
-        {
-            var index = Configuration.AuthAudience.LastIndexOf('/');
-            if (index > 0)
-            {
-                _workbookLink = "https://portal.azure.com/#@" +
-                    Configuration.AuthAudience.Substring(8, index - 8) +
-                    "/resource/subscriptions/" + Configuration.SubscriptionId +
-                    "/resourceGroups" + Configuration.AuthAudience.Substring(index).Replace("-service", "") +
-                    "/providers/microsoft.insights/workbooks/" +
-                    Configuration.WorkbookId + "/workbook";
-            }
+        {  
+            _workbookLink = "https://portal.azure.com/#@" + Configuration.TenantId +
+                "/resource/subscriptions/" + Configuration.SubscriptionId +
+                "/resourceGroups/" + Configuration.ResourceGroup +
+                "/providers/microsoft.insights/workbooks/" +
+                Configuration.WorkbookId + "/workbook";
         }
     }
 }
