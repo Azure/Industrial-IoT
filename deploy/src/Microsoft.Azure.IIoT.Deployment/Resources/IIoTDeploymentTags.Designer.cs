@@ -79,6 +79,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IoTSuiteVersion.
+        /// </summary>
+        internal static string KEY_IOT_SUITE_VERSION {
+            get {
+                return ResourceManager.GetString("KEY_IOT_SUITE_VERSION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to managed_by.
         /// </summary>
         internal static string KEY_MANAGED_BY {
@@ -106,7 +115,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to industrial-iot.
+        ///   Looks up a localized string similar to AzureIndustrialIoT.
         /// </summary>
         internal static string VALUE_APPLICATION_IIOT {
             get {
@@ -115,7 +124,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to iai.
+        ///   Looks up a localized string similar to IAI.
         /// </summary>
         internal static string VALUE_IOT_SUITE_TYPE_SUF {
             get {

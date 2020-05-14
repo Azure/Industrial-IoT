@@ -258,7 +258,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 { Resources.IIoTDeploymentTags.KEY_APPLICATION, Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT },
                 { Resources.IIoTDeploymentTags.KEY_VERSION, Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT},
                 { Resources.IIoTDeploymentTags.KEY_MANAGED_BY, Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT},
-                { Resources.IIoTDeploymentTags.KEY_IOT_SUITE_TYPE, valueIotSuiteType}
+                { Resources.IIoTDeploymentTags.KEY_IOT_SUITE_TYPE, valueIotSuiteType},
+                { Resources.IIoTDeploymentTags.KEY_IOT_SUITE_VERSION, Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT}
             };
 
             if (null != owner) {
