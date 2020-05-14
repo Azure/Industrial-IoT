@@ -317,17 +317,17 @@
             }
         },
         "appInsightsName": {
-              "type": "string",
-              "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
-              "metadata": {
+            "type": "string",
+            "defaultValue": "[concat('appinsights-', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+            "metadata": {
                 "description": "Specifies the name of Azure Application Insights instance created as part of this deployment."
-              }
-            },
+            }
+        },
         "workbookId": {
-              "type": "string",
-              "defaultValue": "[newGuid()]",
-              "metadata": {
-              "description": "The unique guid for this workbook instance"
+            "type": "string",
+            "defaultValue": "[newGuid()]",
+            "metadata": {
+                "description": "The unique guid for this workbook instance"
             }
         }
     },
@@ -762,12 +762,12 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                  "workbookSourceId": {
-                    "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
-                  },
-                  "workbookId": {
-                    "value": "[parameters('workbookId')]"
-                  }
+                    "workbookSourceId": {
+                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+                    },
+                    "workbookId": {
+                        "value": "[parameters('workbookId')]"
+                    }
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
