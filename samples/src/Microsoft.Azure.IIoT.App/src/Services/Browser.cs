@@ -110,7 +110,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
                             DataType = nodeReference.Target.DataType,
                             Value = nodeReference.Target.Value?.ToJson()?.TrimQuotes(),
                             Publishing = false,
-                            PublishedItem = null
+                            PublishedItem = null,
+                            ErrorMessage = nodeReference.Target.ErrorInfo?.ErrorMessage
                         });
                     }
                 }
