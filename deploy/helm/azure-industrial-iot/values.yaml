@@ -5,7 +5,7 @@ image:
   # image.registry is URL of Docker registry from where images will be pulled.
   registry: mcr.microsoft.com
   # image.tag defines which version of Docker images to pull.
-  tag: 2.7.45
+  tag: 2.7.56
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
@@ -19,6 +19,25 @@ image:
 
 # String to fully override azure-industrial-iot.fullname template.
 # fullnameOverride:
+
+# loadConfFromKeyVault specifies whether microservices should rely mostly on Azure Key Vault for providing application configuration parameters or not.
+# When loadConfFromKeyVault is set to true, the chart will loosen requirement on provided values. And only values necessary to connect to Azure Key Vault will be required.
+#
+# This can be used if Azure infrastructure has been bootstraped either by deploy.ps1 script or Microsoft.Azure.IIoT.Deployment
+# application as they push application configuration parameters of microservices to Azure Key Vault as secrets.
+#
+# Note that additional values provided through the chart will override those coming from Azure Key Vault.
+#
+# If loadConfFromKeyVault is set to true, then only the following values of azure.* value group are required:
+#   - azure.tenantId
+#   - azure.keyVault.uri
+#   - azure.auth.servicesApp.appId
+#   - azure.auth.servicesApp.secret
+#
+# NOTE: externalServiceUrl should still be set so that correct URL for jobs orchestrator service (edgeJobs) is generated.
+# NOTE: Values defining Kubernetes resources or deployment logic will not be affected by loadConfFromKeyVault.
+# NOTE: Setting loadConfFromKeyVault to true in conjunction with setting azure.auth.required to false will result in an error.
+loadConfFromKeyVault: false
 
 # Details of Azure resources that components of Azure Industrial IoT solution will connect to.
 azure:
@@ -184,6 +203,7 @@ azure:
 # externalServiceUrl is URL on which components of Azure Industrial IoT solution will be available externally.
 # This property is required so that Publisher Edge Module can communicate with jobs orchestrator service (edgeJobs) for reporting its status and requesting publisher jobs.
 # NOTE: If this parameter is not set, then Publisher Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within Kubernetes cluster. 
+# NOTE: It is still recommended to set externalServiceUrl even if loadConfFromKeyVault is set to true.
 externalServiceUrl: null
 
 # Role-based access control.
