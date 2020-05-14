@@ -12,7 +12,7 @@ Edge modules would be instrumented with [Prometheus](https://github.com/promethe
 
 The metrics collector module pulls metrics exposed by `twin` and `publisher` modules, and pushes them to the Log Analytics workspace. Both `twin` and `publisher` expose metrics in Prometheus format. To do so, they use a standalone `HttpListener` based metrics server, which exposes metrics on  path `/metrics` and on port `9701` and `9702` respectively. The overview is shown below:
 
-![metrics](..\media\metrics.jpeg)
+![metrics](../media/metrics.jpeg)
 
 ### Configuration
 
