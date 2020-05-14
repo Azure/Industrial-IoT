@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
     using System.Threading.Tasks;
     using System.Xml;
     using System.IdentityModel.Selectors;
-    using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
@@ -122,26 +121,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                     ProductUri = "http://opcfoundation.org/UA/SampleServer",
                     SecurityConfiguration = new SecurityConfiguration {
                         ApplicationCertificate = new CertificateIdentifier {
-                            StoreType = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                                CertificateStoreType.X509Store :
-                                CertificateStoreType.Directory,
-                            StorePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                                "CurrentUser\\UA_MachineDefault" :
-                                $"{pkiRootPath}/own",
+                            StoreType = CertificateStoreType.Directory,
+                            StorePath = $"{pkiRootPath}/own",
                             SubjectName = "UA Core Sample Server",
                         },
                         TrustedPeerCertificates = new CertificateTrustList {
-                            StoreType = "Directory",
+                            StoreType = CertificateStoreType.Directory,
                             StorePath = $"{pkiRootPath}/trusted",
                         },
                         TrustedIssuerCertificates = new CertificateTrustList {
-                            StoreType = "Directory",
+                            StoreType = CertificateStoreType.Directory,
                             StorePath = $"{pkiRootPath}/issuer",
                         },
                         RejectedCertificateStore = new CertificateTrustList {
-                            StoreType = "Directory",
+                            StoreType = CertificateStoreType.Directory,
                             StorePath = $"{pkiRootPath}/rejected",
                         },
+                        MinimumCertificateKeySize = 1024,
+                        RejectSHA1SignedCertificates = false,
                         AutoAcceptUntrustedCertificates = true,
                         AddAppCertToTrustedStore = true
                     },
