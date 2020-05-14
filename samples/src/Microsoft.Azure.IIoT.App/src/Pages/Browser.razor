@@ -84,6 +84,7 @@
             <th>Value</th>
             <th>Publishing</th>
             <th>Publishing Config</th>
+            <th>Status</th>
             <th>
                 @if (PagedNodeList.Results.Count > 0)
                 {
@@ -109,88 +110,96 @@
     <tbody>
         @foreach (var node in PagedNodeList.Results)
         {
-            <tr>
-                <td>@node.NodeName</td>
-                <td>@node.Id</td>
-                @if (node.Children && (node.NodeClass != NodeClass.Method))
-                {
-                    <td>
-                        <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
-                            @node.NodeClass
-                        </a>
-                    </td>
-                }
-                else if (node.NodeClass == NodeClass.Method)
-                {
-                    <td>
-                        @{_drawerType = drawer.Action;}
+        <tr>
+            <td>@node.NodeName</td>
+            <td>@node.Id</td>
+            @if (node.Children && (node.NodeClass != NodeClass.Method))
+            {
+                <td>
+                    <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
+                        @node.NodeClass
+                    </a>
+                </td>
+            }
+            else if (node.NodeClass == NodeClass.Method)
+            {
+                <td>
+                    @{_drawerType = drawer.Action;}
+                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                        @node.NodeClass
+                    </a>
+                </td>
+            }
+            else
+            {
+                <td>@node.NodeClass</td>
+            }
+            @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
+               ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
+            {
+                <td>
+                    <div class="td-fixed">
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                            @node.NodeClass
+                            @{string outputValue = $"{node.Value}";}
+                            @{string outputType = $"({node.DataType})";}
+                            @{string outputStatus = $"({node.Status} -";}
+                            @{string outputTimestamp = $" {node.Timestamp})";}
+                            <span>@outputValue</span>
+                            <span>@outputType</span>
+                            <span>@outputStatus</span>
+                            <span>@outputTimestamp</span>
                         </a>
-                    </td>
-                }
-                else
-                {
-                    <td>@node.NodeClass</td>
-                }
-                @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
-                    ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
-                {
-                    <td>
-                        <div class="td-fixed">
-                            <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                                @{string outputValue = $"{node.Value}";}
-                                @{string outputType = $"({node.DataType})";}
-                                @{string outputStatus = $"({node.Status} -";}
-                                @{string outputTimestamp = $" {node.Timestamp})";}
-                                <span>@outputValue</span>
-                                <span>@outputType</span>
-                                <span>@outputStatus</span>
-                                <span>@outputTimestamp</span>
-                            </a>
-                        </div>
-                    </td>
-                }
-                else
-                {
-                    <td>N/A</td>
-                }
+                    </div>
+                </td>
+            }
+            else
+            {
+                <td>N/A</td>
+            }
 
-                @if (node.NodeClass == NodeClass.Variable)
-                {
-                    <td>
-                        <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishingAsync(EndpointId, node, EventArgs))" />
-                        @{string output = (node.Publishing == true) ? "On" : "Off";}
-                        @output 
-                    </td>
-                    <td>
-                        @{_drawerType = drawer.Publisher;}
-                        @if (node.Publishing == true && node.PublishedItem != null)
-                        {
-                            <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                                @(node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
-                            </a>
-                            <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                                @(node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
-                            </a>
-                            <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                                @(node.PublishedItem.HeartbeatInterval == null ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
-                               <br />
-                            </a>
-                        }
-                        else
-                        {
-                            <label>N/A</label>
-                        }
+            @if (node.NodeClass == NodeClass.Variable)
+            {
+                <td>
+                    <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishingAsync(EndpointId, node, EventArgs))" />
+                    @{string output = (node.Publishing == true) ? "On" : "Off";}
+                    @output
+                </td>
+                <td>
+                    @{_drawerType = drawer.Publisher;}
+                    @if (node.Publishing == true && node.PublishedItem != null)
+                    {
+                        <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                            @(node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
+                        </a>
+                        <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                            @(node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
+                        </a>
+                        <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                            @(node.PublishedItem.HeartbeatInterval == null ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
+                            <br />
+                        </a>
+                    }
+                    else
+                    {
+                        <label>N/A</label>
+                    }
 
-                    </td>
-                }
-                else
-                {
-                    <td>N/A</td>
-                    <td>N/A</td>
-                }
-            </tr>
+                </td>
+            }
+            else
+            {
+                <td>N/A</td>
+                <td>N/A</td>
+            }
+            @if (node.ErrorMessage != null)
+            {
+                <td>@node.ErrorMessage</td>
+            }
+            else
+            {
+                <td>OK</td>
+            }
+        </tr>
         }
     </tbody>
 </table>

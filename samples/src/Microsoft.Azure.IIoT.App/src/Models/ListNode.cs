@@ -19,14 +19,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
         public bool Children { get; set; }
         public string ImageUrl { get; set; }
         public string NodeName { get; set; }
-
         public string DiscovererId { get; set; }
-
         public string Value { get; set; }
         public string DataType { get; set; }
         public string Status { get; set; }
         public string Timestamp { get; set; }
-
+        public string ErrorMessage { get; set; }
         public List<string> ParentIdList { get; set; }
 
         public ListNode() {
