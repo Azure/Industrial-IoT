@@ -249,7 +249,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
-                client.DiagnosticSamplingPercentage = 5;
                 client.ProductInfo = product;
                 await client.OpenAsync();
                 return adapter;
@@ -451,7 +450,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
-                client.DiagnosticSamplingPercentage = 5;
                 client.ProductInfo = product;
 
                 await client.OpenAsync();

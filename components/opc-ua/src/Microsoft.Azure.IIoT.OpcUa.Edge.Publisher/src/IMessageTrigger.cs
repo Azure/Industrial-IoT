@@ -25,9 +25,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         long NumberOfConnectionRetries { get; }
 
         /// <summary>
-        /// The number of all messages that have been invoked by this message source.
+        /// The number of all monitored items value changes
+        /// that have been invoked by this message source.
         /// </summary>
-        long NumberOfInvokedMessages { get; }
+        long ValueChangesCount { get; }
+
+        /// <summary>
+        /// The number of all dataChange Notifications 
+        /// that have been invoked by this message source.
+        /// </summary>
+        long DataChangesCount { get; }
 
         /// <summary>
         /// Writer events

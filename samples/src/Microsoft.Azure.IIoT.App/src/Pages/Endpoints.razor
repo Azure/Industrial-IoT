@@ -1,9 +1,10 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/endpoints"
+@page "/endpoints/{discovererId}/{applicationId}"
 @page "/endpoints/{discovererId}/{applicationId}/{supervisorId}"
 
 @using Microsoft.AspNetCore.Components;
@@ -62,7 +63,7 @@
         {
             <tr class="@GetEndpointVisibilityString(endpoint)">
                 @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
-                     endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
+                    endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
                 {
                     <td>
                         @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
@@ -78,9 +79,9 @@
                     <td>@endpoint.EndpointModel.Registration.Endpoint.Url</td>
                 }
                 <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityMode</td>
-            	 @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
-            	<td>@securityPolicy</td>
-                <td>@endpoint.EndpointModel.Registration.SecurityLevel</td>
+                @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
+                <td>@securityPolicy</td>
+                <td class="center">@endpoint.EndpointModel.Registration.SecurityLevel</td>
                 <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
                 <td>
                     @if (IsEndpointActivated(endpoint))
@@ -107,10 +108,10 @@
                             <input type="checkbox"
                                    @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
                         }
-               			<label></label>
+                        <label></label>
                     }
                 </td>
-				<td>@endpoint.EndpointModel.ActivationState.ToString()</td>
+                <td>@endpoint.EndpointModel.ActivationState.ToString()</td>
                 @if (IsEndpointSeen(endpoint) && IsEndpointActivated(endpoint))
                 {
                     <td>

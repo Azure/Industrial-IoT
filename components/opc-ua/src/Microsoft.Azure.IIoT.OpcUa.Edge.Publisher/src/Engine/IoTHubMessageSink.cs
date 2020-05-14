@@ -98,8 +98,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             string contentType, string contentEncoding, string messageId) {
             var msg = new Message(body) {
                 ContentType = contentType,
-                MessageId = messageId,
-                CreationTimeUtc = DateTime.UtcNow
+                ContentEncoding = contentEncoding,
+                // TODO - setting CreationTime causes issues in the Azure IoT java SDK 
+                //  revert the comment whrn the issue is fixed
+                //  CreationTimeUtc = DateTime.UtcNow
             };
             if (!string.IsNullOrEmpty(eventSchema)) {
                 msg.Properties.Add(CommonProperties.EventSchemaType, eventSchema);
@@ -109,7 +111,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             if (!string.IsNullOrEmpty(contentEncoding)) {
                 msg.Properties.Add(CommonProperties.ContentEncoding, contentEncoding);
-                msg.ContentEncoding = contentEncoding;
             }
             return msg;
         }
