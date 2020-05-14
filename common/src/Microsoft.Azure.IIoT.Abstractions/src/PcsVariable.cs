@@ -274,5 +274,14 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> URL path base for TSI query </summary>
         public const string PCS_TSI_URL =
             "PCS_TSI_URL";
+        /// <summary> Log Analytics workbook id </summary>
+        public const string PCS_WORKBOOK_ID =
+            "PCS_WORKBOOK_ID";
+        /// <summary> Subscription id </summary>
+        public const string PCS_SUBSCRIPTION_ID =
+            "PCS_SUBSCRIPTION_ID";
+        /// <summary> Resource group </summary>
+        public const string PCS_RESOURCE_GROUP =
+            "PCS_RESOURCE_GROUP";
     }
 }
