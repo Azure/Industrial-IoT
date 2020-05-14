@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 RejectSHA1SignedCertificates = securityConfig.RejectSha1SignedCertificates,
                 MinimumCertificateKeySize = securityConfig.MinimumCertificateKeySize,
                 ApplicationCertificate = securityConfig.ApplicationCertificate.ToCertificateIdentifier(),
-                AddAppCertToTrustedStore = true
+                AddAppCertToTrustedStore = securityConfig.AddAppCertToTrustedStore
             };
 
             return securityConfiguration;
