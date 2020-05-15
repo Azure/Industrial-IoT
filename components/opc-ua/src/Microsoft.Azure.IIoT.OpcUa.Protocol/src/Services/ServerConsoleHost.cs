@@ -105,12 +105,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var config = _factory.CreateServer(ports, pkiRootPath, out _server);
             _logger.Information("Server created...");
 
-            config = ApplicationInstance.FixupAppConfig(config);
-            _logger.Information("Validate configuration...");
-            await config.Validate(ApplicationType.Server);
-
             config.SecurityConfiguration.AutoAcceptUntrustedCertificates = AutoAccept;
-            config.CertificateValidator = new CertificateValidator();
+            config = ApplicationInstance.FixupAppConfig(config);
+
+            _logger.Information("Validate configuration...");
+            await config.Validate(config.ApplicationType);
+
+            _logger.Information("Initialize certificate validation...");
+            var application = new ApplicationInstance(config);
+
+            // check the application certificate.
+            var hasAppCertificate =
+                await application.CheckApplicationInstanceCertificate(true,
+                    CertificateFactory.defaultKeySize);
+            if (!hasAppCertificate) {
+                _logger.Error("Failed validating own certificate!");
+                throw new Exception("Application instance certificate invalid!");
+            }
+
             config.CertificateValidator.CertificateValidation += (v, e) => {
                 if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
                     e.Accept = AutoAccept;
@@ -119,39 +131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             };
 
-            _logger.Information("Initialize certificate validation...");
             await config.CertificateValidator.Update(config.SecurityConfiguration);
-            var cert = config.SecurityConfiguration.ApplicationCertificate.Certificate;
-
-            if (cert == null) {
-                _logger.Information("Creating new certificate in {path}...",
-                    config.SecurityConfiguration.ApplicationCertificate.StorePath);
-                // Create cert
-#pragma warning disable IDE0067 // Dispose objects before losing scope
-                cert = CertificateFactory.CreateCertificate(
-                    config.SecurityConfiguration.ApplicationCertificate.StoreType,
-                    config.SecurityConfiguration.ApplicationCertificate.StorePath,
-                    null, config.ApplicationUri, config.ApplicationName,
-                    config.SecurityConfiguration.ApplicationCertificate.SubjectName,
-                    null, CertificateFactory.defaultKeySize,
-                    DateTime.UtcNow - TimeSpan.FromDays(1),
-                    CertificateFactory.defaultLifeTime,
-                    CertificateFactory.defaultHashSize);
-#pragma warning restore IDE0067 // Dispose objects before losing scope
-                config.SecurityConfiguration.ApplicationCertificate.Certificate = cert;
-                await config.CertificateValidator.UpdateCertificate(config.SecurityConfiguration);
-            }
-            config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
-
-            var application = new ApplicationInstance(config);
-
-            // check the application certificate.
-            var haveAppCertificate =
-                await application.CheckApplicationInstanceCertificate(false, 0);
-            if (!haveAppCertificate) {
-                _logger.Error("Failed validating own certificate!");
-                throw new Exception("Application instance certificate invalid!");
-            }
 
             // Set Certificate
             try {
