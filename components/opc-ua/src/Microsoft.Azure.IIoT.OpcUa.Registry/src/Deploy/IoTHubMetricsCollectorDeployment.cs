@@ -76,10 +76,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             // Configure create options and version per os specified
             string createOptions;
             string version;
+            string endpoints;
             if (isLinux) {
                 // Linux
                 createOptions = "{}";
                 version = "0.0.4-amd64";
+                endpoints = _serializer.SerializeToString(new
+                {
+                    opctwin = "http://twin:9701/metrics",
+                    opcpublisher = "http://publisher:9702/metrics"
+                });
             }
             else {
                 // Windows
@@ -87,6 +93,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                     User = "ContainerAdministrator"
                 });
                 version = "0.0.5-windows-amd64";
+                endpoints = _serializer.SerializeToString(new
+                {
+                    opctwin = "http://opctwin:9701/metrics",
+                    opcpublisher = "http://opcpublisher:9702/metrics"
+                });
             }
             createOptions = createOptions.Replace("\"", "\\\"");
             var image = $"veyalla/metricscollector:{version}";
