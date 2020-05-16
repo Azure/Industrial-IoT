@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -44,6 +45,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public string SiteId { get; private set; }
 
         /// <inheritdoc/>
+        public string Gateway { get; private set; }
+
+        /// <inheritdoc/>
         public IClient Client { get; private set; }
 
         /// <summary>
@@ -61,6 +65,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             _router = router ?? throw new ArgumentNullException(nameof(router));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            DeviceId = _factory.DeviceId;
+            ModuleId = _factory.ModuleId;
+            Gateway = _factory.Gateway;
         }
 
         /// <inheritdoc/>
@@ -93,12 +100,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _logger.Error(ce, "Module Host stopping caused exception.");
                 }
                 finally {
+                    kModuleStart.WithLabels(SiteId ?? "", DeviceId ?? "", ModuleId ?? "",
+                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", CultureInfo.InvariantCulture)).Set(0);
                     Client?.Dispose();
                     Client = null;
                     _reported?.Clear();
                     DeviceId = null;
                     ModuleId = null;
                     SiteId = null;
+                    Gateway = null;
                     _lock.Release();
                 }
             }
@@ -113,11 +123,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     if (Client == null) {
                         // Create client
                         _logger.Debug("Starting Module Host...");
-                        kModuleStart.WithLabels(type, _factory.DeviceId, Guid.NewGuid().ToString(), DateTime.UtcNow.ToString()).Set(1);
                         Client = await _factory.CreateAsync(serviceInfo, reset);
                         DeviceId = _factory.DeviceId;
                         ModuleId = _factory.ModuleId;
-
+                        Gateway = _factory.Gateway;
                         // Register callback to be called when a method request is received
                         await Client.SetMethodDefaultHandlerAsync((request, _) =>
                             _router.InvokeMethodAsync(request), null);
@@ -142,17 +151,23 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         await Client.UpdateReportedPropertiesAsync(twinSettings);
 
                         // Done...
+                        kModuleStart.WithLabels(SiteId ?? "", DeviceId ?? "", ModuleId ?? "",
+                            DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",CultureInfo.InvariantCulture)).Set(1);
                         _logger.Information("Module Host started.");
                         return;
                     }
                 }
                 catch (Exception ex) {
+                    kModuleStart.WithLabels(SiteId ?? "", DeviceId ?? "", ModuleId ?? "",
+                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", CultureInfo.InvariantCulture)).Set(0);
+                    _logger.Error("Module Host failed to start.");
                     Client?.Dispose();
                     Client = null;
                     _reported?.Clear();
                     DeviceId = null;
                     ModuleId = null;
                     SiteId = null;
+                    Gateway = null;
                     throw ex;
                 }
                 finally {
@@ -529,7 +544,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             new Dictionary<string, VariantValue>();
         private static readonly Gauge kModuleStart = Metrics.CreateGauge("iiot_edge_module_start", "starting module",
                 new GaugeConfiguration {
-                    LabelNames = new[] { "module", "device", "guid", "timestamp_utc" }
+                    LabelNames = new[] { "siteid", "deviceid", "module", "timestamp_utc" }
                 });
     }
 }

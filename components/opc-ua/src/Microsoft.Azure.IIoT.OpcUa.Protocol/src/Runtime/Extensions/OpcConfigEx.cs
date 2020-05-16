@@ -7,7 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Opc.Ua;
     using Opc.Ua.Configuration;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Module;
     using System;
+    using System.Net;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -19,25 +21,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Create application configuration
         /// </summary>
         /// <param name="opcConfig"></param>
-        /// <param name="handler"></param>
+        /// <param name="identity"></param>
         /// <param name="createSelfSignedCertIfNone"></param>
+        /// <param name="handler"></param>
         /// <returns></returns>
         public static async Task<ApplicationConfiguration> ToApplicationConfigurationAsync(
-            this IClientServicesConfig opcConfig, bool createSelfSignedCertIfNone,
+            this IClientServicesConfig opcConfig, IIdentity identity, bool createSelfSignedCertIfNone,
             CertificateValidationEventHandler handler) {
             if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName)) {
                 throw new ArgumentNullException(nameof(opcConfig.ApplicationName));
             }
-
+            var hostname = !string.IsNullOrWhiteSpace(identity?.Gateway) ?
+                identity.Gateway : !string.IsNullOrWhiteSpace(identity?.DeviceId) ?
+                    identity.DeviceId : Dns.GetHostName();
             var applicationConfiguration = new ApplicationConfiguration {
                 ApplicationName = opcConfig.ApplicationName,
-                ApplicationUri = opcConfig.ApplicationUri,
+                ApplicationUri = opcConfig.ApplicationUri.Replace("urn:localhost", $"urn:{hostname}"),
                 ProductUri = opcConfig.ProductUri,
                 ApplicationType = ApplicationType.Client,
                 TransportQuotas = opcConfig.ToTransportQuotas(),
-                SecurityConfiguration = opcConfig.ToSecurityConfiguration(),
+                SecurityConfiguration = opcConfig.ToSecurityConfiguration(identity),
+                CertificateValidator = new CertificateValidator(),
                 ClientConfiguration = new ClientConfiguration(),
-                CertificateValidator = new CertificateValidator()
+                ServerConfiguration = new ServerConfiguration() {
+                    BaseAddresses = new[] { $"uri:{hostname}", $"uri:{Dns.GetHostName()}" }
+                }
             };
             await applicationConfiguration.Validate(applicationConfiguration.ApplicationType);
             var application = new ApplicationInstance(applicationConfiguration);

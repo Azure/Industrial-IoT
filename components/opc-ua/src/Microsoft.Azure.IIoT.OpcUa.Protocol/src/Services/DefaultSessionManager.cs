@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Exceptions;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -31,10 +31,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Create session manager
         /// </summary>
         /// <param name="clientConfig"></param>
+        /// <param name="identity"></param>
         /// <param name="logger"></param>
-        public DefaultSessionManager(IClientServicesConfig clientConfig, ILogger logger) {
-            _logger = logger;
+        public DefaultSessionManager(IClientServicesConfig clientConfig,
+            IIdentity identity, ILogger logger) {
             _clientConfig = clientConfig;
+            _logger = logger;
+            _identity = identity;
             _lock = new SemaphoreSlim(1, 1);
         }
 
@@ -110,8 +113,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             };
 
-            var applicationConfiguration = await _clientConfig.ToApplicationConfigurationAsync(
-                true, OnValidate);
+            var applicationConfiguration = await _clientConfig.
+                ToApplicationConfigurationAsync(_identity, true, OnValidate);
             var endpointConfiguration = _clientConfig.ToEndpointConfiguration();
 
             var endpointDescription = SelectEndpoint(endpointUrl,
@@ -404,6 +407,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         private readonly ILogger _logger;
         private readonly IClientServicesConfig _clientConfig;
+        private readonly IIdentity _identity;
         private readonly Dictionary<ConnectionIdentifier, SessionWrapper> _sessions =
             new Dictionary<ConnectionIdentifier, SessionWrapper>();
         private readonly SemaphoreSlim _lock;

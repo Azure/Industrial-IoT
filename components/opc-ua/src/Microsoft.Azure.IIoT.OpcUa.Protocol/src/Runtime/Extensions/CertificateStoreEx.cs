@@ -4,8 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Opc.Ua;
+    using System.Net;
 
 
     /// <summary>
@@ -31,12 +33,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Create identifier
         /// </summary>
         /// <param name="certificateInfo"></param>
+        /// <param name="identity"></param>
         /// <returns></returns>
-        public static CertificateIdentifier ToCertificateIdentifier(this CertificateInfo certificateInfo) {
+        public static CertificateIdentifier ToCertificateIdentifier(
+            this CertificateInfo certificateInfo, IIdentity identity) {
+            var hostname = !string.IsNullOrWhiteSpace(identity?.Gateway) ?
+                identity.Gateway : !string.IsNullOrWhiteSpace(identity?.DeviceId)?
+                    identity.DeviceId : Dns.GetHostName();
             var certificateIdentifier = new CertificateIdentifier {
                 StoreType = certificateInfo.StoreType,
                 StorePath = certificateInfo.StorePath,
-                SubjectName = certificateInfo.SubjectName
+                SubjectName = certificateInfo.SubjectName.Replace("DC=localhost", $"DC={hostname}")
             };
             return certificateIdentifier;
         }
