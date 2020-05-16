@@ -51,16 +51,16 @@
                 "description": "The name of the Azure Cosmos DB instance created as part of the deployment."
             }
         },
-		"cosmosDbAccountOfferType": { 
-			"type": "string", 
-			"defaultValue": "Standard",
+        "cosmosDbAccountOfferType": { 
+            "type": "string", 
+            "defaultValue": "Standard",
             "allowedValues": [
                 "Standard"
             ],
             "metadata": {
                 "description": "The Azure Cosmos DB offer type."
             }
-		},
+        },
         "cosmosDbConsistencyLevel": {
             "type": "string",
             "defaultValue": "Eventual",

@@ -26,6 +26,7 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
 * [Configuration](#configuration)
   * [Image](#image)
   * [Azure Resources](#azure-resources)
+  * [Load Configuration From Azure Key Vault](#load-configuration-from-azure-key-vault)
   * [External Service URL](#external-service-url)
   * [RBAC](#rbac)
   * [Service Account](#service-account)
@@ -498,7 +499,7 @@ The following details of the Azure Storage account would be required:
 
 ## Installing the Chart
 
-This chart installs `2.7.45` version of components by default.
+This chart installs `2.7.56` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -564,7 +565,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.7.45`            |
+| `image.tag`         | Image tag                                | `2.7.56`            |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
@@ -605,6 +606,46 @@ values.
 | `azure.auth.servicesApp.audience`                                                           | Application ID URI of AAD App Registration for **ServicesApp**                                   | `null`                               |
 | `azure.auth.clientsApp.appId`                                                               | Application (client) ID of AAD App Registration for **ClientsApp**, also referred to as `AppId`  | `null`                               |
 | `azure.auth.clientsApp.secret`                                                              | Client secret (password) of AAD App Registration for **ClientsApp**                              | `null`                               |
+
+### Load Configuration From Azure Key Vault
+
+If you are deploying this chart to an Azure environment that has been created by either `deploy.ps1` script
+or `Microsoft.Azure.IIoT.Deployment` application then you can use the fact that both of those methods push
+secrets to Azure Key Vault describing Azure resources IDs and connection details. Those secrets can be
+consumed by components of Azure Industrial IoT solution as configuration parameters similar to configuration
+environment variables that are injected to the Pods. To facilitate this method of configuration management
+through Azure Key Vault the chart provides `loadConfFromKeyVault` parameters. If it is set to `true` it
+signals to the chart that microservices should rely on Azure Key Vault for getting application configuration
+parameters. In this case the chart will loosen requirement on provided values and only values necessary to
+connect to Azure Key Vault will be required.
+
+If `loadConfFromKeyVault` is set to `true`, then only the following parameters of `azure.*` parameter group
+are required:
+
+* `azure.tenantId`
+* `azure.keyVault.uri`
+* `azure.auth.servicesApp.appId`
+* `azure.auth.servicesApp.secret`
+
+A few notes about `loadConfFromKeyVault`:
+
+* Any additional parameters provided to the chart will also be applied. They will act as overrides to the
+  values coming from Azure Key Vault.
+* Values defining Kubernetes resources or deployment logic will not be affected by `loadConfFromKeyVault`
+  parameter and should be set independent of it.
+* We recommend setting `externalServiceUrl` regardless of the value of `loadConfFromKeyVault` so that correct
+  URL for jobs orchestrator service (`edgeJobs`) is generated.
+* Setting `loadConfFromKeyVault` to `true` in conjunction with setting `azure.auth.required` to `false` will
+  result in an error. This is because for loading configuration from Azure Key Vault we require both
+  `azure.auth.servicesApp.appId` and `azure.auth.servicesApp.secret`.
+* You should use `loadConfFromKeyVault` only when Azure environment has been created for the same version
+  (major and minor) of Azure Industrial IoT components. That is, you should use it to install the chart that
+  deploys `2.7.x` version of components to the environment that has been created for `2.6.x` version of
+  components.
+
+| Parameter              | Description                                                                                          | Default |
+|------------------------|------------------------------------------------------------------------------------------------------|---------|
+| `loadConfFromKeyVault` | Determines whether components of Azure Industrial IoT should load configuration from Azure Key Vault | `false` |
 
 ### External Service URL
 

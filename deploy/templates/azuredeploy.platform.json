@@ -126,7 +126,7 @@
         },
         "hostingPlanSku": {
             "type": "string",
-            "defaultValue": "B3",
+            "defaultValue": "B1",
             "allowedValues": [
                 "B1",
                 "B2",
@@ -346,7 +346,7 @@
             },
             "properties": {
                 "enabled": true,
-                "clientAffinityEnabled": false,
+                "clientAffinityEnabled": true,
                 "serverFarmId": "[parameters('hostingPlanName')]",
                 "httpsOnly": true,
                 "siteConfig": {
