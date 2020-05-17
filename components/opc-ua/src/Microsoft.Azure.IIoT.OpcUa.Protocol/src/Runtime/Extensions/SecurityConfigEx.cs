@@ -18,10 +18,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert to security configuration
         /// </summary>
         /// <param name="securityConfig"></param>
-        /// <param name="identity"></param>
+        /// <param name="hostname"></param>
         /// <returns></returns>
         public static SecurityConfiguration ToSecurityConfiguration(
-            this ISecurityConfig securityConfig, IIdentity identity) {
+            this ISecurityConfig securityConfig, string hostname) {
             if (securityConfig == null) {
                 throw new ArgumentNullException(nameof(securityConfig));
             }
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 AutoAcceptUntrustedCertificates = securityConfig.AutoAcceptUntrustedCertificates,
                 RejectSHA1SignedCertificates = securityConfig.RejectSha1SignedCertificates,
                 MinimumCertificateKeySize = securityConfig.MinimumCertificateKeySize,
-                ApplicationCertificate = securityConfig.ApplicationCertificate.ToCertificateIdentifier(identity),
+                ApplicationCertificate = securityConfig.ApplicationCertificate.ToCertificateIdentifier(hostname),
                 AddAppCertToTrustedStore = securityConfig.AddAppCertToTrustedStore
             };
 

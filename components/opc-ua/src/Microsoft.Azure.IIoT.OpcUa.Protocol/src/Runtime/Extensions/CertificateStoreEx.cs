@@ -33,13 +33,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Create identifier
         /// </summary>
         /// <param name="certificateInfo"></param>
-        /// <param name="identity"></param>
+        /// <param name="hostname"></param>
         /// <returns></returns>
         public static CertificateIdentifier ToCertificateIdentifier(
-            this CertificateInfo certificateInfo, IIdentity identity) {
-            var hostname = !string.IsNullOrWhiteSpace(identity?.Gateway) ?
-                identity.Gateway : !string.IsNullOrWhiteSpace(identity?.DeviceId)?
-                    identity.DeviceId : Dns.GetHostName();
+            this CertificateInfo certificateInfo, string hostname) {
             var certificateIdentifier = new CertificateIdentifier {
                 StoreType = certificateInfo.StoreType,
                 StorePath = certificateInfo.StorePath,
