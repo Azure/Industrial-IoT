@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using System.Collections.Generic;
     using System.Net;
     using System.Net.Sockets;
+    using System.Net.NetworkInformation;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -36,9 +37,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 throw new ArgumentNullException(nameof(opcConfig.ApplicationName));
             }
 
+            // wait with the configuration until network is up
+            for (var retry = 0; retry < 10; retry++) {
+                if (NetworkInterface.GetIsNetworkAvailable()) {
+                    break;
+                }
+                else {
+                    await Task.Delay(10000);
+                }
+            }
+
+            var applicationConfiguration = new ApplicationConfiguration {
+                ApplicationName = opcConfig.ApplicationName,
+                ProductUri = opcConfig.ProductUri,
+                ApplicationType = ApplicationType.Client,
+                TransportQuotas = opcConfig.ToTransportQuotas(),
+                CertificateValidator = new CertificateValidator(),
+                ClientConfiguration = new ClientConfiguration(),
+                ServerConfiguration = new ServerConfiguration()
+            };
             try {
                 await Retry.WithLinearBackoff(null, new CancellationToken(),
                     async () => {
+                        //  try to resolve the hostname
                         var hostname = !string.IsNullOrWhiteSpace(identity?.Gateway) ?
                             identity.Gateway : !string.IsNullOrWhiteSpace(identity?.DeviceId) ?
                                 identity.DeviceId : Dns.GetHostName();
@@ -65,20 +86,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         }
                         catch { }
 
-                        var applicationConfiguration = new ApplicationConfiguration {
-                            ApplicationName = opcConfig.ApplicationName,
-                            ApplicationUri = opcConfig.ApplicationUri.Replace("urn:localhost", $"urn:{hostname}"),
-                            ProductUri = opcConfig.ProductUri,
-                            ApplicationType = ApplicationType.Client,
-                            TransportQuotas = opcConfig.ToTransportQuotas(),
-                            SecurityConfiguration = opcConfig.ToSecurityConfiguration(hostname),
-                            CertificateValidator = new CertificateValidator(),
-                            ClientConfiguration = new ClientConfiguration(),
-                            ServerConfiguration = new ServerConfiguration() {
-                                AlternateBaseAddresses = alternateBaseAddresses.ToArray()
-                            }
-                        };
-
+                        applicationConfiguration.ApplicationUri =
+                            opcConfig.ApplicationUri.Replace("urn:localhost", $"urn:{hostname}");
+                        applicationConfiguration.SecurityConfiguration =
+                            opcConfig.ToSecurityConfiguration(hostname);
+                        applicationConfiguration.ServerConfiguration.AlternateBaseAddresses =
+                            alternateBaseAddresses.ToArray();
                         await applicationConfiguration.Validate(applicationConfiguration.ApplicationType);
                         var application = new ApplicationInstance(applicationConfiguration);
                         var hasAppCertificate = await application.CheckApplicationInstanceCertificate(true,
@@ -90,14 +103,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         applicationConfiguration.CertificateValidator.CertificateValidation += handler;
                         await applicationConfiguration.CertificateValidator
                             .Update(applicationConfiguration.SecurityConfiguration);
-                        return applicationConfiguration;
                     },
-                    e => true, 15);
+                    e => true, 20);
             }
             catch (Exception e) {
                 throw new InvalidConfigurationException("OPC UA configuration not valid", e);
             }
-            throw new InvalidConfigurationException("OPC UA configuration not valid");
+            return applicationConfiguration;
         }
     }
 }
