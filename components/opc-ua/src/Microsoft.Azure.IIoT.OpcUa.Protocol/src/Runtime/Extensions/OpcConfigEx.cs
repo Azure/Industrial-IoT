@@ -4,12 +4,16 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Opc.Ua;
-    using Opc.Ua.Configuration;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Utils;
+    using Opc.Ua;
+    using Opc.Ua.Configuration;
     using System;
+    using System.Collections.Generic;
     using System.Net;
+    using System.Net.Sockets;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -31,9 +35,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName)) {
                 throw new ArgumentNullException(nameof(opcConfig.ApplicationName));
             }
-            var hostname = !string.IsNullOrWhiteSpace(identity?.Gateway) ?
-                identity.Gateway : !string.IsNullOrWhiteSpace(identity?.DeviceId) ?
-                    identity.DeviceId : Dns.GetHostName();
+            var hostname = string.Empty;
+            
+            try {
+                hostname = !string.IsNullOrWhiteSpace(identity?.Gateway) ?
+                    identity.Gateway : !string.IsNullOrWhiteSpace(identity?.DeviceId) ?
+                        identity.DeviceId : Dns.GetHostName();
+            }
+            catch (Exception e) {
+                throw new InvalidConfigurationException("Failed to get a valid hostname", e);
+            }
+
+            var alternateBaseAddresses = new List<string>();
+            try {
+                alternateBaseAddresses.Add($"urn://{hostname}");
+                var hostEntry = Dns.GetHostEntry(hostname);
+                if (hostEntry != null) {
+                    alternateBaseAddresses.Add($"urn://{hostEntry.HostName}");
+                    foreach (var alias in hostEntry.Aliases) {
+                        alternateBaseAddresses.Add($"urn://{alias}");
+                    }
+                    foreach (var ip in hostEntry.AddressList) {
+                        // only ad IPV4 addresses
+                        switch (ip.AddressFamily) {
+                            case AddressFamily.InterNetwork:
+                                alternateBaseAddresses.Add($"urn://{ip}");
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            catch {}
+
             var applicationConfiguration = new ApplicationConfiguration {
                 ApplicationName = opcConfig.ApplicationName,
                 ApplicationUri = opcConfig.ApplicationUri.Replace("urn:localhost", $"urn:{hostname}"),
@@ -44,21 +79,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 CertificateValidator = new CertificateValidator(),
                 ClientConfiguration = new ClientConfiguration(),
                 ServerConfiguration = new ServerConfiguration() {
-                    BaseAddresses = new[] { $"uri:{hostname}", $"uri:{Dns.GetHostName()}" }
+                    AlternateBaseAddresses = alternateBaseAddresses.ToArray()
                 }
             };
-            await applicationConfiguration.Validate(applicationConfiguration.ApplicationType);
-            var application = new ApplicationInstance(applicationConfiguration);
-            var hasAppCertificate = await application.CheckApplicationInstanceCertificate(true,
-                CertificateFactory.defaultKeySize);
-            if (!hasAppCertificate) {
-                throw new InvalidConfigurationException("OPC UA application certificate can not be validated");
+            try {
+                await Retry.WithLinearBackoff(null, new CancellationToken(),
+                    async () => {
+                        await applicationConfiguration.Validate(applicationConfiguration.ApplicationType);
+                        var application = new ApplicationInstance(applicationConfiguration);
+                        var hasAppCertificate = await application.CheckApplicationInstanceCertificate(true,
+                            CertificateFactory.defaultKeySize);
+                        if (!hasAppCertificate) {
+                            throw new InvalidConfigurationException("OPC UA application certificate invalid");
+                        }
+
+                        applicationConfiguration.CertificateValidator.CertificateValidation += handler;
+                        await applicationConfiguration.CertificateValidator
+                            .Update(applicationConfiguration.SecurityConfiguration);
+                    },
+                    e => true, 5);
             }
-
-            applicationConfiguration.CertificateValidator.CertificateValidation += handler;
-            await applicationConfiguration.CertificateValidator
-                .Update(applicationConfiguration.SecurityConfiguration);
-
+            catch (Exception e) {
+                throw new InvalidConfigurationException("OPC UA configuration not valid", e);
+            }
             return applicationConfiguration;
         }
     }
