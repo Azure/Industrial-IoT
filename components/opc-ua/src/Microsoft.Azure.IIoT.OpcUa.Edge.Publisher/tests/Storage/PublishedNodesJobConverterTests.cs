@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     using Xunit;
     using Microsoft.Azure.IIoT.Module;
     using System;
+    using System.Net;
 
     /// <summary>
     /// Test
@@ -22,9 +23,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     public class PublishedNodesJobConverterTests {
 
         private class StandaloneIdentity : IIdentity {
-            public string DeviceId => "StandaloneDeviceId";
-            public string ModuleId => "StandaloneModuleId";
-            public string SiteId => "StandaloneSiteId";
+            public string Gateway => Dns.GetHostName();
+            public string DeviceId => Gateway;
+            public string ModuleId => "standaloneModule";
+            public string SiteId => null;
         }
 
         [Fact]

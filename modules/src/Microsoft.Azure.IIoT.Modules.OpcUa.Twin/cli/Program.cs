@@ -169,7 +169,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
                             Console.WriteLine($"Using <deviceId> '{deviceId}'");
                         }
                         if (moduleId == null) {
-                            moduleId = "opctwin";
+                            moduleId = "twin";
                             Console.WriteLine($"Using <moduleId> '{moduleId}'");
                         }
                         break;
