@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                         // Start module
                         var product = "OpcDiscovery_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
-                        kDiscoveryModuleStart.WithLabels(identity.SiteId ?? "",
+                        kDiscoveryModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await module.StartAsync(IdentityType.Discoverer, SiteId,
                             product, this);
@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
-                        kDiscoveryModuleStart.WithLabels(identity.SiteId ?? "",
+                        kDiscoveryModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         await module.StopAsync();
                         server.StopWhenEnabled(moduleConfig, logger);
@@ -175,7 +175,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
         private static readonly Gauge kDiscoveryModuleStart = Metrics
             .CreateGauge("iiot_edge_discovery_module_start", "discovery module started",
                 new GaugeConfiguration {
-                    LabelNames = new[] { "siteid", "deviceid", "module" }
+                    LabelNames = new[] { "deviceid", "module" }
                 });
     }
 }

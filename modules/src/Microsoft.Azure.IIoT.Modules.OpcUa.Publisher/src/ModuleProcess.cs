@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         var product = "OpcPublisher_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
                         // Start module
-                        kPublisherModuleStart.WithLabels(identity.SiteId ?? "",
+                        kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             product, this);
@@ -115,9 +115,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     }
                     finally {
                         kPublisherModuleStart.WithLabels(
-                            identity.SiteId ?? "<empty>",
-                            identity.DeviceId ?? "<empty>",
-                            identity.ModuleId ?? "<empty>").Set(0);
+                            identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         await workerSupervisor.StopAsync();
                         await module.StopAsync();
                         server.StopWhenEnabled(moduleConfig, logger);
@@ -209,7 +207,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         private static readonly Gauge kPublisherModuleStart = Metrics
             .CreateGauge("iiot_edge_publisher_module_start", "publisher module started",
                 new GaugeConfiguration {
-                    LabelNames = new[] { "siteid", "deviceid", "module" }
+                    LabelNames = new[] { "deviceid", "module" }
                 });
     }
 }

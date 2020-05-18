@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _logger.Error(ce, "Module Host stopping caused exception.");
                 }
                 finally {
-                    kModuleStart.WithLabels(SiteId ?? "", DeviceId ?? "", ModuleId ?? "",
+                    kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
                         DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", CultureInfo.InvariantCulture)).Set(0);
                     Client?.Dispose();
                     Client = null;
@@ -151,14 +151,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         await Client.UpdateReportedPropertiesAsync(twinSettings);
 
                         // Done...
-                        kModuleStart.WithLabels(SiteId ?? "", DeviceId ?? "", ModuleId ?? "",
+                        kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
                             DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",CultureInfo.InvariantCulture)).Set(1);
                         _logger.Information("Module Host started.");
                         return;
                     }
                 }
                 catch (Exception ex) {
-                    kModuleStart.WithLabels(SiteId ?? "", DeviceId ?? "", ModuleId ?? "",
+                    kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
                         DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", CultureInfo.InvariantCulture)).Set(0);
                     _logger.Error("Module Host failed to start.");
                     Client?.Dispose();
@@ -544,7 +544,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             new Dictionary<string, VariantValue>();
         private static readonly Gauge kModuleStart = Metrics.CreateGauge("iiot_edge_module_start", "starting module",
                 new GaugeConfiguration {
-                    LabelNames = new[] { "siteid", "deviceid", "module", "timestamp_utc" }
+                    LabelNames = new[] {"deviceid", "module", "timestamp_utc" }
                 });
     }
 }

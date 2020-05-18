@@ -162,13 +162,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             sb.AppendLine($"   # Number of connection retries since last error: {_messageTrigger.NumberOfConnectionRetries}");
             sb.AppendLine("   =======================");
             _logger.Information(sb.ToString());
-            kValueChangesCount.WithLabels(_identity.SiteId ?? "",_identity.DeviceId ?? "",
+            kValueChangesCount.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_messageTrigger.ValueChangesCount);
-            kDataChangesCount.WithLabels(_identity.SiteId ?? "", _identity.DeviceId ?? "",
+            kDataChangesCount.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_messageTrigger.DataChangesCount);
-            kNumberOfConnectionRetries.WithLabels(_identity.SiteId ?? "", _identity.DeviceId ?? "",
+            kNumberOfConnectionRetries.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_messageTrigger.NumberOfConnectionRetries);
-            kSentMessagesCount.WithLabels(_identity.SiteId ?? "", _identity.DeviceId ?? "",
+            kSentMessagesCount.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_messageSink.SentMessagesCount);
             // TODO: Use structured logging!
         }
@@ -212,7 +212,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private ActionBlock<NetworkMessageModel[]> _sinkBlock;
 
         private static readonly GaugeConfiguration kGaugeConfig = new GaugeConfiguration {
-            LabelNames = new[] { "siteid", "deviceid", "module", "triggerid" }
+            LabelNames = new[] { "deviceid", "module", "triggerid" }
         };
         private static readonly Gauge kValueChangesCount = Metrics.CreateGauge(
             "iiot_edge_publisher_value_changes", "invoke value changes in trigger", kGaugeConfig);

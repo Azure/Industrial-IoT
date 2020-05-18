@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                         // Start module
                         var product = "OpcTwin_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
-                        kTwinModuleStart.WithLabels(identity.SiteId ?? "",
+                        kTwinModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await module.StartAsync(IdentityType.Supervisor, SiteId,
                             product, this);
@@ -117,9 +117,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     }
                     finally {
                         kTwinModuleStart.WithLabels(
-                            identity.SiteId ?? "<empty>",
-                            identity.DeviceId ?? "<empty>",
-                            identity.ModuleId ?? "<empty>").Set(0);
+                            identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         await module.StopAsync();
                         server.StopWhenEnabled(moduleConfig, logger);
                         OnRunning?.Invoke(this, false);
@@ -260,7 +258,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         private static readonly Gauge kTwinModuleStart = Metrics
             .CreateGauge("iiot_edge_twin_module_start", "twin module started",
                 new GaugeConfiguration {
-                    LabelNames = new[] { "siteid", "deviceid", "module" }
+                    LabelNames = new[] { "deviceid", "module" }
                 });
     }
 }
