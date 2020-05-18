@@ -762,7 +762,8 @@
                             }
                         ]
                     },
-                    "tags": "[parameters('tags')]"
+                    // "tags": "[parameters('tags')]"//,
+                    "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
@@ -792,7 +793,8 @@
                     "workbookId": {
                         "value": "[parameters('workbookId')]"
                     },
-                    "tags": "[parameters('tags')]"
+                    // "tags": "[parameters('tags')]"//,
+                    "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
