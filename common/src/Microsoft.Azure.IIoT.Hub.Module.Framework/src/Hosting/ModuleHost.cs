@@ -21,7 +21,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Threading.Tasks;
     using System.Text;
     using Prometheus;
-    using System.Reflection;
 
     /// <summary>
     /// Module host implementation
