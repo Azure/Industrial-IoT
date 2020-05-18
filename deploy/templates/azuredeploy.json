@@ -211,6 +211,13 @@
             "metadata": {
                 "description": "Specifies the image version tag to use for all container images."
             }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for Azure resources."
+            }
         }
     },
     "variables": {
@@ -232,7 +239,7 @@
         {
             "comments": "Deploy minimum required Azure Infrastructure for Industrial IoT.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[variables('minimumInfrastructureResourceName')]",
             "properties": {
                 "mode": "Incremental",
@@ -245,7 +252,8 @@
                     },
                     "keyVaultPrincipalId": {
                         "value": "[parameters('keyVaultPrincipalId')]"
-                    }
+                    },
+                    "tags": "[parameters('tags')]"
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
@@ -256,7 +264,7 @@
         {
             "comments": "Save auth configuration in keyVault.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[variables('authConfigurationResourcName')]",
             "properties": {
                 "mode": "Incremental",
@@ -327,7 +335,8 @@
                                 "value": "[parameters('imagesNamespace')]"
                             }
                         ]
-                    }
+                    },
+                    "tags" : "[parameters('tags')]"
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
@@ -341,7 +350,7 @@
         {
             "comments": "Deploy Azure Infrastructure required by the full Industrial IoT Platform.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[variables('standardInfrastructureResourceName')]",
             "condition": "[variables('standardInfrastructureDeployment')]",
             "properties": {
@@ -389,7 +398,8 @@
                             },
                             "secretName": "pcs-storage-key"
                         }
-                    }
+                    },
+                    "tags" : "[parameters('tags')]"
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
@@ -403,7 +413,7 @@
         {
             "comments": "Deploy Azure Industrial IoT platform.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[variables('platformResourcName')]",
             "condition": "[variables('platformDeployment')]",
             "properties": {
@@ -453,7 +463,8 @@
                     },
                     "imagesTag": {
                         "value": "[parameters('imagesTag')]"
-                    }
+                    },
+                    "tags" : "[parameters('tags')]"
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
@@ -467,7 +478,7 @@
         {
             "comments": "Deploy Azure Industrial IoT Edge simulation.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[variables('simulationResourcName')]",
             "condition": "[variables('simulationDeployment')]",
             "properties": {
@@ -520,7 +531,8 @@
                     },
                     "imagesTag": {
                         "value": "[parameters('imagesTag')]"
-                    }
+                    },
+                    "tags" : "[parameters('tags')]"
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
