@@ -330,13 +330,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
             model.Header = Elevate(new RequestHeaderApiModel(), credential);
 
             try {
-                if (parameters.InputArguments != null)
-                {
+                if (parameters.InputArguments != null) {
                     var count = 0;
-                    foreach (var item in parameters.InputArguments)
-                    {
-                        var argument = new MethodCallArgumentApiModel
-                        {
+                    foreach (var item in parameters.InputArguments) {
+                        var argument = new MethodCallArgumentApiModel {
                             Value = parameterValues[count] ?? string.Empty,
                             DataType = item.Type.DataType
                         };
