@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  *
@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace SimpleEvents {
-    using System;
-    using System.Collections.Generic;
-    using Opc.Ua;
+using System;
+using System.Collections.Generic;
+using Opc.Ua;
 
+namespace SimpleEvents {
     #region SystemCycleStatusEventState Class
 #if (!OPCUA_EXCLUDE_SystemCycleStatusEventState)
     /// <summary>
@@ -80,31 +80,23 @@ namespace SimpleEvents {
 
         #region Initialization String
         private const string InitializationString =
-           "AQAAACUAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvU2ltcGxlRXZlbnRz/////wRggAABAAAAAQAi" +
-           "AAAAU3lzdGVtQ3ljbGVTdGF0dXNFdmVudFR5cGVJbnN0YW5jZQEB6wABAesA/////woAAAA1YIkKAgAA" +
-           "AAAABwAAAEV2ZW50SWQBAewAAwAAAAArAAAAQSBnbG9iYWxseSB1bmlxdWUgaWRlbnRpZmllciBmb3Ig" +
-           "dGhlIGV2ZW50LgAuAETsAAAAAA//////AQH/////AAAAADVgiQoCAAAAAAAJAAAARXZlbnRUeXBlAQHt" +
-           "AAMAAAAAIgAAAFRoZSBpZGVudGlmaWVyIGZvciB0aGUgZXZlbnQgdHlwZS4ALgBE7QAAAAAR/////wEB" +
-           "/////wAAAAA1YIkKAgAAAAAACgAAAFNvdXJjZU5vZGUBAe4AAwAAAAAYAAAAVGhlIHNvdXJjZSBvZiB0" +
-           "aGUgZXZlbnQuAC4ARO4AAAAAEf////8BAf////8AAAAANWCJCgIAAAAAAAoAAABTb3VyY2VOYW1lAQHv" +
-           "AAMAAAAAKQAAAEEgZGVzY3JpcHRpb24gb2YgdGhlIHNvdXJjZSBvZiB0aGUgZXZlbnQuAC4ARO8AAAAA" +
-           "DP////8BAf////8AAAAANWCJCgIAAAAAAAQAAABUaW1lAQHwAAMAAAAAGAAAAFdoZW4gdGhlIGV2ZW50" +
-           "IG9jY3VycmVkLgAuAETwAAAAAQAmAf////8BAf////8AAAAANWCJCgIAAAAAAAsAAABSZWNlaXZlVGlt" +
-           "ZQEB8QADAAAAAD4AAABXaGVuIHRoZSBzZXJ2ZXIgcmVjZWl2ZWQgdGhlIGV2ZW50IGZyb20gdGhlIHVu" +
-           "ZGVybHlpbmcgc3lzdGVtLgAuAETxAAAAAQAmAf////8BAf////8AAAAANWCJCgIAAAAAAAcAAABNZXNz" +
-           "YWdlAQHzAAMAAAAAJQAAAEEgbG9jYWxpemVkIGRlc2NyaXB0aW9uIG9mIHRoZSBldmVudC4ALgBE8wAA" +
-           "AAAV/////wEB/////wAAAAA1YIkKAgAAAAAACAAAAFNldmVyaXR5AQH0AAMAAAAAIQAAAEluZGljYXRl" +
-           "cyBob3cgdXJnZW50IGFuIGV2ZW50IGlzLgAuAET0AAAAAAX/////AQH/////AAAAABVgiQoCAAAAAQAH" +
-           "AAAAQ3ljbGVJZAEB9QAALgBE9QAAAAAM/////wEB/////wAAAAAVYIkKAgAAAAEACwAAAEN1cnJlbnRT" +
-           "dGVwAQH2AAAuAET2AAAAAQG3AP////8BAf////8AAAAA";
+           "AQAAACUAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvU2ltcGxlRXZlbnRz/////wRggAIBAAAAAQAi" +
+           "AAAAU3lzdGVtQ3ljbGVTdGF0dXNFdmVudFR5cGVJbnN0YW5jZQEB6wABAesA6wAAAP////8KAAAAFWCJ" +
+           "CgIAAAAAAAcAAABFdmVudElkAQHsAAAuAETsAAAAAA//////AQH/////AAAAABVgiQoCAAAAAAAJAAAA" +
+           "RXZlbnRUeXBlAQHtAAAuAETtAAAAABH/////AQH/////AAAAABVgiQoCAAAAAAAKAAAAU291cmNlTm9k" +
+           "ZQEB7gAALgBE7gAAAAAR/////wEB/////wAAAAAVYIkKAgAAAAAACgAAAFNvdXJjZU5hbWUBAe8AAC4A" +
+           "RO8AAAAADP////8BAf////8AAAAAFWCJCgIAAAAAAAQAAABUaW1lAQHwAAAuAETwAAAAAQAmAf////8B" +
+           "Af////8AAAAAFWCJCgIAAAAAAAsAAABSZWNlaXZlVGltZQEB8QAALgBE8QAAAAEAJgH/////AQH/////" +
+           "AAAAABVgiQoCAAAAAAAHAAAATWVzc2FnZQEB8wAALgBE8wAAAAAV/////wEB/////wAAAAAVYIkKAgAA" +
+           "AAAACAAAAFNldmVyaXR5AQH0AAAuAET0AAAAAAX/////AQH/////AAAAABVgiQoCAAAAAQAHAAAAQ3lj" +
+           "bGVJZAEB9QAALgBE9QAAAAAM/////wEB/////wAAAAAVYIkKAgAAAAEACwAAAEN1cnJlbnRTdGVwAQH2" +
+           "AAAuAET2AAAAAQG3AP////8BAf////8AAAAA";
         #endregion
 #endif
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the CycleId Property.
-        /// </summary>
+        /// <remarks />
         public PropertyState<string> CycleId {
             get {
                 return m_cycleId;
@@ -119,9 +111,7 @@ namespace SimpleEvents {
             }
         }
 
-        /// <summary>
-        /// A description for the CurrentStep Property.
-        /// </summary>
+        /// <remarks />
         public PropertyState<CycleStepDataType> CurrentStep {
             get {
                 return m_currentStep;
@@ -269,32 +259,24 @@ namespace SimpleEvents {
 
         #region Initialization String
         private const string InitializationString =
-           "AQAAACUAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvU2ltcGxlRXZlbnRz/////wRggAABAAAAAQAj" +
-           "AAAAU3lzdGVtQ3ljbGVTdGFydGVkRXZlbnRUeXBlSW5zdGFuY2UBAbgAAQG4AP////8LAAAANWCJCgIA" +
-           "AAAAAAcAAABFdmVudElkAQG5AAMAAAAAKwAAAEEgZ2xvYmFsbHkgdW5pcXVlIGlkZW50aWZpZXIgZm9y" +
-           "IHRoZSBldmVudC4ALgBEuQAAAAAP/////wEB/////wAAAAA1YIkKAgAAAAAACQAAAEV2ZW50VHlwZQEB" +
-           "ugADAAAAACIAAABUaGUgaWRlbnRpZmllciBmb3IgdGhlIGV2ZW50IHR5cGUuAC4ARLoAAAAAEf////8B" +
-           "Af////8AAAAANWCJCgIAAAAAAAoAAABTb3VyY2VOb2RlAQG7AAMAAAAAGAAAAFRoZSBzb3VyY2Ugb2Yg" +
-           "dGhlIGV2ZW50LgAuAES7AAAAABH/////AQH/////AAAAADVgiQoCAAAAAAAKAAAAU291cmNlTmFtZQEB" +
-           "vAADAAAAACkAAABBIGRlc2NyaXB0aW9uIG9mIHRoZSBzb3VyY2Ugb2YgdGhlIGV2ZW50LgAuAES8AAAA" +
-           "AAz/////AQH/////AAAAADVgiQoCAAAAAAAEAAAAVGltZQEBvQADAAAAABgAAABXaGVuIHRoZSBldmVu" +
-           "dCBvY2N1cnJlZC4ALgBEvQAAAAEAJgH/////AQH/////AAAAADVgiQoCAAAAAAALAAAAUmVjZWl2ZVRp" +
-           "bWUBAb4AAwAAAAA+AAAAV2hlbiB0aGUgc2VydmVyIHJlY2VpdmVkIHRoZSBldmVudCBmcm9tIHRoZSB1" +
-           "bmRlcmx5aW5nIHN5c3RlbS4ALgBEvgAAAAEAJgH/////AQH/////AAAAADVgiQoCAAAAAAAHAAAATWVz" +
-           "c2FnZQEBwAADAAAAACUAAABBIGxvY2FsaXplZCBkZXNjcmlwdGlvbiBvZiB0aGUgZXZlbnQuAC4ARMAA" +
-           "AAAAFf////8BAf////8AAAAANWCJCgIAAAAAAAgAAABTZXZlcml0eQEBwQADAAAAACEAAABJbmRpY2F0" +
-           "ZXMgaG93IHVyZ2VudCBhbiBldmVudCBpcy4ALgBEwQAAAAAF/////wEB/////wAAAAAVYIkKAgAAAAEA" +
-           "BwAAAEN5Y2xlSWQBAcIAAC4ARMIAAAAADP////8BAf////8AAAAAFWCJCgIAAAABAAsAAABDdXJyZW50" +
-           "U3RlcAEB9wAALgBE9wAAAAEBtwD/////AQH/////AAAAABVgiQoCAAAAAQAFAAAAU3RlcHMBAcQAAC4A" +
-           "RMQAAAABAbcAAQAAAAEB/////wAAAAA=";
+           "AQAAACUAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvU2ltcGxlRXZlbnRz/////wRggAIBAAAAAQAj" +
+           "AAAAU3lzdGVtQ3ljbGVTdGFydGVkRXZlbnRUeXBlSW5zdGFuY2UBAbgAAQG4ALgAAAD/////CwAAABVg" +
+           "iQoCAAAAAAAHAAAARXZlbnRJZAEBuQAALgBEuQAAAAAP/////wEB/////wAAAAAVYIkKAgAAAAAACQAA" +
+           "AEV2ZW50VHlwZQEBugAALgBEugAAAAAR/////wEB/////wAAAAAVYIkKAgAAAAAACgAAAFNvdXJjZU5v" +
+           "ZGUBAbsAAC4ARLsAAAAAEf////8BAf////8AAAAAFWCJCgIAAAAAAAoAAABTb3VyY2VOYW1lAQG8AAAu" +
+           "AES8AAAAAAz/////AQH/////AAAAABVgiQoCAAAAAAAEAAAAVGltZQEBvQAALgBEvQAAAAEAJgH/////" +
+           "AQH/////AAAAABVgiQoCAAAAAAALAAAAUmVjZWl2ZVRpbWUBAb4AAC4ARL4AAAABACYB/////wEB////" +
+           "/wAAAAAVYIkKAgAAAAAABwAAAE1lc3NhZ2UBAcAAAC4ARMAAAAAAFf////8BAf////8AAAAAFWCJCgIA" +
+           "AAAAAAgAAABTZXZlcml0eQEBwQAALgBEwQAAAAAF/////wEB/////wAAAAAVYIkKAgAAAAEABwAAAEN5" +
+           "Y2xlSWQBAcIAAC4ARMIAAAAADP////8BAf////8AAAAAFWCJCgIAAAABAAsAAABDdXJyZW50U3RlcAEB" +
+           "9wAALgBE9wAAAAEBtwD/////AQH/////AAAAABdgiQoCAAAAAQAFAAAAU3RlcHMBAcQAAC4ARMQAAAAB" +
+           "AbcAAQAAAAEAAAAAAAAAAQH/////AAAAAA==";
         #endregion
 #endif
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the Steps Property.
-        /// </summary>
+        /// <remarks />
         public PropertyState<CycleStepDataType[]> Steps {
             get {
                 return m_steps;
@@ -421,32 +403,24 @@ namespace SimpleEvents {
 
         #region Initialization String
         private const string InitializationString =
-           "AQAAACUAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvU2ltcGxlRXZlbnRz/////wRggAABAAAAAQAj" +
-           "AAAAU3lzdGVtQ3ljbGVBYm9ydGVkRXZlbnRUeXBlSW5zdGFuY2UBAcUAAQHFAP////8LAAAANWCJCgIA" +
-           "AAAAAAcAAABFdmVudElkAQHGAAMAAAAAKwAAAEEgZ2xvYmFsbHkgdW5pcXVlIGlkZW50aWZpZXIgZm9y" +
-           "IHRoZSBldmVudC4ALgBExgAAAAAP/////wEB/////wAAAAA1YIkKAgAAAAAACQAAAEV2ZW50VHlwZQEB" +
-           "xwADAAAAACIAAABUaGUgaWRlbnRpZmllciBmb3IgdGhlIGV2ZW50IHR5cGUuAC4ARMcAAAAAEf////8B" +
-           "Af////8AAAAANWCJCgIAAAAAAAoAAABTb3VyY2VOb2RlAQHIAAMAAAAAGAAAAFRoZSBzb3VyY2Ugb2Yg" +
-           "dGhlIGV2ZW50LgAuAETIAAAAABH/////AQH/////AAAAADVgiQoCAAAAAAAKAAAAU291cmNlTmFtZQEB" +
-           "yQADAAAAACkAAABBIGRlc2NyaXB0aW9uIG9mIHRoZSBzb3VyY2Ugb2YgdGhlIGV2ZW50LgAuAETJAAAA" +
-           "AAz/////AQH/////AAAAADVgiQoCAAAAAAAEAAAAVGltZQEBygADAAAAABgAAABXaGVuIHRoZSBldmVu" +
-           "dCBvY2N1cnJlZC4ALgBEygAAAAEAJgH/////AQH/////AAAAADVgiQoCAAAAAAALAAAAUmVjZWl2ZVRp" +
-           "bWUBAcsAAwAAAAA+AAAAV2hlbiB0aGUgc2VydmVyIHJlY2VpdmVkIHRoZSBldmVudCBmcm9tIHRoZSB1" +
-           "bmRlcmx5aW5nIHN5c3RlbS4ALgBEywAAAAEAJgH/////AQH/////AAAAADVgiQoCAAAAAAAHAAAATWVz" +
-           "c2FnZQEBzQADAAAAACUAAABBIGxvY2FsaXplZCBkZXNjcmlwdGlvbiBvZiB0aGUgZXZlbnQuAC4ARM0A" +
-           "AAAAFf////8BAf////8AAAAANWCJCgIAAAAAAAgAAABTZXZlcml0eQEBzgADAAAAACEAAABJbmRpY2F0" +
-           "ZXMgaG93IHVyZ2VudCBhbiBldmVudCBpcy4ALgBEzgAAAAAF/////wEB/////wAAAAAVYIkKAgAAAAEA" +
-           "BwAAAEN5Y2xlSWQBAc8AAC4ARM8AAAAADP////8BAf////8AAAAAFWCJCgIAAAABAAsAAABDdXJyZW50" +
-           "U3RlcAEB+AAALgBE+AAAAAEBtwD/////AQH/////AAAAABVgiQoCAAAAAQAFAAAARXJyb3IBAfkAAC4A" +
-           "RPkAAAAAE/////8BAf////8AAAAA";
+           "AQAAACUAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvU2ltcGxlRXZlbnRz/////wRggAIBAAAAAQAj" +
+           "AAAAU3lzdGVtQ3ljbGVBYm9ydGVkRXZlbnRUeXBlSW5zdGFuY2UBAcUAAQHFAMUAAAD/////CwAAABVg" +
+           "iQoCAAAAAAAHAAAARXZlbnRJZAEBxgAALgBExgAAAAAP/////wEB/////wAAAAAVYIkKAgAAAAAACQAA" +
+           "AEV2ZW50VHlwZQEBxwAALgBExwAAAAAR/////wEB/////wAAAAAVYIkKAgAAAAAACgAAAFNvdXJjZU5v" +
+           "ZGUBAcgAAC4ARMgAAAAAEf////8BAf////8AAAAAFWCJCgIAAAAAAAoAAABTb3VyY2VOYW1lAQHJAAAu" +
+           "AETJAAAAAAz/////AQH/////AAAAABVgiQoCAAAAAAAEAAAAVGltZQEBygAALgBEygAAAAEAJgH/////" +
+           "AQH/////AAAAABVgiQoCAAAAAAALAAAAUmVjZWl2ZVRpbWUBAcsAAC4ARMsAAAABACYB/////wEB////" +
+           "/wAAAAAVYIkKAgAAAAAABwAAAE1lc3NhZ2UBAc0AAC4ARM0AAAAAFf////8BAf////8AAAAAFWCJCgIA" +
+           "AAAAAAgAAABTZXZlcml0eQEBzgAALgBEzgAAAAAF/////wEB/////wAAAAAVYIkKAgAAAAEABwAAAEN5" +
+           "Y2xlSWQBAc8AAC4ARM8AAAAADP////8BAf////8AAAAAFWCJCgIAAAABAAsAAABDdXJyZW50U3RlcAEB" +
+           "+AAALgBE+AAAAAEBtwD/////AQH/////AAAAABVgiQoCAAAAAQAFAAAARXJyb3IBAfkAAC4ARPkAAAAA" +
+           "E/////8BAf////8AAAAA";
         #endregion
 #endif
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the Error Property.
-        /// </summary>
+        /// <remarks />
         public PropertyState<StatusCode> Error {
             get {
                 return m_error;
@@ -573,23 +547,17 @@ namespace SimpleEvents {
 
         #region Initialization String
         private const string InitializationString =
-           "AQAAACUAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvU2ltcGxlRXZlbnRz/////wRggAABAAAAAQAk" +
-           "AAAAU3lzdGVtQ3ljbGVGaW5pc2hlZEV2ZW50VHlwZUluc3RhbmNlAQHSAAEB0gD/////CgAAADVgiQoC" +
-           "AAAAAAAHAAAARXZlbnRJZAEB0wADAAAAACsAAABBIGdsb2JhbGx5IHVuaXF1ZSBpZGVudGlmaWVyIGZv" +
-           "ciB0aGUgZXZlbnQuAC4ARNMAAAAAD/////8BAf////8AAAAANWCJCgIAAAAAAAkAAABFdmVudFR5cGUB" +
-           "AdQAAwAAAAAiAAAAVGhlIGlkZW50aWZpZXIgZm9yIHRoZSBldmVudCB0eXBlLgAuAETUAAAAABH/////" +
-           "AQH/////AAAAADVgiQoCAAAAAAAKAAAAU291cmNlTm9kZQEB1QADAAAAABgAAABUaGUgc291cmNlIG9m" +
-           "IHRoZSBldmVudC4ALgBE1QAAAAAR/////wEB/////wAAAAA1YIkKAgAAAAAACgAAAFNvdXJjZU5hbWUB" +
-           "AdYAAwAAAAApAAAAQSBkZXNjcmlwdGlvbiBvZiB0aGUgc291cmNlIG9mIHRoZSBldmVudC4ALgBE1gAA" +
-           "AAAM/////wEB/////wAAAAA1YIkKAgAAAAAABAAAAFRpbWUBAdcAAwAAAAAYAAAAV2hlbiB0aGUgZXZl" +
-           "bnQgb2NjdXJyZWQuAC4ARNcAAAABACYB/////wEB/////wAAAAA1YIkKAgAAAAAACwAAAFJlY2VpdmVU" +
-           "aW1lAQHYAAMAAAAAPgAAAFdoZW4gdGhlIHNlcnZlciByZWNlaXZlZCB0aGUgZXZlbnQgZnJvbSB0aGUg" +
-           "dW5kZXJseWluZyBzeXN0ZW0uAC4ARNgAAAABACYB/////wEB/////wAAAAA1YIkKAgAAAAAABwAAAE1l" +
-           "c3NhZ2UBAdoAAwAAAAAlAAAAQSBsb2NhbGl6ZWQgZGVzY3JpcHRpb24gb2YgdGhlIGV2ZW50LgAuAETa" +
-           "AAAAABX/////AQH/////AAAAADVgiQoCAAAAAAAIAAAAU2V2ZXJpdHkBAdsAAwAAAAAhAAAASW5kaWNh" +
-           "dGVzIGhvdyB1cmdlbnQgYW4gZXZlbnQgaXMuAC4ARNsAAAAABf////8BAf////8AAAAAFWCJCgIAAAAB" +
-           "AAcAAABDeWNsZUlkAQHcAAAuAETcAAAAAAz/////AQH/////AAAAABVgiQoCAAAAAQALAAAAQ3VycmVu" +
-           "dFN0ZXABAfoAAC4ARPoAAAABAbcA/////wEB/////wAAAAA=";
+           "AQAAACUAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvU2ltcGxlRXZlbnRz/////wRggAIBAAAAAQAk" +
+           "AAAAU3lzdGVtQ3ljbGVGaW5pc2hlZEV2ZW50VHlwZUluc3RhbmNlAQHSAAEB0gDSAAAA/////woAAAAV" +
+           "YIkKAgAAAAAABwAAAEV2ZW50SWQBAdMAAC4ARNMAAAAAD/////8BAf////8AAAAAFWCJCgIAAAAAAAkA" +
+           "AABFdmVudFR5cGUBAdQAAC4ARNQAAAAAEf////8BAf////8AAAAAFWCJCgIAAAAAAAoAAABTb3VyY2VO" +
+           "b2RlAQHVAAAuAETVAAAAABH/////AQH/////AAAAABVgiQoCAAAAAAAKAAAAU291cmNlTmFtZQEB1gAA" +
+           "LgBE1gAAAAAM/////wEB/////wAAAAAVYIkKAgAAAAAABAAAAFRpbWUBAdcAAC4ARNcAAAABACYB////" +
+           "/wEB/////wAAAAAVYIkKAgAAAAAACwAAAFJlY2VpdmVUaW1lAQHYAAAuAETYAAAAAQAmAf////8BAf//" +
+           "//8AAAAAFWCJCgIAAAAAAAcAAABNZXNzYWdlAQHaAAAuAETaAAAAABX/////AQH/////AAAAABVgiQoC" +
+           "AAAAAAAIAAAAU2V2ZXJpdHkBAdsAAC4ARNsAAAAABf////8BAf////8AAAAAFWCJCgIAAAABAAcAAABD" +
+           "eWNsZUlkAQHcAAAuAETcAAAAAAz/////AQH/////AAAAABVgiQoCAAAAAQALAAAAQ3VycmVudFN0ZXAB" +
+           "AfoAAC4ARPoAAAABAbcA/////wEB/////wAAAAA=";
         #endregion
 #endif
         #endregion

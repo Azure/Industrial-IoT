@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  *
@@ -27,31 +27,27 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Vehicles.Instances {
-    using System;
-    using System.Collections.Generic;
-    using System.Runtime.Serialization;
-    using Opc.Ua;
-    using Vehicles.Types;
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using Opc.Ua;
+using Vehicles.Types;
 
+namespace Vehicles.Instances {
     #region ParkingLotType Enumeration
 #if (!OPCUA_EXCLUDE_ParkingLotType)
     /// <summary>
-    /// A description for the ParkingLotType DataType.
+    /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = Vehicles.Instances.Namespaces.VehiclesInstances)]
     public enum ParkingLotType {
-        /// <summary>
-        /// A description for the Open field.
-        /// </summary>
+        /// <remarks />
         [EnumMember(Value = "Open_1")]
         Open = 1,
 
-        /// <summary>
-        /// A description for the Covered field.
-        /// </summary>
+        /// <remarks />
         [EnumMember(Value = "Covered_2")]
         Covered = 2,
     }
@@ -139,7 +135,7 @@ namespace Vehicles.Instances {
     #region BicycleType Class
 #if (!OPCUA_EXCLUDE_BicycleType)
     /// <summary>
-    /// A description for the BicycleType DataType.
+    /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -171,18 +167,14 @@ namespace Vehicles.Instances {
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the NoOfGears field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "NoOfGears", IsRequired = false, Order = 1)]
         public uint NoOfGears {
             get { return m_noOfGears; }
             set { m_noOfGears = value; }
         }
 
-        /// <summary>
-        /// A description for the ManufacterName field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "ManufacterName", IsRequired = false, Order = 2)]
         public QualifiedName ManufacterName {
             get { return m_manufacterName; }

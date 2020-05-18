@@ -800,9 +800,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             AssertEqualValue(expected, result.Value);
 
             Assert.True(result.Value.IsListOfValues);
-            if (result.Value.Count == 0) {
-                return;
-            }
         }
 
 

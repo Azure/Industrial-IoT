@@ -1,0 +1,15 @@
+CarType,315,DataType
+CarType_Encoding_DefaultBinary,330,Object
+CarType_Encoding_DefaultJson,15004,Object
+CarType_Encoding_DefaultXml,318,Object
+DriverType,341,ObjectType
+TruckType,316,DataType
+TruckType_Encoding_DefaultBinary,331,Object
+TruckType_Encoding_DefaultJson,15005,Object
+TruckType_Encoding_DefaultXml,319,Object
+Vehicles_BinarySchema,302,Variable
+Vehicles_XmlSchema,287,Variable
+VehicleType,314,DataType
+VehicleType_Encoding_DefaultBinary,329,Object
+VehicleType_Encoding_DefaultJson,15003,Object
+VehicleType_Encoding_DefaultXml,317,Object
