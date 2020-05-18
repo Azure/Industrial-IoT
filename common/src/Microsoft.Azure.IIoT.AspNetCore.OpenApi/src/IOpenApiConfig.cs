@@ -26,14 +26,21 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
         bool UseV2 { get; }
 
         /// <summary>
-        /// The AAD application id for the openapi UI client.
+        /// The Application id for the openapi UI client.
+        /// (optional - if not set uses bearer)
         /// </summary>
         string OpenApiAppId { get; }
 
         /// <summary>
-        /// AAD Client / Application secret (optional)
+        /// Application secret (optional)
         /// </summary>
         string OpenApiAppSecret { get; }
+
+        /// <summary>
+        /// Authorization Url
+        /// (optional - if not set uses bearer)
+        /// </summary>
+        string OpenApiAuthorizationUrl { get; }
 
         /// <summary>
         /// Server host for openapi (optional)

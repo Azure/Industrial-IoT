@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
     public class TestClientServicesConfig : IClientServicesConfig, IDisposable {
 
         /// <inheritdoc/>
-        public string PkiRootPath { get;}
+        public string PkiRootPath { get; }
         /// <inheritdoc/>
         public string ApplicationName => _opc.ApplicationName;
         /// <inheritdoc/>

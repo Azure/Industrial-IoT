@@ -18,8 +18,3 @@ Alternative options to deploy the platform services include:
 - Deploying Azure Industrial IoT Platform to [Azure Kubernetes Service (AKS)](howto-deploy-aks.md) as production solution.
 - Deploying Azure Industrial IoT Platform microservices into an existing Kubernetes cluster [using Helm](howto-deploy-helm.md).
 - For development and testing purposes, you can also [deploy only the Microservices dependencies in Azure](howto-deploy-local.md) and [run Microservices locally](howto-run-microservices-locally.md).
-- [Enable ASC for IoT](howto-enable-asc-for-iot-and-sentinel-steps.md) if you want to monitor security of OPC UA endpoints
-
-## Update a 2.6 to 2.7 deployment manually
-
-To update your 2.6 deployment follow instructions [here](upgrade.md).
