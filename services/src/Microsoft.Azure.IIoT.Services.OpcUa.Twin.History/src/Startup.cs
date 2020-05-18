@@ -110,7 +110,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
 
             // Add controllers as services so they'll be resolved.
             services.AddControllers().AddSerializers();
-            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
+            services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
         }
 
 

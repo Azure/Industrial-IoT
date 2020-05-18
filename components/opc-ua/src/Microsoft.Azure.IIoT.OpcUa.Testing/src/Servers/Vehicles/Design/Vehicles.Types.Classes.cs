@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  *
@@ -27,11 +27,11 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Vehicles.Types {
-    using System;
-    using System.Collections.Generic;
-    using Opc.Ua;
+using System;
+using System.Collections.Generic;
+using Opc.Ua;
 
+namespace Vehicles.Types {
     #region DriverState Class
 #if (!OPCUA_EXCLUDE_DriverState)
     /// <summary>
@@ -80,27 +80,25 @@ namespace Vehicles.Types {
 
         #region Initialization String
         private const string InitializationString =
-           "AQAAACoAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvVmVoaWNsZXMvVHlwZXP/////BGCAAAEA" +
-           "AAABABIAAABEcml2ZXJUeXBlSW5zdGFuY2UBAVUBAQFVAf////8CAAAAFWCpCgIAAAABAA4AAABQcmlt" +
-           "YXJ5VmVoaWNsZQEBVgEALgBEVgEAABYBAT4BAo8AAAA8Q2FyVHlwZSB4bWxucz0iaHR0cDovL29wY2Zv" +
-           "dW5kYXRpb24ub3JnL1VBL1ZlaGljbGVzL1R5cGVzIj48TWFrZT5Ub3lvdGE8L01ha2U+PE1vZGVsPlBy" +
-           "aXVzPC9Nb2RlbD48Tm9PZlBhc3NlbmdlcnM+NDwvTm9PZlBhc3NlbmdlcnM+PC9DYXJUeXBlPgEBOgH/" +
-           "////AwP/////AAAAABVgqQoCAAAAAQANAAAAT3duZWRWZWhpY2xlcwEBWAEALgBEWAEAAJYCAAAAAQE/" +
-           "AQKQAAAAPFRydWNrVHlwZSB4bWxucz0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBL1ZlaGljbGVz" +
-           "L1R5cGVzIj48TWFrZT5Eb2RnZTwvTWFrZT48TW9kZWw+UmFtPC9Nb2RlbD48Q2FyZ29DYXBhY2l0eT41" +
-           "MDA8L0NhcmdvQ2FwYWNpdHk+PC9UcnVja1R5cGU+AQE+AQLjAAAAPFZlaGljbGVUeXBlIHhzaTp0eXBl" +
-           "PSJDYXJUeXBlIiB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3Rh" +
-           "bmNlIiB4bWxucz0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBL1ZlaGljbGVzL1R5cGVzIj48TWFr" +
-           "ZT5Qb3JjaGU8L01ha2U+PE1vZGVsPlJvYWRzdGVyPC9Nb2RlbD48Tm9PZlBhc3NlbmdlcnM+MjwvTm9P" +
-           "ZlBhc3NlbmdlcnM+PC9WZWhpY2xlVHlwZT4BAToBAQAAAAMD/////wAAAAA=";
+           "AQAAACoAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvVmVoaWNsZXMvVHlwZXP/////BGCAAgEA" +
+           "AAABABIAAABEcml2ZXJUeXBlSW5zdGFuY2UBAVUBAQFVAVUBAAD/////AgAAABVgqQoCAAAAAQAOAAAA" +
+           "UHJpbWFyeVZlaGljbGUBAVYBAC4ARFYBAAAWAQE+AQKPAAAAPENhclR5cGUgeG1sbnM9Imh0dHA6Ly9v" +
+           "cGNmb3VuZGF0aW9uLm9yZy9VQS9WZWhpY2xlcy9UeXBlcyI+PE1ha2U+VG95b3RhPC9NYWtlPjxNb2Rl" +
+           "bD5Qcml1czwvTW9kZWw+PE5vT2ZQYXNzZW5nZXJzPjQ8L05vT2ZQYXNzZW5nZXJzPjwvQ2FyVHlwZT4B" +
+           "AToB/////wMD/////wAAAAAXYKkKAgAAAAEADQAAAE93bmVkVmVoaWNsZXMBAVgBAC4ARFgBAACWAgAA" +
+           "AAEBPwECkAAAADxUcnVja1R5cGUgeG1sbnM9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS9WZWhp" +
+           "Y2xlcy9UeXBlcyI+PE1ha2U+RG9kZ2U8L01ha2U+PE1vZGVsPlJhbTwvTW9kZWw+PENhcmdvQ2FwYWNp" +
+           "dHk+NTAwPC9DYXJnb0NhcGFjaXR5PjwvVHJ1Y2tUeXBlPgEBPgEC4wAAADxWZWhpY2xlVHlwZSB4c2k6" +
+           "dHlwZT0iQ2FyVHlwZSIgeG1sbnM6eHNpPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1p" +
+           "bnN0YW5jZSIgeG1sbnM9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS9WZWhpY2xlcy9UeXBlcyI+" +
+           "PE1ha2U+UG9yY2hlPC9NYWtlPjxNb2RlbD5Sb2Fkc3RlcjwvTW9kZWw+PE5vT2ZQYXNzZW5nZXJzPjI8" +
+           "L05vT2ZQYXNzZW5nZXJzPjwvVmVoaWNsZVR5cGU+AQE6AQEAAAABAAAAAAAAAAMD/////wAAAAA=";
         #endregion
 #endif
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the PrimaryVehicle Property.
-        /// </summary>
+        /// <remarks />
         public PropertyState<VehicleType> PrimaryVehicle {
             get {
                 return m_primaryVehicle;
@@ -115,9 +113,7 @@ namespace Vehicles.Types {
             }
         }
 
-        /// <summary>
-        /// A description for the OwnedVehicles Property.
-        /// </summary>
+        /// <remarks />
         public PropertyState<VehicleType[]> OwnedVehicles {
             get {
                 return m_ownedVehicles;

@@ -34,9 +34,14 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
                 resource = Http.Resource.Platform;
             }
             foreach (var source in _tokenSources.Where(p => p.Resource == resource)) {
-                var token = await source.GetTokenAsync(scopes);
-                if (token != null) {
-                    return token;
+                try {
+                    var token = await source.GetTokenAsync(scopes);
+                    if (token != null) {
+                        return token;
+                    }
+                }
+                catch {
+                    continue;
                 }
             }
             return null;

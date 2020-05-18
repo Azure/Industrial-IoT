@@ -27,15 +27,10 @@ namespace Microsoft.OpenApi.Models {
         /// Configure OpenApi
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="config"></param>
         /// <param name="title"></param>
         /// <param name="description"></param>
         public static IServiceCollection AddSwagger(this IServiceCollection services,
-            IOpenApiConfig config, string title, string description) {
-
-            if (config == null) {
-                throw new ArgumentNullException(nameof(config));
-            }
+            string title, string description) {
 
             services.AddApiVersioning(o => {
                 o.AssumeDefaultVersionWhenUnspecified = true;
@@ -47,7 +42,9 @@ namespace Microsoft.OpenApi.Models {
 
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>>(provider => {
                 var api = provider.GetRequiredService<IActionDescriptorCollectionProvider>();
+                var config = provider.GetRequiredService<IOpenApiConfig>();
                 var infos = api.GetOpenApiInfos(title, description);
+
                 return new ConfigureNamedOptions<SwaggerGenOptions>(Options.DefaultName, options => {
                     // Add annotations
                     options.EnableAnnotations();
@@ -79,7 +76,7 @@ namespace Microsoft.OpenApi.Models {
                     // If auth enabled, need to have bearer token to access any api
                     if (config.WithAuth) {
                         if (string.IsNullOrEmpty(config.OpenApiAppId) ||
-                            !(config is IOAuthClientConfig resource)) {
+                            string.IsNullOrEmpty(config.OpenApiAuthorizationUrl)) {
                             options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme {
                                 Description =
                                     "Authorization token in the form of 'bearer <token>'",
@@ -89,6 +86,7 @@ namespace Microsoft.OpenApi.Models {
                             options.OperationFilter<AutoRestOperationExtensions>();
                         }
                         else {
+                            // TODO: use registered client configuration here instead of IOpenApiConfig
                             var authOptions = provider.GetRequiredService<IOptions<AuthorizationOptions>>();
                             options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme {
                                 Type = SecuritySchemeType.OAuth2,
@@ -96,7 +94,7 @@ namespace Microsoft.OpenApi.Models {
                                 Flows = new OpenApiOAuthFlows {
                                     Implicit = new OpenApiOAuthFlow {
                                         AuthorizationUrl =
-                                            new Uri(resource.GetAuthorityUrl() + "/oauth2/authorize"),
+                                            new Uri(config.OpenApiAuthorizationUrl),
                                         Scopes = api.GetRequiredScopes(authOptions)
                                             .ToDictionary(k => k, k => $"Access {k} operations")
                                     }
