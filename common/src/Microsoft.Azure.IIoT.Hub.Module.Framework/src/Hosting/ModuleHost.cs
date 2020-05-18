@@ -309,9 +309,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private static Message CreateMessage(byte[] data, string contentEncoding,
             string contentType, string eventSchema, string deviceId, string moduleId) {
             var msg = new Message(data) {
+                
                 ContentType = contentType,
                 ContentEncoding = contentEncoding,
-                CreationTimeUtc = DateTime.UtcNow
+                // TODO - setting CreationTime causes issues in the Azure IoT java SDK 
+                //  revert the comment whrn the issue is fixed
+                //  CreationTimeUtc = DateTime.UtcNow
             };
             if (!string.IsNullOrEmpty(contentEncoding)) {
                 msg.Properties.Add(CommonProperties.ContentEncoding, contentEncoding);

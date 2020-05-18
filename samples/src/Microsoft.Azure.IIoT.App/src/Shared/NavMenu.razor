@@ -26,60 +26,63 @@
     </button>
 </nav>
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="discoverers">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Discovery
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="applications">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Assets
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="endpoints">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Browse
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="javascript: void(0)" @onclick="@(() => SubMenu())">
-                <span class="oi @_subMenuIcon" aria-hidden="true"></span> More
-            </NavLink>
-        </li>
-        <li class="nav-item px-5 @_subMenuDisplay">
-            <NavLink class="nav-link" href="supervisors">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Twin Module
-            </NavLink>
-        </li>
-        <li class="nav-item px-5 @_subMenuDisplay">
-            <NavLink class="nav-link" href="gateways">
-                <span class="oi oi-list" aria-hidden="true"></span> Gateway
-            </NavLink>
-        </li>
-        <li class="nav-item px-5 @_subMenuDisplay">
-            <NavLink class="nav-link " href="publishers">
-                <span class="oi oi-list" aria-hidden="true"></span> Publisher
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="assetLogin">
-                <span class="oi oi-account-login" aria-hidden="true"></span>
-                @if (Credential?.Username != null)
-                {
-                    <span>Asset LogOut</span>
-                    <div>Hello, @Credential.Username</div>
-                }
-                else
-                {
-                    <span>Asset LogIn</span>
-                }
-            </NavLink>
-
-        </li>
-    </ul>
-</div>
+<AuthorizeView>
+    <Authorized>
+        <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+            <ul class="nav flex-column">
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="discoverers">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span> Discovery
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="applications">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span> Assets
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="endpoints">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span> Browse
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="javascript: void(0)" @onclick="@(() => SubMenu())">
+                        <span class="oi @_subMenuIcon" aria-hidden="true"></span> More
+                    </NavLink>
+                </li>
+                <li class="nav-item px-5 @_subMenuDisplay">
+                    <NavLink class="nav-link" href="supervisors">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span> Twin Module
+                    </NavLink>
+                </li>
+                <li class="nav-item px-5 @_subMenuDisplay">
+                    <NavLink class="nav-link" href="gateways">
+                        <span class="oi oi-list" aria-hidden="true"></span> Gateway
+                    </NavLink>
+                </li>
+                <li class="nav-item px-5 @_subMenuDisplay">
+                    <NavLink class="nav-link " href="publishers">
+                        <span class="oi oi-list" aria-hidden="true"></span> Publisher
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="assetLogin">
+                        <span class="oi oi-account-login" aria-hidden="true"></span>
+                        @if (Credential?.Username != null)
+                        {
+                            <span>Asset LogOut</span>
+                            <div>Hello, @Credential.Username</div>
+                        }
+                        else
+                        {
+                            <span>Asset LogIn</span>
+                        }
+                    </NavLink>
+                </li>
+            </ul>
+        </div>
+    </Authorized>
+</AuthorizeView>
 
 @code {
     bool collapseNavMenu = true;

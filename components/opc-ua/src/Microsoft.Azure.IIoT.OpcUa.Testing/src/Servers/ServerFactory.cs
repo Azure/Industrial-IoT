@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
@@ -60,10 +61,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
         }
 
         /// <inheritdoc/>
-        public ApplicationConfiguration CreateServer(IEnumerable<int> ports,
+        public ApplicationConfiguration CreateServer(IEnumerable<int> ports, string applicationName,
             out ServerBase server) {
             server = new Server(LogStatus, _nodes, _logger);
-            return Server.CreateServerConfiguration(ports);
+            return Server.CreateServerConfiguration(ports, applicationName);
         }
 
         /// <inheritdoc/>
@@ -88,7 +89,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
             /// <param name="ports"></param>
             /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(
-                IEnumerable<int> ports) {
+                IEnumerable<int> ports, string pkiRootPath) {
                 var extensions = new List<object> {
                     new MemoryBuffer.MemoryBufferConfiguration {
                         Buffers = new MemoryBuffer.MemoryBufferInstanceCollection {
@@ -107,39 +108,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
 
                     /// ...
                 };
+                if (string.IsNullOrEmpty(pkiRootPath)) {
+                    pkiRootPath = "pki";
+                }
                 return new ApplicationConfiguration {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
-                    ApplicationUri =
-                $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
-
+                    ApplicationUri = $"urn:{Dns.GetHostName()}:OPCFoundation:CoreSampleServer",
                     Extensions = new XmlElementCollection(
                         extensions.Select(XmlElementEx.SerializeObject)),
 
                     ProductUri = "http://opcfoundation.org/UA/SampleServer",
                     SecurityConfiguration = new SecurityConfiguration {
                         ApplicationCertificate = new CertificateIdentifier {
-                            StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/MachineDefault",
-                            SubjectName = "UA Core Sample Server"
+                            StoreType = CertificateStoreType.Directory,
+                            StorePath = $"{pkiRootPath}/own",
+                            SubjectName = "UA Core Sample Server",
                         },
                         TrustedPeerCertificates = new CertificateTrustList {
-                            StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/UA Applications",
+                            StoreType = CertificateStoreType.Directory,
+                            StorePath = $"{pkiRootPath}/trusted",
                         },
                         TrustedIssuerCertificates = new CertificateTrustList {
-                            StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/UA Certificate Authorities",
+                            StoreType = CertificateStoreType.Directory,
+                            StorePath = $"{pkiRootPath}/issuer",
                         },
                         RejectedCertificateStore = new CertificateTrustList {
-                            StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/RejectedCertificates",
+                            StoreType = CertificateStoreType.Directory,
+                            StorePath = $"{pkiRootPath}/rejected",
                         },
-                        AutoAcceptUntrustedCertificates = false
+                        MinimumCertificateKeySize = 1024,
+                        RejectSHA1SignedCertificates = false,
+                        AutoAcceptUntrustedCertificates = true,
+                        AddAppCertToTrustedStore = true
                     },
                     TransportConfigurations = new TransportConfigurationCollection(),
                     TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),

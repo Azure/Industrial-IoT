@@ -4,9 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using System;
-    using System.Security.Cryptography.X509Certificates;
     using Opc.Ua;
+    using Opc.Ua.Configuration;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Configuration extensions
@@ -20,8 +22,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="handler"></param>
         /// <param name="createSelfSignedCertIfNone"></param>
         /// <returns></returns>
-        public static ApplicationConfiguration ToApplicationConfiguration(
-            this IClientServicesConfig2 opcConfig, bool createSelfSignedCertIfNone,
+        public static async Task<ApplicationConfiguration> ToApplicationConfigurationAsync(
+            this IClientServicesConfig opcConfig, bool createSelfSignedCertIfNone,
             CertificateValidationEventHandler handler) {
             if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName)) {
                 throw new ArgumentNullException(nameof(opcConfig.ApplicationName));
@@ -37,40 +39,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 ClientConfiguration = new ClientConfiguration(),
                 CertificateValidator = new CertificateValidator()
             };
-
-            applicationConfiguration.CertificateValidator.CertificateValidation += handler;
-
-            X509Certificate2 certificate = null;
-
-            // use existing certificate, if it is there
-            certificate = applicationConfiguration.SecurityConfiguration.ApplicationCertificate.Find(true).Result;
-
-            // create a self signed certificate if there is none
-            if (certificate == null && createSelfSignedCertIfNone) {
-                certificate = CertificateFactory.CreateCertificate(
-                    applicationConfiguration.SecurityConfiguration.ApplicationCertificate.StoreType,
-                    applicationConfiguration.SecurityConfiguration.ApplicationCertificate.StorePath,
-                    null,
-                    applicationConfiguration.ApplicationUri,
-                    applicationConfiguration.ApplicationName,
-                    applicationConfiguration.ApplicationName,
-                    null,
-                    CertificateFactory.defaultKeySize,
-                    DateTime.UtcNow - TimeSpan.FromDays(1),
-                    CertificateFactory.defaultLifeTime,
-                    CertificateFactory.defaultHashSize
-                );
-
-                // update security information
-                applicationConfiguration.SecurityConfiguration.ApplicationCertificate.Certificate =
-                    certificate ??
-                    throw new Exception(
-                        "OPC UA application certificate can not be created! Cannot continue without it!");
-                //await applicationConfiguration.CertificateValidator.UpdateCertificate(
-                   //applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
+            await applicationConfiguration.Validate(applicationConfiguration.ApplicationType);
+            var application = new ApplicationInstance(applicationConfiguration);
+            var hasAppCertificate = await application.CheckApplicationInstanceCertificate(true,
+                CertificateFactory.defaultKeySize);
+            if (!hasAppCertificate) {
+                throw new InvalidConfigurationException("OPC UA application certificate can not be validated");
             }
 
-            applicationConfiguration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);
+            applicationConfiguration.CertificateValidator.CertificateValidation += handler;
+            await applicationConfiguration.CertificateValidator
+                .Update(applicationConfiguration.SecurityConfiguration);
 
             return applicationConfiguration;
         }

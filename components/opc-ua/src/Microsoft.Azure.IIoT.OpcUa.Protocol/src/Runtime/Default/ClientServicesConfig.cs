@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     /// <summary>
     /// Default client configuration
     /// </summary>
-    public class ClientServicesConfig2 : ConfigBase, IClientServicesConfig2, ISecurityConfig, ITransportQuotaConfig {
+    public class ClientServicesConfig : ConfigBase, IClientServicesConfig, ISecurityConfig, ITransportQuotaConfig {
 
         /// <summary>
         /// Configuration
@@ -49,7 +49,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public uint MaxKeepAliveCount =>
             (uint)GetIntOrDefault(MaxKeepAliveCountKey, () => 5);
 
-
+        /// <inheritdoc/>
+        public string PkiRootPath => _security.PkiRootPath;
         /// <inheritdoc/>
         public CertificateInfo ApplicationCertificate => _security.ApplicationCertificate;
         /// <inheritdoc/>
@@ -61,10 +62,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// <inheritdoc/>
         public bool RejectSha1SignedCertificates => _security.RejectSha1SignedCertificates;
         /// <inheritdoc/>
+        public bool AddAppCertToTrustedStore => _security.AddAppCertToTrustedStore;
+        /// <inheritdoc/>
         public CertificateStore TrustedIssuerCertificates => _security.TrustedIssuerCertificates;
         /// <inheritdoc/>
         public CertificateStore TrustedPeerCertificates => _security.TrustedPeerCertificates;
-
 
         /// <inheritdoc/>
         public int ChannelLifetime => _transport.ChannelLifetime;
@@ -84,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public int SecurityTokenLifetime => _transport.SecurityTokenLifetime;
 
         /// <inheritdoc/>
-        public ClientServicesConfig2(IConfiguration configuration = null) : base(configuration) {
+        public ClientServicesConfig(IConfiguration configuration = null) : base(configuration) {
             _security = new SecurityConfig(configuration);
             _transport = new TransportQuotaConfig(configuration);
         }

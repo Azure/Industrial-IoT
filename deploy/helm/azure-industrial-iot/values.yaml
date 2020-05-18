@@ -5,7 +5,7 @@ image:
   # image.registry is URL of Docker registry from where images will be pulled.
   registry: mcr.microsoft.com
   # image.tag defines which version of Docker images to pull.
-  tag: 2.7.22
+  tag: 2.7.56
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
@@ -20,6 +20,25 @@ image:
 # String to fully override azure-industrial-iot.fullname template.
 # fullnameOverride:
 
+# loadConfFromKeyVault specifies whether microservices should rely mostly on Azure Key Vault for providing application configuration parameters or not.
+# When loadConfFromKeyVault is set to true, the chart will loosen requirement on provided values. And only values necessary to connect to Azure Key Vault will be required.
+#
+# This can be used if Azure infrastructure has been bootstraped either by deploy.ps1 script or Microsoft.Azure.IIoT.Deployment
+# application as they push application configuration parameters of microservices to Azure Key Vault as secrets.
+#
+# Note that additional values provided through the chart will override those coming from Azure Key Vault.
+#
+# If loadConfFromKeyVault is set to true, then only the following values of azure.* value group are required:
+#   - azure.tenantId
+#   - azure.keyVault.uri
+#   - azure.auth.servicesApp.appId
+#   - azure.auth.servicesApp.secret
+#
+# NOTE: externalServiceUrl should still be set so that correct URL for jobs orchestrator service (edgeJobs) is generated.
+# NOTE: Values defining Kubernetes resources or deployment logic will not be affected by loadConfFromKeyVault.
+# NOTE: Setting loadConfFromKeyVault to true in conjunction with setting azure.auth.required to false will result in an error.
+loadConfFromKeyVault: false
+
 # Details of Azure resources that components of Azure Industrial IoT solution will connect to.
 azure:
   # azure.tenantId is Guid TenantId of the tenant that contains Azure resources.
@@ -33,13 +52,13 @@ azure:
       endpoint: null
 
       # Details of two consumer groups that are required by microservices.
-      # NOTE: consumer groups should have different values.
+      # NOTE: all consumer groups should have different values.
       consumerGroup:
         # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for eventsProcessor microservices. Its recommended value is 'events'.
         events: null
         # azure.iotHub.eventHub.consumerGroup.telemetry is name of consumer group of built-in EventHub for telemetryProcessor microservices. Its recommended value is 'telemetry'.
         telemetry: null
-        # azure.iotHub.eventHub.consumerGroup.tunnel is name of consumer group of built-in EventHub for tunnelprocessor microservices. Its recommended value is 'tunnel'.
+        # azure.iotHub.eventHub.consumerGroup.tunnel is name of consumer group of built-in EventHub for tunnelProcessor microservices. Its recommended value is 'tunnel'.
         tunnel: null
         # azure.iotHub.eventHub.consumerGroup.onboarding is name of consumer group of built-in EventHub for onboarding microservices. Its recommended value is 'onboarding'.
         onboarding: null
@@ -110,7 +129,7 @@ azure:
       consumerGroup:
         # azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm is name of consumer group for telemetryCdmProcessor microservices. Its recommended value is 'telemetry_cdm'.
         telemetryCdm: null
-        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx is name of consumer group for telemetryUxProcessor microservices. Its recommended value is 'telemetry_ux'.
+        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx is name of consumer group for events microservices. Its recommended value is 'telemetry_ux'.
         telemetryUx: null
 
   # Details of Azure Service Bus Namespace that microservices will use.
@@ -136,10 +155,19 @@ azure:
     # azure.applicationInsights.instrumentationKey is the instrumentation key of Application Insights instance.
     instrumentationKey: null
 
+  # Provide details of Azure Log Analytics Workspace instance to enable metrics and log collection from IoT Edge modules.
+  logAnalyticsWorkspace:
+    # azure.logAnalyticsWorkspace.id is the workspace id of Log Analytics Workspace instance.
+    id: null
+    # azure.logAnalyticsWorkspace.key is the shared key for connecting a device to Log Analytics Workspace instance.
+    key: null
+
   # Details of SignalR service.
   signalR:
     # azure.signalR.connectionString is the connection string for your SignalR instance.
     connectionString: null
+    # azure.signalR.serviceMode is the service mode of your SignalR instance.
+    serviceMode: null
 
   auth:
     # azure.auth.required defines whether to require authentication for all exposed web APIs.
@@ -175,6 +203,7 @@ azure:
 # externalServiceUrl is URL on which components of Azure Industrial IoT solution will be available externally.
 # This property is required so that Publisher Edge Module can communicate with jobs orchestrator service (edgeJobs) for reporting its status and requesting publisher jobs.
 # NOTE: If this parameter is not set, then Publisher Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within Kubernetes cluster. 
+# NOTE: It is still recommended to set externalServiceUrl even if loadConfFromKeyVault is set to true.
 externalServiceUrl: null
 
 # Role-based access control.
@@ -754,3 +783,8 @@ deployment:
     #   hosts:
     #   - myapp.domain.com
     tls: []
+
+# Prometheus metrics values. 
+prometheus:
+  # prometheus.scrape determines whether to add Pod annotations for Prometheus metrics scraping or not.
+  scrape: true

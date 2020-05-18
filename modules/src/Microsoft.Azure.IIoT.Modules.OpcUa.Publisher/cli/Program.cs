@@ -166,12 +166,8 @@ Options:
                 broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
                 var arguments = args.ToList();
                 arguments.Add($"--ec={cs}");
-                arguments.Add($"--si=0");
                 if (acceptAll) {
                     arguments.Add("--aa");
-                }
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    arguments.Add("--at=X509Store");
                 }
                 Publisher.Program.Main(arguments.ToArray());
                 Console.WriteLine("Publisher module exited.");
@@ -260,7 +256,7 @@ Options:
             public ServerWrapper(ILogger logger) {
                 _cts = new CancellationTokenSource();
                 _server = RunSampleServerAsync(_cts.Token, logger);
-                EndpointUrl = "opc.tcp://" + Opc.Ua.Utils.GetHostName() +
+                EndpointUrl = "opc.tcp://" + Dns.GetHostName() +
                     ":51210/UA/SampleServer";
             }
 

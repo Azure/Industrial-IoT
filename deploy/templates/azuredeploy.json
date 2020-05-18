@@ -55,6 +55,13 @@
                 "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access keyvault."
             }
         },
+        "datalakeServicePrincipalId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access datalake if deployed."
+            }
+        },
         "authorityUri": {
             "type": "string",
             "defaultValue": "https://login.microsoftonline.com",
@@ -109,6 +116,17 @@
             "defaultValue": "https://raw.githubusercontent.com/Azure/Industrial-IoT",
             "metadata": {
                 "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
+            }
+        },
+        "simulationProfile": {
+            "type": "string",
+            "defaultValue": "default",
+            "allowedValues": [
+                "default",
+                "testing"
+            ],
+            "metadata": {
+                "description": "The simulation profile to use."
             }
         },
         "numberOfLinuxGateways": {
@@ -206,6 +224,8 @@
         "platformDeployment": "[not(and(empty(parameters('siteName')), empty(parameters('serviceSiteName'))))]",
         "platformResourcName": "platform",
         "platformResourceId": "[resourceId('Microsoft.Resources/deployments', variables('platformResourcName'))]",
+        "simulationDeployment": "[not(and(equals(0, parameters('numberOfLinuxGateways')), equals(0, parameters('numberOfWindowsGateways'))))]",
+        "simulationResourcName": "simulation",
         "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]"
     },
     "resources": [
@@ -334,7 +354,7 @@
                         "value": "[parameters('branchName')]"
                     },
                     "datalakeServicePrincipalId": {
-                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityPrincipalId.value]"
+                        "value": "[if(not(empty(parameters('datalakeServicePrincipalId'))), parameters('datalakeServicePrincipalId'), reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityPrincipalId.value)]"
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
@@ -381,7 +401,7 @@
             ]
         },
         {
-            "comments": "Deploy Azure Industrial IoT platform and simulation features.",
+            "comments": "Deploy Azure Industrial IoT platform.",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2017-05-10",
             "name": "[variables('platformResourcName')]",
@@ -394,24 +414,6 @@
                     },
                     "serviceSiteName": {
                         "value": "[parameters('serviceSiteName')]"
-                    },
-                    "numberOfLinuxGateways": {
-                        "value": "[parameters('numberOfLinuxGateways')]"
-                    },
-                    "numberOfSimulations": {
-                        "value": "[parameters('numberOfSimulations')]"
-                    },
-                    "numberOfWindowsGateways": {
-                        "value": "[parameters('numberOfWindowsGateways')]"
-                    },
-                    "edgeVmSize": {
-                        "value": "[parameters('edgeVmSize')]"
-                    },
-                    "edgeUserName": {
-                        "value": "[parameters('edgeUserName')]"
-                    },
-                    "edgePassword": {
-                        "value": "[parameters('edgePassword')]"
                     },
                     "branchName": {
                         "value": "[parameters('branchName')]"
@@ -456,6 +458,73 @@
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
                     "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.platform.json')]"
+                }
+            },
+            "dependsOn": [
+                "[variables('minimumInfrastructureResourceId')]"
+            ]
+        },
+        {
+            "comments": "Deploy Azure Industrial IoT Edge simulation.",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "[variables('simulationResourcName')]",
+            "condition": "[variables('simulationDeployment')]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "simulationProfile": {
+                        "value": "[parameters('simulationProfile')]"
+                    },
+                    "numberOfLinuxGateways": {
+                        "value": "[parameters('numberOfLinuxGateways')]"
+                    },
+                    "numberOfSimulations": {
+                        "value": "[parameters('numberOfSimulations')]"
+                    },
+                    "numberOfWindowsGateways": {
+                        "value": "[parameters('numberOfWindowsGateways')]"
+                    },
+                    "edgeVmSize": {
+                        "value": "[parameters('edgeVmSize')]"
+                    },
+                    "edgeUserName": {
+                        "value": "[parameters('edgeUserName')]"
+                    },
+                    "edgePassword": {
+                        "value": "[parameters('edgePassword')]"
+                    },
+                    "branchName": {
+                        "value": "[parameters('branchName')]"
+                    },
+                    "templateUrl": {
+                        "value": "[parameters('templateUrl')]"
+                    },
+                    "keyVaultName": {
+                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
+                    },
+                    "managedIdentityResourceId": {
+                        "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityResourceId.value]"
+                    },
+                    "dockerServer": {
+                        "value": "[parameters('dockerServer')]"
+                    },
+                    "dockerUser": {
+                        "value": "[parameters('dockerUser')]"
+                    },
+                    "dockerPassword": {
+                        "value": "[parameters('dockerPassword')]"
+                    },
+                    "imagesNamespace": {
+                        "value": "[parameters('imagesNamespace')]"
+                    },
+                    "imagesTag": {
+                        "value": "[parameters('imagesTag')]"
+                    }
+                },
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.simulation.json')]"
                 }
             },
             "dependsOn": [

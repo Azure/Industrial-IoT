@@ -15,8 +15,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig2,
-        ISecurityConfig, ITransportQuotaConfig {
+    public class Config : DiagnosticsConfig, IModuleConfig, IClientServicesConfig{
 
         /// <inheritdoc/>
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
@@ -41,6 +40,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <inheritdoc/>
         public int MinSubscriptionLifetime => _opc.MinSubscriptionLifetime;
         /// <inheritdoc/>
+        public string PkiRootPath => _opc.PkiRootPath;
+        /// <inheritdoc/>
         public CertificateInfo ApplicationCertificate => _opc.ApplicationCertificate;
         /// <inheritdoc/>
         public bool AutoAcceptUntrustedCertificates => _opc.AutoAcceptUntrustedCertificates;
@@ -50,6 +51,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public CertificateStore RejectedCertificateStore => _opc.RejectedCertificateStore;
         /// <inheritdoc/>
         public bool RejectSha1SignedCertificates => _opc.RejectSha1SignedCertificates;
+        /// <inheritdoc/>
+        public bool AddAppCertToTrustedStore => _opc.AddAppCertToTrustedStore;
         /// <inheritdoc/>
         public CertificateStore TrustedIssuerCertificates => _opc.TrustedIssuerCertificates;
         /// <inheritdoc/>
@@ -77,11 +80,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <param name="configuration"></param>
         public Config(IConfiguration configuration) :
             base(configuration) {
-            _opc = new ClientServicesConfig2(configuration);
+            _opc = new ClientServicesConfig(configuration);
             _module = new ModuleConfig(configuration);
         }
 
-        private readonly ClientServicesConfig2 _opc;
+        private readonly ClientServicesConfig _opc;
         private readonly ModuleConfig _module;
     }
 }
