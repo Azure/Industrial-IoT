@@ -85,14 +85,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
             if (isLinux) {
                 // Linux
                 createOptions = _serializer.SerializeToString(new {
-                    Hostname = "opctwin"
+                    Hostname = "twin"
                 });
             }
             else {
                 // Windows
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator",
-                    Hostname = "opctwin"
+                    Hostname = "twin"
                 });
             }
             createOptions = createOptions.Replace("\"", "\\\"");

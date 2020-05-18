@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             string createOptions;
             if (isLinux) {
                 createOptions = _serializer.SerializeToString(new {
-                    Hostname = "opcpublisher",
+                    Hostname = "publisher",
                     Cmd = new[] {
                     "--aa"
                     }
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             } else {
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator",
-                    Hostname = "opcpublisher",
+                    Hostname = "publisher",
                     Cmd = new[] {
                     "--aa"
                 }
