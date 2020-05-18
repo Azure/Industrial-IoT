@@ -27,24 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
-using System.Xml;
-using System.Runtime.Serialization;
 using Opc.Ua;
 
-namespace Operations
-{
+namespace Operations {
     #region Variable Identifiers
     /// <summary>
     /// A class that declares constants for all Variables in the Model Design.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Variables
-    {
+    public static partial class Variables {
         /// <summary>
         /// The identifier for the SetPoint Variable.
         /// </summary>
@@ -73,8 +65,7 @@ namespace Operations
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class VariableIds
-    {
+    public static partial class VariableIds {
         /// <summary>
         /// The identifier for the SetPoint Variable.
         /// </summary>
@@ -102,8 +93,7 @@ namespace Operations
     /// Declares all of the BrowseNames used in the Model Design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class BrowseNames
-    {
+    public static partial class BrowseNames {
         /// <summary>
         /// The BrowseName for the Measurement component.
         /// </summary>
@@ -121,8 +111,7 @@ namespace Operations
     /// Defines constants for all namespaces referenced by the model design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Namespaces
-    {
+    public static partial class Namespaces {
         /// <summary>
         /// The URI for the OpcUa namespace (.NET code namespace is 'Opc.Ua').
         /// </summary>

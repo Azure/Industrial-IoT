@@ -29,29 +29,24 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml;
 using System.Runtime.Serialization;
 using Opc.Ua;
 
-namespace Vehicles.Types
-{
+namespace Vehicles.Types {
     #region VehicleType Class
-    #if (!OPCUA_EXCLUDE_VehicleType)
+#if (!OPCUA_EXCLUDE_VehicleType)
     /// <summary>
     /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = Vehicles.Types.Namespaces.Vehicles)]
-    public partial class VehicleType : IEncodeable
-    {
+    public partial class VehicleType : IEncodeable {
         #region Constructors
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public VehicleType()
-        {
+        public VehicleType() {
             Initialize();
         }
 
@@ -59,16 +54,14 @@ namespace Vehicles.Types
         /// Called by the .NET framework during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context)
-        {
+        private void Initialize(StreamingContext context) {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize()
-        {
+        private void Initialize() {
             m_make = null;
             m_model = null;
         }
@@ -77,43 +70,37 @@ namespace Vehicles.Types
         #region Public Properties
         /// <remarks />
         [DataMember(Name = "Make", IsRequired = false, Order = 1)]
-        public string Make
-        {
-            get { return m_make;  }
+        public string Make {
+            get { return m_make; }
             set { m_make = value; }
         }
 
         /// <remarks />
         [DataMember(Name = "Model", IsRequired = false, Order = 2)]
-        public string Model
-        {
-            get { return m_model;  }
+        public string Model {
+            get { return m_model; }
             set { m_model = value; }
         }
         #endregion
 
         #region IEncodeable Members
         /// <summary cref="IEncodeable.TypeId" />
-        public virtual ExpandedNodeId TypeId
-        {
+        public virtual ExpandedNodeId TypeId {
             get { return DataTypeIds.VehicleType; }
         }
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
-        public virtual ExpandedNodeId BinaryEncodingId
-        {
+        public virtual ExpandedNodeId BinaryEncodingId {
             get { return ObjectIds.VehicleType_Encoding_DefaultBinary; }
         }
 
         /// <summary cref="IEncodeable.XmlEncodingId" />
-        public virtual ExpandedNodeId XmlEncodingId
-        {
+        public virtual ExpandedNodeId XmlEncodingId {
             get { return ObjectIds.VehicleType_Encoding_DefaultXml; }
         }
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
-        public virtual void Encode(IEncoder encoder)
-        {
+        public virtual void Encode(IEncoder encoder) {
             encoder.PushNamespace(Vehicles.Types.Namespaces.Vehicles);
 
             encoder.WriteString("Make", Make);
@@ -123,8 +110,7 @@ namespace Vehicles.Types
         }
 
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
-        public virtual void Decode(IDecoder decoder)
-        {
+        public virtual void Decode(IDecoder decoder) {
             decoder.PushNamespace(Vehicles.Types.Namespaces.Vehicles);
 
             Make = decoder.ReadString("Make");
@@ -134,17 +120,14 @@ namespace Vehicles.Types
         }
 
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
-        public virtual bool IsEqual(IEncodeable encodeable)
-        {
-            if (Object.ReferenceEquals(this, encodeable))
-            {
+        public virtual bool IsEqual(IEncodeable encodeable) {
+            if (Object.ReferenceEquals(this, encodeable)) {
                 return true;
             }
 
             VehicleType value = encodeable as VehicleType;
 
-            if (value == null)
-            {
+            if (value == null) {
                 return false;
             }
 
@@ -154,17 +137,15 @@ namespace Vehicles.Types
             return true;
         }
 
-        #if !NET_STANDARD
+#if !NET_STANDARD
         /// <summary cref="ICloneable.Clone" />
-        public virtual object Clone()
-        {
+        public virtual object Clone() {
             return (VehicleType)this.MemberwiseClone();
         }
-        #endif
+#endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone()
-        {
+        public new object MemberwiseClone() {
             VehicleType clone = (VehicleType)base.MemberwiseClone();
 
             clone.m_make = (string)Utils.Clone(this.m_make);
@@ -187,37 +168,35 @@ namespace Vehicles.Types
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [CollectionDataContract(Name = "ListOfVehicleType", Namespace = Vehicles.Types.Namespaces.Vehicles, ItemName = "VehicleType")]
-    #if !NET_STANDARD
+#if !NET_STANDARD
     public partial class VehicleTypeCollection : List<VehicleType>, ICloneable
-    #else
+#else
     public partial class VehicleTypeCollection : List<VehicleType>
-    #endif
+#endif
     {
         #region Constructors
         /// <summary>
         /// Initializes the collection with default values.
         /// </summary>
-        public VehicleTypeCollection() {}
+        public VehicleTypeCollection() { }
 
         /// <summary>
         /// Initializes the collection with an initial capacity.
         /// </summary>
-        public VehicleTypeCollection(int capacity) : base(capacity) {}
+        public VehicleTypeCollection(int capacity) : base(capacity) { }
 
         /// <summary>
         /// Initializes the collection with another collection.
         /// </summary>
-        public VehicleTypeCollection(IEnumerable<VehicleType> collection) : base(collection) {}
+        public VehicleTypeCollection(IEnumerable<VehicleType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
-        public static implicit operator VehicleTypeCollection(VehicleType[] values)
-        {
-            if (values != null)
-            {
+        public static implicit operator VehicleTypeCollection(VehicleType[] values) {
+            if (values != null) {
                 return new VehicleTypeCollection(values);
             }
 
@@ -227,10 +206,8 @@ namespace Vehicles.Types
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
-        public static explicit operator VehicleType[](VehicleTypeCollection values)
-        {
-            if (values != null)
-            {
+        public static explicit operator VehicleType[](VehicleTypeCollection values) {
+            if (values != null) {
                 return values.ToArray();
             }
 
@@ -238,25 +215,22 @@ namespace Vehicles.Types
         }
         #endregion
 
-        #if !NET_STANDARD
+#if !NET_STANDARD
         #region ICloneable Methods
         /// <summary>
         /// Creates a deep copy of the collection.
         /// </summary>
-        public object Clone()
-        {
+        public object Clone() {
             return (VehicleTypeCollection)this.MemberwiseClone();
         }
         #endregion
-        #endif
+#endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone()
-        {
+        public new object MemberwiseClone() {
             VehicleTypeCollection clone = new VehicleTypeCollection(this.Count);
 
-            for (int ii = 0; ii < this.Count; ii++)
-            {
+            for (int ii = 0; ii < this.Count; ii++) {
                 clone.Add((VehicleType)Utils.Clone(this[ii]));
             }
 
@@ -264,25 +238,23 @@ namespace Vehicles.Types
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region CarType Class
-    #if (!OPCUA_EXCLUDE_CarType)
+#if (!OPCUA_EXCLUDE_CarType)
     /// <summary>
     /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = Vehicles.Types.Namespaces.Vehicles)]
-    public partial class CarType : VehicleType
-    {
+    public partial class CarType : VehicleType {
         #region Constructors
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public CarType()
-        {
+        public CarType() {
             Initialize();
         }
 
@@ -290,16 +262,14 @@ namespace Vehicles.Types
         /// Called by the .NET framework during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context)
-        {
+        private void Initialize(StreamingContext context) {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize()
-        {
+        private void Initialize() {
             m_noOfPassengers = (uint)0;
         }
         #endregion
@@ -307,35 +277,30 @@ namespace Vehicles.Types
         #region Public Properties
         /// <remarks />
         [DataMember(Name = "NoOfPassengers", IsRequired = false, Order = 1)]
-        public uint NoOfPassengers
-        {
-            get { return m_noOfPassengers;  }
+        public uint NoOfPassengers {
+            get { return m_noOfPassengers; }
             set { m_noOfPassengers = value; }
         }
         #endregion
 
         #region IEncodeable Members
         /// <summary cref="IEncodeable.TypeId" />
-        public override ExpandedNodeId TypeId
-        {
+        public override ExpandedNodeId TypeId {
             get { return DataTypeIds.CarType; }
         }
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
-        public override ExpandedNodeId BinaryEncodingId
-        {
+        public override ExpandedNodeId BinaryEncodingId {
             get { return ObjectIds.CarType_Encoding_DefaultBinary; }
         }
 
         /// <summary cref="IEncodeable.XmlEncodingId" />
-        public override ExpandedNodeId XmlEncodingId
-        {
+        public override ExpandedNodeId XmlEncodingId {
             get { return ObjectIds.CarType_Encoding_DefaultXml; }
         }
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
-        public override void Encode(IEncoder encoder)
-        {
+        public override void Encode(IEncoder encoder) {
             base.Encode(encoder);
 
             encoder.PushNamespace(Vehicles.Types.Namespaces.Vehicles);
@@ -346,8 +311,7 @@ namespace Vehicles.Types
         }
 
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
-        public override void Decode(IDecoder decoder)
-        {
+        public override void Decode(IDecoder decoder) {
             base.Decode(decoder);
 
             decoder.PushNamespace(Vehicles.Types.Namespaces.Vehicles);
@@ -358,17 +322,14 @@ namespace Vehicles.Types
         }
 
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
-        public override bool IsEqual(IEncodeable encodeable)
-        {
-            if (Object.ReferenceEquals(this, encodeable))
-            {
+        public override bool IsEqual(IEncodeable encodeable) {
+            if (Object.ReferenceEquals(this, encodeable)) {
                 return true;
             }
 
             CarType value = encodeable as CarType;
 
-            if (value == null)
-            {
+            if (value == null) {
                 return false;
             }
 
@@ -376,19 +337,17 @@ namespace Vehicles.Types
             if (!Utils.IsEqual(m_noOfPassengers, value.m_noOfPassengers)) return false;
 
             return true;
-        }    
+        }
 
-        #if !NET_STANDARD
+#if !NET_STANDARD
         /// <summary cref="ICloneable.Clone" />
-        public override object Clone()
-        {
+        public override object Clone() {
             return (CarType)this.MemberwiseClone();
         }
-        #endif
+#endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone()
-        {
+        public new object MemberwiseClone() {
             CarType clone = (CarType)base.MemberwiseClone();
 
             clone.m_noOfPassengers = (uint)Utils.Clone(this.m_noOfPassengers);
@@ -409,37 +368,35 @@ namespace Vehicles.Types
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [CollectionDataContract(Name = "ListOfCarType", Namespace = Vehicles.Types.Namespaces.Vehicles, ItemName = "CarType")]
-    #if !NET_STANDARD
+#if !NET_STANDARD
     public partial class CarTypeCollection : List<CarType>, ICloneable
-    #else
+#else
     public partial class CarTypeCollection : List<CarType>
-    #endif
+#endif
     {
         #region Constructors
         /// <summary>
         /// Initializes the collection with default values.
         /// </summary>
-        public CarTypeCollection() {}
+        public CarTypeCollection() { }
 
         /// <summary>
         /// Initializes the collection with an initial capacity.
         /// </summary>
-        public CarTypeCollection(int capacity) : base(capacity) {}
+        public CarTypeCollection(int capacity) : base(capacity) { }
 
         /// <summary>
         /// Initializes the collection with another collection.
         /// </summary>
-        public CarTypeCollection(IEnumerable<CarType> collection) : base(collection) {}
+        public CarTypeCollection(IEnumerable<CarType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
-        public static implicit operator CarTypeCollection(CarType[] values)
-        {
-            if (values != null)
-            {
+        public static implicit operator CarTypeCollection(CarType[] values) {
+            if (values != null) {
                 return new CarTypeCollection(values);
             }
 
@@ -449,10 +406,8 @@ namespace Vehicles.Types
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
-        public static explicit operator CarType[](CarTypeCollection values)
-        {
-            if (values != null)
-            {
+        public static explicit operator CarType[](CarTypeCollection values) {
+            if (values != null) {
                 return values.ToArray();
             }
 
@@ -460,25 +415,22 @@ namespace Vehicles.Types
         }
         #endregion
 
-        #if !NET_STANDARD
+#if !NET_STANDARD
         #region ICloneable Methods
         /// <summary>
         /// Creates a deep copy of the collection.
         /// </summary>
-        public object Clone()
-        {
+        public object Clone() {
             return (CarTypeCollection)this.MemberwiseClone();
         }
         #endregion
-        #endif
+#endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone()
-        {
+        public new object MemberwiseClone() {
             CarTypeCollection clone = new CarTypeCollection(this.Count);
 
-            for (int ii = 0; ii < this.Count; ii++)
-            {
+            for (int ii = 0; ii < this.Count; ii++) {
                 clone.Add((CarType)Utils.Clone(this[ii]));
             }
 
@@ -486,25 +438,23 @@ namespace Vehicles.Types
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region TruckType Class
-    #if (!OPCUA_EXCLUDE_TruckType)
+#if (!OPCUA_EXCLUDE_TruckType)
     /// <summary>
     /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = Vehicles.Types.Namespaces.Vehicles)]
-    public partial class TruckType : VehicleType
-    {
+    public partial class TruckType : VehicleType {
         #region Constructors
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public TruckType()
-        {
+        public TruckType() {
             Initialize();
         }
 
@@ -512,16 +462,14 @@ namespace Vehicles.Types
         /// Called by the .NET framework during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context)
-        {
+        private void Initialize(StreamingContext context) {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize()
-        {
+        private void Initialize() {
             m_cargoCapacity = (uint)0;
         }
         #endregion
@@ -529,35 +477,30 @@ namespace Vehicles.Types
         #region Public Properties
         /// <remarks />
         [DataMember(Name = "CargoCapacity", IsRequired = false, Order = 1)]
-        public uint CargoCapacity
-        {
-            get { return m_cargoCapacity;  }
+        public uint CargoCapacity {
+            get { return m_cargoCapacity; }
             set { m_cargoCapacity = value; }
         }
         #endregion
 
         #region IEncodeable Members
         /// <summary cref="IEncodeable.TypeId" />
-        public override ExpandedNodeId TypeId
-        {
+        public override ExpandedNodeId TypeId {
             get { return DataTypeIds.TruckType; }
         }
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
-        public override ExpandedNodeId BinaryEncodingId
-        {
+        public override ExpandedNodeId BinaryEncodingId {
             get { return ObjectIds.TruckType_Encoding_DefaultBinary; }
         }
 
         /// <summary cref="IEncodeable.XmlEncodingId" />
-        public override ExpandedNodeId XmlEncodingId
-        {
+        public override ExpandedNodeId XmlEncodingId {
             get { return ObjectIds.TruckType_Encoding_DefaultXml; }
         }
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
-        public override void Encode(IEncoder encoder)
-        {
+        public override void Encode(IEncoder encoder) {
             base.Encode(encoder);
 
             encoder.PushNamespace(Vehicles.Types.Namespaces.Vehicles);
@@ -568,8 +511,7 @@ namespace Vehicles.Types
         }
 
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
-        public override void Decode(IDecoder decoder)
-        {
+        public override void Decode(IDecoder decoder) {
             base.Decode(decoder);
 
             decoder.PushNamespace(Vehicles.Types.Namespaces.Vehicles);
@@ -580,17 +522,14 @@ namespace Vehicles.Types
         }
 
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
-        public override bool IsEqual(IEncodeable encodeable)
-        {
-            if (Object.ReferenceEquals(this, encodeable))
-            {
+        public override bool IsEqual(IEncodeable encodeable) {
+            if (Object.ReferenceEquals(this, encodeable)) {
                 return true;
             }
 
             TruckType value = encodeable as TruckType;
 
-            if (value == null)
-            {
+            if (value == null) {
                 return false;
             }
 
@@ -598,19 +537,17 @@ namespace Vehicles.Types
             if (!Utils.IsEqual(m_cargoCapacity, value.m_cargoCapacity)) return false;
 
             return true;
-        }    
+        }
 
-        #if !NET_STANDARD
+#if !NET_STANDARD
         /// <summary cref="ICloneable.Clone" />
-        public override object Clone()
-        {
+        public override object Clone() {
             return (TruckType)this.MemberwiseClone();
         }
-        #endif
+#endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone()
-        {
+        public new object MemberwiseClone() {
             TruckType clone = (TruckType)base.MemberwiseClone();
 
             clone.m_cargoCapacity = (uint)Utils.Clone(this.m_cargoCapacity);
@@ -631,37 +568,35 @@ namespace Vehicles.Types
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [CollectionDataContract(Name = "ListOfTruckType", Namespace = Vehicles.Types.Namespaces.Vehicles, ItemName = "TruckType")]
-    #if !NET_STANDARD
+#if !NET_STANDARD
     public partial class TruckTypeCollection : List<TruckType>, ICloneable
-    #else
+#else
     public partial class TruckTypeCollection : List<TruckType>
-    #endif
+#endif
     {
         #region Constructors
         /// <summary>
         /// Initializes the collection with default values.
         /// </summary>
-        public TruckTypeCollection() {}
+        public TruckTypeCollection() { }
 
         /// <summary>
         /// Initializes the collection with an initial capacity.
         /// </summary>
-        public TruckTypeCollection(int capacity) : base(capacity) {}
+        public TruckTypeCollection(int capacity) : base(capacity) { }
 
         /// <summary>
         /// Initializes the collection with another collection.
         /// </summary>
-        public TruckTypeCollection(IEnumerable<TruckType> collection) : base(collection) {}
+        public TruckTypeCollection(IEnumerable<TruckType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
-        public static implicit operator TruckTypeCollection(TruckType[] values)
-        {
-            if (values != null)
-            {
+        public static implicit operator TruckTypeCollection(TruckType[] values) {
+            if (values != null) {
                 return new TruckTypeCollection(values);
             }
 
@@ -671,10 +606,8 @@ namespace Vehicles.Types
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
-        public static explicit operator TruckType[](TruckTypeCollection values)
-        {
-            if (values != null)
-            {
+        public static explicit operator TruckType[](TruckTypeCollection values) {
+            if (values != null) {
                 return values.ToArray();
             }
 
@@ -682,25 +615,22 @@ namespace Vehicles.Types
         }
         #endregion
 
-        #if !NET_STANDARD
+#if !NET_STANDARD
         #region ICloneable Methods
         /// <summary>
         /// Creates a deep copy of the collection.
         /// </summary>
-        public object Clone()
-        {
+        public object Clone() {
             return (TruckTypeCollection)this.MemberwiseClone();
         }
         #endregion
-        #endif
+#endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone()
-        {
+        public new object MemberwiseClone() {
             TruckTypeCollection clone = new TruckTypeCollection(this.Count);
 
-            for (int ii = 0; ii < this.Count; ii++)
-            {
+            for (int ii = 0; ii < this.Count; ii++) {
                 clone.Add((TruckType)Utils.Clone(this[ii]));
             }
 
@@ -708,6 +638,6 @@ namespace Vehicles.Types
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 }

@@ -44,7 +44,7 @@ namespace TestData {
 
     public class TestDataSystem : IDisposable {
 
-        public TestDataSystem(ITestDataSystemCallback callback, 
+        public TestDataSystem(ITestDataSystemCallback callback,
             NamespaceTable namespaceUris, StringTable serverUris) {
             _callback = callback;
             _minimumSamplingInterval = int.MaxValue;
@@ -488,7 +488,7 @@ namespace TestData {
                         _timer = null;
                     }
 
-                    _timer = new Timer(DoSample, null, 
+                    _timer = new Timer(DoSample, null,
                         _minimumSamplingInterval, _minimumSamplingInterval);
                 }
             }

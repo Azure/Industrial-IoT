@@ -29,44 +29,36 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml;
-using System.Runtime.Serialization;
 using Opc.Ua;
 
-namespace HistoricalEvents
-{
+namespace HistoricalEvents {
     #region WellTestReportState Class
-    #if (!OPCUA_EXCLUDE_WellTestReportState)
+#if (!OPCUA_EXCLUDE_WellTestReportState)
     /// <summary>
     /// Stores an instance of the WellTestReportType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class WellTestReportState : BaseEventState
-    {
+    public partial class WellTestReportState : BaseEventState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public WellTestReportState(NodeState parent) : base(parent)
-        {
+        public WellTestReportState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(HistoricalEvents.ObjectTypes.WellTestReportType, HistoricalEvents.Namespaces.HistoricalEvents, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -74,8 +66,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -83,8 +74,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -109,22 +99,18 @@ namespace HistoricalEvents
            "IHdlbGwgdGVzdDogaW5pdGlhbCwgcGVyaW9kaWMsIHJldmlzaW9uLgAuAEQIAQAAAAz/////AQH/////" +
            "AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <remarks />
-        public PropertyState<string> NameWell
-        {
-            get
-            {
+        public PropertyState<string> NameWell {
+            get {
                 return m_nameWell;
             }
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_nameWell, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_nameWell, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -133,17 +119,13 @@ namespace HistoricalEvents
         }
 
         /// <remarks />
-        public PropertyState<string> UidWell
-        {
-            get
-            {
+        public PropertyState<string> UidWell {
+            get {
                 return m_uidWell;
             }
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_uidWell, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_uidWell, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -152,17 +134,13 @@ namespace HistoricalEvents
         }
 
         /// <remarks />
-        public PropertyState<DateTime> TestDate
-        {
-            get
-            {
+        public PropertyState<DateTime> TestDate {
+            get {
                 return m_testDate;
             }
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_testDate, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_testDate, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -171,17 +149,13 @@ namespace HistoricalEvents
         }
 
         /// <remarks />
-        public PropertyState<string> TestReason
-        {
-            get
-            {
+        public PropertyState<string> TestReason {
+            get {
                 return m_testReason;
             }
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_testReason, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_testReason, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -198,25 +172,20 @@ namespace HistoricalEvents
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_nameWell != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_nameWell != null) {
                 children.Add(m_nameWell);
             }
 
-            if (m_uidWell != null)
-            {
+            if (m_uidWell != null) {
                 children.Add(m_uidWell);
             }
 
-            if (m_testDate != null)
-            {
+            if (m_testDate != null) {
                 children.Add(m_testDate);
             }
 
-            if (m_testReason != null)
-            {
+            if (m_testReason != null) {
                 children.Add(m_testReason);
             }
 
@@ -230,104 +199,80 @@ namespace HistoricalEvents
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case HistoricalEvents.BrowseNames.NameWell:
-                {
-                    if (createOrReplace)
-                    {
-                        if (NameWell == null)
-                        {
-                            if (replacement == null)
-                            {
-                                NameWell = new PropertyState<string>(this);
-                            }
-                            else
-                            {
-                                NameWell = (PropertyState<string>)replacement;
+            switch (browseName.Name) {
+                case HistoricalEvents.BrowseNames.NameWell: {
+                        if (createOrReplace) {
+                            if (NameWell == null) {
+                                if (replacement == null) {
+                                    NameWell = new PropertyState<string>(this);
+                                }
+                                else {
+                                    NameWell = (PropertyState<string>)replacement;
+                                }
                             }
                         }
+
+                        instance = NameWell;
+                        break;
                     }
 
-                    instance = NameWell;
-                    break;
-                }
-
-                case HistoricalEvents.BrowseNames.UidWell:
-                {
-                    if (createOrReplace)
-                    {
-                        if (UidWell == null)
-                        {
-                            if (replacement == null)
-                            {
-                                UidWell = new PropertyState<string>(this);
-                            }
-                            else
-                            {
-                                UidWell = (PropertyState<string>)replacement;
+                case HistoricalEvents.BrowseNames.UidWell: {
+                        if (createOrReplace) {
+                            if (UidWell == null) {
+                                if (replacement == null) {
+                                    UidWell = new PropertyState<string>(this);
+                                }
+                                else {
+                                    UidWell = (PropertyState<string>)replacement;
+                                }
                             }
                         }
+
+                        instance = UidWell;
+                        break;
                     }
 
-                    instance = UidWell;
-                    break;
-                }
-
-                case HistoricalEvents.BrowseNames.TestDate:
-                {
-                    if (createOrReplace)
-                    {
-                        if (TestDate == null)
-                        {
-                            if (replacement == null)
-                            {
-                                TestDate = new PropertyState<DateTime>(this);
-                            }
-                            else
-                            {
-                                TestDate = (PropertyState<DateTime>)replacement;
+                case HistoricalEvents.BrowseNames.TestDate: {
+                        if (createOrReplace) {
+                            if (TestDate == null) {
+                                if (replacement == null) {
+                                    TestDate = new PropertyState<DateTime>(this);
+                                }
+                                else {
+                                    TestDate = (PropertyState<DateTime>)replacement;
+                                }
                             }
                         }
+
+                        instance = TestDate;
+                        break;
                     }
 
-                    instance = TestDate;
-                    break;
-                }
-
-                case HistoricalEvents.BrowseNames.TestReason:
-                {
-                    if (createOrReplace)
-                    {
-                        if (TestReason == null)
-                        {
-                            if (replacement == null)
-                            {
-                                TestReason = new PropertyState<string>(this);
-                            }
-                            else
-                            {
-                                TestReason = (PropertyState<string>)replacement;
+                case HistoricalEvents.BrowseNames.TestReason: {
+                        if (createOrReplace) {
+                            if (TestReason == null) {
+                                if (replacement == null) {
+                                    TestReason = new PropertyState<string>(this);
+                                }
+                                else {
+                                    TestReason = (PropertyState<string>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = TestReason;
-                    break;
-                }
+                        instance = TestReason;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -342,40 +287,36 @@ namespace HistoricalEvents
         private PropertyState<string> m_testReason;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region FluidLevelTestReportState Class
-    #if (!OPCUA_EXCLUDE_FluidLevelTestReportState)
+#if (!OPCUA_EXCLUDE_FluidLevelTestReportState)
     /// <summary>
     /// Stores an instance of the FluidLevelTestReportType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class FluidLevelTestReportState : WellTestReportState
-    {
+    public partial class FluidLevelTestReportState : WellTestReportState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public FluidLevelTestReportState(NodeState parent) : base(parent)
-        {
+        public FluidLevelTestReportState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(HistoricalEvents.ObjectTypes.FluidLevelTestReportType, HistoricalEvents.Namespaces.HistoricalEvents, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -383,8 +324,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -392,8 +332,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -424,22 +363,18 @@ namespace HistoricalEvents
            "ZWRCeQEBGwEDAAAAAEsAAABUaGUgYnVzaW5lc3MgYXNzb2NpYXRlIHRoYXQgY29uZHVjdGVkIHRoZSB0" +
            "ZXN0LiBUaGlzIGlzIGdlbmVyYWxseSBhIHBlcnNvbi4ALgBEGwEAAAAM/////wEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <remarks />
-        public AnalogItemState<double> FluidLevel
-        {
-            get
-            {
+        public AnalogItemState<double> FluidLevel {
+            get {
                 return m_fluidLevel;
             }
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_fluidLevel, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_fluidLevel, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -448,17 +383,13 @@ namespace HistoricalEvents
         }
 
         /// <remarks />
-        public PropertyState<string> TestedBy
-        {
-            get
-            {
+        public PropertyState<string> TestedBy {
+            get {
                 return m_testedBy;
             }
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_testedBy, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_testedBy, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -475,15 +406,12 @@ namespace HistoricalEvents
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_fluidLevel != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_fluidLevel != null) {
                 children.Add(m_fluidLevel);
             }
 
-            if (m_testedBy != null)
-            {
+            if (m_testedBy != null) {
                 children.Add(m_testedBy);
             }
 
@@ -497,62 +425,48 @@ namespace HistoricalEvents
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case HistoricalEvents.BrowseNames.FluidLevel:
-                {
-                    if (createOrReplace)
-                    {
-                        if (FluidLevel == null)
-                        {
-                            if (replacement == null)
-                            {
-                                FluidLevel = new AnalogItemState<double>(this);
-                            }
-                            else
-                            {
-                                FluidLevel = (AnalogItemState<double>)replacement;
+            switch (browseName.Name) {
+                case HistoricalEvents.BrowseNames.FluidLevel: {
+                        if (createOrReplace) {
+                            if (FluidLevel == null) {
+                                if (replacement == null) {
+                                    FluidLevel = new AnalogItemState<double>(this);
+                                }
+                                else {
+                                    FluidLevel = (AnalogItemState<double>)replacement;
+                                }
                             }
                         }
+
+                        instance = FluidLevel;
+                        break;
                     }
 
-                    instance = FluidLevel;
-                    break;
-                }
-
-                case HistoricalEvents.BrowseNames.TestedBy:
-                {
-                    if (createOrReplace)
-                    {
-                        if (TestedBy == null)
-                        {
-                            if (replacement == null)
-                            {
-                                TestedBy = new PropertyState<string>(this);
-                            }
-                            else
-                            {
-                                TestedBy = (PropertyState<string>)replacement;
+                case HistoricalEvents.BrowseNames.TestedBy: {
+                        if (createOrReplace) {
+                            if (TestedBy == null) {
+                                if (replacement == null) {
+                                    TestedBy = new PropertyState<string>(this);
+                                }
+                                else {
+                                    TestedBy = (PropertyState<string>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = TestedBy;
-                    break;
-                }
+                        instance = TestedBy;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -565,40 +479,36 @@ namespace HistoricalEvents
         private PropertyState<string> m_testedBy;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region InjectionTestReportState Class
-    #if (!OPCUA_EXCLUDE_InjectionTestReportState)
+#if (!OPCUA_EXCLUDE_InjectionTestReportState)
     /// <summary>
     /// Stores an instance of the InjectionTestReportType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class InjectionTestReportState : WellTestReportState
-    {
+    public partial class InjectionTestReportState : WellTestReportState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public InjectionTestReportState(NodeState parent) : base(parent)
-        {
+        public InjectionTestReportState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(HistoricalEvents.ObjectTypes.InjectionTestReportType, HistoricalEvents.Namespaces.HistoricalEvents, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -606,8 +516,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -615,8 +524,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -646,22 +554,18 @@ namespace HistoricalEvents
            "AAAASW5qZWN0ZWRGbHVpZAEBLgEDAAAAACMAAABUaGUgZmx1aWQgdGhhdCBpcyBiZWluZyBpbmplY3Rl" +
            "ZC4gLgAuAEQuAQAAAAz/////AQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
         /// <remarks />
-        public AnalogItemState<double> TestDuration
-        {
-            get
-            {
+        public AnalogItemState<double> TestDuration {
+            get {
                 return m_testDuration;
             }
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_testDuration, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_testDuration, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -670,17 +574,13 @@ namespace HistoricalEvents
         }
 
         /// <remarks />
-        public PropertyState<string> InjectedFluid
-        {
-            get
-            {
+        public PropertyState<string> InjectedFluid {
+            get {
                 return m_injectedFluid;
             }
 
-            set
-            {
-                if (!Object.ReferenceEquals(m_injectedFluid, value))
-                {
+            set {
+                if (!Object.ReferenceEquals(m_injectedFluid, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -697,15 +597,12 @@ namespace HistoricalEvents
         /// <param name="children">The list of children to populate.</param>
         public override void GetChildren(
             ISystemContext context,
-            IList<BaseInstanceState> children)
-        {
-            if (m_testDuration != null)
-            {
+            IList<BaseInstanceState> children) {
+            if (m_testDuration != null) {
                 children.Add(m_testDuration);
             }
 
-            if (m_injectedFluid != null)
-            {
+            if (m_injectedFluid != null) {
                 children.Add(m_injectedFluid);
             }
 
@@ -719,62 +616,48 @@ namespace HistoricalEvents
             ISystemContext context,
             QualifiedName browseName,
             bool createOrReplace,
-            BaseInstanceState replacement)
-        {
-            if (QualifiedName.IsNull(browseName))
-            {
+            BaseInstanceState replacement) {
+            if (QualifiedName.IsNull(browseName)) {
                 return null;
             }
 
             BaseInstanceState instance = null;
 
-            switch (browseName.Name)
-            {
-                case HistoricalEvents.BrowseNames.TestDuration:
-                {
-                    if (createOrReplace)
-                    {
-                        if (TestDuration == null)
-                        {
-                            if (replacement == null)
-                            {
-                                TestDuration = new AnalogItemState<double>(this);
-                            }
-                            else
-                            {
-                                TestDuration = (AnalogItemState<double>)replacement;
+            switch (browseName.Name) {
+                case HistoricalEvents.BrowseNames.TestDuration: {
+                        if (createOrReplace) {
+                            if (TestDuration == null) {
+                                if (replacement == null) {
+                                    TestDuration = new AnalogItemState<double>(this);
+                                }
+                                else {
+                                    TestDuration = (AnalogItemState<double>)replacement;
+                                }
                             }
                         }
+
+                        instance = TestDuration;
+                        break;
                     }
 
-                    instance = TestDuration;
-                    break;
-                }
-
-                case HistoricalEvents.BrowseNames.InjectedFluid:
-                {
-                    if (createOrReplace)
-                    {
-                        if (InjectedFluid == null)
-                        {
-                            if (replacement == null)
-                            {
-                                InjectedFluid = new PropertyState<string>(this);
-                            }
-                            else
-                            {
-                                InjectedFluid = (PropertyState<string>)replacement;
+                case HistoricalEvents.BrowseNames.InjectedFluid: {
+                        if (createOrReplace) {
+                            if (InjectedFluid == null) {
+                                if (replacement == null) {
+                                    InjectedFluid = new PropertyState<string>(this);
+                                }
+                                else {
+                                    InjectedFluid = (PropertyState<string>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = InjectedFluid;
-                    break;
-                }
+                        instance = InjectedFluid;
+                        break;
+                    }
             }
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 return instance;
             }
 
@@ -787,40 +670,36 @@ namespace HistoricalEvents
         private PropertyState<string> m_injectedFluid;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region WellState Class
-    #if (!OPCUA_EXCLUDE_WellState)
+#if (!OPCUA_EXCLUDE_WellState)
     /// <summary>
     /// Stores an instance of the WellType ObjectType.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public partial class WellState : BaseObjectState
-    {
+    public partial class WellState : BaseObjectState {
         #region Constructors
         /// <summary>
         /// Initializes the type with its default attribute values.
         /// </summary>
-        public WellState(NodeState parent) : base(parent)
-        {
+        public WellState(NodeState parent) : base(parent) {
         }
 
         /// <summary>
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
-        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris)
-        {
+        protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
             return Opc.Ua.NodeId.Create(HistoricalEvents.ObjectTypes.WellType, HistoricalEvents.Namespaces.HistoricalEvents, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        protected override void Initialize(ISystemContext context)
-        {
+        protected override void Initialize(ISystemContext context) {
             Initialize(context, InitializationString);
             InitializeOptionalChildren(context);
         }
@@ -828,8 +707,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Initializes the instance with a node.
         /// </summary>
-        protected override void Initialize(ISystemContext context, NodeState source)
-        {
+        protected override void Initialize(ISystemContext context, NodeState source) {
             InitializeOptionalChildren(context);
             base.Initialize(context, source);
         }
@@ -837,8 +715,7 @@ namespace HistoricalEvents
         /// <summary>
         /// Initializes the any option children defined for the instance.
         /// </summary>
-        protected override void InitializeOptionalChildren(ISystemContext context)
-        {
+        protected override void InitializeOptionalChildren(ISystemContext context) {
             base.InitializeOptionalChildren(context);
         }
 
@@ -847,7 +724,7 @@ namespace HistoricalEvents
            "AQAAACkAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvSGlzdG9yaWNhbEV2ZW50c/////8EYIACAQAA" +
            "AAEAEAAAAFdlbGxUeXBlSW5zdGFuY2UBATQBAQE0ATQBAAD/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
@@ -859,6 +736,6 @@ namespace HistoricalEvents
         #region Private Fields
         #endregion
     }
-    #endif
+#endif
     #endregion
 }
