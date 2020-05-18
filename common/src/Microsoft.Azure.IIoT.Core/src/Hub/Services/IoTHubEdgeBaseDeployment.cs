@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Services {
-    using Microsoft.Azure.IIoT.Deploy;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using System;
@@ -15,6 +14,12 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
     /// Default edge base deployment configuration
     /// </summary>
     public sealed class IoTHubEdgeBaseDeployment : IHostProcess {
+
+        /// <summary>
+        /// Target condition for gateways
+        /// </summary>
+        public static readonly string TargetCondition =
+            $"(tags.__type__ = '{IdentityType.Gateway}' AND NOT IS_DEFINED(tags.unmanaged))";
 
         /// <summary>
         /// Create edge base deployer
@@ -30,12 +35,12 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// <inheritdoc/>
         public Task StartAsync() {
            return _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "iiotedge",
+                Id = IdentityType.Gateway,
                 Content = new ConfigurationContentModel {
                     ModulesContent = GetEdgeBase()
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}'",
+                TargetCondition = TargetCondition,
                 Priority = 0
             }, true);
         }

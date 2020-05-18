@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
     using Microsoft.Azure.IIoT.Deploy;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
@@ -37,12 +38,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         public async Task StartAsync() {
 
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-opcpublisher-linux",
+                Id = "__default-opcpublisher",
                 Content = new ConfigurationContentModel {
                     ModulesContent = CreateLayeredDeployment(true)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Linux'",
+                TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
+                    " AND tags.os = 'Linux'",
                 Priority = 1
             }, true);
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
@@ -51,7 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                     ModulesContent = CreateLayeredDeployment(false)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Windows'",
+                TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
+                    " AND tags.os = 'Windows'",
                 Priority = 1
             }, true);
         }
