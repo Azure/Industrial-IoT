@@ -29,7 +29,7 @@
             "type": "Microsoft.KeyVault/vaults/secrets",
             "apiVersion": "2016-10-01",
             "location": "[resourceGroup().location]",
-            "tags" : "[parameters('tags')]",
+            "tags": "[parameters('tags')]",
             "copy":{
                 "count": "[length(parameters('configuration'))]",
                 "mode": "Parallel",
