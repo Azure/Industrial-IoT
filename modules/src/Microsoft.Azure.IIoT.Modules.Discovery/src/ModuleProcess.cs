@@ -23,7 +23,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
     using System.Threading;
     using Serilog;
     using Prometheus;
-    using System.Net;
 
     /// <summary>
     /// Module Process
@@ -89,11 +88,10 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     try {
                         server.StartWhenEnabled(config, logger);
                         // Start module
-                        var product = "OpcDiscovery_" +
-                            GetType().Assembly.GetReleaseVersion().ToString();
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
                         kDiscoveryModuleStart.Inc();
                         await module.StartAsync(IdentityType.Discoverer, SiteId,
-                            product, this);
+                            "OpcDiscovery", version, this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {

@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     var edge = moduleContainer.Resolve<IModuleHost>();
 
                     // Act
-                    await edge.StartAsync("testType", "TestSite", "MS", null);
+                    await edge.StartAsync("testType", "TestSite", "MS", "1.2.3", null);
                     twin = await services.GetAsync(deviceId, moduleId);
 
                     // Assert

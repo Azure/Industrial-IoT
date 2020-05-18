@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Threading.Tasks;
     using System.Text;
     using Prometheus;
+    using System.Reflection;
 
     /// <summary>
     /// Module host implementation
@@ -105,8 +106,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync(string type, string siteId, string serviceInfo,
-            IProcessControl reset) {
+        public async Task StartAsync(string type, string siteId, string productInfo,
+            string version, IProcessControl reset) {
             if (Client == null) {
                 try {
                     await _lock.WaitAsync();
@@ -114,7 +115,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         // Create client
                         _logger.Debug("Starting Module Host...");
                         kModuleStart.WithLabels(type, _factory.DeviceId, Guid.NewGuid().ToString(), DateTime.UtcNow.ToString()).Set(1);
-                        Client = await _factory.CreateAsync(serviceInfo, reset);
+                        Client = await _factory.CreateAsync(productInfo + "_" + version, reset);
                         DeviceId = _factory.DeviceId;
                         ModuleId = _factory.ModuleId;
 
@@ -139,6 +140,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                             SiteId = siteId;
                             twinSettings[TwinProperty.SiteId] = SiteId;
                         }
+
+                        // Set version information
+                        twinSettings[TwinProperty.Version] = version;
                         await Client.UpdateReportedPropertiesAsync(twinSettings);
 
                         // Done...
@@ -309,11 +313,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private static Message CreateMessage(byte[] data, string contentEncoding,
             string contentType, string eventSchema, string deviceId, string moduleId) {
             var msg = new Message(data) {
-                
+
                 ContentType = contentType,
                 ContentEncoding = contentEncoding,
-                // TODO - setting CreationTime causes issues in the Azure IoT java SDK 
-                //  revert the comment whrn the issue is fixed
+                // TODO - setting CreationTime causes issues in the Azure IoT java SDK
+                // revert the comment when the issue is fixed
                 //  CreationTimeUtc = DateTime.UtcNow
             };
             if (!string.IsNullOrEmpty(contentEncoding)) {
@@ -505,6 +509,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             IDictionary<string, VariantValue> processed = null) {
             switch (key.ToLowerInvariant()) {
                 case TwinProperty.Connected:
+                case TwinProperty.Version:
                 case TwinProperty.Type:
                     break;
                 case TwinProperty.SiteId:
@@ -527,7 +532,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, VariantValue> _reported =
             new Dictionary<string, VariantValue>();
-        private static readonly Gauge kModuleStart = Metrics.CreateGauge("iiot_edge_module_start", "starting module",
+        private static readonly Gauge kModuleStart = Metrics
+            .CreateGauge("iiot_edge_module_start", "starting module",
                 new GaugeConfiguration {
                     LabelNames = new[] { "module", "device", "guid", "timestamp_utc" }
                 });

@@ -331,8 +331,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                 while (!_cts.Token.IsCancellationRequested) {
                     // Wait until the module unloads or is cancelled
                     try {
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
                         await host.StartAsync("twin", _outer._events.SiteId,
-                            product, this);
+                            product, version, this);
                         Status = EndpointActivationState.ActivatedAndConnected;
                         _started.TrySetResult(true);
                         _logger.Debug("Twin host (re-)started.");

@@ -78,9 +78,9 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
                     var logger = hostScope.Resolve<ILogger>();
                     try {
                         // Start module
-                        var product = "Diagnostic_" +
-                            GetType().Assembly.GetReleaseVersion().ToString();
-                        await module.StartAsync("diagnostic", SiteId, product, this);
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
+                        await module.StartAsync("diagnostic", SiteId,
+                            "Diagnostic", version, this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {

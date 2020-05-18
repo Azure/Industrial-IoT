@@ -95,11 +95,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     try {
                         server.StartWhenEnabled(config, logger);
                         // Start module
-                        var product = "OpcTwin_" +
-                            GetType().Assembly.GetReleaseVersion().ToString();
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
                         kTwinModuleStart.Inc();
                         await module.StartAsync(IdentityType.Supervisor, SiteId,
-                            product, this);
+                            "OpcTwin", version, this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
