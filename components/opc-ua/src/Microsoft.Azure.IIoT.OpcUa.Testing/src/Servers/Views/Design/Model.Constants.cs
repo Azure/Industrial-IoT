@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  *
@@ -27,16 +27,26 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Model {
-    using Opc.Ua;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Reflection;
+using System.Xml;
+using System.Runtime.Serialization;
+using Opc.Ua;
+using Engineering;
+using Operations;
 
+namespace Model
+{
     #region Object Identifiers
     /// <summary>
     /// A class that declares constants for all Objects in the Model Design.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Objects {
+    public static partial class Objects
+    {
         /// <summary>
         /// The identifier for the BoilerType_WaterIn Object.
         /// </summary>
@@ -80,7 +90,8 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectTypes {
+    public static partial class ObjectTypes
+    {
         /// <summary>
         /// The identifier for the GenericControllerType ObjectType.
         /// </summary>
@@ -109,7 +120,8 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Variables {
+    public static partial class Variables
+    {
         /// <summary>
         /// The identifier for the GenericControllerType_SerialNumber Variable.
         /// </summary>
@@ -258,7 +270,8 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Views {
+    public static partial class Views
+    {
         /// <summary>
         /// The identifier for the Engineering View.
         /// </summary>
@@ -277,7 +290,8 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectIds {
+    public static partial class ObjectIds
+    {
         /// <summary>
         /// The identifier for the BoilerType_WaterIn Object.
         /// </summary>
@@ -321,7 +335,8 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectTypeIds {
+    public static partial class ObjectTypeIds
+    {
         /// <summary>
         /// The identifier for the GenericControllerType ObjectType.
         /// </summary>
@@ -350,7 +365,8 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class VariableIds {
+    public static partial class VariableIds
+    {
         /// <summary>
         /// The identifier for the GenericControllerType_SerialNumber Variable.
         /// </summary>
@@ -499,7 +515,8 @@ namespace Model {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ViewIds {
+    public static partial class ViewIds
+    {
         /// <summary>
         /// The identifier for the Engineering View.
         /// </summary>
@@ -517,7 +534,8 @@ namespace Model {
     /// Declares all of the BrowseNames used in the Model Design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class BrowseNames {
+    public static partial class BrowseNames
+    {
         /// <summary>
         /// The BrowseName for the BoilerType component.
         /// </summary>
@@ -575,7 +593,8 @@ namespace Model {
     /// Defines constants for all namespaces referenced by the model design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Namespaces {
+    public static partial class Namespaces
+    {
         /// <summary>
         /// The URI for the OpcUa namespace (.NET code namespace is 'Opc.Ua').
         /// </summary>

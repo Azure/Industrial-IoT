@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  *
@@ -27,16 +27,24 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Boiler {
-    using Opc.Ua;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Reflection;
+using System.Xml;
+using System.Runtime.Serialization;
+using Opc.Ua;
 
+namespace Boiler
+{
     #region Method Identifiers
     /// <summary>
     /// A class that declares constants for all Methods in the Model Design.
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Methods {
+    public static partial class Methods
+    {
         /// <summary>
         /// The identifier for the BoilerStateMachineType_Start Method.
         /// </summary>
@@ -120,7 +128,8 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Objects {
+    public static partial class Objects
+    {
         /// <summary>
         /// The identifier for the BoilerInputPipeType_FlowTransmitter1 Object.
         /// </summary>
@@ -269,7 +278,8 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectTypes {
+    public static partial class ObjectTypes
+    {
         /// <summary>
         /// The identifier for the GenericControllerType ObjectType.
         /// </summary>
@@ -348,7 +358,8 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ReferenceTypes {
+    public static partial class ReferenceTypes
+    {
         /// <summary>
         /// The identifier for the FlowTo ReferenceType.
         /// </summary>
@@ -372,7 +383,8 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Variables {
+    public static partial class Variables
+    {
         /// <summary>
         /// The identifier for the GenericControllerType_Measurement Variable.
         /// </summary>
@@ -1071,7 +1083,8 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class MethodIds {
+    public static partial class MethodIds
+    {
         /// <summary>
         /// The identifier for the BoilerStateMachineType_Start Method.
         /// </summary>
@@ -1155,7 +1168,8 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectIds {
+    public static partial class ObjectIds
+    {
         /// <summary>
         /// The identifier for the BoilerInputPipeType_FlowTransmitter1 Object.
         /// </summary>
@@ -1304,7 +1318,8 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ObjectTypeIds {
+    public static partial class ObjectTypeIds
+    {
         /// <summary>
         /// The identifier for the GenericControllerType ObjectType.
         /// </summary>
@@ -1383,7 +1398,8 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class ReferenceTypeIds {
+    public static partial class ReferenceTypeIds
+    {
         /// <summary>
         /// The identifier for the FlowTo ReferenceType.
         /// </summary>
@@ -1407,7 +1423,8 @@ namespace Boiler {
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class VariableIds {
+    public static partial class VariableIds
+    {
         /// <summary>
         /// The identifier for the GenericControllerType_Measurement Variable.
         /// </summary>
@@ -2105,7 +2122,8 @@ namespace Boiler {
     /// Declares all of the BrowseNames used in the Model Design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class BrowseNames {
+    public static partial class BrowseNames
+    {
         /// <summary>
         /// The BrowseName for the Boiler1 component.
         /// </summary>
@@ -2338,7 +2356,8 @@ namespace Boiler {
     /// Defines constants for all namespaces referenced by the model design.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
-    public static partial class Namespaces {
+    public static partial class Namespaces
+    {
         /// <summary>
         /// The URI for the OpcUa namespace (.NET code namespace is 'Opc.Ua').
         /// </summary>

@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  *
@@ -27,27 +27,31 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
-    using System;
-    using System.Collections.Generic;
-    using System.Xml;
-    using System.Runtime.Serialization;
-    using Opc.Ua;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Xml;
+using System.Runtime.Serialization;
+using Opc.Ua;
 
+namespace TestData
+{
     #region ScalarValueDataType Class
-#if (!OPCUA_EXCLUDE_ScalarValueDataType)
+    #if (!OPCUA_EXCLUDE_ScalarValueDataType)
     /// <summary>
-    /// A description for the ScalarValueDataType DataType.
+    /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = TestData.Namespaces.TestData)]
-    public partial class ScalarValueDataType : IEncodeable {
+    public partial class ScalarValueDataType : IEncodeable
+    {
         #region Constructors
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public ScalarValueDataType() {
+        public ScalarValueDataType()
+        {
             Initialize();
         }
 
@@ -55,14 +59,16 @@ namespace TestData {
         /// Called by the .NET framework during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             m_booleanValue = true;
             m_sByteValue = (sbyte)0;
             m_byteValue = (byte)0;
@@ -94,268 +100,245 @@ namespace TestData {
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the BooleanValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "BooleanValue", IsRequired = false, Order = 1)]
-        public bool BooleanValue {
-            get { return m_booleanValue; }
+        public bool BooleanValue
+        {
+            get { return m_booleanValue;  }
             set { m_booleanValue = value; }
         }
 
-        /// <summary>
-        /// A description for the SByteValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "SByteValue", IsRequired = false, Order = 2)]
-        public sbyte SByteValue {
-            get { return m_sByteValue; }
+        public sbyte SByteValue
+        {
+            get { return m_sByteValue;  }
             set { m_sByteValue = value; }
         }
 
-        /// <summary>
-        /// A description for the ByteValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "ByteValue", IsRequired = false, Order = 3)]
-        public byte ByteValue {
-            get { return m_byteValue; }
+        public byte ByteValue
+        {
+            get { return m_byteValue;  }
             set { m_byteValue = value; }
         }
 
-        /// <summary>
-        /// A description for the Int16Value field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Int16Value", IsRequired = false, Order = 4)]
-        public short Int16Value {
-            get { return m_int16Value; }
+        public short Int16Value
+        {
+            get { return m_int16Value;  }
             set { m_int16Value = value; }
         }
 
-        /// <summary>
-        /// A description for the UInt16Value field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "UInt16Value", IsRequired = false, Order = 5)]
-        public ushort UInt16Value {
-            get { return m_uInt16Value; }
+        public ushort UInt16Value
+        {
+            get { return m_uInt16Value;  }
             set { m_uInt16Value = value; }
         }
 
-        /// <summary>
-        /// A description for the Int32Value field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Int32Value", IsRequired = false, Order = 6)]
-        public int Int32Value {
-            get { return m_int32Value; }
+        public int Int32Value
+        {
+            get { return m_int32Value;  }
             set { m_int32Value = value; }
         }
 
-        /// <summary>
-        /// A description for the UInt32Value field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "UInt32Value", IsRequired = false, Order = 7)]
-        public uint UInt32Value {
-            get { return m_uInt32Value; }
+        public uint UInt32Value
+        {
+            get { return m_uInt32Value;  }
             set { m_uInt32Value = value; }
         }
 
-        /// <summary>
-        /// A description for the Int64Value field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Int64Value", IsRequired = false, Order = 8)]
-        public long Int64Value {
-            get { return m_int64Value; }
+        public long Int64Value
+        {
+            get { return m_int64Value;  }
             set { m_int64Value = value; }
         }
 
-        /// <summary>
-        /// A description for the UInt64Value field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "UInt64Value", IsRequired = false, Order = 9)]
-        public ulong UInt64Value {
-            get { return m_uInt64Value; }
+        public ulong UInt64Value
+        {
+            get { return m_uInt64Value;  }
             set { m_uInt64Value = value; }
         }
 
-        /// <summary>
-        /// A description for the FloatValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "FloatValue", IsRequired = false, Order = 10)]
-        public float FloatValue {
-            get { return m_floatValue; }
+        public float FloatValue
+        {
+            get { return m_floatValue;  }
             set { m_floatValue = value; }
         }
 
-        /// <summary>
-        /// A description for the DoubleValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "DoubleValue", IsRequired = false, Order = 11)]
-        public double DoubleValue {
-            get { return m_doubleValue; }
+        public double DoubleValue
+        {
+            get { return m_doubleValue;  }
             set { m_doubleValue = value; }
         }
 
-        /// <summary>
-        /// A description for the StringValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "StringValue", IsRequired = false, Order = 12)]
-        public string StringValue {
-            get { return m_stringValue; }
+        public string StringValue
+        {
+            get { return m_stringValue;  }
             set { m_stringValue = value; }
         }
 
-        /// <summary>
-        /// A description for the DateTimeValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "DateTimeValue", IsRequired = false, Order = 13)]
-        public DateTime DateTimeValue {
-            get { return m_dateTimeValue; }
+        public DateTime DateTimeValue
+        {
+            get { return m_dateTimeValue;  }
             set { m_dateTimeValue = value; }
         }
 
-        /// <summary>
-        /// A description for the GuidValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "GuidValue", IsRequired = false, Order = 14)]
-        public Uuid GuidValue {
-            get { return m_guidValue; }
+        public Uuid GuidValue
+        {
+            get { return m_guidValue;  }
             set { m_guidValue = value; }
         }
 
-        /// <summary>
-        /// A description for the ByteStringValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "ByteStringValue", IsRequired = false, Order = 15)]
-        public byte[] ByteStringValue {
-            get { return m_byteStringValue; }
+        public byte[] ByteStringValue
+        {
+            get { return m_byteStringValue;  }
             set { m_byteStringValue = value; }
         }
 
-        /// <summary>
-        /// A description for the XmlElementValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "XmlElementValue", IsRequired = false, Order = 16)]
-        public XmlElement XmlElementValue {
-            get { return m_xmlElementValue; }
+        public XmlElement XmlElementValue
+        {
+            get { return m_xmlElementValue;  }
             set { m_xmlElementValue = value; }
         }
 
-        /// <summary>
-        /// A description for the NodeIdValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "NodeIdValue", IsRequired = false, Order = 17)]
-        public NodeId NodeIdValue {
-            get { return m_nodeIdValue; }
+        public NodeId NodeIdValue
+        {
+            get { return m_nodeIdValue;  }
             set { m_nodeIdValue = value; }
         }
 
-        /// <summary>
-        /// A description for the ExpandedNodeIdValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "ExpandedNodeIdValue", IsRequired = false, Order = 18)]
-        public ExpandedNodeId ExpandedNodeIdValue {
-            get { return m_expandedNodeIdValue; }
+        public ExpandedNodeId ExpandedNodeIdValue
+        {
+            get { return m_expandedNodeIdValue;  }
             set { m_expandedNodeIdValue = value; }
         }
 
-        /// <summary>
-        /// A description for the QualifiedNameValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "QualifiedNameValue", IsRequired = false, Order = 19)]
-        public QualifiedName QualifiedNameValue {
-            get { return m_qualifiedNameValue; }
+        public QualifiedName QualifiedNameValue
+        {
+            get { return m_qualifiedNameValue;  }
             set { m_qualifiedNameValue = value; }
         }
 
-        /// <summary>
-        /// A description for the LocalizedTextValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "LocalizedTextValue", IsRequired = false, Order = 20)]
-        public LocalizedText LocalizedTextValue {
-            get { return m_localizedTextValue; }
+        public LocalizedText LocalizedTextValue
+        {
+            get { return m_localizedTextValue;  }
             set { m_localizedTextValue = value; }
         }
 
-        /// <summary>
-        /// A description for the StatusCodeValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "StatusCodeValue", IsRequired = false, Order = 21)]
-        public StatusCode StatusCodeValue {
-            get { return m_statusCodeValue; }
+        public StatusCode StatusCodeValue
+        {
+            get { return m_statusCodeValue;  }
             set { m_statusCodeValue = value; }
         }
 
-        /// <summary>
-        /// A description for the VariantValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "VariantValue", IsRequired = false, Order = 22)]
-        public Variant VariantValue {
-            get { return m_variantValue; }
+        public Variant VariantValue
+        {
+            get { return m_variantValue;  }
             set { m_variantValue = value; }
         }
 
-        /// <summary>
-        /// A description for the EnumerationValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "EnumerationValue", IsRequired = false, Order = 23)]
-        public int EnumerationValue {
-            get { return m_enumerationValue; }
+        public int EnumerationValue
+        {
+            get { return m_enumerationValue;  }
             set { m_enumerationValue = value; }
         }
 
-        /// <summary>
-        /// A description for the StructureValue field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "StructureValue", IsRequired = false, Order = 24)]
-        public ExtensionObject StructureValue {
-            get { return m_structureValue; }
+        public ExtensionObject StructureValue
+        {
+            get { return m_structureValue;  }
             set { m_structureValue = value; }
         }
 
-        /// <summary>
-        /// A description for the Number field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Number", IsRequired = false, Order = 25)]
-        public Variant Number {
-            get { return m_number; }
+        public Variant Number
+        {
+            get { return m_number;  }
             set { m_number = value; }
         }
 
-        /// <summary>
-        /// A description for the Integer field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Integer", IsRequired = false, Order = 26)]
-        public Variant Integer {
-            get { return m_integer; }
+        public Variant Integer
+        {
+            get { return m_integer;  }
             set { m_integer = value; }
         }
 
-        /// <summary>
-        /// A description for the UInteger field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "UInteger", IsRequired = false, Order = 27)]
-        public Variant UInteger {
-            get { return m_uInteger; }
+        public Variant UInteger
+        {
+            get { return m_uInteger;  }
             set { m_uInteger = value; }
         }
         #endregion
 
         #region IEncodeable Members
         /// <summary cref="IEncodeable.TypeId" />
-        public virtual ExpandedNodeId TypeId {
+        public virtual ExpandedNodeId TypeId
+        {
             get { return DataTypeIds.ScalarValueDataType; }
         }
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
-        public virtual ExpandedNodeId BinaryEncodingId {
+        public virtual ExpandedNodeId BinaryEncodingId
+        {
             get { return ObjectIds.ScalarValueDataType_Encoding_DefaultBinary; }
         }
 
         /// <summary cref="IEncodeable.XmlEncodingId" />
-        public virtual ExpandedNodeId XmlEncodingId {
+        public virtual ExpandedNodeId XmlEncodingId
+        {
             get { return ObjectIds.ScalarValueDataType_Encoding_DefaultXml; }
         }
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
-        public virtual void Encode(IEncoder encoder) {
+        public virtual void Encode(IEncoder encoder)
+        {
             encoder.PushNamespace(TestData.Namespaces.TestData);
 
             encoder.WriteBoolean("BooleanValue", BooleanValue);
@@ -390,7 +373,8 @@ namespace TestData {
         }
 
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
-        public virtual void Decode(IDecoder decoder) {
+        public virtual void Decode(IDecoder decoder)
+        {
             decoder.PushNamespace(TestData.Namespaces.TestData);
 
             BooleanValue = decoder.ReadBoolean("BooleanValue");
@@ -425,14 +409,17 @@ namespace TestData {
         }
 
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
-        public virtual bool IsEqual(IEncodeable encodeable) {
-            if (Object.ReferenceEquals(this, encodeable)) {
+        public virtual bool IsEqual(IEncodeable encodeable)
+        {
+            if (Object.ReferenceEquals(this, encodeable))
+            {
                 return true;
             }
 
             ScalarValueDataType value = encodeable as ScalarValueDataType;
 
-            if (value == null) {
+            if (value == null)
+            {
                 return false;
             }
 
@@ -467,15 +454,17 @@ namespace TestData {
             return true;
         }
 
-#if !NET_STANDARD
+        #if !NET_STANDARD
         /// <summary cref="ICloneable.Clone" />
-        public virtual object Clone() {
+        public virtual object Clone()
+        {
             return (ScalarValueDataType)this.MemberwiseClone();
         }
-#endif
+        #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             ScalarValueDataType clone = (ScalarValueDataType)base.MemberwiseClone();
 
             clone.m_booleanValue = (bool)Utils.Clone(this.m_booleanValue);
@@ -548,35 +537,37 @@ namespace TestData {
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [CollectionDataContract(Name = "ListOfScalarValueDataType", Namespace = TestData.Namespaces.TestData, ItemName = "ScalarValueDataType")]
-#if !NET_STANDARD
+    #if !NET_STANDARD
     public partial class ScalarValueDataTypeCollection : List<ScalarValueDataType>, ICloneable
-#else
+    #else
     public partial class ScalarValueDataTypeCollection : List<ScalarValueDataType>
-#endif
+    #endif
     {
         #region Constructors
         /// <summary>
         /// Initializes the collection with default values.
         /// </summary>
-        public ScalarValueDataTypeCollection() { }
+        public ScalarValueDataTypeCollection() {}
 
         /// <summary>
         /// Initializes the collection with an initial capacity.
         /// </summary>
-        public ScalarValueDataTypeCollection(int capacity) : base(capacity) { }
+        public ScalarValueDataTypeCollection(int capacity) : base(capacity) {}
 
         /// <summary>
         /// Initializes the collection with another collection.
         /// </summary>
-        public ScalarValueDataTypeCollection(IEnumerable<ScalarValueDataType> collection) : base(collection) { }
+        public ScalarValueDataTypeCollection(IEnumerable<ScalarValueDataType> collection) : base(collection) {}
         #endregion
 
         #region Static Operators
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
-        public static implicit operator ScalarValueDataTypeCollection(ScalarValueDataType[] values) {
-            if (values != null) {
+        public static implicit operator ScalarValueDataTypeCollection(ScalarValueDataType[] values)
+        {
+            if (values != null)
+            {
                 return new ScalarValueDataTypeCollection(values);
             }
 
@@ -586,8 +577,10 @@ namespace TestData {
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
-        public static explicit operator ScalarValueDataType[](ScalarValueDataTypeCollection values) {
-            if (values != null) {
+        public static explicit operator ScalarValueDataType[](ScalarValueDataTypeCollection values)
+        {
+            if (values != null)
+            {
                 return values.ToArray();
             }
 
@@ -595,22 +588,25 @@ namespace TestData {
         }
         #endregion
 
-#if !NET_STANDARD
+        #if !NET_STANDARD
         #region ICloneable Methods
         /// <summary>
         /// Creates a deep copy of the collection.
         /// </summary>
-        public object Clone() {
+        public object Clone()
+        {
             return (ScalarValueDataTypeCollection)this.MemberwiseClone();
         }
         #endregion
-#endif
+        #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             ScalarValueDataTypeCollection clone = new ScalarValueDataTypeCollection(this.Count);
 
-            for (int ii = 0; ii < this.Count; ii++) {
+            for (int ii = 0; ii < this.Count; ii++)
+            {
                 clone.Add((ScalarValueDataType)Utils.Clone(this[ii]));
             }
 
@@ -618,23 +614,25 @@ namespace TestData {
         }
     }
     #endregion
-#endif
+    #endif
     #endregion
 
     #region ArrayValueDataType Class
-#if (!OPCUA_EXCLUDE_ArrayValueDataType)
+    #if (!OPCUA_EXCLUDE_ArrayValueDataType)
     /// <summary>
-    /// A description for the ArrayValueDataType DataType.
+    /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = TestData.Namespaces.TestData)]
-    public partial class ArrayValueDataType : IEncodeable {
+    public partial class ArrayValueDataType : IEncodeable
+    {
         #region Constructors
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public ArrayValueDataType() {
+        public ArrayValueDataType()
+        {
             Initialize();
         }
 
@@ -642,14 +640,16 @@ namespace TestData {
         /// Called by the .NET framework during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             m_booleanValue = new BooleanCollection();
             m_sByteValue = new SByteCollection();
             m_byteValue = new ByteCollection();
@@ -682,486 +682,594 @@ namespace TestData {
 
         #region Public Properties
         /// <summary>
-        /// A description for the BooleanValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "BooleanValue", IsRequired = false, Order = 1)]
-        public BooleanCollection BooleanValue {
-            get {
+        public BooleanCollection BooleanValue
+        {
+            get
+            {
                 return m_booleanValue;
             }
 
-            set {
+            set
+            {
                 m_booleanValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_booleanValue = new BooleanCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the SByteValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "SByteValue", IsRequired = false, Order = 2)]
-        public SByteCollection SByteValue {
-            get {
+        public SByteCollection SByteValue
+        {
+            get
+            {
                 return m_sByteValue;
             }
 
-            set {
+            set
+            {
                 m_sByteValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_sByteValue = new SByteCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the ByteValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "ByteValue", IsRequired = false, Order = 3)]
-        public ByteCollection ByteValue {
-            get {
+        public ByteCollection ByteValue
+        {
+            get
+            {
                 return m_byteValue;
             }
 
-            set {
+            set
+            {
                 m_byteValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_byteValue = new ByteCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the Int16Value field.
+        /// 
         /// </summary>
         [DataMember(Name = "Int16Value", IsRequired = false, Order = 4)]
-        public Int16Collection Int16Value {
-            get {
+        public Int16Collection Int16Value
+        {
+            get
+            {
                 return m_int16Value;
             }
 
-            set {
+            set
+            {
                 m_int16Value = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_int16Value = new Int16Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the UInt16Value field.
+        /// 
         /// </summary>
         [DataMember(Name = "UInt16Value", IsRequired = false, Order = 5)]
-        public UInt16Collection UInt16Value {
-            get {
+        public UInt16Collection UInt16Value
+        {
+            get
+            {
                 return m_uInt16Value;
             }
 
-            set {
+            set
+            {
                 m_uInt16Value = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_uInt16Value = new UInt16Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the Int32Value field.
+        /// 
         /// </summary>
         [DataMember(Name = "Int32Value", IsRequired = false, Order = 6)]
-        public Int32Collection Int32Value {
-            get {
+        public Int32Collection Int32Value
+        {
+            get
+            {
                 return m_int32Value;
             }
 
-            set {
+            set
+            {
                 m_int32Value = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_int32Value = new Int32Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the UInt32Value field.
+        /// 
         /// </summary>
         [DataMember(Name = "UInt32Value", IsRequired = false, Order = 7)]
-        public UInt32Collection UInt32Value {
-            get {
+        public UInt32Collection UInt32Value
+        {
+            get
+            {
                 return m_uInt32Value;
             }
 
-            set {
+            set
+            {
                 m_uInt32Value = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_uInt32Value = new UInt32Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the Int64Value field.
+        /// 
         /// </summary>
         [DataMember(Name = "Int64Value", IsRequired = false, Order = 8)]
-        public Int64Collection Int64Value {
-            get {
+        public Int64Collection Int64Value
+        {
+            get
+            {
                 return m_int64Value;
             }
 
-            set {
+            set
+            {
                 m_int64Value = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_int64Value = new Int64Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the UInt64Value field.
+        /// 
         /// </summary>
         [DataMember(Name = "UInt64Value", IsRequired = false, Order = 9)]
-        public UInt64Collection UInt64Value {
-            get {
+        public UInt64Collection UInt64Value
+        {
+            get
+            {
                 return m_uInt64Value;
             }
 
-            set {
+            set
+            {
                 m_uInt64Value = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_uInt64Value = new UInt64Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the FloatValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "FloatValue", IsRequired = false, Order = 10)]
-        public FloatCollection FloatValue {
-            get {
+        public FloatCollection FloatValue
+        {
+            get
+            {
                 return m_floatValue;
             }
 
-            set {
+            set
+            {
                 m_floatValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_floatValue = new FloatCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the DoubleValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "DoubleValue", IsRequired = false, Order = 11)]
-        public DoubleCollection DoubleValue {
-            get {
+        public DoubleCollection DoubleValue
+        {
+            get
+            {
                 return m_doubleValue;
             }
 
-            set {
+            set
+            {
                 m_doubleValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_doubleValue = new DoubleCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the StringValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "StringValue", IsRequired = false, Order = 12)]
-        public StringCollection StringValue {
-            get {
+        public StringCollection StringValue
+        {
+            get
+            {
                 return m_stringValue;
             }
 
-            set {
+            set
+            {
                 m_stringValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_stringValue = new StringCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the DateTimeValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "DateTimeValue", IsRequired = false, Order = 13)]
-        public DateTimeCollection DateTimeValue {
-            get {
+        public DateTimeCollection DateTimeValue
+        {
+            get
+            {
                 return m_dateTimeValue;
             }
 
-            set {
+            set
+            {
                 m_dateTimeValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_dateTimeValue = new DateTimeCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the GuidValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "GuidValue", IsRequired = false, Order = 14)]
-        public UuidCollection GuidValue {
-            get {
+        public UuidCollection GuidValue
+        {
+            get
+            {
                 return m_guidValue;
             }
 
-            set {
+            set
+            {
                 m_guidValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_guidValue = new UuidCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the ByteStringValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "ByteStringValue", IsRequired = false, Order = 15)]
-        public ByteStringCollection ByteStringValue {
-            get {
+        public ByteStringCollection ByteStringValue
+        {
+            get
+            {
                 return m_byteStringValue;
             }
 
-            set {
+            set
+            {
                 m_byteStringValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_byteStringValue = new ByteStringCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the XmlElementValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "XmlElementValue", IsRequired = false, Order = 16)]
-        public XmlElementCollection XmlElementValue {
-            get {
+        public XmlElementCollection XmlElementValue
+        {
+            get
+            {
                 return m_xmlElementValue;
             }
 
-            set {
+            set
+            {
                 m_xmlElementValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_xmlElementValue = new XmlElementCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the NodeIdValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "NodeIdValue", IsRequired = false, Order = 17)]
-        public NodeIdCollection NodeIdValue {
-            get {
+        public NodeIdCollection NodeIdValue
+        {
+            get
+            {
                 return m_nodeIdValue;
             }
 
-            set {
+            set
+            {
                 m_nodeIdValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_nodeIdValue = new NodeIdCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the ExpandedNodeIdValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "ExpandedNodeIdValue", IsRequired = false, Order = 18)]
-        public ExpandedNodeIdCollection ExpandedNodeIdValue {
-            get {
+        public ExpandedNodeIdCollection ExpandedNodeIdValue
+        {
+            get
+            {
                 return m_expandedNodeIdValue;
             }
 
-            set {
+            set
+            {
                 m_expandedNodeIdValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_expandedNodeIdValue = new ExpandedNodeIdCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the QualifiedNameValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "QualifiedNameValue", IsRequired = false, Order = 19)]
-        public QualifiedNameCollection QualifiedNameValue {
-            get {
+        public QualifiedNameCollection QualifiedNameValue
+        {
+            get
+            {
                 return m_qualifiedNameValue;
             }
 
-            set {
+            set
+            {
                 m_qualifiedNameValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_qualifiedNameValue = new QualifiedNameCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the LocalizedTextValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "LocalizedTextValue", IsRequired = false, Order = 20)]
-        public LocalizedTextCollection LocalizedTextValue {
-            get {
+        public LocalizedTextCollection LocalizedTextValue
+        {
+            get
+            {
                 return m_localizedTextValue;
             }
 
-            set {
+            set
+            {
                 m_localizedTextValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_localizedTextValue = new LocalizedTextCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the StatusCodeValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "StatusCodeValue", IsRequired = false, Order = 21)]
-        public StatusCodeCollection StatusCodeValue {
-            get {
+        public StatusCodeCollection StatusCodeValue
+        {
+            get
+            {
                 return m_statusCodeValue;
             }
 
-            set {
+            set
+            {
                 m_statusCodeValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_statusCodeValue = new StatusCodeCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the VariantValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "VariantValue", IsRequired = false, Order = 22)]
-        public VariantCollection VariantValue {
-            get {
+        public VariantCollection VariantValue
+        {
+            get
+            {
                 return m_variantValue;
             }
 
-            set {
+            set
+            {
                 m_variantValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_variantValue = new VariantCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the EnumerationValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "EnumerationValue", IsRequired = false, Order = 23)]
-        public Int32Collection EnumerationValue {
-            get {
+        public Int32Collection EnumerationValue
+        {
+            get
+            {
                 return m_enumerationValue;
             }
 
-            set {
+            set
+            {
                 m_enumerationValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_enumerationValue = new Int32Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the StructureValue field.
+        /// 
         /// </summary>
         [DataMember(Name = "StructureValue", IsRequired = false, Order = 24)]
-        public ExtensionObjectCollection StructureValue {
-            get {
+        public ExtensionObjectCollection StructureValue
+        {
+            get
+            {
                 return m_structureValue;
             }
 
-            set {
+            set
+            {
                 m_structureValue = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_structureValue = new ExtensionObjectCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the Number field.
+        /// 
         /// </summary>
         [DataMember(Name = "Number", IsRequired = false, Order = 25)]
-        public VariantCollection Number {
-            get {
+        public VariantCollection Number
+        {
+            get
+            {
                 return m_number;
             }
 
-            set {
+            set
+            {
                 m_number = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_number = new VariantCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the Integer field.
+        /// 
         /// </summary>
         [DataMember(Name = "Integer", IsRequired = false, Order = 26)]
-        public VariantCollection Integer {
-            get {
+        public VariantCollection Integer
+        {
+            get
+            {
                 return m_integer;
             }
 
-            set {
+            set
+            {
                 m_integer = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_integer = new VariantCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the UInteger field.
+        /// 
         /// </summary>
         [DataMember(Name = "UInteger", IsRequired = false, Order = 27)]
-        public VariantCollection UInteger {
-            get {
+        public VariantCollection UInteger
+        {
+            get
+            {
                 return m_uInteger;
             }
 
-            set {
+            set
+            {
                 m_uInteger = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_uInteger = new VariantCollection();
                 }
             }
@@ -1170,22 +1278,26 @@ namespace TestData {
 
         #region IEncodeable Members
         /// <summary cref="IEncodeable.TypeId" />
-        public virtual ExpandedNodeId TypeId {
+        public virtual ExpandedNodeId TypeId
+        {
             get { return DataTypeIds.ArrayValueDataType; }
         }
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
-        public virtual ExpandedNodeId BinaryEncodingId {
+        public virtual ExpandedNodeId BinaryEncodingId
+        {
             get { return ObjectIds.ArrayValueDataType_Encoding_DefaultBinary; }
         }
 
         /// <summary cref="IEncodeable.XmlEncodingId" />
-        public virtual ExpandedNodeId XmlEncodingId {
+        public virtual ExpandedNodeId XmlEncodingId
+        {
             get { return ObjectIds.ArrayValueDataType_Encoding_DefaultXml; }
         }
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
-        public virtual void Encode(IEncoder encoder) {
+        public virtual void Encode(IEncoder encoder)
+        {
             encoder.PushNamespace(TestData.Namespaces.TestData);
 
             encoder.WriteBooleanArray("BooleanValue", BooleanValue);
@@ -1220,7 +1332,8 @@ namespace TestData {
         }
 
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
-        public virtual void Decode(IDecoder decoder) {
+        public virtual void Decode(IDecoder decoder)
+        {
             decoder.PushNamespace(TestData.Namespaces.TestData);
 
             BooleanValue = decoder.ReadBooleanArray("BooleanValue");
@@ -1255,14 +1368,17 @@ namespace TestData {
         }
 
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
-        public virtual bool IsEqual(IEncodeable encodeable) {
-            if (Object.ReferenceEquals(this, encodeable)) {
+        public virtual bool IsEqual(IEncodeable encodeable)
+        {
+            if (Object.ReferenceEquals(this, encodeable))
+            {
                 return true;
             }
 
             ArrayValueDataType value = encodeable as ArrayValueDataType;
 
-            if (value == null) {
+            if (value == null)
+            {
                 return false;
             }
 
@@ -1297,15 +1413,17 @@ namespace TestData {
             return true;
         }
 
-#if !NET_STANDARD
+        #if !NET_STANDARD
         /// <summary cref="ICloneable.Clone" />
-        public virtual object Clone() {
+        public virtual object Clone()
+        {
             return (ArrayValueDataType)this.MemberwiseClone();
         }
-#endif
+        #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             ArrayValueDataType clone = (ArrayValueDataType)base.MemberwiseClone();
 
             clone.m_booleanValue = (BooleanCollection)Utils.Clone(this.m_booleanValue);
@@ -1378,35 +1496,37 @@ namespace TestData {
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [CollectionDataContract(Name = "ListOfArrayValueDataType", Namespace = TestData.Namespaces.TestData, ItemName = "ArrayValueDataType")]
-#if !NET_STANDARD
+    #if !NET_STANDARD
     public partial class ArrayValueDataTypeCollection : List<ArrayValueDataType>, ICloneable
-#else
+    #else
     public partial class ArrayValueDataTypeCollection : List<ArrayValueDataType>
-#endif
+    #endif
     {
         #region Constructors
         /// <summary>
         /// Initializes the collection with default values.
         /// </summary>
-        public ArrayValueDataTypeCollection() { }
+        public ArrayValueDataTypeCollection() {}
 
         /// <summary>
         /// Initializes the collection with an initial capacity.
         /// </summary>
-        public ArrayValueDataTypeCollection(int capacity) : base(capacity) { }
+        public ArrayValueDataTypeCollection(int capacity) : base(capacity) {}
 
         /// <summary>
         /// Initializes the collection with another collection.
         /// </summary>
-        public ArrayValueDataTypeCollection(IEnumerable<ArrayValueDataType> collection) : base(collection) { }
+        public ArrayValueDataTypeCollection(IEnumerable<ArrayValueDataType> collection) : base(collection) {}
         #endregion
 
         #region Static Operators
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
-        public static implicit operator ArrayValueDataTypeCollection(ArrayValueDataType[] values) {
-            if (values != null) {
+        public static implicit operator ArrayValueDataTypeCollection(ArrayValueDataType[] values)
+        {
+            if (values != null)
+            {
                 return new ArrayValueDataTypeCollection(values);
             }
 
@@ -1416,8 +1536,10 @@ namespace TestData {
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
-        public static explicit operator ArrayValueDataType[](ArrayValueDataTypeCollection values) {
-            if (values != null) {
+        public static explicit operator ArrayValueDataType[](ArrayValueDataTypeCollection values)
+        {
+            if (values != null)
+            {
                 return values.ToArray();
             }
 
@@ -1425,22 +1547,25 @@ namespace TestData {
         }
         #endregion
 
-#if !NET_STANDARD
+        #if !NET_STANDARD
         #region ICloneable Methods
         /// <summary>
         /// Creates a deep copy of the collection.
         /// </summary>
-        public object Clone() {
+        public object Clone()
+        {
             return (ArrayValueDataTypeCollection)this.MemberwiseClone();
         }
         #endregion
-#endif
+        #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             ArrayValueDataTypeCollection clone = new ArrayValueDataTypeCollection(this.Count);
 
-            for (int ii = 0; ii < this.Count; ii++) {
+            for (int ii = 0; ii < this.Count; ii++)
+            {
                 clone.Add((ArrayValueDataType)Utils.Clone(this[ii]));
             }
 
@@ -1448,23 +1573,25 @@ namespace TestData {
         }
     }
     #endregion
-#endif
+    #endif
     #endregion
 
     #region UserScalarValueDataType Class
-#if (!OPCUA_EXCLUDE_UserScalarValueDataType)
+    #if (!OPCUA_EXCLUDE_UserScalarValueDataType)
     /// <summary>
-    /// A description for the UserScalarValueDataType DataType.
+    /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = TestData.Namespaces.TestData)]
-    public partial class UserScalarValueDataType : IEncodeable {
+    public partial class UserScalarValueDataType : IEncodeable
+    {
         #region Constructors
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public UserScalarValueDataType() {
+        public UserScalarValueDataType()
+        {
             Initialize();
         }
 
@@ -1472,14 +1599,16 @@ namespace TestData {
         /// Called by the .NET framework during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             m_booleanDataType = true;
             m_sByteDataType = (sbyte)0;
             m_byteDataType = (byte)0;
@@ -1506,223 +1635,205 @@ namespace TestData {
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the BooleanDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "BooleanDataType", IsRequired = false, Order = 1)]
-        public bool BooleanDataType {
-            get { return m_booleanDataType; }
+        public bool BooleanDataType
+        {
+            get { return m_booleanDataType;  }
             set { m_booleanDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the SByteDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "SByteDataType", IsRequired = false, Order = 2)]
-        public sbyte SByteDataType {
-            get { return m_sByteDataType; }
+        public sbyte SByteDataType
+        {
+            get { return m_sByteDataType;  }
             set { m_sByteDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the ByteDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "ByteDataType", IsRequired = false, Order = 3)]
-        public byte ByteDataType {
-            get { return m_byteDataType; }
+        public byte ByteDataType
+        {
+            get { return m_byteDataType;  }
             set { m_byteDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the Int16DataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Int16DataType", IsRequired = false, Order = 4)]
-        public short Int16DataType {
-            get { return m_int16DataType; }
+        public short Int16DataType
+        {
+            get { return m_int16DataType;  }
             set { m_int16DataType = value; }
         }
 
-        /// <summary>
-        /// A description for the UInt16DataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "UInt16DataType", IsRequired = false, Order = 5)]
-        public ushort UInt16DataType {
-            get { return m_uInt16DataType; }
+        public ushort UInt16DataType
+        {
+            get { return m_uInt16DataType;  }
             set { m_uInt16DataType = value; }
         }
 
-        /// <summary>
-        /// A description for the Int32DataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Int32DataType", IsRequired = false, Order = 6)]
-        public int Int32DataType {
-            get { return m_int32DataType; }
+        public int Int32DataType
+        {
+            get { return m_int32DataType;  }
             set { m_int32DataType = value; }
         }
 
-        /// <summary>
-        /// A description for the UInt32DataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "UInt32DataType", IsRequired = false, Order = 7)]
-        public uint UInt32DataType {
-            get { return m_uInt32DataType; }
+        public uint UInt32DataType
+        {
+            get { return m_uInt32DataType;  }
             set { m_uInt32DataType = value; }
         }
 
-        /// <summary>
-        /// A description for the Int64DataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Int64DataType", IsRequired = false, Order = 8)]
-        public long Int64DataType {
-            get { return m_int64DataType; }
+        public long Int64DataType
+        {
+            get { return m_int64DataType;  }
             set { m_int64DataType = value; }
         }
 
-        /// <summary>
-        /// A description for the UInt64DataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "UInt64DataType", IsRequired = false, Order = 9)]
-        public ulong UInt64DataType {
-            get { return m_uInt64DataType; }
+        public ulong UInt64DataType
+        {
+            get { return m_uInt64DataType;  }
             set { m_uInt64DataType = value; }
         }
 
-        /// <summary>
-        /// A description for the FloatDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "FloatDataType", IsRequired = false, Order = 10)]
-        public float FloatDataType {
-            get { return m_floatDataType; }
+        public float FloatDataType
+        {
+            get { return m_floatDataType;  }
             set { m_floatDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the DoubleDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "DoubleDataType", IsRequired = false, Order = 11)]
-        public double DoubleDataType {
-            get { return m_doubleDataType; }
+        public double DoubleDataType
+        {
+            get { return m_doubleDataType;  }
             set { m_doubleDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the StringDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "StringDataType", IsRequired = false, Order = 12)]
-        public string StringDataType {
-            get { return m_stringDataType; }
+        public string StringDataType
+        {
+            get { return m_stringDataType;  }
             set { m_stringDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the DateTimeDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "DateTimeDataType", IsRequired = false, Order = 13)]
-        public DateTime DateTimeDataType {
-            get { return m_dateTimeDataType; }
+        public DateTime DateTimeDataType
+        {
+            get { return m_dateTimeDataType;  }
             set { m_dateTimeDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the GuidDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "GuidDataType", IsRequired = false, Order = 14)]
-        public Uuid GuidDataType {
-            get { return m_guidDataType; }
+        public Uuid GuidDataType
+        {
+            get { return m_guidDataType;  }
             set { m_guidDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the ByteStringDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "ByteStringDataType", IsRequired = false, Order = 15)]
-        public byte[] ByteStringDataType {
-            get { return m_byteStringDataType; }
+        public byte[] ByteStringDataType
+        {
+            get { return m_byteStringDataType;  }
             set { m_byteStringDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the XmlElementDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "XmlElementDataType", IsRequired = false, Order = 16)]
-        public XmlElement XmlElementDataType {
-            get { return m_xmlElementDataType; }
+        public XmlElement XmlElementDataType
+        {
+            get { return m_xmlElementDataType;  }
             set { m_xmlElementDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the NodeIdDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "NodeIdDataType", IsRequired = false, Order = 17)]
-        public NodeId NodeIdDataType {
-            get { return m_nodeIdDataType; }
+        public NodeId NodeIdDataType
+        {
+            get { return m_nodeIdDataType;  }
             set { m_nodeIdDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the ExpandedNodeIdDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "ExpandedNodeIdDataType", IsRequired = false, Order = 18)]
-        public ExpandedNodeId ExpandedNodeIdDataType {
-            get { return m_expandedNodeIdDataType; }
+        public ExpandedNodeId ExpandedNodeIdDataType
+        {
+            get { return m_expandedNodeIdDataType;  }
             set { m_expandedNodeIdDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the QualifiedNameDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "QualifiedNameDataType", IsRequired = false, Order = 19)]
-        public QualifiedName QualifiedNameDataType {
-            get { return m_qualifiedNameDataType; }
+        public QualifiedName QualifiedNameDataType
+        {
+            get { return m_qualifiedNameDataType;  }
             set { m_qualifiedNameDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the LocalizedTextDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "LocalizedTextDataType", IsRequired = false, Order = 20)]
-        public LocalizedText LocalizedTextDataType {
-            get { return m_localizedTextDataType; }
+        public LocalizedText LocalizedTextDataType
+        {
+            get { return m_localizedTextDataType;  }
             set { m_localizedTextDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the StatusCodeDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "StatusCodeDataType", IsRequired = false, Order = 21)]
-        public StatusCode StatusCodeDataType {
-            get { return m_statusCodeDataType; }
+        public StatusCode StatusCodeDataType
+        {
+            get { return m_statusCodeDataType;  }
             set { m_statusCodeDataType = value; }
         }
 
-        /// <summary>
-        /// A description for the VariantDataType field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "VariantDataType", IsRequired = false, Order = 22)]
-        public Variant VariantDataType {
-            get { return m_variantDataType; }
+        public Variant VariantDataType
+        {
+            get { return m_variantDataType;  }
             set { m_variantDataType = value; }
         }
         #endregion
 
         #region IEncodeable Members
         /// <summary cref="IEncodeable.TypeId" />
-        public virtual ExpandedNodeId TypeId {
+        public virtual ExpandedNodeId TypeId
+        {
             get { return DataTypeIds.UserScalarValueDataType; }
         }
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
-        public virtual ExpandedNodeId BinaryEncodingId {
+        public virtual ExpandedNodeId BinaryEncodingId
+        {
             get { return ObjectIds.UserScalarValueDataType_Encoding_DefaultBinary; }
         }
 
         /// <summary cref="IEncodeable.XmlEncodingId" />
-        public virtual ExpandedNodeId XmlEncodingId {
+        public virtual ExpandedNodeId XmlEncodingId
+        {
             get { return ObjectIds.UserScalarValueDataType_Encoding_DefaultXml; }
         }
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
-        public virtual void Encode(IEncoder encoder) {
+        public virtual void Encode(IEncoder encoder)
+        {
             encoder.PushNamespace(TestData.Namespaces.TestData);
 
             encoder.WriteBoolean("BooleanDataType", BooleanDataType);
@@ -1752,7 +1863,8 @@ namespace TestData {
         }
 
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
-        public virtual void Decode(IDecoder decoder) {
+        public virtual void Decode(IDecoder decoder)
+        {
             decoder.PushNamespace(TestData.Namespaces.TestData);
 
             BooleanDataType = decoder.ReadBoolean("BooleanDataType");
@@ -1782,14 +1894,17 @@ namespace TestData {
         }
 
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
-        public virtual bool IsEqual(IEncodeable encodeable) {
-            if (Object.ReferenceEquals(this, encodeable)) {
+        public virtual bool IsEqual(IEncodeable encodeable)
+        {
+            if (Object.ReferenceEquals(this, encodeable))
+            {
                 return true;
             }
 
             UserScalarValueDataType value = encodeable as UserScalarValueDataType;
 
-            if (value == null) {
+            if (value == null)
+            {
                 return false;
             }
 
@@ -1819,15 +1934,17 @@ namespace TestData {
             return true;
         }
 
-#if !NET_STANDARD
+        #if !NET_STANDARD
         /// <summary cref="ICloneable.Clone" />
-        public virtual object Clone() {
+        public virtual object Clone()
+        {
             return (UserScalarValueDataType)this.MemberwiseClone();
         }
-#endif
+        #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             UserScalarValueDataType clone = (UserScalarValueDataType)base.MemberwiseClone();
 
             clone.m_booleanDataType = (bool)Utils.Clone(this.m_booleanDataType);
@@ -1890,35 +2007,37 @@ namespace TestData {
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [CollectionDataContract(Name = "ListOfUserScalarValueDataType", Namespace = TestData.Namespaces.TestData, ItemName = "UserScalarValueDataType")]
-#if !NET_STANDARD
+    #if !NET_STANDARD
     public partial class UserScalarValueDataTypeCollection : List<UserScalarValueDataType>, ICloneable
-#else
+    #else
     public partial class UserScalarValueDataTypeCollection : List<UserScalarValueDataType>
-#endif
+    #endif
     {
         #region Constructors
         /// <summary>
         /// Initializes the collection with default values.
         /// </summary>
-        public UserScalarValueDataTypeCollection() { }
+        public UserScalarValueDataTypeCollection() {}
 
         /// <summary>
         /// Initializes the collection with an initial capacity.
         /// </summary>
-        public UserScalarValueDataTypeCollection(int capacity) : base(capacity) { }
+        public UserScalarValueDataTypeCollection(int capacity) : base(capacity) {}
 
         /// <summary>
         /// Initializes the collection with another collection.
         /// </summary>
-        public UserScalarValueDataTypeCollection(IEnumerable<UserScalarValueDataType> collection) : base(collection) { }
+        public UserScalarValueDataTypeCollection(IEnumerable<UserScalarValueDataType> collection) : base(collection) {}
         #endregion
 
         #region Static Operators
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
-        public static implicit operator UserScalarValueDataTypeCollection(UserScalarValueDataType[] values) {
-            if (values != null) {
+        public static implicit operator UserScalarValueDataTypeCollection(UserScalarValueDataType[] values)
+        {
+            if (values != null)
+            {
                 return new UserScalarValueDataTypeCollection(values);
             }
 
@@ -1928,8 +2047,10 @@ namespace TestData {
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
-        public static explicit operator UserScalarValueDataType[](UserScalarValueDataTypeCollection values) {
-            if (values != null) {
+        public static explicit operator UserScalarValueDataType[](UserScalarValueDataTypeCollection values)
+        {
+            if (values != null)
+            {
                 return values.ToArray();
             }
 
@@ -1937,22 +2058,25 @@ namespace TestData {
         }
         #endregion
 
-#if !NET_STANDARD
+        #if !NET_STANDARD
         #region ICloneable Methods
         /// <summary>
         /// Creates a deep copy of the collection.
         /// </summary>
-        public object Clone() {
+        public object Clone()
+        {
             return (UserScalarValueDataTypeCollection)this.MemberwiseClone();
         }
         #endregion
-#endif
+        #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             UserScalarValueDataTypeCollection clone = new UserScalarValueDataTypeCollection(this.Count);
 
-            for (int ii = 0; ii < this.Count; ii++) {
+            for (int ii = 0; ii < this.Count; ii++)
+            {
                 clone.Add((UserScalarValueDataType)Utils.Clone(this[ii]));
             }
 
@@ -1960,23 +2084,25 @@ namespace TestData {
         }
     }
     #endregion
-#endif
+    #endif
     #endregion
 
     #region UserArrayValueDataType Class
-#if (!OPCUA_EXCLUDE_UserArrayValueDataType)
+    #if (!OPCUA_EXCLUDE_UserArrayValueDataType)
     /// <summary>
-    /// A description for the UserArrayValueDataType DataType.
+    /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = TestData.Namespaces.TestData)]
-    public partial class UserArrayValueDataType : IEncodeable {
+    public partial class UserArrayValueDataType : IEncodeable
+    {
         #region Constructors
         /// <summary>
         /// The default constructor.
         /// </summary>
-        public UserArrayValueDataType() {
+        public UserArrayValueDataType()
+        {
             Initialize();
         }
 
@@ -1984,14 +2110,16 @@ namespace TestData {
         /// Called by the .NET framework during deserialization.
         /// </summary>
         [OnDeserializing]
-        private void Initialize(StreamingContext context) {
+        private void Initialize(StreamingContext context)
+        {
             Initialize();
         }
 
         /// <summary>
         /// Sets private members to default values.
         /// </summary>
-        private void Initialize() {
+        private void Initialize()
+        {
             m_booleanDataType = new BooleanCollection();
             m_sByteDataType = new SByteCollection();
             m_byteDataType = new ByteCollection();
@@ -2019,396 +2147,484 @@ namespace TestData {
 
         #region Public Properties
         /// <summary>
-        /// A description for the BooleanDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "BooleanDataType", IsRequired = false, Order = 1)]
-        public BooleanCollection BooleanDataType {
-            get {
+        public BooleanCollection BooleanDataType
+        {
+            get
+            {
                 return m_booleanDataType;
             }
 
-            set {
+            set
+            {
                 m_booleanDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_booleanDataType = new BooleanCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the SByteDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "SByteDataType", IsRequired = false, Order = 2)]
-        public SByteCollection SByteDataType {
-            get {
+        public SByteCollection SByteDataType
+        {
+            get
+            {
                 return m_sByteDataType;
             }
 
-            set {
+            set
+            {
                 m_sByteDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_sByteDataType = new SByteCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the ByteDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "ByteDataType", IsRequired = false, Order = 3)]
-        public ByteCollection ByteDataType {
-            get {
+        public ByteCollection ByteDataType
+        {
+            get
+            {
                 return m_byteDataType;
             }
 
-            set {
+            set
+            {
                 m_byteDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_byteDataType = new ByteCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the Int16DataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "Int16DataType", IsRequired = false, Order = 4)]
-        public Int16Collection Int16DataType {
-            get {
+        public Int16Collection Int16DataType
+        {
+            get
+            {
                 return m_int16DataType;
             }
 
-            set {
+            set
+            {
                 m_int16DataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_int16DataType = new Int16Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the UInt16DataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "UInt16DataType", IsRequired = false, Order = 5)]
-        public UInt16Collection UInt16DataType {
-            get {
+        public UInt16Collection UInt16DataType
+        {
+            get
+            {
                 return m_uInt16DataType;
             }
 
-            set {
+            set
+            {
                 m_uInt16DataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_uInt16DataType = new UInt16Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the Int32DataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "Int32DataType", IsRequired = false, Order = 6)]
-        public Int32Collection Int32DataType {
-            get {
+        public Int32Collection Int32DataType
+        {
+            get
+            {
                 return m_int32DataType;
             }
 
-            set {
+            set
+            {
                 m_int32DataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_int32DataType = new Int32Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the UInt32DataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "UInt32DataType", IsRequired = false, Order = 7)]
-        public UInt32Collection UInt32DataType {
-            get {
+        public UInt32Collection UInt32DataType
+        {
+            get
+            {
                 return m_uInt32DataType;
             }
 
-            set {
+            set
+            {
                 m_uInt32DataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_uInt32DataType = new UInt32Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the Int64DataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "Int64DataType", IsRequired = false, Order = 8)]
-        public Int64Collection Int64DataType {
-            get {
+        public Int64Collection Int64DataType
+        {
+            get
+            {
                 return m_int64DataType;
             }
 
-            set {
+            set
+            {
                 m_int64DataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_int64DataType = new Int64Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the UInt64DataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "UInt64DataType", IsRequired = false, Order = 9)]
-        public UInt64Collection UInt64DataType {
-            get {
+        public UInt64Collection UInt64DataType
+        {
+            get
+            {
                 return m_uInt64DataType;
             }
 
-            set {
+            set
+            {
                 m_uInt64DataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_uInt64DataType = new UInt64Collection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the FloatDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "FloatDataType", IsRequired = false, Order = 10)]
-        public FloatCollection FloatDataType {
-            get {
+        public FloatCollection FloatDataType
+        {
+            get
+            {
                 return m_floatDataType;
             }
 
-            set {
+            set
+            {
                 m_floatDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_floatDataType = new FloatCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the DoubleDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "DoubleDataType", IsRequired = false, Order = 11)]
-        public DoubleCollection DoubleDataType {
-            get {
+        public DoubleCollection DoubleDataType
+        {
+            get
+            {
                 return m_doubleDataType;
             }
 
-            set {
+            set
+            {
                 m_doubleDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_doubleDataType = new DoubleCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the StringDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "StringDataType", IsRequired = false, Order = 12)]
-        public StringCollection StringDataType {
-            get {
+        public StringCollection StringDataType
+        {
+            get
+            {
                 return m_stringDataType;
             }
 
-            set {
+            set
+            {
                 m_stringDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_stringDataType = new StringCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the DateTimeDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "DateTimeDataType", IsRequired = false, Order = 13)]
-        public DateTimeCollection DateTimeDataType {
-            get {
+        public DateTimeCollection DateTimeDataType
+        {
+            get
+            {
                 return m_dateTimeDataType;
             }
 
-            set {
+            set
+            {
                 m_dateTimeDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_dateTimeDataType = new DateTimeCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the GuidDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "GuidDataType", IsRequired = false, Order = 14)]
-        public UuidCollection GuidDataType {
-            get {
+        public UuidCollection GuidDataType
+        {
+            get
+            {
                 return m_guidDataType;
             }
 
-            set {
+            set
+            {
                 m_guidDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_guidDataType = new UuidCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the ByteStringDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "ByteStringDataType", IsRequired = false, Order = 15)]
-        public ByteStringCollection ByteStringDataType {
-            get {
+        public ByteStringCollection ByteStringDataType
+        {
+            get
+            {
                 return m_byteStringDataType;
             }
 
-            set {
+            set
+            {
                 m_byteStringDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_byteStringDataType = new ByteStringCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the XmlElementDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "XmlElementDataType", IsRequired = false, Order = 16)]
-        public XmlElementCollection XmlElementDataType {
-            get {
+        public XmlElementCollection XmlElementDataType
+        {
+            get
+            {
                 return m_xmlElementDataType;
             }
 
-            set {
+            set
+            {
                 m_xmlElementDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_xmlElementDataType = new XmlElementCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the NodeIdDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "NodeIdDataType", IsRequired = false, Order = 17)]
-        public NodeIdCollection NodeIdDataType {
-            get {
+        public NodeIdCollection NodeIdDataType
+        {
+            get
+            {
                 return m_nodeIdDataType;
             }
 
-            set {
+            set
+            {
                 m_nodeIdDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_nodeIdDataType = new NodeIdCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the ExpandedNodeIdDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "ExpandedNodeIdDataType", IsRequired = false, Order = 18)]
-        public ExpandedNodeIdCollection ExpandedNodeIdDataType {
-            get {
+        public ExpandedNodeIdCollection ExpandedNodeIdDataType
+        {
+            get
+            {
                 return m_expandedNodeIdDataType;
             }
 
-            set {
+            set
+            {
                 m_expandedNodeIdDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_expandedNodeIdDataType = new ExpandedNodeIdCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the QualifiedNameDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "QualifiedNameDataType", IsRequired = false, Order = 19)]
-        public QualifiedNameCollection QualifiedNameDataType {
-            get {
+        public QualifiedNameCollection QualifiedNameDataType
+        {
+            get
+            {
                 return m_qualifiedNameDataType;
             }
 
-            set {
+            set
+            {
                 m_qualifiedNameDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_qualifiedNameDataType = new QualifiedNameCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the LocalizedTextDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "LocalizedTextDataType", IsRequired = false, Order = 20)]
-        public LocalizedTextCollection LocalizedTextDataType {
-            get {
+        public LocalizedTextCollection LocalizedTextDataType
+        {
+            get
+            {
                 return m_localizedTextDataType;
             }
 
-            set {
+            set
+            {
                 m_localizedTextDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_localizedTextDataType = new LocalizedTextCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the StatusCodeDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "StatusCodeDataType", IsRequired = false, Order = 21)]
-        public StatusCodeCollection StatusCodeDataType {
-            get {
+        public StatusCodeCollection StatusCodeDataType
+        {
+            get
+            {
                 return m_statusCodeDataType;
             }
 
-            set {
+            set
+            {
                 m_statusCodeDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_statusCodeDataType = new StatusCodeCollection();
                 }
             }
         }
 
         /// <summary>
-        /// A description for the VariantDataType field.
+        /// 
         /// </summary>
         [DataMember(Name = "VariantDataType", IsRequired = false, Order = 22)]
-        public VariantCollection VariantDataType {
-            get {
+        public VariantCollection VariantDataType
+        {
+            get
+            {
                 return m_variantDataType;
             }
 
-            set {
+            set
+            {
                 m_variantDataType = value;
 
-                if (value == null) {
+                if (value == null)
+                {
                     m_variantDataType = new VariantCollection();
                 }
             }
@@ -2417,22 +2633,26 @@ namespace TestData {
 
         #region IEncodeable Members
         /// <summary cref="IEncodeable.TypeId" />
-        public virtual ExpandedNodeId TypeId {
+        public virtual ExpandedNodeId TypeId
+        {
             get { return DataTypeIds.UserArrayValueDataType; }
         }
 
         /// <summary cref="IEncodeable.BinaryEncodingId" />
-        public virtual ExpandedNodeId BinaryEncodingId {
+        public virtual ExpandedNodeId BinaryEncodingId
+        {
             get { return ObjectIds.UserArrayValueDataType_Encoding_DefaultBinary; }
         }
 
         /// <summary cref="IEncodeable.XmlEncodingId" />
-        public virtual ExpandedNodeId XmlEncodingId {
+        public virtual ExpandedNodeId XmlEncodingId
+        {
             get { return ObjectIds.UserArrayValueDataType_Encoding_DefaultXml; }
         }
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
-        public virtual void Encode(IEncoder encoder) {
+        public virtual void Encode(IEncoder encoder)
+        {
             encoder.PushNamespace(TestData.Namespaces.TestData);
 
             encoder.WriteBooleanArray("BooleanDataType", BooleanDataType);
@@ -2462,7 +2682,8 @@ namespace TestData {
         }
 
         /// <summary cref="IEncodeable.Decode(IDecoder)" />
-        public virtual void Decode(IDecoder decoder) {
+        public virtual void Decode(IDecoder decoder)
+        {
             decoder.PushNamespace(TestData.Namespaces.TestData);
 
             BooleanDataType = decoder.ReadBooleanArray("BooleanDataType");
@@ -2492,14 +2713,17 @@ namespace TestData {
         }
 
         /// <summary cref="IEncodeable.IsEqual(IEncodeable)" />
-        public virtual bool IsEqual(IEncodeable encodeable) {
-            if (Object.ReferenceEquals(this, encodeable)) {
+        public virtual bool IsEqual(IEncodeable encodeable)
+        {
+            if (Object.ReferenceEquals(this, encodeable))
+            {
                 return true;
             }
 
             UserArrayValueDataType value = encodeable as UserArrayValueDataType;
 
-            if (value == null) {
+            if (value == null)
+            {
                 return false;
             }
 
@@ -2529,15 +2753,17 @@ namespace TestData {
             return true;
         }
 
-#if !NET_STANDARD
+        #if !NET_STANDARD
         /// <summary cref="ICloneable.Clone" />
-        public virtual object Clone() {
+        public virtual object Clone()
+        {
             return (UserArrayValueDataType)this.MemberwiseClone();
         }
-#endif
+        #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             UserArrayValueDataType clone = (UserArrayValueDataType)base.MemberwiseClone();
 
             clone.m_booleanDataType = (BooleanCollection)Utils.Clone(this.m_booleanDataType);
@@ -2600,35 +2826,37 @@ namespace TestData {
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [CollectionDataContract(Name = "ListOfUserArrayValueDataType", Namespace = TestData.Namespaces.TestData, ItemName = "UserArrayValueDataType")]
-#if !NET_STANDARD
+    #if !NET_STANDARD
     public partial class UserArrayValueDataTypeCollection : List<UserArrayValueDataType>, ICloneable
-#else
+    #else
     public partial class UserArrayValueDataTypeCollection : List<UserArrayValueDataType>
-#endif
+    #endif
     {
         #region Constructors
         /// <summary>
         /// Initializes the collection with default values.
         /// </summary>
-        public UserArrayValueDataTypeCollection() { }
+        public UserArrayValueDataTypeCollection() {}
 
         /// <summary>
         /// Initializes the collection with an initial capacity.
         /// </summary>
-        public UserArrayValueDataTypeCollection(int capacity) : base(capacity) { }
+        public UserArrayValueDataTypeCollection(int capacity) : base(capacity) {}
 
         /// <summary>
         /// Initializes the collection with another collection.
         /// </summary>
-        public UserArrayValueDataTypeCollection(IEnumerable<UserArrayValueDataType> collection) : base(collection) { }
+        public UserArrayValueDataTypeCollection(IEnumerable<UserArrayValueDataType> collection) : base(collection) {}
         #endregion
 
         #region Static Operators
         /// <summary>
         /// Converts an array to a collection.
         /// </summary>
-        public static implicit operator UserArrayValueDataTypeCollection(UserArrayValueDataType[] values) {
-            if (values != null) {
+        public static implicit operator UserArrayValueDataTypeCollection(UserArrayValueDataType[] values)
+        {
+            if (values != null)
+            {
                 return new UserArrayValueDataTypeCollection(values);
             }
 
@@ -2638,8 +2866,10 @@ namespace TestData {
         /// <summary>
         /// Converts a collection to an array.
         /// </summary>
-        public static explicit operator UserArrayValueDataType[](UserArrayValueDataTypeCollection values) {
-            if (values != null) {
+        public static explicit operator UserArrayValueDataType[](UserArrayValueDataTypeCollection values)
+        {
+            if (values != null)
+            {
                 return values.ToArray();
             }
 
@@ -2647,22 +2877,25 @@ namespace TestData {
         }
         #endregion
 
-#if !NET_STANDARD
+        #if !NET_STANDARD
         #region ICloneable Methods
         /// <summary>
         /// Creates a deep copy of the collection.
         /// </summary>
-        public object Clone() {
+        public object Clone()
+        {
             return (UserArrayValueDataTypeCollection)this.MemberwiseClone();
         }
         #endregion
-#endif
+        #endif
 
         /// <summary cref="Object.MemberwiseClone" />
-        public new object MemberwiseClone() {
+        public new object MemberwiseClone()
+        {
             UserArrayValueDataTypeCollection clone = new UserArrayValueDataTypeCollection(this.Count);
 
-            for (int ii = 0; ii < this.Count; ii++) {
+            for (int ii = 0; ii < this.Count; ii++)
+            {
                 clone.Add((UserArrayValueDataType)Utils.Clone(this[ii]));
             }
 
@@ -2670,6 +2903,6 @@ namespace TestData {
         }
     }
     #endregion
-#endif
+    #endif
     #endregion
 }
