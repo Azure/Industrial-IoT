@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// The reported version of the supervisor
         /// </summary>
-        [DataMember(Name = "version", Order = 6,
+        [DataMember(Name = "version", Order = 5,
             EmitDefaultValue = false)]
         public string Version { get; set; }
     }

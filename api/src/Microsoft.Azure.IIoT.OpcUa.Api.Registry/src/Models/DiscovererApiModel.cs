@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// The reported version of the discovery module
         /// </summary>
-        [DataMember(Name = "version", Order = 6,
+        [DataMember(Name = "version", Order = 9,
             EmitDefaultValue = false)]
         public string Version { get; set; }
     }
