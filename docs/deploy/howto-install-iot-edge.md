@@ -25,14 +25,14 @@ The Device Twin configuration JSON can be found in the Azure Portal under IoT Hu
 If your gateway uses Linux as an OS (with Linux Containers), set the "os" property to "Linux":
 
 ```json
-... 
+...
 },
 "version": 1,
 "tags": {
     "__type__": "iiotedge",
-    "os": "Linux"    
+    "os": "Linux"
 }
-"properties": 
+"properties":
 ...
 ```
 
@@ -46,7 +46,7 @@ If your gateway uses Windows as an OS (with Linux or Windows Containers), set th
     "__type__": "iiotedge",
     "os": "Windows"
 }
-"properties": 
+"properties":
 ...
 ```
 
