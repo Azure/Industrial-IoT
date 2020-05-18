@@ -59,7 +59,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2018-08-01",
             "location": "[variables('location')]",
-            "tags" : "[parameters('tags')]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "securityRules": [
                     {
@@ -122,7 +122,7 @@
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2018-08-01",
             "location": "[variables('location')]",
-            "tags" : "[parameters('tags')]",
+            "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[variables('nsgId')]"
             ],
