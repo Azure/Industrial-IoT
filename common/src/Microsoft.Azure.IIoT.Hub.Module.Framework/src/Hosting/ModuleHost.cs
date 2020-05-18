@@ -65,9 +65,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             _router = router ?? throw new ArgumentNullException(nameof(router));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            DeviceId = _factory.DeviceId;
-            ModuleId = _factory.ModuleId;
-            Gateway = _factory.Gateway;
         }
 
         /// <inheritdoc/>
