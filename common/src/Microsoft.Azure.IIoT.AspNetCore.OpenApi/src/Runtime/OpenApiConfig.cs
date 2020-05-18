@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
         /// <inheritdoc/>
         public string OpenApiAuthorizationUrl =>
             GetStringOrDefault(kOpenApi_AuthorizationUrlKey,
-                () => $"{InstanceUrl}/{TenantId}/v2.0/oauth2/authorize");
+                () => $"{InstanceUrl.TrimEnd('/')}/{TenantId}/oauth2/authorize");
         /// <inheritdoc/>
         public string OpenApiServerHost => GetStringOrDefault(kOpenApi_ServerHost,
             () => GetStringOrDefault(PcsVariable.PCS_OPENAPI_SERVER_HOST))?.Trim();
