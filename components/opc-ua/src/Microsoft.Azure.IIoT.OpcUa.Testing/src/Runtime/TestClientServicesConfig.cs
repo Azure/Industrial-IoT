@@ -7,8 +7,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Configuration;
     using System;
     using System.IO;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Client's application configuration implementation
@@ -34,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
         /// <inheritdoc/>
         public CertificateInfo ApplicationCertificate => _opc.ApplicationCertificate;
         /// <inheritdoc/>
-        public bool AutoAcceptUntrustedCertificates { get; private set; }
+        public bool AutoAcceptUntrustedCertificates { get; }
         /// <inheritdoc/>
         public ushort MinimumCertificateKeySize => _opc.MinimumCertificateKeySize;
         /// <inheritdoc/>
@@ -65,13 +67,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Runtime {
         public int SecurityTokenLifetime => _opc.SecurityTokenLifetime;
 
         /// <inheritdoc/>
-        public TestClientServicesConfig(bool autoAccept = false) {
+        public TestClientServicesConfig(IConfiguration configuration = null, bool autoAccept = false) {
             AutoAcceptUntrustedCertificates = autoAccept;
-            PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
-                Guid.NewGuid().ToByteArray().ToBase16String());
-            _opc = new ClientServicesConfig();
+            if (configuration == null) {
+                PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
+                    Guid.NewGuid().ToByteArray().ToBase16String());
+                configuration = new ConfigurationBuilder()
+                    .AddInMemoryCollection(new Dictionary<string, string> {
+                        {"PkiRootPath", PkiRootPath},
+                        {"AutoAcceptUntrustedCertificates", autoAccept.ToString()}
+                    })
+                    .Build();
+                _opc = new ClientServicesConfig(configuration);
+            }
+            else {
+                _opc = new ClientServicesConfig(configuration);
+                PkiRootPath = _opc.PkiRootPath;
+            }
         }
-
         /// <inheritdoc/>
         public void Dispose() {
             if (Directory.Exists(PkiRootPath)) {

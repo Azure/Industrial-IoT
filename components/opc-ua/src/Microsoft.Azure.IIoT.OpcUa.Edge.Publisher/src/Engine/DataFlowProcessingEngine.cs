@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
@@ -37,13 +38,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="messageSink"></param>
         /// <param name="engineConfiguration"></param>
         /// <param name="logger"></param>
+        /// <param name="identity"></param>
         public DataFlowProcessingEngine(IMessageTrigger messageTrigger, IMessageEncoder encoder,
-            IMessageSink messageSink, IEngineConfiguration engineConfiguration, ILogger logger) {
+            IMessageSink messageSink, IEngineConfiguration engineConfiguration, ILogger logger,
+            IIdentity identity) {
             _config = engineConfiguration;
             _messageTrigger = messageTrigger;
             _messageSink = messageSink;
             _messageEncoder = encoder;
             _logger = logger;
+            _identity = identity;
 
             _messageTrigger.OnMessage += MessageTriggerMessageReceived;
 
@@ -142,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             var sb = new StringBuilder();
             sb.AppendLine();
-            sb.AppendLine($"   DIAGNOSTICS INFORMATION for Engine:{Name}");
+            sb.AppendLine($"   DIAGNOSTICS INFORMATION for Engine: {Name}");
             sb.AppendLine("   =======================");
             sb.AppendLine($"   # Ingress data changes (from OPC)  : {_messageTrigger?.DataChangesCount}" +
                 $" #/s : {_messageTrigger?.DataChangesCount / totalDuration.TotalSeconds}");
@@ -158,10 +162,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             sb.AppendLine($"   # Number of connection retries since last error: {_messageTrigger.NumberOfConnectionRetries}");
             sb.AppendLine("   =======================");
             _logger.Information(sb.ToString());
-            kValueChangesCount.Set(_messageTrigger.ValueChangesCount);
-            kDataChangesCount.Set(_messageTrigger.DataChangesCount);
-            kNumberOfConnectionRetries.Set(_messageTrigger.NumberOfConnectionRetries);
-            kSentMessagesCount.Set(_messageSink.SentMessagesCount);
+            kValueChangesCount.WithLabels(_identity.DeviceId ?? "",
+                _identity.ModuleId ?? "", Name).Set(_messageTrigger.ValueChangesCount);
+            kDataChangesCount.WithLabels(_identity.DeviceId ?? "",
+                _identity.ModuleId ?? "", Name).Set(_messageTrigger.DataChangesCount);
+            kNumberOfConnectionRetries.WithLabels(_identity.DeviceId ?? "",
+                _identity.ModuleId ?? "", Name).Set(_messageTrigger.NumberOfConnectionRetries);
+            kSentMessagesCount.WithLabels(_identity.DeviceId ?? "",
+                _identity.ModuleId ?? "", Name).Set(_messageSink.SentMessagesCount);
             // TODO: Use structured logging!
         }
 
@@ -192,6 +200,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly IMessageEncoder _messageEncoder;
         private readonly IMessageTrigger _messageTrigger;
         private readonly ILogger _logger;
+        private readonly IIdentity _identity;
 
         private BatchBlock<DataSetMessageModel> _batchDataSetMessageBlock;
         private BatchBlock<NetworkMessageModel> _batchNetworkMessageBlock;
@@ -201,13 +210,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private TransformManyBlock<DataSetMessageModel[], NetworkMessageModel> _encodingBlock;
         private ActionBlock<NetworkMessageModel[]> _sinkBlock;
+
+        private static readonly GaugeConfiguration kGaugeConfig = new GaugeConfiguration {
+            LabelNames = new[] { "deviceid", "module", "triggerid" }
+        };
         private static readonly Gauge kValueChangesCount = Metrics.CreateGauge(
-            "iiot_edge_publisher_value_changes", "invoke value changes in trigger");
+            "iiot_edge_publisher_value_changes", "invoke value changes in trigger", kGaugeConfig);
         private static readonly Gauge kDataChangesCount = Metrics.CreateGauge(
-            "iiot_edge_publisher_data_changes", "invoke data changes in trigger");
+            "iiot_edge_publisher_data_changes", "invoke data changes in trigger", kGaugeConfig);
         private static readonly Gauge kSentMessagesCount = Metrics.CreateGauge(
-            "iiot_edge_publisher_messages_sink", "messages sent to sink");
+            "iiot_edge_publisher_sent_messages", "messages sent to IoTHub", kGaugeConfig);
         private static readonly Gauge kNumberOfConnectionRetries = Metrics.CreateGauge(
-            "iiot_edge_publisher_connection_retries", "retries in trigger");
+            "iiot_edge_publisher_connection_retries", "OPC UA connect retries", kGaugeConfig);
     }
 }

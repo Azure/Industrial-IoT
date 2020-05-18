@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddLegacyPublisherCommandLine(args)
+                .AddCommandLine(args)
                 .Build();
 
             var module = new ModuleProcess(config);
