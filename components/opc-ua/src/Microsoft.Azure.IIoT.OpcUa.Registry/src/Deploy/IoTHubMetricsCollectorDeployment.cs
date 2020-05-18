@@ -125,8 +125,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                         ""metricsFormat"": ""Json"",
                         ""syncTarget"": ""AzureLogAnalytics"",
                         ""endpoints"": {
-                            ""opctwin"": ""http://opctwin:9701/metrics"",
-                            ""opcpublisher"": ""http://opcpublisher:9702/metrics""
+                            ""opctwin"": ""http://twin:9701/metrics"",
+                            ""opcpublisher"": ""http://publisher:9702/metrics""
                         }
                     }
                 }

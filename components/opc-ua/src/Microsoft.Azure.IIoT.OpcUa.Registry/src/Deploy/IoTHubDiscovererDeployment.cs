@@ -97,13 +97,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                     HostConfig = new {
                         NetworkMode = "host",
                         CapAdd = new[] { "NET_ADMIN" }
-                    }
+                    },
+                    Hostname = "discovery"
                 });
             }
             else {
                 // Windows
                 createOptions = _serializer.SerializeToString(new {
-                    User = "ContainerAdministrator"
+                    User = "ContainerAdministrator",
+                    Hostname = "discovery"
                 });
             }
             createOptions = createOptions.Replace("\"", "\\\"");
