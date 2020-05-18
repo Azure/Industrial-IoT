@@ -9,7 +9,7 @@
     The type of deployment (minimum, local, services, simulation, app, all)
 
  .PARAMETER version
-    Set to "preview" or another mcr image tag to deploy - if not set deploys last released images ("latest").
+    Set to "latest" or another mcr image tag to deploy - if not set deploys current master branch ("preview").
 
  .PARAMETER resourceGroupName
     Can be the name of an existing or a new resource group
@@ -688,7 +688,12 @@ Function New-Deployment() {
     # Select docker images to use
     if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
         if ([string]::IsNullOrEmpty($script:version)) {
-            $script:version = "latest"
+            if ($script:branchName.StartsWith("release/")) {
+                $script:version = $script:branchName.Replace("release/", "")
+            }
+            else {
+                $script:version = "preview"
+            }
         }
         $templateParameters.Add("imagesTag", $script:version)
         $creds = Select-RegistryCredentials
