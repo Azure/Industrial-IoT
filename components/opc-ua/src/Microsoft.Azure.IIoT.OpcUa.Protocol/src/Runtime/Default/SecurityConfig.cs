@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
+    using System;
 
     /// <summary>
     /// Security configuration
@@ -44,7 +45,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
             StoreType = GetStringOrDefault(ApplicationCertificateStoreTypeKey,
                 () => CertificateStoreType.Directory),
             SubjectName = GetStringOrDefault(ApplicationCertificateSubjectNameKey,
-                () => "CN=Microsoft.Azure.IIoT, C=DE, S=Bav, O=Microsoft, DC=localhost")
+                () => $"CN={_application?.ApplicationName ?? "Microsoft.Azure.IIoT"}," +
+                " C=DE, S=Bav, O=Microsoft, DC=localhost")
         };
 
         /// <inheritdoc/>
@@ -87,9 +89,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// <summary>
         /// Create configuration
         /// </summary>
+        /// <param name="application"></param>
         /// <param name="configuration"></param>
-        public SecurityConfig(IConfiguration configuration) :
+        public SecurityConfig(IClientServicesConfig application, IConfiguration configuration) :
             base(configuration) {
+            _application = application ?? throw new ArgumentNullException(nameof(application));
         }
+
+        private readonly IClientServicesConfig _application;
     }
 }

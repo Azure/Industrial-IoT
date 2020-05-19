@@ -43,6 +43,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
                 .AsImplementedInterfaces();
             builder.RegisterType<TestModule>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TestIdentity>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ClientServices>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TestClientServicesConfig>()
