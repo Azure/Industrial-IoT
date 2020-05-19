@@ -75,7 +75,7 @@ If you feel functionality has been removed that you are relying on, please open 
 
 ## Previous Version (2.5.x) documentation
 
-Documentation of previous version can be found [here](publisherlegacy.md).
+Documentation of previous versions can be found [here](https://github.com/Azure/iot-edge-opc-publisher/blob/master/README.md).
 
 ### Licensing
 
