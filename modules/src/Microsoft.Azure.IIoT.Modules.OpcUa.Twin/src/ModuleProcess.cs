@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Tasks.Default;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
@@ -29,7 +30,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using System.Threading;
     using Serilog;
     using Prometheus;
-
 
     /// <summary>
     /// Module Process
@@ -73,11 +73,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             _exitCode = exitCode;
             _exit.TrySetResult(true);
 
-            // Set timer to kill the entire process after a minute.
+            if (Host.IsContainer) {
+                // Set timer to kill the entire process after 5 minutes.
 #pragma warning disable IDE0067 // Dispose objects before losing scope
-            var _ = new Timer(o => Process.GetCurrentProcess().Kill(), null,
-                TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+                var _ = new Timer(o => {
+                    Log.Logger.Fatal("Killing non responsive module process!");
+                    Process.GetCurrentProcess().Kill();
+                }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 #pragma warning restore IDE0067 // Dispose objects before losing scope
+            }
         }
 
         /// <summary>
@@ -97,12 +101,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     try {
                         server.StartWhenEnabled(moduleConfig, logger);
                         // Start module
-                        var product = "OpcTwin_" +
-                            GetType().Assembly.GetReleaseVersion().ToString();
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
                         kTwinModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await module.StartAsync(IdentityType.Supervisor, SiteId,
-                            product, this);
+                            "OpcTwin", version, this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
@@ -211,9 +214,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
 
                 // Register outer instances
                 builder.RegisterInstance(_logger)
+                    .ExternallyOwned()
                     .OnRelease(_ => { }) // Do not dispose
                     .AsImplementedInterfaces();
                 builder.RegisterInstance(_client)
+                    .ExternallyOwned()
                     .OnRelease(_ => { }) // Do not dispose
                     .AsImplementedInterfaces();
 
