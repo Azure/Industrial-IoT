@@ -256,11 +256,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
             public TwinHost(SupervisorServices outer, IModuleConfig config,
                 string endpointId, string secret, ILogger logger) {
                 _outer = outer;
-                _product = "OpcTwin_" + GetType().Assembly.GetReleaseVersion().ToString();
-                _logger = (logger ?? Log.Logger).ForContext("SourceContext", new {
-                    endpointId,
-                    product = _product
-                }, true);
+                _logger = (logger ?? Log.Logger)
+                     .ForContext("SourceContext", endpointId, true);
 
                 BypassCertVerification = config.BypassCertVerification;
                 Transport = config.Transport;
@@ -327,15 +324,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                 var retryCount = 0;
                 var cancel = new TaskCompletionSource<bool>();
                 _cts.Token.Register(() => cancel.TrySetResult(true));
-                var product = "OpcTwin_" +
-                    GetType().Assembly.GetReleaseVersion().ToString();
                 _logger.Information("Starting twin host...");
                 while (!_cts.Token.IsCancellationRequested) {
                     // Wait until the module unloads or is cancelled
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         await host.StartAsync("twin", _outer._events.SiteId,
-                            product, version, this);
+                            "OpcTwin", version, this);
                         Status = EndpointActivationState.ActivatedAndConnected;
                         _started.TrySetResult(true);
                         _logger.Debug("Twin host (re-)started.");
@@ -447,7 +442,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
             private TaskCompletionSource<bool> _reset;
             private readonly TaskCompletionSource<bool> _started;
             private ILifetimeScope _container;
-            private readonly string _product;
             private readonly SupervisorServices _outer;
             private readonly ILogger _logger;
             private readonly CancellationTokenSource _cts;
