@@ -164,10 +164,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
         public void Dispose() {
             try {
                 StopAllTwinsAsync().Wait();
+                _logger.Information("All twins stopped - supervisor exiting...");
                 _lock.Dispose();
             }
             catch (Exception e) {
-                _logger.Error(e, "Failure in supervisor disposing.");
+                _logger.Error(e, "Failure exiting supervisor.");
             }
         }
 
@@ -303,6 +304,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
             public async Task StopAsync() {
                 if (_container != null) {
                     try {
+                        _logger.Information("Initiating twin host exit...");
                         // Cancel runner
                         _cts.Cancel();
                         await _runner;
