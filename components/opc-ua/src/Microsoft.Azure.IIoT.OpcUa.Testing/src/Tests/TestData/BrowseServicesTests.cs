@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System.Threading.Tasks;
     using Xunit;
     using System;
@@ -21,6 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         public BrowseServicesTests(Func<IBrowseServices<T>> services, T endpoint) {
             _services = services;
             _endpoint = endpoint;
+            _serializer = new NewtonSoftJsonSerializer();
         }
 
         public async Task NodeBrowseInRootTest1Async() {
@@ -1286,7 +1288,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1300,7 +1304,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1314,7 +1320,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1328,7 +1336,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1342,7 +1352,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1356,7 +1368,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1370,7 +1384,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1384,7 +1400,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1398,7 +1416,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1412,7 +1432,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1426,7 +1448,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1440,7 +1464,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1454,7 +1480,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1468,7 +1496,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1482,7 +1512,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1496,7 +1528,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1510,7 +1544,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1524,7 +1560,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1538,7 +1576,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1552,7 +1592,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1566,7 +1608,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1580,7 +1624,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1594,7 +1640,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1608,7 +1656,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1622,7 +1672,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1636,7 +1688,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1650,7 +1704,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
                         reference.Target.UserAccessLevel);
                     Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
-                    Assert.Null(reference.Target.ArrayDimensions);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
                     Assert.False(reference.Target.Children);
                 },
                 reference => {
@@ -1706,6 +1762,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Equal("Array", results.Node.DisplayName);
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
             Assert.True(results.Node.Children);
+            Assert.True(30 == results.References.Count,
+                _serializer.SerializeArrayPretty(results.References));
             Assert.Collection(results.References,
                 reference => {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
@@ -1974,7 +2032,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("CycleComplete", reference.Target.DisplayName);
                 });
         }
-
 
 
         public async Task NodeBrowseStaticArrayVariablesRawModeTestAsync() {
@@ -2358,6 +2415,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         private readonly T _endpoint;
+        private readonly IJsonSerializer _serializer;
         private readonly Func<IBrowseServices<T>> _services;
     }
 }

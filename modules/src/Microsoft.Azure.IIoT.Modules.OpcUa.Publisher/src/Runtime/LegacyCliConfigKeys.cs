@@ -140,7 +140,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the flag to trust own certificate.
         /// </summary>
-        public const string TrustMyself = "TrustSelf";
+        public const string TrustMyself = SecurityConfig.AddAppCertToTrustedStoreKey;
 
         /// <summary>
         /// Key for the flat to auto-accept untrusted certificates.

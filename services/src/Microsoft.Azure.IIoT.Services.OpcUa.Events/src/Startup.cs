@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
                 .AddMessagePackSerializer()
                 .AddAzureSignalRService(Config);
 
-            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
+            services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
         }
 
         /// <summary>
