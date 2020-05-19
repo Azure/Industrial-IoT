@@ -23,9 +23,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="createIfNotExists"></param>
+        /// <param name="forceActivation"></param>
         /// <returns></returns>
         Task<Session> GetOrCreateSessionAsync(ConnectionModel connection,
-            bool createIfNotExists);
+            bool createIfNotExists, bool forceActivation);
 
         /// <summary>
         /// Remove session if empty

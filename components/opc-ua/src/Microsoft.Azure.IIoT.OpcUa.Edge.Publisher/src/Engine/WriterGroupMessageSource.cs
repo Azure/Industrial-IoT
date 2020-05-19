@@ -66,6 +66,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 await subscription.OpenAsync(ct);
             }
 
+            foreach (var subscription in _subscriptions) {
+                await subscription.ActivateAsync(ct);
+            }
+
             await Task.Delay(-1, ct); // TODO - add managemnt of subscriptions, etc.
 
             _subscriptions.ForEach(sc => sc.Dispose());
@@ -122,12 +126,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <param name="ct"></param>
             /// <returns></returns>
             public async Task OpenAsync(CancellationToken ct) {
+                
+                if (Subscription != null) {
+                    _outer._logger.Warning("Subscription already exists");
+                    return;
+                }
+
                 var sc = await _outer._subscriptionManager.GetOrCreateSubscriptionAsync(
                     _subscriptionInfo);
                 sc.OnSubscriptionChange += OnSubscriptionChangedAsync;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
-                    _subscriptionInfo.Configuration);
+                    _subscriptionInfo.Configuration, false);
                 Subscription = sc;
+            }
+
+            /// <summary>
+            /// activate a subscription
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            public async Task ActivateAsync(CancellationToken ct) {
+                if (Subscription == null) {
+                    _outer._logger.Warning("Subscription not registered");
+                    return;
+                }
+
+                await Subscription.ApplyAsync(_subscriptionInfo.MonitoredItems,
+                    _subscriptionInfo.Configuration, true);
 
                 if (_keyframeTimer != null) {
                     ct.Register(() => _keyframeTimer.Stop());
@@ -140,10 +165,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
 
+            /// <summary>
+            /// deactivate a subscription
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            public async Task DeactivateAsync(CancellationToken ct) {
+                
+                if (Subscription == null) {
+                    _outer._logger.Warning("Subscription not registered");
+                    return;
+                }
+
+                await Subscription.ApplyAsync(_subscriptionInfo.MonitoredItems,
+                    _subscriptionInfo.Configuration, false);
+
+                if (_keyframeTimer != null) {
+                    _keyframeTimer.Stop();
+                }
+
+                if (_metadataTimer != null) {
+                    _metadataTimer.Stop();
+                }
+            }
+
+
             /// <inheritdoc/>
             public void Dispose() {
-                Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
-                Subscription?.Dispose();
+                if (Subscription != null) {
+                    Subscription.ApplyAsync(null,_subscriptionInfo.Configuration, false);
+                    Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
+                    Subscription.Dispose();
+                }
                 _keyframeTimer?.Dispose();
                 _metadataTimer?.Dispose();
                 Subscription = null;
