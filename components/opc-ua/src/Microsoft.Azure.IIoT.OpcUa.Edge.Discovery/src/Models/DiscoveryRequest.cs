@@ -266,8 +266,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
         /// <param name="ranges"></param>
         /// <returns></returns>
         public IEnumerable<AddressRange> AddLocalHost(IEnumerable<AddressRange> ranges) {
-            if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
-                .EqualsIgnoreCase("true") ?? false) {
+            if (Host.IsContainer) {
                 try {
                     var addresses = Dns.GetHostAddresses("host.docker.internal");
                     var listedRanges = ranges.ToList();

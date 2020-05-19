@@ -225,6 +225,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     properties.GetValueOrDefault<string>(TwinProperty.SiteId, null),
                 Connected = connected ??
                     properties.GetValueOrDefault(TwinProperty.Connected, false),
+                Version =
+                    properties.GetValueOrDefault<string>(TwinProperty.Version, null),
                 Type =
                     properties.GetValueOrDefault<string>(TwinProperty.Type, null)
             };
@@ -279,6 +281,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     // Not set by user, but reported, so set as desired
                     desired.LogLevel = consolidated.LogLevel;
                 }
+                desired.Version = consolidated.Version;
             }
 
             if (onlyServerState) {
@@ -327,6 +330,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Locales = model.RequestedConfig?.Locales?.
                     EncodeAsDictionary(),
                 Connected = model.Connected ?? false,
+                Version = null,
                 SiteId = model.SiteId,
             };
         }
@@ -345,6 +349,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     registration.Discovery : (DiscoveryMode?)null,
                 Id = DiscovererModelEx.CreateDiscovererId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
+                Version = registration.Version,
                 LogLevel = registration.LogLevel,
                 DiscoveryConfig = registration.ToConfigModel(),
                 RequestedMode = registration._desired?.Discovery != DiscoveryMode.Off ?

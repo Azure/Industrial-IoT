@@ -55,5 +55,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Whether discoverer is connected
         /// </summary>
         public bool? Connected { get; set; }
+
+        /// <summary>
+        /// Version information
+        /// </summary>
+        public string Version { get; set; }
     }
 }

@@ -55,5 +55,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [DataMember(Name = "connected", Order = 5,
             EmitDefaultValue = false)]
         public bool? Connected { get; set; }
+
+        /// <summary>
+        /// The reported version of the publisher
+        /// </summary>
+        [DataMember(Name = "version", Order = 6,
+            EmitDefaultValue = false)]
+        public string Version { get; set; }
     }
 }

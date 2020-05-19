@@ -40,5 +40,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Whether publisher is connected
         /// </summary>
         public bool? Connected { get; set; }
+
+        /// <summary>
+        /// The reported version of the publisher
+        /// </summary>
+        public string Version { get; set; }
     }
 }
