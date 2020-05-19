@@ -23,6 +23,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         string ModuleId { get; }
 
         /// <summary>
+        /// Gateway Host Name
+        /// </summary>
+        string Gateway { get; }
+
+        /// <summary>
         /// Set retry policy
         /// </summary>
         IRetryPolicy RetryPolicy { get; set; }

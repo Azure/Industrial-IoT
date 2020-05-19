@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -34,16 +35,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="clientConfig"></param>
         /// <param name="logger"></param>
+        /// <param name="identity"></param>
         /// <param name="maxOpTimeout"></param>
         public ClientServices(ILogger logger, IClientServicesConfig clientConfig,
-            TimeSpan? maxOpTimeout = null) {
+            IIdentity identity = null, TimeSpan? maxOpTimeout = null) {
 
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _clientConfig = clientConfig ??
                 throw new ArgumentNullException(nameof(clientConfig));
             _maxOpTimeout = maxOpTimeout;
-            _appConfig = _clientConfig.ToApplicationConfigurationAsync(true, VerifyCertificate).Result;
+            _appConfig = _clientConfig.ToApplicationConfigurationAsync(
+                identity, true, VerifyCertificate).Result;
             // Create discovery config and client certificate
             _timer = new Timer(_ => OnTimer(), null, kEvictionCheck, Timeout.InfiniteTimeSpan);
         }

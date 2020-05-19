@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
-    using System.Net;
 
     /// <summary>
     /// Default client configuration
@@ -32,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
             GetStringOrDefault(ApplicationNameKey, () => "Microsoft.Azure.IIoT");
         /// <inheritdoc/>
         public string ApplicationUri =>
-            GetStringOrDefault(ApplicationUriKey, () => $"urn:{Dns.GetHostName()}:{ApplicationName}:microsoft:");
+            GetStringOrDefault(ApplicationUriKey, () => $"urn:localhost:{ApplicationName}:microsoft:");
         /// <inheritdoc/>
         public string ProductUri =>
             GetStringOrDefault(ProductUriKey, () => "https://www.github.com/Azure/Industrial-IoT");
@@ -86,8 +85,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public int SecurityTokenLifetime => _transport.SecurityTokenLifetime;
 
         /// <inheritdoc/>
-        public ClientServicesConfig(IConfiguration configuration = null) : base(configuration) {
-            _security = new SecurityConfig(configuration);
+        public ClientServicesConfig(IConfiguration configuration) : base(configuration) {
+            _security = new SecurityConfig(this, configuration);
             _transport = new TransportQuotaConfig(configuration);
         }
 

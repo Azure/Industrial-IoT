@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
             _exitCode = exitCode;
             _exit.TrySetResult(true);
 
-            if (HostContext.IsContainer) {
+            if (Host.IsContainer) {
                 // Set timer to kill the entire process after 5 minutes.
 #pragma warning disable IDE0067 // Dispose objects before losing scope
                 var _ = new Timer(o => {

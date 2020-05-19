@@ -7,9 +7,9 @@ namespace Microsoft.Azure.IIoT.Utils {
     using System;
 
     /// <summary>
-    /// Run context
+    /// Host context
     /// </summary>
-    public static class HostContext {
+    public static class Host {
 
         /// <summary>
         /// Running in container

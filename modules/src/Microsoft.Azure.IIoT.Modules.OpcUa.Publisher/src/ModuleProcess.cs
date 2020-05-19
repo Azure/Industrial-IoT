@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
@@ -28,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Extensions.Configuration;
     using Serilog;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Module;
 
     /// <summary>
     /// Publisher module
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             _exitCode = exitCode;
             _exit.TrySetResult(true);
 
-            if (HostContext.IsContainer) {
+            if (Host.IsContainer) {
                 // Set timer to kill the entire process after 5 minutes.
 #pragma warning disable IDE0067 // Dispose objects before losing scope
                 var _ = new Timer(o => {
@@ -92,14 +92,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var events = hostScope.Resolve<IEventEmitter>();
                     var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
                     var logger = hostScope.Resolve<ILogger>();
-                    var config = new Config(_config);
+                    var moduleConfig = hostScope.Resolve<IModuleConfig>();
+                    var identity = hostScope.Resolve<IIdentity>();
                     logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                     var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
-                        server.StartWhenEnabled(config, logger);
+
+                        server.StartWhenEnabled(moduleConfig, logger);
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
-                        kPublisherModuleStart.Inc();
                         // Start module
+                        kPublisherModuleStart.WithLabels(
+                            identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this);
                         await workerSupervisor.StartAsync();
@@ -117,10 +120,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
+                        kPublisherModuleStart.WithLabels(
+                            identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         await workerSupervisor.StopAsync();
                         await module.StopAsync();
-                        kPublisherModuleStart.Set(0);
-                        server.Stop();
+                        server.StopWhenEnabled(moduleConfig, logger);
                         OnRunning?.Invoke(this, false);
                     }
                 }
@@ -207,6 +211,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         private TaskCompletionSource<bool> _reset;
         private const int kPublisherPrometheusPort = 9702;
         private static readonly Gauge kPublisherModuleStart = Metrics
-            .CreateGauge("iiot_edge_publisher_module_start", "publisher module started");
+            .CreateGauge("iiot_edge_publisher_module_start", "publisher module started",
+                new GaugeConfiguration {
+                    LabelNames = new[] { "deviceid", "module" }
+                });
     }
 }

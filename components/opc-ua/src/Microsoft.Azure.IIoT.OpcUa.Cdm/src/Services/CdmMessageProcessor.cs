@@ -147,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private async Task<bool> WriteRecordToPartitionAsync<T>(CdmManifestDefinition manifest,
             string partitionKey, IList<T> record) {
             var retry = false;
-            bool persist;
+            var persist = false;
             var dataSetRecordList = record as List<DataSetMessageModel>;
             var samplesRecordList = record as List<MonitoredItemMessageModel>;
             var partition = (dataSetRecordList != null)
