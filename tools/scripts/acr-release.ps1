@@ -36,13 +36,15 @@ if (![string]::IsNullOrEmpty($Subscription)) {
     }
 }
 
-# log into registry
-$argumentList = @("acr", "login", "--name", $Registry)
-& az $argumentList 
+# get credentials
+$argumentList = @("acr", "credential", "show", "--name", $Registry)
+$credentials = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
 }
-
+$user = $credentials.username
+$password = $credentials.passwords[0].value
+Write-Host "Using User name $($user) and passsword ****"
 
 # Default platform definitions - keep in sync with docker-source.ps1
 $platforms = @{
@@ -169,10 +171,10 @@ manifests:
             }
         }
 
-        Write-Host "Pushing release manifest for $($fullImageName)..."
         Write-Host
         $manifest | Out-Host
         $manifest | Out-File -Encoding ascii -FilePath $manifestFile.FullName
+        Write-Host
         try {
             $argumentList = @( 
                 "--username", $user,
@@ -181,6 +183,7 @@ manifests:
                 "from-spec", $manifestFile.FullName
             )
             while ($true) {
+                Write-Host "Pushing release manifest for $($fullImageName)..."
                 (& $manifestToolPath $argumentList) | Out-Host
                 if ($LastExitCode -eq 0) {
                     break   
