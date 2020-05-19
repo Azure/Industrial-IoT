@@ -43,13 +43,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public async Task<Session> GetOrCreateSessionAsync(ConnectionModel connection,
-            bool createIfNotExists) {
+            bool createIfNotExists, bool forceActivation) {
 
             // Find session and if not exists create
             var id = new ConnectionIdentifier(connection);
             await _lock.WaitAsync();
             try {
-                if (!_sessions.TryGetValue(id, out var wrapper) && createIfNotExists) {
+                // try to get an existing session
+                if (_sessions.TryGetValue(id, out var wrapper)) {
+                    if (wrapper != null && 
+                        (forceActivation || !wrapper.Session.Connected || 
+                        wrapper.MissedKeepAlives >= wrapper.MaxKeepAlives)) {
+                        // attempt to reactivate 
+                        bool dispose = true;
+                        try {
+                            wrapper.Session.Reconnect();
+                        }
+                        catch (ServiceResultException ex) {
+                            if (ex.StatusCode == StatusCodes.BadNotConnected) {
+                                dispose = false;
+                            }
+                            else {
+                                _logger.Warning("Failed to reconnect session {sessionName}. Dispose and create new",
+                                    wrapper.Session.SessionName, ex.Message);
+                            }
+                        }
+                        catch (Exception ex){
+                            _logger.Warning("Failed to reconnect session {sessionName}. Dispose and create new",
+                                wrapper.Session.SessionName, ex.Message);
+                        }
+                        finally {
+                            if (dispose) {
+                                //  todo check status codes
+                                _sessions.Remove(id);
+                                // Remove subscriptions
+                                if (wrapper.Session.SubscriptionCount > 0) {
+                                    foreach (var subscription in wrapper.Session.Subscriptions) {
+                                        Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
+                                        Try.Op(() => subscription.DeleteItems());
+                                    }
+                                    Try.Op(() => wrapper.Session.RemoveSubscriptions(wrapper.Session.Subscriptions));
+                                }
+                                Try.Op(wrapper.Session.Close);
+                                Try.Op(wrapper.Session.Dispose);
+                                wrapper = null;
+                            }
+                        }
+                    }
+                }
+
+                if (wrapper == null && createIfNotExists) {
                     var endpointUrlCandidates = id.Connection.Endpoint.Url.YieldReturn();
                     if (id.Connection.Endpoint.AlternativeUrls != null) {
                         endpointUrlCandidates = endpointUrlCandidates.Concat(
@@ -150,7 +193,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     true, sessionName, _clientConfig.DefaultSessionTimeout,
                     userIdentity, null);
 
-                _logger.Information($"Session '{sessionName}' created.");
+                if (sessionName != session.SessionName) {
+                    _logger.Warning("Session '{sessionName}' created with a revised name '{name}'",
+                        sessionName, session.SessionName);
+                }
+                _logger.Information("Session '{sessionName}' created.", sessionName);
+                
                 _logger.Information("Loading Complex Type System....");
                 try {
                     var complexTypeSystem = new ComplexTypeSystem(session);
@@ -204,7 +252,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _lock.Release();
             }
         }
-
+        /// <summary>
+        /// callback to report session's notifications
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="e"></param>
         private void Session_Notification(Session session, NotificationEventArgs e) {
             _logger.Debug("Notification for session: {Session}, subscription {Subscription} -sequence# {Sequence}-{PublishTime}",
                 session.SessionName, e.Subscription?.DisplayName, e.NotificationMessage?.SequenceNumber,
@@ -231,32 +283,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private void Session_KeepAlive(Session session, KeepAliveEventArgs e) {
             _logger.Debug("Keep Alive received from session {name}, state: {state}.",
                 session.SessionName, e.CurrentState);
-            if (ServiceResult.IsGood(e.Status)) {
-                return;
-            }
             _lock.Wait();
             try {
                 foreach (var entry in _sessions
-                    .Where(s => s.Value.Session.SessionName == session.SessionName).ToList()) {
-                    entry.Value.MissedKeepAlives++;
-                    if (entry.Value.MissedKeepAlives >= entry.Value.MaxKeepAlives) {
-                        _logger.Warning("Session '{name}' exceeded max keep alive count. " +
-                            "Disconnecting and removing session...", session.SessionName);
-                        _sessions.Remove(entry.Key);
-                        // Remove subscriptions
-                        if (session.SubscriptionCount > 0) {
-                            foreach (var subscription in session.Subscriptions) {
-                                Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
-                                Try.Op(() => subscription.DeleteItems());
-                            }
-                            Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
-                        }
-                        Try.Op(session.Close);
-                        Try.Op(session.Dispose);
+                    .Where(s => s.Value.Session.SessionId == session.SessionId).ToList()) {
+                    if (ServiceResult.IsGood(e.Status)) {
+                        entry.Value.MissedKeepAlives = 0;
                     }
-                    _logger.Warning("{missedKeepAlives}/{_maxKeepAlives} missed keep " +
-                        "alives from session '{name}'...",
-                        entry.Value.MissedKeepAlives, entry.Value.MaxKeepAlives, session.SessionName);
+                    else {
+                        entry.Value.MissedKeepAlives++;
+                        if (entry.Value.MissedKeepAlives >= entry.Value.MaxKeepAlives) {
+                            _logger.Warning("Session '{name}' exceeded max keep alive count. " +
+                                "Disconnecting and removing session...", session.SessionName);
+                            // TODO - implement a session level retry mechanism.
+                            // for now rely on the subscription's reconnection logic
+                            /*
+                            _sessions.Remove(entry.Key);
+                            // Remove subscriptions
+                            if (session.SubscriptionCount > 0) {
+                                foreach (var subscription in session.Subscriptions) {
+                                    Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
+                                    Try.Op(() => subscription.DeleteItems());
+                                }
+                                Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
+                            }
+                            Try.Op(session.Close);
+                            Try.Op(session.Dispose);
+                            */
+                        }
+                        _logger.Warning("{missedKeepAlives}/{_maxKeepAlives} missed keep " +
+                            "alives from session '{name}'...",
+                            entry.Value.MissedKeepAlives, entry.Value.MaxKeepAlives, session.SessionName);
+                    }
                 }
             }
             finally {
