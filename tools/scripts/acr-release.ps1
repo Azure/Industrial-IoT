@@ -122,7 +122,7 @@ try {
             $tagList = ("'{0}'" -f ($tags -join "', '"))
         }
 
-        $fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)latest"
+        $fullImageName = "$($Registry).azurecr.io/public/$($imageName):$($tagPrefix)latest"
         Write-Host "Building release manifest for $($fullImageName)..."
 
         $manifest = @" 
