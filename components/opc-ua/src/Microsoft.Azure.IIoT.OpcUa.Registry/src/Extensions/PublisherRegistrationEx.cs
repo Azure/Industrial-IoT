@@ -121,7 +121,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
-            var connected = twin.IsConnected();
 
             var registration = new PublisherRegistration {
                 // Device
@@ -129,6 +128,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DeviceId = twin.Id,
                 ModuleId = twin.ModuleId,
                 Etag = twin.Etag,
+                Connected = twin.IsConnected() ?? false,
 
                 // Tags
 
@@ -154,8 +154,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
                 SiteId =
                     properties.GetValueOrDefault<string>(TwinProperty.SiteId, null),
-                Connected = connected ??
-                    properties.GetValueOrDefault(TwinProperty.Connected, false),
                 Version =
                     properties.GetValueOrDefault<string>(TwinProperty.Version, null),
                 Type =
