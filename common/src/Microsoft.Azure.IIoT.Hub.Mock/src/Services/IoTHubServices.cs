@@ -306,7 +306,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     };
                 }
                 if (Twin.ConnectionState == null) {
-                    Twin.ConnectionState = "disconnected";
+                    Twin.ConnectionState = "Disconnected";
                 }
                 if (Twin.Status == null) {
                     Twin.Status = "enabled";
@@ -449,7 +449,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             public void Connect(IIoTClientCallback client) {
                 lock (_lock) {
                     Connection = client;
-                    Twin.ConnectionState = client == null ? "disconnected" : "connected";
+                    Twin.ConnectionState = client == null ? "Disconnected" : "Connected";
                 }
             }
 

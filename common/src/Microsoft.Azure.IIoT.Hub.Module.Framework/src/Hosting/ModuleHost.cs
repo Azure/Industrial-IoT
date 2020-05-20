@@ -68,19 +68,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync(bool force) {
+        public async Task StopAsync() {
             if (Client != null) {
                 try {
                     await _lock.WaitAsync();
                     if (Client != null) {
                         _logger.Information("Stopping Module Host...");
                         try {
-                            if (!force) {
-                                var twinSettings = new TwinCollection {
-                                    [TwinProperty.Connected] = false
-                                };
-                                await Client.UpdateReportedPropertiesAsync(twinSettings);
-                            }
                             await Client.CloseAsync();
                         }
                         catch (OperationCanceledException) { }
@@ -98,7 +92,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
                 finally {
                     kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
-                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", CultureInfo.InvariantCulture)).Set(0);
+                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+                        CultureInfo.InvariantCulture)).Set(0);
                     Client?.Dispose();
                     Client = null;
                     _reported?.Clear();
@@ -136,8 +131,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
                         // Report type of service, chosen site, and connection state
                         var twinSettings = new TwinCollection {
-                            [TwinProperty.Type] = type,
-                            [TwinProperty.Connected] = true
+                            [TwinProperty.Type] = type
                         };
 
                         // Set site if provided
@@ -308,7 +302,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <inheritdoc/>
         public void Dispose() {
             if (Client != null) {
-                StopAsync(true).Wait();
+                StopAsync().Wait();
             }
             _lock.Dispose();
         }
@@ -521,7 +515,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private bool ProcessEdgeHostSettings(string key, VariantValue value,
             IDictionary<string, VariantValue> processed = null) {
             switch (key.ToLowerInvariant()) {
-                case TwinProperty.Connected:
                 case TwinProperty.Version:
                 case TwinProperty.Type:
                     break;

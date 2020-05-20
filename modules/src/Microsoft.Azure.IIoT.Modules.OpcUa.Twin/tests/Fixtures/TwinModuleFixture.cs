@@ -195,12 +195,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         private void AssertStopped() {
             Assert.False(_running);
             var twin = _hub.GetAsync(DeviceId, ModuleId).Result;
-            // Assert
-            Assert.False((bool)twin.Properties.Reported[TwinProperty.Connected]);
-
             // TODO : Fix cleanup!!!
             // TODO :Assert.NotEqual("testType", twin.Properties.Reported[TwinProperty.kType]);
-            // TODO :Assert.Equal("disconnected", twin.ConnectionState);
+            // TODO :Assert.Equal("Disconnected", twin.ConnectionState);
             Assert.NotEqual(_etag, twin.Etag);
         }
 
@@ -211,8 +208,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             Assert.True(_running);
             var twin = _hub.GetAsync(DeviceId, ModuleId).Result;
             // Assert
-            Assert.Equal("connected", twin.ConnectionState);
-            Assert.Equal(true, twin.Properties.Reported[TwinProperty.Connected]);
+            Assert.Equal("Connected", twin.ConnectionState);
             Assert.Equal(IdentityType.Supervisor, twin.Properties.Reported[TwinProperty.Type]);
             Assert.False(twin.Properties.Reported.TryGetValue(TwinProperty.SiteId, out _));
         }

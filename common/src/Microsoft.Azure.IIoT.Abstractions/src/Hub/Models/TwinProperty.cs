@@ -11,11 +11,6 @@ namespace Microsoft.Azure.IIoT.Hub {
     public static class TwinProperty {
 
         /// <summary>
-        /// Connected property name constant
-        /// </summary>
-        public const string Connected = "__connected__";
-
-        /// <summary>
         /// Type property name constant
         /// </summary>
         public const string Type = "__type__";
