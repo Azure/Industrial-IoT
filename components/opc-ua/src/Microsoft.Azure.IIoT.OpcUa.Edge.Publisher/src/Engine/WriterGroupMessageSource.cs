@@ -126,7 +126,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <param name="ct"></param>
             /// <returns></returns>
             public async Task OpenAsync(CancellationToken ct) {
-                
                 if (Subscription != null) {
                     _outer._logger.Warning("Subscription already exists");
                     return;
