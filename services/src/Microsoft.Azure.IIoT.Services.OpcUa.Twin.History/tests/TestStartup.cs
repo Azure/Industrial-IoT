@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
 
         /// <inheritdoc/>
         protected override IHostBuilder CreateHostBuilder() {
-            return Host.CreateDefaultBuilder();
+            return Extensions.Hosting.Host.CreateDefaultBuilder();
         }
 
         /// <inheritdoc/>

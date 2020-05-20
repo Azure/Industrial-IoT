@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
 
         /// <inheritdoc/>
         protected override IHostBuilder CreateHostBuilder() {
-            return Host.CreateDefaultBuilder();
+            return Extensions.Hosting.Host.CreateDefaultBuilder();
         }
 
         /// <inheritdoc/>

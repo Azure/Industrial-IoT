@@ -416,6 +416,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
                 Discovery = (DiscoveryMode?)model.Discovery,
                 DiscoveryConfig = model.DiscoveryConfig.ToApiModel(),
                 OutOfSync = model.OutOfSync,
+                Version = model.Version,
+                Connected = model.Connected
+            };
+        }
+
+        /// <summary>
+        /// Create api model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static DiscovererModel ToServiceModel(
+            this DiscovererApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new DiscovererModel {
+                Id = model.Id,
+                SiteId = model.SiteId,
+                LogLevel = (OpcUa.Registry.Models.TraceLogLevel?)model.LogLevel,
+                RequestedMode = (OpcUa.Registry.Models.DiscoveryMode?)model.RequestedMode,
+                RequestedConfig = model.RequestedConfig.ToServiceModel(),
+                Discovery = (OpcUa.Registry.Models.DiscoveryMode?)model.Discovery,
+                DiscoveryConfig = model.DiscoveryConfig.ToServiceModel(),
+                OutOfSync = model.OutOfSync,
+                Version = model.Version,
                 Connected = model.Connected
             };
         }
@@ -974,6 +999,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
                 LogLevel = (TraceLogLevel?)model.LogLevel,
                 Configuration = model.Configuration.ToApiModel(),
                 OutOfSync = model.OutOfSync,
+                Version = model.Version,
                 Connected = model.Connected
             };
         }
@@ -994,6 +1020,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
                 LogLevel = (OpcUa.Registry.Models.TraceLogLevel?)model.LogLevel,
                 Configuration = model.Configuration.ToServiceModel(),
                 OutOfSync = model.OutOfSync,
+                Version = model.Version,
                 Connected = model.Connected
             };
         }
@@ -1202,6 +1229,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
                 SiteId = model.SiteId,
                 LogLevel = (TraceLogLevel?)model.LogLevel,
                 OutOfSync = model.OutOfSync,
+                Version = model.Version,
                 Connected = model.Connected
             };
         }
@@ -1221,6 +1249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
                 SiteId = model.SiteId,
                 LogLevel = (OpcUa.Registry.Models.TraceLogLevel?)model.LogLevel,
                 OutOfSync = model.OutOfSync,
+                Version = model.Version,
                 Connected = model.Connected
             };
         }

@@ -76,5 +76,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [DataMember(Name = "connected", Order = 8,
             EmitDefaultValue = false)]
         public bool? Connected { get; set; }
+
+        /// <summary>
+        /// The reported version of the discovery module
+        /// </summary>
+        [DataMember(Name = "version", Order = 9,
+            EmitDefaultValue = false)]
+        public string Version { get; set; }
     }
 }

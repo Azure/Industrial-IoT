@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Diagnostics;
@@ -56,17 +57,22 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             _reset.TrySetResult(true);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public void Exit(int exitCode) {
+
             // Shut down gracefully.
             _exitCode = exitCode;
             _exit.TrySetResult(true);
 
-            // Set timer to kill the entire process after a minute.
+            if (Host.IsContainer) {
+                // Set timer to kill the entire process after 5 minutes.
 #pragma warning disable IDE0067 // Dispose objects before losing scope
-            var _ = new Timer(o => Process.GetCurrentProcess().Kill(), null,
-                TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+                var _ = new Timer(o => {
+                    Log.Logger.Fatal("Killing non responsive module process!");
+                    Process.GetCurrentProcess().Kill();
+                }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 #pragma warning restore IDE0067 // Dispose objects before losing scope
+            }
         }
 
         /// <summary>
@@ -91,14 +97,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                     var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
+
                         server.StartWhenEnabled(moduleConfig, logger);
-                        var product = "OpcPublisher_" +
-                            GetType().Assembly.GetReleaseVersion().ToString();
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
                         // Start module
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await module.StartAsync(IdentityType.Publisher, SiteId,
-                            product, this);
+                            "OpcPublisher", version, this);
                         await workerSupervisor.StartAsync();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
