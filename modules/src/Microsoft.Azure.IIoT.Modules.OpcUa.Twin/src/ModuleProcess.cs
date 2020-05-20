@@ -215,11 +215,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 // Register outer instances
                 builder.RegisterInstance(_logger)
                     .ExternallyOwned()
-                    .OnRelease(_ => { }) // Do not dispose
                     .AsImplementedInterfaces();
                 builder.RegisterInstance(_client)
                     .ExternallyOwned()
-                    .OnRelease(_ => { }) // Do not dispose
                     .AsImplementedInterfaces();
 
                 // Register other opc ua services

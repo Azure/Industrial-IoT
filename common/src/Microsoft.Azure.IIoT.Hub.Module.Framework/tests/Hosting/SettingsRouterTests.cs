@@ -33,7 +33,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     Assert.True(controller._applyCalled);
                     Assert.Equal("test4", controller.TestSetting1);
                     Assert.Equal(test, twin.Properties.Reported[nameof(TestController1.TestSetting1)]);
-                    Assert.True((bool)twin.Properties.Reported[TwinProperty.Connected]);
                 });
         }
 
@@ -60,7 +59,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     Assert.Equal("test2", controller.TestSetting2);
                     Assert.Equal(test, twin.Properties.Reported[nameof(TestController1.TestSetting1)]);
                     Assert.Equal(test2, twin.Properties.Reported[nameof(TestController1.TestSetting2)]);
-                    Assert.True((bool)twin.Properties.Reported[TwinProperty.Connected]);
                 });
         }
 
@@ -93,7 +91,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     Assert.Equal(test, twin.Properties.Reported[nameof(TestController1.TestSetting1)]);
                     Assert.Equal(test2, twin.Properties.Reported[nameof(TestController1.TestSetting2)]);
                     Assert.Equal(test3, twin.Properties.Reported[nameof(TestController1.TestSetting3)]);
-                    Assert.True((bool)twin.Properties.Reported[TwinProperty.Connected]);
                 });
         }
 
@@ -122,7 +119,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     Assert.True(controller._applyCalled);
                     Assert.Equal(expected, controller.TestSetting);
                     Assert.Equal(test, twin.Properties.Reported[nameof(TestController2.TestSetting)]);
-                    Assert.True((bool)twin.Properties.Reported[TwinProperty.Connected]);
                 });
         }
 
@@ -168,7 +164,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     Assert.Null(controller.TestSetting3);
                     Assert.False(twin.Properties.Reported.TryGetValue(nameof(TestController1.TestSetting3), out var post));
                     Assert.Null(post);
-                    Assert.True((bool)twin.Properties.Reported[TwinProperty.Connected]);
                 });
         }
 

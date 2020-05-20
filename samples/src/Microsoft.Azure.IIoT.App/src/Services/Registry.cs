@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 foreach (var ep in endpoints.Items) {
                     // Get non cached version of endpoint
-                    var endpoint = ep; // await _registryService.GetEndpointAsync(ep.Registration.Id);
+                    var endpoint = await _registryService.GetEndpointAsync(ep.Registration.Id);
                     pageResult.Results.Add(new EndpointInfo {
                         EndpointModel = endpoint
                     });
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 if (discoverers != null && discoverers.Items.Any()) {
                     foreach (var disc in discoverers.Items) {
-                        var discoverer = disc; //  await _registryService.GetDiscovererAsync(disc.Id);
+                        var discoverer = await _registryService.GetDiscovererAsync(disc.Id);
                         var info = new DiscovererInfo {
                             DiscovererModel = discoverer,
                             HasApplication = false,
@@ -193,7 +193,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 if (applications != null) {
                     foreach (var app in applications.Items) {
-                        var application = app; // (await _registryService.GetApplicationAsync(app.ApplicationId)).Application;
+                        var application = (await _registryService.GetApplicationAsync(app.ApplicationId)).Application;
                         pageResult.Results.Add(application);
                     }
                 }
@@ -376,7 +376,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 if (publishers != null) {
                     foreach (var pub in publishers.Items) {
-                        var publisher = pub; // await _registryService.GetPublisherAsync(pub.Id);
+                        var publisher = await _registryService.GetPublisherAsync(pub.Id);
                         pageResult.Results.Add(publisher);
                     }
                 }
@@ -452,7 +452,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 if (supervisors != null) {
                     foreach (var sup in supervisors.Items) {
-                        var supervisor = sup; // await _registryService.GetSupervisorAsync(sup.Id);
+                        var supervisor = await _registryService.GetSupervisorAsync(sup.Id);
                         pageResult.Results.Add(supervisor);
                     }
                 }

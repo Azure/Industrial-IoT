@@ -517,7 +517,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     manifest.Schema = "cdm:/schema.cdm.json";
                     manifest.JsonSchemaSemanticVersion = "1.0.0";
                     if (adlsRoot.Documents.Item(manifest.Name) == null) {
-                        adlsRoot.Documents.Add(manifest);
+                        Try.Op(() => adlsRoot.Documents.Add(manifest));
                     }
 
                     sw.Restart();

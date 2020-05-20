@@ -190,13 +190,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
-            var connected = twin.IsConnected();
 
             var registration = new EndpointRegistration {
                 // Device
 
                 DeviceId = twin.Id,
                 Etag = twin.Etag,
+                Connected = twin.IsConnected() ?? false,
 
                 // Tags
                 IsDisabled =
@@ -222,8 +222,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
                 // Properties
 
-                Connected = connected ??
-                    properties.GetValueOrDefault(TwinProperty.Connected, false),
                 Type =
                     properties.GetValueOrDefault<string>(TwinProperty.Type, null),
                 State =
