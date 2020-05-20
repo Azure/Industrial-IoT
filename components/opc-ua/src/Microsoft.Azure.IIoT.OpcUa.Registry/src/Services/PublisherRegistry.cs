@@ -210,11 +210,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // If flag provided, include it in search
                 if (model.Connected.Value) {
                     query += $"AND connectionState = 'Connected' ";
-                    // Do not use connected property as module might have exited before updating.
                 }
                 else {
-                    query += $"AND (connectionState = 'Disconnected' " +
-                        $"OR properties.reported.{TwinProperty.Connected} != true) ";
+                    query += $"AND connectionState != 'Connected' ";
                 }
             }
 
