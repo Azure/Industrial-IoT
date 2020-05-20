@@ -20,6 +20,10 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         private const string kAuth_TenantIdKey = "Aad:TenantId";
         private const string kAuth_AuthorityUrlKey = "Aad:AuthorityUrl";
 
+        /// <summary>Audience</summary>
+        public string Audience => "https://vault.azure.net";
+        /// <summary>Resource</summary>
+        public string Resource => Http.Resource.KeyVault;
         /// <inheritdoc/>
         public bool IsValid =>
             ClientId != null && ClientSecret != null && TenantId != null;
@@ -41,11 +45,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         public string InstanceUrl => GetStringOrDefault(kAuth_AuthorityUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_INSTANCE,
                 () => "https://login.microsoftonline.com")).Trim();
-        /// <summary>Audience</summary>
-        public string Audience => "https://vault.azure.net";
-        /// <summary>Resource</summary>
-        public string Resource => Http.Resource.KeyVault;
-
 
         /// <summary>
         /// Configuration constructor

@@ -42,10 +42,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
             string deviceId = null, moduleId = null;
             Console.WriteLine("Publisher module command line interface.");
             var configuration = new ConfigurationBuilder()
+                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddFromDotEnvFile()
-                .AddFromKeyVault()
+                // Above configuration providers will provide connection
+                // details for KeyVault configuration provider.
+                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
                 .Build();
             var cs = configuration.GetValue<string>(PcsVariable.PCS_IOTHUB_CONNSTRING, null);
             if (string.IsNullOrEmpty(cs)) {
@@ -99,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
                     Console.WriteLine($"Using <deviceId> '{deviceId}'");
                 }
                 if (moduleId == null) {
-                    moduleId = "opcpublisher";
+                    moduleId = "publisher";
                     Console.WriteLine($"Using <moduleId> '{moduleId}'");
                 }
 
@@ -164,12 +166,8 @@ Options:
                 broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
                 var arguments = args.ToList();
                 arguments.Add($"--ec={cs}");
-                arguments.Add($"--si=0");
                 if (acceptAll) {
                     arguments.Add("--aa");
-                }
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    arguments.Add("--at=X509Store");
                 }
                 Publisher.Program.Main(arguments.ToArray());
                 Console.WriteLine("Publisher module exited.");
@@ -258,7 +256,7 @@ Options:
             public ServerWrapper(ILogger logger) {
                 _cts = new CancellationTokenSource();
                 _server = RunSampleServerAsync(_cts.Token, logger);
-                EndpointUrl = "opc.tcp://" + Opc.Ua.Utils.GetHostName() +
+                EndpointUrl = "opc.tcp://" + Dns.GetHostName() +
                     ":51210/UA/SampleServer";
             }
 

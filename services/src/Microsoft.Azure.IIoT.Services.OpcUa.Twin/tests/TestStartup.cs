@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
@@ -50,6 +49,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             builder.RegisterType<TestIoTHubConfig>()
                 .AsImplementedInterfaces();
             builder.RegisterType<TestModule>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TestIdentity>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ClientServices>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -114,7 +115,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
 
         /// <inheritdoc/>
         protected override IHostBuilder CreateHostBuilder() {
-            return Host.CreateDefaultBuilder();
+            return Extensions.Hosting.Host.CreateDefaultBuilder();
         }
 
         /// <inheritdoc/>

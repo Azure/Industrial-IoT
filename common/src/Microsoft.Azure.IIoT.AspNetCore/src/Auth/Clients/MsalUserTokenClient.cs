@@ -236,7 +236,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 return null;
             }
             var redirectUri = new UriBuilder(request.Scheme, request.Host.Host,
-                request.Host.Port ?? 0, request.PathBase + "/signin-oidc").ToString();
+                request.Host.Port ?? -1, request.PathBase + "/signin-oidc").ToString();
             return redirectUri;
         }
 

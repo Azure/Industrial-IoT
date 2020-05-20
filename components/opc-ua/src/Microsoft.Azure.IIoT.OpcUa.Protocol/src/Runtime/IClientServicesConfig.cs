@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     /// <summary>
     /// Client services configuration
     /// </summary>
-    public interface IClientServicesConfig2 : ITransportQuotaConfig, ISecurityConfig {
+    public interface IClientServicesConfig : ITransportQuotaConfig, ISecurityConfig {
 
         /// <summary>
         /// Application name

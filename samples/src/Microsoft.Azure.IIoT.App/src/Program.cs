@@ -54,7 +54,8 @@ namespace Microsoft.Azure.IIoT.App {
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .UseStartup<Startup>()
                     .UseKestrel(o => o.AddServerHeader = false)
-                    .UseIISIntegration())
+                    .UseIISIntegration()
+                    .UseSetting(WebHostDefaults.DetailedErrorsKey, "true"))
                 .UseSerilog();
         }
     }

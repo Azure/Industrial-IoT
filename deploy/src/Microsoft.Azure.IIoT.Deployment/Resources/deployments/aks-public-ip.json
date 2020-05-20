@@ -44,7 +44,7 @@
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "2019-11-01",
             "location": "[variables('location')]",
-            "tags" : "[parameters('tags')]",
+            "tags": "[parameters('tags')]",
             "sku": {
                 "name": "[parameters('publicIpSku')]"
             },

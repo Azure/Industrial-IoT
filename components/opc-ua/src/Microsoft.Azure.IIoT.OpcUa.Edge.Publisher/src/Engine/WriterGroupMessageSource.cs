@@ -31,7 +31,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             .Select(sc => sc.Subscription).Sum(sc => sc.NumberOfConnectionRetries);
 
         /// <inheritdoc/>
-        public long NumberOfInvokedMessages { get; private set; } = 0;
+        public long ValueChangesCount { get; private set; } = 0;
+        
+        /// <inheritdoc/>
+        public long DataChangesCount { get; private set; } = 0;
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
@@ -61,6 +64,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             foreach (var subscription in _subscriptions) {
                 await subscription.OpenAsync(ct);
+            }
+
+            foreach (var subscription in _subscriptions) {
+                await subscription.ActivateAsync(ct);
             }
 
             await Task.Delay(-1, ct); // TODO - add managemnt of subscriptions, etc.
@@ -119,12 +126,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <param name="ct"></param>
             /// <returns></returns>
             public async Task OpenAsync(CancellationToken ct) {
+                
+                if (Subscription != null) {
+                    _outer._logger.Warning("Subscription already exists");
+                    return;
+                }
+
                 var sc = await _outer._subscriptionManager.GetOrCreateSubscriptionAsync(
                     _subscriptionInfo);
                 sc.OnSubscriptionChange += OnSubscriptionChangedAsync;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
-                    _subscriptionInfo.Configuration);
+                    _subscriptionInfo.Configuration, false);
                 Subscription = sc;
+            }
+
+            /// <summary>
+            /// activate a subscription
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            public async Task ActivateAsync(CancellationToken ct) {
+                if (Subscription == null) {
+                    _outer._logger.Warning("Subscription not registered");
+                    return;
+                }
+
+                await Subscription.ApplyAsync(_subscriptionInfo.MonitoredItems,
+                    _subscriptionInfo.Configuration, true);
 
                 if (_keyframeTimer != null) {
                     ct.Register(() => _keyframeTimer.Stop());
@@ -137,10 +165,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
 
+            /// <summary>
+            /// deactivate a subscription
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            public async Task DeactivateAsync(CancellationToken ct) {
+                
+                if (Subscription == null) {
+                    _outer._logger.Warning("Subscription not registered");
+                    return;
+                }
+
+                await Subscription.ApplyAsync(_subscriptionInfo.MonitoredItems,
+                    _subscriptionInfo.Configuration, false);
+
+                if (_keyframeTimer != null) {
+                    _keyframeTimer.Stop();
+                }
+
+                if (_metadataTimer != null) {
+                    _metadataTimer.Stop();
+                }
+            }
+
+
             /// <inheritdoc/>
             public void Dispose() {
-                Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
-                Subscription?.Dispose();
+                if (Subscription != null) {
+                    Subscription.ApplyAsync(null,_subscriptionInfo.Configuration, false);
+                    Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
+                    Subscription.Dispose();
+                }
                 _keyframeTimer?.Dispose();
                 _metadataTimer?.Dispose();
                 Subscription = null;
@@ -220,14 +276,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         WriterGroup = _outer._writerGroup
                     };
                     lock (_lock) {
-                        if (_outer.NumberOfInvokedMessages >= kNumberOfInvokedMessagesResetThreshold) {
-                            _outer._logger.Debug("Message counter has been reset to prevent overflow. " +
-                                                 "So far, {NumberOfInvokedMessages} messages has been invoked by message source.",
-                                _outer.NumberOfInvokedMessages);
-                            _outer.NumberOfInvokedMessages = 0;
+                        if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
+                            _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
+                            // reset both 
+                            _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
+                                "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
+                                " value changes were invoked by message source.",
+                                _outer.DataChangesCount, _outer.ValueChangesCount);
+                            _outer.DataChangesCount = 0;
+                            _outer.ValueChangesCount = 0;
                         }
 
-                        _outer.NumberOfInvokedMessages += message.Notifications.Count();
+                        _outer.ValueChangesCount += message.Notifications.Count();
+                        _outer.DataChangesCount++;
                         _outer.OnMessage?.Invoke(sender, message);
                     }
                 }

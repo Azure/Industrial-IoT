@@ -34,6 +34,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         public string ModuleId { get; }
 
         /// <inheritdoc />
+        public string Gateway { get; }
+
+        /// <inheritdoc />
         public IRetryPolicy RetryPolicy { get; set; }
 
         /// <summary>
@@ -69,7 +72,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
                     deviceId = _cs.DeviceId;
                     moduleId = _cs.ModuleId;
-                    ehubHost = _cs.GatewayHostName;
+                    ehubHost = _cs.GatewayHostName ?? ehubHost;
                 }
             }
             catch (Exception e) {
@@ -78,6 +81,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             ModuleId = moduleId;
             DeviceId = deviceId;
+            Gateway = ehubHost;
 
             if (string.IsNullOrEmpty(DeviceId)) {
                 var ex = new InvalidConfigurationException(
@@ -249,7 +253,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
-                client.DiagnosticSamplingPercentage = 5;
                 client.ProductInfo = product;
                 await client.OpenAsync();
                 return adapter;
@@ -451,7 +454,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (retry != null) {
                     client.SetRetryPolicy(retry);
                 }
-                client.DiagnosticSamplingPercentage = 5;
                 client.ProductInfo = product;
 
                 await client.OpenAsync();

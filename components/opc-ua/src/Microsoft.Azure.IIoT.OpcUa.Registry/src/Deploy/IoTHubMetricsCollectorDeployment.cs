@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
     using Microsoft.Azure.IIoT.Deploy;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
@@ -36,7 +37,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         /// <inheritdoc/>
         public async Task StartAsync() {
             if (string.IsNullOrEmpty(_config.LogWorkspaceId) || string.IsNullOrEmpty(_config.LogWorkspaceKey)) {
-                throw new ArgumentNullException("Azure Log Analytics Workspace configuration is not set. Cannot proceed with metricscollector deployment.");
+                _logger.Warning("Azure Log Analytics Workspace configuration is not set." +
+                    " Cannot proceed with metricscollector deployment.");
+                return;
             }
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = "__default-metricscollector-linux",
@@ -44,7 +47,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                     ModulesContent = CreateLayeredDeployment(true)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Linux'",
+                TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
+                    " AND tags.os = 'Linux'",
                 Priority = 2
             }, true);
 
@@ -54,7 +58,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                     ModulesContent = CreateLayeredDeployment(false)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Windows'",
+                TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
+                    " AND tags.os = 'Windows'",
                 Priority = 2
             }, true);
         }
@@ -124,8 +129,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                         ""metricsFormat"": ""Json"",
                         ""syncTarget"": ""AzureLogAnalytics"",
                         ""endpoints"": {
-                            ""opctwin"": ""http://opctwin:9701/metrics"",
-                            ""opcpublisher"": ""http://opcpublisher:9702/metrics""
+                            ""opctwin"": ""http://twin:9701/metrics"",
+                            ""opcpublisher"": ""http://publisher:9702/metrics""
                         }
                     }
                 }

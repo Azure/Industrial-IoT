@@ -156,6 +156,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     properties.GetValueOrDefault<string>(TwinProperty.SiteId, null),
                 Connected = connected ??
                     properties.GetValueOrDefault(TwinProperty.Connected, false),
+                Version =
+                    properties.GetValueOrDefault<string>(TwinProperty.Version, null),
                 Type =
                     properties.GetValueOrDefault<string>(TwinProperty.Type, null)
             };
@@ -212,6 +214,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     // Not set by user, but reported, so set as desired
                     desired.LogLevel = consolidated.LogLevel;
                 }
+                desired.Version = consolidated.Version;
             }
 
             if (!onlyServerState) {
@@ -248,6 +251,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Capabilities = model.Configuration?.Capabilities?
                     .ToDictionary(k => k.Key, v => v.Value),
                 Connected = model.Connected ?? false,
+                Version = null,
                 SiteId = model.SiteId,
             };
         }
@@ -266,6 +270,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 SiteId = registration.SiteId,
                 LogLevel = registration.LogLevel,
                 Configuration = registration.ToConfigModel(),
+                Version = registration.Version,
                 Connected = registration.IsConnected() ? true : (bool?)null,
                 OutOfSync = registration.IsConnected() && !registration._isInSync ? true : (bool?)null
             };

@@ -26,6 +26,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         public string ModuleId { get; }
 
         /// <inheritdoc />
+        public string Gateway { get; }
+
+        /// <inheritdoc />
         public IRetryPolicy RetryPolicy { get; set; }
 
         /// <summary>
@@ -46,6 +49,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
             DeviceId = cs.DeviceId;
             ModuleId = cs.ModuleId;
+            Gateway = cs.GatewayHostName;
         }
 
         /// <inheritdoc/>

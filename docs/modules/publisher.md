@@ -64,14 +64,18 @@ Check out this [link](https://github.com/Azure/iotedge/issues/1745) for more inf
 
 ## Breaking changes in 2.6.x from 2.5.x and lower versions
 
-While we attempt to maintain backwards compatibility as much as possible.  This means you should use any publisher module as a drop in replacement for a previous version.   However - to support new functionality from 2.6.x forward we removed previously (up to version 2.5.x) available functionality, including
+We attempt to maintain backwards compatibility as much as possible.  This means you can use any publisher module as a drop-in replacement for a previous version. However, to support new functionality from 2.6.x forward we removed previously (up to version 2.5.x) available functionality:
 
-* OPC UA server and configuration support via device method interface.   The old model has been replaced with the new and richer Writer Group configuration surface of the [Publisher API](../api/publisher/readme.md).
+* Configuration via OPC UA server and IoT Hub device method interface. The old model has been replaced with the new cloud-based Writer Group configuration interface, see [Publisher API](../api/publisher/readme.md).
 * Message shaping using the `--tc` option and telemetry configuration file.
 * Message batching (array of messages).  This has been replaced with the new and standardized Network Message format, which can also be emitted as binary (UADP) encoded messages.
-* Several command line options (see `--help` for more details) which were only listed in previous documentation.
+* Several command line options (see `--help` for more details) which were listed in previous documentation.
 
-We did not make these decisions lightly but believe the new functionality is worth these tradeoffs.  If you feel functionality has been removed that you are relying on, please open a GitHub issue providing the use case.
+If you feel functionality has been removed that you are relying on, please open a GitHub issue providing the use case.
+
+## Previous Version (2.5.x) documentation
+
+Documentation of previous versions can be found [here](https://github.com/Azure/iot-edge-opc-publisher/blob/master/README.md).
 
 ### Licensing
 

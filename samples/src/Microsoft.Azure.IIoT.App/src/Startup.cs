@@ -61,10 +61,12 @@ namespace Microsoft.Azure.IIoT.App {
         public Startup(IWebHostEnvironment env, IConfiguration configuration) :
             this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
+                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddFromDotEnvFile()
-                .AddFromKeyVault()
+                // Above configuration providers will provide connection
+                // details for KeyVault configuration provider.
+                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
                 .Build())) {
         }
 
@@ -227,7 +229,7 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<Publisher>()
                 .AsImplementedInterfaces().AsSelf();
             builder.RegisterType<UICommon>()
-                .AsImplementedInterfaces().AsSelf();
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<SecureData>()
                 .AsImplementedInterfaces().AsSelf();
         }

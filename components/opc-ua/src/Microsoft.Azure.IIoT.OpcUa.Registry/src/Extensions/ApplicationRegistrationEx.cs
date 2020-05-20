@@ -481,6 +481,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 CreateTime = model.Created?.Time,
                 UpdateAuthorityId = model.Updated?.AuthorityId,
                 UpdateTime = model.Updated?.Time,
+                Version = null,
                 Connected = false
             };
         }

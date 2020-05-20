@@ -78,9 +78,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string BatchSize = "BatchSize";
 
         /// <summary>
+        /// Key for the batch size of the batching buffer
+        /// </summary>
+        public const string BatchTriggerInterval = "BatchTriggerInterval";
+
+        /// <summary>
         /// Key for the max (IoT Hub D2C)message size 
         /// </summary>
         public const string MaxMessageSize = "MaxMessageSize";
+
+        /// <summary>
+        /// Key for the scale test monitored items clones count .
+        /// </summary>
+        public const string ScaleTestCount = "ScaleTestCount";
 
         /// <summary>
         /// Key for the time for the logfile to flush to disc in seconds.
@@ -115,22 +125,22 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the OPC Session creation timeout in seconds.
         /// </summary>
-        public const string OpcSessionCreationTimeout = ClientServicesConfig2.DefaultSessionTimeoutKey;
+        public const string OpcSessionCreationTimeout = ClientServicesConfig.DefaultSessionTimeoutKey;
 
         /// <summary>
         /// Key for the OPC Keep Alive Interval in seconds.
         /// </summary>
-        public const string OpcKeepAliveIntervalInSec = ClientServicesConfig2.KeepAliveIntervalKey;
+        public const string OpcKeepAliveIntervalInSec = ClientServicesConfig.KeepAliveIntervalKey;
 
         /// <summary>
         /// Key for the disconnect thresholt for missed keep alive signals.
         /// </summary>
-        public const string OpcKeepAliveDisconnectThreshold = ClientServicesConfig2.MaxKeepAliveCountKey;
+        public const string OpcKeepAliveDisconnectThreshold = ClientServicesConfig.MaxKeepAliveCountKey;
 
         /// <summary>
         /// Key for the flag to trust own certificate.
         /// </summary>
-        public const string TrustMyself = "TrustSelf";
+        public const string TrustMyself = SecurityConfig.AddAppCertToTrustedStoreKey;
 
         /// <summary>
         /// Key for the flat to auto-accept untrusted certificates.

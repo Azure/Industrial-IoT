@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     using Xunit;
     using Microsoft.Azure.IIoT.Module;
     using System;
+    using System.Net;
 
     /// <summary>
     /// Test
@@ -22,9 +23,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     public class PublishedNodesJobConverterTests {
 
         private class StandaloneIdentity : IIdentity {
-            public string DeviceId => "StandaloneDeviceId";
-            public string ModuleId => "StandaloneModuleId";
-            public string SiteId => "StandaloneSiteId";
+            public string Gateway => Dns.GetHostName();
+            public string DeviceId => Gateway;
+            public string ModuleId => "standaloneModule";
+            public string SiteId => null;
         }
 
         [Fact]
@@ -33,8 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 [
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             // No jobs
@@ -57,8 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
@@ -92,8 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
@@ -124,8 +123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
@@ -153,8 +151,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
@@ -184,8 +181,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
@@ -214,8 +210,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
@@ -259,8 +254,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
@@ -296,8 +290,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
@@ -354,8 +347,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
@@ -411,8 +403,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             // No jobs
@@ -475,8 +466,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 "opc.tcp://localhost:50004"
             };
 
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             // No jobs
@@ -540,8 +530,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 "opc.tcp://localhost:50001",
             };
 
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             // No jobs
@@ -603,8 +592,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 "opc.tcp://localhost:50001",
             };
 
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
 
             // No jobs
@@ -644,8 +632,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn.ToString()), new LegacyCliModel()).ToList();
 
             // No jobs
@@ -690,8 +677,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     }
 ]
 ");
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(),
-                _serializer, new StandaloneIdentity());
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn.ToString()), new LegacyCliModel()).ToList();
 
             // No jobs

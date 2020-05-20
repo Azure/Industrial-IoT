@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using System;
@@ -59,11 +60,15 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
             _exitCode = exitCode;
             _exit.TrySetResult(true);
 
-            // Set timer to kill the entire process after a minute.
+            if (Host.IsContainer) {
+                // Set timer to kill the entire process after 5 minutes.
 #pragma warning disable IDE0067 // Dispose objects before losing scope
-            var _ = new Timer(o => Process.GetCurrentProcess().Kill(), null,
-                TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+                var _ = new Timer(o => {
+                    Log.Logger.Fatal("Killing non responsive module process!");
+                    Process.GetCurrentProcess().Kill();
+                }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 #pragma warning restore IDE0067 // Dispose objects before losing scope
+            }
         }
 
         /// <summary>
@@ -78,9 +83,9 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
                     var logger = hostScope.Resolve<ILogger>();
                     try {
                         // Start module
-                        var product = "Diagnostic_" +
-                            GetType().Assembly.GetReleaseVersion().ToString();
-                        await module.StartAsync("diagnostic", SiteId, product, this);
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
+                        await module.StartAsync("diagnostic", SiteId,
+                            "Diagnostic", version, this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {

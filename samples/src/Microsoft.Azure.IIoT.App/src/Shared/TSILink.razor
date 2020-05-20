@@ -43,7 +43,7 @@
             var index = Configuration.TsiDataAccessFQDN.IndexOf('.');
             if (index > 0)
             {
-                _tsiLink = "https://insights.timeseries.azure.com/preview?environmentId=" + Configuration.TsiDataAccessFQDN.Substring(0, index) + "&tid=" + Configuration.TsiTenantId;
+                _tsiLink = "https://insights.timeseries.azure.com/preview?environmentId=" + Configuration.TsiDataAccessFQDN.Substring(0, index) + "&tid=" + Configuration.TenantId;
             }
         }
     }

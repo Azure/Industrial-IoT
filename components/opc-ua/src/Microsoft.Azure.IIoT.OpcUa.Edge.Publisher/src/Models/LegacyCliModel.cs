@@ -67,6 +67,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public int? BatchSize { get; set; }
 
         /// <summary>
+        /// The interval to trigger batching
+        /// </summary>
+        public TimeSpan? BatchTriggerInterval { get; set; }
+
+        /// <summary>
         /// The maximum size of the (IoT D2C ) message
         /// </summary>
         public int? MaxMessageSize { get; set; }
@@ -160,5 +165,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Trusted issuer cert path
         /// </summary>
         public string TrustedIssuerCertificatesPath { get; set; }
+
+        /// <summary>
+        /// force mass monitored item clones
+        /// </summary>
+        public int? ScaleTestCount { get; set; }
     }
 }

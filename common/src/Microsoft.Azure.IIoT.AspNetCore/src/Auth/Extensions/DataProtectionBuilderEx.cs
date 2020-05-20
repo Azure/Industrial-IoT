@@ -119,8 +119,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                 return true;
             }
             catch (Exception ex) {
-                Log.Logger.Debug("Failed to authenticate to keyvault {url}: {message}",
-                    vaultUri, ex.Message);
+                Log.Logger.Debug(ex, "Failed to authenticate to keyvault {url}.",
+                    vaultUri);
                 return false;
             }
         }
