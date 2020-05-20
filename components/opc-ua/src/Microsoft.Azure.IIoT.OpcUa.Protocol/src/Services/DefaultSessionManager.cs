@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Session manager
@@ -51,42 +52,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             try {
                 // try to get an existing session
                 if (_sessions.TryGetValue(id, out var wrapper)) {
-                    if (wrapper != null && 
-                        (forceActivation || !wrapper.Session.Connected || 
-                        wrapper.MissedKeepAlives >= wrapper.MaxKeepAlives)) {
-                        // attempt to reactivate 
-                        bool dispose = true;
-                        try {
-                            wrapper.Session.Reconnect();
+                    if (wrapper != null) {
+                        if (forceActivation) {
+                            wrapper.MissedKeepAlives++;
                         }
-                        catch (ServiceResultException ex) {
-                            if (ex.StatusCode == StatusCodes.BadNotConnected) {
-                                dispose = false;
+                        if (wrapper.MissedKeepAlives >= wrapper.MaxKeepAlives ||
+                            !wrapper.Session.Connected) {
+                            // attempt to reactivate 
+                            try {
+                                wrapper.Session.Reconnect();
+                                wrapper.MissedKeepAlives = 0;
+                                return wrapper.Session;
                             }
-                            else {
-                                _logger.Warning("Failed to reconnect session {sessionName}. Dispose and create new",
-                                    wrapper.Session.SessionName, ex.Message);
-                            }
-                        }
-                        catch (Exception ex){
-                            _logger.Warning("Failed to reconnect session {sessionName}. Dispose and create new",
-                                wrapper.Session.SessionName, ex.Message);
-                        }
-                        finally {
-                            if (dispose) {
-                                //  todo check status codes
-                                _sessions.Remove(id);
-                                // Remove subscriptions
-                                if (wrapper.Session.SubscriptionCount > 0) {
-                                    foreach (var subscription in wrapper.Session.Subscriptions) {
-                                        Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
-                                        Try.Op(() => subscription.DeleteItems());
-                                    }
-                                    Try.Op(() => wrapper.Session.RemoveSubscriptions(wrapper.Session.Subscriptions));
+                            catch (Exception e) {
+                                if (e is ServiceResultException sre && 
+                                    sre.StatusCode == StatusCodes.BadNotConnected) {
+
+                                    _logger.Warning(e, "Failed to reconnect session {sessionName}. Retry reconnection later.",
+                                        wrapper.Session.SessionName);
+                                    return null;
                                 }
-                                Try.Op(wrapper.Session.Close);
-                                Try.Op(wrapper.Session.Dispose);
-                                wrapper = null;
+                                else {
+                                    _logger.Warning(e, "Failed to reconnect session {sessionName}. Dispose and try create new.",
+                                                wrapper.Session.SessionName);
+                                    //  todo check status codes
+                                    _sessions.Remove(id);
+                                    // Remove subscriptions
+                                    if (wrapper.Session.SubscriptionCount > 0) {
+                                        foreach (var subscription in wrapper.Session.Subscriptions) {
+                                            Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
+                                            Try.Op(() => subscription.DeleteItems());
+                                        }
+                                        Try.Op(() => wrapper.Session.RemoveSubscriptions(wrapper.Session.Subscriptions));
+                                    }
+                                    Try.Op(wrapper.Session.Close);
+                                    Try.Op(wrapper.Session.Dispose);
+                                    wrapper = null;
+                                }
                             }
                         }
                     }
@@ -294,22 +296,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         entry.Value.MissedKeepAlives++;
                         if (entry.Value.MissedKeepAlives >= entry.Value.MaxKeepAlives) {
                             _logger.Warning("Session '{name}' exceeded max keep alive count. " +
-                                "Disconnecting and removing session...", session.SessionName);
-                            // TODO - implement a session level retry mechanism.
-                            // for now rely on the subscription's reconnection logic
-                            /*
-                            _sessions.Remove(entry.Key);
-                            // Remove subscriptions
-                            if (session.SubscriptionCount > 0) {
-                                foreach (var subscription in session.Subscriptions) {
-                                    Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
-                                    Try.Op(() => subscription.DeleteItems());
-                                }
-                                Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
-                            }
-                            Try.Op(session.Close);
-                            Try.Op(session.Dispose);
-                            */
+                                "awaiting for reconnect...", session.SessionName);
+                            Task.Run(() => GetOrCreateSessionAsync(entry.Key.Connection, true, false));
                         }
                         _logger.Warning("{missedKeepAlives}/{_maxKeepAlives} missed keep " +
                             "alives from session '{name}'...",
@@ -435,6 +423,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Missed keep alives
             /// </summary>
             public uint MaxKeepAlives { get; set; }
+
         }
 
         /// <summary>
