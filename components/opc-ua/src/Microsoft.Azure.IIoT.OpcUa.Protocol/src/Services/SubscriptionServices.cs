@@ -41,14 +41,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _timer = new Timer(OnCheckAsync, null, kIdleCheckTimespan, Timeout.InfiniteTimeSpan);
+            _errorSignaled = false; 
         }
 
         /// <summary>
         /// notify the owner about exceptions in subscriptions
         /// </summary>
         public void SignalSubscriptionError() {
-            if (_errorSigneled != true) {
-                _errorSigneled = true;
+            if (_errorSignaled != true) {
+                _errorSignaled = true;
                 Try.Op(() => _timer.Change(kFastRetryTimespan, Timeout.InfiniteTimeSpan));
             }
         }
@@ -60,26 +61,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var success = true;
             try {
                 Try.Op(() => _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan));
-                foreach (var subscriptionsGroup in _subscriptions.Values.GroupBy(s => s.Connection)){
+                foreach (var subscriptionsGroup in _subscriptions.Values.GroupBy(s => new ConnectionIdentifier(s.Connection))){
                     try {
                         var errorSignaled = subscriptionsGroup.ToList().Any(s => s.ErrorSignaled == true);
+                        var session = await _sessionManager.GetOrCreateSessionAsync(subscriptionsGroup.Key.Connection, true,
+                            errorSignaled ? StatusCodes.BadNotConnected : StatusCodes.Good);
+                        if (session == null) {
+                            subscriptionsGroup.ToList().ForEach(s => s.ErrorSignaled = true);
+                            throw new ResourceNotFoundException("Session not available");
+                        }
                         if (errorSignaled) {
-                            // force session activation
-                            var session = await _sessionManager.GetOrCreateSessionAsync(subscriptionsGroup.Key, true, true);
-                            if (session == null) {
-                                throw new ResourceNotFoundException("Session not available");
-                            }
-                            // just go thrugh the elements and reset the subscription
+                            // just go through the elements and try to recreate the subscrption state
                             foreach (var subscription in subscriptionsGroup.ToList()) {
                                 await subscription.ReapplyAsync(false);
                             }
-                            foreach (var subscription in subscriptionsGroup.ToList()) {
-                                await subscription.ReapplyAsync(true);
-                            }
-
-
                         }
-                        // just go thrugh the elements and reset the subscription
+                        // go through the elements and activate the subscriptions
                         foreach (var subscription in subscriptionsGroup.ToList()) {
                             await subscription.ReapplyAsync(true);
                         }
@@ -96,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             finally{
                 _logger.Debug("CheckAsync succeeded.");
-                _errorSigneled = success;
+                _errorSignaled = !success;
                 if (success) {
                     Try.Op(() => _timer.Change(kIdleCheckTimespan, Timeout.InfiniteTimeSpan));
                 }
@@ -138,7 +135,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public long NumberOfConnectionRetries { get; private set; }
 
             /// <inheritdoc/>
-            public bool ErrorSignaled { get; private set; }
+            public bool ErrorSignaled { get; set; }
 
             /// <inheritdoc/>
             public ConnectionModel Connection => _subscription.Connection;
@@ -173,7 +170,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 await _lock.WaitAsync();
                 try {
-                    var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, false, false);
+                    var session = await _outer._sessionManager.GetOrCreateSessionAsync(
+                        Connection, false);
                     if (session != null) {
                         var subscription = session.Subscriptions
                             .SingleOrDefault(s => s.DisplayName == Id);
@@ -201,7 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public async Task<SubscriptionNotificationModel> GetSnapshotAsync() {
                 await _lock.WaitAsync();
                 try {
-                    var subscription = await GetSubscriptionAsync();
+                    var subscription = await GetSubscriptionAsync(null, false);
                     if (subscription == null) {
                         return null;
                     }
@@ -226,18 +224,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 SubscriptionConfigurationModel configuration, bool activate) {
                 await _lock.WaitAsync();
                 try {
-                    var rawSubscription = await GetSubscriptionAsync(configuration);
-                    if (rawSubscription == null) {
-                        throw new ResourceNotFoundException("Subscription not found");
-                    }
-
-                    if ((configuration?.ResolveDisplayName ?? false)) {
-                        await ResolveDisplayNameAsync(monitoredItems);
-                    }
-
-                    await SetMonitoredItemsAsync(rawSubscription, monitoredItems, activate);
-                    ReviseConfiguration(rawSubscription, configuration, activate);
                     ErrorSignaled = false;
+                    if (!activate) {
+                        _subscription.MonitoredItems = monitoredItems?.Select(n => n.Clone()).ToList();
+                        if (configuration?.ResolveDisplayName ?? false) {
+                            await ResolveDisplayNameAsync(_subscription.MonitoredItems);
+                        }
+                    }
+
+                    var rawSubscription = await GetSubscriptionAsync(configuration, activate);
+                    if (rawSubscription == null) {
+                        throw new ResourceNotFoundException("Session/Subscription not available");
+                    }
+
+                    await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate);
                 }
                 catch(Exception e){
                     _logger.Warning(e, "Failed to apply monitored items");
@@ -247,6 +247,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 finally {
                     _lock.Release();
                     if (ErrorSignaled) {
+                        NumberOfConnectionRetries++;
                         _outer.SignalSubscriptionError();
                     }
                 }
@@ -257,81 +258,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// </summary>
             /// <returns></returns>
             public async Task ReapplyAsync(bool activate) {
-                await ApplyAsync(_subscription.MonitoredItems, _subscription.Configuration, activate);
-            }
-
-            /// <summary>
-            /// Synchronize subscription configuration
-            /// </summary>
-            /// <param name="rawSubscription"></param>
-            /// <param name="configuration"></param>
-            /// <param name="activate"></param>
-            /// <returns></returns>
-            private void ReviseConfiguration(Subscription rawSubscription,
-                SubscriptionConfigurationModel configuration, bool? activate) {
-
-                if (rawSubscription == null) {
-                    return;
+                await _lock.WaitAsync();
+                try {
+                    ErrorSignaled = false;
+                    var rawSubscription = await GetSubscriptionAsync(null, activate);
+                    if (rawSubscription == null) {
+                        throw new ResourceNotFoundException("Session/Subscription not available");
+                    }
+                    await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate) ;
                 }
-                var modifySubscription = false;
-                if (configuration != null) {
-                    if ((configuration?.PublishingInterval ?? TimeSpan.Zero) !=
-                            (_subscription.Configuration?.PublishingInterval ?? TimeSpan.Zero)) {
-                        _logger.Debug(
-                            "{subscription} Changing publishing interval from {old} to {new}",
-                            _subscription.Id,
-                            _subscription.Configuration?.PublishingInterval ?? TimeSpan.Zero,
-                            configuration?.PublishingInterval ?? TimeSpan.Zero);
-                        rawSubscription.PublishingInterval = (int)
-                            (configuration?.PublishingInterval ?? TimeSpan.Zero).TotalMilliseconds;
-                        modifySubscription = true;
-                    }
-                    if ((configuration?.KeepAliveCount ?? 0) !=
-                            (_subscription.Configuration?.KeepAliveCount ?? 0)) {
-                        _logger.Debug(
-                            "{subscription} Changing KeepAlive Count from {old} to {new}",
-                            _subscription.Id, _subscription.Configuration?.KeepAliveCount ?? 0,
-                            configuration?.KeepAliveCount ?? 0);
-                        rawSubscription.KeepAliveCount = configuration?.KeepAliveCount ?? 0;
-                        modifySubscription = true;
-                    }
-                    if ((configuration?.LifetimeCount ?? 0) !=
-                            (_subscription.Configuration?.LifetimeCount ?? 0)) {
-                        _logger.Debug(
-                            "{subscription} Changing Lifetime Count from {old} to {new}",
-                            _subscription.Id, _subscription.Configuration?.LifetimeCount ?? 0,
-                            configuration?.LifetimeCount ?? 0);
-                        rawSubscription.LifetimeCount = configuration?.LifetimeCount ?? 0;
-                        modifySubscription = true;
-                    }
-                    if ((configuration?.MaxNotificationsPerPublish ?? 0) !=
-                            (_subscription.Configuration?.MaxNotificationsPerPublish ?? 0)) {
-                        _logger.Debug(
-                            "{subscription} Changing Max NotificationsPerPublish from {old} to {new}",
-                            _subscription.Id, _subscription.Configuration?.MaxNotificationsPerPublish ?? 0,
-                            configuration?.MaxNotificationsPerPublish ?? 0);
-                        rawSubscription.MaxNotificationsPerPublish =
-                            configuration?.MaxNotificationsPerPublish ?? 0;
-                        modifySubscription = true;
-                    }
-                    if ((configuration?.Priority ?? 0) !=
-                            (_subscription.Configuration?.Priority ?? 0)) {
-                        _logger.Debug("{subscription} Changing Priority from {old} to {new}",
-                            _subscription.Id, _subscription.Configuration?.Priority ?? 0,
-                            configuration?.Priority ?? 0);
-                        rawSubscription.Priority = configuration?.Priority ?? 0;
-                        modifySubscription = true;
-                    }
+                catch (Exception e) {
+                    _logger.Warning(e, "Failed to apply monitored items");
+                    ErrorSignaled = true;
+                    throw;
                 }
-                if (modifySubscription) {
-                    if (configuration != null) {
-                        _subscription.Configuration = configuration.Clone();
+                finally {
+                    _lock.Release();
+                    if (ErrorSignaled) {
+                        NumberOfConnectionRetries++;
+                        _outer.SignalSubscriptionError();
                     }
-                    rawSubscription.Modify();
-                }
-
-                if (activate.HasValue && rawSubscription.CurrentPublishingEnabled != activate.Value) {
-                    rawSubscription.SetPublishingMode(activate.Value);
                 }
             }
 
@@ -346,7 +292,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     return;
                 }
 
-                var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true, false);
+                var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true);
                 if (session == null) {
                     return;
                 }
@@ -438,15 +384,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     applyChanges = true;
                     _logger.Information("Removed {count} monitored item ...", count);
                 }
-                /*              // TODO check if this is really necessary refactor!
-                                // Re-associate detached handles
-                                foreach (var detached in rawSubscription.MonitoredItems
-                                    .Where(m => m.Handle == null)) {
-
-                                    // TODO: Claim monitored item
-                                    rawSubscription.RemoveItem(detached);
-                                }
-                */
+                // todo re-associate detached handles
+                var toRemoveDetached = rawSubscription.MonitoredItems.Where(m => m.Status == null);
+                if (toRemoveDetached.Any()) {
+                    _logger.Information("Removed {count} detached monitored items ...", toRemoveDetached.Count());
+                    rawSubscription.RemoveItems(toRemoveDetached);
+                }
 
                 var nowMonitored = new List<MonitoredItemWrapper>();
                 var toAddList = desiredState.Except(currentState);
@@ -459,7 +402,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (!activate) {
                             toAdd.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
                         }
-                        toAdd.Create(rawSubscription.Session, codec);
+                        toAdd.Create(rawSubscription.Session, codec, activate);
                         toAdd.Item.Notification += OnMonitoredItemChanged;
                         nowMonitored.Add(toAdd);
                         count++;
@@ -488,13 +431,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 if (applyChanges) {
-
-                    Try.Op(() => rawSubscription.ApplyChanges());
+                    rawSubscription.ApplyChanges();
 
                     foreach (var monitoredItem in nowMonitored) {
                         if (monitoredItem.Item.Status.Error != null &&
                             StatusCode.IsBad(monitoredItem.Item.Status.Error.StatusCode)) {
-                            _logger.Error("Error while monitoring node {id} in subscription " +
+                            _logger.Error("Error monitoring node {id} in subscription " +
                                 "{subscriptionId}, status code: {code}",
                                 monitoredItem.Item.StartNodeId, monitoredItem.Item.Subscription.Id,
                                 monitoredItem.Item.Status.Error.StatusCode);
@@ -525,23 +467,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
 
+                    _currentlyMonitored = nowMonitored;
+                    if (_currentlyMonitored.Count != rawSubscription.MonitoredItemCount) {
+                        _logger.Warning("Monitored items mismatch: wrappers{wrappers} != items:{items} ",
+                            _currentlyMonitored.Count, _currentlyMonitored.Count);
+                    }
+                }
+                if (activate) {
+                    var validItems = _currentlyMonitored;//.Where(m => m.Item.Status.Error == null);
                     // Change monitoring mode of all items if necessary
-                    foreach (var change in nowMonitored.GroupBy(i => i.GetMonitoringModeChange())) {
+                    foreach (var change in validItems.GroupBy(i => i.GetMonitoringModeChange())) {
                         if (change.Key == null) {
                             continue;
                         }
-                        // TODO: stack speciffic code
-                        //rawSubscription.SetMonitoringMode(change.Key.Value, change.Select(t => t.Item).ToList());
-
-                        await rawSubscription.Session.SetMonitoringModeAsync(null,
-                            rawSubscription.Id, change.Key.Value,
-                            new UInt32Collection(change.Select(i => i.ServerId ?? 0)));
-                    }
-
-                    _currentlyMonitored = nowMonitored;
-                    if (_currentlyMonitored.Count != rawSubscription.MonitoredItemCount) {
-                        _logger.Warning("Currently monitored items mismatch - wrappers{wrappers} != items:{items} ",
-                            _currentlyMonitored.Count, _currentlyMonitored.Count);
+                        _logger.Information("Monitoring {value} {count} nodes in subscription " +
+                            "{subscriptionId} (Session: {sessionId}).", change.Key.Value, change.Count(),
+                            rawSubscription.Id, rawSubscription.Session.SessionName);
+                        var results = rawSubscription.SetMonitoringMode(change.Key.Value,
+                            change.Select(t => t.Item).ToList());
+                        if (results != null) {
+                            _logger.Warning("Failed to set monitoring for {count} nodes in subscription " +
+                                "{subscriptionId} (Session: {sessionId}).", results.Count,
+                                rawSubscription.Id, rawSubscription.Session.SessionName);
+                        }
                     }
                 }
             }
@@ -554,55 +502,120 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Retrieve a raw subscription with all settings applied (no lock)
             /// </summary>
             /// <param name="configuration"></param>
+            /// <param name="activate"></param>
             /// <returns></returns>
             private async Task<Subscription> GetSubscriptionAsync(
-                SubscriptionConfigurationModel configuration = null) {
-                var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true, false);
+                SubscriptionConfigurationModel configuration, bool activate) {
+                var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true);
                 if (session == null) {
                     return null;
                 }
+
+                if (configuration != null) {
+                    // Apply new configuration right here saving us from modifying later
+                    _subscription.Configuration = configuration.Clone();
+                }
+
+                // calculate the KeepAliveCount no matter what, perhaps monitored items were changed
+                var revisedKeepAliveCount = _subscription.Configuration.KeepAliveCount
+                    .GetValueOrDefault(session.DefaultSubscription.KeepAliveCount);
+                _subscription.MonitoredItems?.ForEach(m => {
+                    if (m.HeartbeatInterval != null && m.HeartbeatInterval != TimeSpan.Zero) {
+                        var itemKeepAliveCount = (uint)m.HeartbeatInterval.Value.TotalMilliseconds /
+                            (uint)_subscription.Configuration.PublishingInterval.Value.TotalMilliseconds;
+                        revisedKeepAliveCount = GreatCommonDivisor(revisedKeepAliveCount, itemKeepAliveCount);
+                    }
+                });
+
                 var subscription = session.Subscriptions.SingleOrDefault(s => s.Handle == this);
                 if (subscription == null) {
-
-                    if (configuration != null) {
-                        // Apply new configuration right here saving us from modifying later
-                        _subscription.Configuration = configuration.Clone();
-                    }
-
-                    // calculate the KeepAliveCount
-                    var revisedKeepAliveCount = _subscription.Configuration.KeepAliveCount ??
-                        session.DefaultSubscription.KeepAliveCount;
-                    _subscription.MonitoredItems.ForEach(m => {
-                        if (m.HeartbeatInterval != null && m.HeartbeatInterval != TimeSpan.Zero) {
-                            var itemKeepAliveCount = (uint)m.HeartbeatInterval.Value.TotalMilliseconds /
-                                (uint)_subscription.Configuration.PublishingInterval.Value.TotalMilliseconds;
-                            revisedKeepAliveCount = GreatCommonDivisor(revisedKeepAliveCount, itemKeepAliveCount);
-                        }
-                    });
-
                     subscription = new Subscription(session.DefaultSubscription) {
                         Handle = this,
-                        PublishingInterval = (int)
-                            (_subscription.Configuration.PublishingInterval ?? TimeSpan.FromMilliseconds(1000)).TotalMilliseconds,
                         DisplayName = Id,
-                        MaxNotificationsPerPublish = _subscription.Configuration.MaxNotificationsPerPublish ?? 0,
-                        PublishingEnabled = false, // false on initialization
+                        PublishingEnabled = activate, // false on initialization
                         KeepAliveCount = revisedKeepAliveCount,
-                        LifetimeCount = _subscription.Configuration.LifetimeCount ?? session.DefaultSubscription.LifetimeCount,
-                        Priority = _subscription.Configuration.Priority ?? session.DefaultSubscription.Priority,
-                        TimestampsToReturn = session.DefaultSubscription.TimestampsToReturn,
-                        FastDataChangeCallback = OnSubscriptionDataChanged
+                        FastDataChangeCallback = OnSubscriptionDataChanged,
+                        PublishingInterval = (int)_subscription.Configuration.PublishingInterval
+                            .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
+                        MaxNotificationsPerPublish = _subscription.Configuration.MaxNotificationsPerPublish
+                            .GetValueOrDefault(0),
+                        LifetimeCount = _subscription.Configuration.LifetimeCount
+                            .GetValueOrDefault(session.DefaultSubscription.LifetimeCount),
+                        Priority = _subscription.Configuration.Priority
+                            .GetValueOrDefault(session.DefaultSubscription.Priority)
                     };
-
-                    session.AddSubscription(subscription);
-                    subscription.Create();
-
-                    _logger.Debug("Added subscription '{name}' to session '{session}'.",
-                         Id, session.SessionName);
+                    var result = session.AddSubscription(subscription);
+                    if (!result) {
+                        _logger.Error("Adding subscription '{name}' to session '{session}' failed.",
+                             Id, session.SessionName);
+                        subscription = null;
+                    }
+                    else {
+                        subscription.Create();
+                        _logger.Debug("Added subscription '{name}' to session '{session}'.",
+                             Id, session.SessionName);
+                    }
                 }
                 else {
-                    // Set configuration on original subscription
-                    ReviseConfiguration(subscription, configuration, null);
+                    // Apply new configuration on configuration on original subscription
+                    var modifySubscription = false;
+
+                    if (revisedKeepAliveCount != subscription.KeepAliveCount) {
+                        _logger.Debug(
+                            "{subscription} Changing KeepAlive Count from {old} to {new}",
+                            _subscription.Id, _subscription.Configuration?.KeepAliveCount ?? 0,
+                            revisedKeepAliveCount);
+
+                        subscription.KeepAliveCount = revisedKeepAliveCount;
+                        modifySubscription = true;
+                    }
+                    if (subscription.PublishingInterval != (int)_subscription.Configuration.PublishingInterval
+                            .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds) {
+                        _logger.Debug(
+                            "{subscription} Changing publishing interval from {old} to {new}",
+                            _subscription.Id,
+                            configuration?.PublishingInterval ?? TimeSpan.Zero);
+                        subscription.PublishingInterval = (int)_subscription.Configuration.PublishingInterval
+                            .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
+
+                        modifySubscription = true;
+                    }
+                    if (subscription.MaxNotificationsPerPublish != _subscription.Configuration.MaxNotificationsPerPublish
+                            .GetValueOrDefault(0)) {
+                        _logger.Debug(
+                            "{subscription} Changing Max NotificationsPerPublish from {old} to {new}",
+                            _subscription.Id, _subscription.Configuration?.MaxNotificationsPerPublish ?? 0,
+                            configuration?.MaxNotificationsPerPublish ?? 0);
+                        subscription.MaxNotificationsPerPublish = _subscription.Configuration.MaxNotificationsPerPublish
+                            .GetValueOrDefault(0);
+                        modifySubscription = true;
+                    }
+                    if (subscription.LifetimeCount != _subscription.Configuration.LifetimeCount
+                            .GetValueOrDefault(session.DefaultSubscription.LifetimeCount)) {
+                        _logger.Debug(
+                            "{subscription} Changing Lifetime Count from {old} to {new}",
+                            _subscription.Id, _subscription.Configuration?.LifetimeCount ?? 0,
+                            configuration?.LifetimeCount ?? 0);
+                        subscription.LifetimeCount = _subscription.Configuration.LifetimeCount
+                            .GetValueOrDefault(session.DefaultSubscription.LifetimeCount);
+                        modifySubscription = true;
+                    }
+                    if (subscription.Priority != _subscription.Configuration.Priority
+                            .GetValueOrDefault(session.DefaultSubscription.Priority)) {
+                        _logger.Debug("{subscription} Changing Priority from {old} to {new}",
+                            _subscription.Id, _subscription.Configuration?.Priority ?? 0,
+                            configuration?.Priority ?? 0);
+                        subscription.Priority = _subscription.Configuration.Priority
+                            .GetValueOrDefault(session.DefaultSubscription.Priority);
+                        modifySubscription = true;
+                    }
+                    if (modifySubscription) {
+                        subscription.Modify();
+                    }
+                    if (subscription.CurrentPublishingEnabled != activate) {
+                        // do not deactivate an already activated subscription
+                        subscription.SetPublishingMode(activate);
+                    }
                 }
                 return subscription;
             }
@@ -844,12 +857,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <summary>
-            /// Create new
+            /// Create new stack monitored item
             /// </summary>
             /// <param name="session"></param>
             /// <param name="codec"></param>
+            /// <param name="activate"></param>
             /// <returns></returns>
-            internal void Create(Session session, IVariantEncoder codec) {
+            internal void Create(Session session, IVariantEncoder codec, bool activate) {
                 Item = new MonitoredItem {
                     Handle = this,
                     DisplayName = Template.DisplayName,
@@ -858,8 +872,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     RelativePath = Template.RelativePath?
                                 .ToRelativePath(session.MessageContext)?
                                 .Format(session.NodeCache.TypeTree),
-                    MonitoringMode = Template.MonitoringMode.ToStackType() ??
-                                Opc.Ua.MonitoringMode.Reporting,
+                    MonitoringMode = activate 
+                        ? Template.MonitoringMode.ToStackType() ?? Opc.Ua.MonitoringMode.Reporting
+                        : Opc.Ua.MonitoringMode.Disabled,
                     StartNodeId = Template.StartNodeId.ToNodeId(session.MessageContext),
                     QueueSize = Template.QueueSize ?? 2,
                     SamplingInterval =
@@ -932,7 +947,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     Template.MonitoringMode = model.Template.MonitoringMode;
                     _modeChange = Template.MonitoringMode ??
                         Publisher.Models.MonitoringMode.Reporting;
-                    changes = true;
                 }
 
                 // TODO
@@ -984,7 +998,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ISessionManager _sessionManager;
         private readonly IVariantEncoderFactory _codec;
         private readonly Timer _timer;
-        private bool _errorSigneled;
+        private bool _errorSignaled;
         private readonly TimeSpan kFastRetryTimespan = TimeSpan.FromSeconds(5);
         private readonly TimeSpan kIdleCheckTimespan = TimeSpan.FromSeconds(15);
 
