@@ -3,8 +3,8 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
  ------------------------------------------------------------*@
 
-@page "/browser/{applicationId}/{endpointId}"
-@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
+@page "/browser/{page}/{applicationId}/{endpointId}"
+@page "/browser/{page}/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
 
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
@@ -44,15 +44,15 @@
 <div>
     @if (DiscovererId != string.Empty && DiscovererId != RegistryHelper.PathAll)
     {
-        <a href="/discoverers/">/ @DiscovererId</a>
+        <a href="/discoverers/1">/ @DiscovererId</a>
     }
     @if (ApplicationId != string.Empty && ApplicationId != RegistryHelper.PathAll)
     {
-        <a href="/applications/">/ @CommonHelper.ApplicationUri[ApplicationId]</a>
+        <a href="/applications/1">/ @CommonHelper.ApplicationUri[ApplicationId]</a>
     }
     @if (SupervisorId != string.Empty && SupervisorId != RegistryHelper.PathAll)
     {
-        <a href="/supervisors/">/ @SupervisorId</a>
+        <a href="/supervisors/1">/ @SupervisorId</a>
     }
 
     @if (BrowseManager.Path != null)
@@ -98,7 +98,7 @@
                     {
                         if (PagedNodeList.Results[0].DiscovererId != null)
                         {
-                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId'>
+                            <a href='endpoints/1/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId'>
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
@@ -254,6 +254,7 @@
         Publisher
     }
     private drawer _drawerType { get; set; }
+    private const int _firstPage = 1;
 
 
     /// <summary>
@@ -266,7 +267,7 @@
         StateHasChanged();
         if (!string.IsNullOrEmpty(NodeList.ContinuationToken) && page > PagedNodeList.PageCount)
         {
-            await BrowseTreeAsync(BrowseDirection.Forward, 0, false);
+            await BrowseTreeAsync(BrowseDirection.Forward, 0, false, page);
         }
         PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, null);
         foreach (var node in PagedNodeList.Results)
@@ -300,7 +301,7 @@
             var endpoint = await registryService.GetEndpointAsync(EndpointId);
             EndpointUrl = endpoint?.Registration?.EndpointUrl;
             Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
-            await BrowseTreeAsync(BrowseDirection.Forward, 0, true, string.Empty, new List<string>());
+            await BrowseTreeAsync(BrowseDirection.Forward, 0, true, _firstPage, string.Empty, new List<string>());
             CommonHelper.Spinner = string.Empty;
             CommonHelper.CheckErrorOrEmpty<ListNode>(PagedNodeList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
@@ -316,7 +317,7 @@
     /// <param name="parentId"></param>
     private async Task GetTreeAsync(string id, List<string> parentId)
     {
-        await BrowseTreeAsync(BrowseDirection.Forward, 0, true, id, parentId);
+        await BrowseTreeAsync(BrowseDirection.Forward, 0, true, _firstPage, id, parentId);
     }
 
     /// <summary>
@@ -326,8 +327,8 @@
     /// <param name="parentId"></param>
     private async Task GetTreeBackAsync(string id, List<string> parentId, int index)
     {
-        await BrowseTreeAsync(BrowseDirection.Backward, index, true, id, parentId);
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
+        await BrowseTreeAsync(BrowseDirection.Backward, index, true, _firstPage, id, parentId);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/1/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
     }
 
     /// <summary>
@@ -336,7 +337,7 @@
     /// <param name="id"></param>
     /// <param name="parentId"></param>
     /// <param name="direction"></param>
-    private async Task BrowseTreeAsync(BrowseDirection direction, int index, bool firstPage, String id = null, List<string> parentId = null)
+    private async Task BrowseTreeAsync(BrowseDirection direction, int index, bool firstPage, int page, string id = null, List<string> parentId = null)
     {
         CommonHelper.Spinner = "loader-big";
 
@@ -379,8 +380,15 @@
             }
         }
 
-        Page = "1";
-        PagedNodeList = NodeList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, NodeList.Error);
+        PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, NodeList.Error);
+        if (string.IsNullOrEmpty(DiscovererId))
+        {
+            NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + page + "/" + ApplicationId + "/" + EndpointId);
+        }
+        else
+        {
+            NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + page + "/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
+        }
         CommonHelper.Spinner = "";
     }
 
