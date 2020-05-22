@@ -102,7 +102,7 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _supervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, _supervisorList, ref _pagedsupervisorList);
+        _supervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, _supervisorList, ref _pagedsupervisorList, CommonHelper.PageLength);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }

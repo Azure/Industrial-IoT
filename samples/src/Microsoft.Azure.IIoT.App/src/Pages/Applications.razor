@@ -104,7 +104,7 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _applicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, _applicationList, ref _pagedapplicationList);
+        _applicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, _applicationList, ref _pagedapplicationList, CommonHelper.PageLength);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }

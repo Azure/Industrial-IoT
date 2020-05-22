@@ -191,7 +191,7 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _discovererList = CommonHelper.UpdatePage(RegistryHelper.GetDiscovererListAsync, page, _discovererList, ref _pagedDiscovererList);
+        _discovererList = CommonHelper.UpdatePage(RegistryHelper.GetDiscovererListAsync, page, _discovererList, ref _pagedDiscovererList, CommonHelper.PageLengthSmall);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -411,7 +411,7 @@
     private Task DiscovererEvent(DiscovererEventApiModel ev)
     {
         _discovererList.Results.Update(ev);
-        _pagedDiscovererList = _discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _discovererList.Error);
+        _pagedDiscovererList = _discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _discovererList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }
