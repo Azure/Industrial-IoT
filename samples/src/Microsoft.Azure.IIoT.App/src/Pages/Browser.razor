@@ -137,7 +137,7 @@
                ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
             {
                 <td>
-                    <div class="td-fixed">
+                    <div class="td-scroll">
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Action))">
                             @{string outputValue = $"{node.Value}";}
                             @{string outputType = $"({node.DataType})";}

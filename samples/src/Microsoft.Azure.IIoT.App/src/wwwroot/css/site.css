@@ -242,6 +242,12 @@ ellipsis-space {
     height: 48px;
 }
 
+.td-scroll {
+    overflow: auto;
+    max-height: 160px;
+    width: 300px;
+}
+
 .tsi_link {
     margin-right: 1.5rem;
 }
