@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
     using Autofac.Extensions.Hosting;
+    using Serilog;
 
     /// <summary>
     /// Main entry point
@@ -31,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
                 .UseAutofac()
                 .ConfigureWebHostDefaults(builder => builder
                     .UseUrls("http://*:9050")
-                    //.UseSerilog()
+                    .UseSerilog()
                     .UseStartup<Startup>()
                     .UseKestrel(o => o.AddServerHeader = false));
         }
