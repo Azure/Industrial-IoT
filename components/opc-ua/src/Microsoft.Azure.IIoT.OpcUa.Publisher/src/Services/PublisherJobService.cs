@@ -199,6 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                             NodeId = variable.PublishedVariableNodeId,
                             DisplayName = variable.PublishedVariableDisplayName,
                             SamplingInterval = variable.SamplingInterval,
+                            HeartbeatInterval = variable.HeartbeatInterval,
                             PublishingInterval = source.SubscriptionSettings.PublishingInterval
                         }))
                     .ToList();

@@ -379,7 +379,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                     finally {
                         _logger.Debug("Stopping twin...");
                         Status = EndpointActivationState.Activated;
-                        await host.StopAsync(true);
+                        await host.StopAsync();
                         _logger.Information("Twin stopped.");
                         _started.TrySetResult(false); // Cancelled before started
                     }

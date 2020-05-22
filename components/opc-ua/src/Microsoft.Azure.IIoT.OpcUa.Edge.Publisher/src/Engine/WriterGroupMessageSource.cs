@@ -62,16 +62,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public async Task RunAsync(CancellationToken ct) {
 
-            foreach (var subscription in _subscriptions) {
-                await subscription.OpenAsync(ct);
-            }
-
-            foreach (var subscription in _subscriptions) {
-                await subscription.ActivateAsync(ct);
-            }
-
+            _subscriptions.ForEach(sc => sc.OpenAsync().ConfigureAwait(false));
+            _subscriptions.ForEach(sc => sc.ActivateAsync(ct).ConfigureAwait(false));
             await Task.Delay(-1, ct); // TODO - add managemnt of subscriptions, etc.
 
+            _subscriptions.ForEach(sc => sc.DeactivateAsync().ConfigureAwait(false));
+            _subscriptions.ForEach(sc => sc.Dispose());
+            _subscriptions.Clear();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Dispose() {
+            _subscriptions.ForEach(sc => sc.DeactivateAsync().ConfigureAwait(false));
             _subscriptions.ForEach(sc => sc.Dispose());
             _subscriptions.Clear();
         }
@@ -123,10 +127,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Open subscription
             /// </summary>
-            /// <param name="ct"></param>
             /// <returns></returns>
-            public async Task OpenAsync(CancellationToken ct) {
-                
+            public async Task OpenAsync() {
                 if (Subscription != null) {
                     _outer._logger.Warning("Subscription already exists");
                     return;
@@ -168,9 +170,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// deactivate a subscription
             /// </summary>
-            /// <param name="ct"></param>
             /// <returns></returns>
-            public async Task DeactivateAsync(CancellationToken ct) {
+            public async Task DeactivateAsync() {
                 
                 if (Subscription == null) {
                     _outer._logger.Warning("Subscription not registered");
