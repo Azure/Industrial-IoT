@@ -91,8 +91,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _logger.Error(ce, "Module Host stopping caused exception.");
                 }
                 finally {
-                    kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
-                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+                    kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "", _moduleGuid, "",
+                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", 
                         CultureInfo.InvariantCulture)).Set(0);
                     Client?.Dispose();
                     Client = null;
@@ -146,6 +146,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
                         // Done...
                         kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
+                            _moduleGuid, version,
                             DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                             CultureInfo.InvariantCulture)).Set(1);
                         _logger.Information("Module Host started.");
@@ -154,6 +155,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
                 catch (Exception ex) {
                     kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
+                        _moduleGuid, version,
                         DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                         CultureInfo.InvariantCulture)).Set(0);
                     _logger.Error("Module Host failed to start.");
@@ -538,10 +540,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, VariantValue> _reported =
             new Dictionary<string, VariantValue>();
+        private readonly string _moduleGuid = Guid.NewGuid().ToString();
         private static readonly Gauge kModuleStart = Metrics
             .CreateGauge("iiot_edge_module_start", "starting module",
                 new GaugeConfiguration {
-                    LabelNames = new[] {"deviceid", "module", "timestamp_utc" }
+                    LabelNames = new[] {"deviceid", "module", "runid", "version", "timestamp_utc" }
                 });
     }
 }
