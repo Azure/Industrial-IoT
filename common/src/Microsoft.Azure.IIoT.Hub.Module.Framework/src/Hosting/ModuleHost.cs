@@ -94,9 +94,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "", ModuleGuid, "",
                         DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", 
                         CultureInfo.InvariantCulture)).Set(0);
-                    kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
-                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                        CultureInfo.InvariantCulture)).Set(0);
                     Client?.Dispose();
                     Client = null;
                     _reported?.Clear();
