@@ -425,10 +425,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 _metrics.TrackValue("applicationsAdded", added);
                 _metrics.TrackValue("applicationsUpdated", updated);
                 _metrics.TrackValue("applicationsUnchanged", unchanged);
-                kAppsAdded.Set(added);
-                kAppsUpdated.Set(updated);
-                kAppsUnchanged.Set(unchanged);
             }
+            kAppsAdded.Set(added);
+            kAppsUpdated.Set(updated);
+            kAppsUnchanged.Set(unchanged);
         }
 
         private readonly IApplicationRepository _database;

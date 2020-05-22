@@ -78,8 +78,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
                 }
                 SentMessagesCount += messagesCount;
-                kMessagesSent.WithLabels(_identity.DeviceId ?? "",
-                    _identity.ModuleId ?? "", InstanceGuid).Set(SentMessagesCount);
+                kMessagesSent.WithLabels(_identity?.DeviceId ?? "",
+                    _identity?.ModuleId ?? "", IotHubMessageSinkGuid).Set(SentMessagesCount);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ILogger _logger;
         private readonly IClientAccessor _clientAccessor;
         private readonly IIdentity _identity;
-        private readonly string InstanceGuid = Guid.NewGuid().ToString();
+        private readonly string IotHubMessageSinkGuid = Guid.NewGuid().ToString();
         private static readonly GaugeConfiguration kGaugeConfig = new GaugeConfiguration
         {
             LabelNames = new[] { "deviceid", "module", "guid"}
