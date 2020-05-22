@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     /// <summary>
     /// Writer group
     /// </summary>
-    public interface IMessageTrigger {
+    public interface IMessageTrigger : IDisposable {
 
         /// <summary>
         /// Writer group id

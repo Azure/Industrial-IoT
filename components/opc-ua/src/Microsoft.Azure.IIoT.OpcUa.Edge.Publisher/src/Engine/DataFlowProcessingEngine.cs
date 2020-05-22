@@ -81,7 +81,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (IsRunning) {
                     return;
                 }
-
                 IsRunning = true;
                 _diagnosticStart = DateTime.UtcNow;
                 if (_config.DiagnosticsInterval.HasValue && _config.DiagnosticsInterval > TimeSpan.Zero){
