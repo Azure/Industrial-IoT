@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             "iiot_edge_publisher_messages", "Number of messages sent to IotHub",
                 new GaugeConfiguration
                 {
-                    LabelNames = new[] { "guid" }
+                    LabelNames = new[] { "runid" }
                 });
         private static readonly Histogram kSendingDuration = Metrics.CreateHistogram(
             "iiot_edge_publisher_messages_duration", "Histogram of message sending durations");
