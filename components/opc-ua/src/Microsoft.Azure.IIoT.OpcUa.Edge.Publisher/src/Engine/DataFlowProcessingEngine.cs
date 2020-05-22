@@ -62,7 +62,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public void Dispose() {
             _messageTrigger.OnMessage -= MessageTriggerMessageReceived;
-            _messageTrigger.Dispose();
             _diagnosticsOutputTimer?.Dispose();
             _batchTriggerIntervalTimer?.Dispose();
         }

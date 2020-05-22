@@ -61,15 +61,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task RunAsync(CancellationToken ct) {
-/*
-            foreach (var subscription in _subscriptions) {
-                await subscription.OpenAsync();
-            }
-
-            foreach (var subscription in _subscriptions) {
-                await subscription.ActivateAsync(ct);
-            }
-*/
 
             _subscriptions.ForEach(sc => sc.OpenAsync().ConfigureAwait(false));
             _subscriptions.ForEach(sc => sc.ActivateAsync(ct).ConfigureAwait(false));
