@@ -74,6 +74,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         ValidateAudience = !string.IsNullOrEmpty(config.Audience),
                         ValidAudience = config.Audience
                     };
+                    options.MetadataAddress = config.GetAuthorityUrl() + "/.well-known/openid-configuration";
                     options.Events = new JwtBearerEvents {
                         OnTokenValidated = ctx => {
                             if (ctx.SecurityToken is JwtSecurityToken accessToken) {
