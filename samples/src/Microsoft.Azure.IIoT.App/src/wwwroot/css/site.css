@@ -245,7 +245,7 @@ ellipsis-space {
 .td-scroll {
     overflow: auto;
     max-height: 160px;
-    max-width: 500px;
+    width: 300px;
 }
 
 .tsi_link {
