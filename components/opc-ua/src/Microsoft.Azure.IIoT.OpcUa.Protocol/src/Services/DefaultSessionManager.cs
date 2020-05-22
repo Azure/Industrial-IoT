@@ -51,8 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             try {
                 // try to get an existing session
                 SessionWrapper wrapper = null;
+                await _lock.WaitAsync();
                 try {
-                    await _lock.WaitAsync();
                     _sessions.TryGetValue(id, out wrapper);
                 }
                 finally {
@@ -85,8 +85,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 _logger.Warning("Failed to reconnect session {sessionName} due to {exception}." +
                                     " Dispose and try create new.", wrapper.Session.SessionName, e.Message);
                                 //  todo check status codes
+                                await _lock.WaitAsync();
                                 try {
-                                    await _lock.WaitAsync();
                                     _sessions.Remove(id);
                                 }
                                 finally {
@@ -129,8 +129,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             if (wrapper?.Session != null) {
                                 _logger.Information("Connected on {endpointUrl}", endpointUrl);
                                 SessionWrapper original = null;
+                                await _lock.WaitAsync();
                                 try {
-                                    await _lock.WaitAsync();
                                     if (!_sessions.TryGetValue(id, out original)) {
                                         _sessions.TryAdd(id, wrapper);
                                     }
@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         private async Task<SessionWrapper> CreateSessionAsync(string endpointUrl,
             ConnectionIdentifier id) {
-            var sessionName = id.ToString();
+            var sessionName = $"Azure IIoT Publisher({id})";
 
             // Validate certificates
             void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e) {
@@ -265,8 +265,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public async Task RemoveSessionAsync(ConnectionModel connection, bool onlyIfEmpty = true) {
             var key = new ConnectionIdentifier(connection);
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
                 if (!_sessions.TryGetValue(key, out var wrapper) || wrapper?.Session == null) {
                     return;
                 }
@@ -323,13 +323,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="session"></param>
         /// <param name="e"></param>
-        private async void Session_KeepAlive(Session session, KeepAliveEventArgs e) {
+        private void Session_KeepAlive(Session session, KeepAliveEventArgs e) {
             _logger.Debug("Keep Alive received from session {name}, state: {state}.",
                 session.SessionName, e.CurrentState);
             try {
                 KeyValuePair <ConnectionIdentifier, SessionWrapper> entry;
+                _lock.Wait();
                 try {
-                    await _lock.WaitAsync();
                     entry = _sessions.FirstOrDefault(s => s.Value.Session.SessionId == session.SessionId);
                 }
                 finally {
@@ -342,11 +342,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     else {
                         try {
-                            await Task.Run(async () => await GetOrCreateSessionAsync(
+                            Task.Run(() => GetOrCreateSessionAsync(
                                 entry.Key.Connection, true, e.Status.Code));
+                            _logger.Information("Session '{name}' schedule to reconnect.", session.SessionName);
                         }
-                        finally {
-                            _logger.Information("Session '{name}' scheduled to reconnect.", session.SessionName);
+                        catch(Exception ex) {
+                            _logger.Error(ex, "Session '{name}' schedule to reconnect failure.", session.SessionName);
                         }
                     }
                 }
