@@ -40,7 +40,7 @@
         {
             <tr>
                 <td>
-                    <a href='endpoints/@RegistryHelper.PathAll/@RegistryHelper.PathAll/@supervisor.Id'>
+                    <a href='endpoints/1/@RegistryHelper.PathAll/@RegistryHelper.PathAll/@supervisor.Id'>
                         @supervisor.Id
                     </a>
                 </td>
@@ -102,7 +102,8 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _supervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, _supervisorList, ref _pagedsupervisorList);
+        _supervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, _supervisorList, ref _pagedsupervisorList, CommonHelper.PageLength);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "supervisors/" + page);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -191,7 +192,7 @@
     /// Dispose
     /// </summary>
     public async void Dispose()
-    {
+{
         if (_supervisorEvent != null)
         {
             await _supervisorEvent.DisposeAsync();

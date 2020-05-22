@@ -3,7 +3,7 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
  ------------------------------------------------------------*@
 
-@page "/gateways"
+@page "/gateways/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -71,7 +71,8 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _gatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, _gatewayList, ref _pagedGatewayList);
+        _gatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, _gatewayList, ref _pagedGatewayList, CommonHelper.PageLength);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "gateways/" + page);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
