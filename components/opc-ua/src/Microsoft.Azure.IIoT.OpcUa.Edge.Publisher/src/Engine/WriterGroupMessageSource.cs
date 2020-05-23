@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
-    public class WriterGroupMessageTrigger : IMessageTrigger {
+    public class WriterGroupMessageTrigger : IMessageTrigger, IDisposable {
         /// <inheritdoc/>
         public string Id => _writerGroup.WriterGroupId;
 
