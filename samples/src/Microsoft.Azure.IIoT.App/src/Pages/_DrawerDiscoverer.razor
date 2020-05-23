@@ -30,19 +30,19 @@
                 <input @bind="@DiscovererData.RequestedMaxNetworkProbes" aria-label="maxNetworkProbes" id="MaxNetworkProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxNetworkProbes ?? "Max Network Probes")" />
             </div>
             <div class="form-group">
-                <label>Network Probe Timeout</label>
-                <input @bind="@DiscovererData.RequestedNetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveNetworkProbeTimeout ?? "Network Probe Timeout")" />
-            </div>
-            <div class="form-group">
                 <label>Max Port Probes</label>
                 <input @bind="@DiscovererData.RequestedMaxPortProbes" aria-label="maxPortProbes" id="MaxPortProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxPortProbes ?? "Max Port Probes")" />
+            </div>
+            <div class="form-group">
+                <label>Network Probe Timeout</label>
+                <input @bind="@DiscovererData.RequestedNetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveNetworkProbeTimeout ?? "Network Probe Timeout")" />
             </div>
             <div class="form-group">
                 <label>Port Probe Timeout</label>
                 <input @bind="@DiscovererData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortProbeTimeout ?? "Port Probe Timeout")" />
             </div>
             <div class="form-group">
-                <label>Idle TimeBetween Scans</label>
+                <label>Idle Time Between Scans</label>
                 <input @bind="@DiscovererData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveIdleTimeBetweenScans ?? "Idle Time Between Scans")" />
             </div>
             <label>Discovery Urls</label>
