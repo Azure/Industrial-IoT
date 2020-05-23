@@ -3,7 +3,7 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
  ------------------------------------------------------------*@
 
-@page "/publishers"
+@page "/publishers/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -95,7 +95,8 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _publisherList = CommonHelper.UpdatePage(RegistryHelper.GetPublisherListAsync, page, _publisherList, ref _pagedPublisherList);
+        _publisherList = CommonHelper.UpdatePage(RegistryHelper.GetPublisherListAsync, page, _publisherList, ref _pagedPublisherList, CommonHelper.PageLengthSmall);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "publishers/" + page);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -118,7 +119,7 @@
         {
             _publisherList = await RegistryHelper.GetPublisherListAsync();
             Page = "1";
-            _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _publisherList.Error);
+            _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
             CommonHelper.Spinner = string.Empty;
             CommonHelper.CheckErrorOrEmpty<PublisherApiModel>(_pagedPublisherList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
@@ -131,7 +132,7 @@
     private Task PublisherEvent(PublisherEventApiModel ev)
     {
         _publisherList.Results.Update(ev);
-        _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _publisherList.Error);
+        _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }

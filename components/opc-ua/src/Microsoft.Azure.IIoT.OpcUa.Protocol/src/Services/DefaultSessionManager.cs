@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Xml;
 
     /// <summary>
     /// Session manager

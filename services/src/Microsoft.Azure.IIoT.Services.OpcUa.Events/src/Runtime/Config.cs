@@ -75,7 +75,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
             PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX,
-                () => "telemetryux");
+                () => IsMinimumDeployment ? "$default" : "telemetryux");
+        /// <inheritdoc/>
+        public bool IsMinimumDeployment =>
+            GetStringOrDefault(PcsVariable.PCS_DEPLOYMENT_LEVEL)
+                .EqualsIgnoreCase("Minimum");
 
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
