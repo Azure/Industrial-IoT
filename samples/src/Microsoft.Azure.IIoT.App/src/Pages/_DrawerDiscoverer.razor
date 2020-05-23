@@ -18,7 +18,7 @@
     <div class="list-group-item text-left">
         <form>
             <div class="form-group">
-                <label>Scan mask</label>
+                <label>Mask address range (CIDR notation)</label>
                 <input @bind="@DiscovererData.RequestedAddressRangesToScan" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveAddressRangesToScan ?? "IP-address/netmask")" />
             </div>
             <div class="form-group">
