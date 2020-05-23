@@ -415,9 +415,7 @@ namespace TestData {
         #region Public Properties
         /// <remarks />
         public PropertyState<bool> SimulationActive {
-            get {
-                return m_simulationActive;
-            }
+            get => m_simulationActive;
 
             set {
                 if (!Object.ReferenceEquals(m_simulationActive, value)) {
@@ -430,9 +428,7 @@ namespace TestData {
 
         /// <remarks />
         public GenerateValuesMethodState GenerateValues {
-            get {
-                return m_generateValuesMethod;
-            }
+            get => m_generateValuesMethod;
 
             set {
                 if (!Object.ReferenceEquals(m_generateValuesMethod, value)) {
@@ -445,9 +441,7 @@ namespace TestData {
 
         /// <remarks />
         public AcknowledgeableConditionState CycleComplete {
-            get {
-                return m_cycleComplete;
-            }
+            get => m_cycleComplete;
 
             set {
                 if (!Object.ReferenceEquals(m_cycleComplete, value)) {
@@ -1193,9 +1187,7 @@ namespace TestData {
         #region Public Properties
         /// <remarks />
         public BaseDataVariableState<bool> BooleanValue {
-            get {
-                return m_booleanValue;
-            }
+            get => m_booleanValue;
 
             set {
                 if (!Object.ReferenceEquals(m_booleanValue, value)) {
@@ -1208,9 +1200,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<sbyte> SByteValue {
-            get {
-                return m_sByteValue;
-            }
+            get => m_sByteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_sByteValue, value)) {
@@ -1223,9 +1213,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<byte> ByteValue {
-            get {
-                return m_byteValue;
-            }
+            get => m_byteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_byteValue, value)) {
@@ -1238,9 +1226,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<short> Int16Value {
-            get {
-                return m_int16Value;
-            }
+            get => m_int16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int16Value, value)) {
@@ -1253,9 +1239,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ushort> UInt16Value {
-            get {
-                return m_uInt16Value;
-            }
+            get => m_uInt16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt16Value, value)) {
@@ -1268,9 +1252,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<int> Int32Value {
-            get {
-                return m_int32Value;
-            }
+            get => m_int32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int32Value, value)) {
@@ -1283,9 +1265,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<uint> UInt32Value {
-            get {
-                return m_uInt32Value;
-            }
+            get => m_uInt32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt32Value, value)) {
@@ -1298,9 +1278,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<long> Int64Value {
-            get {
-                return m_int64Value;
-            }
+            get => m_int64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int64Value, value)) {
@@ -1313,9 +1291,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ulong> UInt64Value {
-            get {
-                return m_uInt64Value;
-            }
+            get => m_uInt64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt64Value, value)) {
@@ -1328,9 +1304,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<float> FloatValue {
-            get {
-                return m_floatValue;
-            }
+            get => m_floatValue;
 
             set {
                 if (!Object.ReferenceEquals(m_floatValue, value)) {
@@ -1343,9 +1317,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<double> DoubleValue {
-            get {
-                return m_doubleValue;
-            }
+            get => m_doubleValue;
 
             set {
                 if (!Object.ReferenceEquals(m_doubleValue, value)) {
@@ -1358,9 +1330,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<string> StringValue {
-            get {
-                return m_stringValue;
-            }
+            get => m_stringValue;
 
             set {
                 if (!Object.ReferenceEquals(m_stringValue, value)) {
@@ -1373,9 +1343,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<DateTime> DateTimeValue {
-            get {
-                return m_dateTimeValue;
-            }
+            get => m_dateTimeValue;
 
             set {
                 if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
@@ -1388,9 +1356,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<Guid> GuidValue {
-            get {
-                return m_guidValue;
-            }
+            get => m_guidValue;
 
             set {
                 if (!Object.ReferenceEquals(m_guidValue, value)) {
@@ -1403,9 +1369,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<byte[]> ByteStringValue {
-            get {
-                return m_byteStringValue;
-            }
+            get => m_byteStringValue;
 
             set {
                 if (!Object.ReferenceEquals(m_byteStringValue, value)) {
@@ -1418,9 +1382,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<XmlElement> XmlElementValue {
-            get {
-                return m_xmlElementValue;
-            }
+            get => m_xmlElementValue;
 
             set {
                 if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
@@ -1433,9 +1395,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<NodeId> NodeIdValue {
-            get {
-                return m_nodeIdValue;
-            }
+            get => m_nodeIdValue;
 
             set {
                 if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
@@ -1448,9 +1408,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ExpandedNodeId> ExpandedNodeIdValue {
-            get {
-                return m_expandedNodeIdValue;
-            }
+            get => m_expandedNodeIdValue;
 
             set {
                 if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
@@ -1463,9 +1421,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<QualifiedName> QualifiedNameValue {
-            get {
-                return m_qualifiedNameValue;
-            }
+            get => m_qualifiedNameValue;
 
             set {
                 if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
@@ -1478,9 +1434,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<LocalizedText> LocalizedTextValue {
-            get {
-                return m_localizedTextValue;
-            }
+            get => m_localizedTextValue;
 
             set {
                 if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
@@ -1493,9 +1447,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<StatusCode> StatusCodeValue {
-            get {
-                return m_statusCodeValue;
-            }
+            get => m_statusCodeValue;
 
             set {
                 if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
@@ -1508,9 +1460,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState VariantValue {
-            get {
-                return m_variantValue;
-            }
+            get => m_variantValue;
 
             set {
                 if (!Object.ReferenceEquals(m_variantValue, value)) {
@@ -1523,9 +1473,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<int> EnumerationValue {
-            get {
-                return m_enumerationValue;
-            }
+            get => m_enumerationValue;
 
             set {
                 if (!Object.ReferenceEquals(m_enumerationValue, value)) {
@@ -1538,9 +1486,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ExtensionObject> StructureValue {
-            get {
-                return m_structureValue;
-            }
+            get => m_structureValue;
 
             set {
                 if (!Object.ReferenceEquals(m_structureValue, value)) {
@@ -1553,9 +1499,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState NumberValue {
-            get {
-                return m_numberValue;
-            }
+            get => m_numberValue;
 
             set {
                 if (!Object.ReferenceEquals(m_numberValue, value)) {
@@ -1568,9 +1512,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState IntegerValue {
-            get {
-                return m_integerValue;
-            }
+            get => m_integerValue;
 
             set {
                 if (!Object.ReferenceEquals(m_integerValue, value)) {
@@ -1583,9 +1525,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState UIntegerValue {
-            get {
-                return m_uIntegerValue;
-            }
+            get => m_uIntegerValue;
 
             set {
                 if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
@@ -2326,9 +2266,7 @@ namespace TestData {
         #region Public Properties
         /// <remarks />
         public AnalogItemState<sbyte> SByteValue {
-            get {
-                return m_sByteValue;
-            }
+            get => m_sByteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_sByteValue, value)) {
@@ -2341,9 +2279,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<byte> ByteValue {
-            get {
-                return m_byteValue;
-            }
+            get => m_byteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_byteValue, value)) {
@@ -2356,9 +2292,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<short> Int16Value {
-            get {
-                return m_int16Value;
-            }
+            get => m_int16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int16Value, value)) {
@@ -2371,9 +2305,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<ushort> UInt16Value {
-            get {
-                return m_uInt16Value;
-            }
+            get => m_uInt16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt16Value, value)) {
@@ -2386,9 +2318,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<int> Int32Value {
-            get {
-                return m_int32Value;
-            }
+            get => m_int32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int32Value, value)) {
@@ -2401,9 +2331,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<uint> UInt32Value {
-            get {
-                return m_uInt32Value;
-            }
+            get => m_uInt32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt32Value, value)) {
@@ -2416,9 +2344,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<long> Int64Value {
-            get {
-                return m_int64Value;
-            }
+            get => m_int64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int64Value, value)) {
@@ -2431,9 +2357,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<ulong> UInt64Value {
-            get {
-                return m_uInt64Value;
-            }
+            get => m_uInt64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt64Value, value)) {
@@ -2446,9 +2370,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<float> FloatValue {
-            get {
-                return m_floatValue;
-            }
+            get => m_floatValue;
 
             set {
                 if (!Object.ReferenceEquals(m_floatValue, value)) {
@@ -2461,9 +2383,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<double> DoubleValue {
-            get {
-                return m_doubleValue;
-            }
+            get => m_doubleValue;
 
             set {
                 if (!Object.ReferenceEquals(m_doubleValue, value)) {
@@ -2476,9 +2396,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState NumberValue {
-            get {
-                return m_numberValue;
-            }
+            get => m_numberValue;
 
             set {
                 if (!Object.ReferenceEquals(m_numberValue, value)) {
@@ -2491,9 +2409,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState IntegerValue {
-            get {
-                return m_integerValue;
-            }
+            get => m_integerValue;
 
             set {
                 if (!Object.ReferenceEquals(m_integerValue, value)) {
@@ -2506,9 +2422,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState UIntegerValue {
-            get {
-                return m_uIntegerValue;
-            }
+            get => m_uIntegerValue;
 
             set {
                 if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
@@ -3472,9 +3386,7 @@ namespace TestData {
         #region Public Properties
         /// <remarks />
         public BaseDataVariableState<bool[]> BooleanValue {
-            get {
-                return m_booleanValue;
-            }
+            get => m_booleanValue;
 
             set {
                 if (!Object.ReferenceEquals(m_booleanValue, value)) {
@@ -3487,9 +3399,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<sbyte[]> SByteValue {
-            get {
-                return m_sByteValue;
-            }
+            get => m_sByteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_sByteValue, value)) {
@@ -3502,9 +3412,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<byte[]> ByteValue {
-            get {
-                return m_byteValue;
-            }
+            get => m_byteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_byteValue, value)) {
@@ -3517,9 +3425,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<short[]> Int16Value {
-            get {
-                return m_int16Value;
-            }
+            get => m_int16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int16Value, value)) {
@@ -3532,9 +3438,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ushort[]> UInt16Value {
-            get {
-                return m_uInt16Value;
-            }
+            get => m_uInt16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt16Value, value)) {
@@ -3547,9 +3451,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<int[]> Int32Value {
-            get {
-                return m_int32Value;
-            }
+            get => m_int32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int32Value, value)) {
@@ -3562,9 +3464,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<uint[]> UInt32Value {
-            get {
-                return m_uInt32Value;
-            }
+            get => m_uInt32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt32Value, value)) {
@@ -3577,9 +3477,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<long[]> Int64Value {
-            get {
-                return m_int64Value;
-            }
+            get => m_int64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int64Value, value)) {
@@ -3592,9 +3490,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ulong[]> UInt64Value {
-            get {
-                return m_uInt64Value;
-            }
+            get => m_uInt64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt64Value, value)) {
@@ -3607,9 +3503,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<float[]> FloatValue {
-            get {
-                return m_floatValue;
-            }
+            get => m_floatValue;
 
             set {
                 if (!Object.ReferenceEquals(m_floatValue, value)) {
@@ -3622,9 +3516,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<double[]> DoubleValue {
-            get {
-                return m_doubleValue;
-            }
+            get => m_doubleValue;
 
             set {
                 if (!Object.ReferenceEquals(m_doubleValue, value)) {
@@ -3637,9 +3529,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<string[]> StringValue {
-            get {
-                return m_stringValue;
-            }
+            get => m_stringValue;
 
             set {
                 if (!Object.ReferenceEquals(m_stringValue, value)) {
@@ -3652,9 +3542,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<DateTime[]> DateTimeValue {
-            get {
-                return m_dateTimeValue;
-            }
+            get => m_dateTimeValue;
 
             set {
                 if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
@@ -3667,9 +3555,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<Guid[]> GuidValue {
-            get {
-                return m_guidValue;
-            }
+            get => m_guidValue;
 
             set {
                 if (!Object.ReferenceEquals(m_guidValue, value)) {
@@ -3682,9 +3568,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<byte[][]> ByteStringValue {
-            get {
-                return m_byteStringValue;
-            }
+            get => m_byteStringValue;
 
             set {
                 if (!Object.ReferenceEquals(m_byteStringValue, value)) {
@@ -3697,9 +3581,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<XmlElement[]> XmlElementValue {
-            get {
-                return m_xmlElementValue;
-            }
+            get => m_xmlElementValue;
 
             set {
                 if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
@@ -3712,9 +3594,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<NodeId[]> NodeIdValue {
-            get {
-                return m_nodeIdValue;
-            }
+            get => m_nodeIdValue;
 
             set {
                 if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
@@ -3727,9 +3607,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ExpandedNodeId[]> ExpandedNodeIdValue {
-            get {
-                return m_expandedNodeIdValue;
-            }
+            get => m_expandedNodeIdValue;
 
             set {
                 if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
@@ -3742,9 +3620,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<QualifiedName[]> QualifiedNameValue {
-            get {
-                return m_qualifiedNameValue;
-            }
+            get => m_qualifiedNameValue;
 
             set {
                 if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
@@ -3757,9 +3633,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<LocalizedText[]> LocalizedTextValue {
-            get {
-                return m_localizedTextValue;
-            }
+            get => m_localizedTextValue;
 
             set {
                 if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
@@ -3772,9 +3646,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<StatusCode[]> StatusCodeValue {
-            get {
-                return m_statusCodeValue;
-            }
+            get => m_statusCodeValue;
 
             set {
                 if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
@@ -3787,9 +3659,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<object[]> VariantValue {
-            get {
-                return m_variantValue;
-            }
+            get => m_variantValue;
 
             set {
                 if (!Object.ReferenceEquals(m_variantValue, value)) {
@@ -3802,9 +3672,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<int[]> EnumerationValue {
-            get {
-                return m_enumerationValue;
-            }
+            get => m_enumerationValue;
 
             set {
                 if (!Object.ReferenceEquals(m_enumerationValue, value)) {
@@ -3817,9 +3685,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ExtensionObject[]> StructureValue {
-            get {
-                return m_structureValue;
-            }
+            get => m_structureValue;
 
             set {
                 if (!Object.ReferenceEquals(m_structureValue, value)) {
@@ -3832,9 +3698,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<object[]> NumberValue {
-            get {
-                return m_numberValue;
-            }
+            get => m_numberValue;
 
             set {
                 if (!Object.ReferenceEquals(m_numberValue, value)) {
@@ -3847,9 +3711,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<object[]> IntegerValue {
-            get {
-                return m_integerValue;
-            }
+            get => m_integerValue;
 
             set {
                 if (!Object.ReferenceEquals(m_integerValue, value)) {
@@ -3862,9 +3724,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<object[]> UIntegerValue {
-            get {
-                return m_uIntegerValue;
-            }
+            get => m_uIntegerValue;
 
             set {
                 if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
@@ -4606,9 +4466,7 @@ namespace TestData {
         #region Public Properties
         /// <remarks />
         public AnalogItemState<sbyte[]> SByteValue {
-            get {
-                return m_sByteValue;
-            }
+            get => m_sByteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_sByteValue, value)) {
@@ -4621,9 +4479,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<byte[]> ByteValue {
-            get {
-                return m_byteValue;
-            }
+            get => m_byteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_byteValue, value)) {
@@ -4636,9 +4492,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<short[]> Int16Value {
-            get {
-                return m_int16Value;
-            }
+            get => m_int16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int16Value, value)) {
@@ -4651,9 +4505,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<ushort[]> UInt16Value {
-            get {
-                return m_uInt16Value;
-            }
+            get => m_uInt16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt16Value, value)) {
@@ -4666,9 +4518,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<int[]> Int32Value {
-            get {
-                return m_int32Value;
-            }
+            get => m_int32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int32Value, value)) {
@@ -4681,9 +4531,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<uint[]> UInt32Value {
-            get {
-                return m_uInt32Value;
-            }
+            get => m_uInt32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt32Value, value)) {
@@ -4696,9 +4544,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<long[]> Int64Value {
-            get {
-                return m_int64Value;
-            }
+            get => m_int64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int64Value, value)) {
@@ -4711,9 +4557,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<ulong[]> UInt64Value {
-            get {
-                return m_uInt64Value;
-            }
+            get => m_uInt64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt64Value, value)) {
@@ -4726,9 +4570,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<float[]> FloatValue {
-            get {
-                return m_floatValue;
-            }
+            get => m_floatValue;
 
             set {
                 if (!Object.ReferenceEquals(m_floatValue, value)) {
@@ -4741,9 +4583,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<double[]> DoubleValue {
-            get {
-                return m_doubleValue;
-            }
+            get => m_doubleValue;
 
             set {
                 if (!Object.ReferenceEquals(m_doubleValue, value)) {
@@ -4756,9 +4596,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<object[]> NumberValue {
-            get {
-                return m_numberValue;
-            }
+            get => m_numberValue;
 
             set {
                 if (!Object.ReferenceEquals(m_numberValue, value)) {
@@ -4771,9 +4609,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<object[]> IntegerValue {
-            get {
-                return m_integerValue;
-            }
+            get => m_integerValue;
 
             set {
                 if (!Object.ReferenceEquals(m_integerValue, value)) {
@@ -4786,9 +4622,7 @@ namespace TestData {
 
         /// <remarks />
         public AnalogItemState<object[]> UIntegerValue {
-            get {
-                return m_uIntegerValue;
-            }
+            get => m_uIntegerValue;
 
             set {
                 if (!Object.ReferenceEquals(m_uIntegerValue, value)) {
@@ -5232,9 +5066,7 @@ namespace TestData {
         #region Public Properties
         /// <remarks />
         public BaseDataVariableState<bool> BooleanValue {
-            get {
-                return m_booleanValue;
-            }
+            get => m_booleanValue;
 
             set {
                 if (!Object.ReferenceEquals(m_booleanValue, value)) {
@@ -5247,9 +5079,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<sbyte> SByteValue {
-            get {
-                return m_sByteValue;
-            }
+            get => m_sByteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_sByteValue, value)) {
@@ -5262,9 +5092,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<byte> ByteValue {
-            get {
-                return m_byteValue;
-            }
+            get => m_byteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_byteValue, value)) {
@@ -5277,9 +5105,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<short> Int16Value {
-            get {
-                return m_int16Value;
-            }
+            get => m_int16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int16Value, value)) {
@@ -5292,9 +5118,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ushort> UInt16Value {
-            get {
-                return m_uInt16Value;
-            }
+            get => m_uInt16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt16Value, value)) {
@@ -5307,9 +5131,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<int> Int32Value {
-            get {
-                return m_int32Value;
-            }
+            get => m_int32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int32Value, value)) {
@@ -5322,9 +5144,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<uint> UInt32Value {
-            get {
-                return m_uInt32Value;
-            }
+            get => m_uInt32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt32Value, value)) {
@@ -5337,9 +5157,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<long> Int64Value {
-            get {
-                return m_int64Value;
-            }
+            get => m_int64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int64Value, value)) {
@@ -5352,9 +5170,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ulong> UInt64Value {
-            get {
-                return m_uInt64Value;
-            }
+            get => m_uInt64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt64Value, value)) {
@@ -5367,9 +5183,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<float> FloatValue {
-            get {
-                return m_floatValue;
-            }
+            get => m_floatValue;
 
             set {
                 if (!Object.ReferenceEquals(m_floatValue, value)) {
@@ -5382,9 +5196,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<double> DoubleValue {
-            get {
-                return m_doubleValue;
-            }
+            get => m_doubleValue;
 
             set {
                 if (!Object.ReferenceEquals(m_doubleValue, value)) {
@@ -5397,9 +5209,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<string> StringValue {
-            get {
-                return m_stringValue;
-            }
+            get => m_stringValue;
 
             set {
                 if (!Object.ReferenceEquals(m_stringValue, value)) {
@@ -5412,9 +5222,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<DateTime> DateTimeValue {
-            get {
-                return m_dateTimeValue;
-            }
+            get => m_dateTimeValue;
 
             set {
                 if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
@@ -5427,9 +5235,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<Guid> GuidValue {
-            get {
-                return m_guidValue;
-            }
+            get => m_guidValue;
 
             set {
                 if (!Object.ReferenceEquals(m_guidValue, value)) {
@@ -5442,9 +5248,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<byte[]> ByteStringValue {
-            get {
-                return m_byteStringValue;
-            }
+            get => m_byteStringValue;
 
             set {
                 if (!Object.ReferenceEquals(m_byteStringValue, value)) {
@@ -5457,9 +5261,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<XmlElement> XmlElementValue {
-            get {
-                return m_xmlElementValue;
-            }
+            get => m_xmlElementValue;
 
             set {
                 if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
@@ -5472,9 +5274,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<NodeId> NodeIdValue {
-            get {
-                return m_nodeIdValue;
-            }
+            get => m_nodeIdValue;
 
             set {
                 if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
@@ -5487,9 +5287,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ExpandedNodeId> ExpandedNodeIdValue {
-            get {
-                return m_expandedNodeIdValue;
-            }
+            get => m_expandedNodeIdValue;
 
             set {
                 if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
@@ -5502,9 +5300,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<QualifiedName> QualifiedNameValue {
-            get {
-                return m_qualifiedNameValue;
-            }
+            get => m_qualifiedNameValue;
 
             set {
                 if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
@@ -5517,9 +5313,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<LocalizedText> LocalizedTextValue {
-            get {
-                return m_localizedTextValue;
-            }
+            get => m_localizedTextValue;
 
             set {
                 if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
@@ -5532,9 +5326,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<StatusCode> StatusCodeValue {
-            get {
-                return m_statusCodeValue;
-            }
+            get => m_statusCodeValue;
 
             set {
                 if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
@@ -5547,9 +5339,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState VariantValue {
-            get {
-                return m_variantValue;
-            }
+            get => m_variantValue;
 
             set {
                 if (!Object.ReferenceEquals(m_variantValue, value)) {
@@ -6574,9 +6364,7 @@ namespace TestData {
         #region Public Properties
         /// <remarks />
         public BaseDataVariableState<bool[]> BooleanValue {
-            get {
-                return m_booleanValue;
-            }
+            get => m_booleanValue;
 
             set {
                 if (!Object.ReferenceEquals(m_booleanValue, value)) {
@@ -6589,9 +6377,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<sbyte[]> SByteValue {
-            get {
-                return m_sByteValue;
-            }
+            get => m_sByteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_sByteValue, value)) {
@@ -6604,9 +6390,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<byte[]> ByteValue {
-            get {
-                return m_byteValue;
-            }
+            get => m_byteValue;
 
             set {
                 if (!Object.ReferenceEquals(m_byteValue, value)) {
@@ -6619,9 +6403,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<short[]> Int16Value {
-            get {
-                return m_int16Value;
-            }
+            get => m_int16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int16Value, value)) {
@@ -6634,9 +6416,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ushort[]> UInt16Value {
-            get {
-                return m_uInt16Value;
-            }
+            get => m_uInt16Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt16Value, value)) {
@@ -6649,9 +6429,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<int[]> Int32Value {
-            get {
-                return m_int32Value;
-            }
+            get => m_int32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int32Value, value)) {
@@ -6664,9 +6442,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<uint[]> UInt32Value {
-            get {
-                return m_uInt32Value;
-            }
+            get => m_uInt32Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt32Value, value)) {
@@ -6679,9 +6455,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<long[]> Int64Value {
-            get {
-                return m_int64Value;
-            }
+            get => m_int64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_int64Value, value)) {
@@ -6694,9 +6468,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ulong[]> UInt64Value {
-            get {
-                return m_uInt64Value;
-            }
+            get => m_uInt64Value;
 
             set {
                 if (!Object.ReferenceEquals(m_uInt64Value, value)) {
@@ -6709,9 +6481,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<float[]> FloatValue {
-            get {
-                return m_floatValue;
-            }
+            get => m_floatValue;
 
             set {
                 if (!Object.ReferenceEquals(m_floatValue, value)) {
@@ -6724,9 +6494,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<double[]> DoubleValue {
-            get {
-                return m_doubleValue;
-            }
+            get => m_doubleValue;
 
             set {
                 if (!Object.ReferenceEquals(m_doubleValue, value)) {
@@ -6739,9 +6507,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<string[]> StringValue {
-            get {
-                return m_stringValue;
-            }
+            get => m_stringValue;
 
             set {
                 if (!Object.ReferenceEquals(m_stringValue, value)) {
@@ -6754,9 +6520,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<DateTime[]> DateTimeValue {
-            get {
-                return m_dateTimeValue;
-            }
+            get => m_dateTimeValue;
 
             set {
                 if (!Object.ReferenceEquals(m_dateTimeValue, value)) {
@@ -6769,9 +6533,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<Guid[]> GuidValue {
-            get {
-                return m_guidValue;
-            }
+            get => m_guidValue;
 
             set {
                 if (!Object.ReferenceEquals(m_guidValue, value)) {
@@ -6784,9 +6546,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<byte[][]> ByteStringValue {
-            get {
-                return m_byteStringValue;
-            }
+            get => m_byteStringValue;
 
             set {
                 if (!Object.ReferenceEquals(m_byteStringValue, value)) {
@@ -6799,9 +6559,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<XmlElement[]> XmlElementValue {
-            get {
-                return m_xmlElementValue;
-            }
+            get => m_xmlElementValue;
 
             set {
                 if (!Object.ReferenceEquals(m_xmlElementValue, value)) {
@@ -6814,9 +6572,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<NodeId[]> NodeIdValue {
-            get {
-                return m_nodeIdValue;
-            }
+            get => m_nodeIdValue;
 
             set {
                 if (!Object.ReferenceEquals(m_nodeIdValue, value)) {
@@ -6829,9 +6585,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<ExpandedNodeId[]> ExpandedNodeIdValue {
-            get {
-                return m_expandedNodeIdValue;
-            }
+            get => m_expandedNodeIdValue;
 
             set {
                 if (!Object.ReferenceEquals(m_expandedNodeIdValue, value)) {
@@ -6844,9 +6598,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<QualifiedName[]> QualifiedNameValue {
-            get {
-                return m_qualifiedNameValue;
-            }
+            get => m_qualifiedNameValue;
 
             set {
                 if (!Object.ReferenceEquals(m_qualifiedNameValue, value)) {
@@ -6859,9 +6611,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<LocalizedText[]> LocalizedTextValue {
-            get {
-                return m_localizedTextValue;
-            }
+            get => m_localizedTextValue;
 
             set {
                 if (!Object.ReferenceEquals(m_localizedTextValue, value)) {
@@ -6874,9 +6624,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<StatusCode[]> StatusCodeValue {
-            get {
-                return m_statusCodeValue;
-            }
+            get => m_statusCodeValue;
 
             set {
                 if (!Object.ReferenceEquals(m_statusCodeValue, value)) {
@@ -6889,9 +6637,7 @@ namespace TestData {
 
         /// <remarks />
         public BaseDataVariableState<object[]> VariantValue {
-            get {
-                return m_variantValue;
-            }
+            get => m_variantValue;
 
             set {
                 if (!Object.ReferenceEquals(m_variantValue, value)) {
@@ -8003,9 +7749,7 @@ namespace TestData {
         #region Public Properties
         /// <remarks />
         public ScalarValue1MethodState ScalarMethod1 {
-            get {
-                return m_scalarMethod1Method;
-            }
+            get => m_scalarMethod1Method;
 
             set {
                 if (!Object.ReferenceEquals(m_scalarMethod1Method, value)) {
@@ -8018,9 +7762,7 @@ namespace TestData {
 
         /// <remarks />
         public ScalarValue2MethodState ScalarMethod2 {
-            get {
-                return m_scalarMethod2Method;
-            }
+            get => m_scalarMethod2Method;
 
             set {
                 if (!Object.ReferenceEquals(m_scalarMethod2Method, value)) {
@@ -8033,9 +7775,7 @@ namespace TestData {
 
         /// <remarks />
         public ScalarValue3MethodState ScalarMethod3 {
-            get {
-                return m_scalarMethod3Method;
-            }
+            get => m_scalarMethod3Method;
 
             set {
                 if (!Object.ReferenceEquals(m_scalarMethod3Method, value)) {
@@ -8048,9 +7788,7 @@ namespace TestData {
 
         /// <remarks />
         public ArrayValue1MethodState ArrayMethod1 {
-            get {
-                return m_arrayMethod1Method;
-            }
+            get => m_arrayMethod1Method;
 
             set {
                 if (!Object.ReferenceEquals(m_arrayMethod1Method, value)) {
@@ -8063,9 +7801,7 @@ namespace TestData {
 
         /// <remarks />
         public ArrayValue2MethodState ArrayMethod2 {
-            get {
-                return m_arrayMethod2Method;
-            }
+            get => m_arrayMethod2Method;
 
             set {
                 if (!Object.ReferenceEquals(m_arrayMethod2Method, value)) {
@@ -8078,9 +7814,7 @@ namespace TestData {
 
         /// <remarks />
         public ArrayValue3MethodState ArrayMethod3 {
-            get {
-                return m_arrayMethod3Method;
-            }
+            get => m_arrayMethod3Method;
 
             set {
                 if (!Object.ReferenceEquals(m_arrayMethod3Method, value)) {
@@ -8093,9 +7827,7 @@ namespace TestData {
 
         /// <remarks />
         public UserScalarValue1MethodState UserScalarMethod1 {
-            get {
-                return m_userScalarMethod1Method;
-            }
+            get => m_userScalarMethod1Method;
 
             set {
                 if (!Object.ReferenceEquals(m_userScalarMethod1Method, value)) {
@@ -8108,9 +7840,7 @@ namespace TestData {
 
         /// <remarks />
         public UserScalarValue2MethodState UserScalarMethod2 {
-            get {
-                return m_userScalarMethod2Method;
-            }
+            get => m_userScalarMethod2Method;
 
             set {
                 if (!Object.ReferenceEquals(m_userScalarMethod2Method, value)) {
@@ -8123,9 +7853,7 @@ namespace TestData {
 
         /// <remarks />
         public UserArrayValue1MethodState UserArrayMethod1 {
-            get {
-                return m_userArrayMethod1Method;
-            }
+            get => m_userArrayMethod1Method;
 
             set {
                 if (!Object.ReferenceEquals(m_userArrayMethod1Method, value)) {
@@ -8138,9 +7866,7 @@ namespace TestData {
 
         /// <remarks />
         public UserArrayValue2MethodState UserArrayMethod2 {
-            get {
-                return m_userArrayMethod2Method;
-            }
+            get => m_userArrayMethod2Method;
 
             set {
                 if (!Object.ReferenceEquals(m_userArrayMethod2Method, value)) {
@@ -8488,9 +8214,7 @@ namespace TestData {
         #region Public Properties
         /// <remarks />
         public PropertyState<int> MonitoredNodeCount {
-            get {
-                return m_monitoredNodeCount;
-            }
+            get => m_monitoredNodeCount;
 
             set {
                 if (!Object.ReferenceEquals(m_monitoredNodeCount, value)) {
