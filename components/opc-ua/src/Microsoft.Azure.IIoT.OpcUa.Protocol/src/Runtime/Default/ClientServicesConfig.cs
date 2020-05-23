@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
             (int)GetDurationOrDefault(KeepAliveIntervalKey, () => TimeSpan.FromSeconds(10)).TotalMilliseconds;
         /// <inheritdoc/>
         public uint MaxKeepAliveCount =>
-            (uint)GetIntOrDefault(MaxKeepAliveCountKey, () => 5);
+            (uint)GetIntOrDefault(MaxKeepAliveCountKey, () => 50);
 
         /// <inheritdoc/>
         public string PkiRootPath => _security.PkiRootPath;

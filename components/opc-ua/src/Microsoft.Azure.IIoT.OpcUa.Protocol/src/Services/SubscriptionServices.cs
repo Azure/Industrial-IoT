@@ -165,9 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public async Task CloseAsync() {
-
                 _outer._subscriptions.TryRemove(Id, out _);
-
                 await _lock.WaitAsync();
                 try {
                     var session = await _outer._sessionManager.GetOrCreateSessionAsync(
@@ -176,12 +174,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         var subscription = session.Subscriptions
                             .SingleOrDefault(s => s.DisplayName == Id);
                         if (subscription != null) {
-                            Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
                             Try.Op(() => subscription.DeleteItems());
+                            Try.Op(() => subscription.Delete(true));
                             Try.Op(() => session.RemoveSubscription(subscription));
                         }
-                        // Cleanup session if empty
-                        await _outer._sessionManager.RemoveSessionAsync(Connection);
                     }
                 }
                 finally {
@@ -240,9 +236,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate);
                 }
                 catch(Exception e){
-                    _logger.Warning(e, "Failed to apply monitored items");
+                    _logger.Warning("Failed to apply monitored items due to {exception}", e.Message);
                     ErrorSignaled = true;
-                    throw;
                 }
                 finally {
                     _lock.Release();
@@ -268,7 +263,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate) ;
                 }
                 catch (Exception e) {
-                    _logger.Warning(e, "Failed to apply monitored items");
+                    _logger.Warning("Failed to reapply monitored items due to {error}", e.Message);
                     ErrorSignaled = true;
                     throw;
                 }
