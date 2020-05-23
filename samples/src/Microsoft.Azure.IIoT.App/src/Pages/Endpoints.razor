@@ -27,9 +27,12 @@
 
 <h1>Endpoints</h1>
 
-<div>
-    @{ string discover = DiscovererId == RegistryHelper.PathAll ? string.Empty : DiscovererId; }
-</div>
+@if (!string.IsNullOrEmpty(DiscovererId) && DiscovererId != RegistryHelper.PathAll)
+{
+    <div class="subtitle">
+        DiscovererId: @DiscovererId
+    </div>
+}
 
 <table class="table @_tableView">
     <thead>
@@ -63,10 +66,10 @@
         {
             <tr class="@GetEndpointVisibilityString(endpoint)">
                 @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
-                    endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
+                 endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
                 {
                     <td>
-                        @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
+                        @{ string discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
                         @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
                         @{ string supervisor = SupervisorId == null ? RegistryHelper.PathAll : SupervisorId; }
                         <a href='browser/1/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id'>
