@@ -98,7 +98,7 @@
                     }
                 </td>
                 <td>
-                    Scan Mask: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                    Mask address range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @(discoverer.EffectiveAddressRangesToScan ?? "Default")<br />
                     </a>
                     Port Range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
@@ -110,13 +110,13 @@
                     Max Port Probes: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @(discoverer.EffectiveMaxPortProbes ?? "Default")<br />
                     </a>
-                    Network Probe Timeout (hh:mm.ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                    Network Probe Timeout (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @(discoverer.EffectiveNetworkProbeTimeout ?? "Default")<br />
                     </a>
-                    Port Probe Timeout (hh:mm.ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                    Port Probe Timeout (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @(discoverer.EffectivePortProbeTimeout ?? "Default")<br />
                     </a>
-                    Idle Time Between Scans (hh:mm.ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                    Idle Time Between Scans (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @(discoverer.EffectiveIdleTimeBetweenScans ?? "Default")<br />
                     </a>
                     Discovery Urls:
