@@ -79,11 +79,11 @@
                             @endpoint.EndpointModel.Registration.Endpoint.Url
                         </a>
                     </td>
-                            }
-                            else
-                            {
+                }
+                else
+                {
                     <td>@endpoint.EndpointModel.Registration.Endpoint.Url</td>
-                            }
+                }
                 <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityMode</td>
                 @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
                 <td>@securityPolicy</td>
