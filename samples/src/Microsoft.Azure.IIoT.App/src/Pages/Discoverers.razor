@@ -5,6 +5,7 @@
 
 @page "/"
 @page "/discoverers"
+@page "/discoverers/{page}"
 
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
@@ -33,8 +34,8 @@
         Run ad-hoc discovery
     </a>
     @if (DiscovererData != null)
-    {
-        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery)
+        {
+        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery) 
         {
             <div class="spinnermargin loader"></div>
         }
@@ -56,13 +57,13 @@
     </thead>
     <tbody>
         @{string connectStatus = "Disconnected"; }
-        @foreach (var discoverer in _pagedDiscovererList.Results)
+        @foreach (var discoverer in _pagedDiscovererList.Results) 
         {
             <tr>
                 @if (discoverer.HasApplication == true)
                 {
                     <td>
-                        <a href='endpoints/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll/@RegistryHelper.PathAll'>
+                        <a href='endpoints/1/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll/@RegistryHelper.PathAll'>
                             @discoverer.DiscovererModel.Id
                         </a>
                     </td>
@@ -97,7 +98,7 @@
                     }
                 </td>
                 <td>
-                    Scan Mask: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                    Mask address range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @(discoverer.EffectiveAddressRangesToScan ?? "Default")<br />
                     </a>
                     Port Range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
@@ -109,13 +110,13 @@
                     Max Port Probes: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @(discoverer.EffectiveMaxPortProbes ?? "Default")<br />
                     </a>
-                    Network Probe Timeout (hh:mm.ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                    Network Probe Timeout (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @(discoverer.EffectiveNetworkProbeTimeout ?? "Default")<br />
                     </a>
-                    Port Probe Timeout (hh:mm.ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                    Port Probe Timeout (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @(discoverer.EffectivePortProbeTimeout ?? "Default")<br />
                     </a>
-                    Idle Time Between Scans (hh:mm.ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                    Idle Time Between Scans (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @(discoverer.EffectiveIdleTimeBetweenScans ?? "Default")<br />
                     </a>
                     Discovery Urls:
@@ -136,7 +137,7 @@
                     }
                 </td>
             </tr>
-                        }
+        }
     </tbody>
 </table>
 <div class="@_tableEmpty center">No discoverers found.</div>
@@ -146,7 +147,7 @@
         <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => CloseScanResultView())" class="oi oi-x closebtn"></a>
     </div>
     <div class="events">
-@_eventResult
+        @_eventResult
     </div>
 </div>
 
@@ -191,7 +192,8 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _discovererList = CommonHelper.UpdatePage(RegistryHelper.GetDiscovererListAsync, page, _discovererList, ref _pagedDiscovererList);
+        _discovererList = CommonHelper.UpdatePage(RegistryHelper.GetDiscovererListAsync, page, _discovererList, ref _pagedDiscovererList, CommonHelper.PageLengthSmall);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "discoverers/" + page);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }

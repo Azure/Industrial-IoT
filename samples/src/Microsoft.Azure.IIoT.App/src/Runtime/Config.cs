@@ -22,9 +22,22 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// <summary>Url</summary>
         public string TsiDataAccessFQDN =>
             GetStringOrDefault(PcsVariable.PCS_TSI_URL)?.Trim();
-        /// <summary>Tenant</summary>
-        public string TsiTenantId =>
+
+        /// <summary>TenantId</summary>
+        public string TenantId =>
             GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT)?.Trim();
+
+        /// <summary>WorkbookId</summary>
+        public string WorkbookId =>
+            GetStringOrDefault(PcsVariable.PCS_WORKBOOK_ID)?.Trim();
+
+        /// <summary>SubscriptionId</summary>
+        public string SubscriptionId =>
+            GetStringOrDefault(PcsVariable.PCS_SUBSCRIPTION_ID)?.Trim();
+
+        /// <summary>ResourceGroup Name</summary>
+        public string ResourceGroup =>
+            GetStringOrDefault(PcsVariable.PCS_RESOURCE_GROUP)?.Trim();
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;

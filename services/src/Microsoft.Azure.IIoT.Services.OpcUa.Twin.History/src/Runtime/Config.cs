@@ -47,6 +47,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
         /// <inheritdoc/>
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
+        public string OpenApiAuthorizationUrl => _openApi.OpenApiAuthorizationUrl;
+        /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
         /// <inheritdoc/>
         public string OpenApiServerHost => _openApi.OpenApiServerHost;

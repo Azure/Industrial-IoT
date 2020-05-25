@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         /// Stop metric server if enabled
         /// </summary>
         /// <returns></returns>
-        public static void StopWhenEnabled(this MetricServer server, IModuleConfig config, Serilog.ILogger logger) {
+        public static void StopWhenEnabled(this IMetricServer server, IModuleConfig config, Serilog.ILogger logger) {
             if (config.EnableMetrics) {
                 server.Stop(); ;
                 logger.Information("Stopped prometheus metric server");

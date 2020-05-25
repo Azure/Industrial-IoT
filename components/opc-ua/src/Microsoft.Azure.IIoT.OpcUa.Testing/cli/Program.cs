@@ -280,7 +280,10 @@ Operations (Mutually exclusive):
             }
 
             /// <inheritdoc/>
-            public string DeviceId { get; } = "";
+            public string Gateway => Dns.GetHostName();
+
+            /// <inheritdoc/>
+            public string DeviceId => Gateway;
 
             /// <inheritdoc/>
             public string ModuleId { get; } = "";

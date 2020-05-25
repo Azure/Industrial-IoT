@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
                     Console.WriteLine($"Using <deviceId> '{deviceId}'");
                 }
                 if (moduleId == null) {
-                    moduleId = "opcpublisher";
+                    moduleId = "publisher";
                     Console.WriteLine($"Using <moduleId> '{moduleId}'");
                 }
 
@@ -168,9 +168,6 @@ Options:
                 arguments.Add($"--ec={cs}");
                 if (acceptAll) {
                     arguments.Add("--aa");
-                }
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    arguments.Add("--at=X509Store");
                 }
                 Publisher.Program.Main(arguments.ToArray());
                 Console.WriteLine("Publisher module exited.");

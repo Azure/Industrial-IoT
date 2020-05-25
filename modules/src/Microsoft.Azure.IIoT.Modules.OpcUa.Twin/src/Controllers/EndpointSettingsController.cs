@@ -112,6 +112,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
 #pragma warning restore IDE0032 // Use auto property
         private readonly ITwinServices _twin;
         private static readonly string kTwinMetricsPrefix = "iiot_edge_twin_";
-        private static readonly Counter kApplyAsync = Metrics.CreateCounter(kTwinMetricsPrefix + "apply", "call to applyAsync");
+        private static readonly Counter kApplyAsync = Metrics
+            .CreateCounter(kTwinMetricsPrefix + "apply", "call to applyAsync");
     }
 }

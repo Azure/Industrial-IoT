@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
         /// <inheritdoc/>
         public string LogWorkspaceKey => GetStringOrDefault(kWorkspaceKey,
             () => GetStringOrDefault(PcsVariable.PCS_WORKSPACE_KEY));
+
         /// <summary>
         /// Configuration constructor
         /// </summary>

@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using Opc.Ua;
@@ -28,7 +29,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using System.Diagnostics;
     using System.Linq;
     using System.Net;
-    using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using System.Text;
@@ -1608,25 +1608,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
 
                 SecurityConfiguration = new SecurityConfiguration {
                     ApplicationCertificate = new CertificateIdentifier {
-                        StoreType = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                                "X509Store" : "Directory",
-                        StorePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
-                                "CurrentUser\\UA_MachineDefault" :
-                                "pki/own",
+                        StoreType = CertificateStoreType.Directory,
+                        StorePath = "pki/own",
                         SubjectName = "Microsoft.Azure.IIoT.Gateway"
                     },
                     TrustedPeerCertificates = new CertificateTrustList {
-                        StoreType = "Directory",
+                        StoreType = CertificateStoreType.Directory,
                         StorePath = "pki/trusted",
                     },
                     TrustedIssuerCertificates = new CertificateTrustList {
-                        StoreType = "Directory",
+                        StoreType = CertificateStoreType.Directory,
                         StorePath = "pki/issuers",
                     },
                     RejectedCertificateStore = new CertificateTrustList {
-                        StoreType = "Directory",
+                        StoreType = CertificateStoreType.Directory,
                         StorePath = "pki/rejected"
                     },
+                    MinimumCertificateKeySize = 1024,
+                    RejectSHA1SignedCertificates = false,
+                    AddAppCertToTrustedStore = true,
                     AutoAcceptUntrustedCertificates = false
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
@@ -1667,6 +1667,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         }
                     }
                 },
+                ClientConfiguration = new ClientConfiguration(),
                 TraceConfiguration = new TraceConfiguration {
                     TraceMasks = 1
                 }
@@ -1676,7 +1677,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             ApplicationInstance.MessageDlg = new DummyDialog();
 
             config = ApplicationInstance.FixupAppConfig(config);
-            await config.Validate(Opc.Ua.ApplicationType.Server);
+            await config.Validate(config.ApplicationType);
+
+            var application = new ApplicationInstance(config);
+
+            // check the application certificate.
+            var hasAppCertificate =
+                await application.CheckApplicationInstanceCertificate(true,
+                    CertificateFactory.defaultKeySize);
+            if (!hasAppCertificate) {
+                throw new InvalidConfigurationException("OPC UA application certificate can not be validated");
+            }
+
             config.CertificateValidator.CertificateValidation += (v, e) => {
                 if (e.Error.StatusCode ==
                     StatusCodes.BadCertificateUntrusted) {
@@ -1687,38 +1699,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             };
 
             await config.CertificateValidator.Update(config.SecurityConfiguration);
-            // Use existing certificate, if it is there.
-            var cert = config.SecurityConfiguration.ApplicationCertificate.Certificate;
-            if (cert == null) {
-                // Create cert
-#pragma warning disable IDE0067 // Dispose objects before losing scope
-                cert = CertificateFactory.CreateCertificate(
-                    config.SecurityConfiguration.ApplicationCertificate.StoreType,
-                    config.SecurityConfiguration.ApplicationCertificate.StorePath,
-                    null, config.ApplicationUri, config.ApplicationName,
-                    config.SecurityConfiguration.ApplicationCertificate.SubjectName,
-                    null, CertificateFactory.defaultKeySize,
-                    DateTime.UtcNow - TimeSpan.FromDays(1),
-                    CertificateFactory.defaultLifeTime,
-                    CertificateFactory.defaultHashSize,
-                    false, null, null);
-#pragma warning restore IDE0067 // Dispose objects before losing scope
-                
-                config.SecurityConfiguration.ApplicationCertificate.Certificate = cert;
-                await config.CertificateValidator.UpdateCertificate(config.SecurityConfiguration);
-            }
-            config.ApplicationUri = Utils.GetApplicationUriFromCertificate(cert);
-
-            var application = new ApplicationInstance(config);
-
-            // check the application certificate.
-            var haveAppCertificate =
-                await application.CheckApplicationInstanceCertificate(false, 0);
-            if (!haveAppCertificate) {
-                throw new Exception(
-                    "Application instance certificate invalid!");
-            }
-
             Start(config);
             // Calls StartApplication
             // Calls InitializeServiceHosts (see below)

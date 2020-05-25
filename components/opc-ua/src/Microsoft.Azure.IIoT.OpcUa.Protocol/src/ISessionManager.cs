@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Threading.Tasks;
+    using Opc.Ua;
     using Opc.Ua.Client;
 
     /// <summary>
@@ -23,9 +24,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="createIfNotExists"></param>
+        /// <param name="statusCode"></param>
         /// <returns></returns>
         Task<Session> GetOrCreateSessionAsync(ConnectionModel connection,
-            bool createIfNotExists);
+            bool createIfNotExists, uint statusCode = StatusCodes.Good);
 
         /// <summary>
         /// Remove session if empty

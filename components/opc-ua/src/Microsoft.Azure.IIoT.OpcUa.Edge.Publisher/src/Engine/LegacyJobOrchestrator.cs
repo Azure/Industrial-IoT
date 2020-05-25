@@ -75,6 +75,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             if (_availableJobs.Count > 0 && (job = _availableJobs.Dequeue()) != null) {
                 _assignedJobs[workerId] = job;
+                if (_availableJobs.Count == 0) {
+                    _updated = false;
+                }
             }
             else {
                 _updated = false;
@@ -165,19 +168,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     });
                             }
                         }
+                        _agentConfig.MaxWorkers = availableJobs.Count;
+                        _availableJobs = availableJobs;
+                        _assignedJobs.Clear();
+                        _updated = true;
                     }
-
-                    _agentConfig.MaxWorkers = availableJobs.Count;
-                    _availableJobs = availableJobs;
-                    _assignedJobs.Clear();
-                    _updated = true;
                     break;
                 }
                 catch (IOException ex) {
                     retryCount--;
-
                     if (retryCount > 0) {
-                        _logger.Error("Error while loading job from file, retrying...");
+                        _logger.Debug("Error while loading job from file, retrying...");
                     }
                     else {
                         _logger.Error(ex, "Error while loading job from file. Retry expired, giving up.");

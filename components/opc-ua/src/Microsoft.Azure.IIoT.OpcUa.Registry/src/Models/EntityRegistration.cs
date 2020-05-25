@@ -69,6 +69,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [DataMember]
         public virtual bool Connected { get; set; }
 
+        /// <summary>
+        /// Reported version of the entity
+        /// </summary>
+        [DataMember]
+        public string Version { get; set; }
+
         /// <inheritdoc/>
         public override bool Equals(object obj) {
             if (!(obj is EntityRegistration registration)) {

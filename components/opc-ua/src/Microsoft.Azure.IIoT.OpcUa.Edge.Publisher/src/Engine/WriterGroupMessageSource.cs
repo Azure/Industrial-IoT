@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
-    public class WriterGroupMessageTrigger : IMessageTrigger {
+    public class WriterGroupMessageTrigger : IMessageTrigger, IDisposable {
         /// <inheritdoc/>
         public string Id => _writerGroup.WriterGroupId;
 
@@ -62,12 +62,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public async Task RunAsync(CancellationToken ct) {
 
-            foreach (var subscription in _subscriptions) {
-                await subscription.OpenAsync(ct);
-            }
-
+            _subscriptions.ForEach(sc => sc.OpenAsync().ConfigureAwait(false));
+            _subscriptions.ForEach(sc => sc.ActivateAsync(ct).ConfigureAwait(false));
             await Task.Delay(-1, ct); // TODO - add managemnt of subscriptions, etc.
 
+            _subscriptions.ForEach(sc => sc.DeactivateAsync().ConfigureAwait(false));
+            _subscriptions.ForEach(sc => sc.Dispose());
+            _subscriptions.Clear();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Dispose() {
+            _subscriptions.ForEach(sc => sc.DeactivateAsync().ConfigureAwait(false));
             _subscriptions.ForEach(sc => sc.Dispose());
             _subscriptions.Clear();
         }
@@ -119,15 +127,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <summary>
             /// Open subscription
             /// </summary>
-            /// <param name="ct"></param>
             /// <returns></returns>
-            public async Task OpenAsync(CancellationToken ct) {
+            public async Task OpenAsync() {
+                if (Subscription != null) {
+                    _outer._logger.Warning("Subscription already exists");
+                    return;
+                }
+
                 var sc = await _outer._subscriptionManager.GetOrCreateSubscriptionAsync(
                     _subscriptionInfo);
                 sc.OnSubscriptionChange += OnSubscriptionChangedAsync;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
-                    _subscriptionInfo.Configuration);
+                    _subscriptionInfo.Configuration, false);
                 Subscription = sc;
+            }
+
+            /// <summary>
+            /// activate a subscription
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            public async Task ActivateAsync(CancellationToken ct) {
+                if (Subscription == null) {
+                    _outer._logger.Warning("Subscription not registered");
+                    return;
+                }
+
+                await Subscription.ApplyAsync(_subscriptionInfo.MonitoredItems,
+                    _subscriptionInfo.Configuration, true);
 
                 if (_keyframeTimer != null) {
                     ct.Register(() => _keyframeTimer.Stop());
@@ -140,10 +167,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
 
+            /// <summary>
+            /// deactivate a subscription
+            /// </summary>
+            /// <returns></returns>
+            public async Task DeactivateAsync() {
+                
+                if (Subscription == null) {
+                    _outer._logger.Warning("Subscription not registered");
+                    return;
+                }
+
+                await Subscription.ApplyAsync(_subscriptionInfo.MonitoredItems,
+                    _subscriptionInfo.Configuration, false);
+
+                if (_keyframeTimer != null) {
+                    _keyframeTimer.Stop();
+                }
+
+                if (_metadataTimer != null) {
+                    _metadataTimer.Stop();
+                }
+            }
+
+
             /// <inheritdoc/>
             public void Dispose() {
-                Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
-                Subscription?.Dispose();
+                if (Subscription != null) {
+                    Subscription.ApplyAsync(null,_subscriptionInfo.Configuration, false);
+                    Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
+                    Subscription.Dispose();
+                }
                 _keyframeTimer?.Dispose();
                 _metadataTimer?.Dispose();
                 Subscription = null;

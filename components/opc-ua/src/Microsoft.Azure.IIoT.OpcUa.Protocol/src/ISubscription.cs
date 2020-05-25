@@ -51,9 +51,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="monitoredItems"></param>
         /// <param name="configuration"></param>
+        /// <param name="enable"></param>
         /// <returns></returns>
         Task ApplyAsync(IEnumerable<MonitoredItemModel> monitoredItems,
-            SubscriptionConfigurationModel configuration);
+            SubscriptionConfigurationModel configuration, bool enable);
 
         /// <summary>
         /// Close and delete subscription

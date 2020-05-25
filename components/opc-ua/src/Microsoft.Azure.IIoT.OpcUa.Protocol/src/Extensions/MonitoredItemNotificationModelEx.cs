@@ -26,12 +26,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             this DataChangeNotification notification, IEnumerable<MonitoredItem> monitoredItems) {
             for (var i = 0; i < notification.MonitoredItems.Count; i++) {
                 var monitoredItem = monitoredItems.SingleOrDefault(
-                        m => m.ClientHandle == notification.MonitoredItems[i].ClientHandle);
+                        m => m.ClientHandle == notification?.MonitoredItems[i]?.ClientHandle);
                 if (monitoredItem == null) {
                     continue;
                 }
-                var message = notification.MonitoredItems[i].ToMonitoredItemNotification(
-                    monitoredItem);
+                var message = notification?.MonitoredItems[i]?
+                    .ToMonitoredItemNotification(monitoredItem);
                 if (message == null) {
                     continue;
                 }

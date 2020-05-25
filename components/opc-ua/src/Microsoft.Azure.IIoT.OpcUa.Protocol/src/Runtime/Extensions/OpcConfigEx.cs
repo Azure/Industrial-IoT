@@ -4,11 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
+    using Opc.Ua.Configuration;
     using System;
-    using System.Linq;
+    using System.Collections.Generic;
+    using System.Net;
+    using System.Net.Sockets;
+    using System.Net.NetworkInformation;
+    using System.Threading;
     using System.Threading.Tasks;
-    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Configuration extensions
@@ -19,81 +26,89 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Create application configuration
         /// </summary>
         /// <param name="opcConfig"></param>
-        /// <param name="handler"></param>
+        /// <param name="identity"></param>
         /// <param name="createSelfSignedCertIfNone"></param>
+        /// <param name="handler"></param>
         /// <returns></returns>
         public static async Task<ApplicationConfiguration> ToApplicationConfigurationAsync(
-            this IClientServicesConfig opcConfig, bool createSelfSignedCertIfNone,
+            this IClientServicesConfig opcConfig, IIdentity identity, bool createSelfSignedCertIfNone,
             CertificateValidationEventHandler handler) {
             if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName)) {
                 throw new ArgumentNullException(nameof(opcConfig.ApplicationName));
             }
 
+            // wait with the configuration until network is up
+            for (var retry = 0; retry < 10; retry++) {
+                if (NetworkInterface.GetIsNetworkAvailable()) {
+                    break;
+                }
+                else {
+                    await Task.Delay(10000);
+                }
+            }
+
             var applicationConfiguration = new ApplicationConfiguration {
                 ApplicationName = opcConfig.ApplicationName,
-                ApplicationUri = opcConfig.ApplicationUri,
                 ProductUri = opcConfig.ProductUri,
                 ApplicationType = ApplicationType.Client,
                 TransportQuotas = opcConfig.ToTransportQuotas(),
-                SecurityConfiguration = opcConfig.ToSecurityConfiguration(),
+                CertificateValidator = new CertificateValidator(),
                 ClientConfiguration = new ClientConfiguration(),
-                CertificateValidator = new CertificateValidator()
+                ServerConfiguration = new ServerConfiguration()
             };
-
-            applicationConfiguration.CertificateValidator.CertificateValidation += handler;
-
-            var configuredSubject = applicationConfiguration.SecurityConfiguration
-                .ApplicationCertificate.SubjectName;
-            applicationConfiguration.SecurityConfiguration.ApplicationCertificate.SubjectName = 
-                applicationConfiguration.ApplicationName;
-            await applicationConfiguration.CertificateValidator
-                .Update(applicationConfiguration.SecurityConfiguration);
-
-            // use existing certificate, if present
-            var certificate = applicationConfiguration.SecurityConfiguration
-                .ApplicationCertificate.Certificate;
-
-            // create a self signed certificate if there is none
-            if (certificate == null && createSelfSignedCertIfNone) {
-                certificate = CertificateFactory.CreateCertificate(
-                    applicationConfiguration.SecurityConfiguration
-                        .ApplicationCertificate.StoreType,
-                    applicationConfiguration.SecurityConfiguration
-                        .ApplicationCertificate.StorePath,
-                    null,
-                    applicationConfiguration.ApplicationUri,
-                    applicationConfiguration.ApplicationName,
-                    configuredSubject,
-                    null,
-                    CertificateFactory.defaultKeySize,
-                    DateTime.UtcNow - TimeSpan.FromDays(1),
-                    CertificateFactory.defaultLifeTime,
-                    CertificateFactory.defaultHashSize
-                );
-
-                if (certificate == null) {
-                    throw new Exception(
-                        "OPC UA application certificate can not be created! Cannot continue without it!");
-                }
-
-                applicationConfiguration.SecurityConfiguration
-                    .ApplicationCertificate.Certificate = certificate;
-                try {
-                    // copy the certificate *public key only* into the trusted certificates list
-                    using (ICertificateStore trustedStore = applicationConfiguration
-                        .SecurityConfiguration.TrustedPeerCertificates.OpenStore()) {
-                        using (var publicKey = new X509Certificate2(certificate.RawData)) {
-                            trustedStore.Add(publicKey.YieldReturn());
+            try {
+                await Retry.WithLinearBackoff(null, new CancellationToken(),
+                    async () => {
+                        //  try to resolve the hostname
+                        var hostname = !string.IsNullOrWhiteSpace(identity?.Gateway) ?
+                            identity.Gateway : !string.IsNullOrWhiteSpace(identity?.DeviceId) ?
+                                identity.DeviceId : Dns.GetHostName();
+                        var alternateBaseAddresses = new List<string>();
+                        try {
+                            alternateBaseAddresses.Add($"urn://{hostname}");
+                            var hostEntry = Dns.GetHostEntry(hostname);
+                            if (hostEntry != null) {
+                                alternateBaseAddresses.Add($"urn://{hostEntry.HostName}");
+                                foreach (var alias in hostEntry.Aliases) {
+                                    alternateBaseAddresses.Add($"urn://{alias}");
+                                }
+                                foreach (var ip in hostEntry.AddressList) {
+                                    // only ad IPV4 addresses
+                                    switch (ip.AddressFamily) {
+                                        case AddressFamily.InterNetwork:
+                                            alternateBaseAddresses.Add($"urn://{ip}");
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                }
+                            }
                         }
-                    }
-                }
-                catch { }
-                // update security information
-                await applicationConfiguration.CertificateValidator.UpdateCertificate(
-                    applicationConfiguration.SecurityConfiguration);
-            }
+                        catch { }
 
-            applicationConfiguration.ApplicationUri = Utils.GetApplicationUriFromCertificate(certificate);
+                        applicationConfiguration.ApplicationUri =
+                            opcConfig.ApplicationUri.Replace("urn:localhost", $"urn:{hostname}");
+                        applicationConfiguration.SecurityConfiguration =
+                            opcConfig.ToSecurityConfiguration(hostname);
+                        applicationConfiguration.ServerConfiguration.AlternateBaseAddresses =
+                            alternateBaseAddresses.ToArray();
+                        await applicationConfiguration.Validate(applicationConfiguration.ApplicationType);
+                        var application = new ApplicationInstance(applicationConfiguration);
+                        var hasAppCertificate = await application.CheckApplicationInstanceCertificate(true,
+                            CertificateFactory.defaultKeySize);
+                        if (!hasAppCertificate) {
+                            throw new InvalidConfigurationException("OPC UA application certificate invalid");
+                        }
+
+                        applicationConfiguration.CertificateValidator.CertificateValidation += handler;
+                        await applicationConfiguration.CertificateValidator
+                            .Update(applicationConfiguration.SecurityConfiguration);
+                    },
+                    e => true, 20);
+            }
+            catch (Exception e) {
+                throw new InvalidConfigurationException("OPC UA configuration not valid", e);
+            }
             return applicationConfiguration;
         }
     }

@@ -3,9 +3,9 @@
      Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
     ------------------------------------------------------------*@
 
-@page "/endpoints"
-@page "/endpoints/{discovererId}/{applicationId}"
-@page "/endpoints/{discovererId}/{applicationId}/{supervisorId}"
+@page "/endpoints/{page}"
+@page "/endpoints/{page}/{discovererId}/{applicationId}"
+@page "/endpoints/{page}/{discovererId}/{applicationId}/{supervisorId}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -27,9 +27,12 @@
 
 <h1>Endpoints</h1>
 
-<div>
-    @{ string discover = DiscovererId == RegistryHelper.PathAll ? string.Empty : DiscovererId; }
-</div>
+@if (!string.IsNullOrEmpty(DiscovererId) && DiscovererId != RegistryHelper.PathAll)
+{
+    <div class="subtitle">
+        DiscovererId: @DiscovererId
+    </div>
+}
 
 <table class="table @_tableView">
     <thead>
@@ -45,13 +48,13 @@
             <th>
                 @if ((DiscovererId != null) && (DiscovererId != @RegistryHelper.PathAll))
                 {
-                    <a href="/discoverers/">
+                    <a href="/discoverers/1">
                         <span class="oi oi-arrow-left"></span>
                     </a>
                 }
                 else if ((ApplicationId != null) && (ApplicationId != @RegistryHelper.PathAll))
                 {
-                    <a href="/applications/">
+                    <a href="/applications/1">
                         <span class="oi oi-arrow-left"></span>
                     </a>
                 }
@@ -63,13 +66,13 @@
         {
             <tr class="@GetEndpointVisibilityString(endpoint)">
                 @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
-                    endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
+                 endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
                 {
                     <td>
-                        @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
+                        @{ string discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
                         @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
                         @{ string supervisor = SupervisorId == null ? RegistryHelper.PathAll : SupervisorId; }
-                        <a href='browser/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id'>
+                        <a href='browser/1/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id'>
                             @endpoint.EndpointModel.Registration.Endpoint.Url
                         </a>
                     </td>
@@ -115,7 +118,7 @@
                 @if (IsEndpointSeen(endpoint) && IsEndpointActivated(endpoint))
                 {
                     <td>
-                        <a class="ellipsis-space" href='publishedNodes/@endpoint.EndpointModel.Registration.Id'>Published Nodes</a>
+                        <a class="ellipsis-space" href='publishedNodes/1/@endpoint.EndpointModel.Registration.Id'>Published Nodes</a>
                     </td>
                 }
                 <td></td>
@@ -167,6 +170,7 @@
             _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId, _endpointList);
         }
         _pagedendpointList = _endpointList.GetPaged(page, CommonHelper.PageLength, null);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "endpoints/" + page + "/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }

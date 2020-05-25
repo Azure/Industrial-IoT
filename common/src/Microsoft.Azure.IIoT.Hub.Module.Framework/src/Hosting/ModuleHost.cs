@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Globalization;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -44,6 +45,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public string SiteId { get; private set; }
 
         /// <inheritdoc/>
+        public string Gateway { get; private set; }
+
+        /// <inheritdoc/>
         public IClient Client { get; private set; }
 
         /// <summary>
@@ -64,19 +68,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync(bool force) {
+        public async Task StopAsync() {
             if (Client != null) {
                 try {
                     await _lock.WaitAsync();
                     if (Client != null) {
                         _logger.Information("Stopping Module Host...");
                         try {
-                            if (!force) {
-                                var twinSettings = new TwinCollection {
-                                    [TwinProperty.Connected] = false
-                                };
-                                await Client.UpdateReportedPropertiesAsync(twinSettings);
-                            }
                             await Client.CloseAsync();
                         }
                         catch (OperationCanceledException) { }
@@ -93,31 +91,34 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _logger.Error(ce, "Module Host stopping caused exception.");
                 }
                 finally {
+                    kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "", _moduleGuid, "",
+                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", 
+                        CultureInfo.InvariantCulture)).Set(0);
                     Client?.Dispose();
                     Client = null;
                     _reported?.Clear();
                     DeviceId = null;
                     ModuleId = null;
                     SiteId = null;
+                    Gateway = null;
                     _lock.Release();
                 }
             }
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync(string type, string siteId, string serviceInfo,
-            IProcessControl reset) {
+        public async Task StartAsync(string type, string siteId, string productInfo,
+            string version, IProcessControl reset) {
             if (Client == null) {
                 try {
                     await _lock.WaitAsync();
                     if (Client == null) {
                         // Create client
                         _logger.Debug("Starting Module Host...");
-                        kModuleStart.WithLabels(type, _factory.DeviceId, Guid.NewGuid().ToString(), DateTime.UtcNow.ToString()).Set(1);
-                        Client = await _factory.CreateAsync(serviceInfo, reset);
+                        Client = await _factory.CreateAsync(productInfo + "_" + version, reset);
                         DeviceId = _factory.DeviceId;
                         ModuleId = _factory.ModuleId;
-
+                        Gateway = _factory.Gateway;
                         // Register callback to be called when a method request is received
                         await Client.SetMethodDefaultHandlerAsync((request, _) =>
                             _router.InvokeMethodAsync(request), null);
@@ -130,8 +131,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
                         // Report type of service, chosen site, and connection state
                         var twinSettings = new TwinCollection {
-                            [TwinProperty.Type] = type,
-                            [TwinProperty.Connected] = true
+                            [TwinProperty.Type] = type
                         };
 
                         // Set site if provided
@@ -139,20 +139,33 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                             SiteId = siteId;
                             twinSettings[TwinProperty.SiteId] = SiteId;
                         }
+
+                        // Set version information
+                        twinSettings[TwinProperty.Version] = version;
                         await Client.UpdateReportedPropertiesAsync(twinSettings);
 
                         // Done...
+                        kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
+                            _moduleGuid, version,
+                            DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+                            CultureInfo.InvariantCulture)).Set(1);
                         _logger.Information("Module Host started.");
                         return;
                     }
                 }
                 catch (Exception ex) {
+                    kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
+                        _moduleGuid, version,
+                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+                        CultureInfo.InvariantCulture)).Set(0);
+                    _logger.Error("Module Host failed to start.");
                     Client?.Dispose();
                     Client = null;
                     _reported?.Clear();
                     DeviceId = null;
                     ModuleId = null;
                     SiteId = null;
+                    Gateway = null;
                     throw ex;
                 }
                 finally {
@@ -291,7 +304,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <inheritdoc/>
         public void Dispose() {
             if (Client != null) {
-                StopAsync(true).Wait();
+                StopAsync().Wait();
             }
             _lock.Dispose();
         }
@@ -309,11 +322,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private static Message CreateMessage(byte[] data, string contentEncoding,
             string contentType, string eventSchema, string deviceId, string moduleId) {
             var msg = new Message(data) {
-                
+
                 ContentType = contentType,
                 ContentEncoding = contentEncoding,
-                // TODO - setting CreationTime causes issues in the Azure IoT java SDK 
-                //  revert the comment whrn the issue is fixed
+                // TODO - setting CreationTime causes issues in the Azure IoT java SDK
+                // revert the comment when the issue is fixed
                 //  CreationTimeUtc = DateTime.UtcNow
             };
             if (!string.IsNullOrEmpty(contentEncoding)) {
@@ -504,7 +517,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private bool ProcessEdgeHostSettings(string key, VariantValue value,
             IDictionary<string, VariantValue> processed = null) {
             switch (key.ToLowerInvariant()) {
-                case TwinProperty.Connected:
+                case TwinProperty.Version:
                 case TwinProperty.Type:
                     break;
                 case TwinProperty.SiteId:
@@ -527,9 +540,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly Dictionary<string, VariantValue> _reported =
             new Dictionary<string, VariantValue>();
-        private static readonly Gauge kModuleStart = Metrics.CreateGauge("iiot_edge_module_start", "starting module",
+        private readonly string _moduleGuid = Guid.NewGuid().ToString();
+        private static readonly Gauge kModuleStart = Metrics
+            .CreateGauge("iiot_edge_module_start", "starting module",
                 new GaugeConfiguration {
-                    LabelNames = new[] { "module", "device", "guid", "timestamp_utc" }
+                    LabelNames = new[] {"deviceid", "module", "runid", "version", "timestamp_utc" }
                 });
     }
 }

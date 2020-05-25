@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="twin"></param>
         /// <returns></returns>
         public static bool? IsConnected(this DeviceTwinModel twin) {
-            return twin.ConnectionState?.EqualsIgnoreCase("connected");
+            return twin.ConnectionState?.EqualsIgnoreCase("Connected");
         }
 
         /// <summary>

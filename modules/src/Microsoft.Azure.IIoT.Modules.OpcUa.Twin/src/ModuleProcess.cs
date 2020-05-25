@@ -13,10 +13,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Tasks.Default;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
@@ -28,7 +30,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using System.Threading;
     using Serilog;
     using Prometheus;
-    using System.Net;
 
     /// <summary>
     /// Module Process
@@ -72,11 +73,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             _exitCode = exitCode;
             _exit.TrySetResult(true);
 
-            // Set timer to kill the entire process after a minute.
+            if (Host.IsContainer) {
+                // Set timer to kill the entire process after 5 minutes.
 #pragma warning disable IDE0067 // Dispose objects before losing scope
-            var _ = new Timer(o => Process.GetCurrentProcess().Kill(), null,
-                TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+                var _ = new Timer(o => {
+                    Log.Logger.Fatal("Killing non responsive module process!");
+                    Process.GetCurrentProcess().Kill();
+                }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
 #pragma warning restore IDE0067 // Dispose objects before losing scope
+            }
         }
 
         /// <summary>
@@ -89,17 +94,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
-                    var config = new Config(_config);
+                    var moduleConfig = hostScope.Resolve<IModuleConfig>();
+                    var identity = hostScope.Resolve<IIdentity>();
                     logger.Information("Initiating prometheus at port {0}/metrics", kTwinPrometheusPort);
                     var server = new MetricServer(port: kTwinPrometheusPort);
                     try {
-                        server.StartWhenEnabled(config, logger);
+                        server.StartWhenEnabled(moduleConfig, logger);
                         // Start module
-                        var product = "OpcTwin_" +
-                            GetType().Assembly.GetReleaseVersion().ToString();
-                        kTwinModuleStart.Inc();
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
+                        kTwinModuleStart.WithLabels(
+                            identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await module.StartAsync(IdentityType.Supervisor, SiteId,
-                            product, this);
+                            "OpcTwin", version, this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
@@ -113,9 +119,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
+                        kTwinModuleStart.WithLabels(
+                            identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         await module.StopAsync();
-                        kTwinModuleStart.Set(0);
-                        server.StopWhenEnabled(config, logger);
+                        server.StopWhenEnabled(moduleConfig, logger);
                         OnRunning?.Invoke(this, false);
                     }
                 }
@@ -207,10 +214,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
 
                 // Register outer instances
                 builder.RegisterInstance(_logger)
-                    .OnRelease(_ => { }) // Do not dispose
+                    .ExternallyOwned()
                     .AsImplementedInterfaces();
                 builder.RegisterInstance(_client)
-                    .OnRelease(_ => { }) // Do not dispose
+                    .ExternallyOwned()
                     .AsImplementedInterfaces();
 
                 // Register other opc ua services
@@ -252,6 +259,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         private int _exitCode;
         private const int kTwinPrometheusPort = 9701;
         private static readonly Gauge kTwinModuleStart = Metrics
-            .CreateGauge("iiot_edge_twin_module_start", "twin module started");
+            .CreateGauge("iiot_edge_twin_module_start", "twin module started",
+                new GaugeConfiguration {
+                    LabelNames = new[] { "deviceid", "module" }
+                });
     }
 }

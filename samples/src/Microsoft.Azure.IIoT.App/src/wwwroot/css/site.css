@@ -242,6 +242,12 @@ ellipsis-space {
     height: 48px;
 }
 
+.td-scroll {
+    overflow: auto;
+    max-height: 160px;
+    width: 300px;
+}
+
 .tsi_link {
     margin-right: 1.5rem;
 }
@@ -280,6 +286,11 @@ a.adhocmargin {
 
 .enabled-false {
     color: gray
+}
+
+.subtitle {
+    color: gray;
+    font-weight: bold;
 }
 
 @media (max-width: 767.98px) {

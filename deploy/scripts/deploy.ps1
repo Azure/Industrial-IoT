@@ -9,7 +9,7 @@
     The type of deployment (minimum, local, services, simulation, app, all)
 
  .PARAMETER version
-    Set to "preview" or another mcr image tag to deploy - if not set deploys last released images ("latest").
+    Set to "latest" or another mcr image tag to deploy - if not set deploys current master branch ("preview").
 
  .PARAMETER resourceGroupName
     Can be the name of an existing or a new resource group
@@ -199,6 +199,57 @@ Function Select-Context() {
 
     Write-Host "Azure subscription $($context.Subscription.Name) ($($context.Subscription.Id)) selected."
     return $context
+}
+
+#*******************************************************************************************************
+# Select repository and branch
+#*******************************************************************************************************
+Function Select-RepositoryAndBranch() {
+    
+    if ([string]::IsNullOrEmpty($script:repo)) {
+        # Try get repo name / TODO
+        $script:repo = "https://github.com/Azure/Industrial-IoT"
+    }
+
+    if ([string]::IsNullOrEmpty($script:branchName)) {
+        # Try get branch name
+        $script:branchName = $env:BUILD_SOURCEBRANCH
+        if (![string]::IsNullOrEmpty($script:branchName)) {
+            if ($script:branchName.StartsWith("refs/heads/")) {
+                $script:branchName = $script:branchName.Replace("refs/heads/", "")
+            }
+            else {
+                $script:branchName = $null
+            }
+        }
+        if ([string]::IsNullOrEmpty($script:branchName)) {
+            try {
+                $argumentList = @("rev-parse", "--abbrev-ref", "@{upstream}")
+                $symbolic = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+                if ($LastExitCode -ne 0) {
+                    throw "git $($argumentList) failed with $($LastExitCode)."
+                }
+                $remote = $symbolic.Split('/')[0]
+                $argumentList = @("remote", "get-url", $remote)
+                $giturl = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+                if ($LastExitCode -ne 0) {
+                    throw "git $($argumentList) failed with $($LastExitCode)."
+                }
+                $script:repo = $giturl
+                $script:branchName = $symbolic.Replace("$($remote)/", "")
+                if ($script:branchName -eq "HEAD") {
+                    Write-Warning "$($symbolic) is not a branch - using master."
+                    $script:branchName = "master"
+                }
+            }
+            catch {
+                throw "This script requires *git* to be installed and must be run from " + `
+                    "within a branch of the Industrial IoT repository. " + `
+                    "See the deployment documentation at https://github.com/Azure/Industrial-IoT " + `
+                    "to learn about other deployment options."
+            }
+        }
+    }
 }
 
 #*******************************************************************************************************
@@ -588,50 +639,6 @@ Function New-Deployment() {
 
     $templateParameters = @{ }
 
-    if ([string]::IsNullOrEmpty($script:repo)) {
-        # Try get repo name / TODO
-        $script:repo = "https://github.com/Azure/Industrial-IoT"
-    }
-
-    if ([string]::IsNullOrEmpty($script:branchName)) {
-        # Try get branch name
-        $script:branchName = $env:BUILD_SOURCEBRANCH
-        if (![string]::IsNullOrEmpty($script:branchName)) {
-            if ($script:branchName.StartsWith("refs/heads/")) {
-                $script:branchName = $script:branchName.Replace("refs/heads/", "")
-            }
-            else {
-                $script:branchName = $null
-            }
-        }
-        if ([string]::IsNullOrEmpty($script:branchName)) {
-            try {
-                $argumentList = @("rev-parse", "--abbrev-ref", "@{upstream}")
-                $symbolic = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
-                if ($LastExitCode -ne 0) {
-                    throw "git $($argumentList) failed with $($LastExitCode)."
-                }
-                $remote = $symbolic.Split('/')[0]
-                $argumentList = @("remote", "get-url", $remote)
-                $giturl = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
-                if ($LastExitCode -ne 0) {
-                    throw "git $($argumentList) failed with $($LastExitCode)."
-                }
-                $script:repo = $giturl
-                $script:branchName = $symbolic.Replace("$($remote)/", "")
-                if ($script:branchName -eq "HEAD") {
-                    Write-Warning "$($symbolic) is not a branch - using master."
-                    $script:branchName = "master"
-                }
-            }
-            catch {
-                Write-Warning "Unable to detect current branch. Using master branch to deploy from."
-                $script:repo = "https://github.com/Azure/Industrial-IoT"
-                $script:branchName = "master"
-            }
-        }
-    }
-
     Set-ResourceGroupTags -state "Deploying" -version $script:branchName
     Write-Host "Deployment will use '$($script:branchName)' branch in '$($script:repo)'."
     $templateParameters.Add("branchName", $script:branchName)
@@ -681,7 +688,12 @@ Function New-Deployment() {
     # Select docker images to use
     if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
         if ([string]::IsNullOrEmpty($script:version)) {
-            $script:version = "latest"
+            if ($script:branchName.StartsWith("release/")) {
+                $script:version = $script:branchName.Replace("release/", "")
+            }
+            else {
+                $script:version = "preview"
+            }
         }
         $templateParameters.Add("imagesTag", $script:version)
         $creds = Select-RegistryCredentials
@@ -1053,6 +1065,7 @@ $script:requiredProviders = @(
     "microsoft.containerregistry"
 )
 
+Select-RepositoryAndBranch
 Write-Host "Signing in ..."
 Write-Host
 Import-Module Az

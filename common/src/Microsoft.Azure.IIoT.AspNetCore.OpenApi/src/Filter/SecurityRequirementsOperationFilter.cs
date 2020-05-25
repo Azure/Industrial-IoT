@@ -52,10 +52,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
 
                 // Add security description
                 operation.Security = new List<OpenApiSecurityRequirement> {
-                        new OpenApiSecurityRequirement {
-                            [ oAuthScheme ] = claims.ToList()
-                        }
-                    };
+                    new OpenApiSecurityRequirement {
+                        [ oAuthScheme ] = claims.ToList()
+                    }
+                };
             }
         }
 

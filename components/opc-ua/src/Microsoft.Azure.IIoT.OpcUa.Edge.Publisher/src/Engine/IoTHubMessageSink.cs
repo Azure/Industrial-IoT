@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Collections.Generic;
     using System.Diagnostics;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Module;
 
     /// <summary>
     /// Iot hub client sink
@@ -75,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
                 }
                 SentMessagesCount += messagesCount;
-                kMessagesSent.Set(SentMessagesCount);
+                kMessagesSent.WithLabels(IotHubMessageSinkGuid).Set(SentMessagesCount);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
@@ -118,9 +119,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
         private readonly ILogger _logger;
         private readonly IClientAccessor _clientAccessor;
-        private static readonly Gauge kMessagesSent =
-            Metrics.CreateGauge("iiot_edge_publisher_messages", "Number of messages sent to IotHub");
-        private static readonly Histogram kSendingDuration =
-            Metrics.CreateHistogram("iiot_edge_publisher_messages_duration", "Histogram of message sending durations");
+        private readonly string IotHubMessageSinkGuid = Guid.NewGuid().ToString();
+        private static readonly Gauge kMessagesSent = Metrics.CreateGauge(
+            "iiot_edge_publisher_messages", "Number of messages sent to IotHub",
+                new GaugeConfiguration
+                {
+                    LabelNames = new[] { "runid" }
+                });
+        private static readonly Histogram kSendingDuration = Metrics.CreateHistogram(
+            "iiot_edge_publisher_messages_duration", "Histogram of message sending durations");
     }
 }

@@ -3,7 +3,7 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
  ------------------------------------------------------------*@
 
-@page "/applications"
+@page "/applications/{page}"
 
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Azure.IIoT.App.Services
@@ -28,7 +28,7 @@
     <thead>
         <tr>
             <th>Name</th>
-            <th>Id</th>
+            <th>Uri</th>
             <th>Site</th>
             <th>Type</th>
             <th></th>
@@ -48,7 +48,7 @@
                     }
                     else
                     {
-                    <a href='endpoints/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
+                    <a href='endpoints/1/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
                         @application.ApplicationName
                     </a>
                     }
@@ -104,7 +104,8 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _applicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, _applicationList, ref _pagedapplicationList);
+        _applicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, _applicationList, ref _pagedapplicationList, CommonHelper.PageLength);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "applications/" + page);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -144,7 +145,6 @@
     {
         var index = _applicationList.Results.Select(t => t.ApplicationId).ToList().IndexOf(applicationId);
         _applicationList.Results.RemoveAt(index);
-        Page = "1";
         _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
         StateHasChanged();
 
