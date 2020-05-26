@@ -86,9 +86,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "sf|skipfirstevent=", "The publisher is using this as default value for the skip first " +
                         "event setting of nodes without a skip first event setting.",
                         (bool b) => this[LegacyCliConfigKeys.SkipFirstDefault] = b.ToString() },
-                    { "mm|messagingmode=", "The messaging mode for messages " +
-                        $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
-                        (MessagingMode m) => this[LegacyCliConfigKeys.MessagingMode] = m.ToString() },
+
                     { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." + 
                         "Default is 'true', for legacy compatibility use 'false'",
                         (bool b) => this[LegacyCliConfigKeys.FullFeaturedMessage] = b.ToString() },
@@ -150,8 +148,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int k) => this[LegacyCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
                     { "ms|iothubmessagesize=", "The maximum size of the (IoT D2C) message.",
                         (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
+
+                    // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
                         (int i) => this[LegacyCliConfigKeys.ScaleTestCount] = i.ToString() },
+                    { "mm|messagingmode=", "The messaging mode for messages " +
+                        $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
+                        (MessagingMode m) => this[LegacyCliConfigKeys.MessagingMode] = m.ToString() },
+                    { "me|messageencoding=", "The message encoding for messages " +
+                        $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessageEncoding)))}).",
+                        (MessageEncoding m) => this[LegacyCliConfigKeys.MessageEncoding] = m.ToString() },
 
                     // Legacy unsupported
                     { "tc|telemetryconfigfile=", "Legacy - do not use.", _ => {} },
@@ -262,6 +268,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 LogFilename = GetValueOrDefault<string>(LegacyCliConfigKeys.LogFileName),
                 Transport = GetValueOrDefault<string>(LegacyCliConfigKeys.HubTransport),
                 MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, MessagingMode.Samples),
+                MessageEncoding = GetValueOrDefault(LegacyCliConfigKeys.MessageEncoding, MessageEncoding.Json),
                 FullFeaturedMessage = GetValueOrDefault(LegacyCliConfigKeys.FullFeaturedMessage, false),
                 EdgeHubConnectionString = GetValueOrDefault<string>(LegacyCliConfigKeys.EdgeHubConnectionString),
                 OperationTimeout = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcOperationTimeout),
