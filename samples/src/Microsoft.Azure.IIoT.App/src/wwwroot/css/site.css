@@ -103,6 +103,33 @@ app {
     padding-top: 1.1rem;
 }
 
+table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+td:hover {
+    overflow: visible;
+    position: relative;
+    display: inline-block;
+    background-color: white;
+}
+
+th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.space-wrap{
+    white-space: normal;
+}
+
 .navbar-toggler {
     background-color: rgba(255, 255, 255, 0.1);
 }
@@ -189,10 +216,6 @@ app {
     width: 60%;
 }
 
-.center {
-    text-align:center;
-}
-
 .label {
     font-weight: bold;
 }
@@ -235,25 +258,12 @@ ellipsis-space {
     margin-right: 10px;
 }
 
-.td-fixed {
-    width: 700px;
-    overflow: auto;
-    word-wrap: break-word;
-    height: 48px;
-}
-
-.td-scroll {
-    overflow: auto;
-    max-height: 160px;
-    width: 300px;
-}
-
 .tsi_link {
     margin-right: 1.5rem;
 }
 
 .closebtn {
-    font-weight: 10;
+    font-weight: bold;
     color: black;
 }
 
@@ -286,6 +296,19 @@ a.adhocmargin {
 
 .enabled-false {
     color: gray
+}
+
+.value-scroll {
+    
+}
+
+.value-scroll:hover {
+    overflow: auto;
+    max-height: 200px;
+    max-width: 400px;
+    white-space: normal;
+    position: relative;
+    background-color: white;
 }
 
 .subtitle {

@@ -98,43 +98,45 @@
                     }
                 </td>
                 <td>
-                    Mask address range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
-                        @(discoverer.EffectiveAddressRangesToScan ?? "Default")<br />
-                    </a>
-                    Port Range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
-                        @(discoverer.EffectivePortRangesToScan ?? "Default")<br />
-                    </a>
-                    Max Network Probes: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
-                        @(discoverer.EffectiveMaxNetworkProbes ?? "Default")<br />
-                    </a>
-                    Max Port Probes: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
-                        @(discoverer.EffectiveMaxPortProbes ?? "Default")<br />
-                    </a>
-                    Network Probe Timeout (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
-                        @(discoverer.EffectiveNetworkProbeTimeout ?? "Default")<br />
-                    </a>
-                    Port Probe Timeout (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
-                        @(discoverer.EffectivePortProbeTimeout ?? "Default")<br />
-                    </a>
-                    Idle Time Between Scans (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
-                        @(discoverer.EffectiveIdleTimeBetweenScans ?? "Default")<br />
-                    </a>
-                    Discovery Urls:
-                    @if (discoverer.EffectiveDiscoveryUrls.Count == 0)
-                    {
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
-                            (None)
+                    <div class="space-wrap">
+                        Mask address range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                            @(discoverer.EffectiveAddressRangesToScan ?? "Default")<br />
                         </a>
-                    }
-                    else
-                    {
-                        @foreach (var url in discoverer.EffectiveDiscoveryUrls)
+                        Port Range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                            @(discoverer.EffectivePortRangesToScan ?? "Default")<br />
+                        </a>
+                        Max Network Probes: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                            @(discoverer.EffectiveMaxNetworkProbes ?? "Default")<br />
+                        </a>
+                        Max Port Probes: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                            @(discoverer.EffectiveMaxPortProbes ?? "Default")<br />
+                        </a>
+                        Network Probe Timeout (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                            @(discoverer.EffectiveNetworkProbeTimeout ?? "Default")<br />
+                        </a>
+                        Port Probe Timeout (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                            @(discoverer.EffectivePortProbeTimeout ?? "Default")<br />
+                        </a>
+                        Idle Time Between Scans (hh:mm:ss): <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                            @(discoverer.EffectiveIdleTimeBetweenScans ?? "Default")<br />
+                        </a>
+                        Discovery Urls:
+                        @if (discoverer.EffectiveDiscoveryUrls.Count == 0)
                         {
                             <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
-                                @url<br />
+                                (None)
                             </a>
                         }
-                    }
+                        else
+                        {
+                            @foreach (var url in discoverer.EffectiveDiscoveryUrls)
+                            {
+                                <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                                    @url<br />
+                                </a>
+                            }
+                        }
+                    </div>
                 </td>
             </tr>
         }
