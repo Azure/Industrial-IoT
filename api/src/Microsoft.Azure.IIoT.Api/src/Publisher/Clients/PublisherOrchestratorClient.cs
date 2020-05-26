@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Http;
+    using Serilog;
     using System;
     using System.Net.Http.Headers;
     using System.Threading;
@@ -29,12 +30,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         /// <param name="httpClient"></param>
         /// <param name="tokenProvider"></param>
         /// <param name="serializer"></param>
+        /// <param name="logger"></param>
         public PublisherOrchestratorClient(IHttpClient httpClient, IAgentConfigProvider config,
-            IIdentityTokenProvider tokenProvider, ISerializer serializer) {
+            IIdentityTokenProvider tokenProvider, ISerializer serializer, ILogger logger) {
             _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
+            if (_config.Config?.MaxWorkers > workerThreads ||
+                _config.Config?.MaxWorkers > asyncThreads) {
+                var result = ThreadPool.SetMinThreads(_config.Config.MaxWorkers.Value, _config.Config.MaxWorkers.Value);
+                _logger.Information("Thread pool changed to worker {worker}, async {async} threads {success}",
+                    _config.Config.MaxWorkers.Value, _config.Config.MaxWorkers.Value, result ? "succeeded" : "failed");
+            }
         }
 
         /// <inheritdoc/>
@@ -99,5 +110,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         private readonly ISerializer _serializer;
         private readonly IAgentConfigProvider _config;
         private readonly IHttpClient _httpClient;
+        private readonly ILogger _logger;
     }
 }
