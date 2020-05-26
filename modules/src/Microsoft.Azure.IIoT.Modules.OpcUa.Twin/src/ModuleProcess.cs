@@ -104,6 +104,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         kTwinModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
+                        logger.Information("Starting module OpcTwin version {version}.", version);
                         await module.StartAsync(IdentityType.Supervisor, SiteId,
                             "OpcTwin", version, this);
                         OnRunning?.Invoke(this, true);
