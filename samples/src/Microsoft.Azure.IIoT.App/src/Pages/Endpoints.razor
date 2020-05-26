@@ -27,7 +27,7 @@
 
 <h1>Endpoints</h1>
 
-@if (!string.IsNullOrEmpty(DiscovererId) && DiscovererId != RegistryHelper.PathAll)
+@if (IsIdGiven(DiscovererId))
 {
     <div class="subtitle">
         DiscovererId: @DiscovererId
@@ -45,20 +45,23 @@
             <th>Toggle Endpoint</th>
             <th>Activation Status</th>
             <th> </th>
-            <th>
-                @if ((DiscovererId != null) && (DiscovererId != @RegistryHelper.PathAll))
-                {
+
+            @if (IsIdGiven(DiscovererId))
+            {
+                <th>
                     <a href="/discoverers/1">
                         <span class="oi oi-arrow-left"></span>
                     </a>
-                }
-                else if ((ApplicationId != null) && (ApplicationId != @RegistryHelper.PathAll))
-                {
+                </th>
+            }
+            else if (IsIdGiven(ApplicationId))
+            {
+                <th>
                     <a href="/applications/1">
                         <span class="oi oi-arrow-left"></span>
                     </a>
-                }
-            </th>
+                </th>
+            }
         </tr>
     </thead>
     <tbody>
@@ -69,9 +72,9 @@
                  endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
                 {
                     <td>
-                        @{ string discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
-                        @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
-                        @{ string supervisor = SupervisorId == null ? RegistryHelper.PathAll : SupervisorId; }
+                        @{ string discover = DiscovererId ?? RegistryHelper.PathAll; }
+                        @{ string application = ApplicationId ?? RegistryHelper.PathAll; }
+                        @{ string supervisor = SupervisorId ?? RegistryHelper.PathAll; }
                         <a href='browser/1/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id'>
                             @endpoint.EndpointModel.Registration.Endpoint.Url
                         </a>
@@ -121,7 +124,10 @@
                         <a class="ellipsis-space" href='publishedNodes/1/@endpoint.EndpointModel.Registration.Id'>Published Nodes</a>
                     </td>
                 }
-                <td></td>
+                @if (IsIdGiven(DiscovererId) || IsIdGiven(ApplicationId))
+                {
+                    <td></td>
+                }
             </tr>
         }
     </tbody>
@@ -222,6 +228,11 @@
     private bool IsEndpointSeen(EndpointInfo endpoint)
     {
         return endpoint.EndpointModel?.NotSeenSince == null;
+    }
+
+    private bool IsIdGiven(string id)
+    {
+        return !string.IsNullOrEmpty(id) && id != RegistryHelper.PathAll;
     }
 
     /// <summary>
