@@ -87,7 +87,7 @@
                 <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityMode</td>
                 @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
                 <td>@securityPolicy</td>
-                <td class="center">@endpoint.EndpointModel.Registration.SecurityLevel</td>
+                <td>@endpoint.EndpointModel.Registration.SecurityLevel</td>
                 <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
                 <td>
                     @if (IsEndpointActivated(endpoint))
@@ -123,6 +123,10 @@
                     <td>
                         <a class="ellipsis-space" href='publishedNodes/1/@endpoint.EndpointModel.Registration.Id'>Published Nodes</a>
                     </td>
+                }
+                else
+                {
+                    <td></td>
                 }
                 @if (IsIdGiven(DiscovererId) || IsIdGiven(ApplicationId))
                 {
