@@ -236,6 +236,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             return new WriterGroupJobModel {
                 MessagingMode = MessagingMode.Samples,
                 WriterGroup = new WriterGroupModel {
+                    MessageType = MessageEncoding.Json,
                     WriterGroupId = job.Id,
                     DataSetWriters = new List<DataSetWriterModel>(),
                     MessageSettings = new WriterGroupMessageSettingsModel() {
@@ -251,7 +252,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                                 NetworkMessageContentMask.DataSetMessageHeader
                     },
                 },
-                Engine = null,
+                Engine = new EngineConfigurationModel() {
+                    BatchSize = 50,
+                    BatchTriggerInterval = TimeSpan.FromSeconds(10),
+                    DiagnosticsInterval = TimeSpan.FromSeconds(60),
+                    MaxMessageSize = 0
+                },
                 ConnectionString = null
             };
         }

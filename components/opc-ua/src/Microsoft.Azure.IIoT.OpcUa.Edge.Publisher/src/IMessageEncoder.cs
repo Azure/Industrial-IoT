@@ -14,12 +14,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     public interface IMessageEncoder {
 
         /// <summary>
+        /// Number of DataChanges that are too big to be processed to IotHub Messages
+        /// </summary>
+        uint DataChangesDroptCount { get; }
+
+        /// <summary>
+        /// Number of successfully processed DataChanges
+        /// </summary>
+        uint DataChangesProcessedCount { get; }
+
+        /// <summary>
+        /// Number of successfully processed messages
+        /// </summary>
+        uint MessagesProcessedCount { get; }
+
+        /// <summary>
+        /// Average notifications in a message
+        /// </summary>
+        double AvgDataChangesPerMessage { get; }
+
+        /// <summary>
+        /// Average notifications in a message
+        /// </summary>
+        double AvgMessageSize { get; }
+
+        /// <summary>
         /// Encodes the list of messages into single message NetworkMessageModel list
         /// </summary>
         /// <param name="message"></param>
+        /// <param name="maxMessageSize"></param>
         /// <returns></returns>
         Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            IEnumerable<DataSetMessageModel> message);
+            IEnumerable<DataSetMessageModel> message, int maxMessageSize);
 
         /// <summary>
         /// Encodes the list of messages into batched NetworkMessageModel list
