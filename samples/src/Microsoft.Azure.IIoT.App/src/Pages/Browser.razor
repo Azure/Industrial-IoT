@@ -242,6 +242,7 @@
 
     public PagedResult<ListNode> NodeList = new PagedResult<ListNode>();
     public PagedResult<ListNode> PagedNodeList = new PagedResult<ListNode>();
+    public PagedResult<PublishedItemApiModel> PublishedNodes = new PagedResult<PublishedItemApiModel>();
     public CredentialModel Credential = new CredentialModel();
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
@@ -307,8 +308,11 @@
             CommonHelper.Spinner = string.Empty;
             CommonHelper.CheckErrorOrEmpty<ListNode>(PagedNodeList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
-            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
+            if (PublishedNodes.Results.Count > 0)
+            {
+                _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
                 samples => InvokeAsync(() => GetPublishedNodeData(samples)));
+            }
         }
     }
 
@@ -363,14 +367,14 @@
                                             NodeList);
         }
 
-        var publishedNodes = await Publisher.PublishedAsync(EndpointId);
+        PublishedNodes = await Publisher.PublishedAsync(EndpointId);
 
         foreach (var node in NodeList.Results)
         {
             if (node.NodeClass == NodeClass.Variable)
             {
                 // check if publishing enabled
-                foreach (var publishedItem in publishedNodes.Results)
+                foreach (var publishedItem in PublishedNodes.Results)
                 {
                     if (node.Id == publishedItem.NodeId)
                     {
@@ -433,6 +437,10 @@
                 SamplingInterval = samplingInterval,
                 HeartbeatInterval = heartbeatInterval
             };
+            if (_publishEvent == null) {
+                _publishEvent = Task.Run(async () => await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
+                    samples => InvokeAsync(() => GetPublishedNodeData(samples)))).Result;
+            }
         }
         else
         {
