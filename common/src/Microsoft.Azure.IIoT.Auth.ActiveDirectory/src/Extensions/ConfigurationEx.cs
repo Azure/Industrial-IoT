@@ -39,6 +39,13 @@ namespace Microsoft.Extensions.Configuration {
             ConfigurationProviderPriority providerPriority = ConfigurationProviderPriority.Lowest,
             bool allowInteractiveLogon = false, bool singleton = true, string keyVaultUrlVarName = null) {
             var configuration = builder.Build();
+
+            // Check if configuration should be loaded from KeyVault, default to true.
+            var keyVaultConfigEnabled = configuration.GetValue(PcsVariable.PCS_KEYVAULT_CONFIG_ENABLED, true);
+            if (!keyVaultConfigEnabled) {
+                return builder;
+            }
+
             var provider = KeyVaultConfigurationProvider.CreateInstanceAsync(
                 allowInteractiveLogon, singleton, configuration, keyVaultUrlVarName).Result;
             if (provider != null) {
