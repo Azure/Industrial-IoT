@@ -31,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge {
     using Autofac.Extensions.DependencyInjection;
     using System;
     using ILogger = Serilog.ILogger;
-    using Microsoft.Azure.IIoT.AspNetCore.Monitoring;
 
     /// <summary>
     /// Webservice startup
@@ -133,7 +132,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge {
             app.UseCorrelation();
             app.UseSwagger();
             app.UseMetricServer();
-            app.UseMonitoring();
+            app.UseHttpMetrics();
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");

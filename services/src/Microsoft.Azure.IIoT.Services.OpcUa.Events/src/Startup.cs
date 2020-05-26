@@ -37,7 +37,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Autofac.Extensions.DependencyInjection;
     using Prometheus;
     using System;
-    using Microsoft.Azure.IIoT.AspNetCore.Monitoring;
 
     /// <summary>
     /// Webservice startup
@@ -145,7 +144,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             app.UseCorrelation();
             app.UseSwagger();
             app.UseMetricServer();
-            app.UseMonitoring();
+            app.UseHttpMetrics();
             app.UseEndpoints(endpoints => {
                 endpoints.MapHubs();
                 endpoints.MapControllers();

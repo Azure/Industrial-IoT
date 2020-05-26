@@ -31,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.AspNetCore.Monitoring;
 
     /// <summary>
     /// Webservice startup
@@ -138,7 +137,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
             app.UseCorrelation();
             app.UseSwagger();
             app.UseMetricServer();
-            app.UseMonitoring();
+            app.UseHttpMetrics();
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");
