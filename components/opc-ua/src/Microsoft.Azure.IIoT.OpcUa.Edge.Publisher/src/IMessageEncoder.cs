@@ -14,14 +14,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     public interface IMessageEncoder {
 
         /// <summary>
-        /// Number of DataChanges that are too big to be processed to IotHub Messages
+        /// Number of notifications that are too big to be processed to IotHub Messages
         /// </summary>
-        uint DataChangesDroptCount { get; }
+        uint NotificationsDroptCount { get; }
 
         /// <summary>
-        /// Number of successfully processed DataChanges
+        /// Number of successfully processed notifications from OPC client
         /// </summary>
-        uint DataChangesProcessedCount { get; }
+        uint NotificationsProcessedCount { get; }
 
         /// <summary>
         /// Number of successfully processed messages
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Average notifications in a message
         /// </summary>
-        double AvgDataChangesPerMessage { get; }
+        double AvgNotificationsPerMessage { get; }
 
         /// <summary>
         /// Average notifications in a message

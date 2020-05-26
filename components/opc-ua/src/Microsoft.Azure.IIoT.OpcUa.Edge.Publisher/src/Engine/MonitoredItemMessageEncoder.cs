@@ -26,16 +26,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     public class MonitoredItemMessageEncoder : IMessageEncoder {
 
         /// <inheritdoc/>
-        public uint DataChangesDroptCount { get; private set; }
+        public uint NotificationsDroptCount { get; private set; }
 
         /// <inheritdoc/>
-        public uint DataChangesProcessedCount { get; private set; }
+        public uint NotificationsProcessedCount { get; private set; }
 
         /// <inheritdoc/>
         public uint MessagesProcessedCount { get; private set; }
 
         /// <inheritdoc/>
-        public double AvgDataChangesPerMessage { get; private set; }
+        public double AvgNotificationsPerMessage { get; private set; }
 
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
@@ -105,13 +105,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (notificationSize > maxMessageSize) {
                         // we cannot handle this notification. Drop it.
                         // TODO Trace
-                        DataChangesDroptCount++;
+                        NotificationsDroptCount++;
                         processing = current.MoveNext();
                     }
                     else {
                         messageCompleted = maxMessageSize < (messageSize + notificationSize);
                         if (!messageCompleted) {
-                            DataChangesProcessedCount++;
+                            NotificationsProcessedCount++;
                             chunk.Add(notification);
                             processing = current.MoveNext();
                             messageSize += notificationSize + (processing ? 1 : 0);
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
-                    AvgDataChangesPerMessage = (AvgDataChangesPerMessage * MessagesProcessedCount +
+                    AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
                         chunk.Count) / (MessagesProcessedCount + 1);
                         MessagesProcessedCount++;
                     chunk.Clear();
@@ -180,7 +180,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (notificationSize > maxMessageSize) {
                         // we cannot handle this notification. Drop it.
                         // TODO Trace
-                        DataChangesDroptCount++;
+                        NotificationsDroptCount++;
                         processing = current.MoveNext();
                     }
                     else {
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                         if (!messageCompleted) {
                             chunk.Add(notification);
-                            DataChangesProcessedCount++;
+                            NotificationsProcessedCount++;
                             processing = current.MoveNext();
                             messageSize += notificationSize;
                         }
@@ -206,7 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
-                    AvgDataChangesPerMessage = (AvgDataChangesPerMessage * MessagesProcessedCount +
+                    AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
                         chunk.Count) / (MessagesProcessedCount + 1);
                     MessagesProcessedCount++;
                     chunk.Clear();
@@ -251,13 +251,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
                     // TODO Trace
-                    DataChangesDroptCount++;
+                    NotificationsDroptCount++;
                     yield break;
                 }
-                DataChangesProcessedCount++;
+                NotificationsProcessedCount++;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                     (MessagesProcessedCount + 1);
-                AvgDataChangesPerMessage = (AvgDataChangesPerMessage * MessagesProcessedCount + 1) /
+                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
                     (MessagesProcessedCount + 1);
                 MessagesProcessedCount++;
                 yield return encoded;
@@ -294,13 +294,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
                     // TODO Trace
-                    DataChangesDroptCount++;
+                    NotificationsDroptCount++;
                     yield break;
                 }
-                DataChangesProcessedCount++;
+                NotificationsProcessedCount++;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                     (MessagesProcessedCount + 1);
-                AvgDataChangesPerMessage = (AvgDataChangesPerMessage * MessagesProcessedCount + 1) /
+                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
                     (MessagesProcessedCount + 1);
                 MessagesProcessedCount++;
                 yield return encoded;

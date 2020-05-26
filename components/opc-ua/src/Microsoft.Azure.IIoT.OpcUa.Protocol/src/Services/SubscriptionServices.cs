@@ -244,7 +244,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 finally {
                     _lock.Release();
                     if (ErrorSignaled) {
-                        NumberOfConnectionRetries++;
                         _outer.SignalSubscriptionError();
                     }
                 }
