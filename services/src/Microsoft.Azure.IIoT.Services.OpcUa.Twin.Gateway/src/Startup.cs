@@ -31,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.AspNetCore.Monitoring;
 
     /// <summary>
