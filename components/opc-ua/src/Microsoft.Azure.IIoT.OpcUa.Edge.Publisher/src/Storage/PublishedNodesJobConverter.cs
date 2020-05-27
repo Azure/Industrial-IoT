@@ -134,7 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             MaxMessageSize = _config.MaxMessageSize
                         },
                         WriterGroup = new WriterGroupModel {
-                            MessageType = MessageEncoding.Json,
+                            MessageType = legacyCliModel.MessageEncoding,
                             WriterGroupId = $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
                                 $"{dataSetSourceBatches.First().GetHashSafe()}",
                             DataSetWriters = dataSetSourceBatches.Select(dataSetSource => new DataSetWriterModel {
