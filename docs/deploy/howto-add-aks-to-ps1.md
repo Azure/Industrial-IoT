@@ -1,7 +1,36 @@
-# Adding an AKS cluster with Azure IIoT components on top of PS1 deployment
+# Adding an AKS cluster with Azure IIoT components on top of PS1 deployment <!-- omit in toc -->
+
+[Home](readme.md)
 
 This article explains how to add an AKS cluster and deploy components of Azure Industrial IoT platform using
-a Helm chart on top of a platform deployed through either `deploy.cmd` or `deploy.sh` scripts. Those scripts
+a Helm chart on top of a platform deployed through either `deploy.cmd` or `deploy.sh` scripts.
+
+## Table of contents <!-- omit in toc -->
+
+* [Introduction](#introduction)
+* [Prerequisites](#prerequisites)
+* [Deployment Steps](#deployment-steps)
+  * [Create an AKS cluster](#create-an-aks-cluster)
+  * [Create a Public IP address](#create-a-public-ip-address)
+  * [Get credentials for kubectl](#get-credentials-for-kubectl)
+  * [Create ClusterRoleBinding for Kubernetes Dashboard](#create-clusterrolebinding-for-kubernetes-dashboard)
+  * [Deploy nginx-ingress Helm chart](#deploy-nginx-ingress-helm-chart)
+  * [Deploy cert-manager Helm chart](#deploy-cert-manager-helm-chart)
+  * [Create ClusterIssuer resource](#create-clusterissuer-resource)
+  * [Stop App Service resources](#stop-app-service-resources)
+  * [Deploy azure-industrial-iot Helm chart](#deploy-azure-industrial-iot-helm-chart)
+    * [Using configuration in Azure Key Vault](#using-configuration-in-azure-key-vault)
+    * [Passing Azure resource details through YAML file](#passing-azure-resource-details-through-yaml-file)
+    * [Installing the chart](#installing-the-chart)
+  * [Check status of deployed resources](#check-status-of-deployed-resources)
+  * [Enable Prometheus metrics scraping](#enable-prometheus-metrics-scraping)
+  * [Update Redirect URIs of web App Registration](#update-redirect-uris-of-web-app-registration)
+  * [Remove App Service and App Service Plan resources](#remove-app-service-and-app-service-plan-resources)
+  * [Access Engineering Tool and Swagger UIs](#access-engineering-tool-and-swagger-uis)
+
+## Introduction
+
+`deploy.cmd` or `deploy.sh` scripts
 are deploying components of Azure Industrial IoT platform into two instances of Azure App Services, and as
 such they do not provide high degree of scalability and high-availability. We recommend using those scripts
 for PoC and demo purposes. For production scenarios, we recommend running component of Azure Industrial IoT
@@ -44,7 +73,7 @@ cluster. Please use that application if you are starting from scratch:
   az acr helm install-cli
   ```
 
-## Steps
+## Deployment Steps
 
 The steps to create AKS cluster with static public IP address bellow are based on the following tutorial:
 
@@ -108,7 +137,7 @@ az aks get-credentials --resource-group myResourceGroup --name myAksCluster
 kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
 ```
 
-### Deploy NGINX Ingress Controller
+### Deploy nginx-ingress Helm chart
 
 Create `nginx-ingress` namespace:
 
