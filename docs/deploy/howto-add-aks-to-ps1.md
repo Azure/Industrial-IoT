@@ -274,7 +274,7 @@ Please check the [documentation of `azure-industrial-iot` Helm chart](../../depl
 for more details about the `loadConfFromKeyVault` and other parameter that are set in this case. In the end,
 `aiiot.yaml` value file would look something like the one below.
 
-Note the following values here:
+Note the following values in the YAML file:
 
 * Use hostname you got from `DNS name` of Public IP address resource for:
   * `externalServiceUrl`, should include `https://` protocol
@@ -333,7 +333,28 @@ If you decide to pass all Azure resource details through YAML file, please follo
 [documentation of `azure-industrial-iot` Helm chart](../../deploy/helm/azure-industrial-iot/README.md)
 to get the parameters. In the end, `aiiot.yaml` value file would look something like the one below.
 
-Note the following values here:
+In this case as well, we will have to set up Access Policies for service principal of `service` App
+Registration in Azure Key Vault so that Engineering Tool and OPC-Vault microservices are able to fetch the
+`dataprotection` key from  Azure Key Vault. That is required for proper functionality of
+[ASP.NET Core Data Protection](https://docs.microsoft.com/aspnet/core/security/data-protection/configuration/overview?view=aspnetcore-3.1#protectkeyswithazurekeyvault)
+feature.
+
+To do that:
+
+1. In Azure portal, go the the Key Vault resource that has been created by the deployment script.
+2. On the left panel, go to **Access policies** page under **Settings**.
+3. Click on **+ Add Access Policy**.
+4. Add the following permissions:
+
+    * Key Permissions: `get`, `list`, `sign`, `unwrapKey`, `wrapKey`, `create`
+
+5. Click on **Select principal**, and type in the name of `service` App Registration in the search bar,
+  then select it when it is found.
+
+6. Click on **Add** button which will return you to **Access policies** page.
+7. Click on **Save** on the top bar to confirm addition of the policy.
+
+Note the following values in the YAML file:
 
 * Use hostname you got from `DNS name` of Public IP address resource for:
   * `externalServiceUrl`, should include `https://` protocol
