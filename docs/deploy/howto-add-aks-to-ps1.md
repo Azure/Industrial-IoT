@@ -127,9 +127,9 @@ Create `nginx-ingress.yaml` file that we will use for deploying the Helm chart b
 
 Apply the following changes:
 
-1. Use IP address of the Public IP address resource that we created earlier instead of `<Public IP address>`
+1. Use IP address of the Public IP address resource that we created earlier instead of `20.50.19.169`
 2. Use DNS name label that you set when creating the Public IP address resource instead of
-  `<Public IP DNS name label>`. Use the value that you set when creating the resource, which is only the
+  `aks-cluster-ip`. Use the value that you set when creating the resource, which is only the
   **first part** of the hostname and **not** the whole hostname.
 
 ```yaml
@@ -138,9 +138,9 @@ controller:
   nodeSelector:
     beta.kubernetes.io/os: linux
   service:
-    loadBalancerIP: <Public IP address>
+    loadBalancerIP: 20.50.19.169
     annotations:
-      service.beta.kubernetes.io/azure-dns-label-name: <Public IP DNS name label>
+      service.beta.kubernetes.io/azure-dns-label-name: aks-cluster-ip
   config:
     compute-full-forward-for: "true"
     use-forward-headers: "true"
@@ -460,7 +460,8 @@ deployment:
 
 #### Installing the chart
 
-Install `azure-industrial-iot` Helm chart from root of the repo and use `aiiot.yaml` that you generated above:
+Install `azure-industrial-iot` Helm chart from root of the repo and use `aiiot.yaml` that you generated
+above:
 
 ```bash
 helm install aiiot -n aiiot .\deploy\helm\azure-industrial-iot\ -f aiiot.yaml
@@ -483,10 +484,54 @@ To enable prometheus metrics scraping let's use `04_oms_agent_configmap.yaml` fi
 kubectl apply -f .\deploy\src\Microsoft.Azure.IIoT.Deployment\Resources\aks\04_oms_agent_configmap.yaml
 ```
 
-### Update RedirectURLs of web App Registration
+### Update Redirect URIs of web App Registration
 
-ToDo:
+Now we will need to go to `web` App Registration and change its Redirect URIs to point to the URL of
+Public IP address.
+
+For that do the following:
+
+1. In Azure Portal to to App Registration page and find `web` entry.
+2. On the left side find **Authentication** page under **Manage** group, go there.
+3. You need to add the following entries in **Redirect URIs** of **Web** platform substituting
+  `aks-cluster-ip.westeurope.cloudapp.azure.com` with the hostname that you got from `DNS name` of Public
+  IP address resource:
+
+   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/frontend/signin-oidc`
+   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/registry/swagger/oauth2-redirect.html`
+   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/twin/swagger/oauth2-redirect.html`
+   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/history/swagger/oauth2-redirect.html`
+   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/vault/swagger/oauth2-redirect.html`
+   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/edge/publisher/swagger/oauth2-redirect.html`
+   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/events/swagger/oauth2-redirect.html`
+   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/publisher/swagger/oauth2-redirect.html`
+
+4. You should also delete `*.azurewebsites.net` entries from this list, as those point to containers that
+  were running in App Service resources that we have stopped in previous steps. We will delete those
+  instances in the next step.
+5. Click **Save** to save the changes.
+
+Now you should be able to go to Engineering Tool and Swagger UIs of microservices and authenticate there.
 
 ### Remove App Service and App Service Plan resources
 
-ToDo:
+Now find App Service instances that were created by the deployment script and delete them. After that find
+App Service Plan resource and delete that one as well. You do not need those as now microservices are running
+in the AKS cluster instead of the App Service instances
+
+### Access Engineering Tool and Swagger UIs
+
+Now you should be able to access Engineering Tool and Swagger UIs of microservices. To do that please
+substitute `aks-cluster-ip.westeurope.cloudapp.azure.com` with the hostname that you got from `DNS name` of
+Public IP address resource.
+
+| Service                                | URL                                                                                      |
+|----------------------------------------|------------------------------------------------------------------------------------------|
+| Engineering Tool                       | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/frontend/`                         |
+| OPC Registry Swagger UI                | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/registry/swagger/index.html`       |
+| OPC Twin Swagger UI                    | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/twin/swagger/index.html`           |
+| OPC Historian Access Swagger UI        | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/history/swagger/index.html`        |
+| OPC Vault Swagger UI                   | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/vault/swagger/index.html`          |
+| Publisher Lobs Orchestrator Swagger UI | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/edge/publisher/swagger/index.html` |
+| Events Swagger UI                      | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/events/swagger/index.html`         |
+| OPC Publisher Swagger UI               | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/publisher/swagger/index.html`      |
