@@ -30,8 +30,8 @@
         <tr>
             <th class="width-large">Id</th>
             <th class="width-medium">Site Id</th>
-            <th class="width-small">Connection Status</th>
-            <th class="width-small">Sync Status</th>
+            <th class="width-medium">Connection Status</th>
+            <th class="width-medium">Sync Status</th>
             <th></th>
         </tr>
     </thead>
@@ -53,13 +53,13 @@
                     </div>
                 </td>
                 @{string connectStatus = supervisor.Connected == null ? CommonHelper.None : supervisor.Connected == true ? "Connected" : "Disconnected";}
-                <td class="hover-text width-small">
+                <td class="hover-text width-medium">
                     <div>
                         @connectStatus
                     </div>
                 </td>
                 @{string syncStatus = supervisor.OutOfSync == null ? CommonHelper.None : supervisor.OutOfSync == true ? "Out of Sync" : "Synced";}
-                <td class="hover-text width-small">
+                <td class="hover-text width-medium">
                     <div>
                         @syncStatus
                     </div>

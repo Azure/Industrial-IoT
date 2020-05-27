@@ -152,6 +152,10 @@ th {
     width: 15%;
 }
 
+.width-large1 {
+    width: 20%;
+}
+
 .width-large {
     width: 25%;
 }
@@ -160,32 +164,14 @@ th {
     width: 35%;
 }
 
-
-/*.th-short {
-    width: 160px;
+.reload {
+    display: inline-block;
+    position: absolute;
+    bottom: 4px;
+    left: 320px;
 }
 
-.td-short {
-    width: 160px;
-}
-
-.td-short:hover {
-    width: unset;
-}
-
-.th-url-wide {
-    width: 300px;
-}
-
-.td-url-wide {
-    width: 300px;
-}
-
-.td-url-wide:hover {
-    width: unset;
-}*/
-
-.space-wrap{
+.space-wrap {
     white-space: normal;
 }
 
