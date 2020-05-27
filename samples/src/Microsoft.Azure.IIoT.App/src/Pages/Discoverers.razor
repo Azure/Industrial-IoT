@@ -51,7 +51,7 @@
         <tr>
             <th class="width-x-large">Discovery Module Id</th>
             <th class="width-medium">Connection Status</th>
-            <th class="width-medium">Enable scanning</th>
+            <th class="width-medium">Scanning</th>
             <th>Effective Configuration</th>
         </tr>
     </thead>
@@ -78,7 +78,7 @@
                 <td class="hover-text width-medium">
                     <div>@connectStatus</div>
                 </td>
-                <td class="td-short">
+                <td class="medium">
                     @{bool isDisconnected = discoverer.DiscovererModel.Connected != true;}
                     @{bool isEnabled = discoverer.ScanStatus == true;}
                     @{string scanStatus = isEnabled ? "Turn off" : "Turn on";}
