@@ -51,7 +51,7 @@
         <tr>
             <th>Discovery Module Id</th>
             <th>Connection Status</th>
-            <th>Enable scanning</th>
+            <th>Scanning</th>
             <th>Effective Configuration</th>
         </tr>
     </thead>
@@ -77,25 +77,9 @@
                     @connectStatus
                 </td>
                 <td>
-                    @if (discoverer.DiscovererModel.Connected == true)
-                    {
-                        <input type="checkbox" enabled @bind="@discoverer.ScanStatus" @onclick="@(async() => await SetScanAsync(discoverer))" />
-                    }
-                    else
-                    {
-                        <input type="checkbox" disabled @bind="@discoverer.ScanStatus" />
-                    }
-
-                    @{string output = discoverer.ScanStatus == true ? "On" : "Off";}
-                    @output
-                    @if (discoverer.IsSearching)
-                    {
-                        <div class=" pos-right loader"></div>
-                    }
-                    else
-                    {
-                        <div class=" pos-right"></div>
-                    }
+                    @{bool disabled = discoverer.DiscovererModel.Connected != true;}
+                    @{string scanStatus = discoverer.ScanStatus == true ? "Turn off" : "Turn on";}
+                    <button class="btn btn-primary" disabled=@disabled @onclick="(() => SetScanAsync(discoverer))">@scanStatus</button>
                 </td>
                 <td>
                     <div class="space-wrap">
@@ -235,6 +219,7 @@
     /// <param name="discoverer"></param>
     private async Task SetScanAsync(DiscovererInfo discoverer)
     {
+        discoverer.ScanStatus = !discoverer.ScanStatus;
         _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
             discoverer.DiscovererModel.Id, async data =>
             {
@@ -263,6 +248,7 @@
         {
             await _discovery.DisposeAsync();
         }
+
     }
 
     /// <summary>
