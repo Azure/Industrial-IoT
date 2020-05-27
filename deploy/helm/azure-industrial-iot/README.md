@@ -614,12 +614,21 @@ or `Microsoft.Azure.IIoT.Deployment` application then you can use the fact that 
 secrets to Azure Key Vault describing Azure resources IDs and connection details. Those secrets can be
 consumed by components of Azure Industrial IoT solution as configuration parameters similar to configuration
 environment variables that are injected to the Pods. To facilitate this method of configuration management
-through Azure Key Vault the chart provides `loadConfFromKeyVault` parameters. If it is set to `true` it
-signals to the chart that microservices should rely on Azure Key Vault for getting application configuration
-parameters. In this case the chart will loosen requirement on provided values and only values necessary to
-connect to Azure Key Vault will be required.
+through Azure Key Vault the chart provides `loadConfFromKeyVault` parameters. If it is set to `true` then a
+configuration provider that reads application configuration parameters from Azure Key Vault would be enabled.
+In this case the chart will loosen requirement on provided values and only values necessary to connect to
+Azure Key Vault will be required.
 
-If `loadConfFromKeyVault` is set to `true`, then only the following parameters of `azure.*` parameter group
+When `loadConfFromKeyVault` is set to `true`, our microservices will try to read configuration secrets from
+your Azure Key Vault instance. So you would have to make sure that `servicesApp` has enough permissions to
+access the Azure Key Vault. We require the following Access Policies to be set for service principal of
+`servicesApp` so that microservices can function properly:
+
+* Key Permissions: `get`, `list`, `sign`, `unwrapKey`, `wrapKey`, `create`
+* Secret Permissions: `get`, `list`, `set`, `delete`
+* Certificate Permissions: `get`, `list`, `update`, `create`, `import`
+
+When `loadConfFromKeyVault` is set to `true`, then only the following parameters of `azure.*` parameter group
 are required:
 
 * `azure.tenantId`

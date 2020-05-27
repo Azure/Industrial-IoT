@@ -20,8 +20,9 @@ image:
 # String to fully override azure-industrial-iot.fullname template.
 # fullnameOverride:
 
-# loadConfFromKeyVault specifies whether microservices should rely mostly on Azure Key Vault for providing application configuration parameters or not.
+# loadConfFromKeyVault determines whether configuration provider that reads application configuration parameters from Azure Key Vault should be enabled or not.
 # When loadConfFromKeyVault is set to true, the chart will loosen requirement on provided values. And only values necessary to connect to Azure Key Vault will be required.
+# As reading secrets from Azure Key Vault requires some permissions, you would have to make sure that servicesApp has enough permissions to access your Azure Key Vault instance.
 #
 # This can be used if Azure infrastructure has been bootstraped either by deploy.ps1 script or Microsoft.Azure.IIoT.Deployment
 # application as they push application configuration parameters of microservices to Azure Key Vault as secrets.
