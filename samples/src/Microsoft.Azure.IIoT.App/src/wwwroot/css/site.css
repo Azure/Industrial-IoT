@@ -341,7 +341,10 @@ a.adhocmargin {
 }
 
 .value-scroll {
-    
+    overflow: auto;
+    max-height: 300px;
+    max-width: 100%;
+    white-space: normal;
 }
 
 .value-scroll:hover {
