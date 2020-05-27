@@ -211,7 +211,7 @@ Run the command:
 kubectl apply -f cluster-issuer.prod.yaml
 ```
 
-### Stop App Services
+### Stop App Service resources
 
 Before deploying `azure-industrial-iot` Helm chart, please go to your resource group, find App Service
 resources and stop them. This will ensure that there are no two versions of the platform running at the
@@ -226,8 +226,8 @@ kubectl create namespace aiiot
 ```
 
 Now you will need to decide whether you want to use configuration that has been pushed to Azure Key Vault
-as secrets by deploy scripts or pass details of all required Azure resources through YAML file. Based on
-that the YAML files for `azure-industrial-iot` Helm chart will look a bit differently.
+as secrets by deployment scripts or pass details of all required Azure resources through the chart. Based
+on that the YAML files for `azure-industrial-iot` Helm chart will look a bit differently.
 
 #### Using configuration in Azure Key Vault
 
@@ -247,21 +247,153 @@ access the Azure Key Vault. We require the following Access Policies to be set f
 * Secret Permissions: `get`, `list`, `set`, `delete`
 * Certificate Permissions: `get`, `list`, `update`, `create`, `import`
 
-
 ToDo: Finish this section.
+
+```yaml
+loadConfFromKeyVault: true
+
+azure:
+  tenantId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+  keyVault:
+    uri: https://keyvault-XXXXXX.vault.azure.net/
+
+  auth:
+    servicesApp:
+      appId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+      secret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=
+
+externalServiceUrl: https://aks-cluster-ip.westeurope.cloudapp.azure.com
+
+deployment:
+  microServices:
+    engineeringTool:
+      enabled: true
+    telemetryCdmProcessor:
+      enabled: true
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/affinity: cookie
+      nginx.ingress.kubernetes.io/session-cookie-name: affinity
+      nginx.ingress.kubernetes.io/session-cookie-expires: "14400"
+      nginx.ingress.kubernetes.io/session-cookie-max-age: "14400"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    tls:
+    - hosts:
+      - aks-cluster-ip.westeurope.cloudapp.azure.com
+      secretName: tls-secret
+    hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
+```
 
 #### Passing Azure resource details through YAML file
 
-If you decide to pass Azure resource details through YAML file, please follow
+If you decide to pass all Azure resource details through YAML file, please follow
 [documentation of `azure-industrial-iot` Helm chart](../../deploy/helm/azure-industrial-iot/README.md)
 to get the parameters. In the end `aiiot.yaml` file will look something like this:
 
 ```yaml
+azure:
+  tenantId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+  iotHub:
+    eventHub:
+      endpoint: Endpoint=sb://iothub-ns-iothub-XXX-XXXXXXX-XXXXXXXXXX.servicebus.windows.net/;SharedAccessKeyName=iothubowner;SharedAccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=;EntityPath=iothub-XXXXXX
+
+      consumerGroup:
+        events: events
+        telemetry: telemetry
+        tunnel: tunnel
+        onboarding: onboarding
+
+    sharedAccessPolicies:
+      iothubowner:
+        connectionString: HostName=iothub-XXXXXX.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=
+
+  cosmosDB:
+    connectionString: AccountEndpoint=https://documentdb-XXXXXX.documents.azure.com:443/;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==;
+
+  storageAccount:
+    connectionString: DefaultEndpointsProtocol=https;AccountName=storageXXXXXX;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==;EndpointSuffix=core.windows.net
+
+  adlsg2:
+    connectionString: DefaultEndpointsProtocol=https;AccountName=datalakeXXXXXX;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==;EndpointSuffix=core.windows.net
+
+  eventHubNamespace:
+    sharedAccessPolicies:
+      rootManageSharedAccessKey:
+        connectionString: Endpoint=sb://eventhubnamespace-XXXXXX.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=
+
+    eventHub:
+      name: eventhub-XXXXXX
+
+      consumerGroup:
+        telemetryCdm: telemetry_cdm
+        telemetryUx: telemetry_ux
+
+  serviceBusNamespace:
+    sharedAccessPolicies:
+      rootManageSharedAccessKey:
+        connectionString: Endpoint=sb://sb-XXXXXX.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=
+
+  keyVault:
+    uri: https://keyvault-XXXXXX.vault.azure.net/
+
+  applicationInsights:
+    instrumentationKey: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+  logAnalyticsWorkspace:
+    id: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+    key: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==
+
+  signalR:
+    connectionString: Endpoint=https://hubXXXXXX.service.signalr.net;AccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=;Version=1.0;
+    serviceMode: Default
+
+  auth:
+    servicesApp:
+      appId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+      secret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=
+      audience: https://opcwalls.onmicrosoft.com/XXXXXXXXXXXXXX-service
+
+    clientsApp:
+      appId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+      secret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX=
+
+externalServiceUrl: https://aks-cluster-ip.westeurope.cloudapp.azure.com
+
+deployment:
+  microServices:
+    engineeringTool:
+      enabled: true
+    telemetryCdmProcessor:
+      enabled: true
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/affinity: cookie
+      nginx.ingress.kubernetes.io/session-cookie-name: affinity
+      nginx.ingress.kubernetes.io/session-cookie-expires: "14400"
+      nginx.ingress.kubernetes.io/session-cookie-max-age: "14400"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    tls:
+    - hosts:
+      - aks-cluster-ip.westeurope.cloudapp.azure.com
+      secretName: tls-secret
+    hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
 
 #### Installing the chart
 
-Install Azure Industrial IoT Helm chart from root of the repo and use `aiiot.yaml` that you generated above:
+Install `azure-industrial-iot` Helm chart from root of the repo and use `aiiot.yaml` that you generated above:
 
 ```bash
 helm install aiiot -n aiiot .\deploy\helm\azure-industrial-iot\ -f aiiot.yaml
@@ -288,6 +420,6 @@ kubectl apply -f .\deploy\src\Microsoft.Azure.IIoT.Deployment\Resources\aks\04_o
 
 ToDo:
 
-### Remove App Service and App Service Plan
+### Remove App Service and App Service Plan resources
 
 ToDo:
