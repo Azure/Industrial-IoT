@@ -77,24 +77,10 @@
                     @connectStatus
                 </td>
                 <td class="td-short">
-                    @if (discoverer.DiscovererModel.Connected == true)
-                    {
-                        @if (discoverer.ScanStatus) 
-                        {
-                            <input type="checkbox" enabled checked @onchange="@(async () => await SetScanAsync(discoverer, false))" />
-                        }
-                        else 
-                        {
-                            <input type="checkbox" enabled @onchange="@(async () => await SetScanAsync(discoverer, true))" />
-                        }
-                    }
-                    else
-                    {
-                        <input type="checkbox" disabled @bind="@discoverer.ScanStatus" />
-                    }
-
-                    @{string output = discoverer.ScanStatus == true ? "On" : "Off";}
-                    @output
+                    @{bool isDisconnected = discoverer.DiscovererModel.Connected != true;}
+                    @{bool isEnabled = discoverer.ScanStatus == true;}
+                    @{string scanStatus = isEnabled ? "Turn off" : "Turn on";}
+                    <button class="btn btn-primary" disabled=@isDisconnected @onclick="(() => SetScanAsync(discoverer, !isEnabled))">@scanStatus</button>
                     @if (discoverer.IsSearching)
                     {
                         <div class=" pos-right loader"></div>
@@ -184,7 +170,7 @@
     private PagedResult<DiscovererInfo> _discovererList = new PagedResult<DiscovererInfo>();
     private PagedResult<DiscovererInfo> _pagedDiscovererList = new PagedResult<DiscovererInfo>();
     private string _eventResult { get; set; }
-    private string _scanResult { get; set; } = "hidden";
+    private string _scanResult { get; set; } = "displayNone";
     private string _tableView = "visible";
     private string _tableEmpty = "displayNone";
 
@@ -259,13 +245,13 @@
 
                 _isDiscoveryEventSubscribed = true;
                 discoverer.IsSearching = true;
-                _scanResult = "visible";
+                _scanResult = "displayBlock";
                 DiscovererData = discoverer;
             }
             else
             {
                 discoverer.IsSearching = false;
-                _scanResult = "hidden";
+                _scanResult = "displayNone";
                 if (_discovery != null)
                 {
                     await _discovery.DisposeAsync();
@@ -305,7 +291,7 @@
             _eventResult = string.Empty;
 
             discoverer.IsSearching = true;
-            _scanResult = "visible";
+            _scanResult = "displayBlock";
             DiscovererData = discoverer;
             Status = await RegistryHelper.DiscoverServersAsync(discoverer);
         }
@@ -451,7 +437,7 @@
     /// </summary>
     public void CloseScanResultView()
     {
-        _scanResult = "hidden";
+        _scanResult = "displayNone";
     }
 
     public async void Dispose()
