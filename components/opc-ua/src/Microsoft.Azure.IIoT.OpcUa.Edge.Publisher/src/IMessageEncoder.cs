@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Number of notifications that are too big to be processed to IotHub Messages
         /// </summary>
-        uint NotificationsDroptCount { get; }
+        uint NotificationsDroppedCount { get; }
 
         /// <summary>
         /// Number of successfully processed notifications from OPC client

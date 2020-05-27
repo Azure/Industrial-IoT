@@ -157,7 +157,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 "   # Ingress BatchBlock buffer size   : {batchDataSetMessageBlockOutputCount}\n" +
                 "   # Encoding Block input/output size : {encodingBlockInputCount}/{encodingBlockOutputCount}\n" +
                 "   # Encoder Notifications processed  : {notificationsProcessedCount}\n" +
-                "   # Encoder Notifications dropt      : {notificationsDroptCount}\n" +
+                "   # Encoder Notifications dropped    : {notificationsDroppedCount}\n" +
                 "   # Encoder IoT Messages processed   : {messagesProcessedCount}\n" +
                 "   # Encoder avg Notifications/Message: {notificationsPerMessage}\n" +
                 "   # Encoder avg IoT Message body size: {messageSizeAverage}\n" +
@@ -171,7 +171,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _batchDataSetMessageBlock.OutputCount,
                 _encodingBlock.InputCount, _encodingBlock.OutputCount,
                 _messageEncoder.NotificationsProcessedCount,
-                _messageEncoder.NotificationsDroptCount,
+                _messageEncoder.NotificationsDroppedCount,
                 _messageEncoder.MessagesProcessedCount,
                 _messageEncoder.AvgNotificationsPerMessage,
                 _messageEncoder.AvgMessageSize,
@@ -191,8 +191,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _identity.ModuleId ?? "", Name).Set(_messageTrigger.ValueChangesCount / totalDuration);
             kNotificationsProcessedCount.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_messageEncoder.NotificationsProcessedCount);
-            kNotificationsDroptCount.WithLabels(_identity.DeviceId ?? "",
-                _identity.ModuleId ?? "", Name).Set(_messageEncoder.NotificationsDroptCount);
+            kNotificationsDroppedCount.WithLabels(_identity.DeviceId ?? "",
+                _identity.ModuleId ?? "", Name).Set(_messageEncoder.NotificationsDroppedCount);
             kMessagesProcessedCount.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_messageEncoder.MessagesProcessedCount);
             kNotificationsPerMessageAvg.WithLabels(_identity.DeviceId ?? "",
@@ -268,8 +268,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private static readonly Gauge kNotificationsProcessedCount = Metrics.CreateGauge(
             "iiot_edge_publisher_encoded_notifications", "publisher engine encoded opc notifications count", kGaugeConfig);
-        private static readonly Gauge kNotificationsDroptCount = Metrics.CreateGauge(
-            "iiot_edge_publisher_dropt_notifications", "publisher engine dropt opc notifications count", kGaugeConfig);
+        private static readonly Gauge kNotificationsDroppedCount = Metrics.CreateGauge(
+            "iiot_edge_publisher_dropped_notifications", "publisher engine dropped opc notifications count", kGaugeConfig);
         private static readonly Gauge kMessagesProcessedCount = Metrics.CreateGauge(
             "iiot_edge_publisher_processed_messages", "publisher engine processed iot messages count", kGaugeConfig);
         private static readonly Gauge kNotificationsPerMessageAvg = Metrics.CreateGauge(

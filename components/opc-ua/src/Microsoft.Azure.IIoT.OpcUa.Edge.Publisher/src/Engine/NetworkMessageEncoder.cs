@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     public class NetworkMessageEncoder : IMessageEncoder {
 
         /// <inheritdoc/>
-        public uint NotificationsDroptCount { get; private set; }
+        public uint NotificationsDroppedCount { get; private set; }
 
         /// <inheritdoc/>
         public uint NotificationsProcessedCount { get; private set; }
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (notificationSize > maxMessageSize) {
                         // we cannot handle this notification. Drop it.
                         // TODO Trace
-                        NotificationsDroptCount++;
+                        NotificationsDroppedCount++;
                         processing = current.MoveNext();
                     }
                     else {
@@ -181,7 +181,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (notificationSize > maxMessageSize) {
                         // we cannot handle this notification. Drop it.
                         // TODO Trace
-                        NotificationsDroptCount++;
+                        NotificationsDroppedCount++;
                         processing = current.MoveNext();
                     }
                     else {
@@ -252,7 +252,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
                     // TODO Trace
-                    NotificationsDroptCount++;
+                    NotificationsDroppedCount++;
                     yield break;
                 }
                 NotificationsProcessedCount++;
@@ -294,7 +294,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
                     // TODO Trace
-                    NotificationsDroptCount++;
+                    NotificationsDroppedCount++;
                     yield break;
                 }
                 NotificationsProcessedCount++;
