@@ -52,6 +52,7 @@
             <div class="@_responseClass">
                 <span>value = </span>
                 <span>@_response</span>
+                <a class="oi oi-reload" href="javascript: void(0)" @onclick="@(() => ReadAsync(NodeData.Id))"></a>
             </div>
         }
         else if (_typeOfAction == ActionType.Write)

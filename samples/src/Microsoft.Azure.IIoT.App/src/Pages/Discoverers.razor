@@ -49,9 +49,9 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th class="th-url-wide">Discovery Module Id</th>
-            <th class="th-short">Connection Status</th>
-            <th class="th-short">Enable scanning</th>
+            <th class="width-x-large">Discovery Module Id</th>
+            <th class="width-medium">Connection Status</th>
+            <th class="width-medium">Enable scanning</th>
             <th>Effective Configuration</th>
         </tr>
     </thead>
@@ -62,47 +62,51 @@
             <tr>
                 @if (discoverer.HasApplication == true)
                 {
-                    <td class="td-url-wide">
-                        <a href='endpoints/1/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll/@RegistryHelper.PathAll'>
-                            @discoverer.DiscovererModel.Id
-                        </a>
+                    <td class="hover-text width-x-large">
+                        <div>
+                            <a href='endpoints/1/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll/@RegistryHelper.PathAll'>
+                                @discoverer.DiscovererModel.Id
+                            </a>
+                        </div>
                     </td>
                 }
                 else
                 {
-                    <td class="td-url-wide">@discoverer.DiscovererModel.Id</td>
+                    <td class="hover-text">@discoverer.DiscovererModel.Id</td>
                 }
                 @{connectStatus = discoverer.DiscovererModel.Connected == true ? "Connected" : "Disconnected";}
-                <td class="td-short">
-                    @connectStatus
+                <td class="hover-text width-medium">
+                    <div>@connectStatus</div>
                 </td>
-                <td class="td-short">
-                    @if (discoverer.DiscovererModel.Connected == true)
-                    {
-                        @if (discoverer.ScanStatus) 
+                <td class="width-medium">
+                    <div>
+                        @if (discoverer.DiscovererModel.Connected == true)
                         {
-                            <input type="checkbox" enabled checked @onchange="@(async () => await SetScanAsync(discoverer, false))" />
+                            @if (discoverer.ScanStatus) 
+                            {
+                                <input type="checkbox" enabled checked @onchange="@(async () => await SetScanAsync(discoverer, false))" />
+                            }
+                            else 
+                            {
+                                <input type="checkbox" enabled @onchange="@(async () => await SetScanAsync(discoverer, true))" />
+                            }
                         }
-                        else 
+                        else
                         {
-                            <input type="checkbox" enabled @onchange="@(async () => await SetScanAsync(discoverer, true))" />
+                            <input type="checkbox" disabled @bind="@discoverer.ScanStatus" />
                         }
-                    }
-                    else
-                    {
-                        <input type="checkbox" disabled @bind="@discoverer.ScanStatus" />
-                    }
 
-                    @{string output = discoverer.ScanStatus == true ? "On" : "Off";}
-                    @output
-                    @if (discoverer.IsSearching)
-                    {
-                        <div class=" pos-right loader"></div>
-                    }
-                    else
-                    {
-                        <div class=" pos-right"></div>
-                    }
+                        @{string output = discoverer.ScanStatus == true ? "On" : "Off";}
+                        @output
+                        @if (discoverer.IsSearching)
+                        {
+                            <div class=" pos-right loader"></div>
+                        }
+                        else
+                        {
+                            <div class=" pos-right"></div>
+                        }
+                    </div>
                 </td>
                 <td>
                     <div class="space-wrap">
@@ -128,21 +132,19 @@
                             @(discoverer.EffectiveIdleTimeBetweenScans ?? "Default")<br />
                         </a>
                         Discovery Urls:
-                        @if (discoverer.EffectiveDiscoveryUrls.Count == 0)
-                        {
+                        @if (discoverer.EffectiveDiscoveryUrls.Count == 0) {
                             <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                                 (None)
                             </a>
                         }
-                        else
-                        {
-                            @foreach (var url in discoverer.EffectiveDiscoveryUrls)
-                            {
+                        else {
+                            @foreach (var url in discoverer.EffectiveDiscoveryUrls) {
                                 <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                                     @url<br />
                                 </a>
                             }
                         }
+  
                     </div>
                 </td>
             </tr>

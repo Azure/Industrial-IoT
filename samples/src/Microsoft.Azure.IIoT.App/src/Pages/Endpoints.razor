@@ -37,18 +37,18 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th class="th-url-wide">Endpoint Url</th>
-            <th>Security Mode</th>
-            <th>Security Policy</th>
-            <th class="th-short">Security Level</th>
-            <th>Endpoint State</th>
-            <th>Toggle Endpoint</th>
-            <th>Activation Status</th>
-            <th></th>
+            <th class="width-medium">Endpoint Url</th>
+            <th class="width-small">Security Mode</th>
+            <th class="width-small">Security Policy</th>
+            <th class="width-small">Security Level</th>
+            <th class="width-small">Endpoint State</th>
+            <th class="width-small">Toggle Endpoint</th>
+            <th class="width-medium">Activation Status</th>
+            <th class="width-small"></th>
 
             @if (IsIdGiven(DiscovererId))
             {
-                <th>
+                <th class="width-xsmall">
                     <a href="/discoverers/1">
                         <span class="oi oi-arrow-left"></span>
                     </a>
@@ -56,7 +56,7 @@
             }
             else if (IsIdGiven(ApplicationId))
             {
-                <th>
+                <th class="width-xsmall">
                     <a href="/applications/1">
                         <span class="oi oi-arrow-left"></span>
                     </a>
@@ -71,66 +71,98 @@
                 @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
                  endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
                 {
-                    <td class="td-url-wide">
-                        @{ string discover = DiscovererId ?? RegistryHelper.PathAll; }
-                        @{ string application = ApplicationId ?? RegistryHelper.PathAll; }
-                        @{ string supervisor = SupervisorId ?? RegistryHelper.PathAll; }
-                        <a href='browser/1/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id'>
-                            @endpoint.EndpointModel.Registration.Endpoint.Url
-                        </a>
+                    <td class="hover-text width-large">
+                        <div>
+                            @{ string discover = DiscovererId ?? RegistryHelper.PathAll; }
+                            @{ string application = ApplicationId ?? RegistryHelper.PathAll; }
+                            @{ string supervisor = SupervisorId ?? RegistryHelper.PathAll; }
+                            <a href='browser/1/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id'>
+                                @endpoint.EndpointModel.Registration.Endpoint.Url
+                            </a>
+                        </div>
                     </td>
                 }
                 else
                 {
-                    <td class="td-url-wide">@endpoint.EndpointModel.Registration.Endpoint.Url</td>
+                    <td class="hover-text width-large">
+                        <div>
+                            @endpoint.EndpointModel.Registration.Endpoint.Url
+                        </div>
+                    </td>
                 }
-                <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityMode</td>
-                @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
-                <td>@securityPolicy</td>
-                <td class="td-short">@endpoint.EndpointModel.Registration.SecurityLevel</td>
-                <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
-                <td>
-                    @if (IsEndpointActivated(endpoint))
-                    {
-                        @if (!IsEndpointSeen(endpoint))
-                        {
-                            <input type="checkbox" checked disabled />
-                        }
-                        else
-                        {
-                            <input type="checkbox" checked
-                                   @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
-                        }
-                        <label>Active</label>
-                    }
-                    else
-                    {
-                        @if (!IsEndpointSeen(endpoint))
-                        {
-                            <input type="checkbox" disabled />
-                        }
-                        else
-                        {
-                            <input type="checkbox"
-                                   @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
-                        }
-                        <label></label>
-                    }
+                <td class="hover-text width-small">
+                    <div>
+                        @endpoint.EndpointModel.Registration.Endpoint.SecurityMode
+                    </div>
                 </td>
-                <td>@endpoint.EndpointModel.ActivationState.ToString()</td>
+                @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
+                <td class="hover-text width-small">
+                    <div>
+                        @securityPolicy
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        @endpoint.EndpointModel.Registration.SecurityLevel
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        @(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        @{string label = string.Empty;}
+                        @if (IsEndpointActivated(endpoint))
+                        {
+                            @if (!IsEndpointSeen(endpoint))
+                            {
+                                <input type="checkbox" checked disabled />
+                            }
+                            else
+                            {
+                                <input type="checkbox" checked
+                                       @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
+                            }
+                            label = "Active";
+                        }
+                        else
+                        {
+                            @if (!IsEndpointSeen(endpoint))
+                            {
+                                <input type="checkbox" disabled />
+                            }
+                            else
+                            {
+                                <input type="checkbox"
+                                       @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
+                            }
+                            label = "";
+                        }
+                        @label
+                    </div>
+                </td>
+                <td class="hover-text width-medium">
+                    <div>
+                        @endpoint.EndpointModel.ActivationState.ToString()
+                    </div>
+                </td>
                 @if (IsEndpointSeen(endpoint) && IsEndpointActivated(endpoint))
                 {
-                    <td>
-                        <a class="ellipsis-space" href='publishedNodes/1/@endpoint.EndpointModel.Registration.Id/@DiscovererId/@ApplicationId/@SupervisorId'>Published Nodes</a>
+                    <td class="hover-text width-small">
+                        <div>
+                            <a class="ellipsis-space" href='publishedNodes/1/@endpoint.EndpointModel.Registration.Id/@DiscovererId/@ApplicationId/@SupervisorId'>Published Nodes</a>
+                        </div>
                     </td>
                 }
                 else
                 {
-                    <td></td>
+                    <td class="width-small"></td>
                 }
                 @if (IsIdGiven(DiscovererId) || IsIdGiven(ApplicationId))
                 {
-                    <td></td>
+                    <td class="width-small"></td>
                 }
             </tr>
         }
