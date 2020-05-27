@@ -1,9 +1,10 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/PublishedNodes/{page}/{endpointId}"
+@page "/PublishedNodes/{page}/{endpointId}/{discovererId}/{applicationId}/{supervisorId}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -17,6 +18,7 @@
 @inject NavigationManager NavigationManager
 @inject Publisher PublisherHelper
 @inject UICommon CommonHelper
+@inject Registry RegistryHelper
 
 <h1>Published Nodes</h1>
 
@@ -28,14 +30,20 @@
             <th>Publishing Interval</th>
             <th>Sampling Interval</th>
             <th>Heartbeat Interval</th>
-            <th>
-                <a href="/endpoints"><span class="oi oi-arrow-left"></span></a>
-            </th>
+            @if (IsIdGiven(DiscovererId) && IsIdGiven(ApplicationId) && IsIdGiven(SupervisorId)) {
+                <th>
+                    <a href="/endpoints/1/@DiscovererId/@ApplicationId/@SupervisorId"><span class="oi oi-arrow-left"></span></a>
+                </th>
+            }
+            else {
+                <th>
+                    <a href="/endpoints/1"><span class="oi oi-arrow-left"></span></a>
+                </th>
+            }
         </tr>
     </thead>
     <tbody>
-        @foreach (var node in _pagednodeList.Results)
-        {
+        @foreach (var node in _pagednodeList.Results) {
             <tr>
                 <td>
                     @{ string NodeId = CommonHelper.None;
@@ -83,6 +91,15 @@
     [Parameter]
     public string EndpointId { get; set; } = string.Empty;
 
+    [Parameter]
+    public string DiscovererId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string ApplicationId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string SupervisorId { get; set; } = string.Empty;
+
     public string Status { get; set; }
     private PagedResult<PublishedItemApiModel> _nodeList =
         new PagedResult<PublishedItemApiModel>();
@@ -96,7 +113,7 @@
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public async Task PagerPageChanged(int page)
+    public async Task PagerPageChanged(int page) 
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
@@ -113,7 +130,7 @@
     /// <summary>
     /// OnInitialized
     /// </summary>
-    protected override void OnInitialized()
+    protected override void OnInitialized() 
     {
         CommonHelper.Spinner = "loader-big";
     }
@@ -122,9 +139,9 @@
     /// OnAfterRenderAsync
     /// </summary>
     /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender) 
     {
-        if (firstRender)
+        if (firstRender) 
         {
             _nodeList = await PublisherHelper.PublishedAsync(EndpointId);
             Page = "1";
@@ -133,5 +150,10 @@
             CommonHelper.CheckErrorOrEmpty<PublishedItemApiModel>(_pagednodeList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
         }
+    }
+
+    private bool IsIdGiven(string id) 
+    {
+        return !string.IsNullOrEmpty(id);
     }
 }
