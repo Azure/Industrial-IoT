@@ -83,7 +83,7 @@
             <th>Name</th>
             <th>Node Id</th>
             <th>Node Type</th>
-            <th>Value</th>
+            <th class="value-wide">Value</th>
             <th>Publishing</th>
             <th>Publishing Config</th>
             <th>Status</th>
@@ -138,7 +138,7 @@
             @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
                ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
             {
-                <td class="value-scroll">
+                <td class="value-wide value-scroll">
                     <div>
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Action))">
                             @{string outputValue = $"{node.Value}";}

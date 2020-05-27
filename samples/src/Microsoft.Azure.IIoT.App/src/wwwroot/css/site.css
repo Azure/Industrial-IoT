@@ -126,6 +126,30 @@ th {
     text-overflow: ellipsis;
 }
 
+.th-short {
+    width: 130px;
+}
+
+.td-short {
+    width: 130px;
+}
+
+.td-short:hover {
+    width: unset;
+}
+
+.th-url-wide {
+    width: 230px;
+}
+
+.td-url-wide {
+    width: 230px;
+}
+
+.td-url-wide:hover {
+    width: unset;
+}
+
 .space-wrap{
     white-space: normal;
 }
@@ -302,14 +326,18 @@ a.adhocmargin {
     color: gray
 }
 
+.value-wide {
+    width: 300px;
+}
+
 .value-scroll {
     
 }
 
 .value-scroll:hover {
     overflow: auto;
-    max-height: 200px;
-    max-width: 400px;
+    max-height: 300px;
+    max-width: 300px;
     white-space: normal;
     position: relative;
     background-color: white;
