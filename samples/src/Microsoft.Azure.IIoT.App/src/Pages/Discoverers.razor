@@ -80,6 +80,14 @@
                     @{bool disabled = discoverer.DiscovererModel.Connected != true;}
                     @{string scanStatus = discoverer.ScanStatus == true ? "Turn off" : "Turn on";}
                     <button class="btn btn-primary" disabled=@disabled @onclick="(() => SetScanAsync(discoverer))">@scanStatus</button>
+                    @if (discoverer.IsSearching)
+                    {
+                        <div class=" pos-right loader"></div>
+                    }
+                    else
+                    {
+                        <div class=" pos-right"></div>
+                    }
                 </td>
                 <td>
                     <div class="space-wrap">
