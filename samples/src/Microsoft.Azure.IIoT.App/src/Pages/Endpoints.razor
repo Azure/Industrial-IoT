@@ -121,7 +121,7 @@
                 @if (IsEndpointSeen(endpoint) && IsEndpointActivated(endpoint))
                 {
                     <td>
-                        <a class="ellipsis-space" href='publishedNodes/1/@endpoint.EndpointModel.Registration.Id'>Published Nodes</a>
+                        <a class="ellipsis-space" href='publishedNodes/1/@endpoint.EndpointModel.Registration.Id/@DiscovererId/@ApplicationId/@SupervisorId'>Published Nodes</a>
                     </td>
                 }
                 else

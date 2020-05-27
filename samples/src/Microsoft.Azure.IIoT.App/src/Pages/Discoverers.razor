@@ -51,7 +51,7 @@
         <tr>
             <th class="th-url-wide">Discovery Module Id</th>
             <th class="th-short">Connection Status</th>
-            <th class="th-short">Scanning</th>
+            <th class="th-short">Enable scanning</th>
             <th>Effective Configuration</th>
         </tr>
     </thead>
@@ -77,9 +77,10 @@
                     @connectStatus
                 </td>
                 <td class="td-short">
-                    @{bool disabled = discoverer.DiscovererModel.Connected != true;}
-                    @{string scanStatus = discoverer.ScanStatus == true ? "Turn off" : "Turn on";}
-                    <button class="btn btn-primary" disabled=@disabled @onclick="(() => SetScanAsync(discoverer))">@scanStatus</button>
+                    @{bool isDisconnected = discoverer.DiscovererModel.Connected != true;}
+                    @{bool isEnabled = discoverer.ScanStatus == true;}
+                    @{string scanStatus = isEnabled ? "Turn off" : "Turn on";}
+                    <button class="btn btn-primary" disabled=@isDisconnected @onclick="(() => SetScanAsync(discoverer, !isEnabled))">@scanStatus</button>
                     @if (discoverer.IsSearching)
                     {
                         <div class=" pos-right loader"></div>
@@ -175,6 +176,7 @@
 
     private IAsyncDisposable _discovererEvent { get; set; }
     private IAsyncDisposable _discovery { get; set; }
+    private bool _isDiscoveryEventSubscribed { get; set; } = false;
 
 
     /// <summary>
@@ -225,21 +227,23 @@
     /// Enable discoverer scan
     /// </summary>
     /// <param name="discoverer"></param>
-    private async Task SetScanAsync(DiscovererInfo discoverer)
+    private async Task SetScanAsync(DiscovererInfo discoverer, bool checkStatus)
     {
-        discoverer.ScanStatus = !discoverer.ScanStatus;
-        _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
-            discoverer.DiscovererModel.Id, async data =>
-            {
-                await InvokeAsync(() => ScanProgress(data));
-            });
-
         try
         {
+            discoverer.ScanStatus = checkStatus;
             _eventResult = string.Empty;
 
             if (discoverer.ScanStatus == true)
             {
+                if (!_isDiscoveryEventSubscribed) {
+                    _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
+                        discoverer.DiscovererModel.Id, async data => {
+                            await InvokeAsync(() => ScanProgress(data));
+                        });
+                }
+
+                _isDiscoveryEventSubscribed = true;
                 discoverer.IsSearching = true;
                 _scanResult = "visible";
                 DiscovererData = discoverer;
@@ -248,13 +252,21 @@
             {
                 discoverer.IsSearching = false;
                 _scanResult = "hidden";
-                await _discovery.DisposeAsync();
+                if (_discovery != null)
+                {
+                    await _discovery.DisposeAsync();
+                }
+                _isDiscoveryEventSubscribed = false;
             }
             Status = await RegistryHelper.SetDiscoveryAsync(discoverer);
         }
         catch
         {
-            await _discovery.DisposeAsync();
+            if (_discovery != null)
+            {
+                await _discovery.DisposeAsync();
+            }
+            _isDiscoveryEventSubscribed = false;
         }
     }
 
@@ -264,12 +276,15 @@
     /// <param name="discoverer"></param>
     private async Task SetAdHocScanAsync(DiscovererInfo discoverer)
     {
-        discoverer.DiscoveryRequestId = Guid.NewGuid().ToString();
-        _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
-        discoverer.DiscoveryRequestId, async data =>
+        if (!_isDiscoveryEventSubscribed)
         {
-            await InvokeAsync(() => ScanProgress(data));
-        });
+            discoverer.DiscoveryRequestId = Guid.NewGuid().ToString();
+            _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
+            discoverer.DiscoveryRequestId, async data => {
+                await InvokeAsync(() => ScanProgress(data));
+            });
+            _isDiscoveryEventSubscribed = true;
+        }
 
         try
         {
@@ -282,7 +297,11 @@
         }
         catch
         {
-            await _discovery.DisposeAsync();
+            if (_discovery != null)
+            {
+                await _discovery.DisposeAsync();
+            }
+            _isDiscoveryEventSubscribed = false;
         }
     }
 

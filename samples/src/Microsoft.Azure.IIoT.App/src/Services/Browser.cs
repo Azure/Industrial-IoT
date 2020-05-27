@@ -85,6 +85,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 if (direction == BrowseDirection.Forward) {
                     parentId.Add(browseData.Node.NodeId);
+                    if (browseData.Node.DisplayName == null) {
+                        browseData.Node.DisplayName = string.Empty;
+                    }
                     Path.Add(browseData.Node.DisplayName);
                 }
                 else {
