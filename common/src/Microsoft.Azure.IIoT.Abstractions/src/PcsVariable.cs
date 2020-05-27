@@ -106,6 +106,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Key (in KeyVault) to be used for encription of keys </summary>
         public const string PCS_KEYVAULT_KEY_DATAPROTECTION =
             "PCS_KEYVAULT_KEY_DATAPROTECTION";
+        /// <summary> Determines whether configuratoin should be loaded from KeyVault </summary>
+        public const string PCS_KEYVAULT_CONFIG_ENABLED =
+            "PCS_KEYVAULT_CONFIG_ENABLED";
         /// <summary> Managed service identity application id </summary>
         public const string PCS_MSI_APPID =
             "PCS_MSI_APPID";

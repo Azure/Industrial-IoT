@@ -97,6 +97,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         kDiscoveryModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
+                        logger.Information("Starting module OpcDiscovery version {version}.", version);
                         await module.StartAsync(IdentityType.Discoverer, SiteId,
                             "OpcDiscovery", version, this);
                         OnRunning?.Invoke(this, true);
