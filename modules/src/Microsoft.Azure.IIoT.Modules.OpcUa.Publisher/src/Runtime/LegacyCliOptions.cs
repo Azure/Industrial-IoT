@@ -42,7 +42,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             foreach (var item in config.GetChildren()) {
                 this[item.Key] = item.Value;
             }
-
             Config = ToAgentConfigModel();
             LegacyCliModel = ToLegacyCliModel();
         }
@@ -58,19 +57,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             // command line options
             var options = new Mono.Options.OptionSet {
                     // Publisher configuration options
-                    { "pf|publishfile=", "the filename to configure the nodes to publish.",
+                    { "pf|publishfile=", "The filename to configure the nodes to publish.",
                         s => this[LegacyCliConfigKeys.PublisherNodeConfigurationFilename] = s },
-                    { "s|site=", "the site OPC Publisher is working in.",
+                    { "s|site=", "The site OPC Publisher is working in.",
                         s => this[LegacyCliConfigKeys.PublisherSite] = s },
 
                     { "di|diagnosticsinterval=", "Shows publisher diagnostic info at the specified interval " +
                         "in seconds (need log level info).\n-1 disables remote diagnostic log and diagnostic output",
                         (int i) => this[LegacyCliConfigKeys.DiagnosticsInterval] = TimeSpan.FromSeconds(i).ToString() },
-                    { "lf|logfile=", "the filename of the logfile to use.",
+                    { "lf|logfile=", "The filename of the logfile to use.",
                         s => this[LegacyCliConfigKeys.LogFileName] = s },
-                    { "lt|logflushtimespan=", "the timespan in seconds when the logfile should be flushed.",
+                    { "lt|logflushtimespan=", "The timespan in seconds when the logfile should be flushed.",
                         (int i) => this[LegacyCliConfigKeys.LogFileFlushTimeSpanSec] = TimeSpan.FromSeconds(i).ToString() },
-                    { "ll|loglevel=", "the loglevel to use (allowed: fatal, error, warn, info, debug, verbose).",
+                    { "ll|loglevel=", "The loglevel to use (allowed: fatal, error, warn, info, debug, verbose).",
                         (LogEventLevel l) => LogControl.Level.MinimumLevel = l },
 
                     { "ih|iothubprotocol=", "Protocol to use for communication with the hub. " +
@@ -81,23 +80,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "ec|edgehubconnectionstring=", "An edge module connection string to use",
                         dc => this[LegacyCliConfigKeys.EdgeHubConnectionString] = dc },
 
-                    { "hb|heartbeatinterval=", "the publisher is using this as default value in seconds " +
+                    { "hb|heartbeatinterval=", "The publisher is using this as default value in seconds " +
                         "for the heartbeat interval setting of nodes without a heartbeat interval setting.",
                         (int i) => this[LegacyCliConfigKeys.HeartbeatIntervalDefault] = TimeSpan.FromSeconds(i).ToString() },
-                    { "sf|skipfirstevent=", "the publisher is using this as default value for the skip first " +
+                    { "sf|skipfirstevent=", "The publisher is using this as default value for the skip first " +
                         "event setting of nodes without a skip first event setting.",
                         (bool b) => this[LegacyCliConfigKeys.SkipFirstDefault] = b.ToString() },
-                    { "mm|messagingmode=", "The messaging mode for messages " +
-                        $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
-                        (MessagingMode m) => this[LegacyCliConfigKeys.MessagingMode] = m.ToString() },
+
                     { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." + 
                         "Default is 'true', for legacy compatibility use 'false'",
                         (bool b) => this[LegacyCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
                     // Client settings
-                    { "ot|operationtimeout=", "the operation timeout of the publisher OPC UA client in ms.",
+                    { "ot|operationtimeout=", "The operation timeout of the publisher OPC UA client in ms.",
                         (uint i) => this[LegacyCliConfigKeys.OpcOperationTimeout] = TimeSpan.FromMilliseconds(i).ToString() },
-                    { "ol|opcmaxstringlen=", "the max length of a string opc can transmit/receive.",
+                    { "ol|opcmaxstringlen=", "The max length of a string opc can transmit/receive.",
                         (uint i) => this[LegacyCliConfigKeys.OpcMaxStringLength] = i.ToString() },
                     { "oi|opcsamplinginterval=", "Default value in milliseconds to request the servers to " +
                         "sample values.",
@@ -110,21 +107,21 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "ki|keepaliveinterval=", "The interval in seconds the publisher is sending keep alive messages " +
                             "to the OPC servers on the endpoints it is connected to.",
                         (int i) => this[LegacyCliConfigKeys.OpcKeepAliveIntervalInSec] = TimeSpan.FromSeconds(i).ToString() },
-                    { "kt|keepalivethreshold=", "specify the number of keep alive packets a server can miss, " +
+                    { "kt|keepalivethreshold=", "Specify the number of keep alive packets a server can miss, " +
                         "before the session is disconneced.",
                         (uint u) => this[LegacyCliConfigKeys.OpcKeepAliveDisconnectThreshold] = u.ToString() },
-                    { "fd|fetchdisplayname=", "same as fetchname.",
+                    { "fd|fetchdisplayname=", "Fetches the displayname for the monitored items subscribed.",
                         (bool b) => this[LegacyCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
                     { "sw|sessionconnectwait=", "Wait time in seconds publisher is trying to connect " +
                         "to disconnected endpoints and starts monitoring unmonitored items.",
                         (int s) => this[LegacyCliConfigKeys.SessionConnectWaitSec] = TimeSpan.FromSeconds(s).ToString() },
 
-                    // cert store options
-                    { "aa|autoaccept", "the publisher trusts all servers it is establishing a connection to.",
+                    // cert store option
+                    { "aa|autoaccept", "The publisher trusts all servers it is establishing a connection to.",
                           b => this[LegacyCliConfigKeys.AutoAcceptCerts] = (b != null).ToString() },
-                    { "tm|trustmyself", "the publisher certificate is put into the trusted store automatically.",
+                    { "tm|trustmyself", "The publisher certificate is put into the trusted store automatically.",
                         t => this[LegacyCliConfigKeys.TrustMyself] = (t != null).ToString() },
-                    { "at|appcertstoretype=", "the own application cert store type (allowed: Directory, X509Store).",
+                    { "at|appcertstoretype=", "The own application cert store type (allowed: Directory, X509Store).",
                         s => {
                             if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||
                                 s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase)) {
@@ -134,25 +131,33 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                             throw new OptionException("Bad store type", "at");
                         }
                     },
-                    { "ap|appcertstorepath=", "the path where the own application cert should be stored.",
+                    { "ap|appcertstorepath=", "The path where the own application cert should be stored.",
                         s => this[LegacyCliConfigKeys.OpcOwnCertStorePath] = s },
-                    { "tp|trustedcertstorepath=", "the path of the trusted cert store.",
+                    { "tp|trustedcertstorepath=", "The path of the trusted cert store.",
                         s => this[LegacyCliConfigKeys.OpcTrustedCertStorePath] = s },
                     { "tt|trustedcertstoretype=", "Legacy - do not use.", _ => {} },
-                    { "rp|rejectedcertstorepath=", "the path of the rejected cert store.",
+                    { "rp|rejectedcertstorepath=", "The path of the rejected cert store.",
                         s => this[LegacyCliConfigKeys.OpcRejectedCertStorePath] = s },
                     { "rt|rejectedcertstoretype=", "Legacy - do not use.", _ => {} },
-                    { "ip|issuercertstorepath=", "the path of the trusted issuer cert store.",
+                    { "ip|issuercertstorepath=", "The path of the trusted issuer cert store.",
                         s => this[LegacyCliConfigKeys.OpcIssuerCertStorePath] = s },
                     { "it|issuercertstoretype=", "Legacy - do not use.", _ => {} },
-                    { "bs|batchsize=", "the size of message batching buffer.",
+                    { "bs|batchsize=", "The size of message batching buffer.",
                         (int i) => this[LegacyCliConfigKeys.BatchSize] = i.ToString() },
-                    { "si|iothubsendinterval=", "the trigger batching intervaql in seconds",
+                    { "si|iothubsendinterval=", "The trigger batching interval in seconds.",
                         (int k) => this[LegacyCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
-                    { "ms|iothubmessagesize=", "the maximum size of the (IoT D2C) message.",
+                    { "ms|iothubmessagesize=", "The maximum size of the (IoT D2C) message.",
                         (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
-                    { "sc|scaletestcount=", "the number of monitored item clones in scale tests",
+
+                    // testing purposes
+                    { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
                         (int i) => this[LegacyCliConfigKeys.ScaleTestCount] = i.ToString() },
+                    { "mm|messagingmode=", "The messaging mode for messages " +
+                        $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
+                        (MessagingMode m) => this[LegacyCliConfigKeys.MessagingMode] = m.ToString() },
+                    { "me|messageencoding=", "The message encoding for messages " +
+                        $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessageEncoding)))}).",
+                        (MessageEncoding m) => this[LegacyCliConfigKeys.MessageEncoding] = m.ToString() },
 
                     // Legacy unsupported
                     { "tc|telemetryconfigfile=", "Legacy - do not use.", _ => {} },
@@ -258,11 +263,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 DefaultSamplingInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcSamplingInterval, TimeSpan.FromMilliseconds(1000)),
                 DefaultPublishingInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcPublishingInterval, TimeSpan.FromMilliseconds(1000)),
                 FetchOpcNodeDisplayName = GetValueOrDefault(LegacyCliConfigKeys.FetchOpcNodeDisplayName, false),
-                DiagnosticsInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.DiagnosticsInterval),
+                DiagnosticsInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.DiagnosticsInterval, TimeSpan.FromSeconds(60)),
                 LogFileFlushTimeSpan = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.LogFileFlushTimeSpanSec),
                 LogFilename = GetValueOrDefault<string>(LegacyCliConfigKeys.LogFileName),
                 Transport = GetValueOrDefault<string>(LegacyCliConfigKeys.HubTransport),
                 MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, MessagingMode.Samples),
+                MessageEncoding = GetValueOrDefault(LegacyCliConfigKeys.MessageEncoding, MessageEncoding.Json),
                 FullFeaturedMessage = GetValueOrDefault(LegacyCliConfigKeys.FullFeaturedMessage, false),
                 EdgeHubConnectionString = GetValueOrDefault<string>(LegacyCliConfigKeys.EdgeHubConnectionString),
                 OperationTimeout = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcOperationTimeout),
@@ -277,8 +283,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 TrustedPeerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcTrustedCertStorePath),
                 RejectedCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcRejectedCertStorePath),
                 TrustedIssuerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcIssuerCertStorePath),
-                BatchSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.BatchSize, 1),
-                BatchTriggerInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.BatchTriggerInterval),
+                BatchSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.BatchSize, 50),
+                BatchTriggerInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
                 MaxMessageSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.MaxMessageSize, 0),
                 ScaleTestCount = GetValueOrDefault<int?>(LegacyCliConfigKeys.ScaleTestCount, 1)
             };

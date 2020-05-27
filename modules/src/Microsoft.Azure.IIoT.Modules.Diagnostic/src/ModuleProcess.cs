@@ -84,6 +84,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
                     try {
                         // Start module
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
+                        logger.Information("Starting module Diagnostic version {version}.", version);
                         await module.StartAsync("diagnostic", SiteId,
                             "Diagnostic", version, this);
                         OnRunning?.Invoke(this, true);

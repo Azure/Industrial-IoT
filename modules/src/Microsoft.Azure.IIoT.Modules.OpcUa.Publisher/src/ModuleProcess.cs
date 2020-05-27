@@ -97,12 +97,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                     var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
-
                         server.StartWhenEnabled(moduleConfig, logger);
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         // Start module
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
+                        logger.Information("Starting module OpcPublisher version {version}.", version);
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this);
                         await workerSupervisor.StartAsync();
