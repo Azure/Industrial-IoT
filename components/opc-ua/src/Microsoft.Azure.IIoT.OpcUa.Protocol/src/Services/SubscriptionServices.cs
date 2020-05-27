@@ -68,7 +68,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             errorSignaled ? StatusCodes.BadNotConnected : StatusCodes.Good);
                         if (session == null) {
                             subscriptionsGroup.ToList().ForEach(s => s.ErrorSignaled = true);
-                            throw new ResourceNotFoundException("Session not available");
+                            throw new ResourceNotFoundException(
+                                $"Session not available - endpointUrl: {subscriptionsGroup?.Key?.Connection?.Endpoint?.Url}");
                         }
                         if (errorSignaled) {
                             // just go through the elements and try to recreate the subscrption state
@@ -230,7 +231,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     var rawSubscription = await GetSubscriptionAsync(configuration, activate);
                     if (rawSubscription == null) {
-                        throw new ResourceNotFoundException("Session/Subscription not available");
+                        throw new ResourceNotFoundException
+                            ($"Session/Subscription not available - endpointUrl: {Connection?.Endpoint?.Url}");
                     }
 
                     await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate);
@@ -242,7 +244,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 finally {
                     _lock.Release();
                     if (ErrorSignaled) {
-                        NumberOfConnectionRetries++;
                         _outer.SignalSubscriptionError();
                     }
                 }
@@ -258,7 +259,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     ErrorSignaled = false;
                     var rawSubscription = await GetSubscriptionAsync(null, activate);
                     if (rawSubscription == null) {
-                        throw new ResourceNotFoundException("Session/Subscription not available");
+                        throw new ResourceNotFoundException(
+                            $"Session/Subscription not available - endpointUrl: {Connection?.Endpoint?.Url}");
                     }
                     await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate) ;
                 }
