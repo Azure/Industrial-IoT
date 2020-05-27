@@ -108,16 +108,6 @@ table {
     table-layout: fixed;
 }
 
-/*td {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}*/
-
-/*.hover-text:hover {
-    display: inline-block;
-    height: 20px;
-}*/
 .hover-text div {
     text-overflow: ellipsis;
     overflow: hidden;
@@ -128,7 +118,6 @@ table {
 .hover-text:hover div {
     overflow: visible;
     z-index: 1000;
-    /*width: auto !important;*/
     width: auto;
     position: absolute;
     background-color: white;
