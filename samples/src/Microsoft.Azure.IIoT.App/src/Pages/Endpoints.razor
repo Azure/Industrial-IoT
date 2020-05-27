@@ -37,14 +37,14 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th>Endpoint Url</th>
+            <th class="th-url-wide">Endpoint Url</th>
             <th>Security Mode</th>
             <th>Security Policy</th>
-            <th>Security Level</th>
+            <th class="th-short">Security Level</th>
             <th>Endpoint State</th>
             <th>Toggle Endpoint</th>
             <th>Activation Status</th>
-            <th> </th>
+            <th></th>
 
             @if (IsIdGiven(DiscovererId))
             {
@@ -71,7 +71,7 @@
                 @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
                  endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
                 {
-                    <td>
+                    <td class="td-url-wide">
                         @{ string discover = DiscovererId ?? RegistryHelper.PathAll; }
                         @{ string application = ApplicationId ?? RegistryHelper.PathAll; }
                         @{ string supervisor = SupervisorId ?? RegistryHelper.PathAll; }
@@ -82,12 +82,12 @@
                 }
                 else
                 {
-                    <td>@endpoint.EndpointModel.Registration.Endpoint.Url</td>
+                    <td class="td-url-wide">@endpoint.EndpointModel.Registration.Endpoint.Url</td>
                 }
                 <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityMode</td>
                 @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
                 <td>@securityPolicy</td>
-                <td>@endpoint.EndpointModel.Registration.SecurityLevel</td>
+                <td class="td-short">@endpoint.EndpointModel.Registration.SecurityLevel</td>
                 <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
                 <td>
                     @if (IsEndpointActivated(endpoint))
