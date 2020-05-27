@@ -170,7 +170,7 @@
     private PagedResult<DiscovererInfo> _discovererList = new PagedResult<DiscovererInfo>();
     private PagedResult<DiscovererInfo> _pagedDiscovererList = new PagedResult<DiscovererInfo>();
     private string _eventResult { get; set; }
-    private string _scanResult { get; set; } = "hidden";
+    private string _scanResult { get; set; } = "displayNone";
     private string _tableView = "visible";
     private string _tableEmpty = "displayNone";
 
@@ -245,13 +245,13 @@
 
                 _isDiscoveryEventSubscribed = true;
                 discoverer.IsSearching = true;
-                _scanResult = "visible";
+                _scanResult = "displayBlock";
                 DiscovererData = discoverer;
             }
             else
             {
                 discoverer.IsSearching = false;
-                _scanResult = "hidden";
+                _scanResult = "displayNone";
                 if (_discovery != null)
                 {
                     await _discovery.DisposeAsync();
@@ -291,7 +291,7 @@
             _eventResult = string.Empty;
 
             discoverer.IsSearching = true;
-            _scanResult = "visible";
+            _scanResult = "displayBlock";
             DiscovererData = discoverer;
             Status = await RegistryHelper.DiscoverServersAsync(discoverer);
         }
@@ -437,7 +437,7 @@
     /// </summary>
     public void CloseScanResultView()
     {
-        _scanResult = "hidden";
+        _scanResult = "displayNone";
     }
 
     public async void Dispose()
