@@ -79,7 +79,14 @@
                 <td class="td-short">
                     @if (discoverer.DiscovererModel.Connected == true)
                     {
-                        <input type="checkbox" enabled @bind="@discoverer.ScanStatus" @onclick="@(async() => await SetScanAsync(discoverer))" />
+                        @if (discoverer.ScanStatus) 
+                        {
+                            <input type="checkbox" enabled checked @onchange="@(async () => await SetScanAsync(discoverer, false))" />
+                        }
+                        else 
+                        {
+                            <input type="checkbox" enabled @onchange="@(async () => await SetScanAsync(discoverer, true))" />
+                        }
                     }
                     else
                     {
@@ -183,6 +190,7 @@
 
     private IAsyncDisposable _discovererEvent { get; set; }
     private IAsyncDisposable _discovery { get; set; }
+    private bool _isDiscoveryEventSubscribed { get; set; } = false;
 
 
     /// <summary>
@@ -233,20 +241,23 @@
     /// Enable discoverer scan
     /// </summary>
     /// <param name="discoverer"></param>
-    private async Task SetScanAsync(DiscovererInfo discoverer)
+    private async Task SetScanAsync(DiscovererInfo discoverer, bool checkStatus)
     {
-        _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
-            discoverer.DiscovererModel.Id, async data =>
-            {
-                await InvokeAsync(() => ScanProgress(data));
-            });
-
         try
         {
+            discoverer.ScanStatus = checkStatus;
             _eventResult = string.Empty;
 
             if (discoverer.ScanStatus == true)
             {
+                if (!_isDiscoveryEventSubscribed) {
+                    _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
+                        discoverer.DiscovererModel.Id, async data => {
+                            await InvokeAsync(() => ScanProgress(data));
+                        });
+                }
+
+                _isDiscoveryEventSubscribed = true;
                 discoverer.IsSearching = true;
                 _scanResult = "visible";
                 DiscovererData = discoverer;
@@ -255,13 +266,21 @@
             {
                 discoverer.IsSearching = false;
                 _scanResult = "hidden";
-                await _discovery.DisposeAsync();
+                if (_discovery != null)
+                {
+                    await _discovery.DisposeAsync();
+                }
+                _isDiscoveryEventSubscribed = false;
             }
             Status = await RegistryHelper.SetDiscoveryAsync(discoverer);
         }
         catch
         {
-            await _discovery.DisposeAsync();
+            if (_discovery != null)
+            {
+                await _discovery.DisposeAsync();
+            }
+            _isDiscoveryEventSubscribed = false;
         }
     }
 
@@ -271,12 +290,15 @@
     /// <param name="discoverer"></param>
     private async Task SetAdHocScanAsync(DiscovererInfo discoverer)
     {
-        discoverer.DiscoveryRequestId = Guid.NewGuid().ToString();
-        _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
-        discoverer.DiscoveryRequestId, async data =>
+        if (!_isDiscoveryEventSubscribed)
         {
-            await InvokeAsync(() => ScanProgress(data));
-        });
+            discoverer.DiscoveryRequestId = Guid.NewGuid().ToString();
+            _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
+            discoverer.DiscoveryRequestId, async data => {
+                await InvokeAsync(() => ScanProgress(data));
+            });
+            _isDiscoveryEventSubscribed = true;
+        }
 
         try
         {
@@ -289,7 +311,11 @@
         }
         catch
         {
-            await _discovery.DisposeAsync();
+            if (_discovery != null)
+            {
+                await _discovery.DisposeAsync();
+            }
+            _isDiscoveryEventSubscribed = false;
         }
     }
 
