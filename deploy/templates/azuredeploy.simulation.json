@@ -211,7 +211,10 @@
                         "value": "[parameters('managedIdentityResourceId')]"
                     },
                     // "tags": "[parameters('tags')]"//,
-                    "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
+                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
@@ -297,7 +300,10 @@
                         "value": "[parameters('managedIdentityResourceId')]"
                     },
                     // "tags": "[parameters('tags')]"//,
-                    "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
+                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
@@ -332,7 +338,10 @@
                         ]
                     },
                     // "tags": "[parameters('tags')]"//,
-                    "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
+                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
