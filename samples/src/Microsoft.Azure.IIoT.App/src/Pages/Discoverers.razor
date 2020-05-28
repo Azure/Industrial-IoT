@@ -49,9 +49,9 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th class="th-url-wide">Discovery Module Id</th>
-            <th class="th-short">Connection Status</th>
-            <th class="th-short">Enable scanning</th>
+            <th class="width-x-large">Discovery Module Id</th>
+            <th class="width-medium">Connection Status</th>
+            <th class="width-medium">Scanning</th>
             <th>Effective Configuration</th>
         </tr>
     </thead>
@@ -62,21 +62,23 @@
             <tr>
                 @if (discoverer.HasApplication == true)
                 {
-                    <td class="td-url-wide">
-                        <a href='endpoints/1/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll/@RegistryHelper.PathAll'>
-                            @discoverer.DiscovererModel.Id
-                        </a>
+                    <td class="hover-text width-x-large">
+                        <div>
+                            <a href='endpoints/1/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll/@RegistryHelper.PathAll'>
+                                @discoverer.DiscovererModel.Id
+                            </a>
+                        </div>
                     </td>
                 }
                 else
                 {
-                    <td class="td-url-wide">@discoverer.DiscovererModel.Id</td>
+                    <td class="hover-text">@discoverer.DiscovererModel.Id</td>
                 }
                 @{connectStatus = discoverer.DiscovererModel.Connected == true ? "Connected" : "Disconnected";}
-                <td class="td-short">
-                    @connectStatus
+                <td class="hover-text width-medium">
+                    <div>@connectStatus</div>
                 </td>
-                <td class="td-short">
+                <td class="width-medium">
                     @{bool isDisconnected = discoverer.DiscovererModel.Connected != true;}
                     @{bool isEnabled = discoverer.ScanStatus == true;}
                     @{string scanStatus = isEnabled ? "Turn off" : "Turn on";}
