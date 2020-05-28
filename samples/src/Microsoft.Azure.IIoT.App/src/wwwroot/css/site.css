@@ -14,9 +14,13 @@ a, .btn-link {
 }
 
 .btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.btn-table-cell {
+    width: 100%;
 }
 
 app {
