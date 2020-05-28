@@ -78,7 +78,7 @@
                 <td class="hover-text width-medium">
                     <div>@connectStatus</div>
                 </td>
-                <td class="medium">
+                <td class="width-medium">
                     @{bool isDisconnected = discoverer.DiscovererModel.Connected != true;}
                     @{bool isEnabled = discoverer.ScanStatus == true;}
                     @{string scanStatus = isEnabled ? "Turn off" : "Turn on";}
