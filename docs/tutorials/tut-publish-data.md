@@ -28,7 +28,7 @@ Next section will guide you on the configuration of the data-points to be publis
 
    ![Step 2](../media/tut-publish-data-step2.png)
 
-3. Step 3 - Browse further by clicking on the Node's link (the Node Type) to the desired process data variables in the address space. The variable nodes will display the actual value in the table. The variables can be selected for publishing by checking the Publishing checkbox. 
+3. Step 3 - Browse further by clicking on the Node's link (the Node Type) to the desired process data variables in the address space. The variable nodes will display the actual value in the table. The variables can be selected for publishing by clicking the Turn on button. 
 
    ![Step 3](../media/tut-publish-data-step3.png)
 
