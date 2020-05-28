@@ -26,20 +26,32 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th>Id</th>
-            <th>Site Id</th>
-            <th>Connection Status</th>
+            <th class="width-x-large">Id</th>
+            <th class="width-large">Site Id</th>
+            <th class="width-large">Connection Status</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var gateway in _pagedGatewayList.Results)
         {
             <tr>
-                <td>@gateway.Id</td>
+                <td class="hover-text width-x-large">
+                    <div>
+                        @gateway.Id
+                    </div>
+                 </td>
                 @{ string siteId = gateway.SiteId == null ? CommonHelper.None : gateway.SiteId;}
-                <td>@siteId</td>
+                <td class="hover-text width-large">
+                    <div>
+                        @siteId
+                    </div>
+                </td>
                 @{string connectStatus = gateway.Connected == null ? CommonHelper.None : gateway.Connected == true ? "Connected" : "Disconnected";}
-                <td>@connectStatus</td>
+                <td class="hover-text width-large">
+                    <div>
+                        @connectStatus
+                    </div>
+                </td>
             </tr>
         }
     </tbody>

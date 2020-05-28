@@ -108,17 +108,20 @@ table {
     table-layout: fixed;
 }
 
-td {
-    overflow: hidden;
+.hover-text div {
     text-overflow: ellipsis;
+    overflow: hidden;
     white-space: nowrap;
-}
-
-td:hover {
-    overflow: visible;
-    position: relative;
-    display: inline-block;
+    width: 100%;
     background-color: white;
+}
+.hover-text:hover div {
+    overflow: visible;
+    z-index: 1000;
+    width: auto;
+    position: absolute;
+    background-color: white;
+    padding-right: 20px;
 }
 
 th {
@@ -126,31 +129,38 @@ th {
     text-overflow: ellipsis;
 }
 
-.th-short {
-    width: 130px;
+.width-xsmall {
+    width: 5%;
 }
 
-.td-short {
-    width: 130px;
+.width-small {
+    width: 10%;
 }
 
-.td-short:hover {
-    width: unset;
+.width-medium {
+    width: 15%;
 }
 
-.th-url-wide {
-    width: 230px;
+.width-medium-large {
+    width: 20%;
 }
 
-.td-url-wide {
-    width: 230px;
+.width-large {
+    width: 25%;
 }
 
-.td-url-wide:hover {
-    width: unset;
+.width-x-large {
+    width: 35%;
 }
 
-.space-wrap{
+.reload {
+    display: inline-block;
+    position: absolute;
+    bottom: 4px;
+    left: 320px;
+}
+
+.space-wrap {
     white-space: normal;
 }
 
@@ -319,11 +329,11 @@ a.adhocmargin {
 }
 
 .enabled-true {
-    color: black
+    color: black;
 }
 
 .enabled-false {
-    color: gray
+    color: gray;
 }
 
 .value-wide {
@@ -331,13 +341,16 @@ a.adhocmargin {
 }
 
 .value-scroll {
-    
+    overflow: auto;
+    max-height: 300px;
+    max-width: 100%;
+    white-space: normal;
 }
 
 .value-scroll:hover {
     overflow: auto;
     max-height: 300px;
-    max-width: 300px;
+    max-width: 100%;
     white-space: normal;
     position: relative;
     background-color: white;
