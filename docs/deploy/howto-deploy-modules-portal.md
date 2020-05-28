@@ -1,6 +1,6 @@
 # Deploy Industrial IoT Edge Modules using the Azure Portal
 
-[Home](howto-install-iot-edge.md)
+[Home](readme.md)
 
 This article explains how to deploy the Industrial IoT Edge modules to [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) using the Azure Portal and Marketplace.
 

@@ -25,18 +25,18 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th>Node Id</th>
-            <th>Display Name</th>
-            <th>Publishing Interval</th>
-            <th>Sampling Interval</th>
-            <th>Heartbeat Interval</th>
+            <th class="width-large">Node Id</th>
+            <th class="width-large">Display Name</th>
+            <th class="width-small">Publishing Interval</th>
+            <th class="width-small">Sampling Interval</th>
+            <th class="width-small">Heartbeat Interval</th>
             @if (IsIdGiven(DiscovererId) && IsIdGiven(ApplicationId) && IsIdGiven(SupervisorId)) {
-                <th>
+                <th class="width-xsmall">
                     <a href="/endpoints/1/@DiscovererId/@ApplicationId/@SupervisorId"><span class="oi oi-arrow-left"></span></a>
                 </th>
             }
             else {
-                <th>
+                <th class="width-xsmall">
                     <a href="/endpoints/1"><span class="oi oi-arrow-left"></span></a>
                 </th>
             }
@@ -45,30 +45,40 @@
     <tbody>
         @foreach (var node in _pagednodeList.Results) {
             <tr>
-                <td>
-                    @{ string NodeId = CommonHelper.None;
-                        NodeId = string.IsNullOrEmpty(node.NodeId) ? CommonHelper.None : node.NodeId;
-                    } @NodeId
+                <td class="hover-text width-large">
+                    <div>
+                        @{ string NodeId = CommonHelper.None;
+                            NodeId = string.IsNullOrEmpty(node.NodeId) ? CommonHelper.None : node.NodeId;
+                        } @NodeId
+                    </div>
                 </td>
-                <td>
-                    @{ string DisplayName = CommonHelper.None;
-                        DisplayName = string.IsNullOrEmpty(node.DisplayName) ? CommonHelper.None : node.DisplayName;
-                    } @DisplayName
+                <td class="hover-text width-large">
+                    <div>
+                        @{ string DisplayName = CommonHelper.None;
+                            DisplayName = string.IsNullOrEmpty(node.DisplayName) ? CommonHelper.None : node.DisplayName;
+                        } @DisplayName
+                    </div>
                 </td>
-                <td>
-                    @{ string PublishingInterval = CommonHelper.None;
-                        PublishingInterval = node.PublishingInterval == null ? CommonHelper.None : node.PublishingInterval.ToString();
-                    } @PublishingInterval
+                <td class="hover-text width-small">
+                    <div>
+                        @{ string PublishingInterval = CommonHelper.None;
+                            PublishingInterval = node.PublishingInterval == null ? CommonHelper.None : node.PublishingInterval.ToString();
+                        } @PublishingInterval
+                    </div>
                 </td>
-                <td>
-                    @{ string SamplingInterval = CommonHelper.None;
-                        SamplingInterval = node.SamplingInterval == null ? CommonHelper.None : node.SamplingInterval.ToString();
-                    } @SamplingInterval
+                <td class="hover-text width-small">
+                    <div>
+                        @{ string SamplingInterval = CommonHelper.None;
+                            SamplingInterval = node.SamplingInterval == null ? CommonHelper.None : node.SamplingInterval.ToString();
+                        } @SamplingInterval
+                    </div>
                 </td>
-                <td>
-                    @{ string HeartbeatInterval = CommonHelper.None;
-                        HeartbeatInterval = node.HeartbeatInterval == null ? CommonHelper.None : node.HeartbeatInterval.ToString();
-                    } @HeartbeatInterval
+                <td class="hover-text width-small">
+                    <div>
+                        @{ string HeartbeatInterval = CommonHelper.None;
+                            HeartbeatInterval = node.HeartbeatInterval == null ? CommonHelper.None : node.HeartbeatInterval.ToString();
+                        } @HeartbeatInterval
+                    </div>
                 </td>
                 <td></td>
             </tr>
