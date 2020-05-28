@@ -42,8 +42,8 @@
             <th class="width-small">Security Policy</th>
             <th class="width-small">Security Level</th>
             <th class="width-small">Endpoint State</th>
-            <th class="width-small">Toggle Endpoint</th>
             <th class="width-medium">Activation Status</th>
+            <th class="width-small">Activation Action</th>
             <th class="width-small"></th>
 
             @if (IsIdGiven(DiscovererId))
@@ -111,42 +111,15 @@
                         @(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")
                     </div>
                 </td>
-                <td class="hover-text width-small">
-                    <div>
-                        @{string label = string.Empty;}
-                        @if (IsEndpointActivated(endpoint))
-                        {
-                            @if (!IsEndpointSeen(endpoint))
-                            {
-                                <input type="checkbox" checked disabled />
-                            }
-                            else
-                            {
-                                <input type="checkbox" checked
-                                       @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
-                            }
-                            label = "Active";
-                        }
-                        else
-                        {
-                            @if (!IsEndpointSeen(endpoint))
-                            {
-                                <input type="checkbox" disabled />
-                            }
-                            else
-                            {
-                                <input type="checkbox"
-                                       @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
-                            }
-                            label = "";
-                        }
-                        @label
-                    </div>
-                </td>
                 <td class="hover-text width-medium">
                     <div>
                         @endpoint.EndpointModel.ActivationState.ToString()
                     </div>
+                </td>
+                <td class="width-medium">
+                    @{string activationStatus = IsEndpointActivated(endpoint) == true ? "Deactivate" : "Activate";}
+                    @{bool isDisabled = !IsEndpointSeen(endpoint);}
+                    <button class="btn btn-primary btn-table-cell" disabled="@isDisabled" @onclick="(() => SetActivation(endpoint))">@activationStatus</button>
                 </td>
                 @if (IsEndpointSeen(endpoint) && IsEndpointActivated(endpoint))
                 {
@@ -309,9 +282,11 @@
     /// <param name="endpointId"></param>
     /// <param name="checkedValue"></param>
     /// <returns></returns>
-    private async Task SetActivation(string endpointId, object checkedValue)
+    private async Task SetActivation(EndpointInfo endpoint)
     {
-        if ((bool)checkedValue)
+        string endpointId = endpoint.EndpointModel.Registration.Id;
+
+        if (!IsEndpointActivated(endpoint))
         {
             try
             {
