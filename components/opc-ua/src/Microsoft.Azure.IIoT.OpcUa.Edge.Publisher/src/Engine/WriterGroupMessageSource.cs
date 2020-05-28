@@ -65,10 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _subscriptions.ForEach(sc => sc.OpenAsync().ConfigureAwait(false));
             _subscriptions.ForEach(sc => sc.ActivateAsync(ct).ConfigureAwait(false));
             await Task.Delay(-1, ct); // TODO - add managemnt of subscriptions, etc.
-
             _subscriptions.ForEach(sc => sc.DeactivateAsync().ConfigureAwait(false));
-            _subscriptions.ForEach(sc => sc.Dispose());
-            _subscriptions.Clear();
         }
 
         /// <summary>
@@ -194,8 +191,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <inheritdoc/>
             public void Dispose() {
                 if (Subscription != null) {
-                    Subscription.ApplyAsync(null,_subscriptionInfo.Configuration, false);
                     Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
+                    Subscription.ApplyAsync(null,_subscriptionInfo.Configuration, false);
                     Subscription.Dispose();
                 }
                 _keyframeTimer?.Dispose();
@@ -271,7 +268,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         SequenceNumber = sequenceNumber,
                         ApplicationUri = notification.ApplicationUri,
                         EndpointUrl = notification.EndpointUrl,
-                        TimeStamp = DateTime.UtcNow,
+                        TimeStamp = notification.Timestamp,
                         PublisherId = _outer._publisherId,
                         Writer = _dataSetWriter,
                         WriterGroup = _outer._writerGroup

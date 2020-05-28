@@ -82,9 +82,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             await subscription.ReapplyAsync(true);
                         }
                     }
+                    catch (ResourceNotFoundException e) {
+                        success = false;
+                        _logger.Debug("Not found: {exception}", e.Message);
+                    }
                     catch (Exception e){
                         success = false;
-                        _logger.Warning("Failed ensure connection for monitored items due to {exception}.", e.Message);
+                        _logger.Warning("Failed due to {exception}.", e.Message);
                     }
                 }
             }
@@ -237,8 +241,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate);
                 }
+                catch (ResourceNotFoundException e) {
+                    _logger.Debug("Not found: {exception}", e.Message);
+                    ErrorSignaled = true;
+                }
                 catch(Exception e){
-                    _logger.Warning("Failed to apply monitored items due to {exception}", e.Message);
+                    _logger.Error("Failed to apply monitored items due to {exception}", e.Message);
                     ErrorSignaled = true;
                 }
                 finally {
@@ -264,6 +272,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate) ;
                 }
+                catch (ResourceNotFoundException e) {
+                    _logger.Debug("Retry: {exception}", e.Message);
+                    ErrorSignaled = true;
+                    throw;
+                }
                 catch (Exception e) {
                     _logger.Warning("Failed to reapply monitored items due to {error}", e.Message);
                     ErrorSignaled = true;
@@ -285,7 +298,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <returns></returns>
             private async Task ResolveDisplayNameAsync(IEnumerable<MonitoredItemModel> monitoredItems) {
 
-                if (monitoredItems == null) {
+                if (monitoredItems == null || !monitoredItems.Any()) {
                     return;
                 }
 
@@ -351,14 +364,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             count++;
                         }
                         rawSubscription.RemoveItems(toCleanupList);
-                        _logger.Information("Removed {count} monitored item ...", count);
+                        _logger.Information("Clean-up {count} monitored items in subscription "
+                            + "{subscriptionId}", count, rawSubscription.Id);
+
                     }
                     _currentlyMonitored = null;
                     rawSubscription.ApplyChanges();
                     rawSubscription.SetPublishingMode(false);
                     if (rawSubscription.MonitoredItemCount != 0) {
-                        _logger.Warning("Subscription still has {count} monitored items.",
-                            rawSubscription.MonitoredItemCount);
+                        _logger.Warning("Failed to clean-up {count} monitored items in subscription "
+                            + "{subscriptionId}", rawSubscription.MonitoredItemCount, rawSubscription.Id);
                     }
                     return;
                 }
@@ -368,7 +383,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     .Select(m => new MonitoredItemWrapper(m, _logger))
                     .ToHashSetSafe();
 
-                var toRemoveList = currentState.Except(desiredState).Select(t=>t.Item);
+                var toRemoveList = currentState.Except(desiredState).Select(t => t.Item);
                 if (toRemoveList.Any()) {
                     count = 0;
                     // Remove monitored items not in desired state
@@ -379,12 +394,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     rawSubscription.RemoveItems(toRemoveList);
                     applyChanges = true;
-                    _logger.Information("Removed {count} monitored item ...", count);
+                    _logger.Information("Removed {count} monitored items in subscription "
+                        + "{subscriptionId}", count, rawSubscription.Id);
                 }
-                // todo re-associate detached handles
+
+                // todo re-associate detached handles!?
                 var toRemoveDetached = rawSubscription.MonitoredItems.Where(m => m.Status == null);
                 if (toRemoveDetached.Any()) {
-                    _logger.Information("Removed {count} detached monitored items ...", toRemoveDetached.Count());
+                    _logger.Information("Removed {count} detached monitored items in subscription "
+                        + "{subscriptionId}", toRemoveDetached.Count(), rawSubscription.Id);
                     rawSubscription.RemoveItems(toRemoveDetached);
                 }
 
@@ -403,12 +421,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         toAdd.Item.Notification += OnMonitoredItemChanged;
                         nowMonitored.Add(toAdd);
                         count++;
-                        _logger.Verbose("Adding new monitored item '{item}'...", toAdd.Item.StartNodeId);
+                        _logger.Verbose("Adding new monitored item '{item}'...", 
+                            toAdd.Item.StartNodeId);
                     }
 
-                    rawSubscription.AddItems(toAddList.Select(t=>t.Item).ToList());
+                    rawSubscription.AddItems(toAddList.Select(t => t.Item).ToList());
                     applyChanges = true;
-                    _logger.Information("Added {count} monitored item ...", count);
+                    _logger.Information("Added {count} monitored items in subscription "
+                        + "{subscriptionId}", count, rawSubscription.Id);
                 }
 
                 // Update monitored items that have changed
@@ -424,68 +444,86 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 if (count > 0) {
                     applyChanges = true;
-                    _logger.Information("Updated {count} monitored item ...", count);
+                    _logger.Information("Updated {count} monitored items in subscription "
+                        + "{subscriptionId}", count, rawSubscription.Id);
                 }
 
                 if (applyChanges) {
                     rawSubscription.ApplyChanges();
-
-                    foreach (var monitoredItem in nowMonitored) {
-                        if (monitoredItem.Item.Status.Error != null &&
-                            StatusCode.IsBad(monitoredItem.Item.Status.Error.StatusCode)) {
-                            _logger.Error("Error monitoring node {id} in subscription " +
-                                "{subscriptionId}, status code: {code}",
-                                monitoredItem.Item.StartNodeId, monitoredItem.Item.Subscription.Id,
-                                monitoredItem.Item.Status.Error.StatusCode);
-                        }
-                    }
-
-                    count = rawSubscription.MonitoredItems.Count(m => m.Status.Error == null);
-                    kMonitoredItems.WithLabels(rawSubscription.Id.ToString()).Set(count);
-                    _logger.Information("Now monitoring {count} nodes in subscription " +
-                        "{subscriptionId} (Session: {sessionId}).", count, rawSubscription.Id,
-                        rawSubscription.Session.SessionName);
-
-                    var map = nowMonitored.ToDictionary(
-                        k => k.Template.Id ?? k.Template.StartNodeId, v => v);
-                    foreach (var item in nowMonitored.ToList()) {
-                        if (item.Template.TriggerId != null &&
-                            map.TryGetValue(item.Template.TriggerId, out var trigger)) {
-                            trigger?.AddTriggerLink(item.ServerId.GetValueOrDefault());
-                        }
-                    }
-
-                    // Set up any new trigger configuration if needed
-                    foreach (var item in nowMonitored.ToList()) {
-                        if (item.GetTriggeringLinks(out var added, out var removed)) {
-                            var response = await rawSubscription.Session.SetTriggeringAsync(
-                                null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
-                                new UInt32Collection(added), new UInt32Collection(removed));
-                        }
-                    }
-
                     _currentlyMonitored = nowMonitored;
-                    if (_currentlyMonitored.Count != rawSubscription.MonitoredItemCount) {
-                        _logger.Warning("Monitored items mismatch: wrappers{wrappers} != items:{items} ",
-                            _currentlyMonitored.Count, _currentlyMonitored.Count);
+                    if (!activate) {
+                        var map = _currentlyMonitored.ToDictionary(
+                            k => k.Template.Id ?? k.Template.StartNodeId, v => v);
+                        foreach (var item in _currentlyMonitored.ToList()) {
+                            if (item.Template.TriggerId != null &&
+                                map.TryGetValue(item.Template.TriggerId, out var trigger)) {
+                                trigger?.AddTriggerLink(item.ServerId.GetValueOrDefault());
+                            }
+                        }
+
+                        // Set up any new trigger configuration if needed
+                        foreach (var item in _currentlyMonitored.ToList()) {
+                            if (item.GetTriggeringLinks(out var added, out var removed)) {
+                                var response = await rawSubscription.Session.SetTriggeringAsync(
+                                    null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
+                                    new UInt32Collection(added), new UInt32Collection(removed));
+                            }
+                        }
+
+                        // sanity check
+                        foreach (var monitoredItem in _currentlyMonitored) {
+                            if (monitoredItem.Item.Status.Error != null &&
+                                StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode)) {
+                                _logger.Warning("Error monitoring node {id} due to {code} in subscription " +
+                                    "{subscriptionId}", monitoredItem.Item.StartNodeId,
+                                    monitoredItem.Item.Status.Error.StatusCode, rawSubscription.Id);
+                                monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                            }
+                        }
+
+                        count = _currentlyMonitored.Count(m => m.Item.Status.Error == null);
+                        kMonitoredItems.WithLabels(rawSubscription.Id.ToString()).Set(count);
+
+                        _logger.Information("Now monitoring {count} nodes in subscription " +
+                            "{subscriptionId}", count, rawSubscription.Id);
+
+                        if (_currentlyMonitored.Count != rawSubscription.MonitoredItemCount) {
+                            _logger.Error("Monitored items mismatch: wrappers{wrappers} != items:{items} ",
+                                _currentlyMonitored.Count, _currentlyMonitored.Count);
+                        }
                     }
                 }
+                else {
+                    applyChanges = false;
+                    // do a sanity check
+                    foreach (var monitoredItem in _currentlyMonitored) {
+                        if (monitoredItem.Item.Status.Error != null &&
+                            StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode)) {
+                            monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                            applyChanges = true;
+                        }
+                    }
+                    if (applyChanges) {
+                        rawSubscription.ApplyChanges();
+                    }
+                }
+
                 if (activate) {
-                    var validItems = _currentlyMonitored;//.Where(m => m.Item.Status.Error == null);
-                    // Change monitoring mode of all items if necessary
+                    // Change monitoring mode of all valid items if necessary
+                    var validItems = _currentlyMonitored.Where(v => v.Item.Status.Error == null);
                     foreach (var change in validItems.GroupBy(i => i.GetMonitoringModeChange())) {
                         if (change.Key == null) {
                             continue;
                         }
-                        _logger.Information("Monitoring {value} {count} nodes in subscription " +
-                            "{subscriptionId} (Session: {sessionId}).", change.Key.Value, change.Count(),
-                            rawSubscription.Id, rawSubscription.Session.SessionName);
+                        _logger.Information("Set Monitoring to {value} for {count} nodes in subscription " +
+                            "{subscriptionId}", change.Key.Value, change.Count(),
+                            rawSubscription.Id);
                         var results = rawSubscription.SetMonitoringMode(change.Key.Value,
                             change.Select(t => t.Item).ToList());
                         if (results != null) {
-                            _logger.Warning("Failed to set monitoring for {count} nodes in subscription " +
-                                "{subscriptionId} (Session: {sessionId}).", results.Count,
-                                rawSubscription.Id, rawSubscription.Session.SessionName);
+                            _logger.Debug("Failed to set monitoring for {count} nodes in subscription " +
+                                "{subscriptionId}", results.Count(r => 
+                                    (r == null) ? false : StatusCode.IsNotGood(r.StatusCode)), rawSubscription.Id);
                         }
                     }
                 }
@@ -647,25 +685,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                       notification?.MonitoredItems?.First().Message?.NotificationData?.Count == 0;
                     var sequenceNumber = notification?.MonitoredItems?.First().Message?.SequenceNumber;
                     var publishTime = (notification?.MonitoredItems?.First().Message?.PublishTime).
-                        GetValueOrDefault(DateTime.MinValue);
+                        GetValueOrDefault(DateTime.UtcNow);
 
                     _logger.Debug("DataChange for subscription: {Subscription}, sequence#: " +
-                        "{Sequence} isKeepAlive{KeepAlive}, publishTime: {PublishTime}",
+                        "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
                         subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
 
-                    // TODO crash
                     var message = new SubscriptionNotificationModel {
                         ServiceMessageContext = subscription?.Session?.MessageContext,
                         ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
                         EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
                         SubscriptionId = Id,
-                        Notifications = (!isKeepAlive)
-                            ? notification.ToMonitoredItemNotifications(
+                        Timestamp = publishTime,
+                        Notifications = notification.ToMonitoredItemNotifications(
                                 subscription?.MonitoredItems)?.ToList()
-                            : new List<MonitoredItemNotificationModel>()
                     };
-                    message.IsKeyMessage = true;
-
                     // add the heartbeat for monitored items that did not receive a datachange notification
                     // Try access lock if we cannot continue...
                     List<MonitoredItemWrapper> currentlyMonitored = null;
@@ -677,33 +711,55 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _lock.Release();
                         }
                     }
-                    // TODO crash?
+
                     if (currentlyMonitored != null) {
                         // add the heartbeat for monitored items that did not receive a
                         // a datachange notification
                         foreach (var item in currentlyMonitored) {
-                            if (isKeepAlive ||
-                                !notification.MonitoredItems.Exists(m => m.ClientHandle == item.Item.ClientHandle)) {
-                                if (item.TriggerHeartbeat(publishTime)) {
-                                    var heartbeatValue = item.Item.LastValue.ToMonitoredItemNotification(item.Item);
+                            if (!notification.MonitoredItems.
+                                Exists(m => m.ClientHandle == item.Item.ClientHandle)) {
+                                if (item.ValidateHeartbeat(publishTime)) {
+                                    var defaultNotification =
+                                        new MonitoredItemNotificationModel {
+                                            Id = item.Item.DisplayName,
+                                            DisplayName = item.Item.DisplayName,
+                                            NodeId = item.Item.StartNodeId,
+                                            AttributeId = item.Item.AttributeId,
+                                            ClientHandle = item.Item.ClientHandle,
+                                            Value = new DataValue(Variant.Null,
+                                                item.Item?.Status?.Error?.StatusCode ??
+                                                StatusCodes.BadMonitoredItemIdInvalid),
+                                            Overflow = false,
+                                            NotificationData = null,
+                                            StringTable = null,
+                                            DiagnosticInfo = null,
+                                        };
+
+                                    var heartbeatValue = item.Item?.LastValue.
+                                        ToMonitoredItemNotification(item.Item, () => defaultNotification);
                                     if (heartbeatValue != null) {
                                         heartbeatValue.SequenceNumber = sequenceNumber;
                                         heartbeatValue.IsHeartbeat = true;
                                         heartbeatValue.PublishTime = publishTime;
+                                        if (message.Notifications == null) {
+                                        message.Notifications = 
+                                            new List<MonitoredItemNotificationModel>();
+                                        }
                                         message.Notifications.Add(heartbeatValue);
                                     }
-                                }
-                                else {
-                                    // just reset the heartbeat for the items already processed
-                                    item.TriggerHeartbeat(publishTime);
+                                    continue;
                                 }
                             }
+                            item.ValidateHeartbeat(publishTime);
                         }
                     }
-                    OnSubscriptionChange?.Invoke(this, message);
+
+                    if (message.Notifications?.Any() == true) {
+                        OnSubscriptionChange?.Invoke(this, message);
+                    }
                 }
                 catch (Exception ex) {
-                    _logger.Debug(ex, "Exception processing subscription notification");
+                    _logger.Warning(ex, "Exception processing subscription notification");
                 }
             }
 
@@ -781,18 +837,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public DateTime NextHeartbeat {get; private set; }
 
             /// <summary>
-            /// validates if a heartbeat is required
+            /// validates if a heartbeat is required.
+            /// A heartbeat will be forced for the very first time
             /// </summary>
             /// <returns></returns>
-            public bool TriggerHeartbeat(DateTime currentPublish) {
-                if (TimeSpan.Zero ==
-                    Template?.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero)) {
+            public bool ValidateHeartbeat(DateTime currentPublish) {
+                if (NextHeartbeat == DateTime.MaxValue) {
                     return false;
                 }
                 if (NextHeartbeat > currentPublish + TimeSpan.FromMilliseconds(50)) {
                     return false;
                 }
-                NextHeartbeat = currentPublish + Template.HeartbeatInterval.GetValueOrDefault();
+                NextHeartbeat = TimeSpan.Zero != Template.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ? 
+                    currentPublish + Template.HeartbeatInterval.Value : DateTime.MaxValue;
                 return true;
             }
 
@@ -864,20 +921,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 Item = new MonitoredItem {
                     Handle = this,
                     DisplayName = Template.DisplayName,
-                    AttributeId = ((uint?)Template.AttributeId) ?? Attributes.Value,
+                    AttributeId = (uint)Template.AttributeId.GetValueOrDefault((NodeAttribute)Attributes.Value),
                     IndexRange = Template.IndexRange,
                     RelativePath = Template.RelativePath?
                                 .ToRelativePath(session.MessageContext)?
                                 .Format(session.NodeCache.TypeTree),
-                    MonitoringMode = activate 
-                        ? Template.MonitoringMode.ToStackType() ?? Opc.Ua.MonitoringMode.Reporting
+                    MonitoringMode = activate
+                        ? Template.MonitoringMode.ToStackType().
+                            GetValueOrDefault(Opc.Ua.MonitoringMode.Reporting)
                         : Opc.Ua.MonitoringMode.Disabled,
                     StartNodeId = Template.StartNodeId.ToNodeId(session.MessageContext),
-                    QueueSize = Template.QueueSize ?? 2,
-                    SamplingInterval =
-                        (int?)Template.SamplingInterval?.TotalMilliseconds ?? -1,
-                    DiscardOldest = !(Template.DiscardNew ?? false),
-                    Filter =
+                    QueueSize = Template.QueueSize.GetValueOrDefault(1),
+                    SamplingInterval = (int)Template.SamplingInterval.
+                        GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
+                    DiscardOldest = !Template.DiscardNew.GetValueOrDefault(false),
+                    Filter = 
                         Template.DataChangeFilter.ToStackModel() ??
                         codec.Decode(Template.EventFilter, true) ??
                         ((MonitoringFilter)Template.AggregateFilter
@@ -906,44 +964,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 var changes = false;
-
-                if (((int?)Template.SamplingInterval?.TotalMilliseconds ?? -1) !=
-                        ((int?)model.Template.SamplingInterval?.TotalMilliseconds ?? -1)) {
+                if (Template.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1)) !=
+                    model.Template.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1))) {
                     _logger.Debug("{item}: Changing sampling interval from {old} to {new}",
-                        this, (int?)Template.SamplingInterval?.TotalMilliseconds ?? -1,
-                        (int?)model.Template.SamplingInterval?.TotalMilliseconds ?? -1);
+                        this, Template.SamplingInterval.GetValueOrDefault(
+                            TimeSpan.FromSeconds(1)).TotalMilliseconds,
+                        model.Template.SamplingInterval.GetValueOrDefault(
+                            TimeSpan.FromSeconds(1)).TotalMilliseconds);
                     Template.SamplingInterval = model.Template.SamplingInterval;
                     Item.SamplingInterval =
-                        (int?)Template.SamplingInterval?.TotalMilliseconds ?? -1;
+                        (int)Template.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
                     changes = true;
                 }
-
-                if ((Template.DiscardNew ?? false) !=
-                        (model.Template.DiscardNew ?? false)) {
+                if (Template.DiscardNew.GetValueOrDefault(false) !=
+                        model.Template.DiscardNew.GetValueOrDefault()) {
                     _logger.Debug("{item}: Changing discard new mode from {old} to {new}",
-                        this, Template.DiscardNew ?? false, model.Template.DiscardNew ?? false);
+                        this, Template.DiscardNew.GetValueOrDefault(false),
+                        model.Template.DiscardNew.GetValueOrDefault(false));
                     Template.DiscardNew = model.Template.DiscardNew;
-                    Item.DiscardOldest = !(Template.DiscardNew ?? false);
+                    Item.DiscardOldest = !Template.DiscardNew.GetValueOrDefault(false);
                     changes = true;
                 }
-
-                if ((Template.QueueSize ?? 0) != (model.Template.QueueSize ?? 0)) {
+                if (Template.QueueSize.GetValueOrDefault(1) != 
+                    model.Template.QueueSize.GetValueOrDefault(1)) {
                     _logger.Debug("{item}: Changing queue size from {old} to {new}",
-                        this, Template.QueueSize ?? 0, model.Template.QueueSize ?? 0);
+                        this, Template.QueueSize.GetValueOrDefault(1),
+                        model.Template.QueueSize.GetValueOrDefault(1));
                     Template.QueueSize = model.Template.QueueSize;
-                    Item.QueueSize = Template.QueueSize ?? 0;
+                    Item.QueueSize = Template.QueueSize.GetValueOrDefault(1);
                     changes = true;
                 }
-
-                if ((Template.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting) !=
-                    (model.Template.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting)) {
+                if (Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting) !=
+                    model.Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting)) {
                     _logger.Debug("{item}: Changing monitoring mode from {old} to {new}",
-                        this,
-                        Template.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting,
-                        model.Template.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting);
+                        this, Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting),
+                        model.Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting));
                     Template.MonitoringMode = model.Template.MonitoringMode;
-                    _modeChange = Template.MonitoringMode ??
-                        Publisher.Models.MonitoringMode.Reporting;
+                    _modeChange = Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting);
                 }
 
                 // TODO

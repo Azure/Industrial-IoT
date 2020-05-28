@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using System.Collections.Generic;
     using Opc.Ua;
+    using System;
 
     /// <summary>
     /// Subscription notification model
@@ -41,5 +42,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// set if message contains data changes for every monitored item
         /// </summary>
         public bool IsKeyMessage { get; internal set; }
+
+        /// <summary>
+        /// Publishing time
+        /// </summary>
+        public DateTime Timestamp  { get; internal set; }
     }
 }

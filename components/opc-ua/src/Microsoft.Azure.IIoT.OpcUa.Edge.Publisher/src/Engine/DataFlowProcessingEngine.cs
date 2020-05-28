@@ -150,8 +150,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="state"></param>
         private void DiagnosticsOutputTimer_Elapsed(object state) {
             var totalDuration = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
-            _logger.Information("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
+            _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
             _logger.Information("\n   DIAGNOSTICS INFORMATION for Engine : {Name}\n" +
+                "   # Ingestion StartTime - Duration   : {startTime} - {duration} seconds\n" +
                 "   # Ingress DataChanges (from OPC)   : {dataChangesCount} - {dataChangesAverage}/second\n" +
                 "   # Ingress ValueChanges (from OPC)  : {valueChangesCount} - {valueChangesAverage}/second\n" +
                 "   # Ingress BatchBlock buffer size   : {batchDataSetMessageBlockOutputCount}\n" +
@@ -165,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 "   # Outgress input buffer count      : {sinkBlockInputCount}\n" +
                 "   # Outgress IoT message count       : {messageSinkSentMessagesCount} - {sentMessagesAverage}/second\n" +
                 "   # Connection retries               : {connectionRetries}\n",
-                Name,
+                Name, _diagnosticStart, _diagnosticStart != DateTime.MinValue ? totalDuration : 0,
                 _messageTrigger.DataChangesCount, _messageTrigger.DataChangesCount / totalDuration,
                 _messageTrigger.ValueChangesCount, _messageTrigger.ValueChangesCount / totalDuration,
                 _batchDataSetMessageBlock.OutputCount,
