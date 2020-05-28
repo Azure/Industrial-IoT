@@ -329,11 +329,11 @@ a.adhocmargin {
 }
 
 .enabled-true {
-    color: black
+    color: black;
 }
 
 .enabled-false {
-    color: gray
+    color: gray;
 }
 
 .value-wide {
