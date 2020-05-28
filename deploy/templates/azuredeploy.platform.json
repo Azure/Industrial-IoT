@@ -192,7 +192,7 @@
             "condition": "[not(empty(parameters('serviceSiteName')))]",
             "properties": {
                 "enabled": true,
-                "clientAffinityEnabled": false,
+                "clientAffinityEnabled": true,
                 "serverFarmId": "[parameters('hostingPlanName')]",
                 "httpsOnly": true,
                 "siteConfig": {
