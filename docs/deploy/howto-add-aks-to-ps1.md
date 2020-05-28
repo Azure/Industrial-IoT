@@ -1,4 +1,4 @@
-# Adding an AKS cluster with Azure IIoT components on top of PS1 deployment <!-- omit in toc -->
+# Adding an AKS cluster with Azure Industrial IoT components on top of script deployment <!-- omit in toc -->
 
 [Home](readme.md)
 
@@ -39,8 +39,8 @@ deployment into a more production-ready one.
 
 Please note that we also provide `Microsoft.Azure.IIoT.Deployment (Preview)` command-line application, which
 similar to deployment scripts creates an instance of Azure Industrial IoT platform. In contrast to
-`deploy.cmd` or `deploy.sh` scripts, it deploys components of Azure Industrial IoT platform into an AKS
-cluster. Please use that application if you are starting from scratch:
+deployment scripts, it deploys components of Azure Industrial IoT platform into an AKS cluster. Please use
+that application if you are starting from scratch:
 
 * Deploying Azure Industrial IoT Platform to [Azure Kubernetes Service (AKS)](howto-deploy-aks.md) as
   production solution.
@@ -489,11 +489,24 @@ deployment:
 
 #### Installing the chart
 
-Install `azure-industrial-iot` Helm chart from root of the repo and use `aiiot.yaml` that you generated
-above:
+Here we will install `azure-industrial-iot` Helm chart from the root of the GitHub repo. For that, please
+use `aiiot.yaml` that you created above and run the following command:
 
 ```bash
-helm install aiiot -n aiiot .\deploy\helm\azure-industrial-iot\ -f aiiot.yaml
+helm install aiiot --namespace aiiot .\deploy\helm\azure-industrial-iot\ -f aiiot.yaml
+```
+
+`aiiot.yaml` that we created above is for `0.3.0` version of the Helm chart. Please modify it accordingly if
+you install a different version of the chart. Please check documentation of each version for a list of
+applicable values for that specific version.
+
+You can also install the charts from one of Helm repositories that we publish to. For that you would first
+add Helm repository and then install the chart from there as shown bellow.
+
+```bash
+helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
+helm repo update
+helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0.3.0 -f aiiot.yaml
 ```
 
 ### Check status of deployed resources
