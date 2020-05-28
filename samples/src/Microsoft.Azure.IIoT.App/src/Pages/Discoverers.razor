@@ -49,10 +49,11 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th class="width-x-large">Discovery Module Id</th>
+            <th class="width-large">Discovery Module Id</th>
             <th class="width-medium">Connection Status</th>
             <th class="width-medium">Scanning</th>
-            <th>Effective Configuration</th>
+            <th class="width-large">Effective Configuration</th>
+            <th class="width-small">Version</th>
         </tr>
     </thead>
     <tbody>
@@ -62,7 +63,7 @@
             <tr>
                 @if (discoverer.HasApplication == true)
                 {
-                    <td class="hover-text width-x-large">
+                    <td class="hover-text width-large">
                         <div>
                             <a href='endpoints/1/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll/@RegistryHelper.PathAll'>
                                 @discoverer.DiscovererModel.Id
@@ -92,7 +93,7 @@
                         <div class=" pos-right"></div>
                     }
                 </td>
-                <td>
+                <td class="width-large">
                     <div class="space-wrap">
                         Mask address range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                             @(discoverer.EffectiveAddressRangesToScan ?? "Default")<br />
@@ -131,6 +132,11 @@
                                 </a>
                             }
                         }
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        @discoverer.DiscovererModel.Version
                     </div>
                 </td>
             </tr>
