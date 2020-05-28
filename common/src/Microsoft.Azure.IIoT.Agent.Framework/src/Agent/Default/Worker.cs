@@ -328,7 +328,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
                 catch (Exception ex) {
                     _logger.Error(ex, "Error processing job {job}.", Job.Id);
-                    kModuleExceptions.WithLabels(ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace).Inc();
+                    kModuleExceptions.WithLabels("", ex.Source, ex.GetType().FullName, ex.Message,
+                        ex.StackTrace, "Error processing job " + Job.Id).Inc();
                     Job.LifetimeData.Status = JobStatus.Error;
                 }
                 finally {
