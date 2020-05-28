@@ -123,9 +123,6 @@
   <data name="KEY_IOT_SUITE_TYPE" xml:space="preserve">
     <value>IotSuiteType</value>
   </data>
-  <data name="KEY_IOT_SUITE_VERSION" xml:space="preserve">
-    <value>IoTSuiteVersion</value>
-  </data>
   <data name="KEY_MANAGED_BY" xml:space="preserve">
     <value>managed_by</value>
   </data>

@@ -79,15 +79,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IoTSuiteVersion.
-        /// </summary>
-        internal static string KEY_IOT_SUITE_VERSION {
-            get {
-                return ResourceManager.GetString("KEY_IOT_SUITE_VERSION", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to managed_by.
         /// </summary>
         internal static string KEY_MANAGED_BY {
