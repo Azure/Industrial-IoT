@@ -15,16 +15,6 @@ namespace Microsoft.Azure.IIoT.Utils
         /// Extracts server:port from a uri for simpler logging.
         /// </summary>
         /// <param name="endpointUrl"></param>
-        /// <example>
-        /// opc.tcp://example.com:50000 -> example.com:50000
-        /// opc.tcp://example.com -> example.com
-        /// opc.tcp://example.com:50000/ -> example.com:50000
-        /// opc.tcp://example.com/ -> example.com
-        /// opc.tcp://example.com:50000_hash -> example.com:50000
-        /// opc.tcp://example.com_hash -> example.com
-        /// opc.tcp://10.1.9.5:50000 -> 10.1.9.5:50000
-        /// opc.tcp://10.1.9.5 -> 10.1.9.5
-        /// </example>
         /// <returns></returns>
         public static string ExtractServerPort(string endpointUrl) {
             string pattern = @":\/\/([^\/_]+)";
