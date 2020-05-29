@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public long ValueChangesCount { get; private set; } = 0;
-        
+
         /// <inheritdoc/>
         public long DataChangesCount { get; private set; } = 0;
 
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void Dispose() {
             _subscriptions.ForEach(sc => sc.DeactivateAsync().ConfigureAwait(false));
@@ -146,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <returns></returns>
             public async Task ActivateAsync(CancellationToken ct) {
                 if (Subscription == null) {
-                    _outer._logger.Warning("Subscription not registered");
+                    _outer._logger.Verbose("Subscription not registered");
                     return;
                 }
 
@@ -169,9 +169,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             /// <returns></returns>
             public async Task DeactivateAsync() {
-                
                 if (Subscription == null) {
-                    _outer._logger.Warning("Subscription not registered");
+                    _outer._logger.Verbose("Subscription not registered");
                     return;
                 }
 
@@ -276,7 +275,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     lock (_lock) {
                         if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
                             _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
-                            // reset both 
+                            // reset both
                             _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
                                 "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
                                 " value changes were invoked by message source.",

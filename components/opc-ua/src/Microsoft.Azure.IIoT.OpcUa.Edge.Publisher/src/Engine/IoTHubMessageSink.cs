@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Collections.Generic;
     using System.Diagnostics;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Module;
     using System.Globalization;
 
     /// <summary>
@@ -49,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             var messageObjects = messages
                 .Select(m => CreateMessage(m.Body, m.MessageSchema,
-                    m.ContentType, m.ContentEncoding, m.MessageId))
+                    m.ContentType, m.ContentEncoding))
                 .ToList();
             try {
                 var messagesCount = messageObjects.Count;
@@ -57,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 if (SentMessagesCount > kMessageCounterResetThreshold) {
                     _logger.Debug("Message counter has been reset to prevent overflow. " +
-                        "So far, {SentMessagesCount} messages has been sent to IoT Hub.",
+                        "So far, {SentMessagesCount} messages have been sent to IoT Hub.",
                         SentMessagesCount);
                     kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
                     SentMessagesCount = 0;
@@ -94,15 +93,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="eventSchema"></param>
         /// <param name="contentType"></param>
         /// <param name="contentEncoding"></param>
-        /// <param name="messageId"></param>
         /// <returns></returns>
         private static Message CreateMessage(byte[] body, string eventSchema,
-            string contentType, string contentEncoding, string messageId) {
+            string contentType, string contentEncoding) {
             var msg = new Message(body) {
                 ContentType = contentType,
                 ContentEncoding = contentEncoding,
-                // TODO - setting CreationTime causes issues in the Azure IoT java SDK 
-                //  revert the comment whrn the issue is fixed
+                // TODO - setting CreationTime causes issues in the Azure IoT java SDK
+                //  revert the comment when the issue is fixed
                 //  CreationTimeUtc = DateTime.UtcNow
             };
             if (!string.IsNullOrEmpty(eventSchema)) {
