@@ -26,13 +26,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// The time to wait to connect a session.
         /// </summary>
-        public TimeSpan SessionConnectWait { get; set; }
+        public TimeSpan? SessionConnectWait { get; set; }
 
         /// <summary>
         /// The default interval for heartbeats if not set on
         /// node level.
         /// </summary>
-        public TimeSpan DefaultHeartbeatInterval { get; set; }
+        public TimeSpan? DefaultHeartbeatInterval { get; set; }
 
         /// <summary>
         /// The default flag whether to skip the first value if
@@ -43,12 +43,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// The default sampling interval.
         /// </summary>
-        public TimeSpan DefaultSamplingInterval { get; set; }
+        public TimeSpan? DefaultSamplingInterval { get; set; }
 
         /// <summary>
         /// The default publishing interval.
         /// </summary>
-        public TimeSpan DefaultPublishingInterval { get; set; }
+        public TimeSpan? DefaultPublishingInterval { get; set; }
 
         /// <summary>
         /// Flag wether to grab the display name of nodes form
@@ -64,27 +64,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// The interval to show diagnostics information.
         /// </summary>
-        public TimeSpan DiagnosticsInterval { get; set; }
+        public TimeSpan? DiagnosticsInterval { get; set; }
 
         /// <summary>
         /// The size of the message batching buffer
         /// </summary>
-        public int BatchSize { get; set; }
+        public int? BatchSize { get; set; }
 
         /// <summary>
         /// The interval to trigger batching
         /// </summary>
-        public TimeSpan BatchTriggerInterval { get; set; }
+        public TimeSpan? BatchTriggerInterval { get; set; }
 
         /// <summary>
         /// The maximum size of the (IoT D2C ) message
         /// </summary>
-        public int MaxMessageSize { get; set; }
+        public int? MaxMessageSize { get; set; }
 
         /// <summary>
         /// The time to flush the log file to the disc.
         /// </summary>
-        public TimeSpan LogFileFlushTimeSpan { get; set; }
+        public TimeSpan? LogFileFlushTimeSpan { get; set; }
 
         /// <summary>
         /// The filename of the logfile.
@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// The operation timeout.
         /// </summary>
-        public TimeSpan OperationTimeout { get; set; }
+        public TimeSpan? OperationTimeout { get; set; }
 
         /// <summary>
         /// The messaging mode for outgoing messages.
@@ -124,22 +124,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// The maximum string length.
         /// </summary>
-        public int MaxStringLength { get; set; }
+        public int? MaxStringLength { get; set; }
 
         /// <summary>
         /// The session creation timeout.
         /// </summary>
-        public TimeSpan SessionCreationTimeout { get; set; }
+        public TimeSpan? SessionCreationTimeout { get; set; }
 
         /// <summary>
         /// The KeepAlive interval.
         /// </summary>
-        public TimeSpan KeepAliveInterval { get; set; }
+        public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
         /// The maximum keep alive count till disconnect.
         /// </summary>
-        public int MaxKeepAliveCount { get; set; }
+        public int? MaxKeepAliveCount { get; set; }
 
         /// <summary>
         /// Flag to trust own certificate.
@@ -179,6 +179,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// force mass monitored item clones
         /// </summary>
-        public int ScaleTestCount { get; set; }
+        public int? ScaleTestCount { get; set; }
     }
 }

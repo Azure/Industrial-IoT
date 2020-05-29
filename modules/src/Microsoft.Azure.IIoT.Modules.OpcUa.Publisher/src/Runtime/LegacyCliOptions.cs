@@ -9,7 +9,6 @@ using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Module.Framework;
 using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
 using Microsoft.Azure.IIoT.OpcUa.Protocol;
-using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
 using Microsoft.Azure.IIoT.OpcUa.Publisher;
 using Microsoft.Extensions.Configuration;
 using Mono.Options;
@@ -278,12 +277,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 KeepAliveInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcKeepAliveIntervalInSec, TimeSpan.FromSeconds(10)),
                 MaxKeepAliveCount = GetValueOrDefault(LegacyCliConfigKeys.OpcKeepAliveDisconnectThreshold, 50),
                 TrustSelf = GetValueOrDefault(LegacyCliConfigKeys.TrustMyself, true),
-                AutoAcceptUntrustedCertificates = GetValueOrDefault<bool>(LegacyCliConfigKeys.AutoAcceptCerts, false),
-                ApplicationCertificateStoreType = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcOwnCertStoreType, "Directory"),
-                ApplicationCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcOwnCertStorePath, "pki/own"),
-                TrustedPeerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcTrustedCertStorePath, "pki/trusted"),
-                RejectedCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcRejectedCertStorePath, "pki/rejected"),
-                TrustedIssuerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcIssuerCertStorePath, "pki/issuer"),
+                AutoAcceptUntrustedCertificates = GetValueOrDefault(LegacyCliConfigKeys.AutoAcceptCerts, false),
+                ApplicationCertificateStoreType = GetValueOrDefault(LegacyCliConfigKeys.OpcOwnCertStoreType, "Directory"),
+                ApplicationCertificateStorePath = GetValueOrDefault(LegacyCliConfigKeys.OpcOwnCertStorePath, "pki/own"),
+                TrustedPeerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcTrustedCertStorePath, "pki/trusted"),
+                RejectedCertificateStorePath = GetValueOrDefault(LegacyCliConfigKeys.OpcRejectedCertStorePath, "pki/rejected"),
+                TrustedIssuerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcIssuerCertStorePath, "pki/issuer"),
                 BatchSize = GetValueOrDefault(LegacyCliConfigKeys.BatchSize, 50),
                 BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
                 MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.MaxMessageSize, 0),

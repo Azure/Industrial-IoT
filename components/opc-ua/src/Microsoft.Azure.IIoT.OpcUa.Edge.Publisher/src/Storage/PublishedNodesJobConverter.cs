@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 null : ToUserNamePasswordCredentialAsync(item).Result
                     },
                         // Select and batch nodes into published data set sources
-                        item => GetNodeModels(item, legacyCliModel.ScaleTestCount),
+                        item => GetNodeModels(item, legacyCliModel.ScaleTestCount.GetValueOrDefault(1)),
                         // Comparer for connection information
                         new FuncCompare<ConnectionModel>((x, y) => x.IsSameAs(y)))
                     .Select(group => group
