@@ -1,9 +1,9 @@
-# Azure Industrial IoT
+# Azure Industrial IoT <!-- omit in toc -->
 
 [Azure Industrial IoT](https://github.com/Azure/Industrial-IoT) allows users to discover OPC UA
 enabled servers in a factory network, register them in Azure IoT Hub and start collecting data from them.
 
-## Table Of Contents
+## Table Of Contents <!-- omit in toc -->
 
 * [Introduction](#introduction)
 * [Prerequisites](#prerequisites)
@@ -12,9 +12,13 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
     * [Azure IoT Hub](#azure-iot-hub)
     * [Azure Cosmos DB Account](#azure-cosmos-db-account)
     * [Azure Storage Account](#azure-storage-account)
+      * [Data Protection Container (Optional)](#data-protection-container-optional)
     * [Azure Event Hub Namespace](#azure-event-hub-namespace)
+      * [Azure Event Hub](#azure-event-hub)
+      * [Azure Event Hub Consumer Groups](#azure-event-hub-consumer-groups)
     * [Azure Service Bus Namespace](#azure-service-bus-namespace)
     * [Azure Key Vault](#azure-key-vault)
+      * [Data Protection Key (Optional)](#data-protection-key-optional)
     * [Azure SignalR](#azure-signalr)
   * [Recommended Azure Resources](#recommended-azure-resources)
     * [Azure AAD App Registration](#azure-aad-app-registration)
@@ -40,9 +44,13 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
 * [Special Notes](#special-notes)
   * [Resource Requests And Limits](#resource-requests-and-limits)
   * [Data Protection](#data-protection)
+    * [Azure Storage Account Container](#azure-storage-account-container)
+    * [Azure Key Vault Key](#azure-key-vault-key)
   * [Common Data Model](#common-data-model)
   * [Swagger](#swagger)
   * [NGINX Ingress Controller](#nginx-ingress-controller)
+    * [Controller configuration](#controller-configuration)
+    * [Ingress Annotations](#ingress-annotations)
 
 ## Introduction
 
@@ -499,7 +507,7 @@ The following details of the Azure Storage account would be required:
 
 ## Installing the Chart
 
-This chart installs `2.7.56` version of components by default.
+This chart installs `2.7.105` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -565,7 +573,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.7.56`            |
+| `image.tag`         | Image tag                                | `2.7.105`           |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
@@ -1069,9 +1077,9 @@ Here is the full list of components with Swagger UIs:
 We tested Azure Industrial IoT solution with NGINX Ingress Controller. And it required a few configuration
 tweaks to make Ingress work smoothly.
 
-#### ConfigMap
+#### Controller configuration
 
-The following values need to be added to NGINX Ingress Controller
+The following values need to be added to NGINX Ingress Controller configuration
 [ConfigMap](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/).
 
 ```json
