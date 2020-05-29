@@ -192,7 +192,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         /// <summary>
-        ///
+        /// check if we're running in standalone mode - default publishednodes.json file accessible
         /// </summary>
         public bool RunInLegacyMode => System.IO.File.Exists(
             GetValueOrDefault(LegacyCliConfigKeys.PublisherNodeConfigurationFilename,
@@ -300,11 +300,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 MaxWorkers = 1
             };
         }
+
         private T GetValueOrDefault<T>(string key, T defaultValue) {
             if (!ContainsKey(key)) {
                 return defaultValue;
             }
-
             var converter = TypeDescriptor.GetConverter(typeof(T));
             return (T)converter.ConvertFrom(this[key]);
         }
