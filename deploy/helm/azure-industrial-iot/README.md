@@ -1,9 +1,9 @@
-# Azure Industrial IoT
+# Azure Industrial IoT <!-- omit in toc -->
 
 [Azure Industrial IoT](https://github.com/Azure/Industrial-IoT) allows users to discover OPC UA
 enabled servers in a factory network, register them in Azure IoT Hub and start collecting data from them.
 
-## Table Of Contents
+## Table Of Contents <!-- omit in toc -->
 
 * [Introduction](#introduction)
 * [Prerequisites](#prerequisites)
@@ -12,9 +12,13 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
     * [Azure IoT Hub](#azure-iot-hub)
     * [Azure Cosmos DB Account](#azure-cosmos-db-account)
     * [Azure Storage Account](#azure-storage-account)
+      * [Data Protection Container (Optional)](#data-protection-container-optional)
     * [Azure Event Hub Namespace](#azure-event-hub-namespace)
+      * [Azure Event Hub](#azure-event-hub)
+      * [Azure Event Hub Consumer Groups](#azure-event-hub-consumer-groups)
     * [Azure Service Bus Namespace](#azure-service-bus-namespace)
     * [Azure Key Vault](#azure-key-vault)
+      * [Data Protection Key (Optional)](#data-protection-key-optional)
     * [Azure SignalR](#azure-signalr)
   * [Recommended Azure Resources](#recommended-azure-resources)
     * [Azure AAD App Registration](#azure-aad-app-registration)
@@ -40,9 +44,13 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
 * [Special Notes](#special-notes)
   * [Resource Requests And Limits](#resource-requests-and-limits)
   * [Data Protection](#data-protection)
+    * [Azure Storage Account Container](#azure-storage-account-container)
+    * [Azure Key Vault Key](#azure-key-vault-key)
   * [Common Data Model](#common-data-model)
   * [Swagger](#swagger)
   * [NGINX Ingress Controller](#nginx-ingress-controller)
+    * [Controller configuration](#controller-configuration)
+    * [Ingress Annotations](#ingress-annotations)
 
 ## Introduction
 
@@ -313,7 +321,7 @@ we require two apps to be registered in your AAD:
 * One for web clients accessing web interfaces of Azure Industrial IoT components, we refer to this as
   **ClientsApp**.
 
-Here are the steps to [create AAD App Registrations](https://github.com/Azure/Industrial-IoT/blob/master/docs/deploy/howto-register-aad-applications.md).
+Here are the steps to [create AAD App Registrations](../../../docs/deploy/howto-register-aad-applications.md).
 
 > **NOTE:** For any production deployment of Azure Industrial IoT solution it is required that those AAD
 App Registrations are created and details are provided to the chart. And we strongly recommend having those
@@ -499,7 +507,7 @@ The following details of the Azure Storage account would be required:
 
 ## Installing the Chart
 
-This chart installs `2.7.56` version of components by default.
+This chart installs `2.7.105` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -565,7 +573,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.7.56`            |
+| `image.tag`         | Image tag                                | `2.7.105`           |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
@@ -664,7 +672,7 @@ This parameter is required so that Publisher Edge Module can communicate with jo
 Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within
 Kubernetes cluster. Format of Kubernetes internal URL is `http://<service_name>.<namespace>:<service_port>`.
 
-**Documentation**: [Publisher Edge Module](https://github.com/Azure/Industrial-IoT/blob/master/docs/modules/publisher.md)
+**Documentation**: [Publisher Edge Module](../../../docs/modules/publisher.md)
 
 | Parameter            | Description                                                                | Default |
 |----------------------|----------------------------------------------------------------------------|---------|
@@ -724,7 +732,7 @@ following aspects of application runtime for microservices:
 
 ### Deployed Components
 
-**Documentation**: [Azure Industrial IoT Platform Components](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/readme.md)
+**Documentation**: [Azure Industrial IoT Platform Components](../../../docs/services/readme.md)
 
 Azure Industrial IoT comprises of fifteen micro-services that this chart will deploy as
 [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) resources. Eight of them
@@ -741,23 +749,23 @@ parameters.
 Here is the list of all Azure Industrial IoT components that are deployed by this chart. Currently only
 `engineeringTool` and `telemetryCdmProcessor` are disabled by default.
 
-| Name in `values.yaml`     | Description                                                                                                           | Enabled by Default |
-|---------------------------|-----------------------------------------------------------------------------------------------------------------------|--------------------|
-| `registry`                | [Registry Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry.md)                | `true`             |
-| `sync`                    | [Registry Synchronization Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry-sync.md)  | `true`             |
-| `twin`                    | [OPC Twin Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin.md)                    | `true`             |
-| `history`                 | [OPC Historian Access Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin-history.md)| `true`             |
-| `gateway`                 | [OPC Gateway Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin-gateway.md)         | `true`             |
-| `vault`                   | [OPC Vault Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/vault.md)                  | `true`             |
-| `publisher`               | [OPC Publisher Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/publisher.md)               | `true`             |
-| `events`                  | [Events Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/events.md)                         | `true`             |
-| `edgeJobs`                | [Publisher jobs orchestrator service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/publisher.md) | `true`             |
-| `onboarding`              | [Onboarding Processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/processor-onboarding.md)     | `true`             |
-| `eventsProcessor`         | [Edge Event Processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/processor-events.md)         | `true`             |
-| `telemetryCdmProcessor`   | [Datalake export](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/processor-telemetry-cdm.md)       | `false`            |
-| `telemetryProcessor`      | [Edge Telemetry processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/processor-telemetry.md)  | `true`             |
-| `tunnelProcessor`         | [Http Tunnel processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/processor-tunnel.md)        | `true`             |
-| `engineeringTool`         | [Engineering Tool](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/engineeringtool.md)              | `false`            |
+| Name in `values.yaml`   | Description                                                                 | Enabled by Default |
+|-------------------------|-----------------------------------------------------------------------------|--------------------|
+| `registry`              | [Registry Microservice](../../../docs/services/registry.md)                 | `true`             |
+| `sync`                  | [Registry Synchronization Agent](../../../docs/services/registry-sync.md)   | `true`             |
+| `twin`                  | [OPC Twin Microservice](../../../docs/services/twin.md)                     | `true`             |
+| `history`               | [OPC Historian Access Microservice](../../../docs/services/twin-history.md) | `true`             |
+| `gateway`               | [OPC Gateway Microservice](../../../docs/services/twin-gateway.md)          | `true`             |
+| `vault`                 | [OPC Vault Microservice](../../../docs/services/vault.md)                   | `true`             |
+| `publisher`             | [OPC Publisher Service](../../../docs/services/publisher.md)                | `true`             |
+| `events`                | [Events Service](../../../docs/services/events.md)                          | `true`             |
+| `edgeJobs`              | [Publisher jobs orchestrator service](../../../docs/services/publisher.md)  | `true`             |
+| `onboarding`            | [Onboarding Processor](../../../docs/services/processor-onboarding.md)      | `true`             |
+| `eventsProcessor`       | [Edge Event Processor](../../../docs/services/processor-events.md)          | `true`             |
+| `telemetryCdmProcessor` | [Datalake export](../../../docs/services/processor-telemetry-cdm.md)        | `false`            |
+| `telemetryProcessor`    | [Edge Telemetry processor](../../../docs/services/processor-telemetry.md)   | `true`             |
+| `tunnelProcessor`       | [Http Tunnel processor](../../../docs/services/processor-tunnel.md)         | `true`             |
+| `engineeringTool`       | [Engineering Tool](../../../docs/services/engineeringtool.md)               | `false`            |
 
 #### Deployment Resource Configuration
 
@@ -1014,7 +1022,7 @@ permission on `Azure Storage`. Please follow these steps to
 [add API permissions](https://docs.microsoft.com/graph/notifications-integration-app-registration#api-permissions).
 
 Here is a tutorial on
-[how to connect Power BI with Azure Data Lake Storage Gen2 and visualize publisher telemetry](https://github.com/Azure/Industrial-IoT/blob/master/docs/tutorials/tut-power-bi-cdm.md).
+[how to connect Power BI with Azure Data Lake Storage Gen2 and visualize publisher telemetry](../../../docs/tutorials/tut-power-bi-cdm.md).
 
 ### Swagger
 
@@ -1069,9 +1077,9 @@ Here is the full list of components with Swagger UIs:
 We tested Azure Industrial IoT solution with NGINX Ingress Controller. And it required a few configuration
 tweaks to make Ingress work smoothly.
 
-#### ConfigMap
+#### Controller configuration
 
-The following values need to be added to NGINX Ingress Controller
+The following values need to be added to NGINX Ingress Controller configuration
 [ConfigMap](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/).
 
 ```json
