@@ -68,6 +68,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string OpcPublishingInterval = "DefaultPublishingInterval";
 
         /// <summary>
+        /// Key for the default queue size fro monitored items
+        /// </summary>
+        public const string DefaultQueueSize = "DefaultQueueSize";
+
+        /// <summary>
         /// Key for the flag whether to fetch the display names of the nodes.
         /// </summary>
         public const string FetchOpcNodeDisplayName = "FetchOpcNodeDisplayName";

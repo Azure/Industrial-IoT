@@ -107,22 +107,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             PublishedVariables = new PublishedDataItemsModel {
                                 PublishedData = opcNodes
                                     .Select(node => new PublishedDataSetVariableModel {
-                                    // this is the monitopred item id, not the nodeId!
-                                    // Use the display name if any otherwisw the nodeId
-                                    Id = string.IsNullOrEmpty(node.DisplayName)
+                                        // this is the monitored item id, not the nodeId!
+                                        // Use the display name if any otherwisw the nodeId
+                                        Id = string.IsNullOrEmpty(node.DisplayName)
                                             ? node.Id : node.DisplayName,
                                         PublishedVariableNodeId = node.Id,
                                         PublishedVariableDisplayName = node.DisplayName,
                                         SamplingInterval = node.OpcSamplingIntervalTimespan ??
-                                            legacyCliModel.DefaultSamplingInterval ?? (TimeSpan?)null,
-                                        HeartbeatInterval = node.HeartbeatInterval == null ? (TimeSpan?)null :
-                                            TimeSpan.FromSeconds(node.HeartbeatInterval.Value),
-                                    // Force the queue size to 2 so that we avoid data 
-                                    // loss in case publishing interval and sampling interval are equal
-                                    QueueSize = 2
-                                    // TODO: skip first? 
-                                    // SkipFirst = opcNode.SkipFirst,
-                                }).ToList()
+                                            legacyCliModel.DefaultSamplingInterval,
+                                        HeartbeatInterval = node.HeartbeatInterval.HasValue ?
+                                            TimeSpan.FromSeconds(node.HeartbeatInterval.Value) :
+                                            legacyCliModel.DefaultHeartbeatInterval,
+                                        QueueSize = legacyCliModel.DefaultQueueSize,
+                                        // TODO: skip first? 
+                                        // SkipFirst = opcNode.SkipFirst,
+                                    }).ToList()
                             }
                         }))
                     .Select(dataSetSourceBatches => new WriterGroupJobModel {

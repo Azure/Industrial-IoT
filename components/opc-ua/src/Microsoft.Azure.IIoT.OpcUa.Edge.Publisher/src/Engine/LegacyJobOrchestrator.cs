@@ -139,19 +139,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (currentFileHash != _lastKnownFileHash) {
                         _logger.Information("File {publishedNodesFile} has changed, reloading...", _legacyCliModel.PublishedNodesFile);
                         _lastKnownFileHash = currentFileHash;
-
                         using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
-
                             var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
                             foreach (var job in jobs) {
-                                var jobId = $"LegacyPublisher_{_identity.DeviceId}_{_identity.ModuleId}";
+                                var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
                                 job.WriterGroup.DataSetWriters.ForEach(d => {
                                     d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
                                     d.DataSet.ExtensionFields["PublisherId"] = jobId;
                                     d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterId;
                                 });
                                 var serializedJob = _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);
-
                                 availableJobs.Enqueue(
                                     new JobProcessingInstructionModel {
                                         Job = new JobInfoModel {

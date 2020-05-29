@@ -8,6 +8,7 @@ using Microsoft.Azure.IIoT.Agent.Framework.Models;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Module.Framework;
 using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+using Microsoft.Azure.IIoT.OpcUa.Protocol;
 using Microsoft.Azure.IIoT.OpcUa.Publisher;
 using Microsoft.Extensions.Configuration;
 using Mono.Options;
@@ -19,6 +20,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
+    using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 
@@ -27,13 +29,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// </summary>
     public class LegacyCliOptions : Dictionary<string, string>, IAgentConfigProvider,
         IEngineConfiguration, ILegacyCliModelProvider {
-        /// <summary>
-        /// Empty constructor.
-        /// </summary>
-        public LegacyCliOptions() {
-
-        }
-
         /// <summary>
         /// Creates a new instance of the the legacy CLI options based on existing configuration values.
         /// </summary>
@@ -71,7 +66,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int i) => this[LegacyCliConfigKeys.LogFileFlushTimeSpanSec] = TimeSpan.FromSeconds(i).ToString() },
                     { "ll|loglevel=", "The loglevel to use (allowed: fatal, error, warn, info, debug, verbose).",
                         (LogEventLevel l) => LogControl.Level.MinimumLevel = l },
-
                     { "ih|iothubprotocol=", "Protocol to use for communication with the hub. " +
                             $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(TransportOption)))}).",
                         (TransportOption p) => this[LegacyCliConfigKeys.HubTransport] = p.ToString() },
@@ -115,6 +109,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "sw|sessionconnectwait=", "Wait time in seconds publisher is trying to connect " +
                         "to disconnected endpoints and starts monitoring unmonitored items.",
                         (int s) => this[LegacyCliConfigKeys.SessionConnectWaitSec] = TimeSpan.FromSeconds(s).ToString() },
+                    { "mq|monitoreditemqueuecapacity=", "Default queue size for monitored items.",
+                        (uint u) => this[LegacyCliConfigKeys.DefaultQueueSize] = u.ToString() },
 
                     // cert store option
                     { "aa|autoaccept", "The publisher trusts all servers it is establishing a connection to.",
@@ -162,7 +158,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     // Legacy unsupported
                     { "tc|telemetryconfigfile=", "Legacy - do not use.", _ => {} },
                     { "ic|iotcentral=", "Legacy - do not use.", _ => {} },
-                    { "mq|monitoreditemqueuecapacity=", "Legacy - do not use.", _ => {} },
                     { "ns|noshutdown=", "Legacy - do not use.", _ => {} },
                     { "rf|runforever", "Legacy - do not use.", _ => {} },
                     { "pn|portnum=", "Legacy - do not use.", _ => {} },
@@ -197,9 +192,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         /// <summary>
-        ///
+        /// check if we're running in standalone mode - default publishednodes.json file accessible
         /// </summary>
-        public bool RunInLegacyMode => System.IO.File.Exists(GetValueOrDefault(LegacyCliConfigKeys.PublisherNodeConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename));
+        public bool RunInLegacyMode => System.IO.File.Exists(
+            GetValueOrDefault(LegacyCliConfigKeys.PublisherNodeConfigurationFilename,
+                LegacyCliConfigKeys.DefaultPublishedNodesFilename));
 
         /// <summary>
         /// The AgentConfigModel instance that is based on specified legacy command line arguments.
@@ -247,7 +244,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
             if (!string.IsNullOrWhiteSpace(LegacyCliModel.LogFilename)) {
                 loggerConfiguration ??= new LoggerConfiguration();
-                loggerConfiguration = loggerConfiguration.WriteTo.File(LegacyCliModel.LogFilename, flushToDiskInterval: LegacyCliModel.LogFileFlushTimeSpan ?? TimeSpan.FromSeconds(30));
+                loggerConfiguration = loggerConfiguration.WriteTo.File(
+                    LegacyCliModel.LogFilename, flushToDiskInterval: LegacyCliModel.LogFileFlushTimeSpan);
             }
 
             return loggerConfiguration;
@@ -255,38 +253,40 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
         private LegacyCliModel ToLegacyCliModel() {
             return new LegacyCliModel {
-                Site = GetValueOrDefault<string>(LegacyCliConfigKeys.PublisherSite),
-                PublishedNodesFile = GetValueOrDefault(LegacyCliConfigKeys.PublisherNodeConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename),
-                SessionConnectWait = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.SessionConnectWaitSec),
-                DefaultHeartbeatInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.HeartbeatIntervalDefault),
+                Site = GetValueOrDefault(LegacyCliConfigKeys.PublisherSite, string.Empty),
+                PublishedNodesFile = GetValueOrDefault(LegacyCliConfigKeys.PublisherNodeConfigurationFilename,
+                    LegacyCliConfigKeys.DefaultPublishedNodesFilename),
+                SessionConnectWait = GetValueOrDefault(LegacyCliConfigKeys.SessionConnectWaitSec, TimeSpan.FromSeconds(15)),
+                DefaultHeartbeatInterval = GetValueOrDefault(LegacyCliConfigKeys.HeartbeatIntervalDefault, TimeSpan.Zero),
                 DefaultSkipFirst = GetValueOrDefault(LegacyCliConfigKeys.SkipFirstDefault, false),
-                DefaultSamplingInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcSamplingInterval, TimeSpan.FromMilliseconds(1000)),
-                DefaultPublishingInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcPublishingInterval, TimeSpan.FromMilliseconds(1000)),
+                DefaultSamplingInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcSamplingInterval, TimeSpan.FromSeconds(1)),
+                DefaultPublishingInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcPublishingInterval, TimeSpan.FromSeconds(1)),
                 FetchOpcNodeDisplayName = GetValueOrDefault(LegacyCliConfigKeys.FetchOpcNodeDisplayName, false),
-                DiagnosticsInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.DiagnosticsInterval, TimeSpan.FromSeconds(60)),
-                LogFileFlushTimeSpan = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.LogFileFlushTimeSpanSec),
-                LogFilename = GetValueOrDefault<string>(LegacyCliConfigKeys.LogFileName),
-                Transport = GetValueOrDefault<string>(LegacyCliConfigKeys.HubTransport),
+                DefaultQueueSize = GetValueOrDefault<uint>(LegacyCliConfigKeys.DefaultQueueSize, 1),
+                DiagnosticsInterval = GetValueOrDefault(LegacyCliConfigKeys.DiagnosticsInterval, TimeSpan.FromSeconds(60)),
+                LogFileFlushTimeSpan = GetValueOrDefault(LegacyCliConfigKeys.LogFileFlushTimeSpanSec, TimeSpan.FromSeconds(30)),
+                LogFilename = GetValueOrDefault<string>(LegacyCliConfigKeys.LogFileName, null),
+                Transport = GetValueOrDefault(LegacyCliConfigKeys.HubTransport, TransportType.Mqtt.ToString()), // todo this seem not to be used ... 
                 MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, MessagingMode.Samples),
                 MessageEncoding = GetValueOrDefault(LegacyCliConfigKeys.MessageEncoding, MessageEncoding.Json),
                 FullFeaturedMessage = GetValueOrDefault(LegacyCliConfigKeys.FullFeaturedMessage, false),
-                EdgeHubConnectionString = GetValueOrDefault<string>(LegacyCliConfigKeys.EdgeHubConnectionString),
-                OperationTimeout = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcOperationTimeout),
-                MaxStringLength = GetValueOrDefault<long?>(LegacyCliConfigKeys.OpcMaxStringLength),
-                SessionCreationTimeout = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcSessionCreationTimeout),
-                KeepAliveInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcKeepAliveIntervalInSec),
-                MaxKeepAliveCount = GetValueOrDefault<uint?>(LegacyCliConfigKeys.OpcKeepAliveDisconnectThreshold),
-                TrustSelf = GetValueOrDefault(LegacyCliConfigKeys.TrustMyself, false),
+                EdgeHubConnectionString = GetValueOrDefault<string>(LegacyCliConfigKeys.EdgeHubConnectionString, null),
+                OperationTimeout = GetValueOrDefault(LegacyCliConfigKeys.OpcOperationTimeout, TimeSpan.FromSeconds(15)),
+                MaxStringLength = GetValueOrDefault(LegacyCliConfigKeys.OpcMaxStringLength, TransportQuotaConfigEx.DefaultMaxStringLength), // todo this is not used
+                SessionCreationTimeout = GetValueOrDefault(LegacyCliConfigKeys.OpcSessionCreationTimeout, TimeSpan.FromSeconds(1)),
+                KeepAliveInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcKeepAliveIntervalInSec, TimeSpan.FromSeconds(10)),
+                MaxKeepAliveCount = GetValueOrDefault(LegacyCliConfigKeys.OpcKeepAliveDisconnectThreshold, 50),
+                TrustSelf = GetValueOrDefault(LegacyCliConfigKeys.TrustMyself, true),
                 AutoAcceptUntrustedCertificates = GetValueOrDefault(LegacyCliConfigKeys.AutoAcceptCerts, false),
-                ApplicationCertificateStoreType = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcOwnCertStoreType),
-                ApplicationCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcOwnCertStorePath),
-                TrustedPeerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcTrustedCertStorePath),
-                RejectedCertificateStorePath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcRejectedCertStorePath),
-                TrustedIssuerCertificatesPath = GetValueOrDefault<string>(LegacyCliConfigKeys.OpcIssuerCertStorePath),
-                BatchSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.BatchSize, 50),
-                BatchTriggerInterval = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
-                MaxMessageSize = GetValueOrDefault<int?>(LegacyCliConfigKeys.MaxMessageSize, 0),
-                ScaleTestCount = GetValueOrDefault<int?>(LegacyCliConfigKeys.ScaleTestCount, 1)
+                ApplicationCertificateStoreType = GetValueOrDefault(LegacyCliConfigKeys.OpcOwnCertStoreType, "Directory"),
+                ApplicationCertificateStorePath = GetValueOrDefault(LegacyCliConfigKeys.OpcOwnCertStorePath, "pki/own"),
+                TrustedPeerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcTrustedCertStorePath, "pki/trusted"),
+                RejectedCertificateStorePath = GetValueOrDefault(LegacyCliConfigKeys.OpcRejectedCertStorePath, "pki/rejected"),
+                TrustedIssuerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcIssuerCertStorePath, "pki/issuer"),
+                BatchSize = GetValueOrDefault(LegacyCliConfigKeys.BatchSize, 50),
+                BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
+                MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.MaxMessageSize, 0),
+                ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1)
             };
         }
 
@@ -301,11 +301,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             };
         }
 
-        private T GetValueOrDefault<T>(string key, T defaultValue = default) {
+        private T GetValueOrDefault<T>(string key, T defaultValue) {
             if (!ContainsKey(key)) {
                 return defaultValue;
             }
-
             var converter = TypeDescriptor.GetConverter(typeof(T));
             return (T)converter.ConvertFrom(this[key]);
         }

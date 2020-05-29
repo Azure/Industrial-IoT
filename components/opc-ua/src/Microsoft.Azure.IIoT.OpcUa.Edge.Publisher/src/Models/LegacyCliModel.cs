@@ -57,6 +57,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public bool FetchOpcNodeDisplayName { get; set; }
 
         /// <summary>
+        /// set the default queue size for monitored items
+        /// </summary>
+        public uint DefaultQueueSize { get; set; }
+
+        /// <summary>
         /// The interval to show diagnostics information.
         /// </summary>
         public TimeSpan? DiagnosticsInterval { get; set; }
@@ -119,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// The maximum string length.
         /// </summary>
-        public long? MaxStringLength { get; set; }
+        public int? MaxStringLength { get; set; }
 
         /// <summary>
         /// The session creation timeout.
@@ -134,7 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// The maximum keep alive count till disconnect.
         /// </summary>
-        public uint? MaxKeepAliveCount { get; set; }
+        public int? MaxKeepAliveCount { get; set; }
 
         /// <summary>
         /// Flag to trust own certificate.
