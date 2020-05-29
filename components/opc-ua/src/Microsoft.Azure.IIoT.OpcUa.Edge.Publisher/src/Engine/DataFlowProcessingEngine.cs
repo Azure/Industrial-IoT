@@ -18,6 +18,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
     using Prometheus;
+    using System.Text;
+    using Serilog.Events;
 
     /// <summary>
     /// Dataflow engine
@@ -151,36 +153,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void DiagnosticsOutputTimer_Elapsed(object state) {
             var totalDuration = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
             _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
-            _logger.Information("\n   DIAGNOSTICS INFORMATION for Engine : {Name}\n" +
-                "   # Ingestion StartTime - Duration   : {startTime} - {duration} seconds\n" +
-                "   # Ingress DataChanges (from OPC)   : {dataChangesCount} - {dataChangesAverage}/second\n" +
-                "   # Ingress ValueChanges (from OPC)  : {valueChangesCount} - {valueChangesAverage}/second\n" +
-                "   # Ingress BatchBlock buffer size   : {batchDataSetMessageBlockOutputCount}\n" +
-                "   # Encoding Block input/output size : {encodingBlockInputCount}/{encodingBlockOutputCount}\n" +
-                "   # Encoder Notifications processed  : {notificationsProcessedCount}\n" +
-                "   # Encoder Notifications dropped    : {notificationsDroppedCount}\n" +
-                "   # Encoder IoT Messages processed   : {messagesProcessedCount}\n" +
-                "   # Encoder avg Notifications/Message: {notificationsPerMessage}\n" +
-                "   # Encoder avg IoT Message body size: {messageSizeAverage}\n" +
-                "   # Outgress Batch Block buffer size : {batchNetworkMessageBlockOutputCount}\n" +
-                "   # Outgress input buffer count      : {sinkBlockInputCount}\n" +
-                "   # Outgress IoT message count       : {messageSinkSentMessagesCount} - {sentMessagesAverage}/second\n" +
-                "   # Connection retries               : {connectionRetries}\n",
-                Name, _diagnosticStart, _diagnosticStart != DateTime.MinValue ? totalDuration : 0,
-                _messageTrigger.DataChangesCount, _messageTrigger.DataChangesCount / totalDuration,
-                _messageTrigger.ValueChangesCount, _messageTrigger.ValueChangesCount / totalDuration,
-                _batchDataSetMessageBlock.OutputCount,
-                _encodingBlock.InputCount, _encodingBlock.OutputCount,
-                _messageEncoder.NotificationsProcessedCount,
-                _messageEncoder.NotificationsDroppedCount,
-                _messageEncoder.MessagesProcessedCount,
-                _messageEncoder.AvgNotificationsPerMessage,
-                _messageEncoder.AvgMessageSize,
-                _batchNetworkMessageBlock.OutputCount,
-                _sinkBlock.InputCount,
-                _messageSink.SentMessagesCount,
-                _messageSink.SentMessagesCount / totalDuration,
-                _messageTrigger.NumberOfConnectionRetries);
+            if (_messageTrigger.DataChangesCount > 0 || _messageTrigger.ValueChangesCount > 0 || _messageSink.SentMessagesCount > 0)
+            {
+                var diagInfo = new StringBuilder();
+                diagInfo.Append($"\n   DIAGNOSTICS INFORMATION for        : {Utils.Logging.ExtractServerPort(Name)}\n");
+                diagInfo.Append($"   # Ingestion duration               : {TimeSpan.FromSeconds(totalDuration),14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)\n");
+                string dataChangesPerSec = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $" ({_messageTrigger.DataChangesCount / totalDuration:0.##}/s)" : "";
+                diagInfo.Append($"   # Ingress DataChanges (from OPC)   : {_messageTrigger.DataChangesCount,14:0}{dataChangesPerSec}\n");
+                string valueChangedPerSec = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $" ({_messageTrigger.ValueChangesCount / totalDuration:0.##}/s)" : "";
+                diagInfo.Append($"   # Ingress ValueChanges (from OPC)  : {_messageTrigger.ValueChangesCount,14:0}{valueChangedPerSec}\n");
+
+                if (_logger.IsEnabled(LogEventLevel.Verbose))
+                {
+                    diagInfo.Append($"   # Ingress BatchBlock buffer size   : {_batchDataSetMessageBlock.OutputCount,14:0}\n");
+                    diagInfo.Append($"   # Encoding Block input/output size : {_encodingBlock.InputCount,14:0} | {_encodingBlock.OutputCount:0}\n");
+                    diagInfo.Append($"   # Encoder Notifications processed  : {_messageEncoder.NotificationsProcessedCount,14:0}\n");
+                    diagInfo.Append($"   # Encoder Notifications dropped    : {_messageEncoder.NotificationsDroppedCount,14:0}\n");
+                    diagInfo.Append($"   # Encoder IoT Messages processed   : {_messageEncoder.MessagesProcessedCount,14:0}\n");
+                    diagInfo.Append($"   # Encoder avg Notifications/Message: {_messageEncoder.AvgNotificationsPerMessage,14:0}\n");
+                    diagInfo.Append($"   # Encoder avg IoT Message body size: {_messageEncoder.AvgMessageSize,14:0}\n");
+                    diagInfo.Append($"   # Outgress Batch Block buffer size : {_batchNetworkMessageBlock.OutputCount,14:0}\n");
+                    diagInfo.Append($"   # Outgress input buffer count      : {_sinkBlock.InputCount,14:0}\n");
+                }
+
+                string sentMsgsPerSec = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $" ({_messageSink.SentMessagesCount / totalDuration:0.##}/s)" : "";
+                diagInfo.Append($"   # Outgress IoT message count       : {_messageSink.SentMessagesCount,13:0}{sentMsgsPerSec}\n");
+
+                if (_logger.IsEnabled(LogEventLevel.Verbose) &&
+                    _messageTrigger.NumberOfConnectionRetries > 0)
+                {
+                    diagInfo.Append($"   # Connection retries               : {_messageTrigger.NumberOfConnectionRetries,14:0}\n");
+                }
+
+                _logger.Information(diagInfo.ToString());
+            }
 
             kDataChangesCount.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_messageTrigger.DataChangesCount);
