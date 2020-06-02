@@ -100,14 +100,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         case SessionState.Reconnecting:
                             // attempt to reactivate
                             try {
-                                wrapper.MissedKeepAlives++;
-                                _logger.Verbose("Session {name} missed {keepAlives} keep alive(s) due to {status}." +
-                                        " Reconnecting...", wrapper.Session.SessionName,
-                                        wrapper.MissedKeepAlives, new StatusCode(statusCode));
-                                wrapper.Session.Reconnect();
-                                wrapper.State = SessionState.Running;
-                                wrapper.MissedKeepAlives = 0;
-                                return wrapper.Session;
+                                if (!wrapper.Session.Disposed)
+                                {
+                                    wrapper.MissedKeepAlives++;
+                                    _logger.Verbose("Session {name} missed {keepAlives} keep alive(s) due to {status}." +
+                                            " Reconnecting...", wrapper.Session.SessionName,
+                                            wrapper.MissedKeepAlives, new StatusCode(statusCode));
+                                    wrapper.Session.Reconnect();
+                                    wrapper.State = SessionState.Running;
+                                    wrapper.MissedKeepAlives = 0;
+                                    return wrapper.Session;
+                                }
                             }
                             catch (Exception e) {
                                 if (e is ServiceResultException sre) {
@@ -385,7 +388,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                         else {
                             try {
-                                Task.Run(() => RemoveSessionAsync(entry.Key.Connection, true));
+                                RemoveSessionAsync(entry.Key.Connection, true).GetAwaiter().GetResult();
                                 _logger.Information("Scheduled to remove idle session {name}",
                                     session.SessionName);
                             }

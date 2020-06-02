@@ -219,7 +219,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="state"></param>
         private void BatchTriggerIntervalTimer_Elapsed(object state) {
-            _batchDataSetMessageBlock.TriggerBatch();
+            _batchDataSetMessageBlock?.TriggerBatch();
         }
 
         /// <summary>
