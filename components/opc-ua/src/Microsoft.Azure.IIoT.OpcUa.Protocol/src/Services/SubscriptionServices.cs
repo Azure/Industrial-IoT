@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     try {
                         var errorSignaled = subscriptionsGroup.ToList().Any(s => s.ErrorSignaled == true);
                         var session = await _sessionManager.GetOrCreateSessionAsync(subscriptionsGroup.Key.Connection, true,
-                            errorSignaled ? StatusCodes.BadNotConnected : StatusCodes.Good);
+                            errorSignaled ? StatusCodes.BadNotConnected : StatusCodes.Good).ConfigureAwait(false);
                         if (session == null) {
                             subscriptionsGroup.ToList().ForEach(s => s.ErrorSignaled = true);
                             throw new ResourceNotFoundException(
@@ -74,12 +74,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (errorSignaled) {
                             // just go through the elements and try to recreate the subscrption state
                             foreach (var subscription in subscriptionsGroup.ToList()) {
-                                await subscription.ReapplyAsync(false);
+                                await subscription.ReapplyAsync(false).ConfigureAwait(false);
                             }
                         }
                         // go through the elements and activate the subscriptions
                         foreach (var subscription in subscriptionsGroup.ToList()) {
-                            await subscription.ReapplyAsync(true);
+                            await subscription.ReapplyAsync(true).ConfigureAwait(false);
                         }
                     }
                     catch (ResourceNotFoundException e) {
@@ -171,10 +171,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public async Task CloseAsync() {
                 _outer._subscriptions.TryRemove(Id, out _);
-                await _lock.WaitAsync();
+                await _lock.WaitAsync().ConfigureAwait(false);
                 try {
                     var session = await _outer._sessionManager.GetOrCreateSessionAsync(
-                        Connection, false);
+                        Connection, false).ConfigureAwait(false);
                     if (session != null) {
                         var subscription = session.Subscriptions
                             .SingleOrDefault(s => s.DisplayName == Id);
@@ -200,7 +200,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public async Task<SubscriptionNotificationModel> GetSnapshotAsync() {
                 await _lock.WaitAsync();
                 try {
-                    var subscription = await GetSubscriptionAsync(null, false);
+                    var subscription = await GetSubscriptionAsync(null, false).ConfigureAwait(false);
                     if (subscription == null) {
                         return null;
                     }
@@ -223,23 +223,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public async Task ApplyAsync(IEnumerable<MonitoredItemModel> monitoredItems,
                 SubscriptionConfigurationModel configuration, bool activate) {
-                await _lock.WaitAsync();
+                await _lock.WaitAsync().ConfigureAwait(false);
                 try {
                     ErrorSignaled = false;
                     if (!activate) {
                         _subscription.MonitoredItems = monitoredItems?.Select(n => n.Clone()).ToList();
                         if (configuration?.ResolveDisplayName ?? false) {
-                            await ResolveDisplayNameAsync(_subscription.MonitoredItems);
+                            await ResolveDisplayNameAsync(_subscription.MonitoredItems).ConfigureAwait(false);
                         }
                     }
 
-                    var rawSubscription = await GetSubscriptionAsync(configuration, activate);
+                    var rawSubscription = await GetSubscriptionAsync(configuration, activate).ConfigureAwait(false);
                     if (rawSubscription == null) {
                         throw new ResourceNotFoundException
                             ($"Session/Subscription not available - endpointUrl: {Connection?.Endpoint?.Url}");
                     }
 
-                    await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate);
+                    await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate).ConfigureAwait(false);
                 }
                 catch (ResourceNotFoundException e) {
                     _logger.Debug("Not found: {exception}", e.Message);
@@ -262,15 +262,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// </summary>
             /// <returns></returns>
             public async Task ReapplyAsync(bool activate) {
-                await _lock.WaitAsync();
+                await _lock.WaitAsync().ConfigureAwait(false);
                 try {
                     ErrorSignaled = false;
-                    var rawSubscription = await GetSubscriptionAsync(null, activate);
+                    var rawSubscription = await GetSubscriptionAsync(null, activate).ConfigureAwait(false);
                     if (rawSubscription == null) {
                         throw new ResourceNotFoundException(
                             $"Session/Subscription not available - endpointUrl: {Connection?.Endpoint?.Url}");
                     }
-                    await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate) ;
+                    await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate).ConfigureAwait(false);
                 }
                 catch (ResourceNotFoundException e) {
                     _logger.Debug("Retry: {exception}", e.Message);
@@ -302,7 +302,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     return;
                 }
 
-                var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true);
+                var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true).ConfigureAwait(false);
                 if (session == null) {
                     return;
                 }
@@ -466,7 +466,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             if (item.GetTriggeringLinks(out var added, out var removed)) {
                                 var response = await rawSubscription.Session.SetTriggeringAsync(
                                     null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
-                                    new UInt32Collection(added), new UInt32Collection(removed));
+                                    new UInt32Collection(added), new UInt32Collection(removed)).ConfigureAwait(false);
                             }
                         }
 
@@ -541,7 +541,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <returns></returns>
             private async Task<Subscription> GetSubscriptionAsync(
                 SubscriptionConfigurationModel configuration, bool activate) {
-                var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true);
+                var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true).ConfigureAwait(false);
                 if (session == null) {
                     return null;
                 }

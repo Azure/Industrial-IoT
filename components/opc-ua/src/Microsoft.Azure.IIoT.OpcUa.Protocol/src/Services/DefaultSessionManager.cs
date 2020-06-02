@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             // Find session and if not exists create
             var id = new ConnectionIdentifier(connection);
             SessionWrapper wrapper = null;
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 // try to get an existing session
                 try {
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             var exceptions = new List<Exception>();
                             foreach (var endpointUrl in endpointUrlCandidates) {
                                 try {
-                                    var session = await CreateSessionAsync(endpointUrl, id);
+                                    var session = await CreateSessionAsync(endpointUrl, id).ConfigureAwait(false);
                                     if (session != null) {
                                         _logger.Verbose("Connected to {endpointUrl}", ExtractServerPort(endpointUrl));
                                         wrapper.Session = session;
@@ -226,7 +226,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             };
 
             var applicationConfiguration = await _clientConfig.
-                ToApplicationConfigurationAsync(_identity, true, OnValidate);
+                ToApplicationConfigurationAsync(_identity, true, OnValidate).ConfigureAwait(false);
             var endpointConfiguration = _clientConfig.ToEndpointConfiguration();
 
             var endpointDescription = SelectEndpoint(endpointUrl,
@@ -259,7 +259,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var session = await Session.Create(
                     applicationConfiguration, configuredEndpoint,
                     true, sessionName, _clientConfig.DefaultSessionTimeout,
-                    userIdentity, null);
+                    userIdentity, null).ConfigureAwait(false);
 
                 if (sessionName != session.SessionName) {
                     _logger.Warning("Created session {sessionName} with revised name '{name}'",
@@ -270,7 +270,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Information("Loading Complex Type System for session {sessionName}...", sessionName);
                 try {
                     var complexTypeSystem = new ComplexTypeSystem(session);
-                    await complexTypeSystem.Load();
+                    await complexTypeSystem.Load().ConfigureAwait(false);
                     _logger.Verbose("Complex Type system loaded");
                 }
                 catch (Exception ex) {
@@ -292,7 +292,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var key = new ConnectionIdentifier(connection);
             Session session = null;
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 if (!_sessions.TryGetValue(key, out var wrapper)) {
                     return;

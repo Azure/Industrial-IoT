@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         UseUriEncoding = true,
                         UseReversibleEncoding = false
                     };
-                    foreach(var element in chunk) { 
+                    foreach(var element in chunk) {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
