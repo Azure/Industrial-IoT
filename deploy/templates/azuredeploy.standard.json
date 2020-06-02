@@ -762,8 +762,6 @@
                             }
                         ]
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
@@ -796,8 +794,6 @@
                     "workbookId": {
                         "value": "[parameters('workbookId')]"
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }

@@ -210,8 +210,6 @@
                     "managedIdentityResourceId": {
                         "value": "[parameters('managedIdentityResourceId')]"
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
@@ -299,8 +297,6 @@
                     "managedIdentityResourceId": {
                         "value": "[parameters('managedIdentityResourceId')]"
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
@@ -337,8 +333,6 @@
                             }
                         ]
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }

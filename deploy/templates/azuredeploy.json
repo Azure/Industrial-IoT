@@ -253,8 +253,6 @@
                     "keyVaultPrincipalId": {
                         "value": "[parameters('keyVaultPrincipalId')]"
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
@@ -340,8 +338,6 @@
                             }
                         ]
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
@@ -407,8 +403,6 @@
                             "secretName": "pcs-storage-key"
                         }
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
@@ -476,8 +470,6 @@
                     "imagesTag": {
                         "value": "[parameters('imagesTag')]"
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
@@ -548,8 +540,6 @@
                     "imagesTag": {
                         "value": "[parameters('imagesTag')]"
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }

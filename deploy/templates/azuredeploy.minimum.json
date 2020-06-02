@@ -687,8 +687,6 @@
                             }
                         ]
                     },
-                    // "tags": "[parameters('tags')]"//,
-                    // "tags": "[if(empty(parameters('tags')), json('{}'), parameters('tags'))]"
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
