@@ -163,24 +163,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 string valueChangedPerSec = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $" ({_messageTrigger.ValueChangesCount / totalDuration:0.##}/s)" : "";
                 diagInfo.Append($"   # Ingress ValueChanges (from OPC)  : {_messageTrigger.ValueChangesCount,14:0}{valueChangedPerSec}\n");
 
-                if (_logger.IsEnabled(LogEventLevel.Verbose))
-                {
-                    diagInfo.Append($"   # Ingress BatchBlock buffer size   : {_batchDataSetMessageBlock.OutputCount,14:0}\n");
-                    diagInfo.Append($"   # Encoding Block input/output size : {_encodingBlock.InputCount,14:0} | {_encodingBlock.OutputCount:0}\n");
-                    diagInfo.Append($"   # Encoder Notifications processed  : {_messageEncoder.NotificationsProcessedCount,14:0}\n");
-                    diagInfo.Append($"   # Encoder Notifications dropped    : {_messageEncoder.NotificationsDroppedCount,14:0}\n");
-                    diagInfo.Append($"   # Encoder IoT Messages processed   : {_messageEncoder.MessagesProcessedCount,14:0}\n");
-                    diagInfo.Append($"   # Encoder avg Notifications/Message: {_messageEncoder.AvgNotificationsPerMessage,14:0}\n");
-                    diagInfo.Append($"   # Encoder avg IoT Message body size: {_messageEncoder.AvgMessageSize,14:0}\n");
-                    diagInfo.Append($"   # Outgress Batch Block buffer size : {_batchNetworkMessageBlock.OutputCount,14:0}\n");
-                    diagInfo.Append($"   # Outgress input buffer count      : {_sinkBlock.InputCount,14:0}\n");
-                }
+                diagInfo.Append($"   # Ingress BatchBlock buffer size   : {_batchDataSetMessageBlock.OutputCount,14:0}\n");
+                diagInfo.Append($"   # Encoding Block input/output size : {_encodingBlock.InputCount,14:0} | {_encodingBlock.OutputCount:0}\n");
+                diagInfo.Append($"   # Encoder Notifications processed  : {_messageEncoder.NotificationsProcessedCount,14:0}\n");
+                diagInfo.Append($"   # Encoder Notifications dropped    : {_messageEncoder.NotificationsDroppedCount,14:0}\n");
+                diagInfo.Append($"   # Encoder IoT Messages processed   : {_messageEncoder.MessagesProcessedCount,14:0}\n");
+                diagInfo.Append($"   # Encoder avg Notifications/Message: {_messageEncoder.AvgNotificationsPerMessage,14:0}\n");
+                diagInfo.Append($"   # Encoder avg IoT Message body size: {_messageEncoder.AvgMessageSize,14:0}\n");
+                diagInfo.Append($"   # Outgress Batch Block buffer size : {_batchNetworkMessageBlock.OutputCount,14:0}\n");
+                diagInfo.Append($"   # Outgress input buffer count      : {_sinkBlock.InputCount,14:0}\n");
 
                 string sentMsgsPerSec = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $" ({_messageSink.SentMessagesCount / totalDuration:0.##}/s)" : "";
                 diagInfo.Append($"   # Outgress IoT message count       : {_messageSink.SentMessagesCount,14:0}{sentMsgsPerSec}\n");
 
-                if (_logger.IsEnabled(LogEventLevel.Verbose) &&
-                    _messageTrigger.NumberOfConnectionRetries > 0)
+                if (_messageTrigger.NumberOfConnectionRetries > 0)
                 {
                     diagInfo.Append($"   # Connection retries               : {_messageTrigger.NumberOfConnectionRetries,14:0}\n");
                 }
