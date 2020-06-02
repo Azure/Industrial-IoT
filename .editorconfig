@@ -16,7 +16,7 @@ end_of_line = crlf
 insert_final_newline = false
 
 # JSON files, shell scripts
-[*.json, *.sh]
+[*.{json,sh}]
 
 # New line preferences
 end_of_line = lf
