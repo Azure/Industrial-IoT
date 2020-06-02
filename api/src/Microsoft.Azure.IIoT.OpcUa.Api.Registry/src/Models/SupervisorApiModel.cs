@@ -48,5 +48,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [DataMember(Name = "connected", Order = 4,
             EmitDefaultValue = false)]
         public bool? Connected { get; set; }
+
+        /// <summary>
+        /// The reported version of the supervisor
+        /// </summary>
+        [DataMember(Name = "version", Order = 5,
+            EmitDefaultValue = false)]
+        public string Version { get; set; }
     }
 }

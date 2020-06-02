@@ -199,6 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                             NodeId = variable.PublishedVariableNodeId,
                             DisplayName = variable.PublishedVariableDisplayName,
                             SamplingInterval = variable.SamplingInterval,
+                            HeartbeatInterval = variable.HeartbeatInterval,
                             PublishingInterval = source.SubscriptionSettings.PublishingInterval
                         }))
                     .ToList();
@@ -235,6 +236,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             return new WriterGroupJobModel {
                 MessagingMode = MessagingMode.Samples,
                 WriterGroup = new WriterGroupModel {
+                    MessageType = MessageEncoding.Json,
                     WriterGroupId = job.Id,
                     DataSetWriters = new List<DataSetWriterModel>(),
                     MessageSettings = new WriterGroupMessageSettingsModel() {
@@ -250,7 +252,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                                 NetworkMessageContentMask.DataSetMessageHeader
                     },
                 },
-                Engine = null,
+                Engine = new EngineConfigurationModel() {
+                    BatchSize = 50,
+                    BatchTriggerInterval = TimeSpan.FromSeconds(10),
+                    DiagnosticsInterval = TimeSpan.FromSeconds(60),
+                    MaxMessageSize = 0
+                },
                 ConnectionString = null
             };
         }
@@ -412,8 +419,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         private readonly IEndpointRegistry _endpoints;
         private readonly IJobScheduler _jobs;
         private readonly IJobSerializer _serializer;
-        private static readonly Counter kNodePublishStart = Metrics.CreateCounter("iiot_edge_publisher_node_publish_start", "calls to nodePublishStartAsync");
-        private static readonly Counter kNodePublishStop = Metrics.CreateCounter("iiot_edge_publisher_node_publish_stop", "calls to nodePublishStopAsync");
+        private static readonly Counter kNodePublishStart = Metrics.CreateCounter("iiot_publisher_node_publish_start", "calls to nodePublishStartAsync");
+        private static readonly Counter kNodePublishStop = Metrics.CreateCounter("iiot_publisher_node_publish_stop", "calls to nodePublishStopAsync");
 
     }
 }

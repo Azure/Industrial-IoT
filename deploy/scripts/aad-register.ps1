@@ -315,9 +315,6 @@ Function New-ADApplications() {
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Microsoft Graph" `
             -requiredDelegatedPermissions "User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
-        $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Azure Storage" `
-            -requiredDelegatedPermissions "user_impersonation"
-        $requiredResourcesAccess.Add($requiredPermissions)
 
         $knownApplications = New-Object System.Collections.Generic.List[System.String]
         $knownApplications.Add($clientAadApplication.AppId)

@@ -23,7 +23,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
     using System.Diagnostics.Tracing;
     using System.Linq;
     using System.Net;
-    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -101,7 +100,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
                     Console.WriteLine($"Using <deviceId> '{deviceId}'");
                 }
                 if (moduleId == null) {
-                    moduleId = "opcpublisher";
+                    moduleId = "publisher";
                     Console.WriteLine($"Using <moduleId> '{moduleId}'");
                 }
 

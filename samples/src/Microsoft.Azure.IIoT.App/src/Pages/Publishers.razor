@@ -3,7 +3,7 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
  ------------------------------------------------------------*@
 
-@page "/publishers"
+@page "/publishers/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -26,44 +26,67 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th>Id</th>
-            <th>Configuration</th>
-            <th>Site Id</th>
-            <th>Sync Status</th>
-            <th>Connection Status</th>
+            <th class="width-large">Id</th>
+            <th class="width-large">Configuration</th>
+            <th class="width-medium">Site Id</th>
+            <th class="width-small">Sync Status</th>
+            <th class="width-small">Connection Status</th>
+            <th class="width-small">Version</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var publisher in _pagedPublisherList.Results)
         {
             <tr>
-                <td>@publisher.Id</td>
-                <td>
-                    @{ string Capabilities = CommonHelper.None;}
-                    @{ string HeartbeatInterval = CommonHelper.None;}
-                    @{ string JobCheckInterval = CommonHelper.None;}
-                    @{ string JobOrchestratorUrl = CommonHelper.None;}
-                    @{ string MaxWorkers = CommonHelper.None;}
-                    @if (publisher.Configuration != null)
-                    {
-                        Capabilities = publisher.Configuration.Capabilities == null ? CommonHelper.None : publisher.Configuration.Capabilities.ToString();
-                        HeartbeatInterval = publisher.Configuration.HeartbeatInterval == null ? CommonHelper.None : publisher.Configuration.HeartbeatInterval.ToString();
-                        JobCheckInterval = publisher.Configuration.JobCheckInterval == null ? CommonHelper.None : publisher.Configuration.JobCheckInterval.ToString();
-                        JobOrchestratorUrl = string.IsNullOrEmpty(publisher.Configuration.JobOrchestratorUrl) ? CommonHelper.None : publisher.Configuration.JobOrchestratorUrl;
-                        MaxWorkers = publisher.Configuration.MaxWorkers == null ? CommonHelper.None : publisher.Configuration.MaxWorkers.ToString();
-                    }
-                    Capabilities: @Capabilities<br />
-                    HeartbeatInterval: @HeartbeatInterval<br />
-                    JobCheckInterval: @JobCheckInterval<br />
-                    JobOrchestratorUrl: @JobOrchestratorUrl<br />
-                    MaxWorkers: @MaxWorkers
+                <td class="hover-text width-large">
+                    <div>
+                        @publisher.Id
+                    </div>
+                </td>
+                <td class="width-large">
+                    <div class="space-wrap">
+                        @{ string Capabilities = CommonHelper.None;}
+                        @{ string HeartbeatInterval = CommonHelper.None;}
+                        @{ string JobCheckInterval = CommonHelper.None;}
+                        @{ string JobOrchestratorUrl = CommonHelper.None;}
+                        @{ string MaxWorkers = CommonHelper.None;}
+                        @if (publisher.Configuration != null) {
+                            Capabilities = publisher.Configuration.Capabilities == null ? CommonHelper.None : publisher.Configuration.Capabilities.ToString();
+                            HeartbeatInterval = publisher.Configuration.HeartbeatInterval == null ? CommonHelper.None : publisher.Configuration.HeartbeatInterval.ToString();
+                            JobCheckInterval = publisher.Configuration.JobCheckInterval == null ? CommonHelper.None : publisher.Configuration.JobCheckInterval.ToString();
+                            JobOrchestratorUrl = string.IsNullOrEmpty(publisher.Configuration.JobOrchestratorUrl) ? CommonHelper.None : publisher.Configuration.JobOrchestratorUrl;
+                            MaxWorkers = publisher.Configuration.MaxWorkers == null ? CommonHelper.None : publisher.Configuration.MaxWorkers.ToString();
+                        }
+                        Capabilities: @Capabilities<br />
+                        HeartbeatInterval: @HeartbeatInterval<br />
+                        JobCheckInterval: @JobCheckInterval<br />
+                        JobOrchestratorUrl: @JobOrchestratorUrl<br />
+                        MaxWorkers: @MaxWorkers
+                    </div>
                 </td>
                 @{string SiteId = publisher.SiteId == null ? CommonHelper.None : publisher.SiteId;}
-                <td>@SiteId</td>
+                <td class="hover-text width-medium">
+                    <div>
+                        @SiteId
+                    </div>        
+                </td>
                 @{string OutOfSync = publisher.OutOfSync == null ? CommonHelper.None : publisher.OutOfSync == true ? "Out Of Sync" : "Synced";}
-                <td>@OutOfSync</td>
+                <td class="hover-text width-small">
+                    <div>
+                        @OutOfSync
+                    </div>
+                </td>
                 @{string ConnectStatus = publisher.Connected == null ? CommonHelper.None : publisher.Connected == true ? "Connected" : "Disconnected";}
-                <td>@ConnectStatus</td>
+                <td class="hover-text width-small">
+                    <div>
+                        @ConnectStatus
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        @publisher.Version
+                    </div>
+                </td>
             </tr>
         }
     </tbody>
@@ -95,7 +118,8 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _publisherList = CommonHelper.UpdatePage(RegistryHelper.GetPublisherListAsync, page, _publisherList, ref _pagedPublisherList);
+        _publisherList = CommonHelper.UpdatePage(RegistryHelper.GetPublisherListAsync, page, _publisherList, ref _pagedPublisherList, CommonHelper.PageLengthSmall);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "publishers/" + page);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -118,7 +142,7 @@
         {
             _publisherList = await RegistryHelper.GetPublisherListAsync();
             Page = "1";
-            _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _publisherList.Error);
+            _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
             CommonHelper.Spinner = string.Empty;
             CommonHelper.CheckErrorOrEmpty<PublisherApiModel>(_pagedPublisherList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
@@ -131,7 +155,7 @@
     private Task PublisherEvent(PublisherEventApiModel ev)
     {
         _publisherList.Results.Update(ev);
-        _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _publisherList.Error);
+        _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }

@@ -88,7 +88,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
-            var connected = twin.IsConnected();
 
             var registration = new SupervisorRegistration {
                 // Device
@@ -96,6 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DeviceId = twin.Id,
                 ModuleId = twin.ModuleId,
                 Etag = twin.Etag,
+                Connected = twin.IsConnected() ?? false,
 
                 // Tags
 
@@ -111,8 +111,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
                 SiteId =
                     properties.GetValueOrDefault<string>(TwinProperty.SiteId, null),
-                Connected = connected ??
-                    properties.GetValueOrDefault(TwinProperty.Connected, false),
+                Version =
+                    properties.GetValueOrDefault<string>(TwinProperty.Version, null),
                 Type =
                     properties.GetValueOrDefault<string>(TwinProperty.Type, null)
             };
@@ -169,6 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     // Not set by user, but reported, so set as desired
                     desired.LogLevel = consolidated.LogLevel;
                 }
+                desired.Version = consolidated.Version;
             }
 
             if (!onlyServerState) {
@@ -198,6 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DeviceId = deviceId,
                 ModuleId = moduleId,
                 LogLevel = model.LogLevel,
+                Version = null,
                 Connected = model.Connected ?? false,
                 SiteId = model.SiteId,
             };
@@ -216,6 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Id = SupervisorModelEx.CreateSupervisorId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
                 LogLevel = registration.LogLevel,
+                Version = registration.Version,
                 Connected = registration.IsConnected() ? true : (bool?)null,
                 OutOfSync = registration.IsConnected() && !registration._isInSync ? true : (bool?)null
             };

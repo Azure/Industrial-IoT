@@ -26,15 +26,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// </summary>
     public class NetworkMessageEncoder : IMessageEncoder {
 
-        /// <summary>
-        /// Perform DataSetMessageModel to single message NetworkMessageModel
-        /// </summary>
-        /// <param name="messages"></param>
+        /// <inheritdoc/>
+        public uint NotificationsDroppedCount { get; private set; }
+
+        /// <inheritdoc/>
+        public uint NotificationsProcessedCount { get; private set; }
+
+        /// <inheritdoc/>
+        public uint MessagesProcessedCount { get; private set; }
+
+        /// <inheritdoc/>
+        public double AvgNotificationsPerMessage { get; private set; }
+
+        /// <inheritdoc/>
+        public double AvgMessageSize { get; private set; }
+
+        /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            IEnumerable<DataSetMessageModel> messages) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
             try {
-                var resultJson = EncodeAsJson(messages);
-                var resultUadp = EncodeAsUadp(messages);
+                var resultJson = EncodeAsJson(messages, maxMessageSize);
+                var resultUadp = EncodeAsUadp(messages, maxMessageSize);
                 var result = resultJson.Concat(resultUadp);
                 return Task.FromResult(result);
             }
@@ -43,11 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
         }
 
-        /// <summary>
-        /// Perform DataSetMessageModel to batch NetworkMessageModel
-        /// </summary>
-        /// <param name="messages"></param>
-        /// <param name="maxMessageSize"></param>
+        /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
             try {
@@ -74,6 +82,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (notifications.Count() == 0) {
                 yield break;
             }
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
             var encodingContext = messages.First().ServiceMessageContext;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
@@ -93,12 +103,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
                     var notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
-                    messageCompleted = maxMessageSize < (messageSize + notificationSize);
-
-                    if (!messageCompleted) {
-                        chunk.Add(notification);
+                    if (notificationSize > maxMessageSize) {
+                        // we cannot handle this notification. Drop it.
+                        // TODO Trace
+                        NotificationsDroppedCount++;
                         processing = current.MoveNext();
-                        messageSize += notificationSize + (processing ? 1 : 0);
+                    }
+                    else {
+                        messageCompleted = maxMessageSize < (messageSize + notificationSize);
+                        if (!messageCompleted) {
+                            NotificationsProcessedCount++;
+                            chunk.Add(notification);
+                            processing = current.MoveNext();
+                            messageSize += notificationSize + (processing ? 1 : 0);
+                        }
                     }
                 }
                 if (!processing || messageCompleted) {
@@ -113,8 +131,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
-                    chunk.Clear();
-                    messageSize = 2;
                     var encoded = new NetworkMessageModel {
                         Body = Encoding.UTF8.GetBytes(writer.ToString()),
                         ContentEncoding = "utf-8",
@@ -122,6 +138,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         ContentType = ContentMimeType.UaJson,
                         MessageSchema = MessageSchemaTypes.NetworkMessageJson
                     };
+                    AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
+                        (MessagesProcessedCount + 1);
+                    AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
+                        chunk.Count) / (MessagesProcessedCount + 1);
+                        MessagesProcessedCount++;
+                    chunk.Clear();
+                    messageSize = 2;
                     yield return encoded;
                 }
             }
@@ -140,6 +163,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (notifications.Count() == 0) {
                 yield break;
             }
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
             var encodingContext = messages.First().ServiceMessageContext;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
@@ -153,26 +178,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperEncoder = new BinaryEncoder(encodingContext);
                     helperEncoder.WriteEncodeable(null, notification);
                     var notificationSize = helperEncoder.CloseAndReturnBuffer().Length;
-                    messageCompleted = maxMessageSize < (messageSize + notificationSize);
-
-                    if (!messageCompleted) {
-                        chunk.Add(notification);
+                    if (notificationSize > maxMessageSize) {
+                        // we cannot handle this notification. Drop it.
+                        // TODO Trace
+                        NotificationsDroppedCount++;
                         processing = current.MoveNext();
-                        messageSize += notificationSize;
+                    }
+                    else {
+                        messageCompleted = maxMessageSize < (messageSize + notificationSize);
+
+                        if (!messageCompleted) {
+                            chunk.Add(notification);
+                            NotificationsProcessedCount++;
+                            processing = current.MoveNext();
+                            messageSize += notificationSize;
+                        }
                     }
                 }
                 if (!processing || messageCompleted) {
                     var encoder = new BinaryEncoder(encodingContext);
                     encoder.WriteBoolean(null, true); // is Batch
                     encoder.WriteEncodeableArray(null, chunk);
-                    chunk.Clear();
-                    messageSize = 4;
                     var encoded = new NetworkMessageModel {
                         Body = encoder.CloseAndReturnBuffer(),
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.Uadp,
                         MessageSchema = MessageSchemaTypes.NetworkMessageUadp
                     };
+                    AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
+                        (MessagesProcessedCount + 1);
+                    AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
+                        chunk.Count) / (MessagesProcessedCount + 1);
+                    MessagesProcessedCount++;
+                    chunk.Clear();
+                    messageSize = 4;
                     yield return encoded;
                 }
             }
@@ -182,13 +221,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Perform json encoding
         /// </summary>
         /// <param name="messages"></param>
+        /// <param name="maxMessageSize"></param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsJson(
-            IEnumerable<DataSetMessageModel> messages) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+			
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json);
             if (notifications.Count() == 0) {
                 yield break;
             }
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
             var encodingContext = messages.First().ServiceMessageContext;
             foreach (var networkMessage in notifications) {
                 var writer = new StringWriter();
@@ -206,6 +249,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     ContentType = ContentMimeType.Json,
                     MessageSchema = MessageSchemaTypes.NetworkMessageJson
                 };
+                if (encoded.Body.Length > maxMessageSize) {
+                    // this message is too large to be processed. Drop it
+                    // TODO Trace
+                    NotificationsDroppedCount++;
+                    yield break;
+                }
+                NotificationsProcessedCount++;
+                AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
+                    (MessagesProcessedCount + 1);
+                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
+                    (MessagesProcessedCount + 1);
+                MessagesProcessedCount++;
                 yield return encoded;
             }
         }
@@ -214,13 +269,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Perform uadp encoding
         /// </summary>
         /// <param name="messages"></param>
+        /// <param name="maxMessageSize"></param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsUadp(
-            IEnumerable<DataSetMessageModel> messages) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
             var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp);
             if (notifications.Count() == 0) {
                 yield break;
             }
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
             var encodingContext = messages.First().ServiceMessageContext;
             foreach (var networkMessage in notifications) {
                 var encoder = new BinaryEncoder(encodingContext);
@@ -233,6 +291,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     ContentType = ContentMimeType.Uadp,
                     MessageSchema = MessageSchemaTypes.NetworkMessageUadp
                 };
+                if (encoded.Body.Length > maxMessageSize) {
+                    // this message is too large to be processed. Drop it
+                    // TODO Trace
+                    NotificationsDroppedCount++;
+                    yield break;
+                }
+                NotificationsProcessedCount++;
+                AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
+                    (MessagesProcessedCount + 1);
+                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
+                    (MessagesProcessedCount + 1);
+                MessagesProcessedCount++;
                 yield return encoded;
             }
         }

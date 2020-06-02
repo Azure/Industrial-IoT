@@ -485,9 +485,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                         }
 
                         // Check local host
-                        if (host.EqualsIgnoreCase("localhost") &&
-                            (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
-                                .EqualsIgnoreCase("true") ?? false)) {
+                        if (host.EqualsIgnoreCase("localhost") && Host.IsContainer) {
                             // Also resolve docker internal since we are in a container
                             host = kDockerHostName;
                             continue;
@@ -511,8 +509,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         private async Task AddLoopbackAddressesAsync(List<IPAddress> addresses) {
             // Check local host
             try {
-                if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
-                    .EqualsIgnoreCase("true") ?? false) {
+                if (Host.IsContainer) {
                     // Resolve docker host since we are running in a container
                     var entry = await Dns.GetHostEntryAsync(kDockerHostName);
                     foreach (var address in entry.AddressList

@@ -1,8 +1,10 @@
-# Microsoft.Azure.IIoT.Deployment (Preview)
+# Microsoft.Azure.IIoT.Deployment (Preview) <!-- omit in toc -->
 
-## Table Of Contents
+[Home](readme.md)
 
-* [Running Microsoft.Azure.IIoT.Deployment](#running-microsoft.azure.iiot.deployment)
+## Table Of Contents <!-- omit in toc -->
+
+* [Running Microsoft.Azure.IIoT.Deployment](#running-microsoftazureiiotdeployment)
   * [Run Modes](#run-modes)
   * [Running with User Credentials](#running-with-user-credentials)
   * [Running with Service Principal Credentials](#running-with-service-principal-credentials)

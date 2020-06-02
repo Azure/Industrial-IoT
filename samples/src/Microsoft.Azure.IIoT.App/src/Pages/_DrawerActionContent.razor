@@ -52,6 +52,9 @@
             <div class="@_responseClass">
                 <span>value = </span>
                 <span>@_response</span>
+                <div class="reload">
+                    <a class="oi oi-reload" href="javascript: void(0)" @onclick="@(() => ReadAsync(NodeData.Id))"></a>
+                </div>
             </div>
         }
         else if (_typeOfAction == ActionType.Write)
@@ -70,7 +73,7 @@
         }
         else if (_typeOfAction == ActionType.Call)
         {
-            @if (_parameters != null)
+            @if (_parameters?.InputArguments != null)
             {
                 <form>
                     @{int index = 0;}
@@ -85,26 +88,33 @@
                         index++;
                     }
                 </form>
-                <hr />
-                <div>
-                    <button @onclick="@(async() => await CallAsync(NodeData.Id, _valueArray))" type="button" class="btn btn-primary shadow-none">Apply</button>
-                </div>
-                <div class="@_responseClass">
-                    @if (BrowseManager.MethodCallResponse != null)
+             }
+            <hr />
+            <div>
+                <button @onclick="@(async() => await CallAsync(NodeData.Id, _valueArray))" type="button" class="btn btn-primary shadow-none">Apply</button>
+            </div>
+            <div class="@_responseClass">
+                @if (BrowseManager.MethodCallResponse != null)
+                {
+                    if (BrowseManager.MethodCallResponse.Results.Count > 0)
                     {
                         <div>response = </div>
                         foreach (var response in BrowseManager.MethodCallResponse.Results)
                         {
                             <div>@response.Value (@response.DataType)</div>
                         }
-                        <div>@_response</div>
                     }
-                </div>
-            }
-            else
-            {
-                <div>@_response</div>
-            }
+                    else
+                    {
+                        <div>method call successfully executed</div>
+                    }
+                }
+                else
+                {
+                    <div>method call failed</div>
+                    <div>@_response</div>
+                }
+            </div>
         }
     </div>
 </div>
@@ -171,7 +181,10 @@
     {
         _response = await BrowseManager.GetParameterAsync(EndpointId, NodeData.Id, Credential);
         _parameters = BrowseManager.Parameter;
-        _valueArray = new string[_parameters.InputArguments.Count];
+        if (_parameters.InputArguments != null)
+        {
+            _valueArray = new string[_parameters.InputArguments.Count];
+        }
     }
 
     private async Task CallAsync(string nodeId, string[] values)

@@ -1246,15 +1246,20 @@ namespace Opc.Ua.Encoders {
             if (value == null) {
                 return default;
             }
-            if (value is object[] o) {
-                return o.Cast<T>().ToArray();
+            try {
+                if (value is object[] o) {
+                    return o.Cast<T>().ToArray();
+                }
+                if (value is T[] t) {
+                    return t;
+                }
+                return ToTypedScalar<T>(value).YieldReturn().ToArray();
             }
-            if (value is T[] t) {
-                return t;
+            catch (Exception ex) {
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Bad variant: Value '{value}' of type '{value.GetType().FullName}' is not " +
+                    $"a one dimensional array of type '{typeof(T).GetType().FullName}'.", ex);
             }
-            throw new ServiceResultException(StatusCodes.BadEncodingError,
-                $"Bad variant: Value '{value}' of type '{value.GetType().FullName}' is not " +
-                $"an array of type '{typeof(T).GetType().FullName}'.");
         }
 
         /// <summary>
@@ -1264,15 +1269,20 @@ namespace Opc.Ua.Encoders {
         /// <param name="value"></param>
         /// <returns></returns>
         private T ToTypedScalar<T>(object value) {
-            if (value == null) {
-                return default;
+            try {
+                if (value == null) {
+                    return default;
+                }
+                if (value is T t) {
+                    return t;
+                }
+                return (T)value;
             }
-            if (value is T t) {
-                return t;
+            catch (Exception ex) {
+                throw new ServiceResultException(StatusCodes.BadEncodingError,
+                    $"Bad variant: Value '{value}' of type '{value.GetType().FullName}' is not " +
+                    $"a scalar of type '{typeof(T).GetType().FullName}'.", ex);
             }
-            throw new ServiceResultException(StatusCodes.BadEncodingError,
-                $"Bad variant: Value '{value}' of type '{value.GetType().FullName}' is not " +
-                $"a scalar of type '{typeof(T).GetType().FullName}'.");
         }
 
         /// <summary>

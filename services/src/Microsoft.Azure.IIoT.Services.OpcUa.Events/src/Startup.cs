@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
                 .AddMessagePackSerializer()
                 .AddAzureSignalRService(Config);
 
-            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
+            services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
         }
 
         /// <summary>
@@ -144,6 +144,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             app.UseCorrelation();
             app.UseSwagger();
             app.UseMetricServer();
+            app.UseHttpMetrics();
             app.UseEndpoints(endpoints => {
                 endpoints.MapHubs();
                 endpoints.MapControllers();

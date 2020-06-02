@@ -3,7 +3,7 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
  ------------------------------------------------------------*@
 
-@page "/applications"
+@page "/applications/{page}"
 
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Azure.IIoT.App.Services
@@ -27,37 +27,53 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Id</th>
-            <th>Site</th>
-            <th>Type</th>
-            <th></th>
+            <th class="width-large">Name</th>
+            <th class="width-large">Uri</th>
+            <th class="width-medium">Site</th>
+            <th class="width-small">Type</th>
+            <th class="width-small"></th>
         </tr>
     </thead>
     <tbody>
         @foreach (var application in _pagedapplicationList.Results)
         {
             <tr class="@((application.NotSeenSince != null? "enabled-false" : "enabled-true"))">
-                <td>
-                    @{
-                        CommonHelper.ApplicationUri.AddOrUpdate(application.ApplicationId, application.ApplicationUri);
-                    }
-                    @if (application.NotSeenSince != null)
-                    {
-                        @application.ApplicationName
-                    }
-                    else
-                    {
-                    <a href='endpoints/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
-                        @application.ApplicationName
-                    </a>
-                    }
+                <td class="hover-text large">
+                    <div>
+                        @{
+                            CommonHelper.ApplicationUri.AddOrUpdate(application.ApplicationId, application.ApplicationUri);
+                        }
+                        @if (application.NotSeenSince != null)
+                        {
+                            @application.ApplicationName
+                        }
+                        else
+                        {
+                        <a href='endpoints/1/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
+                            @application.ApplicationName
+                        </a>
+                        }
+                    </div>
                 </td>
-                <td>@application.ApplicationUri</td>
-                <td>@application.SiteId</td>
-                <td>@application.ApplicationType</td>
-                <td>
-                    <a class="ellipsis-space" href="javascript: void(0)" @onclick="@(() => OpenDrawer(application))">More Data</a>
+                <td class="hover-text width-large">
+                    <div>
+                        @application.ApplicationUri
+                    </div>
+                </td>
+                <td class="hover-text width-medium">
+                    <div>
+                        @application.SiteId
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        @application.ApplicationType
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        <a class="ellipsis-space" href="javascript: void(0)" @onclick="@(() => OpenDrawer(application))">More Data</a>
+                    </div>
                 </td>
                 <td>
                     <button @onclick="@(() => UnregisterApplicationUIAsync(application.ApplicationId))" class="btn btn-primary">Unregister</button>
@@ -104,7 +120,8 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _applicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, _applicationList, ref _pagedapplicationList);
+        _applicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, _applicationList, ref _pagedapplicationList, CommonHelper.PageLength);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "applications/" + page);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -144,7 +161,6 @@
     {
         var index = _applicationList.Results.Select(t => t.ApplicationId).ToList().IndexOf(applicationId);
         _applicationList.Results.RemoveAt(index);
-        Page = "1";
         _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
         StateHasChanged();
 

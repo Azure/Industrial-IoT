@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<GatewayListModel> ListGatewaysAsync(
             string continuation, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices WHERE " +
-                $"(tags.{TwinProperty.Type} = '{IdentityType.Gateway}' OR tags.iiotedge = true) " +
+                $"tags.{TwinProperty.Type} = '{IdentityType.Gateway}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
             var devices = await _iothub.QueryDeviceTwinsAsync(query, continuation, pageSize, ct);
             return new GatewayListModel {
@@ -147,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             GatewayQueryModel model, int? pageSize, CancellationToken ct) {
 
             var query = "SELECT * FROM devices WHERE " +
-                $"(tags.{TwinProperty.Type} = '{IdentityType.Gateway}' OR tags.iiotedge = true) ";
+                $"tags.{TwinProperty.Type} = '{IdentityType.Gateway}' ";
 
             if (model?.SiteId != null) {
                 // If site id provided, include it in search
@@ -158,11 +158,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // If flag provided, include it in search
                 if (model.Connected.Value) {
                     query += $"AND connectionState = 'Connected' ";
-                    // Do not use connected property as module might have exited before updating.
                 }
                 else {
-                    query += $"AND (connectionState = 'Disconnected' " +
-                        $"OR properties.reported.{TwinProperty.Connected} != true) ";
+                    query += $"AND connectionState != 'Connected' ";
                 }
             }
 

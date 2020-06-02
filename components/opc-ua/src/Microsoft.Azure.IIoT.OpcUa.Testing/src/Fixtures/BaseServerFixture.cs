@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
         /// </summary>
         public static int StartPort { set => _nextPort = value; }
 
-    /// <summary>
+        /// <summary>
         /// Create fixture
         /// </summary>
         protected BaseServerFixture(IEnumerable<INodeManagerFactory> nodes) {

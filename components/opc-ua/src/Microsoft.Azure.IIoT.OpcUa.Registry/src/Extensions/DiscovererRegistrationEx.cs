@@ -172,7 +172,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
-            var connected = twin.IsConnected();
 
             var registration = new DiscovererRegistration {
                 // Device
@@ -180,6 +179,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DeviceId = twin.Id,
                 ModuleId = twin.ModuleId,
                 Etag = twin.Etag,
+                Connected = twin.IsConnected() ?? false,
 
                 // Tags
 
@@ -223,8 +223,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
                 SiteId =
                     properties.GetValueOrDefault<string>(TwinProperty.SiteId, null),
-                Connected = connected ??
-                    properties.GetValueOrDefault(TwinProperty.Connected, false),
+                Version =
+                    properties.GetValueOrDefault<string>(TwinProperty.Version, null),
                 Type =
                     properties.GetValueOrDefault<string>(TwinProperty.Type, null)
             };
@@ -279,6 +279,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     // Not set by user, but reported, so set as desired
                     desired.LogLevel = consolidated.LogLevel;
                 }
+                desired.Version = consolidated.Version;
             }
 
             if (onlyServerState) {
@@ -327,6 +328,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Locales = model.RequestedConfig?.Locales?.
                     EncodeAsDictionary(),
                 Connected = model.Connected ?? false,
+                Version = null,
                 SiteId = model.SiteId,
             };
         }
@@ -345,6 +347,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     registration.Discovery : (DiscoveryMode?)null,
                 Id = DiscovererModelEx.CreateDiscovererId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
+                Version = registration.Version,
                 LogLevel = registration.LogLevel,
                 DiscoveryConfig = registration.ToConfigModel(),
                 RequestedMode = registration._desired?.Discovery != DiscoveryMode.Off ?

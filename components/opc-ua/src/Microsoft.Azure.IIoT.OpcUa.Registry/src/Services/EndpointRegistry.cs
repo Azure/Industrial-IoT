@@ -162,11 +162,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // If flag provided, include it in search
                 if (model.Connected.Value) {
                     query += $"AND connectionState = 'Connected' ";
-                    // Do not use connected property as module might have exited before updating.
                 }
                 else {
-                    query += $"AND (connectionState = 'Disconnected' " +
-                        $"OR properties.reported.{TwinProperty.Connected} != true) ";
+                    query += $"AND connectionState != 'Connected' ";
                 }
             }
             var result = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct);
@@ -544,7 +542,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var query = $"SELECT * FROM devices WHERE " +
                 $"tags.{nameof(EndpointRegistration.Activated)} = true AND " +
                 $"NOT IS_DEFINED(tags.{nameof(EndpointRegistration.IsDisabled)}) AND " +
-                $"connectionState = 'Disconnected' AND " +
+                $"connectionState != 'Connected' AND " +
                 $"tags.{nameof(EntityRegistration.DeviceType)} = '{IdentityType.Endpoint}' ";
 
             var result = new List<DeviceTwinModel>();

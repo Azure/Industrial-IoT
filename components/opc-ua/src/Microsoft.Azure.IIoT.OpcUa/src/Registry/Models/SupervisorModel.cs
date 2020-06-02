@@ -35,5 +35,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Whether supervisor is connected
         /// </summary>
         public bool? Connected { get; set; }
+
+        /// <summary>
+        /// The reported version of the supervisor
+        /// </summary>
+        public string Version { get; set; }
     }
 }

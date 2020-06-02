@@ -3,18 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Auth {
-    using System.Collections.Generic;
+namespace Microsoft.Azure.IIoT.Utils {
+    using System;
 
     /// <summary>
-    /// Extension for swagger clients
-    /// see https://swagger.io/docs/specification/authentication/oauth2/
+    /// Host context
     /// </summary>
-    public interface IOpenApiClientConfig : IOAuthClientConfig {
+    public static class Host {
 
         /// <summary>
-        /// Redirect Uris
+        /// Running in container
         /// </summary>
-        List<string> RedirectUris { get; }
+        public static bool IsContainer
+            => Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
+                .EqualsIgnoreCase("true") ?? false;
     }
 }

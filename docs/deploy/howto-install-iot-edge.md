@@ -14,7 +14,7 @@ Run the [Industrial IoT Gateway Installer](quickstart-gateway-installer.md) from
 
 ### Create an IoT Edge Instance and Install the IoT Edge Runtime
 
-You can manually [create an IoT Edge instance for an IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device) and install the IoT Edge runtime following the [IoT Edge setup documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). You can install the IoT Edge Runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
+You can also manually [create an IoT Edge instance for an IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device) and install the IoT Edge runtime following the [IoT Edge setup documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). The IoT Edge Runtime can be installed on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
 
 ### Install the Industrial Modules
 
@@ -25,14 +25,14 @@ The Device Twin configuration JSON can be found in the Azure Portal under IoT Hu
 If your gateway uses Linux as an OS (with Linux Containers), set the "os" property to "Linux":
 
 ```json
-... 
+...
 },
 "version": 1,
 "tags": {
     "__type__": "iiotedge",
-    "os": "Linux"    
+    "os": "Linux"
 }
-"properties": 
+"properties":
 ...
 ```
 
@@ -46,11 +46,29 @@ If your gateway uses Windows as an OS (with Linux or Windows Containers), set th
     "__type__": "iiotedge",
     "os": "Windows"
 }
-"properties": 
+"properties":
 ...
 ```
 
 These tags can also be created as part of an Azure Device Provisioning (DPS) enrollment.  An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
+
+### Unmanaged Industrial IoT Edge
+
+Layered deployments will make sure that your edge devices will always contain the modules that work with your platform deployment.  This includes keeping module versions aligned with the platform version.
+
+However, sometimes it is desirable to not have layered deployments manage your Gateway fleet.  Instead you might want to manage the content of the edge gateway yourself.  To prevent the platform from creating layered deployments on your IoT Edge Gateway, but still have the Gateway participate in the Platform, you can define a `unmanaged` tag in addition to the tags above, like so:
+
+```json
+...
+"tags": {
+    "__type__": "iiotedge",
+    // ...
+    "unmanaged": true
+}
+...
+```
+
+This will cause that no modules are automatically deployed and thus you must deploy all modules using a module deployment manifest via [Az](howto-deploy-modules-az.md), or [Portal](howto-deploy-modules-portal.md).
 
 ### Module Versions
 
@@ -74,7 +92,7 @@ When running the Industrial IoT Edge modules in host (transparent) network mode,
     1. A Dynamic IP address from a local DHCP server accessible from the host's network interface associated to the container's **host** network  
 
     2. A Static IP address assigned on the container create options statement
-        
+
         In order to allow static IP address assignment on a Windows container, the docker network requires to be created having the the subnet specified identical to the host's interface
 
         ```bash

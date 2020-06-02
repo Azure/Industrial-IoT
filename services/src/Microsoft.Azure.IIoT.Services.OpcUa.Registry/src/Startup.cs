@@ -121,7 +121,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
             // Add controllers as services so they'll be resolved.
             services.AddControllers().AddSerializers();
-            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
+            services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
         }
 
         /// <summary>
@@ -147,6 +147,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             app.UseCorrelation();
             app.UseSwagger();
             app.UseMetricServer();
+            app.UseHttpMetrics();
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");

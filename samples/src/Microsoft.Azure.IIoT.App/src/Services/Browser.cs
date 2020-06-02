@@ -85,6 +85,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 if (direction == BrowseDirection.Forward) {
                     parentId.Add(browseData.Node.NodeId);
+                    if (browseData.Node.DisplayName == null) {
+                        browseData.Node.DisplayName = string.Empty;
+                    }
                     Path.Add(browseData.Node.DisplayName);
                 }
                 else {
@@ -330,17 +333,18 @@ namespace Microsoft.Azure.IIoT.App.Services {
             model.Header = Elevate(new RequestHeaderApiModel(), credential);
 
             try {
-                var count = 0;
-                foreach (var item in parameters.InputArguments) {
-                    var argument = new MethodCallArgumentApiModel {
-                        Value = parameterValues[count] ?? string.Empty,
-                        DataType = item.Type.DataType
-                    };
-                    argumentsList.Add(argument);
-                    count++;
+                if (parameters.InputArguments != null) {
+                    var count = 0;
+                    foreach (var item in parameters.InputArguments) {
+                        var argument = new MethodCallArgumentApiModel {
+                            Value = parameterValues[count] ?? string.Empty,
+                            DataType = item.Type.DataType
+                        };
+                        argumentsList.Add(argument);
+                        count++;
+                    }
+                    model.Arguments = argumentsList;
                 }
-                model.Arguments = argumentsList;
-
                 MethodCallResponse = await _twinService.NodeMethodCallAsync(endpointId, model);
 
                 if (MethodCallResponse.ErrorInfo == null) {

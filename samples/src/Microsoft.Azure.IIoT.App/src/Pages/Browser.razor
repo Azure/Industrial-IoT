@@ -3,8 +3,8 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
  ------------------------------------------------------------*@
 
-@page "/browser/{applicationId}/{endpointId}"
-@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
+@page "/browser/{page}/{applicationId}/{endpointId}"
+@page "/browser/{page}/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
 
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
@@ -38,21 +38,23 @@
 
 @if (EndpointUrl != null)
 {
-    <p>Url: @EndpointUrl</p>
+    <div class="subtitle">
+        Url: @EndpointUrl
+    </div>
 }
 
 <div>
     @if (DiscovererId != string.Empty && DiscovererId != RegistryHelper.PathAll)
     {
-        <a href="/discoverers/">/ @DiscovererId</a>
+        <a href="/discoverers/1">/ @DiscovererId</a>
     }
     @if (ApplicationId != string.Empty && ApplicationId != RegistryHelper.PathAll)
     {
-        <a href="/applications/">/ @CommonHelper.ApplicationUri[ApplicationId]</a>
+        <a href="/applications/1">/ @CommonHelper.ApplicationUri[ApplicationId]</a>
     }
     @if (SupervisorId != string.Empty && SupervisorId != RegistryHelper.PathAll)
     {
-        <a href="/supervisors/">/ @SupervisorId</a>
+        <a href="/supervisors/1">/ @SupervisorId</a>
     }
 
     @if (BrowseManager.Path != null)
@@ -78,14 +80,14 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Node Id</th>
-            <th>Node Type</th>
-            <th>Value</th>
-            <th>Publishing</th>
-            <th>Publishing Config</th>
-            <th>Status</th>
-            <th>
+            <th class="width-medium">Name</th>
+            <th class="width-medium-large">Node Id</th>
+            <th class="width-small">Node Type</th>
+            <th class="width-medium-large">Value</th>
+            <th class="width-small">Publishing</th>
+            <th class="width-small">Publishing Config</th>
+            <th class="width-small">Status</th>
+            <th class="width-xsmall">
                 @if (PagedNodeList.Results.Count > 0)
                 {
                     if (PagedNodeList.Results[0].ParentName != "Root")
@@ -98,7 +100,7 @@
                     {
                         if (PagedNodeList.Results[0].DiscovererId != null)
                         {
-                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId'>
+                            <a href='endpoints/1/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId'>
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
@@ -111,35 +113,50 @@
         @foreach (var node in PagedNodeList.Results)
         {
         <tr>
-            <td>@node.NodeName</td>
-            <td>@node.Id</td>
+            <td class="hover-text width-medium">
+                <div>
+                    @node.NodeName
+                </div>
+            </td>
+            <td class="hover-text width-medium-large">
+                <div>
+                    @node.Id
+                </div>
+            </td>
             @if (node.Children && (node.NodeClass != NodeClass.Method))
             {
-                <td>
-                    <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
-                        @node.NodeClass
-                    </a>
+                <td class="hover-text width-small">
+                    <div>
+                        <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
+                            @node.NodeClass
+                        </a>
+                    </div>
                 </td>
             }
             else if (node.NodeClass == NodeClass.Method)
             {
-                <td>
-                    @{_drawerType = drawer.Action;}
-                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                        @node.NodeClass
-                    </a>
+                <td class="hover-text width-small">
+                    <div>
+                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Action))">
+                            @node.NodeClass
+                        </a>
+                    </div>
                 </td>
             }
             else
             {
-                <td>@node.NodeClass</td>
+                <td class="hover-text width-small">
+                    <div>
+                        @node.NodeClass
+                    </div>
+                </td>
             }
             @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
                ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
             {
-                <td>
-                    <div class="td-fixed">
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                <td class="width-medium-large">
+                    <div class="value-scroll">
+                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Action))">
                             @{string outputValue = $"{node.Value}";}
                             @{string outputType = $"({node.DataType})";}
                             @{string outputStatus = $"({node.Status} -";}
@@ -154,27 +171,29 @@
             }
             else
             {
-                <td>N/A</td>
+                <td class="hover-text width-small">
+                    <div>
+                        N/A
+                    </div>
+                </td>
             }
 
             @if (node.NodeClass == NodeClass.Variable)
             {
-                <td>
-                    <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishingAsync(EndpointId, node, EventArgs))" />
-                    @{string output = (node.Publishing == true) ? "On" : "Off";}
-                    @output
+                <td class="width-small">
+                    @{string pubStatus = (node.Publishing == true) ? "Turn off" : "Turn on";}
+                    <button class="btn btn-primary btn-table-cell" @onclick="@(() => SetPublishingAsync(EndpointId, node))">@pubStatus</button>
                 </td>
-                <td>
-                    @{_drawerType = drawer.Publisher;}
+                <td class="width-small space-wrap">
                     @if (node.Publishing == true && node.PublishedItem != null)
                     {
-                        <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                            @(node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
-                        </a>
-                        <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                        <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Publisher))">
                             @(node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
                         </a>
-                        <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                        <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Publisher))">
+                            @(node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
+                        </a>
+                        <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Publisher))">
                             @(node.PublishedItem.HeartbeatInterval == null ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
                             <br />
                         </a>
@@ -188,16 +207,32 @@
             }
             else
             {
-                <td>N/A</td>
-                <td>N/A</td>
+                <td class="hover-text width-small">
+                    <div>
+                        N/A
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        N/A
+                    </div>
+                </td>
             }
             @if (node.ErrorMessage != null)
             {
-                <td>@node.ErrorMessage</td>
+                <td class="hover-text width-small">
+                    <div>
+                        @node.ErrorMessage
+                    </div>
+                </td>
             }
             else
             {
-                <td>OK</td>
+                <td class="hover-text width-small">
+                    <div>
+                        OK
+                    </div>
+                </td>
             }
         </tr>
         }
@@ -242,6 +277,7 @@
 
     public PagedResult<ListNode> NodeList = new PagedResult<ListNode>();
     public PagedResult<ListNode> PagedNodeList = new PagedResult<ListNode>();
+    public PagedResult<PublishedItemApiModel> PublishedNodes = new PagedResult<PublishedItemApiModel>();
     public CredentialModel Credential = new CredentialModel();
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
@@ -256,6 +292,7 @@
         Publisher
     }
     private drawer _drawerType { get; set; }
+    private const int _firstPage = 1;
 
 
     /// <summary>
@@ -268,7 +305,7 @@
         StateHasChanged();
         if (!string.IsNullOrEmpty(NodeList.ContinuationToken) && page > PagedNodeList.PageCount)
         {
-            await BrowseTreeAsync(BrowseDirection.Forward, 0, false);
+            await BrowseTreeAsync(BrowseDirection.Forward, 0, false, page);
         }
         PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, null);
         foreach (var node in PagedNodeList.Results)
@@ -299,15 +336,18 @@
     {
         if (firstRender)
         {
-            var endpoint = await registryService.GetEndpointAsync(EndpointId); 
+            var endpoint = await registryService.GetEndpointAsync(EndpointId);
             EndpointUrl = endpoint?.Registration?.EndpointUrl;
             Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
-            await BrowseTreeAsync(BrowseDirection.Forward, 0, true, string.Empty, new List<string>());
+            await BrowseTreeAsync(BrowseDirection.Forward, 0, true, _firstPage, string.Empty, new List<string>());
             CommonHelper.Spinner = string.Empty;
             CommonHelper.CheckErrorOrEmpty<ListNode>(PagedNodeList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
-            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
+            if (PublishedNodes.Results.Count > 0)
+            {
+                _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
                 samples => InvokeAsync(() => GetPublishedNodeData(samples)));
+            }
         }
     }
 
@@ -318,7 +358,7 @@
     /// <param name="parentId"></param>
     private async Task GetTreeAsync(string id, List<string> parentId)
     {
-        await BrowseTreeAsync(BrowseDirection.Forward, 0, true, id, parentId);
+        await BrowseTreeAsync(BrowseDirection.Forward, 0, true, _firstPage, id, parentId);
     }
 
     /// <summary>
@@ -328,8 +368,8 @@
     /// <param name="parentId"></param>
     private async Task GetTreeBackAsync(string id, List<string> parentId, int index)
     {
-        await BrowseTreeAsync(BrowseDirection.Backward, index, true, id, parentId);
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
+        await BrowseTreeAsync(BrowseDirection.Backward, index, true, _firstPage, id, parentId);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/1/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
     }
 
     /// <summary>
@@ -338,7 +378,7 @@
     /// <param name="id"></param>
     /// <param name="parentId"></param>
     /// <param name="direction"></param>
-    private async Task BrowseTreeAsync(BrowseDirection direction, int index, bool firstPage, String id = null, List<string> parentId = null)
+    private async Task BrowseTreeAsync(BrowseDirection direction, int index, bool firstPage, int page, string id = null, List<string> parentId = null)
     {
         CommonHelper.Spinner = "loader-big";
 
@@ -362,14 +402,14 @@
                                             NodeList);
         }
 
-        var publishedNodes = await Publisher.PublishedAsync(EndpointId);
+        PublishedNodes = await Publisher.PublishedAsync(EndpointId);
 
         foreach (var node in NodeList.Results)
         {
             if (node.NodeClass == NodeClass.Variable)
             {
                 // check if publishing enabled
-                foreach (var publishedItem in publishedNodes.Results)
+                foreach (var publishedItem in PublishedNodes.Results)
                 {
                     if (node.Id == publishedItem.NodeId)
                     {
@@ -381,8 +421,15 @@
             }
         }
 
-        Page = "1";
-        PagedNodeList = NodeList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, NodeList.Error);
+        PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, NodeList.Error);
+        if (string.IsNullOrEmpty(DiscovererId))
+        {
+            NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + page + "/" + ApplicationId + "/" + EndpointId);
+        }
+        else
+        {
+            NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + page + "/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
+        }
         CommonHelper.Spinner = "";
     }
 
@@ -391,9 +438,9 @@
     /// </summary>
     /// <param name="endpointId"></param>
     /// <param name="node"></param>
-    private async Task SetPublishingAsync(string endpointId, ListNode node, ChangeEventArgs ev)
+    private async Task SetPublishingAsync(string endpointId, ListNode node)
     {
-        if ((bool)ev?.Value)
+        if (!node.Publishing)
         {
             await PublishNodeAsync(endpointId, node);
         }
@@ -425,6 +472,10 @@
                 SamplingInterval = samplingInterval,
                 HeartbeatInterval = heartbeatInterval
             };
+            if (_publishEvent == null) {
+                _publishEvent = Task.Run(async () => await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
+                    samples => InvokeAsync(() => GetPublishedNodeData(samples)))).Result;
+            }
         }
         else
         {
@@ -452,10 +503,11 @@
     /// Open the Drawer
     /// </summary>
     /// <param name="node"></param>
-    private void OpenDrawer(ListNode node)
+    private void OpenDrawer(ListNode node, drawer type)
     {
         IsOpened = true;
         NodeData = node;
+        _drawerType = type;
     }
 
     /// <summary>

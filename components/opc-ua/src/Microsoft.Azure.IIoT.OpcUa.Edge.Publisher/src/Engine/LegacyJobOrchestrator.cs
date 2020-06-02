@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Security.Cryptography;
     using System.Threading;
     using System.Threading.Tasks;
@@ -75,6 +74,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             if (_availableJobs.Count > 0 && (job = _availableJobs.Dequeue()) != null) {
                 _assignedJobs[workerId] = job;
+                if (_availableJobs.Count == 0) {
+                    _updated = false;
+                }
             }
             else {
                 _updated = false;
@@ -137,19 +139,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (currentFileHash != _lastKnownFileHash) {
                         _logger.Information("File {publishedNodesFile} has changed, reloading...", _legacyCliModel.PublishedNodesFile);
                         _lastKnownFileHash = currentFileHash;
-
                         using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
-
                             var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
                             foreach (var job in jobs) {
-                                var jobId = $"LegacyPublisher_{_identity.DeviceId}_{_identity.ModuleId}";
+                                var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
                                 job.WriterGroup.DataSetWriters.ForEach(d => {
                                     d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
                                     d.DataSet.ExtensionFields["PublisherId"] = jobId;
                                     d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterId;
                                 });
                                 var serializedJob = _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);
-
                                 availableJobs.Enqueue(
                                     new JobProcessingInstructionModel {
                                         Job = new JobInfoModel {
@@ -165,19 +164,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     });
                             }
                         }
+                        _agentConfig.MaxWorkers = availableJobs.Count;
+                        ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
+                        if (_agentConfig.MaxWorkers > workerThreads ||
+                            _agentConfig.MaxWorkers > asyncThreads) {
+                            var result = ThreadPool.SetMinThreads(_agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value);
+                            _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
+                                _agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value, result ? "succeeded" : "failed");
+                        }
+                        _availableJobs = availableJobs;
+                        _assignedJobs.Clear();
+                        _updated = true;
                     }
-
-                    _agentConfig.MaxWorkers = availableJobs.Count;
-                    _availableJobs = availableJobs;
-                    _assignedJobs.Clear();
-                    _updated = true;
                     break;
                 }
                 catch (IOException ex) {
                     retryCount--;
-
                     if (retryCount > 0) {
-                        _logger.Error("Error while loading job from file, retrying...");
+                        _logger.Debug("Error while loading job from file, retrying...");
                     }
                     else {
                         _logger.Error(ex, "Error while loading job from file. Retry expired, giving up.");

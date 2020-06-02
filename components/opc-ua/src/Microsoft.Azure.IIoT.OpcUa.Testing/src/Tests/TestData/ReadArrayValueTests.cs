@@ -233,23 +233,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
             // Assert
             Assert.NotNull(result);
-            Assert.NotNull(result.Value);
             Assert.NotNull(result.SourceTimestamp);
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            if (VariantValueEx.IsNull(result.Value)) {
-                return;
-            }
-
-            Assert.True(result.Value.IsString);
-            // TODO: Returns a bytestring, not byte array.  Investigate.
-            // Assert.Equal(VariantValueType.Bytes, result.Value.Type);
-            // Assert.True(result.Value.IsArray);
-            // if ((result.Value).Count == 0) return;
-            // Assert.Equal(VariantValueType.Integer, (result.Value)[0].Type);
             Assert.Equal("ByteString", result.DataType);
-            // TODO: Assert.Equal("Byte", result.DataType);
+            Assert.True(VariantValueEx.IsNull(result.Value) || result.Value.IsBytes);
         }
 
 
@@ -800,9 +789,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             AssertEqualValue(expected, result.Value);
 
             Assert.True(result.Value.IsListOfValues);
-            if (result.Value.Count == 0) {
-                return;
-            }
         }
 
 

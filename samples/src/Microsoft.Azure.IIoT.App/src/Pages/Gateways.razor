@@ -3,7 +3,7 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
  ------------------------------------------------------------*@
 
-@page "/gateways"
+@page "/gateways/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -26,20 +26,32 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th>Id</th>
-            <th>Site Id</th>
-            <th>Connection Status</th>
+            <th class="width-x-large">Id</th>
+            <th class="width-large">Site Id</th>
+            <th class="width-large">Connection Status</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var gateway in _pagedGatewayList.Results)
         {
             <tr>
-                <td>@gateway.Id</td>
+                <td class="hover-text width-x-large">
+                    <div>
+                        @gateway.Id
+                    </div>
+                 </td>
                 @{ string siteId = gateway.SiteId == null ? CommonHelper.None : gateway.SiteId;}
-                <td>@siteId</td>
+                <td class="hover-text width-large">
+                    <div>
+                        @siteId
+                    </div>
+                </td>
                 @{string connectStatus = gateway.Connected == null ? CommonHelper.None : gateway.Connected == true ? "Connected" : "Disconnected";}
-                <td>@connectStatus</td>
+                <td class="hover-text width-large">
+                    <div>
+                        @connectStatus
+                    </div>
+                </td>
             </tr>
         }
     </tbody>
@@ -71,7 +83,8 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        _gatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, _gatewayList, ref _pagedGatewayList);
+        _gatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, _gatewayList, ref _pagedGatewayList, CommonHelper.PageLength);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "gateways/" + page);
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }

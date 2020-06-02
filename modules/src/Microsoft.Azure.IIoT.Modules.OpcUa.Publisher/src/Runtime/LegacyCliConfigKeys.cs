@@ -48,6 +48,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string MessagingMode = "MessagingMode";
 
         /// <summary>
+        /// Key for the messaging mode
+        /// </summary>
+        public const string MessageEncoding = "MessageEncoding";
+
+        /// <summary>
         /// Flag to demand full featured message creation from publisher
         /// </summary>
         public const string FullFeaturedMessage = "FullFeaturedMessage";
@@ -61,6 +66,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the default publishing interval in milliseconds.
         /// </summary>
         public const string OpcPublishingInterval = "DefaultPublishingInterval";
+
+        /// <summary>
+        /// Key for the default queue size fro monitored items
+        /// </summary>
+        public const string DefaultQueueSize = "DefaultQueueSize";
 
         /// <summary>
         /// Key for the flag whether to fetch the display names of the nodes.
@@ -140,7 +150,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the flag to trust own certificate.
         /// </summary>
-        public const string TrustMyself = "TrustSelf";
+        public const string TrustMyself = SecurityConfig.AddAppCertToTrustedStoreKey;
 
         /// <summary>
         /// Key for the flat to auto-accept untrusted certificates.

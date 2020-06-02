@@ -147,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private async Task<bool> WriteRecordToPartitionAsync<T>(CdmManifestDefinition manifest,
             string partitionKey, IList<T> record) {
             var retry = false;
-            bool persist;
+            var persist = false;
             var dataSetRecordList = record as List<DataSetMessageModel>;
             var samplesRecordList = record as List<MonitoredItemMessageModel>;
             var partition = (dataSetRecordList != null)
@@ -517,7 +517,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     manifest.Schema = "cdm:/schema.cdm.json";
                     manifest.JsonSchemaSemanticVersion = "1.0.0";
                     if (adlsRoot.Documents.Item(manifest.Name) == null) {
-                        adlsRoot.Documents.Add(manifest);
+                        Try.Op(() => adlsRoot.Documents.Add(manifest));
                     }
 
                     sw.Restart();
