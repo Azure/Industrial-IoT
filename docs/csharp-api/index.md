@@ -15,7 +15,7 @@ To build the API reference open a powershell in root directory of repository and
 
 The build results are stored under `docs/csharp-api/_site`
 
-## run API Reference as local webpage
+## Run API Reference as local webpage
 
 To run the API reference as local webpage, open a powerhsell in root directory of repository and run
 ```powershell
