@@ -13,6 +13,13 @@
             "metadata": {
                 "description": "Configuration of key value pairs to store in keyvault."
             }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for Azure resources."
+            }
         }
     },
     "resources": [
@@ -27,6 +34,7 @@
             "name": "[concat(parameters('keyVaultName'), '/', toLower(replace(parameters('configuration')[copyIndex()].key, '_', '-')))]",
             "apiVersion": "2016-10-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "contentType": "application/json",
                 "value": "[string(parameters('configuration')[copyIndex()].value)]"
