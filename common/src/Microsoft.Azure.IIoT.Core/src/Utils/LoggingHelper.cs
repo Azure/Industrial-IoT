@@ -10,13 +10,13 @@ namespace Microsoft.Azure.IIoT.Utils
     /// <summary>
     /// Helper class for logging
     /// </summary>
-    public static class Logging {
+    public static class LoggingHelper {
         /// <summary>
-        /// Extracts server:port from a uri for simpler logging.
+        /// Extracts host in the format "server[:port]" from a uri for simpler logging.
         /// </summary>
         /// <param name="endpointUrl"></param>
         /// <returns></returns>
-        public static string ExtractServerPort(string endpointUrl) {
+        public static string ExtractHost(string endpointUrl) {
             string pattern = @":\/\/([^\/_]+)";
             var match = Regex.Match(endpointUrl, pattern);
 
