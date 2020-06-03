@@ -22,9 +22,10 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <returns></returns>
         public static string SerializeContinuationToken(this ISerializer serializer,
             QueryContinuation continuation) {
-            using (var result = new MemoryStream())
-            using (var gs = new GZipStream(result, CompressionMode.Compress)) {
-                gs.Write(serializer.SerializeToBytes(continuation));
+            using (var result = new MemoryStream()) {
+                using (var gs = new GZipStream(result, CompressionMode.Compress)) {
+                    gs.Write(serializer.SerializeToBytes(continuation));
+                }
                 return result.ToArray().ToBase64String();
             }
         }
