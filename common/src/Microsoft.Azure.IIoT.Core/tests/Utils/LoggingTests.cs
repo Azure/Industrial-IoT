@@ -41,5 +41,12 @@ namespace Microsoft.Azure.IIoT.Core.Tests {
             Assert.Equal("10.1.9.5", ExtractServerPort("opc.tcp://10.1.9.5/"));
             Assert.Equal("10.1.9.5", ExtractServerPort("opc.tcp://10.1.9.5_hash"));
         }
+
+        [Fact]
+        public void EdgeCases()
+        {
+            Assert.Equal("", ExtractServerPort(""));
+            Assert.Equal("", ExtractServerPort("opc.tcp://"));
+        }
     }
 }
