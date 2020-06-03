@@ -226,6 +226,13 @@
             "metadata": {
                 "description": "A user created managed identity to use for keyvault access.  If not provided, above secret will be used to gain access to keyvault."
             }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for Azure resources."
+            }
         }
     },
     "variables": {
@@ -303,7 +310,7 @@
             }
         },
         "edgeVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",
-        "simulationVmSku": "[if(not(empty(parameters('simulationVmSize'))), parameters('simulationVmSize'), variables('edgeVmSku'))]"
+        "simulationVmSku": "[if(not(empty(parameters('simulationVmSize'))), parameters('simulationVmSize'), 'Standard_B1ms')]"
     },
     "resources": [
         {
@@ -312,6 +319,7 @@
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2019-09-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
@@ -336,6 +344,7 @@
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2019-09-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "ipConfigurations": [
                     {
@@ -359,6 +368,7 @@
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2019-03-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "identity": "[if(not(empty(parameters('managedIdentityResourceId'))), variables('identity'), '')]",
             "properties": {
                 "hardwareProfile": {
@@ -389,6 +399,7 @@
             "name": "[concat(variables('vmName'), '/', 'scriptextensions')]",
             "apiVersion": "2019-03-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "properties": "[if (equals(parameters('edgeOs'), 'linux'), variables('linuxVmExtension'), variables('windowsVmExtension'))]",
             "dependsOn": [
                 "[variables('vmResourceId')]"
@@ -397,7 +408,7 @@
         {
             "comments": "Deploy factory network simulation.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[concat(variables('simulationName'), copyIndex())]",
             "condition": "[not(equals(parameters('numberOfSimulations'), 0))]",
             "copy": {
@@ -417,6 +428,7 @@
                             "type": "Microsoft.Network/networkInterfaces",
                             "apiVersion": "2019-09-01",
                             "location": "[resourceGroup().location]",
+                            "tags": "[parameters('tags')]",
                             "properties": {
                                 "ipConfigurations": [
                                     {
@@ -439,6 +451,7 @@
                             "name": "[concat(variables('simulationName'), copyIndex())]",
                             "apiVersion": "2019-03-01",
                             "location": "[resourceGroup().location]",
+                            "tags": "[parameters('tags')]",
                             "properties": {
                                 "hardwareProfile": {
                                     "vmSize": "[variables('simulationVmSku')]"
@@ -472,6 +485,7 @@
                             "name": "[concat(variables('simulationName'), copyIndex(), '/', 'scriptextensions')]",
                             "apiVersion": "2019-03-01",
                             "location": "[resourceGroup().location]",
+                            "tags": "[parameters('tags')]",
                             "properties": {
                                 "publisher": "Microsoft.Azure.Extensions",
                                 "type": "CustomScript",
