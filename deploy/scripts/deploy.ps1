@@ -828,6 +828,10 @@ Function New-Deployment() {
         $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.UserPrincipalId)
     }
 
+    # Add IoTSuiteType tag. This tag will be applied for all resources.
+    $tags = @{"IoTSuiteType" = "AzureIndustrialIoT-$($script:version)-PS1"}
+    $templateParameters.Add("tags", $tags)
+
     # register providers
     $script:requiredProviders | ForEach-Object {
         Register-AzResourceProvider -ProviderNamespace $_

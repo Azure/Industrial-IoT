@@ -141,6 +141,13 @@
             "metadata": {
                 "description": "The pricing sku for the hosting plan."
             }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for Azure resources."
+            }
         }
     },
     "variables": {
@@ -165,6 +172,7 @@
             "kind": "[if(parameters('deployFromSource'), 'app', 'linux')]",
             "name": "[parameters('hostingPlanName')]",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "sku": {
                 "name": "[parameters('hostingPlanSku')]",
                 "capacity": "[if(empty(parameters('siteName')), if(empty(parameters('serviceSiteName')), '0', '1'), '2')]"
@@ -183,6 +191,7 @@
             "name": "[variables('serviceSiteResourceName')]",
             "apiVersion": "2018-11-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "identity": {
                 "type": "UserAssigned",
                 "userAssignedIdentities": {
@@ -299,7 +308,7 @@
         {
             "comments": "Save service url as configuration.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[variables('serviceConfigurationResourceName')]",
             "condition": "[and(not(empty(parameters('keyVaultName'))), not(empty(parameters('serviceSiteName'))))]",
             "properties": {
@@ -319,6 +328,9 @@
                                 "value": "[if(empty(parameters('serviceSiteName')), '', concat('https://$', list(variables('servicePublishingConfigResource'), '2016-08-01').properties.publishingUserName, ':', list(variables('servicePublishingConfigResource'), '2016-08-01').properties.publishingPassword, '@', replace(list(variables('servicePublishingConfigResource'), '2016-08-01').properties.scmUri, 'https://', ''), ''))]"
                             }
                         ]
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
                     }
                 },
                 "templateLink": {
@@ -338,6 +350,7 @@
             "name": "[variables('appSiteResourceName')]",
             "apiVersion": "2018-11-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "identity": {
                 "type": "UserAssigned",
                 "userAssignedIdentities": {
@@ -427,7 +440,7 @@
         {
             "comments": "Save app hook as configuration.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[variables('appConfigurationResourceName')]",
             "condition": "[and(not(empty(parameters('keyVaultName'))), not(empty(parameters('siteName'))))]",
             "properties": {
@@ -443,6 +456,9 @@
                                 "value": "[if(empty(parameters('siteName')), '', concat('https://$', list(variables('appPublishingConfigResource'), '2016-08-01').properties.publishingUserName, ':', list(variables('appPublishingConfigResource'), '2016-08-01').properties.publishingPassword, '@', replace(list(variables('appPublishingConfigResource'), '2016-08-01').properties.scmUri, 'https://', ''), ''))]"
                             }
                         ]
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
                     }
                 },
                 "templateLink": {
