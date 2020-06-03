@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Microsoft.Azure.IIoT.Utils.Logging;
+    using static Microsoft.Azure.IIoT.Utils.LoggingHelper;
 
     /// <summary>
     /// Session manager
@@ -165,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 try {
                                     var session = await CreateSessionAsync(endpointUrl, id).ConfigureAwait(false);
                                     if (session != null) {
-                                        _logger.Verbose("Connected to {endpointUrl}", ExtractServerPort(endpointUrl));
+                                        _logger.Verbose("Connected to {endpointUrl}", ExtractHost(endpointUrl));
                                         wrapper.Session = session;
                                         wrapper.State = SessionState.Running;
                                         return wrapper.Session;
@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 }
                                 catch (Exception ex) {
                                     _logger.Debug("Failed to connect to {endpointUrl}: {message} - try again...",
-                                        ExtractServerPort(endpointUrl), ex.Message);
+                                        ExtractHost(endpointUrl), ex.Message);
                                     exceptions.Add(ex);
                                 }
                             }
@@ -219,7 +219,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         e.Accept = true;
                     }
                     else if (_clientConfig.AutoAcceptUntrustedCertificates) {
-                        _logger.Warning("Accepting untrusted certificates from {endpointUrl}", ExtractServerPort(endpointUrl));
+                        _logger.Warning("Accepting untrusted certificates from {endpointUrl}", ExtractHost(endpointUrl));
                         e.Accept = true;
                     }
                 }
@@ -246,13 +246,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Warning("Although the use of security was configured, " +
                     "there was no security-enabled endpoint available at url " +
                     "{endpointUrl}. An endpoint with no security will be used.",
-                    ExtractServerPort(endpointUrl));
+                    ExtractHost(endpointUrl));
             }
 
             var configuredEndpoint = new ConfiguredEndpoint(
                 null, endpointDescription, endpointConfiguration);
 
-            _logger.Information("Creating session {id} for {endpointUrl}", id, ExtractServerPort(endpointUrl));
+            _logger.Information("Creating session {id} for {endpointUrl}", id, ExtractHost(endpointUrl));
             using (new PerfMarker(_logger, sessionName)) {
                 var userIdentity = id.Connection.User.ToStackModel() ??
                     new UserIdentity(new AnonymousIdentityToken());
@@ -265,7 +265,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _logger.Warning("Created session {sessionName} with revised name '{name}'",
                         sessionName, session.SessionName);
                 }
-                _logger.Verbose("Created session {sessionName} for {endpointUrl}", sessionName, ExtractServerPort(endpointUrl));
+                _logger.Verbose("Created session {sessionName} for {endpointUrl}", sessionName, ExtractHost(endpointUrl));
 
                 _logger.Information("Loading Complex Type System for session {sessionName}...", sessionName);
                 try {
