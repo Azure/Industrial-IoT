@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Core.Tests {
     using Xunit;
-    using static Microsoft.Azure.IIoT.Utils.Logging;
+    using static Microsoft.Azure.IIoT.Utils.LoggingHelper;
 
     /// <summary>
     /// Simple bitmap on top of ulong list
@@ -14,32 +14,32 @@ namespace Microsoft.Azure.IIoT.Core.Tests {
 
         [Fact]
         public void TestHostsWithPort() {
-            Assert.Equal("example.com:50000", ExtractServerPort("opc.tcp://example.com:50000"));
-            Assert.Equal("example.com:50000", ExtractServerPort("opc.tcp://example.com:50000/"));
-            Assert.Equal("example.com:50000", ExtractServerPort("opc.tcp://example.com:50000_hash"));
+            Assert.Equal("example.com:50000", ExtractHost("opc.tcp://example.com:50000"));
+            Assert.Equal("example.com:50000", ExtractHost("opc.tcp://example.com:50000/"));
+            Assert.Equal("example.com:50000", ExtractHost("opc.tcp://example.com:50000_hash"));
         }
 
         [Fact]
         public void TestHostsWithoutPort() {
-            Assert.Equal("example.com", ExtractServerPort("opc.tcp://example.com"));
-            Assert.Equal("example.com", ExtractServerPort("opc.tcp://example.com/"));
-            Assert.Equal("example.com", ExtractServerPort("opc.tcp://example.com_hash"));
+            Assert.Equal("example.com", ExtractHost("opc.tcp://example.com"));
+            Assert.Equal("example.com", ExtractHost("opc.tcp://example.com/"));
+            Assert.Equal("example.com", ExtractHost("opc.tcp://example.com_hash"));
         }
 
         [Fact]
         public void TestIPsWithPort()
         {
-            Assert.Equal("10.1.9.5:50000", ExtractServerPort("opc.tcp://10.1.9.5:50000"));
-            Assert.Equal("10.1.9.5:50000", ExtractServerPort("opc.tcp://10.1.9.5:50000/"));
-            Assert.Equal("10.1.9.5:50000", ExtractServerPort("opc.tcp://10.1.9.5:50000_hash"));
+            Assert.Equal("10.1.9.5:50000", ExtractHost("opc.tcp://10.1.9.5:50000"));
+            Assert.Equal("10.1.9.5:50000", ExtractHost("opc.tcp://10.1.9.5:50000/"));
+            Assert.Equal("10.1.9.5:50000", ExtractHost("opc.tcp://10.1.9.5:50000_hash"));
         }
 
         [Fact]
         public void TestIPsWithoutPort()
         {
-            Assert.Equal("10.1.9.5", ExtractServerPort("opc.tcp://10.1.9.5"));
-            Assert.Equal("10.1.9.5", ExtractServerPort("opc.tcp://10.1.9.5/"));
-            Assert.Equal("10.1.9.5", ExtractServerPort("opc.tcp://10.1.9.5_hash"));
+            Assert.Equal("10.1.9.5", ExtractHost("opc.tcp://10.1.9.5"));
+            Assert.Equal("10.1.9.5", ExtractHost("opc.tcp://10.1.9.5/"));
+            Assert.Equal("10.1.9.5", ExtractHost("opc.tcp://10.1.9.5_hash"));
         }
 
         [Fact]
