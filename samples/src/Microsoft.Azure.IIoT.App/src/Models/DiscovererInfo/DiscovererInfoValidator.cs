@@ -96,7 +96,11 @@ namespace Microsoft.Azure.IIoT.App.Models
                 return true;
             }
 
-            return TimeSpan.TryParse(value, out _);
+            if (TimeSpan.TryParse(value, out TimeSpan res)){
+                return res.TotalMilliseconds > 0;
+            }
+
+            return false;
         }
     }
 }
