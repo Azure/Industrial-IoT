@@ -153,35 +153,49 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void DiagnosticsOutputTimer_Elapsed(object state) {
             var totalDuration = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
             _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
-            if (_messageTrigger.DataChangesCount > 0 || _messageTrigger.ValueChangesCount > 0 || _messageSink.SentMessagesCount > 0)
-            {
+
+            if (_messageTrigger.DataChangesCount > 0 || _messageTrigger.ValueChangesCount > 0 || _messageSink.SentMessagesCount > 0) {
                 var diagInfo = new StringBuilder();
-                diagInfo.Append($"\n   DIAGNOSTICS INFORMATION for        : {Utils.Logging.ExtractServerPort(Name)}\n");
-                diagInfo.Append($"   # Ingestion duration               : {TimeSpan.FromSeconds(totalDuration),14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)\n");
-                string dataChangesPerSec = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $" ({_messageTrigger.DataChangesCount / totalDuration:0.##}/s)" : "";
-                diagInfo.Append($"   # Ingress DataChanges (from OPC)   : {_messageTrigger.DataChangesCount,14:0}{dataChangesPerSec}\n");
-                string valueChangedPerSec = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $" ({_messageTrigger.ValueChangesCount / totalDuration:0.##}/s)" : "";
-                diagInfo.Append($"   # Ingress ValueChanges (from OPC)  : {_messageTrigger.ValueChangesCount,14:0}{valueChangedPerSec}\n");
+                diagInfo.Append("\n   DIAGNOSTICS INFORMATION for        : {host}\n");
+                diagInfo.Append("   # Ingestion duration               : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)\n");
+                string dataChangesAverage = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $" ({_messageTrigger.DataChangesCount / totalDuration:0.##}/s)" : "";
+                diagInfo.Append("   # Ingress DataChanges (from OPC)   : {dataChangesCount,14:0}{dataChangesAverage}\n");
+                string valueChangesAverage = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $" ({_messageTrigger.ValueChangesCount / totalDuration:0.##}/s)" : "";
+                diagInfo.Append("   # Ingress ValueChanges (from OPC)  : {valueChangesCount,14:0}{valueChangesAverage}\n");
 
-                diagInfo.Append($"   # Ingress BatchBlock buffer size   : {_batchDataSetMessageBlock.OutputCount,14:0}\n");
-                diagInfo.Append($"   # Encoding Block input/output size : {_encodingBlock.InputCount,14:0} | {_encodingBlock.OutputCount:0}\n");
-                diagInfo.Append($"   # Encoder Notifications processed  : {_messageEncoder.NotificationsProcessedCount,14:0}\n");
-                diagInfo.Append($"   # Encoder Notifications dropped    : {_messageEncoder.NotificationsDroppedCount,14:0}\n");
-                diagInfo.Append($"   # Encoder IoT Messages processed   : {_messageEncoder.MessagesProcessedCount,14:0}\n");
-                diagInfo.Append($"   # Encoder avg Notifications/Message: {_messageEncoder.AvgNotificationsPerMessage,14:0}\n");
-                diagInfo.Append($"   # Encoder avg IoT Message body size: {_messageEncoder.AvgMessageSize,14:0}\n");
-                diagInfo.Append($"   # Outgress Batch Block buffer size : {_batchNetworkMessageBlock.OutputCount,14:0}\n");
-                diagInfo.Append($"   # Outgress input buffer count      : {_sinkBlock.InputCount,14:0}\n");
+                diagInfo.Append("   # Ingress BatchBlock buffer size   : {batchDataSetMessageBlockOutputCount,14:0}\n");
+                diagInfo.Append("   # Encoding Block input/output size : {encodingBlockInputCount,14:0} | {encodingBlockOutputCount:0}\n");
+                diagInfo.Append("   # Encoder Notifications processed  : {notificationsProcessedCount,14:0}\n");
+                diagInfo.Append("   # Encoder Notifications dropped    : {notificationsDroppedCount,14:0}\n");
+                diagInfo.Append("   # Encoder IoT Messages processed   : {messagesProcessedCount,14:0}\n");
+                diagInfo.Append("   # Encoder avg Notifications/Message: {notificationsPerMessage,14:0}\n");
+                diagInfo.Append("   # Encoder avg IoT Message body size: {messageSizeAverage,14:0}\n");
+                diagInfo.Append("   # Outgress Batch Block buffer size : {batchNetworkMessageBlockOutputCount,14:0}\n");
+                diagInfo.Append("   # Outgress input buffer count      : {sinkBlockInputCount,14:0}\n");
 
-                string sentMsgsPerSec = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $" ({_messageSink.SentMessagesCount / totalDuration:0.##}/s)" : "";
-                diagInfo.Append($"   # Outgress IoT message count       : {_messageSink.SentMessagesCount,14:0}{sentMsgsPerSec}\n");
+                string sentMessagesAverage = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $" ({_messageSink.SentMessagesCount / totalDuration:0.##}/s)" : "";
+                diagInfo.Append("   # Outgress IoT message count       : {messageSinkSentMessagesCount,14:0}{sentMessagesAverage}\n");
 
-                if (_messageTrigger.NumberOfConnectionRetries > 0)
-                {
-                    diagInfo.Append($"   # Connection retries               : {_messageTrigger.NumberOfConnectionRetries,14:0}\n");
+                if (_messageTrigger.NumberOfConnectionRetries > 0) {
+                    diagInfo.Append("   # Connection retries               : {connectionRetries,14:0}\n");
                 }
 
-                _logger.Information(diagInfo.ToString());
+                _logger.Information(diagInfo.ToString(),
+                    Utils.LoggingHelper.ExtractHost(Name),
+                    TimeSpan.FromSeconds(totalDuration),
+                    _messageTrigger.DataChangesCount, dataChangesAverage,
+                    _messageTrigger.ValueChangesCount, valueChangesAverage,
+                    _batchDataSetMessageBlock.OutputCount,
+                    _encodingBlock.InputCount, _encodingBlock.OutputCount,
+                    _messageEncoder.NotificationsProcessedCount,
+                    _messageEncoder.NotificationsDroppedCount,
+                    _messageEncoder.MessagesProcessedCount,
+                    _messageEncoder.AvgNotificationsPerMessage,
+                    _messageEncoder.AvgMessageSize,
+                    _batchNetworkMessageBlock.OutputCount,
+                    _sinkBlock.InputCount,
+                    _messageSink.SentMessagesCount, sentMessagesAverage,
+                    _messageTrigger.NumberOfConnectionRetries);
             }
 
             kDataChangesCount.WithLabels(_identity.DeviceId ?? "",
