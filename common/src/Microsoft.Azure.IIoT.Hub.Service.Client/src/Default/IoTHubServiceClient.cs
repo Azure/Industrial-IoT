@@ -182,11 +182,16 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         public async Task<QueryResultModel> QueryAsync(string query, string continuation,
             int? pageSize, CancellationToken ct) {
             try {
-                var statement = _registry.CreateQuery(query, pageSize);
+                if (continuation != null) {
+                    _serializer.DeserializeContinuationToken(continuation,
+                        out query, out continuation, out pageSize);
+                }
                 var options = new QueryOptions { ContinuationToken = continuation };
+                var statement = _registry.CreateQuery(query, pageSize);
                 var result = await statement.GetNextAsJsonAsync(options);
                 return new QueryResultModel {
-                    ContinuationToken = result.ContinuationToken,
+                    ContinuationToken = _serializer.SerializeContinuationToken(query,
+                        result.ContinuationToken, pageSize),
                     Result = result.Select(s => _serializer.Parse(s))
                 };
             }
