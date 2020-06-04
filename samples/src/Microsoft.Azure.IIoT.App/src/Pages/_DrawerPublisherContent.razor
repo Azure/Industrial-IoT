@@ -6,6 +6,7 @@
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.AspNetCore.Components;
 @using OpcUa.Api.Publisher.Models;
+@using Microsoft.Azure.IIoT.App.Models;
 
 @inject Registry RegistryHelper
 
@@ -24,25 +25,28 @@
             Display Name:
             <div class="body">@NodeData.NodeName</div>
         </div><br />
-        <form>
-            <div class="form-group">
-                <div class="label">Publishing Interval ms</div>
-                <input @bind="@NodeData.RequestedPublishingInterval" aria-label="PublishingInterval" type="text" class="form-control" placeholder="@(NodeData.RequestedPublishingInterval)" />
-            </div><br />
-            <div class="form-group"> 
-                <div class="label">Sampling Interval ms </div>
-                <input @bind="@NodeData.RequestedSamplingInterval" aria-label="SamplingInterval" type="text" class="form-control" placeholder="@(NodeData.RequestedSamplingInterval)" />
-            </div><br />
-            <div class="form-group">
-                <div class="label">Heartbeat Interval sec</div>
-                <input @bind="@NodeData.RequestedHeartbeatInterval" aria-label="HeartbeatInterval" type="text" class="form-control" placeholder="@(NodeData.RequestedHeartbeatInterval)" />
-            </div><br />
-            <hr />
-            <div>
-                <button @onclick="@(async() => await UpdatePublishedNodeConfigAsync(NodeData))" type="button" class="btn btn-primary shadow-none">Apply</button>
-            </div>
-        </form>
-    </div>
+              <EditForm Model="@_inputData" OnValidSubmit="@UpdatePublishedNodeConfigAsync">
+                  <FluentValidator />
+
+                  <div class="form-group">
+                      <div class="label">Publishing Interval ms</div>
+                      <input @bind="@_inputData.RequestedPublishingInterval" aria-label="PublishingInterval" type="text" class="form-control" placeholder="@(_inputData.RequestedPublishingInterval)" />
+                  </div><br />
+                  <div class="form-group">
+                      <div class="label">Sampling Interval ms </div>
+                      <input @bind="@_inputData.RequestedSamplingInterval" aria-label="SamplingInterval" type="text" class="form-control" placeholder="@(_inputData.RequestedSamplingInterval)" />
+                  </div><br />
+                  <div class="form-group">
+                      <div class="label">Heartbeat Interval sec</div>
+                      <input @bind="@_inputData.RequestedHeartbeatInterval" aria-label="HeartbeatInterval" type="text" class="form-control" placeholder="@(_inputData.RequestedHeartbeatInterval)" />
+                  </div><br />
+                  <hr />
+                  <ValidationSummary />
+                  <div>
+                      <button type="submit" class="btn btn-primary shadow-none">Apply</button>
+                  </div>
+              </EditForm>
+</div>
 </div>
 
 @code {
@@ -51,6 +55,8 @@
 
     [Parameter]
     public EventCallback Onclick { get; set; }
+
+    private ListNodeRequested _inputData { get; set; }
 
     /// <summary>
     /// OnInitialized
@@ -61,6 +67,8 @@
         {
             NodeData.PublishedItem = new PublishedItemApiModel();
         }
+
+        _inputData = new ListNodeRequested(NodeData.PublishedItem);
     }
 
 
@@ -68,8 +76,9 @@
     /// Close Drawer and update discovery
     /// </summary>
     /// <param name="discoverer"></param>
-    private async Task UpdatePublishedNodeConfigAsync(ListNode node)
+    private async Task UpdatePublishedNodeConfigAsync()
     {
-        await Onclick.InvokeAsync(node);
+        NodeData.TryUpdateData(_inputData);
+        await Onclick.InvokeAsync(NodeData);
     }
 }

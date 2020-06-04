@@ -6,6 +6,7 @@
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
+@using Microsoft.Azure.IIoT.App.Models;
 
 @inject Registry RegistryHelper
 
@@ -16,50 +17,52 @@
     </div>
     <hr />
     <div class="list-group-item text-left">
-        <form>
+        <EditForm Model="@_inputData" OnValidSubmit="@UpdateDiscovererConfigAsync">
+            <FluentValidator />
+
             <div class="form-group">
                 <label>Mask Address Range (CIDR notation)</label>
-                <input @bind="@DiscovererData.RequestedAddressRangesToScan" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveAddressRangesToScan ?? "IP-address/netmask")" />
+                <input @bind="@_inputData.RequestedAddressRangesToScan" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveAddressRangesToScan ?? "IP-address/netmask")" />
             </div>
             <div class="form-group">
                 <label>Port Range</label>
-                <input @bind="@DiscovererData.RequestedPortRangesToScan" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortRangesToScan ?? "StartPort-EndPort")" />
+                <input @bind="@_inputData.RequestedPortRangesToScan" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortRangesToScan ?? "StartPort-EndPort")" />
             </div>
             <div class="form-group">
                 <label>Max Network Probes</label>
-                <input @bind="@DiscovererData.RequestedMaxNetworkProbes" aria-label="maxNetworkProbes" id="MaxNetworkProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxNetworkProbes ?? "Max Network Probes")" />
+                <input @bind="@_inputData.RequestedMaxNetworkProbes" aria-label="maxNetworkProbes" id="MaxNetworkProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxNetworkProbes ?? "Max Network Probes")" />
             </div>
             <div class="form-group">
                 <label>Max Port Probes</label>
-                <input @bind="@DiscovererData.RequestedMaxPortProbes" aria-label="maxPortProbes" id="MaxPortProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxPortProbes ?? "Max Port Probes")" />
+                <input @bind="@_inputData.RequestedMaxPortProbes" aria-label="maxPortProbes" id="MaxPortProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxPortProbes ?? "Max Port Probes")" />
             </div>
             <div class="form-group">
                 <label>Network Probe Timeout</label>
-                <input @bind="@DiscovererData.RequestedNetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveNetworkProbeTimeout ?? "Network Probe Timeout")" />
+                <input @bind="@_inputData.RequestedNetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveNetworkProbeTimeout ?? "Network Probe Timeout")" />
             </div>
             <div class="form-group">
                 <label>Port Probe Timeout</label>
-                <input @bind="@DiscovererData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortProbeTimeout ?? "Port Probe Timeout")" />
+                <input @bind="@_inputData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortProbeTimeout ?? "Port Probe Timeout")" />
             </div>
             <div class="form-group">
                 <label>Idle Time Between Scans</label>
-                <input @bind="@DiscovererData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveIdleTimeBetweenScans ?? "Idle Time Between Scans")" />
+                <input @bind="@_inputData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveIdleTimeBetweenScans ?? "Idle Time Between Scans")" />
             </div>
             <label>Discovery Urls</label>
             <div class="flex">
                 <input @bind="@_discoveryUrl" aria-label="DiscoveryUrls" id="DiscoveryUrls" type="text" class="form-control" placeholder="Discovery Url" />
-                <button @onclick="@(() => DiscovererData.AddDiscoveryUrl(_discoveryUrl))" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
-                <button @onclick="@(() => DiscovererData.RemoveDiscoveryUrl(_discoveryUrl))" type="button" class="btn btn-primary shadow-none">Clear</button>
+                <button @onclick="@(() => _inputData.AddDiscoveryUrl(_discoveryUrl))" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
+                <button @onclick="@(() => _inputData.RemoveDiscoveryUrl(_discoveryUrl))" type="button" class="btn btn-primary shadow-none">Clear</button>
             </div>
             <div class="form-group margin-top">
                 <select class="form-control">
-                    @if (DiscovererData.RequestedDiscoveryUrls.Count == 0)
+                    @if (_inputData.RequestedDiscoveryUrls == null || _inputData.RequestedDiscoveryUrls.Count == 0)
                     {
                         <option>(None)</option>
                     }
                     else
                     {
-                        foreach (var discoveryUrl in DiscovererData.RequestedDiscoveryUrls)
+                        foreach (var discoveryUrl in _inputData.RequestedDiscoveryUrls)
                         {
                             <option value="@discoveryUrl">@discoveryUrl</option>
                         }
@@ -67,11 +70,12 @@
                 </select>
             </div>
             <hr />
+            <ValidationSummary />
             <div>
-                <button @onclick="@(async() => await UpdateDiscovererConfigAsync(DiscovererData))" type="button" class="btn btn-primary shadow-none">@_buttonLabel</button>
+                <button type="submit" class="btn btn-primary shadow-none">@_buttonLabel</button>
             </div>
             <ErrorMessage PageError="@null" Status="@_status"></ErrorMessage>
-        </form>
+        </EditForm>
     </div>
 </div>
 
@@ -82,6 +86,7 @@
     [Parameter]
     public EventCallback Onclick { get; set; }
 
+    private DiscovererInfoRequested _inputData { get; set; }
     private string _discoveryUrl { get; set; }
     private string _status { get; set; }
     private string _buttonLabel { get; set; }
@@ -99,18 +104,19 @@
         {
             _buttonLabel = "Apply";
         }
+        _inputData = new DiscovererInfoRequested();
     }
 
     /// <summary>
     /// Close Drawer and update discovery
     /// </summary>
-    /// <param name="discoverer"></param>
-    private async Task UpdateDiscovererConfigAsync(DiscovererInfo discoverer)
+    private async Task UpdateDiscovererConfigAsync()
     {
-        await Onclick.InvokeAsync(discoverer);
-        if (!discoverer.isAdHocDiscovery)
+        DiscovererData.TryUpdateData(_inputData);
+        await Onclick.InvokeAsync(DiscovererData);
+        if (!DiscovererData.isAdHocDiscovery)
         {
-            _status = await RegistryHelper.UpdateDiscovererAsync(discoverer);
+            _status = await RegistryHelper.UpdateDiscovererAsync(DiscovererData);
         }
     }
 }

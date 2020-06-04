@@ -165,11 +165,24 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                     }
                     var lows = x[0].Trim();
                     var highs = (x.Length == 2) ? x[1].Trim() : lows;
-                    return new PortRange(
-                        lows == "*" ? IPEndPoint.MinPort :
-                            int.Parse(lows),
-                        highs == "*" ? IPEndPoint.MaxPort :
-                            int.Parse(highs));
+
+                    int lowsInt = IPEndPoint.MinPort;
+                    int highsInt = IPEndPoint.MaxPort;
+
+                    if (lows != "*"){
+                        lowsInt = int.Parse(lows);
+                    }
+                    if (highs != "*"){
+                        highsInt = int.Parse(highs);
+                    }
+
+                    if (lowsInt < IPEndPoint.MinPort || 
+                        highsInt > IPEndPoint.MaxPort ||
+                        lowsInt > highsInt){
+                        throw new Exception("Port numbers are out of the range");
+                    }
+
+                    return new PortRange(lowsInt, highsInt);
                 });
             return Merge(parsed);
         }
