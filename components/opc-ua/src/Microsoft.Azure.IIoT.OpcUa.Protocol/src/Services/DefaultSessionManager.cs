@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Microsoft.Azure.IIoT.Utils.LoggingHelper;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Session manager
@@ -570,6 +570,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     break;
             }
             return new EndpointIdentifier(endpointModel);
+        }
+
+        // TODO: Find better place!
+        /// <summary>
+        /// Extracts host in the format "server[:port]" from a uri for simpler logging.
+        /// </summary>
+        /// <param name="endpointUrl"></param>
+        /// <returns></returns>
+        public static string ExtractHost(string endpointUrl) {
+            string pattern = @":\/\/([^\/_]+)";
+            var match = Regex.Match(endpointUrl, pattern);
+
+            return match?.Groups[1]?.Value;
         }
 
         private readonly ILogger _logger;
