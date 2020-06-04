@@ -257,6 +257,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             }
             var request = NewRequest("/devices/query");
             if (continuation != null) {
+                _serializer.DeserializeContinuationToken(continuation,
+                    out query, out continuation, out pageSize);
                 request.Headers.Add(HttpHeader.ContinuationToken, continuation);
             }
             if (pageSize != null) {
@@ -268,7 +270,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             var response = await _httpClient.PostAsync(request, ct);
             response.Validate();
             if (response.Headers.TryGetValues(HttpHeader.ContinuationToken, out var values)) {
-                continuation = values.First();
+                continuation = _serializer.SerializeContinuationToken(
+                    query, values.First(), pageSize);
             }
             else {
                 continuation = null;
