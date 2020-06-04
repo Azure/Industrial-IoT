@@ -168,18 +168,17 @@ namespace Microsoft.Azure.IIoT.Net.Models {
 
                     int lowsInt = IPEndPoint.MinPort;
                     int highsInt = IPEndPoint.MaxPort;
-                    if (lows != "*")
-                    {
+
+                    if (lows != "*"){
                         lowsInt = int.Parse(lows);
                     }
-                    if (highs != "*")
-                    {
+                    if (highs != "*"){
                         highsInt = int.Parse(highs);
                     }
+
                     if (lowsInt < IPEndPoint.MinPort || 
                         highsInt > IPEndPoint.MaxPort ||
-                        lowsInt > highsInt)
-                    {
+                        lowsInt > highsInt){
                         throw new Exception("Port numbers are out of the range");
                     }
 
