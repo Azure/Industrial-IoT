@@ -121,6 +121,13 @@
             "metadata": {
                 "description": "Specifies the image version tag to use for all images."
             }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for Azure resources."
+            }
         }
     },
     "variables": {
@@ -131,7 +138,7 @@
         {
             "comments": "Deploy linux edge gateway and factory network simulation.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[concat('simulation.linux.', copyIndex())]",
             "condition": "[not(equals(0, parameters('numberOfLinuxGateways')))]",
             "copy": {
@@ -202,6 +209,9 @@
                     },
                     "managedIdentityResourceId": {
                         "value": "[parameters('managedIdentityResourceId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
                     }
                 },
                 "templateLink": {
@@ -215,7 +225,7 @@
         {
             "comments": "Deploy windows edge gateway and factory network simulation.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[concat('simulation.windows.', copyIndex())]",
             "condition": "[not(equals(0, parameters('numberOfWindowsGateways')))]",
             "copy": {
@@ -286,6 +296,9 @@
                     },
                     "managedIdentityResourceId": {
                         "value": "[parameters('managedIdentityResourceId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
                     }
                 },
                 "templateLink": {
@@ -299,7 +312,7 @@
         {
             "comments": "Save edge simulation user and password.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[variables('simulationConfigurationResourceName')]",
             "condition": "[and(not(empty(parameters('keyVaultName'))), or(not(equals(0, parameters('numberOfLinuxGateways'))), not(equals(0, parameters('numberOfWindowsGateways')))))]",
             "properties": {
@@ -319,6 +332,9 @@
                                 "value": "[parameters('edgePassword')]"
                             }
                         ]
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
                     }
                 },
                 "templateLink": {

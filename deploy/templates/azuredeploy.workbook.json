@@ -26,6 +26,13 @@
       "metadata": {
         "description": "The unique guid for this workbook instance"
       }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+          "description": "Tags for Azure resources."
+      }
     }
   },
   "resources": [
@@ -34,6 +41,7 @@
       "type": "microsoft.insights/workbooks",
       "location": "[resourceGroup().location]",
       "apiVersion": "2018-06-17-preview",
+      "tags": "[parameters('tags')]",
       "dependsOn": [],
       "kind": "shared",
       "properties": {

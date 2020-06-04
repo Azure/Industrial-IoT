@@ -18,11 +18,11 @@
     <div class="list-group-item text-left">
         <form>
             <div class="form-group">
-                <label>Mask address range (CIDR notation)</label>
+                <label>Mask Address Range (CIDR notation)</label>
                 <input @bind="@DiscovererData.RequestedAddressRangesToScan" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveAddressRangesToScan ?? "IP-address/netmask")" />
             </div>
             <div class="form-group">
-                <label>Port range</label>
+                <label>Port Range</label>
                 <input @bind="@DiscovererData.RequestedPortRangesToScan" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortRangesToScan ?? "StartPort-EndPort")" />
             </div>
             <div class="form-group">

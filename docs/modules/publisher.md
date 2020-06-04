@@ -2,14 +2,14 @@
 
 [Home](readme.md)
 
-The OPC Publisher runs inside IoT Edge.  The Publisher module connects to OPC UA servers and publishes OPC UA telemetry data from these servers to Azure IoT Hub.  
+The OPC Publisher runs inside IoT Edge. The Publisher module connects to OPC UA servers and publishes OPC UA telemetry data from these servers to Azure IoT Hub.  
 
 The publisher is able to subscribe to Variable changes (sampling) and Events and publish these in the form of
 
 * OPC UA Network Messages (UADP and JSON as per Part 14).
 * Simplified monitored item notification messages (JSON - non standardized)
 
-The publisher module can be configured using Writer Group jobs through the Industrial IoT Job Micro services.   These Writer Group jobs represent a JSON version of the OPC UA Part 14 configuration model.
+The publisher module can be configured using Writer Group jobs through the Industrial IoT Job Micro services. These Writer Group jobs represent a JSON version of the OPC UA Part 14 configuration model.
 
 ## OPC UA X.509 certificates
 
@@ -46,7 +46,7 @@ An example for the format of the configuration file is:
 
 ### Host files to container binding
 
-To expose the configuration file in the docker container a volume needs to be bind mounted into the container in the [deployment manifest](../deploy/deployment-manifest.md) "createOptions" property.  This volume must contain the JSON configuration file.
+To expose the configuration file in the docker container a volume needs to be bind mounted into the container in the [deployment manifest](../deploy/deployment-manifest.md) "createOptions" property. This volume must contain the JSON configuration file.
 
 An example of a bind configuration is as follows:
 
@@ -64,7 +64,7 @@ Check out this [link](https://github.com/Azure/iotedge/issues/1745) for more inf
 
 ## Breaking changes in 2.6.x from 2.5.x and lower versions
 
-We attempt to maintain backwards compatibility as much as possible.  This means you can use any publisher module as a drop-in replacement for a previous version. However, to support new functionality from 2.6.x forward we removed previously (up to version 2.5.x) available functionality:
+We attempt to maintain backwards compatibility as much as possible. This means you can use any publisher module as a drop-in replacement for a previous version. However, to support new functionality from 2.6.x forward we removed previously (up to version 2.5.x) available functionality:
 
 * Configuration via OPC UA server and IoT Hub device method interface. The old model has been replaced with the new cloud-based Writer Group configuration interface, see [Publisher API](../api/publisher/readme.md).
 * Message shaping using the `--tc` option and telemetry configuration file.
