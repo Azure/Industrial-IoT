@@ -37,6 +37,9 @@ namespace Microsoft.Azure.IIoT.App {
     using System;
     using Blazored.SessionStorage;
     using Blazored.Modal;
+    using FluentValidation;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.App.Validation;
 
     /// <summary>
     /// Webapp startup
@@ -133,6 +136,9 @@ namespace Microsoft.Azure.IIoT.App {
             services.AddSession(option => {
                 option.Cookie.IsEssential = true;
             });
+
+            services.AddValidatorsFromAssemblyContaining<DiscovererInfoValidator>();
+            services.AddValidatorsFromAssemblyContaining<ListNodeValidator>();
 
             // Protect anything using keyvault and storage persisted keys
             services.AddAzureDataProtection(Config.Configuration);
