@@ -12,6 +12,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface IClientHost {
 
         /// <summary>
+        /// initializes the client configuration 
+        /// </summary>
+        /// <returns></returns>
+        Task InitializeAzync();
+
+        /// <summary>
         /// Add certificate to trust list
         /// </summary>
         /// <param name="certificate"></param>

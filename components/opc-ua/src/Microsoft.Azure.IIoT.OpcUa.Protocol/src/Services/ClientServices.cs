@@ -44,15 +44,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 throw new ArgumentNullException(nameof(logger));
             _clientConfig = clientConfig ??
                 throw new ArgumentNullException(nameof(clientConfig));
+            _identity = identity;
             _maxOpTimeout = maxOpTimeout;
-            _appConfig = _clientConfig.ToApplicationConfigurationAsync(
-                identity, true, VerifyCertificate).Result;
             // Create discovery config and client certificate
             _timer = new Timer(_ => OnTimer(), null, kEvictionCheck, Timeout.InfiniteTimeSpan);
         }
 
+        /// <summary>
+        /// initializes the OPC stack app config
+        /// </summary>
+        public async Task InitializeAzync() {
+            if (_appConfig == null) {
+                _appConfig = await _clientConfig.ToApplicationConfigurationAsync(
+                    _identity, true, VerifyCertificate);
+            }
+        }
+
         /// <inheritdoc/>
         public Task AddTrustedPeerAsync(byte[] certificates) {
+            InitializeAzync().ConfigureAwait(false);
             var chain = Utils.ParseCertificateChainBlob(certificates)?
                 .Cast<X509Certificate2>()
                 .Reverse()
@@ -88,6 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public Task RemoveTrustedPeerAsync(byte[] certificates) {
+            InitializeAzync().ConfigureAwait(false);
             var chain = Utils.ParseCertificateChainBlob(certificates)?
                 .Cast<X509Certificate2>()
                 .Reverse()
@@ -123,6 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (connection?.Endpoint == null) {
                 throw new ArgumentNullException(nameof(connection));
             }
+            InitializeAzync().ConfigureAwait(false);
             var id = new ConnectionIdentifier(connection);
             _lock.Wait();
             try {
@@ -164,12 +176,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _clients.Clear();
             Try.Op(() => _cts.Dispose());
             _lock.Dispose();
+            _appConfig = null;
         }
 
         /// <inheritdoc/>
         public async Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
             Uri discoveryUrl, List<string> locales, CancellationToken ct) {
-
+            await InitializeAzync();
             var results = new HashSet<DiscoveredEndpointModel>();
             var visitedUris = new HashSet<string> {
                 CreateDiscoveryUri(discoveryUrl.ToString(), 4840)
@@ -211,6 +224,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (string.IsNullOrEmpty(endpoint?.Url)) {
                 throw new ArgumentNullException(nameof(endpoint.Url));
             }
+            await InitializeAzync();
             var configuration = EndpointConfiguration.Create(_appConfig);
             configuration.OperationTimeout = 20000;
             var discoveryUrl = new Uri(endpoint.Url);
@@ -240,6 +254,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
+            InitializeAzync().ConfigureAwait(false);
             var key = new ConnectionIdentifier(connection);
             while (!_cts.IsCancellationRequested) {
                 var client = GetOrCreateSession(key);
@@ -270,7 +285,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private async Task DiscoverAsync(Uri discoveryUrl, StringCollection localeIds,
             IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
             Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result) {
-
             var configuration = EndpointConfiguration.Create(_appConfig);
             configuration.OperationTimeout = timeout;
             using (var client = DiscoveryClient.Create(discoveryUrl, configuration)) {
@@ -522,9 +536,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private static readonly TimeSpan kEvictionCheck = TimeSpan.FromSeconds(10);
         private const int kMaxDiscoveryAttempts = 3;
         private readonly ILogger _logger;
+        private readonly IIdentity _identity;
         private readonly TimeSpan? _maxOpTimeout;
         private readonly IClientServicesConfig _clientConfig;
-        private readonly ApplicationConfiguration _appConfig;
+        private ApplicationConfiguration _appConfig;
         private readonly Dictionary<ConnectionIdentifier, IClientSession> _clients =
             new Dictionary<ConnectionIdentifier, IClientSession>();
         private readonly ConcurrentDictionary<ConnectionIdentifier, HashSet<CallbackHandle>> _callbacks =

@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Serializers;
@@ -135,7 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         WriterGroup = new WriterGroupModel {
                             MessageType = legacyCliModel.MessageEncoding,
                             WriterGroupId = $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
-                                $"{dataSetSourceBatches.First().GetHashSafe()}",
+                                $"{new ConnectionIdentifier(dataSetSourceBatches.First().Connection)}",
                             DataSetWriters = dataSetSourceBatches.Select(dataSetSource => new DataSetWriterModel {
                                 DataSetWriterId = $"{dataSetSource.Connection.Endpoint.Url}_" +
                                     $"{dataSetSource.GetHashSafe()}",

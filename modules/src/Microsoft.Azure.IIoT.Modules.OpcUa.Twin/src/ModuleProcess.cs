@@ -96,17 +96,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var identity = hostScope.Resolve<IIdentity>();
-                    logger.Information("Initiating prometheus at port {0}/metrics", kTwinPrometheusPort);
+                    var client = hostScope.Resolve<IClientHost>();
                     var server = new MetricServer(port: kTwinPrometheusPort);
                     try {
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
+                        logger.Information("Starting module OpcTwin version {version}.", version);
+                        logger.Information("Initiating prometheus at port {0}/metrics", kTwinPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
                         // Start module
-                        var version = GetType().Assembly.GetReleaseVersion().ToString();
-                        kTwinModuleStart.WithLabels(
-                            identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
-                        logger.Information("Starting module OpcTwin version {version}.", version);
                         await module.StartAsync(IdentityType.Supervisor, SiteId,
                             "OpcTwin", version, this);
+                        kTwinModuleStart.WithLabels(
+                            identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
+                        await client.InitializeAzync();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
