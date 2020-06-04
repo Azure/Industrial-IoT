@@ -41,13 +41,6 @@
                 "description": "The name of the Azure datalake account created as part of this deployment."
             }
         },
-        "datalakeServicePrincipalId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Specifies the object ID of the service principal that should have write access to the datalake."
-            }
-        },
         "datalakeSkuName": {
             "type": "string",
             "defaultValue": "Standard_LRS",
@@ -439,22 +432,6 @@
                 "userMetadata": "CDM Telemetry Consumer Group"
             },
             "dependsOn": [
-            ]
-        },
-        {
-            "comments": "Datalake service principal role assignment",
-            "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
-            "condition": "[not(empty(parameters('datalakeServicePrincipalId')))]",
-            "apiVersion": "2018-09-01-preview",
-            "name": "[concat(parameters('datalakeName'), '/Microsoft.Authorization/', guid(uniqueString(parameters('datalakeName'))))]",
-            "tags" : "[parameters('tags')]",
-            "properties": {
-                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
-                "principalId": "[parameters('datalakeServicePrincipalId')]",
-                "principalType": "ServicePrincipal"
-            },
-            "dependsOn": [
-                "[variables('datalakeResourceId')]"
             ]
         },
         {
