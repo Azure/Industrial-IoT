@@ -344,12 +344,14 @@
         "tsiEventSourceName": "TelemetryEventHub",
         "tsiEventHubConsumerGroup": "telemetrytsi",
         "tsiEventSourceAuthorizationRuleResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', parameters('eventHubNamespaceName'), parameters('eventHubName'), parameters('tsiEventHubAuthorization'))]",
-        "tsiEnvironmentTagsValue": {
+        "tsiEnvironmentTagDisplayName": {
             "displayName": "[parameters('tsiEnvironmentDisplayName')]"
         },
-        "tsiEventSourceTagsValue": {
+        "tsiEnvironmentTagsValue": "[union(parameters('tags'), variables('tsiEnvironmentTagDisplayName'))]",
+        "tsiEventSourceTagDisplayName": {
             "displayName": "[parameters('tsiEventSourceDisplayName')]"
         },
+        "tsiEventSourceTagsValue": "[union(parameters('tags'), variables('tsiEventSourceTagDisplayName'))]",
         "tsiEnvironmentResourceId": "[resourceId('Microsoft.TimeSeriesInsights/environments', parameters('tsiEnvironmentName'))]",
         "dpsResourceId": "[resourceId('Microsoft.Devices/provisioningServices', parameters('dpsName'))]",
         "datalakeResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('datalakeName'))]",
@@ -462,7 +464,7 @@
             "apiVersion": "2018-08-15-preview",
             "location": "[resourceGroup().location]",
             "kind": "[parameters('tsiEnvironmentKind')]",
-            "tags": "[parameters('tags')]",
+            "tags": "[variables('tsiEnvironmentTagsValue')]",
             "properties": {
                 "storageConfiguration": {
                     "accountName": "[parameters('tsiStorageName')]",
@@ -487,7 +489,6 @@
                 "name": "[parameters('tsiEnvironmentSkuName')]",
                 "capacity": "[parameters('tsiEnvironmentSkuCapacity')]"
             },
-            "tags": "[variables('tsiEnvironmentTagsValue')]",
             "dependsOn": [
             ]
         },
@@ -524,7 +525,7 @@
             "name": "[concat(parameters('tsiEnvironmentName'), '/', variables('tsiEventSourceName'))]",
             "apiVersion": "2018-08-15-preview",
             "location": "[resourceGroup().location]",
-            "tags": "[parameters('tags')]",
+            "tags": "[variables('tsiEventSourceTagsValue')]",
             "kind": "Microsoft.EventHub",
             "properties": {
                 "eventSourceResourceId": "[variables('eventHubResourceId')]",
@@ -535,7 +536,6 @@
                 "sharedAccessKey": "[listkeys(variables('tsiEventSourceAuthorizationRuleResourceId'), '2017-04-01').primaryKey]",
                 "timestampPropertyName": "TimeStamp"
             },
-            "tags": "[variables('tsiEventSourceTagsValue')]",
             "dependsOn": [
                 "[variables('tsiEnvironmentResourceId')]",
                 "[variables('tsiEventSourceAuthorizationRuleResourceId')]"
