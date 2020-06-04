@@ -39,6 +39,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Blazored.Modal;
     using FluentValidation;
     using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.App.Validation;
 
     /// <summary>
     /// Webapp startup
@@ -137,6 +138,7 @@ namespace Microsoft.Azure.IIoT.App {
             });
 
             services.AddValidatorsFromAssemblyContaining<DiscovererInfoValidator>();
+            services.AddValidatorsFromAssemblyContaining<ListNodeValidator>();
 
             // Protect anything using keyvault and storage persisted keys
             services.AddAzureDataProtection(Config.Configuration);
