@@ -584,7 +584,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var configuredEndpoint = new ConfiguredEndpoint(
                 null, endpointDescription, endpointConfiguration);
 
-            _logger.Information("Creating session {id} with name {name}...", id, sessionName);
+            _logger.Information("Creating session {id} for endpoint {endpointUrl}...", id, endpointUrl);
             using (new PerfMarker(_logger, sessionName)) {
                 var userIdentity = id.Connection.User.ToStackModel() ??
                     new UserIdentity(new AnonymousIdentityToken());
