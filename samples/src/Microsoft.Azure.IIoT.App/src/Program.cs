@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Serilog;
     using Serilog.Events;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.ApplicationInsights;
 
     public class Program {
 
@@ -59,7 +60,7 @@ namespace Microsoft.Azure.IIoT.App {
                     .UseSetting(WebHostDefaults.DetailedErrorsKey, "true"))
                 .UseSerilog()
                 .ConfigureLogging(logging =>
-                    logging.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>
+                    logging.AddFilter<ApplicationInsightsLoggerProvider>
                         ("", LogLevel.Information));
         }
     }

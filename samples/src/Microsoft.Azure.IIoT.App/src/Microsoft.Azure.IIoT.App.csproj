@@ -20,6 +20,7 @@
   <ItemGroup>
     <Folder Include="Components\ErrorMessage\" />
     <Folder Include="Components\Pager\" />
+    <Folder Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="bundleconfig.json" />
