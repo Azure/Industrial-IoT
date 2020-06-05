@@ -76,6 +76,20 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                     ""settings"": {
                         ""image"": ""mcr.microsoft.com/azureiotedge-agent:" + version+ @""",
                         ""createOptions"": ""{}""
+                    },
+                    ""env"": {
+                        ""ExperimentalFeatures__Enabled"": {
+                            ""value"": ""true""
+                        },
+                        ""ExperimentalFeatures__EnableGetLogs"": {
+                            ""value"": ""true""
+                        },
+                        ""ExperimentalFeatures__EnableUploadLogs"": {
+                            ""value"": ""true""
+                        },
+                        ""ExperimentalFeatures__EnableMetrics"": {
+                            ""value"": ""true""
+                        }
                     }
                 },
                 ""edgeHub"": {
