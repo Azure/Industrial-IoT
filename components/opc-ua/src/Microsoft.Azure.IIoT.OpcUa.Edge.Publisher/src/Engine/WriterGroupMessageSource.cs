@@ -27,13 +27,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public string Id => _writerGroup.WriterGroupId;
 
         /// <inheritdoc/>
-        public int NumberOfConnectionRetries => null != _subscriptions.FirstOrDefault()?.
-            Subscription?.NumberOfConnectionRetries ? _subscriptions.FirstOrDefault().
-            Subscription.NumberOfConnectionRetries : 0;
+        public int NumberOfConnectionRetries => _subscriptions?.FirstOrDefault()?.
+            Subscription?.NumberOfConnectionRetries ?? 0;
 
         /// <inheritdoc/>
         public int ValueChangesCount { get; private set; } = 0;
-        
+
         /// <inheritdoc/>
         public int DataChangesCount { get; private set; } = 0;
 
@@ -136,7 +135,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var sc = await _outer._subscriptionManager.GetOrCreateSubscriptionAsync(
                     _subscriptionInfo);
                 sc.OnSubscriptionChange += OnSubscriptionChangedAsync;
-                await sc.ApplyAsync(_subscriptionInfo.MonitoredItems, 
+                await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
                     _subscriptionInfo.Configuration);
                 Subscription = sc;
             }
@@ -173,7 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             /// <returns></returns>
             public async Task DeactivateAsync() {
-                
+
                 if (Subscription == null) {
                     _outer._logger.Warning("Subscription not registered");
                     return;
@@ -278,7 +277,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     lock (_lock) {
                         if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
                             _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
-                            // reset both 
+                            // reset both
                             _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
                                 "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
                                 " value changes were invoked by message source.",

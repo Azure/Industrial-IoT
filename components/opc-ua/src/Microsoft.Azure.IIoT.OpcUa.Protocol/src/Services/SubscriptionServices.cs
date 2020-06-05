@@ -478,7 +478,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             continue;
                         }
                         _logger.Information("Set Monitoring to {value} for {count} nodes in subscription " +
-                            "{subscription}", change.Key.Value, change.Count(), 
+                            "{subscription}", change.Key.Value, change.Count(),
                             rawSubscription.DisplayName);
                         var results = rawSubscription.SetMonitoringMode(change.Key.Value,
                             change.Select(t => t.Item).ToList());
@@ -554,7 +554,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     else {
                         subscription.Create();
-                        //TODO - add logs for the revised values 
+                        //TODO - add logs for the revised values
                         _logger.Debug("Added subscription '{name}' to session '{session}'.",
                              Id, session.SessionName);
                     }
@@ -614,7 +614,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     if (modifySubscription) {
                         subscription.Modify();
-                        //Todo - add logs for the revised values 
+                        //Todo - add logs for the revised values
                     }
                     if (subscription.CurrentPublishingEnabled != activate) {
                         // do not deactivate an already activated subscription
@@ -672,12 +672,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     // add the heartbeat for monitored items that did not receive a datachange notification
                     // Try access lock if we cannot continue...
                     List<MonitoredItemWrapper> currentlyMonitored = null;
-                    if (_lock.Wait(0)) {
+                    if (_lock?.Wait(0) ?? true) {
                         try {
                             currentlyMonitored = _currentlyMonitored;
                         }
                         finally {
-                            _lock.Release();
+                            _lock?.Release();
                         }
                     }
 
@@ -818,7 +818,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (NextHeartbeat > currentPublish + TimeSpan.FromMilliseconds(50)) {
                     return false;
                 }
-                NextHeartbeat = TimeSpan.Zero != Template.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ? 
+                NextHeartbeat = TimeSpan.Zero != Template.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ?
                     currentPublish + Template.HeartbeatInterval.Value : DateTime.MaxValue;
                 return true;
             }
@@ -905,7 +905,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     SamplingInterval = (int)Template.SamplingInterval.
                         GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
                     DiscardOldest = !Template.DiscardNew.GetValueOrDefault(false),
-                    Filter = 
+                    Filter =
                         Template.DataChangeFilter.ToStackModel() ??
                         codec.Decode(Template.EventFilter, true) ??
                         ((MonitoringFilter)Template.AggregateFilter
@@ -955,7 +955,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     Item.DiscardOldest = !Template.DiscardNew.GetValueOrDefault(false);
                     changes = true;
                 }
-                if (Template.QueueSize.GetValueOrDefault(1) != 
+                if (Template.QueueSize.GetValueOrDefault(1) !=
                     model.Template.QueueSize.GetValueOrDefault(1)) {
                     _logger.Debug("{item}: Changing queue size from {old} to {new}",
                         this, Template.QueueSize.GetValueOrDefault(1),
