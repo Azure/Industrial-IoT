@@ -14,6 +14,7 @@ jobs:
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK for signing'
+    condition: ${{ eq(parameters.sign, 'True') }}
     inputs:
       packageType: sdk
       version: 2.0.x
@@ -51,54 +52,54 @@ jobs:
       TreatSignatureUpdateFailureAs: 'Warning'
       SignatureFreshness: 'UpToDate'
       TreatStaleSignatureAs: 'Error'
-  - ${{ if eq(parameters.sign, 'True') }}:
-    - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-      displayName: 'Executable Signing'
-      inputs:
-        ConnectedServiceName: 'Code Signing Certificate'
-        FolderPath: '$(Build.ArtifactStagingDirectory)'
-        Pattern: '**/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.exe'
-        UseMinimatch: true
-        signConfigType: inlineSignParams
-        inlineOperation: |
-          [{
-              "keyCode": "CP-230012",
-              "operationSetCode": "SigntoolSign",
-              "parameters": [
-              {
-                  "parameterName": "OpusName",
-                  "parameterValue": "Microsoft"
-              },
-              {
-                  "parameterName": "OpusInfo",
-                  "parameterValue": "http://www.microsoft.com"
-              },
-              {
-                  "parameterName": "FileDigest",
-                  "parameterValue": "/fd \"SHA256\""
-              },
-              {
-                  "parameterName": "PageHash",
-                  "parameterValue": "/NPH"
-              },
-              {
-                  "parameterName": "TimeStamp",
-                  "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-              }
-              ],
-              "toolName": "sign",
-              "toolVersion": "1.0"
-          },
-          {
-              "keyCode": "CP-230012",
-              "operationSetCode": "SigntoolVerify",
-              "parameters": [ ],
-              "toolName": "sign",
-              "toolVersion": "1.0"
-          }]
-        MaxConcurrency: 1
-        MaxRetryAttempts: 50
-        VerboseLogin: true
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'Executable Signing'
+    condition: ${{ eq(parameters.sign, 'True') }}
+    inputs:
+      ConnectedServiceName: 'Code Signing Certificate'
+      FolderPath: '$(Build.ArtifactStagingDirectory)'
+      Pattern: '**/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.exe'
+      UseMinimatch: true
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [{
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolSign",
+            "parameters": [
+            {
+                "parameterName": "OpusName",
+                "parameterValue": "Microsoft"
+            },
+            {
+                "parameterName": "OpusInfo",
+                "parameterValue": "http://www.microsoft.com"
+            },
+            {
+                "parameterName": "FileDigest",
+                "parameterValue": "/fd \"SHA256\""
+            },
+            {
+                "parameterName": "PageHash",
+                "parameterValue": "/NPH"
+            },
+            {
+                "parameterName": "TimeStamp",
+                "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            }
+            ],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        },
+        {
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolVerify",
+            "parameters": [ ],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        }]
+      MaxConcurrency: 1
+      MaxRetryAttempts: 50
+      VerboseLogin: true
   - task: CmdLine@2
     displayName: 'Generate MD5 Checksum'
     inputs:
