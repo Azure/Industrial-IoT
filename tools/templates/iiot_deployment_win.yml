@@ -12,14 +12,20 @@ jobs:
   pool:
     name: ${{ parameters.poolName }}
   steps:
-  # .Net Core 3.0 installation causes problems for executable signing task.
-  # - task: UseDotNet@2
-  #   displayName: 'Install .NET Core SDK'
-  #   inputs:
-  #     packageType: sdk
-  #     version: 3.1.x
-  #     includePreviewVersions: false
-  #     installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for signing'
+    inputs:
+      packageType: sdk
+      version: 2.0.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for building'
+    inputs:
+      packageType: sdk
+      version: 3.1.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2
     displayName: Versioning
     name: setVersionInfo
@@ -105,3 +111,15 @@ jobs:
     inputs:
       path: $(Build.ArtifactStagingDirectory)/
       artifact: iiot_deployment_release_$(setVersionInfo.Version_Full)_${{ parameters.runtime }}
+  - task: AzureCLI@2
+    displayName: 'Copy to Blob'
+    condition: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+    inputs:
+      azureSubscription: azureiiot-storage
+      scriptType: pscore
+      workingDirectory: $(Build.ArtifactStagingDirectory)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment
+      scriptLocation: inlineScript
+      inlineScript: |
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.exe --name ${{ variables['Build.SourceBranchName'] }}/$(setVersionInfo.Version_Full)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.exe
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.pdb --name ${{ variables['Build.SourceBranchName'] }}/$(setVersionInfo.Version_Full)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.pdb
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.md5 --name ${{ variables['Build.SourceBranchName'] }}/$(setVersionInfo.Version_Full)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.md5
