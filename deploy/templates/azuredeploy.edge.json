@@ -123,6 +123,7 @@
             "defaultValue": "",
             "allowedValues": [
                 "",
+                "Standard_B1ms",
                 "Standard_B2s",
                 "Standard_B2ms",
                 "Standard_A2",
@@ -310,7 +311,7 @@
             }
         },
         "edgeVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",
-        "simulationVmSku": "[if(not(empty(parameters('simulationVmSize'))), parameters('simulationVmSize'), 'Standard_B1ms')]"
+        "simulationVmSku": "[if(not(empty(parameters('simulationVmSize'))), parameters('simulationVmSize'), variables('edgeVmSku'))]"
     },
     "resources": [
         {

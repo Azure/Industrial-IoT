@@ -160,7 +160,14 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "The size of VMs to provision for simulation."
+                "description": "The size of the gateway VM to provision."
+            }
+        },
+        "simulationVmSize": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The size of the simulation VM to provision."
             }
         },
         "edgeUserName": {
@@ -506,6 +513,9 @@
                     },
                     "edgeVmSize": {
                         "value": "[parameters('edgeVmSize')]"
+                    },
+                    "simulationVmSize": {
+                        "value": "[parameters('simulationVmSize')]"  
                     },
                     "edgeUserName": {
                         "value": "[parameters('edgeUserName')]"
