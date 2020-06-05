@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
                 await Task.WhenAll(workerStartTasks);
                 // the configuration might have been changed by workers execution
-                var newWorkers = _agentConfigProvider.Config?.MaxWorkers;
+                var newWorkers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
                 if (workers >= newWorkers) {
                     break;
                 }
