@@ -170,6 +170,9 @@ namespace Microsoft.Azure.IIoT.App {
              //   .AddAzureSignalRService(Config)
                 ;
 
+            // The following line enables Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
+
             services.AddServerSideBlazor();
             services.AddBlazoredSessionStorage();
             services.AddBlazoredModal();
