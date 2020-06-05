@@ -31,8 +31,8 @@ stages:
   - template: tools/templates/iiot_deployment_win.yml
     parameters:
       sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
-  # - template: tools/templates/iiot_deployment_linux.yml
-  # - template: tools/templates/iiot_deployment_mac.yml
+  - template: tools/templates/iiot_deployment_linux.yml
+  - template: tools/templates/iiot_deployment_mac.yml
 # - stage: images
 #   displayName: 'Build Images'
 #   dependsOn:
