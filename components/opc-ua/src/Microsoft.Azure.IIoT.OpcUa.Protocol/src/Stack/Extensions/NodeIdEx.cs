@@ -27,15 +27,12 @@ namespace Opc.Ua.Extensions {
             if (NodeId.IsNull(nodeId)) {
                 return ExpandedNodeId.Null;
             }
-
-            ushort namespaceIndex = nodeId.NamespaceIndex;
-            if (namespaceIndex > 0 && namespaces == null) {
-                namespaceIndex = 0;
+            if (nodeId.NamespaceIndex > 0 && namespaces == null) {
+                throw new ArgumentNullException(nameof(namespaces));
             }
-            return new ExpandedNodeId(nodeId.Identifier, namespaceIndex,
-                namespaceIndex > 0
-                ? namespaces.GetString(namespaceIndex)
-                : null, 0);
+            return new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex,
+                nodeId.NamespaceIndex > 0 ? namespaces.GetString(nodeId.NamespaceIndex) :
+                    null, 0);
         }
 
         /// <summary>
