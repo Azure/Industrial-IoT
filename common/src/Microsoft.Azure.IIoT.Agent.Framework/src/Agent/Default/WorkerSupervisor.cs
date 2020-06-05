@@ -110,12 +110,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             while (true) {
                 var workers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
                 while (_instances.Count < workers) {
-                    _logger.Verbose("Creating new worker...");
+                    _logger.Information("Creating new worker...");
                     var worker = await CreateWorker();
                 }
 
                 foreach (var stoppedWorker in _instances.Keys.Where(s => s.Status == WorkerStatus.Stopped)) {
-                    _logger.Verbose("Starting worker {workerId}...", stoppedWorker.WorkerId);
+                    _logger.Information("Starting worker '{workerId}'...", stoppedWorker.WorkerId);
                     workerStartTasks.Add(stoppedWorker.StartAsync());
                 }
                 await Task.WhenAll(workerStartTasks);

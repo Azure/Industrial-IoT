@@ -79,14 +79,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             await _lock.WaitAsync();
             try {
                 if (_cts != null) {
-                    _logger.Verbose("Worker already running");
+                    _logger.Warning("Worker already running");
                     return;
                 }
 
                 _cts = new CancellationTokenSource();
                 _heartbeatTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
 
-                _logger.Verbose("Worker {WorkerId}: {@Capabilities}",
+                _logger.Information("Worker {WorkerId}: {@Capabilities}",
                     WorkerId, _agentConfigProvider.Config.Capabilities);
                 _worker = Task.Run(() => RunAsync(_cts.Token));
             }
@@ -234,7 +234,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                         _jobProcess = null;
                         break;
                     }
-                    _logger.Verbose("Processing job continuation...");
+                    _logger.Information("Processing job continuation...");
                 }
             }
             finally {
@@ -324,7 +324,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     _logger.Information("Job {job} completed.", Job.Id);
                 }
                 catch (OperationCanceledException) {
-                    _logger.Verbose("Job {job} cancelled.", Job.Id);
+                    _logger.Information("Job {job} cancelled.", Job.Id);
                 }
                 catch (Exception ex) {
                     _logger.Error(ex, "Error processing job {job}.", Job.Id);

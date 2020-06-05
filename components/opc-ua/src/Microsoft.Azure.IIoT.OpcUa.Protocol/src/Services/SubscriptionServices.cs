@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public async Task CloseAsync() {
                 await _lock.WaitAsync().ConfigureAwait(false);
                 try {
-                    _logger.Verbose("Closing subscription {subscription}", Id);
+                    _logger.Information("Closing subscription {subscription}", Id);
                     _outer._sessionManager.UnregisterSubscription(this);
                     _outer._subscriptions.TryRemove(Id, out _);
                     var session = _outer._sessionManager.GetOrCreateSession(Connection, false);
@@ -200,7 +200,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     Active = false;
                 }
                 catch (Exception e) {
-                    _logger.Verbose(e, "Failed to enable subscription");
+                    _logger.Error(e, "Failed to enable subscription");
                     Enabled = false;
                     Active = false;
                 }
@@ -214,7 +214,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     Active = true;
                 }
                 catch (Exception e) {
-                    _logger.Verbose(e, "Failed to activate subscription");
+                    _logger.Error(e, "Failed to activate subscription");
                     Enabled = false;
                     Active = false;
                 }
@@ -321,7 +321,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (toCleanupList.Any()) {
                         // Remove monitored items not in desired state
                         foreach (var toRemove in toCleanupList) {
-                            _logger.Verbose("Removing monitored item {item}...", toRemove.StartNodeId);
+                            _logger.Verbose("Removing monitored item '{item}'...", toRemove.StartNodeId);
                             toRemove.Notification -= OnMonitoredItemChanged;
                             count++;
                         }
@@ -350,7 +350,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     count = 0;
                     // Remove monitored items not in desired state
                     foreach (var toRemove in toRemoveList) {
-                        _logger.Verbose("Removing monitored item {item}...", toRemove.StartNodeId);
+                        _logger.Verbose("Removing monitored item '{item}'...", toRemove.StartNodeId);
                         toRemove.Notification -= OnMonitoredItemChanged;
                         count++;
                     }
@@ -383,7 +383,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         toAdd.Item.Notification += OnMonitoredItemChanged;
                         nowMonitored.Add(toAdd);
                         count++;
-                        _logger.Verbose("Adding new monitored item {item}...",
+                        _logger.Verbose("Adding new monitored item '{item}'...",
                             toAdd.Item.StartNodeId);
                     }
 
@@ -399,7 +399,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 count = 0;
                 foreach (var toUpdate in currentState.Intersect(desiredState)) {
                     if (toUpdate.MergeWith(desiredUpdates[toUpdate])) {
-                        _logger.Verbose("Updating monitored item {item}...", toUpdate);
+                        _logger.Verbose("Updating monitored item '{item}'...", toUpdate);
                         count++;
                     }
                     nowMonitored.Add(toUpdate);
@@ -548,14 +548,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     };
                     var result = session.AddSubscription(subscription);
                     if (!result) {
-                        _logger.Error("Failed to add subscription {name} to session {session}",
+                        _logger.Error("Failed to add subscription '{name}' to session '{session}'",
                              Id, session.SessionName);
                         subscription = null;
                     }
                     else {
                         subscription.Create();
                         //TODO - add logs for the revised values
-                        _logger.Debug("Added subscription {name} to session {session}",
+                        _logger.Debug("Added subscription '{name}' to session '{session}'",
                              Id, session.SessionName);
                     }
                 }
@@ -643,7 +643,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     if (_currentlyMonitored == null) {
-                        _logger.Verbose("DataChange for subscription: {Subscription} having no monitored items yet",
+                        _logger.Information("DataChange for subscription: {Subscription} having no monitored items yet",
                             subscription.DisplayName);
                         return;
                     }
