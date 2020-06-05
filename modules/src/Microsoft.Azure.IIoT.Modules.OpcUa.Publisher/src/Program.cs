@@ -8,6 +8,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Extensions.Configuration;
     using System;
     using System.IO;
+    using System.Diagnostics;
+    using System.Threading;
+    using System.Linq;
 
     /// <summary>
     /// Module
@@ -28,6 +31,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AddLegacyPublisherCommandLine(args)
                 .AddCommandLine(args)
                 .Build();
+
+#if DEBUG
+            if (args.Any(a => a.ToLowerInvariant().Contains("wfd") ||
+                    a.ToLowerInvariant().Contains("waitfordebugger"))) {
+                Console.WriteLine("Waiting for debugger being attached...");
+                while (!Debugger.IsAttached) {
+                    Thread.Sleep(1000);
+                }
+                Console.WriteLine("Debugger attached.");
+            }
+#endif
 
             var module = new ModuleProcess(config);
             module.RunAsync().Wait();
