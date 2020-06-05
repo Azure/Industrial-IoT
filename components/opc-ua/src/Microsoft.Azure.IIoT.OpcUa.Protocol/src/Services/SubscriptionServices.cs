@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public async Task CloseAsync() {
-                await _lock.WaitAsync();
+                await _lock.WaitAsync().ConfigureAwait(false);
                 try {
                     _logger.Verbose("Closing subscription {subscription}", Id);
                     _outer._sessionManager.UnregisterSubscription(this);
@@ -136,7 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public async Task<SubscriptionNotificationModel> GetSnapshotAsync() {
-                await _lock.WaitAsync();
+                await _lock.WaitAsync().ConfigureAwait(false);
                 try {
                     var subscription = GetSubscription(null, null, false);
                     if (subscription == null) {
@@ -161,7 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public async Task ApplyAsync(IEnumerable<MonitoredItemModel> monitoredItems,
                 SubscriptionConfigurationModel configuration) {
-                await _lock.WaitAsync();
+                await _lock.WaitAsync().ConfigureAwait(false);
                 try {
                     // set the new set of monitored items
                     _subscription.MonitoredItems = monitoredItems?.Select(n => n.Clone()).ToList();
@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Active = false;
                     }
                     else {
-                        await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, false);
+                        await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, false).ConfigureAwait(false);
                         Enabled = true;
                         Active = false;
                     }
@@ -195,7 +195,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (_subscription?.Configuration?.ResolveDisplayName ?? false) {
                         ResolveDisplayNameAsync(_subscription.MonitoredItems);
                     }
-                    await ReapplyAsync(session, false);
+                    await ReapplyAsync(session, false).ConfigureAwait(false);
                     Enabled = true;
                     Active = false;
                 }
@@ -209,7 +209,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public async Task ActivateAsync(Session session) {
                 try {
-                    await ReapplyAsync(session, true);
+                    await ReapplyAsync(session, true).ConfigureAwait(false);
                     Enabled = true;
                     Active = true;
                 }
@@ -223,7 +223,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public async Task DeactivateAsync(Session session) {
                 try {
-                    await ReapplyAsync(session, false);
+                    await ReapplyAsync(session, false).ConfigureAwait(false);
                     Active = false;
                 }
                 catch (Exception e) {
@@ -238,11 +238,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// </summary>
             /// <returns></returns>
             private async Task ReapplyAsync(Session session, bool activate) {
-                await _lock.WaitAsync();
+                await _lock.WaitAsync().ConfigureAwait(false);
                 try {
                     var rawSubscription = GetSubscription(session, null, activate);
                     if (rawSubscription != null) {
-                        await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate);
+                        await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate).ConfigureAwait(false);
                     }
                 }
                 finally {
@@ -428,7 +428,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             if (item.GetTriggeringLinks(out var added, out var removed)) {
                                 var response = await rawSubscription.Session.SetTriggeringAsync(
                                     null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
-                                    new UInt32Collection(added), new UInt32Collection(removed));
+                                    new UInt32Collection(added), new UInt32Collection(removed)).ConfigureAwait(false);
                             }
                         }
 
