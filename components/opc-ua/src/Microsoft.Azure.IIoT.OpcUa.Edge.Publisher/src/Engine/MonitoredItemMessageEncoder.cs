@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         UseUriEncoding = true,
                         UseReversibleEncoding = false
                     };
-                    foreach(var element in chunk) { 
+                    foreach(var element in chunk) {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
@@ -324,7 +324,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             ApplicationUri = message.ApplicationUri,
                             EndpointUrl = message.EndpointUrl,
                             ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
-                            NodeId = notification.NodeId.ToExpandedNodeId(message.ServiceMessageContext.NamespaceUris),
+                            NodeId = notification.NodeId.ToExpandedNodeId(message.ServiceMessageContext?.NamespaceUris),
                             Timestamp = message.TimeStamp ?? DateTime.UtcNow,
                             Value = notification.Value,
                             DisplayName = notification.DisplayName,

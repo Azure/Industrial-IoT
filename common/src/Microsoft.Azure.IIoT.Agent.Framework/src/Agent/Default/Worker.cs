@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 _cts = new CancellationTokenSource();
                 _heartbeatTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
 
-                _logger.Information("Worker WorkerId: {WorkerId} {@Capabilities}",
+                _logger.Information("Worker {WorkerId}: {@Capabilities}",
                     WorkerId, _agentConfigProvider.Config.Capabilities);
                 _worker = Task.Run(() => RunAsync(_cts.Token));
             }
@@ -189,7 +189,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     _logger.Information("Worker cancelled...");
                 }
                 catch (Exception ex) {
-                    // TODO: we should notify the exception 
+                    // TODO: we should notify the exception
                     _logger.Error(ex, "Worker: {Id}, exception during worker processing, wait {delay}...",
                         WorkerId, _jobCheckerInterval);
                     kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace, "Exception during worker processing").Inc();
@@ -209,7 +209,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 // Stop worker heartbeat to start the job heartbeat process
                 _heartbeatTimer.Change(-1, -1); // Stop worker heartbeat
 
-                _logger.Information("Worker: {WorkerId}, start processing new job: {JobId}, mode: {ProcessMode}",
+                _logger.Information("Worker: {WorkerId} processing job: {JobId}, mode: {ProcessMode}",
                     WorkerId, jobProcessInstruction.Job.Id, jobProcessInstruction.ProcessMode);
 
                 // Execute processor
