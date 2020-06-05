@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _subscriptions.ForEach(sc => sc.OpenAsync().Wait());
             _subscriptions.ForEach(sc => sc.ActivateAsync(ct).Wait());
             try {
-                await Task.Delay(-1, ct);
+                await Task.Delay(-1, ct).ConfigureAwait(false);
             }
             finally {
                 _subscriptions.ForEach(sc => sc.DeactivateAsync().Wait());
@@ -133,10 +133,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 var sc = await _outer._subscriptionManager.GetOrCreateSubscriptionAsync(
-                    _subscriptionInfo);
+                    _subscriptionInfo).ConfigureAwait(false);
                 sc.OnSubscriptionChange += OnSubscriptionChangedAsync;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
-                    _subscriptionInfo.Configuration);
+                    _subscriptionInfo.Configuration).ConfigureAwait(false);
                 Subscription = sc;
             }
 
@@ -153,7 +153,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // only try to activate if already enabled. Otherwise the activation
                 // will be handled by the session's keep alive mechanism
                 if (Subscription.Enabled) {
-                    await Subscription.ActivateAsync(null);
+                    await Subscription.ActivateAsync(null).ConfigureAwait(false);
                 }
 
                 if (_keyframeTimer != null) {
@@ -178,7 +178,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     return;
                 }
 
-                await Subscription.CloseAsync();
+                await Subscription.CloseAsync().ConfigureAwait(false);
 
                 if (_keyframeTimer != null) {
                     _keyframeTimer.Stop();
@@ -212,7 +212,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                     _outer._logger.Debug("Insert keyframe message...");
                     var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
-                    var snapshot = await Subscription.GetSnapshotAsync();
+                    var snapshot = await Subscription.GetSnapshotAsync().ConfigureAwait(false);
                     if (snapshot != null) {
                         CallMessageReceiverDelegates(this, sequenceNumber, snapshot);
                     }
@@ -244,7 +244,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
                 if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0 &&
                     (sequenceNumber % _keyFrameCount.Value) == 0) {
-                    var snapshot = await Try.Async(() => Subscription.GetSnapshotAsync());
+                    var snapshot = await Try.Async(() => Subscription.GetSnapshotAsync()).ConfigureAwait(false);
                     if (snapshot != null) {
                         notification = snapshot;
                     }
