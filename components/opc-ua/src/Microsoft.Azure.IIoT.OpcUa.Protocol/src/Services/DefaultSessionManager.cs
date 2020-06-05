@@ -163,12 +163,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     return;
                 }
                 if (wrapper._subscriptions.TryRemove(subscription.Id, out _)) {
-                    _logger.Information("Subscription '{id}' unregistered from session '{id}' in state {state}",
+                    _logger.Information("Subscription '{subscriptionId}' unregistered from session '{sessionId}' in state {state}",
                         subscription.Id, id, wrapper.State);
-                    if (wrapper.State == SessionState.Running) {
-                        wrapper.State = SessionState.Refresh;
-                    }
-                    TriggerKeepAlive();
                 }
             }
             finally {
@@ -266,7 +262,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 var delay = Task.Delay(keepAliveCheckInterval, ct);
                 await Task.WhenAny(delay, _triggerKeepAlive.Task);
-                _logger.Information("runner keep alive reset due to {delay} {trigger}",
+                _logger.Debug("runner keep alive reset due to {delay} {trigger}",
                     delay.IsCompleted ? "checkAlive" : String.Empty,
                     _triggerKeepAlive.Task.IsCompleted ? "triggerKeepAlive" : String.Empty);
             }

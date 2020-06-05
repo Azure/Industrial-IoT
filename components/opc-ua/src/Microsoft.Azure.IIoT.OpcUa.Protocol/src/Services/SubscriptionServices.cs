@@ -110,6 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 await _lock.WaitAsync();
                 try {
                     _logger.Information("Closing subscription {subscription}", Id);
+                    _outer._sessionManager.UnregisterSubscription(this);
                     _outer._subscriptions.TryRemove(Id, out _);
                     var session = _outer._sessionManager.GetOrCreateSession(Connection, false);
                     if (session != null) {
@@ -124,7 +125,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 finally {
                     _lock.Release();
-                    _outer._sessionManager.UnregisterSubscription(this);
                 }
             }
 
@@ -171,7 +171,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (rawSubscription == null) {
                         Enabled = false;
                         Active = false;
-                        _subscription.Configuration = configuration.Clone();
+                    }
+                    else {
+                        await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, false);
+                        Enabled = true;
+                        Active = false;
                     }
                 }
                 catch (Exception e) {
@@ -206,6 +210,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public async Task ActivateAsync(Session session) {
                 try {
                     await ReapplyAsync(session, true);
+                    Enabled = true;
                     Active = true;
                 }
                 catch (Exception e) {
@@ -217,9 +222,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public async Task DeactivateAsync(Session session) {
-                if (Enabled && !Active) {
-                    return;
-                }
                 try {
                     await ReapplyAsync(session, false);
                     Active = false;
@@ -239,11 +241,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 await _lock.WaitAsync();
                 try {
                     var rawSubscription = GetSubscription(session, null, activate);
-                    if (rawSubscription == null) {
-                        throw new ResourceNotFoundException(
-                            $"Session/Subscription not available - endpointUrl: {Connection?.Endpoint?.Url}");
+                    if (rawSubscription != null) {
+                        await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate);
                     }
-                    await SetMonitoredItemsAsync(rawSubscription, _subscription.MonitoredItems, activate);
                 }
                 finally {
                     _lock.Release();
@@ -554,6 +554,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     else {
                         subscription.Create();
+                        //TODO - add logs for the revised values 
                         _logger.Debug("Added subscription '{name}' to session '{session}'.",
                              Id, session.SessionName);
                     }
@@ -613,6 +614,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     if (modifySubscription) {
                         subscription.Modify();
+                        //Todo - add logs for the revised values 
                     }
                     if (subscription.CurrentPublishingEnabled != activate) {
                         // do not deactivate an already activated subscription
@@ -1015,6 +1017,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         private readonly ILogger _logger;
+        // TODO - check if we still need this list here
         private readonly ConcurrentDictionary<string, SubscriptionWrapper> _subscriptions =
             new ConcurrentDictionary<string, SubscriptionWrapper>();
         private readonly ISessionManager _sessionManager;
