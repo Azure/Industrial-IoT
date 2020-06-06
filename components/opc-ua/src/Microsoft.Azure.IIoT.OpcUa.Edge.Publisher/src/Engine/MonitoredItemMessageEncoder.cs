@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Opc.Ua.Encoders;
     using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -39,6 +40,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
+
+        /// <inheritdoc/>
+        public MonitoredItemMessageEncoder(ILogger logger) {
+            _logger = logger;
+        }
 
         /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
@@ -316,30 +322,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding) {
             foreach (var message in messages) {
                 if (message.WriterGroup?.MessageType.GetValueOrDefault(MessageEncoding.Json) == encoding) {
+                    int notificationCounter = 0;
                     foreach (var notification in message.Notifications) {
-                        var result = new MonitoredItemMessage {
-                            MessageContentMask = (message.Writer?.MessageSettings?
+                        notificationCounter++;
+
+                        MonitoredItemMessage result = null;
+                        try {
+                            result = new MonitoredItemMessage {
+                                MessageContentMask = (message.Writer?.MessageSettings?
                                .DataSetMessageContentMask).ToMonitoredItemMessageMask(
                                    message.Writer?.DataSetFieldContentMask),
-                            ApplicationUri = message.ApplicationUri,
-                            EndpointUrl = message.EndpointUrl,
-                            ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
-                            NodeId = notification.NodeId.ToExpandedNodeId(message.ServiceMessageContext?.NamespaceUris),
-                            Timestamp = message.TimeStamp ?? DateTime.UtcNow,
-                            Value = notification.Value,
-                            DisplayName = notification.DisplayName,
-                            SequenceNumber = notification.SequenceNumber.GetValueOrDefault(0)
-                        };
-                        // force published timestamp into to source timestamp for the legacy heartbeat compatibility
-                        if (notification.IsHeartbeat &&
-                            ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) &&
-                            ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0)) {
-                            result.Value.SourceTimestamp = result.Timestamp;
+                                ApplicationUri = message.ApplicationUri,
+                                EndpointUrl = message.EndpointUrl,
+                                ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
+                                NodeId = notification.NodeId.ToExpandedNodeId(message.ServiceMessageContext?.NamespaceUris),
+                                Timestamp = message.TimeStamp ?? DateTime.UtcNow,
+                                Value = notification.Value,
+                                DisplayName = notification.DisplayName,
+                                SequenceNumber = notification.SequenceNumber.GetValueOrDefault(0)
+                            };
+                            // force published timestamp into to source timestamp for the legacy heartbeat compatibility
+                            if (notification.IsHeartbeat &&
+                                ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) &&
+                                ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0)) {
+                                result.Value.SourceTimestamp = result.Timestamp;
+                            }
+
                         }
+                        catch (Exception e) {
+                            _logger.Error(e, $"Error in notification {notificationCounter}/{message.Notifications.Count()}");
+                        }
+
                         yield return result;
                     }
                 }
             }
         }
+
+        private readonly ILogger _logger;
     }
 }

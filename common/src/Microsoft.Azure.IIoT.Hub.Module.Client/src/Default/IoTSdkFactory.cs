@@ -211,9 +211,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// Create client
             /// </summary>
             /// <param name="client"></param>
-            internal ModuleClientAdapter(ModuleClient client) {
+            /// <param name="logger"></param>
+            internal ModuleClientAdapter(ModuleClient client, ILogger logger) {
                 _client = client ??
                     throw new ArgumentNullException(nameof(client));
+
+                _logger = logger;
             }
 
             /// <summary>
@@ -243,7 +246,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
 
                 var client = await CreateAsync(cs, transportSetting);
-                var adapter = new ModuleClientAdapter(client);
+                var adapter = new ModuleClientAdapter(client, logger);
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
@@ -274,7 +277,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (IsClosed) {
                     return;
                 }
-                await _client.SendEventAsync(message);
+
+                try {
+                    await _client.SendEventAsync(message);
+                }
+                catch (Exception e) {
+                    _logger.Error(e, "Error sending message to IoT Hub");
+                }
             }
 
             /// <inheritdoc />
@@ -282,7 +291,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (IsClosed) {
                     return;
                 }
-                await _client.SendEventBatchAsync(messages);
+
+                try {
+                    await _client.SendEventBatchAsync(messages);
+                }
+                catch (Exception e) {
+                    _logger.Error(e, "Error sending message batch to IoT Hub");
+                }
             }
 
             /// <inheritdoc />
@@ -400,12 +415,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             private int _reconnectCounter;
             private static readonly Gauge kReconnectionStatus = Metrics.CreateGauge("iiot_edge_reconnected", "reconnected count",
                 new GaugeConfiguration {
-                    LabelNames = new[] { "module", "device", "timestamp_utc"}
+                    LabelNames = new[] { "module", "device", "timestamp_utc" }
                 });
             private static readonly Gauge kDisconnectionStatus = Metrics.CreateGauge("iiot_edge_disconnected", "reconnected count",
                 new GaugeConfiguration {
-                    LabelNames = new[] { "module", "device", "timestamp_utc"}
+                    LabelNames = new[] { "module", "device", "timestamp_utc" }
                 });
+            private readonly ILogger _logger;
 
         }
 
