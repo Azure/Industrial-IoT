@@ -818,7 +818,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (NextHeartbeat > currentPublish + TimeSpan.FromMilliseconds(50)) {
                     return false;
                 }
-                NextHeartbeat = TimeSpan.Zero != Template.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ? 
+                NextHeartbeat = TimeSpan.Zero < Template.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ? 
                     currentPublish + Template.HeartbeatInterval.Value : DateTime.MaxValue;
                 return true;
             }

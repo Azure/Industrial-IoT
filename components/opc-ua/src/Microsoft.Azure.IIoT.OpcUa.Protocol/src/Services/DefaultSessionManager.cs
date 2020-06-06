@@ -538,7 +538,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         private async Task<Session> CreateSessionAsync(string endpointUrl, ConnectionIdentifier id,
             SessionWrapper wrapper) {
-            var sessionName = $"Azure IIoT: '{id}'";
+            var sessionName = $"Azure IIoT: {id}";
             // Validate certificates
             void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e) {
                 if (!e.Accept && e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
