@@ -67,10 +67,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     sw.Start();
 
                     if (messagesCount == 1) {
-                        await _clientAccessor.Client.SendEventAsync(messageObjects.First());
+                        await _clientAccessor.Client.SendEventAsync(messageObjects.First()).ConfigureAwait(false);
                     }
                     else {
-                        await _clientAccessor.Client.SendEventBatchAsync(messageObjects);
+                        await _clientAccessor.Client.SendEventBatchAsync(messageObjects).ConfigureAwait(false);
                     }
 
                     sw.Stop();
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var msg = new Message(body) {
                 ContentType = contentType,
                 ContentEncoding = contentEncoding,
-                // TODO - setting CreationTime causes issues in the Azure IoT java SDK 
+                // TODO - setting CreationTime causes issues in the Azure IoT java SDK
                 //  revert the comment whrn the issue is fixed
                 //  CreationTimeUtc = DateTime.UtcNow
             };

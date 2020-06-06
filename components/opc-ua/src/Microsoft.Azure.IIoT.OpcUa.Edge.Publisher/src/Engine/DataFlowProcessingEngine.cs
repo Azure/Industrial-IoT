@@ -98,10 +98,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     async input => {
                         try {
                             if (_dataSetMessageBufferSize == 1) {
-                                return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize);
+                                return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
                             }
                             else {
-                                return await _messageEncoder.EncodeBatchAsync(input, _maxEncodedMessageSize);
+                                return await _messageEncoder.EncodeBatchAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) {
@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     });
 
                 _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
-                    async input => await _messageSink.SendAsync(input),
+                    async input => await _messageSink.SendAsync(input).ConfigureAwait(false),
                     new ExecutionDataflowBlockOptions {
                         CancellationToken = cancellationToken
                     });
@@ -134,7 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _encodingBlock.LinkTo(_batchNetworkMessageBlock);
                 _batchNetworkMessageBlock.LinkTo(_sinkBlock);
 
-                await _messageTrigger.RunAsync(cancellationToken);
+                await _messageTrigger.RunAsync(cancellationToken).ConfigureAwait(false);
             }
             finally {
                 IsRunning = false;
@@ -224,7 +224,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="state"></param>
         private void BatchTriggerIntervalTimer_Elapsed(object state) {
-            _batchDataSetMessageBlock.TriggerBatch();
+            _batchDataSetMessageBlock?.TriggerBatch();
         }
 
         /// <summary>
