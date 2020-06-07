@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Hub;
@@ -106,6 +107,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await workerSupervisor.StartAsync();
+                        var sessionManager = hostScope.Resolve<ISessionManager>();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
@@ -119,12 +121,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
+                        await workerSupervisor.StopAsync();
+                        if (hostScope.Resolve<ISessionManager>() is IDisposable sessionManager){
+                            sessionManager.Dispose();
+                        }
+                        if (hostScope.Resolve<ISubscriptionManager>() is IDisposable subscriptionManager){
+                            subscriptionManager.Dispose();
+                        }
+                        await module.StopAsync();
+                        OnRunning?.Invoke(this, false);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
-                        await workerSupervisor.StopAsync();
-                        await module.StopAsync();
                         server.StopWhenEnabled(moduleConfig, logger);
-                        OnRunning?.Invoke(this, false);
                     }
                 }
             }

@@ -49,7 +49,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             var sub = _subscriptions.GetOrAdd(subscriptionModel.Id,
                 key => new SubscriptionWrapper(this, subscriptionModel, _logger));
-            _sessionManager.RegisterSubscription(sub);
             return Task.FromResult<ISubscription>(sub);
         }
 
@@ -112,19 +111,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _logger.Information("Closing subscription {subscription}", Id);
                     _outer._sessionManager.UnregisterSubscription(this);
                     _outer._subscriptions.TryRemove(Id, out _);
+                }
+                finally {
+                    _lock.Release();
+                }
+                try {
                     var session = _outer._sessionManager.GetOrCreateSession(Connection, false);
                     if (session != null) {
                         var subscription = session.Subscriptions.
                             SingleOrDefault(s => s.Handle == this);
                         if (subscription != null) {
+                            Try.Op(() => subscription.PublishingEnabled = false);
+                            Try.Op(() => subscription.ApplyChanges());
                             Try.Op(() => subscription.DeleteItems());
-                            Try.Op(() => subscription.Delete(true));
-                            Try.Op(() => session.RemoveSubscription(subscription));
+                            _logger.Debug("Deleted monitored items for {subscription}", Id);
+                            Try.Op(() => session?.RemoveSubscription(subscription));
+                            _logger.Debug("Subscription successfully removed {subscription}", Id);
                         }
                     }
                 }
-                finally {
-                    _lock.Release();
+                catch (Exception e) {
+                    _logger.Error(e, "Failed to close subscription {subscription}", Id);
                 }
             }
 

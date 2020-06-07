@@ -439,13 +439,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 e.Accept = _appConfig.SecurityConfiguration
                     .AutoAcceptUntrustedCertificates;
                 if (e.Accept) {
-                    _logger.Warning("Trusting Peer Certificate {Thumbprint}, {Subject} " +
+                    _logger.Warning("Trusting peer certificate {Thumbprint}, {Subject} " +
                         "due to AutoAccept(UntrustedCertificates) set!",
                         e.Certificate.Thumbprint, e.Certificate.Subject);
+                    return;
                 }
-                return;
             }
-            _logger.Information("Rejecting peer Certificate {Thumbprint}, {Subject} " +
+            _logger.Information("Rejecting peer certificate {Thumbprint}, {Subject} " +
                 "because of {Status}.", e.Certificate.Thumbprint,
                 e.Certificate.Subject, e.Error.StatusCode);
         }
