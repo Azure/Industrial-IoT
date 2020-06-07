@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {
-        "commandName": "Project",
-        "commandLineArgs": "--PkiRootPath=/mount/pki --pf=/mount/pnxxx.json --fd=true --fm=false --bs=100 --di=20 --to --si=10 --mm=Samples --me=Json"
+        "commandName": "Project"
     }
   }
 }
