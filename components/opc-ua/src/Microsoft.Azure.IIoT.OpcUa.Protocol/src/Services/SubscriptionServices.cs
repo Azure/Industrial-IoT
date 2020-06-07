@@ -299,11 +299,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
                 catch (ServiceResultException sre) {
-                    _logger.Warning("Failed to resolve display names fot monitored items due to {StatusCode}.",
+                    _logger.Warning("Failed to resolve display names fot monitored items due to {StatusCode}",
                         sre.StatusCode);
                 }
                 catch (Exception e) {
-                    _logger.Error(e, "Failed to resolve display names for monitored items.");
+                    _logger.Error(e, "Failed to resolve display names for monitored items");
                     throw;
                 }
             }
