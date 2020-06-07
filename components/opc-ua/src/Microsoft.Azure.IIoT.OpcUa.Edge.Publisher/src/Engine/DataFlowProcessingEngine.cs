@@ -3,6 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+//#define HIDE_DISCONNECTED
+
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
@@ -152,6 +154,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="state"></param>
         private void DiagnosticsOutputTimer_Elapsed(object state) {
             var totalDuration = _diagnosticStart != DateTime.MinValue ? (DateTime.UtcNow - _diagnosticStart).TotalSeconds : 0;
+#if HIDE_DISCONNECTED
+            if (_messageTrigger.DataChangesCount > 0 || _messageTrigger.ValueChangesCount > 0 || _messageSink.SentMessagesCount > 0) {
+#endif
             _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
 
             var diagInfo = new StringBuilder();
@@ -192,9 +197,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _sinkBlock.InputCount,
                 _messageSink.SentMessagesCount, sentMessagesAverage,
                 _messageTrigger.NumberOfConnectionRetries);
+#if HIDE_DISCONNECTED
+            }
+#endif
 
             kDataChangesCount.WithLabels(_identity.DeviceId ?? "",
-                _identity.ModuleId ?? "", Name).Set(_messageTrigger.DataChangesCount);
+        _identity.ModuleId ?? "", Name).Set(_messageTrigger.DataChangesCount);
             kDataChangesPerSecond.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_messageTrigger.DataChangesCount / totalDuration);
             kValueChangesCount.WithLabels(_identity.DeviceId ?? "",
