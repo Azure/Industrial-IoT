@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/publishers/{page}"
 
@@ -14,6 +14,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject IRegistryServiceApi RegistryService
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
@@ -33,8 +34,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var publisher in _pagedPublisherList.Results)
-        {
+        @foreach (var publisher in _pagedPublisherList.Results) {
             <tr>
                 <td class="hover-text width-large">
                     <div>
@@ -109,6 +109,6 @@
 
 <ErrorMessage PageError="@_pagedPublisherList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_publisherList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_publisherList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

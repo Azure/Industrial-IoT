@@ -23,14 +23,14 @@ namespace Microsoft.Azure.IIoT.App.Pages {
 
         private PagedResult<DiscovererInfo> _discovererList = new PagedResult<DiscovererInfo>();
         private PagedResult<DiscovererInfo> _pagedDiscovererList = new PagedResult<DiscovererInfo>();
-        private string _eventResult { get; set; }
-        private string _scanResult { get; set; } = "displayNone";
+        private string EventResult { get; set; }
+        private string ScanResult { get; set; } = "displayNone";
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
 
         private IAsyncDisposable _discovererEvent { get; set; }
-        private IAsyncDisposable _discovery { get; set; }
-        private bool _isDiscoveryEventSubscribed { get; set; } = false;
+        private IAsyncDisposable Discovery { get; set; }
+        private bool IsDiscoveryEventSubscribed { get; set; } = false;
 
 
         /// <summary>
@@ -38,11 +38,20 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="page"></param>
         /// <returns></returns>
-        public void PagerPageChanged(int page) {
+        public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
             _discovererList = CommonHelper.UpdatePage(RegistryHelper.GetDiscovererListAsync, page, _discovererList, ref _pagedDiscovererList, CommonHelper.PageLengthSmall);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "discoverers/" + page);
+            foreach (var discoverer in _pagedDiscovererList.Results) {
+                discoverer.DiscovererModel = await RegistryService.GetDiscovererAsync(discoverer.DiscovererModel.Id);
+                discoverer.ScanStatus = discoverer.DiscovererModel.Discovery != DiscoveryMode.Off && discoverer.DiscovererModel.Discovery != null;
+                var applicationModel = new ApplicationRegistrationQueryApiModel { DiscovererId = discoverer.DiscovererModel.Id };
+                var applications = await RegistryService.QueryApplicationsAsync(applicationModel, 1);
+                if (applications != null) {
+                    discoverer.HasApplication = true;
+                }
+            }
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
         }
@@ -80,36 +89,36 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private async Task SetScanAsync(DiscovererInfo discoverer, bool checkStatus) {
             try {
                 discoverer.ScanStatus = checkStatus;
-                _eventResult = string.Empty;
+                EventResult = string.Empty;
 
                 if (discoverer.ScanStatus == true) {
-                    if (!_isDiscoveryEventSubscribed) {
-                        _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
+                    if (!IsDiscoveryEventSubscribed) {
+                        Discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
                             discoverer.DiscovererModel.Id, async data => {
                                 await InvokeAsync(() => ScanProgress(data));
                             });
                     }
 
-                    _isDiscoveryEventSubscribed = true;
+                    IsDiscoveryEventSubscribed = true;
                     discoverer.IsSearching = true;
-                    _scanResult = "displayBlock";
+                    ScanResult = "displayBlock";
                     DiscovererData = discoverer;
                 }
                 else {
                     discoverer.IsSearching = false;
-                    _scanResult = "displayNone";
-                    if (_discovery != null) {
-                        await _discovery.DisposeAsync();
+                    ScanResult = "displayNone";
+                    if (Discovery != null) {
+                        await Discovery.DisposeAsync();
                     }
-                    _isDiscoveryEventSubscribed = false;
+                    IsDiscoveryEventSubscribed = false;
                 }
                 Status = await RegistryHelper.SetDiscoveryAsync(discoverer);
             }
             catch {
-                if (_discovery != null) {
-                    await _discovery.DisposeAsync();
+                if (Discovery != null) {
+                    await Discovery.DisposeAsync();
                 }
-                _isDiscoveryEventSubscribed = false;
+                IsDiscoveryEventSubscribed = false;
             }
         }
 
@@ -118,28 +127,28 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="discoverer"></param>
         private async Task SetAdHocScanAsync(DiscovererInfo discoverer) {
-            if (!_isDiscoveryEventSubscribed) {
+            if (!IsDiscoveryEventSubscribed) {
                 discoverer.DiscoveryRequestId = Guid.NewGuid().ToString();
-                _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
+                Discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
                 discoverer.DiscoveryRequestId, async data => {
                     await InvokeAsync(() => ScanProgress(data));
                 });
-                _isDiscoveryEventSubscribed = true;
+                IsDiscoveryEventSubscribed = true;
             }
 
             try {
-                _eventResult = string.Empty;
+                EventResult = string.Empty;
 
                 discoverer.IsSearching = true;
-                _scanResult = "displayBlock";
+                ScanResult = "displayBlock";
                 DiscovererData = discoverer;
                 Status = await RegistryHelper.DiscoverServersAsync(discoverer);
             }
             catch {
-                if (_discovery != null) {
-                    await _discovery.DisposeAsync();
+                if (Discovery != null) {
+                    await Discovery.DisposeAsync();
                 }
-                _isDiscoveryEventSubscribed = false;
+                IsDiscoveryEventSubscribed = false;
             }
         }
 
@@ -168,65 +177,65 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             var ts = ev.TimeStamp.ToLocalTime();
             switch (ev.EventType) {
                 case DiscoveryProgressType.Pending:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Total} waiting..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Total} waiting..." + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.Started:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: Started." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Started." + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.NetworkScanStarted:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: Scanning network..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Scanning network..." + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.NetworkScanResult:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found - NEW: {ev.Result}..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found - NEW: {ev.Result}..." + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.NetworkScanProgress:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found" + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.NetworkScanFinished:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found - complete!" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} addresses found - complete!" + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.PortScanStarted:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: Scanning ports..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Scanning ports..." + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.PortScanResult:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found - NEW: {ev.Result}" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found - NEW: {ev.Result}" + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.PortScanProgress:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found" + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.PortScanFinished:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found - complete!" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: {ev.Discovered} ports found - complete!" + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.ServerDiscoveryStarted:
-                    _eventResult += "==========================================" + System.Environment.NewLine;
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: Finding servers..." + System.Environment.NewLine;
+                    EventResult += "==========================================" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: Finding servers..." + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryStarted:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found - find endpoints on {ev.RequestDetails["url"]}..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found - find endpoints on {ev.RequestDetails["url"]}..." + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryFinished:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found - {ev.Result} endpoints found on {ev.RequestDetails["url"]}..." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found - {ev.Result} endpoints found on {ev.RequestDetails["url"]}..." + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.ServerDiscoveryFinished:
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found." + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: {ev.Progress}/{ev.Total}: ... {ev.Discovered} servers found." + System.Environment.NewLine;
                     break;
                 case DiscoveryProgressType.Cancelled:
-                    _eventResult += "==========================================" + System.Environment.NewLine;
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: Cancelled." + System.Environment.NewLine;
+                    EventResult += "==========================================" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Cancelled." + System.Environment.NewLine;
                     if (DiscovererData != null) {
                         DiscovererData.IsSearching = false;
                     }
                     break;
                 case DiscoveryProgressType.Error:
-                    _eventResult += "==========================================" + System.Environment.NewLine;
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: Failure." + System.Environment.NewLine;
+                    EventResult += "==========================================" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Failure." + System.Environment.NewLine;
                     if (DiscovererData != null) {
                         DiscovererData.IsSearching = false;
                     }
                     break;
                 case DiscoveryProgressType.Finished:
-                    _eventResult += "==========================================" + System.Environment.NewLine;
-                    _eventResult += $"[{ts}] {ev.DiscovererId}: Completed." + System.Environment.NewLine;
+                    EventResult += "==========================================" + System.Environment.NewLine;
+                    EventResult += $"[{ts}] {ev.DiscovererId}: Completed." + System.Environment.NewLine;
                     if (DiscovererData != null) {
                         DiscovererData.IsSearching = false;
                     }
@@ -263,7 +272,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Close the scan result view
         /// </summary>
         public void CloseScanResultView() {
-            _scanResult = "displayNone";
+            ScanResult = "displayNone";
         }
 
         public async void Dispose() {
@@ -271,8 +280,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 await _discovererEvent.DisposeAsync();
             }
 
-            if (_discovery != null) {
-                await _discovery.DisposeAsync();
+            if (Discovery != null) {
+                await Discovery.DisposeAsync();
             }
         }
     }

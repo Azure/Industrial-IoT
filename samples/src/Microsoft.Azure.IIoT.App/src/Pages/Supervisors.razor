@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/supervisors"
 @page "/supervisors/{page}"
@@ -16,6 +16,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject IRegistryServiceApi RegistryService
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
@@ -35,8 +36,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var supervisor in _pagedsupervisorList.Results)
-        {
+        @foreach (var supervisor in _pagedsupervisorList.Results) {
             <tr>
                 <td class="hover-text width-large">
                     <div>
@@ -102,6 +102,6 @@
 
 <ErrorMessage PageError="@_pagedsupervisorList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_supervisorList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_supervisorList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

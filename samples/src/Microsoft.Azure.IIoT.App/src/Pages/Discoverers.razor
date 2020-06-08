@@ -19,6 +19,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject IRegistryServiceApi RegistryService
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UICommon CommonHelper
@@ -33,14 +34,11 @@
                                               }))">
         Run ad-hoc discovery
     </a>
-    @if (DiscovererData != null)
-    {
-        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery)
-        {
+    @if (DiscovererData != null) {
+        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery) {
             <div class="spinnermargin loader"></div>
         }
-        else
-        {
+        else {
             <div class="spinnermargin"></div>
         }
     }
@@ -58,11 +56,9 @@
     </thead>
     <tbody>
         @{string connectStatus = "Disconnected"; }
-        @foreach (var discoverer in _pagedDiscovererList.Results)
-        {
+        @foreach (var discoverer in _pagedDiscovererList.Results) {
             <tr>
-                @if (discoverer.HasApplication == true)
-                {
+                @if (discoverer.HasApplication == true) {
                     <td class="hover-text width-large">
                         <div>
                             <a href='endpoints/1/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll/@RegistryHelper.PathAll'>
@@ -71,8 +67,7 @@
                         </div>
                     </td>
                 }
-                else
-                {
+                else {
                     <td class="hover-text">@discoverer.DiscovererModel.Id</td>
                 }
                 @{connectStatus = discoverer.DiscovererModel.Connected == true ? "Connected" : "Disconnected";}
@@ -102,12 +97,10 @@
                     @{bool isEnabled = discoverer.ScanStatus == true;}
                     @{string scanStatus = isEnabled ? "Turn off" : "Turn on";}
                     <button class="btn btn-primary" disabled=@isDisconnected @onclick="(() => SetScanAsync(discoverer, !isEnabled))">@scanStatus</button>
-                    @if (discoverer.IsSearching)
-                    {
+                    @if (discoverer.IsSearching) {
                         <div class=" pos-right loader"></div>
                     }
-                    else
-                    {
+                    else {
                         <div class=" pos-right"></div>
                     }
                 </td>
@@ -135,16 +128,13 @@
                             @(discoverer.EffectiveIdleTimeBetweenScans ?? "Default")<br />
                         </a>
                         Discovery Urls:
-                        @if (discoverer.EffectiveDiscoveryUrls.Count == 0)
-                        {
+                        @if (discoverer.EffectiveDiscoveryUrls.Count == 0) {
                             <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                                 (None)
                             </a>
                         }
-                        else
-                        {
-                            @foreach (var url in discoverer.EffectiveDiscoveryUrls)
-                            {
+                        else {
+                            @foreach (var url in discoverer.EffectiveDiscoveryUrls) {
                                 <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                                     @url<br />
                                 </a>
@@ -162,13 +152,13 @@
     </tbody>
 </table>
 <div class="@_tableEmpty center">No discoverers found.</div>
-<div class="results @_scanResult">
+<div class="results @ScanResult">
     Scan Results:
     <div class="closediv">
         <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => CloseScanResultView())" class="oi oi-x closebtn"></a>
     </div>
     <div class="events">
-        @_eventResult
+        @EventResult
     </div>
 </div>
 
@@ -178,6 +168,6 @@
     <_DrawerDiscoverer DiscovererData="@DiscovererData" Onclick="((DiscovererData) => ClickHandlerAsync((DiscovererInfo)DiscovererData))"></_DrawerDiscoverer>
 </Drawer>
 
-<Pager Result=@_discovererList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_discovererList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

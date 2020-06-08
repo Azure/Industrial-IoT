@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/applications/{page}"
 
@@ -15,6 +15,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject IRegistryServiceApi RegistryService
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
@@ -33,23 +34,20 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var application in _pagedapplicationList.Results)
-        {
+        @foreach (var application in _pagedapplicationList.Results) {
             <tr class="@((application.NotSeenSince != null? "enabled-false" : "enabled-true"))">
                 <td class="hover-text large">
                     <div>
                         @{
                             CommonHelper.ApplicationUri.AddOrUpdate(application.ApplicationId, application.ApplicationUri);
                         }
-                        @if (application.NotSeenSince != null)
-                        {
+                        @if (application.NotSeenSince != null) {
                             @application.ApplicationName
                         }
-                        else
-                        {
-                        <a href='endpoints/1/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
-                            @application.ApplicationName
-                        </a>
+                        else {
+                            <a href='endpoints/1/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
+                                @application.ApplicationName
+                            </a>
                         }
                     </div>
                 </td>
@@ -88,6 +86,6 @@
 
 <ErrorMessage PageError="@_pagedapplicationList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_applicationList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_applicationList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

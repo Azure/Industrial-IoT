@@ -31,11 +31,14 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public void PagerPageChanged(int page) {
+        public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
             _supervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, _supervisorList, ref _pagedsupervisorList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "supervisors/" + page);
+            for (int i = 0; i < _pagedsupervisorList.Results.Count; i++) {
+                _pagedsupervisorList.Results[i] = await RegistryService.GetSupervisorAsync(_pagedsupervisorList.Results[i].Id);
+            }
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
         }

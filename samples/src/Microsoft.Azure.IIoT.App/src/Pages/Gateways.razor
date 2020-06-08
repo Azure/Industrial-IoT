@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/gateways/{page}"
 
@@ -14,6 +14,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject IRegistryServiceApi RegistryService
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
@@ -30,14 +31,13 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var gateway in _pagedGatewayList.Results)
-        {
+        @foreach (var gateway in _pagedGatewayList.Results) {
             <tr>
                 <td class="hover-text width-x-large">
                     <div>
                         @gateway.Id
                     </div>
-                 </td>
+                </td>
                 @{ string siteId = gateway.SiteId == null ? CommonHelper.None : gateway.SiteId;}
                 <td class="hover-text width-large">
                     <div>
@@ -74,6 +74,6 @@
 
 <ErrorMessage PageError="@_pagedGatewayList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_gatewayList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_gatewayList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

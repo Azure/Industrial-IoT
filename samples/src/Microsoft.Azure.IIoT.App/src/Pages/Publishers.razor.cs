@@ -25,11 +25,14 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public void PagerPageChanged(int page) {
+        public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
             _publisherList = CommonHelper.UpdatePage(RegistryHelper.GetPublisherListAsync, page, _publisherList, ref _pagedPublisherList, CommonHelper.PageLengthSmall);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "publishers/" + page);
+            for (int i = 0; i < _pagedPublisherList.Results.Count; i++) {
+                _pagedPublisherList.Results[i] = await RegistryService.GetPublisherAsync(_pagedPublisherList.Results[i].Id);
+            }
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
         }
@@ -51,7 +54,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 Page = "1";
                 _pagedPublisherList = _publisherList.GetPaged(int.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty<PublisherApiModel>(_pagedPublisherList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty(_pagedPublisherList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
 
                 _publisherEvent = await RegistryServiceEvents.SubscribePublisherEventsAsync(

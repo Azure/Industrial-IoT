@@ -25,11 +25,14 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public void PagerPageChanged(int page) {
+        public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
             _gatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, _gatewayList, ref _pagedGatewayList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "gateways/" + page);
+            for (int i = 0; i < _pagedGatewayList.Results.Count; i++) {
+                _pagedGatewayList.Results[i] = (await RegistryService.GetGatewayAsync(_pagedGatewayList.Results[i].Id)).Gateway;
+            }
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
         }
