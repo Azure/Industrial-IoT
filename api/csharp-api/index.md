@@ -10,15 +10,15 @@ Install [docfx](https://dotnet.github.io/docfx/) for example by using [chocolate
 
 To build the API reference open a powershell in root directory of repository and run
 ```powershell
- docfx ".\docs\csharp-api\docfx.json" --build
+ docfx ".\api\csharp-api\docfx.json" --build
 ```
 
-The build results are stored under `docs/csharp-api/_site`
+The build results are stored under `api/csharp-api/_site`
 
 ## Run API Reference as local webpage
 
 To run the API reference as local webpage, open a powerhsell in root directory of repository and run
 ```powershell
- docfx ".\docs\csharp-api\docfx.json" --serve
+ docfx ".\api\csharp-api\docfx.json" --serve
 ```
 

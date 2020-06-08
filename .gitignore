@@ -37,6 +37,6 @@
 *.cache
 CodeCoverage
 coverage.cobertura.xml
-/docs/csharp-api/api/*.yml
-/docs/csharp-api/api/*.manifest
-/docs/csharp-api/_site
+/api/csharp-api/api/*.yml
+/api/csharp-api/api/*.manifest
+/api/csharp-api/_site
