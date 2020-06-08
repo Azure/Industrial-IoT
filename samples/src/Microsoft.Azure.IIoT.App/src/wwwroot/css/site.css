@@ -159,7 +159,6 @@ th {
 
 .reload {
     display: inline-block;
-    position: absolute;
     bottom: 4px;
     left: 320px;
 }
