@@ -12,11 +12,9 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         bool _collapseNavMenu = true;
 
         string NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
-        public CredentialModel Credential = new CredentialModel();
-        private string _subMenuDisplay = "displayNone";
-#pragma warning disable CS0414 // The field is assigned but its value never used
-        private string _subMenuIcon = "oi-expand-down";
-#pragma warning restore CS0414 // The field is assigned but its value never used
+        public CredentialModel Credential { get; set; } = new CredentialModel();
+        private string SubMenuDisplay { get; set; } = "displayNone";
+        private string SubMenuIcon { get; set; } = "oi-expand-down";
 
         /// <summary>
         /// OnAfterRenderAsync
@@ -57,13 +55,13 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         }
 
         private void SubMenu() {
-            if (_subMenuDisplay == "displayNone") {
-                _subMenuDisplay = "displayFlex";
-                _subMenuIcon = "oi-collapse-up";
+            if (SubMenuDisplay == "displayNone") {
+                SubMenuDisplay = "displayFlex";
+                SubMenuIcon = "oi-collapse-up";
             }
             else {
-                _subMenuDisplay = "displayNone";
-                _subMenuIcon = "oi-expand-down";
+                SubMenuDisplay = "displayNone";
+                SubMenuIcon = "oi-expand-down";
             }
         }
     }

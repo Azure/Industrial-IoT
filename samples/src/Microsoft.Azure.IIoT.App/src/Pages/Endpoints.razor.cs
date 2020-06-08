@@ -26,13 +26,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public string SupervisorId { get; set; } = string.Empty;
 
         public string Status { get; set; }
-        private PagedResult<EndpointInfo> _endpointList =
+        private PagedResult<EndpointInfo> EndpointList { get; set; } =
             new PagedResult<EndpointInfo>();
-        private PagedResult<EndpointInfo> _pagedendpointList =
+        private PagedResult<EndpointInfo> PagedendpointList { get; set; } =
             new PagedResult<EndpointInfo>();
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
-        private IAsyncDisposable _endpointEvents { get; set; }
+        private IAsyncDisposable _endpointEvents;
 
         /// <summary>
         /// Notify page change
@@ -41,10 +41,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
-            if (!string.IsNullOrEmpty(_endpointList.ContinuationToken) && page > _pagedendpointList.PageCount) {
-                _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId, _endpointList);
+            if (!string.IsNullOrEmpty(EndpointList.ContinuationToken) && page > PagedendpointList.PageCount) {
+                EndpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId, EndpointList);
             }
-            _pagedendpointList = _endpointList.GetPaged(page, CommonHelper.PageLength, null);
+            PagedendpointList = EndpointList.GetPaged(page, CommonHelper.PageLength, null);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "endpoints/" + page + "/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId);
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
@@ -63,11 +63,11 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
+                EndpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
                 Page = "1";
-                _pagedendpointList = _endpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
+                PagedendpointList = EndpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, EndpointList.Error);
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty(_pagedendpointList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty(PagedendpointList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
 
                 _endpointEvents = await RegistryServiceEvents.SubscribeEndpointEventsAsync(
@@ -76,8 +76,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         }
 
         private Task EndpointEvent(EndpointEventApiModel ev) {
-            _endpointList.Results.Update(ev);
-            _pagedendpointList = _endpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
+            EndpointList.Results.Update(ev);
+            PagedendpointList = EndpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, EndpointList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }

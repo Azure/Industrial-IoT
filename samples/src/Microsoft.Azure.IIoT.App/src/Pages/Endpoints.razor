@@ -70,7 +70,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var endpoint in _pagedendpointList.Results)
+        @foreach (var endpoint in PagedendpointList.Results)
         {
             <tr class="@GetEndpointVisibilityString(endpoint)">
                 @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
@@ -148,8 +148,8 @@
 </table>
 <div class="@_tableEmpty center">No Endpoints found.</div>
 
-<ErrorMessage PageError="@_pagedendpointList.Error" Status="@Status"></ErrorMessage>
+<ErrorMessage PageError="@PagedendpointList.Error" Status="@Status"></ErrorMessage>
 
-<Pager Result=@_endpointList PageChanged=@(async(Page) => await PagerPageChangedAsync(Page)) />
+<Pager Result=@EndpointList PageChanged=@(async(Page) => await PagerPageChangedAsync(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

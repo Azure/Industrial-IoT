@@ -164,10 +164,10 @@
 
 <ErrorMessage PageError="@_pagedDiscovererList.Error" Status="@Status"></ErrorMessage>
 
-<Drawer HeaderText="Discovery Scan Config" ObjectData="@DiscovererData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
+<Drawer HeaderText="Discovery Scan Config" ObjectData="@DiscovererData" IsOpen="@IsOpen" CloseDrawer="@(() => CloseDrawer())">
     <_DrawerDiscoverer DiscovererData="@DiscovererData" Onclick="((DiscovererData) => ClickHandlerAsync((DiscovererInfo)DiscovererData))"></_DrawerDiscoverer>
 </Drawer>
 
-<Pager Result=@_discovererList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
+<Pager Result=@DiscovererList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

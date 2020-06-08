@@ -5,16 +5,15 @@
 
 @using Microsoft.Azure.IIoT.App.Runtime
 @using Microsoft.AspNetCore.Components
-@using System
 
 @inject NavigationManager NavigationManager
 @inject Config Configuration
 
 <AuthorizeView>
     <Authorized>
-        @if(!string.IsNullOrEmpty(_workbookLink))
+        @if(!string.IsNullOrEmpty(Link))
         {
-            <a href="@_workbookLink" target="_blank">Go to IIoT Diagnostics</a>
+            <a href="@Link" target="_blank">Go to IIoT Diagnostics</a>
         }
     </Authorized>
     <NotAuthorized>

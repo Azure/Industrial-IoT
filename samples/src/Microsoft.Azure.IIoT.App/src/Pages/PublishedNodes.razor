@@ -43,7 +43,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var node in _pagednodeList.Results)
+        @foreach (var node in PagedNodeList.Results)
         {
             <tr>
                 <td class="hover-text width-large">
@@ -88,8 +88,8 @@
 </table>
 <div class="@_tableEmpty center">No published nodes found for this endpoint.</div>
 
-<ErrorMessage PageError="@_pagednodeList.Error" Status="@Status"></ErrorMessage>
+<ErrorMessage PageError="@PagedNodeList.Error" Status="@Status"></ErrorMessage>
 
-<Pager Result=@_nodeList PageChanged=@(async(Page) => await PagerPageChangedAsync(Page)) />
+<Pager Result=@NodeList PageChanged=@(async(Page) => await PagerPageChangedAsync(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

@@ -26,26 +26,24 @@ namespace Microsoft.Azure.IIoT.App.Pages {
 
         public enum ActionType { Nothing, Read, Write, Call, Publish };
 
-        private string _response { get; set; } = string.Empty;
-        private string _value { get; set; } = string.Empty;
-        private string[] _valueArray { get; set; }
-        private ActionType _typeOfAction { get; set; } = ActionType.Nothing;
-        private MethodMetadataResponseApiModel _parameters;
-#pragma warning disable CS0414 // The field is assigned but its value never used
-        private string _responseClass = "list-group-item text-left margin body-action-content hidden";
-#pragma warning restore CS0414 // The field is assigned but its value never used
+        private string Response { get; set; } = string.Empty;
+        private string Value { get; set; } = string.Empty;
+        private string[] Values { get; set; }
+        private ActionType TypeOfAction { get; set; } = ActionType.Nothing;
+        private MethodMetadataResponseApiModel _parameters { get; set; }
+        private string ResponseClass { get; set; } = "list-group-item text-left margin body-action-content hidden";
 
         private async Task SelectActionAsync(string nodeId, ChangeEventArgs action) {
             switch (action.Value) {
                 case "Read":
-                    _typeOfAction = ActionType.Read;
+                    TypeOfAction = ActionType.Read;
                     await ReadAsync(nodeId);
                     break;
                 case "Write":
-                    _typeOfAction = ActionType.Write;
+                    TypeOfAction = ActionType.Write;
                     break;
                 case "Call":
-                    _typeOfAction = ActionType.Call;
+                    TypeOfAction = ActionType.Call;
                     await ParameterAsync();
                     break;
                 default:
@@ -54,30 +52,30 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         }
 
         private async Task ReadAsync(string nodeId) {
-            _response = await BrowseManager.ReadValueAsync(EndpointId, nodeId, Credential);
-            _responseClass = "list-group-item text-left margin body-action-content visible";
+            Response = await BrowseManager.ReadValueAsync(EndpointId, nodeId, Credential);
+            ResponseClass = "list-group-item text-left margin body-action-content visible";
         }
 
         private async Task WriteAsync(string nodeId, string value) {
-            _response = await BrowseManager.WriteValueAsync(EndpointId, nodeId, value, Credential);
+            Response = await BrowseManager.WriteValueAsync(EndpointId, nodeId, value, Credential);
 
             var newValue = await BrowseManager.ReadValueAsync(EndpointId, nodeId, Credential);
             var index = PagedNodeList.Results.IndexOf(PagedNodeList.Results.SingleOrDefault(x => x.Id == nodeId));
             PagedNodeList.Results[index].Value = newValue;
-            _responseClass = "list-group-item margin body-action-content visible";
+            ResponseClass = "list-group-item margin body-action-content visible";
         }
 
         private async Task ParameterAsync() {
-            _response = await BrowseManager.GetParameterAsync(EndpointId, NodeData.Id, Credential);
+            Response = await BrowseManager.GetParameterAsync(EndpointId, NodeData.Id, Credential);
             _parameters = BrowseManager.Parameter;
             if (_parameters.InputArguments != null) {
-                _valueArray = new string[_parameters.InputArguments.Count];
+                Values = new string[_parameters.InputArguments.Count];
             }
         }
 
         private async Task CallAsync(string nodeId, string[] values) {
-            _response = await BrowseManager.MethodCallAsync(_parameters, values, EndpointId, NodeData.Id, Credential);
-            _responseClass = "list-group-item margin body-action-content visible";
+            Response = await BrowseManager.MethodCallAsync(_parameters, values, EndpointId, NodeData.Id, Credential);
+            ResponseClass = "list-group-item margin body-action-content visible";
         }
     }
 }

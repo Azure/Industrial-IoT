@@ -109,6 +109,6 @@
 
 <ErrorMessage PageError="@_pagedPublisherList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_publisherList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
+<Pager Result=@PublisherList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

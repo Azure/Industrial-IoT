@@ -4,13 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Pages {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.App.Models;
 
     public partial class AssetLogin {
-        public CredentialModel _credential = new CredentialModel();
-        private bool _showLogin = true;
+        public CredentialModel Credential { get; set; } = new CredentialModel();
+        private bool ShowLogin { get; set; } = true;
 
         /// <summary>
         /// OnAfterRenderAsync
@@ -21,7 +20,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 // By this stage we know the client has connected back to the server, and
                 // browser services are available. So if we didn't load the data earlier,
                 // we should do so now, then trigger a new render
-                _showLogin = !await CheckLoginAsync();
+                ShowLogin = !await CheckLoginAsync();
                 StateHasChanged();
             }
         }
@@ -30,7 +29,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// LoadAsync
         /// </summary>
         public async Task LoadAsync() {
-            _credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
+            Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
         }
 
         /// <summary>
@@ -40,13 +39,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public async Task<bool> CheckLoginAsync() {
             bool isLoggedIn = false;
             await LoadAsync();
-            if (_credential != null) {
-                if (!string.IsNullOrEmpty(_credential.Username) && !string.IsNullOrEmpty(_credential.Password)) {
+            if (Credential != null) {
+                if (!string.IsNullOrEmpty(Credential.Username) && !string.IsNullOrEmpty(Credential.Password)) {
                     isLoggedIn = true;
                 }
             }
             else {
-                _credential = new CredentialModel();
+                Credential = new CredentialModel();
             }
 
             return isLoggedIn;
@@ -57,7 +56,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         public async Task SignOutAsync() {
             await RemoveSecureItemAsync(CommonHelper.CredentialKey);
-            _showLogin = !await CheckLoginAsync();
+            ShowLogin = !await CheckLoginAsync();
             StateHasChanged();
         }
 
@@ -65,8 +64,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// SignIn
         /// </summary>
         public async Task SignInAsync() {
-            await SetSecureItemAsync(CommonHelper.CredentialKey, _credential);
-            _showLogin = !await CheckLoginAsync();
+            await SetSecureItemAsync(CommonHelper.CredentialKey, Credential);
+            ShowLogin = !await CheckLoginAsync();
             StateHasChanged();
         }
 

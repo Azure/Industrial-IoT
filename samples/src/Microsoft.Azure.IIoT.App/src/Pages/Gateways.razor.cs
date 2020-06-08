@@ -15,9 +15,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string Page { get; set; } = "1";
 
-        private PagedResult<GatewayApiModel> _gatewayList = new PagedResult<GatewayApiModel>();
+        private PagedResult<GatewayApiModel> GatewayList { get; set; } = new PagedResult<GatewayApiModel>();
         private PagedResult<GatewayApiModel> _pagedGatewayList = new PagedResult<GatewayApiModel>();
-        private IAsyncDisposable _gatewayEvent { get; set; }
+        private IAsyncDisposable _gatewayEvent;
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
 
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
-            _gatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, _gatewayList, ref _pagedGatewayList, CommonHelper.PageLength);
+            GatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, GatewayList, ref _pagedGatewayList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "gateways/" + page);
             for (int i = 0; i < _pagedGatewayList.Results.Count; i++) {
                 _pagedGatewayList.Results[i] = (await RegistryService.GetGatewayAsync(_pagedGatewayList.Results[i].Id)).Gateway;
@@ -50,9 +50,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                _gatewayList = await RegistryHelper.GetGatewayListAsync();
+                GatewayList = await RegistryHelper.GetGatewayListAsync();
                 Page = "1";
-                _pagedGatewayList = _gatewayList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
+                _pagedGatewayList = GatewayList.GetPaged(int.Parse(Page), CommonHelper.PageLength, GatewayList.Error);
                 CommonHelper.Spinner = string.Empty;
                 CommonHelper.CheckErrorOrEmpty(_pagedGatewayList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
@@ -62,8 +62,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         }
 
         private Task GatewayEvent(GatewayEventApiModel ev) {
-            _gatewayList.Results.Update(ev);
-            _pagedGatewayList = _gatewayList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
+            GatewayList.Results.Update(ev);
+            _pagedGatewayList = GatewayList.GetPaged(int.Parse(Page), CommonHelper.PageLength, GatewayList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }

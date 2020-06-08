@@ -18,17 +18,17 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private DiscovererInfoRequested InputData { get; set; }
         private string DiscoveryUrl { get; set; }
         private string Status { get; set; }
-        private string _buttonLabel { get; set; }
+        private string ButtonLabel { get; set; }
 
         /// <summary>
         /// OnInitialized
         /// </summary>
         protected override void OnInitialized() {
             if (DiscovererData.isAdHocDiscovery) {
-                _buttonLabel = "Apply & Scan";
+                ButtonLabel = "Apply & Scan";
             }
             else {
-                _buttonLabel = "Apply";
+                ButtonLabel = "Apply";
             }
             InputData = new DiscovererInfoRequested();
         }

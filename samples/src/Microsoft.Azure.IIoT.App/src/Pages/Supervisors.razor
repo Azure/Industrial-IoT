@@ -36,7 +36,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var supervisor in _pagedsupervisorList.Results) {
+        @foreach (var supervisor in _pagedSupervisorList.Results) {
             <tr>
                 <td class="hover-text width-large">
                     <div>
@@ -96,12 +96,12 @@
 </table>
 <div class="@_tableEmpty center">No Twin Modules found.</div>
 
-<Drawer HeaderText="Twin Module Status" ObjectData="@SupervisorId" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
+<Drawer HeaderText="Twin Module Status" ObjectData="@SupervisorId" IsOpen="@IsOpen" CloseDrawer="@(() => CloseDrawer())">
     <_DrawerSupervisorContent SupervisorId="@SupervisorId"></_DrawerSupervisorContent>
 </Drawer>
 
-<ErrorMessage PageError="@_pagedsupervisorList.Error" Status="@null"></ErrorMessage>
+<ErrorMessage PageError="@_pagedSupervisorList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_supervisorList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
+<Pager Result=@SupervisorList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

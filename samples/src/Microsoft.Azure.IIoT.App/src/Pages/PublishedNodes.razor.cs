@@ -27,13 +27,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public string SupervisorId { get; set; } = string.Empty;
 
         public string Status { get; set; }
-        private PagedResult<PublishedItemApiModel> _nodeList =
+        private PagedResult<PublishedItemApiModel> NodeList { get; set; } =
             new PagedResult<PublishedItemApiModel>();
-        private PagedResult<PublishedItemApiModel> _pagednodeList =
+        private PagedResult<PublishedItemApiModel> PagedNodeList { get; set; } =
             new PagedResult<PublishedItemApiModel>();
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
-        private IAsyncDisposable _esndpointEvents { get; set; }
 
         /// <summary>
         /// Notify page change
@@ -42,10 +41,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
-            if (!string.IsNullOrEmpty(_nodeList.ContinuationToken) && page > _pagednodeList.PageCount) {
-                _nodeList = await PublisherHelper.PublishedAsync(EndpointId);
+            if (!string.IsNullOrEmpty(NodeList.ContinuationToken) && page > PagedNodeList.PageCount) {
+                NodeList = await PublisherHelper.PublishedAsync(EndpointId);
             }
-            _pagednodeList = _nodeList.GetPaged(page, CommonHelper.PageLength, null);
+            PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, null);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "PublishedNodes/" + page + "/" + EndpointId);
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
@@ -64,11 +63,11 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                _nodeList = await PublisherHelper.PublishedAsync(EndpointId);
+                NodeList = await PublisherHelper.PublishedAsync(EndpointId);
                 Page = "1";
-                _pagednodeList = _nodeList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _nodeList.Error);
+                PagedNodeList = NodeList.GetPaged(int.Parse(Page), CommonHelper.PageLength, NodeList.Error);
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty(_pagednodeList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty(PagedNodeList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
             }
         }

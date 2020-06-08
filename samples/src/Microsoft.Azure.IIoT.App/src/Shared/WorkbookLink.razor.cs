@@ -4,10 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Shared {
-    using System;
-
     public partial class WorkbookLink {
-        private string _workbookLink { get; set; } = null;
+        private string Link { get; set; } = null;
 
         /// <summary>
         /// OnInitialized
@@ -21,7 +19,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         /// </summary>
         private void CreateWorkbookLink() {
             if (!string.IsNullOrEmpty(Configuration.WorkbookId)) {
-                _workbookLink = "https://portal.azure.com/#@" + Configuration.TenantId +
+                Link = "https://portal.azure.com/#@" + Configuration.TenantId +
                     "/resource/subscriptions/" + Configuration.SubscriptionId +
                     "/resourceGroups/" + Configuration.ResourceGroup +
                     "/providers/microsoft.insights/workbooks/" +

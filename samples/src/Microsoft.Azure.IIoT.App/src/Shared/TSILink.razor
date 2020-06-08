@@ -5,16 +5,15 @@
 
 @using Microsoft.Azure.IIoT.App.Runtime
 @using Microsoft.AspNetCore.Components
-@using System
 
 @inject NavigationManager NavigationManager
 @inject Config Configuration
 
 <AuthorizeView>
     <Authorized>
-        @if(!string.IsNullOrEmpty(_tsiLink))
+        @if(!string.IsNullOrEmpty(TsiLink))
         {
-            <a href="@_tsiLink" class="tsi_link" target="_blank">Go to Time Series Insights</a>
+            <a href="@TsiLink" class="tsi_link" target="_blank">Go to Time Series Insights</a>
         }
     </Authorized>
     <NotAuthorized>

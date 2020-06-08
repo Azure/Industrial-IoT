@@ -34,7 +34,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var application in _pagedapplicationList.Results) {
+        @foreach (var application in _pagedApplicationList.Results) {
             <tr class="@((application.NotSeenSince != null? "enabled-false" : "enabled-true"))">
                 <td class="hover-text large">
                     <div>
@@ -80,12 +80,12 @@
 </table>
 <div class="@_tableEmpty center">No Assets found.</div>
 
-<Drawer HeaderText="Asset Info" ObjectData="@ApplicationData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
+<Drawer HeaderText="Asset Info" ObjectData="@ApplicationData" IsOpen="@IsOpen" CloseDrawer="@(() => CloseDrawer())">
     <_DrawerAssetContent ApplicationData="@ApplicationData"></_DrawerAssetContent>
 </Drawer>
 
-<ErrorMessage PageError="@_pagedapplicationList.Error" Status="@null"></ErrorMessage>
+<ErrorMessage PageError="@_pagedApplicationList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_applicationList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
+<Pager Result=@ApplicationList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

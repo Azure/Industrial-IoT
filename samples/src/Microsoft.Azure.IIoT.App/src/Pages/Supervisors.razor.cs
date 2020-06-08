@@ -17,13 +17,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public string Page { get; set; } = "1";
 
         public string Status { get; set; }
-        public bool IsOpened { get; set; } = false;
+        public bool IsOpen { get; set; } = false;
         public string SupervisorId { get; set; }
-        private PagedResult<SupervisorApiModel> _supervisorList =
+        private PagedResult<SupervisorApiModel> SupervisorList { get; set; } =
             new PagedResult<SupervisorApiModel>();
-        private PagedResult<SupervisorApiModel> _pagedsupervisorList =
+        private PagedResult<SupervisorApiModel> _pagedSupervisorList =
             new PagedResult<SupervisorApiModel>();
-        private IAsyncDisposable _supervisorEvent { get; set; }
+        private IAsyncDisposable _supervisorEvent;
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
 
@@ -34,10 +34,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
-            _supervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, _supervisorList, ref _pagedsupervisorList, CommonHelper.PageLength);
+            SupervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, SupervisorList, ref _pagedSupervisorList, CommonHelper.PageLength);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "supervisors/" + page);
-            for (int i = 0; i < _pagedsupervisorList.Results.Count; i++) {
-                _pagedsupervisorList.Results[i] = await RegistryService.GetSupervisorAsync(_pagedsupervisorList.Results[i].Id);
+            for (int i = 0; i < _pagedSupervisorList.Results.Count; i++) {
+                _pagedSupervisorList.Results[i] = await RegistryService.GetSupervisorAsync(_pagedSupervisorList.Results[i].Id);
             }
             CommonHelper.Spinner = string.Empty;
             StateHasChanged();
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             if (firstRender) {
                 await UpdateSupervisorAsync();
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty<SupervisorApiModel>(_pagedsupervisorList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty<SupervisorApiModel>(_pagedSupervisorList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
 
                 _supervisorEvent = await RegistryServiceEvents.SubscribeSupervisorEventsAsync(
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="OpenDrawer"></param>
         private void OpenDrawer(string supervisorId) {
-            IsOpened = true;
+            IsOpen = true;
             SupervisorId = supervisorId;
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Close the Drawer
         /// </summary>
         private void CloseDrawer() {
-            IsOpened = false;
+            IsOpen = false;
             StateHasChanged();
         }
 
@@ -98,8 +98,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="ev"></param>
         private Task SupervisorEvent(SupervisorEventApiModel ev) {
-            _supervisorList.Results.Update(ev);
-            _pagedsupervisorList = _supervisorList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
+            SupervisorList.Results.Update(ev);
+            _pagedSupervisorList = SupervisorList.GetPaged(int.Parse(Page), CommonHelper.PageLength, SupervisorList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }
@@ -108,9 +108,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Update Supervisor list
         /// </summary>
         private async Task UpdateSupervisorAsync() {
-            _supervisorList = await RegistryHelper.GetSupervisorListAsync();
+            SupervisorList = await RegistryHelper.GetSupervisorListAsync();
             Page = "1";
-            _pagedsupervisorList = _supervisorList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
+            _pagedSupervisorList = SupervisorList.GetPaged(int.Parse(Page), CommonHelper.PageLength, SupervisorList.Error);
             CommonHelper.Spinner = "";
         }
 

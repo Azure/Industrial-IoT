@@ -21,20 +21,20 @@ namespace Microsoft.Azure.IIoT.App.Components.Drawer {
         public Action CloseDrawer { get; set; }
 
         [Parameter]
-        public bool IsOpened { get; set; }
+        public bool IsOpen { get; set; }
 
-        private string _divClass { get; set; } = "drawer";
-        private string _closeIcon { get; set; } = "oi oi-x closebtn";
+        private string DivClass { get; set; } = "drawer";
+        private string CloseIcon { get; set; } = "oi oi-x closebtn";
 
         private void OpenPanel() {
-            _divClass = "drawer drawer-right-open";
-            _closeIcon = "oi oi-x closebtn";
+            DivClass = "drawer drawer-right-open";
+            CloseIcon = "oi oi-x closebtn";
         }
 
         private void ClosePanel() {
-            _divClass = "drawer drawer-close";
-            _closeIcon = string.Empty;
-            IsOpened = false;
+            DivClass = "drawer drawer-close";
+            CloseIcon = string.Empty;
+            IsOpen = false;
             CloseDrawer.Invoke();
         }
     }

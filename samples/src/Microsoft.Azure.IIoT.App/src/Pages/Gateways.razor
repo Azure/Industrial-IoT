@@ -74,6 +74,6 @@
 
 <ErrorMessage PageError="@_pagedGatewayList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_gatewayList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
+<Pager Result=@GatewayList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

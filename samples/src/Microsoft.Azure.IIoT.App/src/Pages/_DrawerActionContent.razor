@@ -43,31 +43,31 @@
     </div>
     <hr />
     <div class="list-group-item text-left">
-        @if (_typeOfAction == ActionType.Read)
+        @if (TypeOfAction == ActionType.Read)
         {
-            <div class="@_responseClass">
+            <div class="@ResponseClass">
                 <span>value = </span>
-                <span>@_response</span>
+                <span>@Response</span>
                 <div class="reload">
                     <a class="oi oi-reload" href="javascript: void(0)" @onclick="@(() => ReadAsync(NodeData.Id))"></a>
                 </div>
             </div>
         }
-        else if (_typeOfAction == ActionType.Write)
+        else if (TypeOfAction == ActionType.Write)
         {
             <form>
                 <div class="form-group">
                     <label>Enter value</label>
-                    <input @bind="@_value" aria-label="value" type="text" class="form-control" placeholder="value" />
+                    <input @bind="@Value" aria-label="value" type="text" class="form-control" placeholder="value" />
                 </div>
                 <hr />
                 <div>
-                    <button @onclick="@(() => WriteAsync(NodeData.Id, _value))" type="button" class="btn btn-primary shadow-none">Apply</button>
+                    <button @onclick="@(() => WriteAsync(NodeData.Id, Value))" type="button" class="btn btn-primary shadow-none">Apply</button>
                 </div>
             </form>
-            <div class="@_responseClass">@_response</div>
+            <div class="@ResponseClass">@Response</div>
         }
-        else if (_typeOfAction == ActionType.Call)
+        else if (TypeOfAction == ActionType.Call)
         {
             @if (_parameters?.InputArguments != null)
             {
@@ -79,7 +79,7 @@
                         int i = index;
                         <div class="form-group">
                             <label>@parameter.Type.DisplayName</label>
-                            <input @bind="@_valueArray[i]" aria-label="value" type="text" class="form-control" placeholder="@parameter.Type.Description" />
+                            <input @bind="@Values[i]" aria-label="value" type="text" class="form-control" placeholder="@parameter.Type.Description" />
                         </div>
                         index++;
                     }
@@ -87,9 +87,9 @@
              }
             <hr />
             <div>
-                <button @onclick="@(async() => await CallAsync(NodeData.Id, _valueArray))" type="button" class="btn btn-primary shadow-none">Apply</button>
+                <button @onclick="@(async() => await CallAsync(NodeData.Id, Values))" type="button" class="btn btn-primary shadow-none">Apply</button>
             </div>
-            <div class="@_responseClass">
+            <div class="@ResponseClass">
                 @if (BrowseManager.MethodCallResponse != null)
                 {
                     if (BrowseManager.MethodCallResponse.Results.Count > 0)
@@ -108,7 +108,7 @@
                 else
                 {
                     <div>method call failed</div>
-                    <div>@_response</div>
+                    <div>@Response</div>
                 }
             </div>
         }

@@ -17,21 +17,20 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public string Page { get; set; } = "1";
 
         public bool IsSearching { get; set; } = false;
-        public bool IsOpened { get; set; } = false;
+        public bool IsOpen { get; set; } = false;
         public DiscovererInfo DiscovererData { get; set; }
         public string Status { get; set; }
 
-        private PagedResult<DiscovererInfo> _discovererList = new PagedResult<DiscovererInfo>();
+        private PagedResult<DiscovererInfo> DiscovererList { get; set; } = new PagedResult<DiscovererInfo>();
         private PagedResult<DiscovererInfo> _pagedDiscovererList = new PagedResult<DiscovererInfo>();
         private string EventResult { get; set; }
         private string ScanResult { get; set; } = "displayNone";
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
 
-        private IAsyncDisposable _discovererEvent { get; set; }
+        private IAsyncDisposable _discovererEvent;
         private IAsyncDisposable Discovery { get; set; }
         private bool IsDiscoveryEventSubscribed { get; set; } = false;
-
 
         /// <summary>
         /// Notify page change
@@ -41,7 +40,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
-            _discovererList = CommonHelper.UpdatePage(RegistryHelper.GetDiscovererListAsync, page, _discovererList, ref _pagedDiscovererList, CommonHelper.PageLengthSmall);
+            DiscovererList = CommonHelper.UpdatePage(RegistryHelper.GetDiscovererListAsync, page, DiscovererList, ref _pagedDiscovererList, CommonHelper.PageLengthSmall);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "discoverers/" + page);
             foreach (var discoverer in _pagedDiscovererList.Results) {
                 discoverer.DiscovererModel = await RegistryService.GetDiscovererAsync(discoverer.DiscovererModel.Id);
@@ -70,9 +69,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                _discovererList = await RegistryHelper.GetDiscovererListAsync();
+                DiscovererList = await RegistryHelper.GetDiscovererListAsync();
                 Page = "1";
-                _pagedDiscovererList = _discovererList.GetPaged(int.Parse(Page), CommonHelper.PageLengthSmall, _discovererList.Error);
+                _pagedDiscovererList = DiscovererList.GetPaged(int.Parse(Page), CommonHelper.PageLengthSmall, DiscovererList.Error);
                 CommonHelper.Spinner = string.Empty;
                 CommonHelper.CheckErrorOrEmpty(_pagedDiscovererList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
@@ -157,7 +156,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="OpenDrawer"></param>
         private void OpenDrawer(DiscovererInfo discoverer) {
-            IsOpened = true;
+            IsOpen = true;
             DiscovererData = discoverer;
         }
 
@@ -165,7 +164,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Close the Drawer
         /// </summary>
         private void CloseDrawer() {
-            IsOpened = false;
+            IsOpen = false;
             StateHasChanged();
         }
 
@@ -262,8 +261,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="ev"></param>
         private Task DiscovererEvent(DiscovererEventApiModel ev) {
-            _discovererList.Results.Update(ev);
-            _pagedDiscovererList = _discovererList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _discovererList.Error);
+            DiscovererList.Results.Update(ev);
+            _pagedDiscovererList = DiscovererList.GetPaged(int.Parse(Page), CommonHelper.PageLength, DiscovererList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }
