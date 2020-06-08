@@ -146,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _sessions.Add(id, wrapper);
                 }
                 wrapper._subscriptions.AddOrUpdate(subscription.Id, subscription);
-                _logger.Information("Subscription '{subscriptionId}' registered in session '{id}' in state {state}",
+                _logger.Information("Subscription '{subscriptionId}' registered/updated in session '{id}' in state {state}",
                     subscription.Id, id, wrapper.State);
                 if (wrapper.State == SessionState.Running) {
                     wrapper.State = SessionState.Refresh;
@@ -209,7 +209,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Error(ex, "Unexpected exception stopping processor thread");
             }
             finally {
-                Task.WaitAll(processingTasks.ToArray());
+                await Task.WhenAll(processingTasks.ToArray());
             }
         }
 

@@ -49,6 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             var sub = _subscriptions.GetOrAdd(subscriptionModel.Id,
                 key => new SubscriptionWrapper(this, subscriptionModel, _logger));
+            _sessionManager.RegisterSubscription(sub);
             return Task.FromResult<ISubscription>(sub);
         }
 
