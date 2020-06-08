@@ -94,17 +94,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var identity = hostScope.Resolve<IIdentity>();
-                    logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                     var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
-                        server.StartWhenEnabled(moduleConfig, logger);
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
-                        // Start module
-                        kPublisherModuleStart.WithLabels(
-                            identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         logger.Information("Starting module OpcPublisher version {version}.", version);
+                        logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
+                        server.StartWhenEnabled(moduleConfig, logger);
+                        // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this);
+                        kPublisherModuleStart.WithLabels(
+                            identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await workerSupervisor.StartAsync();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
@@ -112,7 +112,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                             logger.Information("Module exits...");
                             return _exitCode;
                         }
-
                         _reset = new TaskCompletionSource<bool>();
                         logger.Information("Module reset...");
                     }
@@ -137,6 +136,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// <param name="configuration"></param>
         /// <returns></returns>
         private IContainer ConfigureContainer(IConfiguration configuration) {
+
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
             var legacyCliOptions = new LegacyCliOptions(configuration);

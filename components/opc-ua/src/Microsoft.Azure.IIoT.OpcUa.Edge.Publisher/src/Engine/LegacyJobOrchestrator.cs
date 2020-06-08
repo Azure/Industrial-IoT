@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Security.Cryptography;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Collections.Concurrent;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             _availableJobs = new Queue<JobProcessingInstructionModel>();
-            _assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
+            _assignedJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
 
             var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
@@ -73,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 return Task.FromResult(job);
             }
             if (_availableJobs.Count > 0 && (job = _availableJobs.Dequeue()) != null) {
-                _assignedJobs[workerId] = job;
+                _assignedJobs.AddOrUpdate(workerId, job);
                 if (_availableJobs.Count == 0) {
                     _updated = false;
                 }
@@ -200,7 +201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private Queue<JobProcessingInstructionModel> _availableJobs;
-        private readonly Dictionary<string, JobProcessingInstructionModel> _assignedJobs;
+        private readonly ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private string _lastKnownFileHash;
         private bool _updated;
     }

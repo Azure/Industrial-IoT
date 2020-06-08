@@ -25,6 +25,8 @@ namespace Microsoft.Azure.IIoT.App.Data {
             var skip = (page - 1) * pageSize;
             result.Results = query.Results.Skip(skip).Take(pageSize).ToList();
 
+            query.CurrentPage = page;
+
             return result;
         }
     }
