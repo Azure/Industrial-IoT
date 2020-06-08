@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         private void CloseDrawer() {
             IsOpened = false;
-            this.StateHasChanged();
+            StateHasChanged();
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="ev"></param>
         private Task SupervisorEvent(SupervisorEventApiModel ev) {
             _supervisorList.Results.Update(ev);
-            _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
+            _pagedsupervisorList = _supervisorList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }
@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private async Task UpdateSupervisorAsync() {
             _supervisorList = await RegistryHelper.GetSupervisorListAsync();
             Page = "1";
-            _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
+            _pagedsupervisorList = _supervisorList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
             CommonHelper.Spinner = "";
         }
 

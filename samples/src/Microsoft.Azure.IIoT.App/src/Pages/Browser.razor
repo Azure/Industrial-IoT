@@ -65,7 +65,7 @@
             }
             else
             {
-                <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(PagedNodeList.Results[0].NextParentId, PagedNodeList.Results[0].ParentIdList, i))">
+                <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(_pagedNodeList.Results[0].NextParentId, _pagedNodeList.Results[0].ParentIdList, i))">
                     / @item.ToString()
                 </a>
             }
@@ -84,19 +84,19 @@
             <th class="width-small">Publishing Config</th>
             <th class="width-small">Status</th>
             <th class="width-xsmall">
-                @if (PagedNodeList.Results.Count > 0)
+                @if (_pagedNodeList.Results.Count > 0)
                 {
-                    if (PagedNodeList.Results[0].ParentName != "Root")
+                    if (_pagedNodeList.Results[0].ParentName != "Root")
                     {
-                        <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(PagedNodeList.Results[0].NextParentId, PagedNodeList.Results[0].ParentIdList, PagedNodeList.Results[0].ParentIdList.Count - 1))">
+                        <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(_pagedNodeList.Results[0].NextParentId, _pagedNodeList.Results[0].ParentIdList, _pagedNodeList.Results[0].ParentIdList.Count - 1))">
                             <span class="oi oi-arrow-left"></span>
                         </a>
                     }
                     else
                     {
-                        if (PagedNodeList.Results[0].DiscovererId != null)
+                        if (_pagedNodeList.Results[0].DiscovererId != null)
                         {
-                            <a href='endpoints/1/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId'>
+                            <a href='endpoints/1/@_pagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId'>
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
@@ -106,7 +106,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var node in PagedNodeList.Results)
+        @foreach (var node in _pagedNodeList.Results)
         {
         <tr>
             <td class="hover-text width-medium">
@@ -133,7 +133,7 @@
             {
                 <td class="hover-text width-small">
                     <div>
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Action))">
+                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Action))">
                             @node.NodeClass
                         </a>
                     </div>
@@ -152,7 +152,7 @@
             {
                 <td class="width-medium-large">
                     <div class="value-scroll">
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Action))">
+                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Action))">
                             @{string outputValue = $"{node.Value}";}
                             @{string outputType = $"({node.DataType})";}
                             @{string outputStatus = $"({node.Status} -";}
@@ -183,13 +183,13 @@
                 <td class="width-small space-wrap">
                     @if (node.Publishing == true && node.PublishedItem != null)
                     {
-                        <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Publisher))">
+                        <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
                             @(node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
                         </a>
-                        <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Publisher))">
+                        <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
                             @(node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
                         </a>
-                        <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Publisher))">
+                        <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
                             @(node.PublishedItem.HeartbeatInterval == null ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
                             <br />
                         </a>
@@ -236,19 +236,19 @@
 </table>
 <div class="@_tableEmpty center">No Nodes found.</div>
 
-<ErrorMessage PageError="@PagedNodeList.Error" Status="@null"></ErrorMessage>
+<ErrorMessage PageError="@_pagedNodeList.Error" Status="@null"></ErrorMessage>
 
 <Drawer HeaderText="Select Action" ObjectData="@NodeData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
-    @if (_drawerType == drawer.Action)
+    @if (DrawerType == Drawer.Action)
     {
-        <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" PagedNodeList="@PagedNodeList" Credential="@Credential"></_DrawerActionContent>
+        <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" _pagedNodeList="@_pagedNodeList" Credential="@_credential"></_DrawerActionContent>
     }
     else
     {
-        <_DrawerPublisherContent NodeData="@NodeData" Onclick="((NodeData) => ClickHandler((ListNode)NodeData))"></_DrawerPublisherContent>
+        <_DrawerPublisherContent NodeData="@NodeData" Onclick="((NodeData) => ClickHandlerAsync((ListNode)NodeData))"></_DrawerPublisherContent>
     }
 </Drawer>
 
-<Pager Result=@NodeList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
+<Pager Result=@_nodeList PageChanged=@(async(Page) => await PagerPageChangedAsync(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

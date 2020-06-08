@@ -90,6 +90,6 @@
 
 <ErrorMessage PageError="@_pagednodeList.Error" Status="@Status"></ErrorMessage>
 
-<Pager Result=@_nodeList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
+<Pager Result=@_nodeList PageChanged=@(async(Page) => await PagerPageChangedAsync(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

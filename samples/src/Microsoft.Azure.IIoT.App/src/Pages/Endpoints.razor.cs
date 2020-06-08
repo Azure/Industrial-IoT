@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public async Task PagerPageChanged(int page) {
+        public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
             if (!string.IsNullOrEmpty(_endpointList.ContinuationToken) && page > _pagedendpointList.PageCount) {
@@ -65,9 +65,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             if (firstRender) {
                 _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
                 Page = "1";
-                _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
+                _pagedendpointList = _endpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty<EndpointInfo>(_pagedendpointList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty(_pagedendpointList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
 
                 _endpointEvents = await RegistryServiceEvents.SubscribeEndpointEventsAsync(
@@ -77,7 +77,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
 
         private Task EndpointEvent(EndpointEventApiModel ev) {
             _endpointList.Results.Update(ev);
-            _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
+            _pagedendpointList = _endpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }
@@ -112,10 +112,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="endpoint">The endpoint info</param>
         /// <returns>The css string</returns>
         private string GetEndpointVisibilityString(EndpointInfo endpoint) {
-            if (!this.IsEndpointSeen(endpoint)) {
+            if (!IsEndpointSeen(endpoint)) {
                 return "enabled-false";
             }
-            else if (this.IsEndpointActivated(endpoint)) {
+            else if (IsEndpointActivated(endpoint)) {
                 return "enabled-true activated-true";
             }
             else {
@@ -129,7 +129,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="endpointId"></param>
         /// <param name="checkedValue"></param>
         /// <returns></returns>
-        private async Task SetActivation(EndpointInfo endpoint) {
+        private async Task SetActivationAsync(EndpointInfo endpoint) {
             string endpointId = endpoint.EndpointModel.Registration.Id;
 
             if (!IsEndpointActivated(endpoint)) {

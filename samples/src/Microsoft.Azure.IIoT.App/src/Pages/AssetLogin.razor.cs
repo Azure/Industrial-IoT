@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Models;
 
     public partial class AssetLogin {
-        public CredentialModel Credential = new CredentialModel();
+        public CredentialModel _credential = new CredentialModel();
         private bool _showLogin = true;
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 // By this stage we know the client has connected back to the server, and
                 // browser services are available. So if we didn't load the data earlier,
                 // we should do so now, then trigger a new render
-                _showLogin = !(await CheckLoginAsync());
+                _showLogin = !await CheckLoginAsync();
                 StateHasChanged();
             }
         }
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// LoadAsync
         /// </summary>
         public async Task LoadAsync() {
-            Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
+            _credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
         }
 
         /// <summary>
@@ -40,13 +40,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public async Task<bool> CheckLoginAsync() {
             bool isLoggedIn = false;
             await LoadAsync();
-            if (Credential != null) {
-                if (!String.IsNullOrEmpty(Credential.Username) && !String.IsNullOrEmpty(Credential.Password)) {
+            if (_credential != null) {
+                if (!string.IsNullOrEmpty(_credential.Username) && !string.IsNullOrEmpty(_credential.Password)) {
                     isLoggedIn = true;
                 }
             }
             else {
-                Credential = new CredentialModel();
+                _credential = new CredentialModel();
             }
 
             return isLoggedIn;
@@ -55,18 +55,18 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// SignOut
         /// </summary>
-        public async Task SignOut() {
+        public async Task SignOutAsync() {
             await RemoveSecureItemAsync(CommonHelper.CredentialKey);
-            _showLogin = !(await CheckLoginAsync());
+            _showLogin = !await CheckLoginAsync();
             StateHasChanged();
         }
 
         /// <summary>
         /// SignIn
         /// </summary>
-        public async Task SignIn() {
-            await SetSecureItemAsync(CommonHelper.CredentialKey, Credential);
-            _showLogin = !(await CheckLoginAsync());
+        public async Task SignInAsync() {
+            await SetSecureItemAsync(CommonHelper.CredentialKey, _credential);
+            _showLogin = !await CheckLoginAsync();
             StateHasChanged();
         }
 

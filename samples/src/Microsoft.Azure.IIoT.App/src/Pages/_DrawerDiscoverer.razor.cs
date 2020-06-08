@@ -15,9 +15,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public EventCallback Onclick { get; set; }
 
-        private DiscovererInfoRequested _inputData { get; set; }
-        private string _discoveryUrl { get; set; }
-        private string _status { get; set; }
+        private DiscovererInfoRequested InputData { get; set; }
+        private string DiscoveryUrl { get; set; }
+        private string Status { get; set; }
         private string _buttonLabel { get; set; }
 
         /// <summary>
@@ -30,17 +30,17 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             else {
                 _buttonLabel = "Apply";
             }
-            _inputData = new DiscovererInfoRequested();
+            InputData = new DiscovererInfoRequested();
         }
 
         /// <summary>
         /// Close Drawer and update discovery
         /// </summary>
         private async Task UpdateDiscovererConfigAsync() {
-            DiscovererData.TryUpdateData(_inputData);
+            DiscovererData.TryUpdateData(InputData);
             await Onclick.InvokeAsync(DiscovererData);
             if (!DiscovererData.isAdHocDiscovery) {
-                _status = await RegistryHelper.UpdateDiscovererAsync(DiscovererData);
+                Status = await RegistryHelper.UpdateDiscovererAsync(DiscovererData);
             }
         }
     }

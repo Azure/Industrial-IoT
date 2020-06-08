@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         /// Create TSI link
         /// </summary>
         private void CreateTSILink() {
-            if (!String.IsNullOrEmpty(Configuration.TsiDataAccessFQDN)) {
+            if (!string.IsNullOrEmpty(Configuration.TsiDataAccessFQDN)) {
                 var index = Configuration.TsiDataAccessFQDN.IndexOf('.');
                 if (index > 0) {
                     _tsiLink = "https://insights.timeseries.azure.com/preview?environmentId=" + Configuration.TsiDataAccessFQDN.Substring(0, index) + "&tid=" + Configuration.TenantId;

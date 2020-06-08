@@ -31,40 +31,39 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string Page { get; set; } = "1";
 
-        public PagedResult<ListNode> NodeList = new PagedResult<ListNode>();
-        public PagedResult<ListNode> PagedNodeList = new PagedResult<ListNode>();
-        public PagedResult<PublishedItemApiModel> PublishedNodes = new PagedResult<PublishedItemApiModel>();
-        public CredentialModel Credential = new CredentialModel();
+        public PagedResult<ListNode> _nodeList = new PagedResult<ListNode>();
+        public PagedResult<ListNode> _pagedNodeList = new PagedResult<ListNode>();
+        public PagedResult<PublishedItemApiModel> _publishedNodes = new PagedResult<PublishedItemApiModel>();
+        public CredentialModel _credential = new CredentialModel();
         public bool IsOpened { get; set; } = false;
         public ListNode NodeData { get; set; }
         public string EndpointUrl { get; set; } = null;
-        private IAsyncDisposable _publishEvent { get; set; }
+        private IAsyncDisposable PublishEvent { get; set; }
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
-        private List<string> _parentId { get; set; }
-        private enum drawer {
+        private List<string> ParentId { get; set; }
+        private enum Drawer {
             Action = 0,
             Publisher
         }
-        private drawer _drawerType { get; set; }
+        private Drawer DrawerType { get; set; }
         private const int _firstPage = 1;
-
 
         /// <summary>
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public async Task PagerPageChanged(int page) {
+        public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
-            if (!string.IsNullOrEmpty(NodeList.ContinuationToken) && page > PagedNodeList.PageCount) {
+            if (!string.IsNullOrEmpty(_nodeList.ContinuationToken) && page > _pagedNodeList.PageCount) {
                 await BrowseTreeAsync(BrowseDirection.Forward, 0, false, page);
             }
-            PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, null);
-            foreach (var node in PagedNodeList.Results) {
+            _pagedNodeList = _nodeList.GetPaged(page, CommonHelper.PageLength, null);
+            foreach (var node in _pagedNodeList.Results) {
                 //fetch the actual value
                 if (node.NodeClass == NodeClass.Variable) {
-                    node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id, Credential);
+                    node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id, _credential);
                 }
             }
             CommonHelper.Spinner = string.Empty;
@@ -86,13 +85,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             if (firstRender) {
                 var endpoint = await registryService.GetEndpointAsync(EndpointId);
                 EndpointUrl = endpoint?.Registration?.EndpointUrl;
-                Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
+                _credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
                 await BrowseTreeAsync(BrowseDirection.Forward, 0, true, _firstPage, string.Empty, new List<string>());
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty<ListNode>(PagedNodeList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty<ListNode>(_pagedNodeList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
-                if (PublishedNodes.Results.Count > 0) {
-                    _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
+                if (_publishedNodes.Results.Count > 0) {
+                    PublishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
                     samples => InvokeAsync(() => GetPublishedNodeData(samples)));
                 }
             }
@@ -127,29 +126,29 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             CommonHelper.Spinner = "loader-big";
 
             if (firstPage) {
-                _parentId = parentId;
-                NodeList = await BrowseManager.GetTreeAsync(EndpointId,
+                ParentId = parentId;
+                _nodeList = await BrowseManager.GetTreeAsync(EndpointId,
                                             id,
                                             parentId,
                                             DiscovererId,
                                             direction,
                                             index,
-                                            Credential);
+                                            _credential);
             }
             else {
-                NodeList = await BrowseManager.GetTreeNextAsync(EndpointId,
-                                                _parentId,
+                _nodeList = await BrowseManager.GetTreeNextAsync(EndpointId,
+                                                ParentId,
                                                 DiscovererId,
-                                                Credential,
-                                                NodeList);
+                                                _credential,
+                                                _nodeList);
             }
 
-            PublishedNodes = await Publisher.PublishedAsync(EndpointId);
+            _publishedNodes = await Publisher.PublishedAsync(EndpointId);
 
-            foreach (var node in NodeList.Results) {
+            foreach (var node in _nodeList.Results) {
                 if (node.NodeClass == NodeClass.Variable) {
                     // check if publishing enabled
-                    foreach (var publishedItem in PublishedNodes.Results) {
+                    foreach (var publishedItem in _publishedNodes.Results) {
                         if (node.Id == publishedItem.NodeId) {
                             node.PublishedItem = publishedItem;
                             node.Publishing = true;
@@ -159,7 +158,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 }
             }
 
-            PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, NodeList.Error);
+            _pagedNodeList = _nodeList.GetPaged(page, CommonHelper.PageLength, _nodeList.Error);
             if (string.IsNullOrEmpty(DiscovererId)) {
                 NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + page + "/" + ApplicationId + "/" + EndpointId);
             }
@@ -193,7 +192,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             var publishingInterval = node.PublishedItem?.PublishingInterval == null ? TimeSpan.FromMilliseconds(1000) : node.PublishedItem.PublishingInterval;
             var samplingInterval = node.PublishedItem?.SamplingInterval == null ? TimeSpan.FromMilliseconds(1000) : node.PublishedItem.SamplingInterval;
             var heartbeatInterval = node.PublishedItem?.HeartbeatInterval;
-            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, samplingInterval, publishingInterval, heartbeatInterval, Credential);
+            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, samplingInterval, publishingInterval, heartbeatInterval, _credential);
             if (result) {
                 node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel() {
                     NodeId = node.Id,
@@ -202,8 +201,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                     SamplingInterval = samplingInterval,
                     HeartbeatInterval = heartbeatInterval
                 };
-                if (_publishEvent == null) {
-                    _publishEvent = Task.Run(async () => await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
+                if (PublishEvent == null) {
+                    PublishEvent = Task.Run(async () => await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
                         samples => InvokeAsync(() => GetPublishedNodeData(samples)))).Result;
                 }
             }
@@ -219,7 +218,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="endpointId"></param>
         /// <param name="node"></param>
         private async Task UnPublishNodeAsync(string endpointId, ListNode node) {
-            var result = await Publisher.StopPublishingAsync(endpointId, node.Id, Credential);
+            var result = await Publisher.StopPublishingAsync(endpointId, node.Id, _credential);
             if (result) {
                 node.PublishedItem = null;
                 node.Publishing = false;
@@ -230,10 +229,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Open the Drawer
         /// </summary>
         /// <param name="node"></param>
-        private void OpenDrawer(ListNode node, drawer type) {
+        private void OpenDrawer(ListNode node, Drawer type) {
             IsOpened = true;
             NodeData = node;
-            _drawerType = type;
+            DrawerType = type;
         }
 
         /// <summary>
@@ -242,7 +241,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private void CloseDrawer() {
             IsOpened = false;
             BrowseManager.MethodCallResponse = null;
-            this.StateHasChanged();
+            StateHasChanged();
         }
 
         /// <summary>
@@ -250,12 +249,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="samples"></param>
         private Task GetPublishedNodeData(MonitoredItemMessageApiModel samples) {
-            foreach (var node in PagedNodeList.Results) {
+            foreach (var node in _pagedNodeList.Results) {
                 if (node.Id == samples.NodeId) {
                     node.Value = samples.Value?.ToJson()?.TrimQuotes();
                     node.Status = string.IsNullOrEmpty(samples.Status) ? "Good" : samples.Status;
                     node.Timestamp = samples.Timestamp.Value.ToLocalTime().ToString();
-                    this.StateHasChanged();
+                    StateHasChanged();
                 }
             }
             return Task.CompletedTask;
@@ -264,7 +263,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// ClickHandler
         /// </summary>
-        async Task ClickHandler(ListNode node) {
+        async Task ClickHandlerAsync(ListNode node) {
             CloseDrawer();
             await PublishNodeAsync(EndpointId, node);
         }
@@ -273,8 +272,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Dispose
         /// </summary>
         public async void Dispose() {
-            if (_publishEvent != null) {
-                await _publishEvent.DisposeAsync();
+            if (PublishEvent != null) {
+                await PublishEvent.DisposeAsync();
             }
         }
 

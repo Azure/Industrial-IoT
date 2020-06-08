@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.App.Components.Drawer {
         public RenderFragment ChildContent { get; set; }
 
         [Parameter]
-        public Object ObjectData { get; set; }
+        public object ObjectData { get; set; }
 
         [Parameter]
         public Action CloseDrawer { get; set; }

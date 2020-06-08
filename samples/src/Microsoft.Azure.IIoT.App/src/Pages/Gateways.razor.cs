@@ -49,9 +49,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             if (firstRender) {
                 _gatewayList = await RegistryHelper.GetGatewayListAsync();
                 Page = "1";
-                _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
+                _pagedGatewayList = _gatewayList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty<GatewayApiModel>(_pagedGatewayList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty(_pagedGatewayList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
                 _gatewayEvent = await RegistryServiceEvents.SubscribeGatewayEventsAsync(
                     ev => InvokeAsync(() => GatewayEvent(ev)));
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
 
         private Task GatewayEvent(GatewayEventApiModel ev) {
             _gatewayList.Results.Update(ev);
-            _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
+            _pagedGatewayList = _gatewayList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }

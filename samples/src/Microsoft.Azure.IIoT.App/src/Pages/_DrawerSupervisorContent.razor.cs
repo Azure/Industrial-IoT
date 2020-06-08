@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
 
         public SupervisorStatusApiModel SupervisorStatus { get; set; }
 
-
         /// <summary>
         /// OnInitialized
         /// </summary>

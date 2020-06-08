@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             if (firstRender) {
                 _publisherList = await RegistryHelper.GetPublisherListAsync();
                 Page = "1";
-                _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
+                _pagedPublisherList = _publisherList.GetPaged(int.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
                 CommonHelper.Spinner = string.Empty;
                 CommonHelper.CheckErrorOrEmpty<PublisherApiModel>(_pagedPublisherList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
 
         private Task PublisherEvent(PublisherEventApiModel ev) {
             _publisherList.Results.Update(ev);
-            _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
+            _pagedPublisherList = _publisherList.GetPaged(int.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }

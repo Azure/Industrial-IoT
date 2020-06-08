@@ -33,13 +33,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             new PagedResult<PublishedItemApiModel>();
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
-        private IAsyncDisposable _endpointEvents { get; set; }
+        private IAsyncDisposable _esndpointEvents { get; set; }
 
         /// <summary>
         /// Notify page change
         /// </summary>
         /// <param name="page"></param>
-        public async Task PagerPageChanged(int page) {
+        public async Task PagerPageChangedAsync(int page) {
             CommonHelper.Spinner = "loader-big";
             StateHasChanged();
             if (!string.IsNullOrEmpty(_nodeList.ContinuationToken) && page > _pagednodeList.PageCount) {
@@ -66,9 +66,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             if (firstRender) {
                 _nodeList = await PublisherHelper.PublishedAsync(EndpointId);
                 Page = "1";
-                _pagednodeList = _nodeList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _nodeList.Error);
+                _pagednodeList = _nodeList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _nodeList.Error);
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty<PublishedItemApiModel>(_pagednodeList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty(_pagednodeList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
             }
         }

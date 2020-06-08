@@ -157,7 +157,7 @@
 <ErrorMessage PageError="@_pagedDiscovererList.Error" Status="@Status"></ErrorMessage>
 
 <Drawer HeaderText="Discovery Scan Config" ObjectData="@DiscovererData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
-    <_DrawerDiscoverer DiscovererData="@DiscovererData" Onclick="((DiscovererData) => ClickHandler((DiscovererInfo)DiscovererData))"></_DrawerDiscoverer>
+    <_DrawerDiscoverer DiscovererData="@DiscovererData" Onclick="((DiscovererData) => ClickHandlerAsync((DiscovererInfo)DiscovererData))"></_DrawerDiscoverer>
 </Drawer>
 
 <Pager Result=@_discovererList PageChanged=@((Page) => PagerPageChanged(Page)) />

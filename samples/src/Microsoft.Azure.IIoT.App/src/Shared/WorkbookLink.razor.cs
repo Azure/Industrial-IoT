@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         /// Create workbook link
         /// </summary>
         private void CreateWorkbookLink() {
-            if (!String.IsNullOrEmpty(Configuration.WorkbookId)) {
+            if (!string.IsNullOrEmpty(Configuration.WorkbookId)) {
                 _workbookLink = "https://portal.azure.com/#@" + Configuration.TenantId +
                     "/resource/subscriptions/" + Configuration.SubscriptionId +
                     "/resourceGroups/" + Configuration.ResourceGroup +

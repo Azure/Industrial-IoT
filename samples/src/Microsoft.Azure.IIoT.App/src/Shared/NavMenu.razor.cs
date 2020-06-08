@@ -9,12 +9,14 @@ namespace Microsoft.Azure.IIoT.App.Shared {
     using Microsoft.AspNetCore.Components.Routing;
 
     public partial class NavMenu {
-        bool collapseNavMenu = true;
+        bool _collapseNavMenu = true;
 
-        string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+        string NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
         public CredentialModel Credential = new CredentialModel();
         private string _subMenuDisplay = "displayNone";
+#pragma warning disable CS0414 // The field is assigned but its value never used
         private string _subMenuIcon = "oi-expand-down";
+#pragma warning restore CS0414 // The field is assigned but its value never used
 
         /// <summary>
         /// OnAfterRenderAsync
@@ -28,20 +30,20 @@ namespace Microsoft.Azure.IIoT.App.Shared {
         }
 
         protected override void OnInitialized() {
-            NavigationManager.LocationChanged += HandleLocationChanged;
+            NavigationManager.LocationChanged += HandleLocationChangedAsync;
         }
 
-        private async void HandleLocationChanged(object sender, LocationChangedEventArgs e) {
+        private async void HandleLocationChangedAsync(object sender, LocationChangedEventArgs e) {
             Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
             StateHasChanged();
         }
 
         public void Dispose() {
-            NavigationManager.LocationChanged -= HandleLocationChanged;
+            NavigationManager.LocationChanged -= HandleLocationChangedAsync;
         }
 
         void ToggleNavMenu() {
-            collapseNavMenu = !collapseNavMenu;
+            _collapseNavMenu = !_collapseNavMenu;
         }
 
         private async Task<T> GetSecureItemAsync<T>(string key) {

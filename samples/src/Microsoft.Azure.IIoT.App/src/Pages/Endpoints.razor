@@ -124,7 +124,7 @@
                 <td class="width-small">
                     @{string activationStatus = IsEndpointActivated(endpoint) == true ? "Turn off" : "Turn on";}
                     @{bool isDisabled = !IsEndpointSeen(endpoint);}
-                    <button class="btn btn-primary" disabled="@isDisabled" @onclick="(() => SetActivation(endpoint))">@activationStatus</button>
+                    <button class="btn btn-primary" disabled="@isDisabled" @onclick="(() => SetActivationAsync(endpoint))">@activationStatus</button>
                 </td>
                 @if (IsEndpointSeen(endpoint) && IsEndpointActivated(endpoint))
                 {
@@ -150,6 +150,6 @@
 
 <ErrorMessage PageError="@_pagedendpointList.Error" Status="@Status"></ErrorMessage>
 
-<Pager Result=@_endpointList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
+<Pager Result=@_endpointList PageChanged=@(async(Page) => await PagerPageChangedAsync(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>

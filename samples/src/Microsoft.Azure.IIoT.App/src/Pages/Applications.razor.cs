@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string Page { get; set; } = "1";
 
-        private IAsyncDisposable _applicationEvents { get; set; }
         public const int PageLength = 10;
         public string Status { get; set; }
         public bool IsOpened { get; set; } = false;
@@ -72,7 +71,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private async Task UnregisterApplicationUIAsync(string applicationId) {
             var index = _applicationList.Results.Select(t => t.ApplicationId).ToList().IndexOf(applicationId);
             _applicationList.Results.RemoveAt(index);
-            _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
+            _pagedapplicationList = _applicationList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
             StateHasChanged();
 
             Status = await RegistryHelper.UnregisterApplicationAsync(applicationId);
@@ -92,7 +91,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         private void CloseDrawer() {
             IsOpened = false;
-            this.StateHasChanged();
+            StateHasChanged();
         }
 
         /// <summary>
@@ -101,8 +100,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="ev"></param>
         private Task ApplicationEvent(ApplicationEventApiModel ev) {
             _applicationList.Results.Update(ev);
-            _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
-            CommonHelper.CheckErrorOrEmpty<ApplicationInfoApiModel>(_pagedapplicationList, ref _tableView, ref _tableEmpty);
+            _pagedapplicationList = _applicationList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
+            CommonHelper.CheckErrorOrEmpty(_pagedapplicationList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
             return Task.CompletedTask;
         }
@@ -113,8 +112,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private async Task UpdateApplicationAsync() {
             _applicationList = await RegistryHelper.GetApplicationListAsync();
             Page = "1";
-            _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
-            CommonHelper.CheckErrorOrEmpty<ApplicationInfoApiModel>(_pagedapplicationList, ref _tableView, ref _tableEmpty);
+            _pagedapplicationList = _applicationList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
+            CommonHelper.CheckErrorOrEmpty(_pagedapplicationList, ref _tableView, ref _tableEmpty);
             CommonHelper.Spinner = string.Empty;
         }
 

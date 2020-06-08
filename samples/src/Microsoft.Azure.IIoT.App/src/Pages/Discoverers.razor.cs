@@ -63,9 +63,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             if (firstRender) {
                 _discovererList = await RegistryHelper.GetDiscovererListAsync();
                 Page = "1";
-                _pagedDiscovererList = _discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _discovererList.Error);
+                _pagedDiscovererList = _discovererList.GetPaged(int.Parse(Page), CommonHelper.PageLengthSmall, _discovererList.Error);
                 CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty<DiscovererInfo>(_pagedDiscovererList, ref _tableView, ref _tableEmpty);
+                CommonHelper.CheckErrorOrEmpty(_pagedDiscovererList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
 
                 _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         private void CloseDrawer() {
             IsOpened = false;
-            this.StateHasChanged();
+            StateHasChanged();
         }
 
         /// <summary>
@@ -238,13 +238,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <summary>
         /// ClickHandler
         /// </summary>
-        async Task ClickHandler(DiscovererInfo discoverer) {
+        async Task ClickHandlerAsync(DiscovererInfo discoverer) {
             CloseDrawer();
             if (discoverer.isAdHocDiscovery) {
                 await SetAdHocScanAsync(discoverer);
             }
             else {
-                await this.OnAfterRenderAsync(true);
+                await OnAfterRenderAsync(true);
             }
         }
 
@@ -254,7 +254,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="ev"></param>
         private Task DiscovererEvent(DiscovererEventApiModel ev) {
             _discovererList.Results.Update(ev);
-            _pagedDiscovererList = _discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _discovererList.Error);
+            _pagedDiscovererList = _discovererList.GetPaged(int.Parse(Page), CommonHelper.PageLength, _discovererList.Error);
             StateHasChanged();
             return Task.CompletedTask;
         }

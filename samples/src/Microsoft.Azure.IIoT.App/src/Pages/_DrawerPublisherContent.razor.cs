@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public EventCallback Onclick { get; set; }
 
-        private ListNodeRequested _inputData { get; set; }
+        private ListNodeRequested InputData { get; set; }
 
         /// <summary>
         /// OnInitialized
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 NodeData.PublishedItem = new PublishedItemApiModel();
             }
 
-            _inputData = new ListNodeRequested(NodeData.PublishedItem);
+            InputData = new ListNodeRequested(NodeData.PublishedItem);
         }
 
 
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         /// <param name="discoverer"></param>
         private async Task UpdatePublishedNodeConfigAsync() {
-            NodeData.TryUpdateData(_inputData);
+            NodeData.TryUpdateData(InputData);
             await Onclick.InvokeAsync(NodeData);
         }
     }

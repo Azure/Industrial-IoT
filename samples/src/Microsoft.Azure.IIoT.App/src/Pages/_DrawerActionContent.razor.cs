@@ -31,7 +31,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private string[] _valueArray { get; set; }
         private ActionType _typeOfAction { get; set; } = ActionType.Nothing;
         private MethodMetadataResponseApiModel _parameters;
+#pragma warning disable CS0414 // The field is assigned but its value never used
         private string _responseClass = "list-group-item text-left margin body-action-content hidden";
+#pragma warning restore CS0414 // The field is assigned but its value never used
 
         private async Task SelectActionAsync(string nodeId, ChangeEventArgs action) {
             switch (action.Value) {
