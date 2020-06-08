@@ -6,7 +6,6 @@
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
-@using Microsoft.Azure.IIoT.App.Models;
 
 @inject Registry RegistryHelper
 
@@ -78,45 +77,3 @@
         </EditForm>
     </div>
 </div>
-
-@code {
-    [Parameter]
-    public DiscovererInfo DiscovererData { get; set; }
-
-    [Parameter]
-    public EventCallback Onclick { get; set; }
-
-    private DiscovererInfoRequested _inputData { get; set; }
-    private string _discoveryUrl { get; set; }
-    private string _status { get; set; }
-    private string _buttonLabel { get; set; }
-
-    /// <summary>
-    /// OnInitialized
-    /// </summary>
-    protected override void OnInitialized()
-    {
-        if (DiscovererData.isAdHocDiscovery)
-        {
-            _buttonLabel = "Apply & Scan";
-        }
-        else
-        {
-            _buttonLabel = "Apply";
-        }
-        _inputData = new DiscovererInfoRequested();
-    }
-
-    /// <summary>
-    /// Close Drawer and update discovery
-    /// </summary>
-    private async Task UpdateDiscovererConfigAsync()
-    {
-        DiscovererData.TryUpdateData(_inputData);
-        await Onclick.InvokeAsync(DiscovererData);
-        if (!DiscovererData.isAdHocDiscovery)
-        {
-            _status = await RegistryHelper.UpdateDiscovererAsync(DiscovererData);
-        }
-    }
-}

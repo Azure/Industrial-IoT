@@ -5,8 +5,6 @@
 
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.AspNetCore.Components;
-@using OpcUa.Api.Publisher.Models;
-@using Microsoft.Azure.IIoT.App.Models;
 
 @inject Registry RegistryHelper
 
@@ -48,37 +46,3 @@
               </EditForm>
 </div>
 </div>
-
-@code {
-    [Parameter]
-    public ListNode NodeData { get; set; }
-
-    [Parameter]
-    public EventCallback Onclick { get; set; }
-
-    private ListNodeRequested _inputData { get; set; }
-
-    /// <summary>
-    /// OnInitialized
-    /// </summary>
-    protected override void OnInitialized()
-    {
-        if (NodeData.PublishedItem == null)
-        {
-            NodeData.PublishedItem = new PublishedItemApiModel();
-        }
-
-        _inputData = new ListNodeRequested(NodeData.PublishedItem);
-    }
-
-
-    /// <summary>
-    /// Close Drawer and update discovery
-    /// </summary>
-    /// <param name="discoverer"></param>
-    private async Task UpdatePublishedNodeConfigAsync()
-    {
-        NodeData.TryUpdateData(_inputData);
-        await Onclick.InvokeAsync(NodeData);
-    }
-}
