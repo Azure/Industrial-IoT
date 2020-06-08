@@ -77,7 +77,25 @@
                 }
                 @{connectStatus = discoverer.DiscovererModel.Connected == true ? "Connected" : "Disconnected";}
                 <td class="hover-text width-medium">
-                    <div>@connectStatus</div>
+                    <div>
+                        @{
+                            string alt = connectStatus;
+
+                            switch (connectStatus)
+                            {
+                                case "Connected":
+                                    <i class="material-icons" title="@alt" aria-label="@alt">link</i>
+                                    break;
+                                case "Disconnected":
+                                case "(None)":
+                                    <i class="material-icons" title="@alt" aria-label="@alt">link_off</i>
+                                    break;
+                                default:
+                                    <i class="material-icons" title="@alt" aria-label="@alt">help</i>
+                                    break;
+                            }
+                        }
+                    </div>
                 </td>
                 <td class="width-medium">
                     @{bool isDisconnected = discoverer.DiscovererModel.Connected != true;}

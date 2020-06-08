@@ -68,16 +68,32 @@
                         @SiteId
                     </div>
                 </td>
-                @{string OutOfSync = publisher.OutOfSync == null ? CommonHelper.None : publisher.OutOfSync == true ? "Out Of Sync" : "Synced";}
+                @{string syncStatus = publisher.OutOfSync == null ? CommonHelper.None : publisher.OutOfSync == true ? "Out Of Sync" : "Synced";}
                 <td class="hover-text width-small">
                     <div>
-                        @OutOfSync
+                        @syncStatus
                     </div>
                 </td>
-                @{string ConnectStatus = publisher.Connected == null ? CommonHelper.None : publisher.Connected == true ? "Connected" : "Disconnected";}
+                @{string connectStatus = publisher.Connected == null ? CommonHelper.None : publisher.Connected == true ? "Connected" : "Disconnected";}
                 <td class="hover-text width-small">
                     <div>
-                        @ConnectStatus
+                        @{
+                            string alt = connectStatus;
+
+                            switch (connectStatus)
+                            {
+                                case "Connected":
+                                    <i class="material-icons" title="@alt" aria-label="@alt">link</i>
+                                    break;
+                                case "Disconnected":
+                                case "(None)":
+                                    <i class="material-icons" title="@alt" aria-label="@alt">link_off</i>
+                                    break;
+                                default:
+                                    <i class="material-icons" title="@alt" aria-label="@alt">help</i>
+                                    break;
+                            }
+                        }
                     </div>
                 </td>
                 <td class="hover-text width-small">
