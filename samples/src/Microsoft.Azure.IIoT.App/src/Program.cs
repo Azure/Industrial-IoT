@@ -11,6 +11,8 @@ namespace Microsoft.Azure.IIoT.App {
     using System.IO;
     using Serilog;
     using Serilog.Events;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.ApplicationInsights;
 
     public class Program {
 
@@ -56,7 +58,10 @@ namespace Microsoft.Azure.IIoT.App {
                     .UseKestrel(o => o.AddServerHeader = false)
                     .UseIISIntegration()
                     .UseSetting(WebHostDefaults.DetailedErrorsKey, "true"))
-                .UseSerilog();
+                .UseSerilog()
+                .ConfigureLogging(logging =>
+                    logging.AddFilter<ApplicationInsightsLoggerProvider>
+                        ("", LogLevel.Information));
         }
     }
 }

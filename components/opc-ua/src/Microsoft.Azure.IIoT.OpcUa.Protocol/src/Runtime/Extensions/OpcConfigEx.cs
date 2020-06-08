@@ -38,12 +38,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             }
 
             // wait with the configuration until network is up
-            for (var retry = 0; retry < 10; retry++) {
+            for (var retry = 0; retry < 3; retry++) {
                 if (NetworkInterface.GetIsNetworkAvailable()) {
                     break;
                 }
                 else {
-                    await Task.Delay(10000);
+                    await Task.Delay(3000);
                 }
             }
 
@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         await applicationConfiguration.CertificateValidator
                             .Update(applicationConfiguration.SecurityConfiguration);
                     },
-                    e => true, 20);
+                    e => true, 5);
             }
             catch (Exception e) {
                 throw new InvalidConfigurationException("OPC UA configuration not valid", e);

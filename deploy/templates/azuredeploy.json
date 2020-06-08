@@ -55,13 +55,6 @@
                 "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access keyvault."
             }
         },
-        "datalakeServicePrincipalId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access datalake if deployed."
-            }
-        },
         "authorityUri": {
             "type": "string",
             "defaultValue": "https://login.microsoftonline.com",
@@ -160,7 +153,14 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "The size of VMs to provision for simulation."
+                "description": "The size of the gateway VM to provision."
+            }
+        },
+        "simulationVmSize": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The size of the simulation VM to provision."
             }
         },
         "edgeUserName": {
@@ -366,9 +366,6 @@
                     "branchName": {
                         "value": "[parameters('branchName')]"
                     },
-                    "datalakeServicePrincipalId": {
-                        "value": "[if(not(empty(parameters('datalakeServicePrincipalId'))), parameters('datalakeServicePrincipalId'), reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityPrincipalId.value)]"
-                    },
                     "keyVaultName": {
                         "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
                     },
@@ -506,6 +503,9 @@
                     },
                     "edgeVmSize": {
                         "value": "[parameters('edgeVmSize')]"
+                    },
+                    "simulationVmSize": {
+                        "value": "[parameters('simulationVmSize')]"  
                     },
                     "edgeUserName": {
                         "value": "[parameters('edgeUserName')]"

@@ -37,6 +37,9 @@ namespace Microsoft.Azure.IIoT.App {
     using System;
     using Blazored.SessionStorage;
     using Blazored.Modal;
+    using FluentValidation;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.App.Validation;
 
     /// <summary>
     /// Webapp startup
@@ -134,6 +137,9 @@ namespace Microsoft.Azure.IIoT.App {
                 option.Cookie.IsEssential = true;
             });
 
+            services.AddValidatorsFromAssemblyContaining<DiscovererInfoValidator>();
+            services.AddValidatorsFromAssemblyContaining<ListNodeValidator>();
+
             // Protect anything using keyvault and storage persisted keys
             services.AddAzureDataProtection(Config.Configuration);
             services.AddDistributedMemoryCache();
@@ -163,6 +169,9 @@ namespace Microsoft.Azure.IIoT.App {
                 .AddMessagePackSerializer()
              //   .AddAzureSignalRService(Config)
                 ;
+
+            // The following line enables Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
 
             services.AddServerSideBlazor();
             services.AddBlazoredSessionStorage();

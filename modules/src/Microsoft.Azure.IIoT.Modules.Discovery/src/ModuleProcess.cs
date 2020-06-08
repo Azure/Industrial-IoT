@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Modules.Discovery {
     using Microsoft.Azure.IIoT.Modules.Discovery.Runtime;
     using Microsoft.Azure.IIoT.Modules.Discovery.Controllers;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services;
     using Microsoft.Azure.IIoT.Module;
@@ -89,17 +90,18 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var identity = hostScope.Resolve<IIdentity>();
-                    logger.Information("Initiating prometheus at port {0}/metrics", kDiscoveryPrometheusPort);
+                    var client = hostScope.Resolve<IClientHost>();
                     var server = new MetricServer(port: kDiscoveryPrometheusPort);
                     try {
+                        var version = GetType().Assembly.GetReleaseVersion().ToString();
+                        logger.Information("Starting module OpcDiscovery version {version}.", version);
+                        logger.Information("Initiating prometheus at port {0}/metrics", kDiscoveryPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
                         // Start module
-                        var version = GetType().Assembly.GetReleaseVersion().ToString();
-                        kDiscoveryModuleStart.WithLabels(
-                            identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
-                        logger.Information("Starting module OpcDiscovery version {version}.", version);
                         await module.StartAsync(IdentityType.Discoverer, SiteId,
                             "OpcDiscovery", version, this);
+                        kDiscoveryModuleStart.WithLabels(
+                            identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {

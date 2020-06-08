@@ -756,7 +756,9 @@ Function New-Deployment() {
         # Sort based on sizes and filter minimum requirements
         $availableVmNames = $availableVms `
             | Select-Object -ExpandProperty Name -Unique
-        $vmSizes = Get-AzVMSize $script:resourceGroupLocation `
+
+        # We will use VM with at least 2 cores and 8 GB of memory as gateway host.
+        $edgeVmSizes = Get-AzVMSize $script:resourceGroupLocation `
             | Where-Object { $availableVmNames -icontains $_.Name } `
             | Where-Object {
                 ($_.NumberOfCores -ge 2) -and `
@@ -767,10 +769,28 @@ Function New-Deployment() {
             | Sort-Object -Property `
                 NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
         # Pick top
-        if ($vmSizes.Count -ne 0) {
-            $vmSize = $vmSizes[0].Name
-            Write-Host "Using $($vmSize) as VM size for all edge simulation hosts..."
-            $templateParameters.Add("edgeVmSize", $vmSize)
+        if ($edgeVmSizes.Count -ne 0) {
+            $edgeVmSize = $edgeVmSizes[0].Name
+            Write-Host "Using $($edgeVmSize) as VM size for all edge simulation gateway hosts..."
+            $templateParameters.Add("edgeVmSize", $edgeVmSize)
+        }
+
+        # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulatoin containers.
+        $simulationVmSizes = Get-AzVMSize $script:resourceGroupLocation `
+            | Where-Object { $availableVmNames -icontains $_.Name } `
+            | Where-Object {
+                ($_.NumberOfCores -ge 1) -and `
+                ($_.MemoryInMB -ge 2048) -and `
+                ($_.OSDiskSizeInMB -ge 1047552) -and `
+                ($_.ResourceDiskSizeInMB -ge 4096)
+            } `
+            | Sort-Object -Property `
+                NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
+        # Pick top
+        if ($simulationVmSizes.Count -ne 0) {
+            $simulationVmSize = $simulationVmSizes[0].Name
+            Write-Host "Using $($simulationVmSize) as VM size for all edge simulation hosts..."
+            $templateParameters.Add("simulationVmSize", $simulationVmSize)
         }
 
         $adminUser = "sandboxuser"

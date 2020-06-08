@@ -7,6 +7,7 @@
 @page "/discoverers"
 @page "/discoverers/{page}"
 
+@using Microsoft.Azure.IIoT.App.Models
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.Drawer
@@ -34,8 +35,8 @@
         Run ad-hoc discovery
     </a>
     @if (DiscovererData != null)
-        {
-        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery) 
+    {
+        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery)
         {
             <div class="spinnermargin loader"></div>
         }
@@ -58,7 +59,7 @@
     </thead>
     <tbody>
         @{string connectStatus = "Disconnected"; }
-        @foreach (var discoverer in _pagedDiscovererList.Results) 
+        @foreach (var discoverer in _pagedDiscovererList.Results)
         {
             <tr>
                 @if (discoverer.HasApplication == true)
@@ -95,7 +96,7 @@
                 </td>
                 <td class="width-large">
                     <div class="space-wrap">
-                        Mask address range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                        Mask Address Range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                             @(discoverer.EffectiveAddressRangesToScan ?? "Default")<br />
                         </a>
                         Port Range: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
@@ -244,9 +245,11 @@
 
             if (discoverer.ScanStatus == true)
             {
-                if (!_isDiscoveryEventSubscribed) {
+                if (!_isDiscoveryEventSubscribed)
+                {
                     _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                        discoverer.DiscovererModel.Id, async data => {
+                        discoverer.DiscovererModel.Id, async data =>
+                        {
                             await InvokeAsync(() => ScanProgress(data));
                         });
                 }
@@ -288,7 +291,8 @@
         {
             discoverer.DiscoveryRequestId = Guid.NewGuid().ToString();
             _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
-            discoverer.DiscoveryRequestId, async data => {
+            discoverer.DiscoveryRequestId, async data =>
+            {
                 await InvokeAsync(() => ScanProgress(data));
             });
             _isDiscoveryEventSubscribed = true;

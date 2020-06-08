@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Services {
+namespace Microsoft.Azure.IIoT.App.Models {
     using System;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
@@ -34,39 +34,22 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         public bool Publishing { get; set; }
 
-        /// <summary>
-        /// PublishingInterval
-        /// </summary>
-        public string RequestedPublishingInterval {
-            get => (PublishedItem?.PublishingInterval ?? TimeSpan.MinValue)
-                == TimeSpan.MinValue ?
-                null : PublishedItem.PublishingInterval.Value.TotalMilliseconds.ToString();
-            set {
-                PublishedItem.PublishingInterval = string.IsNullOrWhiteSpace(value) ? TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(value));
-            }
-        }
+        public bool TryUpdateData(ListNodeRequested input) {
+            try {
+                PublishedItem.PublishingInterval = string.IsNullOrWhiteSpace(input.RequestedPublishingInterval) ? 
+                    TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(input.RequestedPublishingInterval));
 
-        /// <summary>
-        /// SamplingInterval
-        /// </summary>
-        public string RequestedSamplingInterval {
-            get => (PublishedItem?.SamplingInterval ?? TimeSpan.MinValue)
-                == TimeSpan.MinValue ?
-                null : PublishedItem.SamplingInterval.Value.TotalMilliseconds.ToString();
-            set {
-                PublishedItem.SamplingInterval = string.IsNullOrWhiteSpace(value) ? TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(value));
-            }
-        }
+                PublishedItem.SamplingInterval = string.IsNullOrWhiteSpace(input.RequestedSamplingInterval) ? 
+                    TimeSpan.MinValue : TimeSpan.FromMilliseconds(Convert.ToDouble(input.RequestedSamplingInterval));
 
-        /// <summary>
-        /// HeartbeatInterval
-        /// </summary>
-        public string RequestedHeartbeatInterval {
-            get => (PublishedItem?.HeartbeatInterval ?? TimeSpan.MinValue)
-                == TimeSpan.MinValue ?
-                null : PublishedItem.HeartbeatInterval.Value.TotalSeconds.ToString();
-            set {
-                PublishedItem.HeartbeatInterval = string.IsNullOrWhiteSpace(value) ? TimeSpan.MinValue : TimeSpan.FromSeconds(Convert.ToDouble(value));
+                PublishedItem.HeartbeatInterval = string.IsNullOrWhiteSpace(input.RequestedHeartbeatInterval) ? 
+                    TimeSpan.MinValue : TimeSpan.FromSeconds(Convert.ToDouble(input.RequestedHeartbeatInterval));
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }
