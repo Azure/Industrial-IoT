@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/supervisors"
 @page "/supervisors/{page}"
@@ -18,6 +18,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject IRegistryServiceApi RegistryService
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
@@ -37,8 +38,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var supervisor in _pagedsupervisorList.Results)
-        {
+        @foreach (var supervisor in _pagedsupervisorList.Results) {
             <tr>
                 <td class="hover-text width-large">
                     <div>
@@ -88,7 +88,7 @@
 
 <ErrorMessage PageError="@_pagedsupervisorList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_supervisorList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_supervisorList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>
 
@@ -112,12 +112,14 @@
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public void PagerPageChanged(int page)
-    {
+    public async Task PagerPageChanged(int page) {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
         _supervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, _supervisorList, ref _pagedsupervisorList, CommonHelper.PageLength);
         NavigationManager.NavigateTo(NavigationManager.BaseUri + "supervisors/" + page);
+        for (int i = 0; i < _pagedsupervisorList.Results.Count; i++) {
+            _pagedsupervisorList.Results[i] = await RegistryService.GetSupervisorAsync(_pagedsupervisorList.Results[i].Id);
+        }
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -125,8 +127,7 @@
     /// <summary>
     /// OnInitialized
     /// </summary>
-    protected override void OnInitialized()
-    {
+    protected override void OnInitialized() {
         CommonHelper.Spinner = "loader-big";
     }
 
@@ -134,18 +135,15 @@
     /// OnAfterRenderAsync
     /// </summary>
     /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
             await UpdateSupervisorAsync();
             CommonHelper.Spinner = string.Empty;
             CommonHelper.CheckErrorOrEmpty<SupervisorApiModel>(_pagedsupervisorList, ref _tableView, ref _tableEmpty);
             StateHasChanged();
 
             _supervisorEvent = await RegistryServiceEvents.SubscribeSupervisorEventsAsync(
-                async data =>
-                {
+                async data => {
                     await InvokeAsync(() => SupervisorEvent(data));
                 });
         }
@@ -155,8 +153,7 @@
     /// Open then Drawer
     /// </summary>
     /// <param name="OpenDrawer"></param>
-    private void OpenDrawer(string supervisorId)
-    {
+    private void OpenDrawer(string supervisorId) {
         IsOpened = true;
         SupervisorId = supervisorId;
     }
@@ -164,8 +161,7 @@
     /// <summary>
     /// Close the Drawer
     /// </summary>
-    private void CloseDrawer()
-    {
+    private void CloseDrawer() {
         IsOpened = false;
         this.StateHasChanged();
     }
@@ -174,8 +170,7 @@
     /// Reset Supervisor
     /// </summary>
     /// <param name="supervisorId"></param>
-    private async Task ResetSupervisorUIAsync(string supervisorId)
-    {
+    private async Task ResetSupervisorUIAsync(string supervisorId) {
         Status = await RegistryHelper.ResetSupervisorAsync(supervisorId);
     }
 
@@ -183,8 +178,7 @@
     /// action on Supervisor Event
     /// </summary>
     /// <param name="ev"></param>
-    private Task SupervisorEvent(SupervisorEventApiModel ev)
-    {
+    private Task SupervisorEvent(SupervisorEventApiModel ev) {
         _supervisorList.Results.Update(ev);
         _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
         StateHasChanged();
@@ -194,8 +188,7 @@
     /// <summary>
     /// Update Supervisor list
     /// </summary>
-    private async Task UpdateSupervisorAsync()
-    {
+    private async Task UpdateSupervisorAsync() {
         _supervisorList = await RegistryHelper.GetSupervisorListAsync();
         Page = "1";
         _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
@@ -205,10 +198,8 @@
     /// <summary>
     /// Dispose
     /// </summary>
-    public async void Dispose()
-{
-        if (_supervisorEvent != null)
-        {
+    public async void Dispose() {
+        if (_supervisorEvent != null) {
             await _supervisorEvent.DisposeAsync();
         }
     }
