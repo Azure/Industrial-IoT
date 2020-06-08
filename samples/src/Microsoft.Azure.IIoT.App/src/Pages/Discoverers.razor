@@ -20,6 +20,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject IRegistryServiceApi RegistryService
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UICommon CommonHelper
@@ -34,14 +35,11 @@
                                               }))">
         Run ad-hoc discovery
     </a>
-    @if (DiscovererData != null)
-    {
-        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery)
-        {
+    @if (DiscovererData != null) {
+        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery) {
             <div class="spinnermargin loader"></div>
         }
-        else
-        {
+        else {
             <div class="spinnermargin"></div>
         }
     }
@@ -59,11 +57,9 @@
     </thead>
     <tbody>
         @{string connectStatus = "Disconnected"; }
-        @foreach (var discoverer in _pagedDiscovererList.Results)
-        {
+        @foreach (var discoverer in _pagedDiscovererList.Results) {
             <tr>
-                @if (discoverer.HasApplication == true)
-                {
+                @if (discoverer.HasApplication == true) {
                     <td class="hover-text width-large">
                         <div>
                             <a href='endpoints/1/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll/@RegistryHelper.PathAll'>
@@ -72,8 +68,7 @@
                         </div>
                     </td>
                 }
-                else
-                {
+                else {
                     <td class="hover-text">@discoverer.DiscovererModel.Id</td>
                 }
                 @{connectStatus = discoverer.DiscovererModel.Connected == true ? "Connected" : "Disconnected";}
@@ -85,12 +80,10 @@
                     @{bool isEnabled = discoverer.ScanStatus == true;}
                     @{string scanStatus = isEnabled ? "Turn off" : "Turn on";}
                     <button class="btn btn-primary" disabled=@isDisconnected @onclick="(() => SetScanAsync(discoverer, !isEnabled))">@scanStatus</button>
-                    @if (discoverer.IsSearching)
-                    {
+                    @if (discoverer.IsSearching) {
                         <div class=" pos-right loader"></div>
                     }
-                    else
-                    {
+                    else {
                         <div class=" pos-right"></div>
                     }
                 </td>
@@ -118,16 +111,13 @@
                             @(discoverer.EffectiveIdleTimeBetweenScans ?? "Default")<br />
                         </a>
                         Discovery Urls:
-                        @if (discoverer.EffectiveDiscoveryUrls.Count == 0)
-                        {
+                        @if (discoverer.EffectiveDiscoveryUrls.Count == 0) {
                             <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                                 (None)
                             </a>
                         }
-                        else
-                        {
-                            @foreach (var url in discoverer.EffectiveDiscoveryUrls)
-                            {
+                        else {
+                            @foreach (var url in discoverer.EffectiveDiscoveryUrls) {
                                 <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                                     @url<br />
                                 </a>
@@ -161,7 +151,7 @@
     <_DrawerDiscoverer DiscovererData="@DiscovererData" Onclick="((DiscovererData) => ClickHandler((DiscovererInfo)DiscovererData))"></_DrawerDiscoverer>
 </Drawer>
 
-<Pager Result=@_discovererList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_discovererList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>
 
@@ -193,12 +183,22 @@
     /// </summary>
     /// <param name="page"></param>
     /// <returns></returns>
-    public void PagerPageChanged(int page)
-    {
+    public async Task PagerPageChanged(int page) {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
         _discovererList = CommonHelper.UpdatePage(RegistryHelper.GetDiscovererListAsync, page, _discovererList, ref _pagedDiscovererList, CommonHelper.PageLengthSmall);
         NavigationManager.NavigateTo(NavigationManager.BaseUri + "discoverers/" + page);
+        foreach (var discoverer in _pagedDiscovererList.Results)
+        {
+            discoverer.DiscovererModel = await RegistryService.GetDiscovererAsync(discoverer.DiscovererModel.Id);
+            discoverer.ScanStatus = (discoverer.DiscovererModel.Discovery == DiscoveryMode.Off) || (discoverer.DiscovererModel.Discovery == null) ? false : true;
+            var applicationModel = new ApplicationRegistrationQueryApiModel { DiscovererId = discoverer.DiscovererModel.Id };
+            var applications = await RegistryService.QueryApplicationsAsync(applicationModel, 1);
+            if (applications != null)
+            {
+                discoverer.HasApplication = true;
+            }
+        }
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -206,8 +206,7 @@
     /// <summary>
     /// OnInitialized
     /// </summary>
-    protected override Task OnInitializedAsync()
-    {
+    protected override Task OnInitializedAsync() {
         CommonHelper.Spinner = "loader-big";
         return base.OnInitializedAsync();
     }
@@ -216,10 +215,8 @@
     /// OnAfterRenderAsync
     /// </summary>
     /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
             _discovererList = await RegistryHelper.GetDiscovererListAsync();
             Page = "1";
             _pagedDiscovererList = _discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _discovererList.Error);
@@ -236,20 +233,15 @@
     /// Enable discoverer scan
     /// </summary>
     /// <param name="discoverer"></param>
-    private async Task SetScanAsync(DiscovererInfo discoverer, bool checkStatus)
-    {
-        try
-        {
+    private async Task SetScanAsync(DiscovererInfo discoverer, bool checkStatus) {
+        try {
             discoverer.ScanStatus = checkStatus;
             _eventResult = string.Empty;
 
-            if (discoverer.ScanStatus == true)
-            {
-                if (!_isDiscoveryEventSubscribed)
-                {
+            if (discoverer.ScanStatus == true) {
+                if (!_isDiscoveryEventSubscribed) {
                     _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                        discoverer.DiscovererModel.Id, async data =>
-                        {
+                        discoverer.DiscovererModel.Id, async data => {
                             await InvokeAsync(() => ScanProgress(data));
                         });
                 }
@@ -259,22 +251,18 @@
                 _scanResult = "displayBlock";
                 DiscovererData = discoverer;
             }
-            else
-            {
+            else {
                 discoverer.IsSearching = false;
                 _scanResult = "displayNone";
-                if (_discovery != null)
-                {
+                if (_discovery != null) {
                     await _discovery.DisposeAsync();
                 }
                 _isDiscoveryEventSubscribed = false;
             }
             Status = await RegistryHelper.SetDiscoveryAsync(discoverer);
         }
-        catch
-        {
-            if (_discovery != null)
-            {
+        catch {
+            if (_discovery != null) {
                 await _discovery.DisposeAsync();
             }
             _isDiscoveryEventSubscribed = false;
@@ -285,21 +273,17 @@
     /// Start ad-hoc scan
     /// </summary>
     /// <param name="discoverer"></param>
-    private async Task SetAdHocScanAsync(DiscovererInfo discoverer)
-    {
-        if (!_isDiscoveryEventSubscribed)
-        {
+    private async Task SetAdHocScanAsync(DiscovererInfo discoverer) {
+        if (!_isDiscoveryEventSubscribed) {
             discoverer.DiscoveryRequestId = Guid.NewGuid().ToString();
             _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(
-            discoverer.DiscoveryRequestId, async data =>
-            {
+            discoverer.DiscoveryRequestId, async data => {
                 await InvokeAsync(() => ScanProgress(data));
             });
             _isDiscoveryEventSubscribed = true;
         }
 
-        try
-        {
+        try {
             _eventResult = string.Empty;
 
             discoverer.IsSearching = true;
@@ -307,10 +291,8 @@
             DiscovererData = discoverer;
             Status = await RegistryHelper.DiscoverServersAsync(discoverer);
         }
-        catch
-        {
-            if (_discovery != null)
-            {
+        catch {
+            if (_discovery != null) {
                 await _discovery.DisposeAsync();
             }
             _isDiscoveryEventSubscribed = false;
@@ -321,8 +303,7 @@
     /// Open then Drawer
     /// </summary>
     /// <param name="OpenDrawer"></param>
-    private void OpenDrawer(DiscovererInfo discoverer)
-    {
+    private void OpenDrawer(DiscovererInfo discoverer) {
         IsOpened = true;
         DiscovererData = discoverer;
     }
@@ -330,8 +311,7 @@
     /// <summary>
     /// Close the Drawer
     /// </summary>
-    private void CloseDrawer()
-    {
+    private void CloseDrawer() {
         IsOpened = false;
         this.StateHasChanged();
     }
@@ -340,11 +320,9 @@
     /// display discoverers scan events
     /// </summary>
     /// <param name="ev"></param>
-    private void ScanProgress(DiscoveryProgressApiModel ev)
-    {
+    private void ScanProgress(DiscoveryProgressApiModel ev) {
         var ts = ev.TimeStamp.ToLocalTime();
-        switch (ev.EventType)
-        {
+        switch (ev.EventType) {
             case DiscoveryProgressType.Pending:
                 _eventResult += $"[{ts}] {ev.DiscovererId}: {ev.Total} waiting..." + System.Environment.NewLine;
                 break;
@@ -391,24 +369,21 @@
             case DiscoveryProgressType.Cancelled:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += $"[{ts}] {ev.DiscovererId}: Cancelled." + System.Environment.NewLine;
-                if (DiscovererData != null)
-                {
+                if (DiscovererData != null) {
                     DiscovererData.IsSearching = false;
                 }
                 break;
             case DiscoveryProgressType.Error:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += $"[{ts}] {ev.DiscovererId}: Failure." + System.Environment.NewLine;
-                if (DiscovererData != null)
-                {
+                if (DiscovererData != null) {
                     DiscovererData.IsSearching = false;
                 }
                 break;
             case DiscoveryProgressType.Finished:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += $"[{ts}] {ev.DiscovererId}: Completed." + System.Environment.NewLine;
-                if (DiscovererData != null)
-                {
+                if (DiscovererData != null) {
                     DiscovererData.IsSearching = false;
                 }
                 break;
@@ -419,15 +394,12 @@
     /// <summary>
     /// ClickHandler
     /// </summary>
-    async Task ClickHandler(DiscovererInfo discoverer)
-    {
+    async Task ClickHandler(DiscovererInfo discoverer) {
         CloseDrawer();
-        if (discoverer.isAdHocDiscovery)
-        {
+        if (discoverer.isAdHocDiscovery) {
             await SetAdHocScanAsync(discoverer);
         }
-        else
-        {
+        else {
             await this.OnAfterRenderAsync(true);
         }
     }
@@ -436,8 +408,7 @@
     /// refresh UI on DiscovererEvent
     /// </summary>
     /// <param name="ev"></param>
-    private Task DiscovererEvent(DiscovererEventApiModel ev)
-    {
+    private Task DiscovererEvent(DiscovererEventApiModel ev) {
         _discovererList.Results.Update(ev);
         _pagedDiscovererList = _discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _discovererList.Error);
         StateHasChanged();
@@ -447,20 +418,16 @@
     /// <summary>
     /// Close the scan result view
     /// </summary>
-    public void CloseScanResultView()
-    {
+    public void CloseScanResultView() {
         _scanResult = "displayNone";
     }
 
-    public async void Dispose()
-    {
-        if (_discovererEvent != null)
-        {
+    public async void Dispose() {
+        if (_discovererEvent != null) {
             await _discovererEvent.DisposeAsync();
         }
 
-        if (_discovery != null)
-        {
+        if (_discovery != null) {
             await _discovery.DisposeAsync();
         }
     }

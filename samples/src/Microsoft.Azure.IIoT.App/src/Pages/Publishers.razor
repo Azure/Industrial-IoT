@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/publishers/{page}"
 
@@ -16,6 +16,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject IRegistryServiceApi RegistryService
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
@@ -35,8 +36,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var publisher in _pagedPublisherList.Results)
-        {
+        @foreach (var publisher in _pagedPublisherList.Results) {
             <tr>
                 <td class="hover-text width-large">
                     <div>
@@ -68,7 +68,7 @@
                 <td class="hover-text width-medium">
                     <div>
                         @SiteId
-                    </div>        
+                    </div>
                 </td>
                 @{string OutOfSync = publisher.OutOfSync == null ? CommonHelper.None : publisher.OutOfSync == true ? "Out Of Sync" : "Synced";}
                 <td class="hover-text width-small">
@@ -95,7 +95,7 @@
 
 <ErrorMessage PageError="@_pagedPublisherList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_publisherList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_publisherList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>
 
@@ -114,12 +114,14 @@
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public void PagerPageChanged(int page)
-    {
+    public async Task PagerPageChanged(int page) {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
         _publisherList = CommonHelper.UpdatePage(RegistryHelper.GetPublisherListAsync, page, _publisherList, ref _pagedPublisherList, CommonHelper.PageLengthSmall);
         NavigationManager.NavigateTo(NavigationManager.BaseUri + "publishers/" + page);
+        for (int i = 0; i < _pagedPublisherList.Results.Count; i++) {
+            _pagedPublisherList.Results[i] = await RegistryService.GetPublisherAsync(_pagedPublisherList.Results[i].Id);
+        }
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -127,8 +129,7 @@
     /// <summary>
     /// OnInitialized
     /// </summary>
-    protected override void OnInitialized()
-    {
+    protected override void OnInitialized() {
         CommonHelper.Spinner = "loader-big";
     }
 
@@ -136,10 +137,8 @@
     /// OnAfterRenderAsync
     /// </summary>
     /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
             _publisherList = await RegistryHelper.GetPublisherListAsync();
             Page = "1";
             _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
@@ -152,18 +151,15 @@
         }
     }
 
-    private Task PublisherEvent(PublisherEventApiModel ev)
-    {
+    private Task PublisherEvent(PublisherEventApiModel ev) {
         _publisherList.Results.Update(ev);
         _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _publisherList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }
 
-    public async void Dispose()
-    {
-        if (_publisherEvent != null)
-        {
+    public async void Dispose() {
+        if (_publisherEvent != null) {
             await _publisherEvent.DisposeAsync();
         }
     }

@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/gateways/{page}"
 
@@ -16,6 +16,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject IRegistryServiceApi RegistryService
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
@@ -32,14 +33,13 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var gateway in _pagedGatewayList.Results)
-        {
+        @foreach (var gateway in _pagedGatewayList.Results) {
             <tr>
                 <td class="hover-text width-x-large">
                     <div>
                         @gateway.Id
                     </div>
-                 </td>
+                </td>
                 @{ string siteId = gateway.SiteId == null ? CommonHelper.None : gateway.SiteId;}
                 <td class="hover-text width-large">
                     <div>
@@ -60,7 +60,7 @@
 
 <ErrorMessage PageError="@_pagedGatewayList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_gatewayList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_gatewayList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>
 
@@ -79,12 +79,14 @@
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public void PagerPageChanged(int page)
-    {
+    public async Task PagerPageChanged(int page) {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
         _gatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, _gatewayList, ref _pagedGatewayList, CommonHelper.PageLength);
         NavigationManager.NavigateTo(NavigationManager.BaseUri + "gateways/" + page);
+        for (int i = 0; i < _pagedGatewayList.Results.Count; i++) {
+            _pagedGatewayList.Results[i] = (await RegistryService.GetGatewayAsync(_pagedGatewayList.Results[i].Id)).Gateway;
+        }
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -92,8 +94,7 @@
     /// <summary>
     /// OnInitialized
     /// </summary>
-    protected override void OnInitialized()
-    {
+    protected override void OnInitialized() {
         CommonHelper.Spinner = "loader-big";
     }
 
@@ -101,10 +102,8 @@
     /// OnAfterRenderAsync
     /// </summary>
     /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
             _gatewayList = await RegistryHelper.GetGatewayListAsync();
             Page = "1";
             _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
@@ -116,18 +115,15 @@
         }
     }
 
-    private Task GatewayEvent(GatewayEventApiModel ev)
-    {
+    private Task GatewayEvent(GatewayEventApiModel ev) {
         _gatewayList.Results.Update(ev);
         _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }
 
-    public async void Dispose()
-    {
-        if (_gatewayEvent != null)
-        {
+    public async void Dispose() {
+        if (_gatewayEvent != null) {
             await _gatewayEvent.DisposeAsync();
         }
     }
