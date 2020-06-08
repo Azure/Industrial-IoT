@@ -54,5 +54,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="subscription"></param>
         /// <returns></returns>
         void UnregisterSubscription(ISubscription subscription);
+
+        /// <summary>
+        /// stops all pending sessions
+        /// </summary>
+        /// <returns></returns>
+        Task StopAsync();
     }
 }

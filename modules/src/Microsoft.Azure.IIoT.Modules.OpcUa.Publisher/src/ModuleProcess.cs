@@ -121,12 +121,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     }
                     finally {
                         await workerSupervisor.StopAsync();
-                        if (hostScope.Resolve<ISessionManager>() is IDisposable sessionManager){
-                            sessionManager.Dispose();
-                        }
-                        if (hostScope.Resolve<ISubscriptionManager>() is IDisposable subscriptionManager){
-                            subscriptionManager.Dispose();
-                        }
+                        var sessionManager = hostScope.Resolve<ISessionManager>();
+                        await sessionManager?.StopAsync();
                         await module.StopAsync();
                         OnRunning?.Invoke(this, false);
                         kPublisherModuleStart.WithLabels(

@@ -191,7 +191,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// stop all sessions
         /// </summary>
         /// <returns></returns>
-        private async Task StopAsync() {
+        public async Task StopAsync() {
             var processingTasks = new List<Task>();
             try {
                 _logger.Information("Stopping all sessions");
