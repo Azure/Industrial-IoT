@@ -410,6 +410,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
             return new DiscovererApiModel {
                 Id = model.Id,
                 SiteId = model.SiteId,
+                SiteOrGatewayId = model.SiteOrGatewayId,
                 LogLevel = (TraceLogLevel?)model.LogLevel,
                 RequestedMode = (DiscoveryMode?)model.RequestedMode,
                 RequestedConfig = model.RequestedConfig.ToApiModel(),

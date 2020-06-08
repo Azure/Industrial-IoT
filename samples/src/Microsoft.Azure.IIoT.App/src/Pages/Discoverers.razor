@@ -51,6 +51,7 @@
     <thead>
         <tr>
             <th class="width-large">Discovery Module Id</th>
+            <th class="width-medium">Site</th>
             <th class="width-medium">Connection Status</th>
             <th class="width-medium">Scanning</th>
             <th class="width-large">Effective Configuration</th>
@@ -76,6 +77,9 @@
                 {
                     <td class="hover-text">@discoverer.DiscovererModel.Id</td>
                 }
+                <td class="hover-text width-medium">
+                    <div>@discoverer.DiscovererModel.SiteOrGatewayId</div>
+                </td>
                 @{connectStatus = discoverer.DiscovererModel.Connected == true ? "Connected" : "Disconnected";}
                 <td class="hover-text width-medium">
                     <div>@connectStatus</div>

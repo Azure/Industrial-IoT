@@ -347,6 +347,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     registration.Discovery : (DiscoveryMode?)null,
                 Id = DiscovererModelEx.CreateDiscovererId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
+                SiteOrGatewayId = registration.SiteOrGatewayId,
                 Version = registration.Version,
                 LogLevel = registration.LogLevel,
                 DiscoveryConfig = registration.ToConfigModel(),

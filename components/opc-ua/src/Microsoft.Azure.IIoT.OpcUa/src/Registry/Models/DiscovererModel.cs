@@ -21,6 +21,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
+        /// Gateway of the discoverer
+        /// TODO: Stop using term Site for the gateway id
+        /// </summary>
+        public string SiteOrGatewayId { get; set; }
+
+        /// <summary>
         /// Whether discoverer is in discovery mode
         /// </summary>
         public DiscoveryMode? Discovery { get; set; }

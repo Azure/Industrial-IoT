@@ -83,5 +83,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [DataMember(Name = "version", Order = 9,
             EmitDefaultValue = false)]
         public string Version { get; set; }
+
+        /// <summary>
+        /// Site/gateway of the discoverer
+        /// </summary>
+        [DataMember(Name = "siteOrGatewayId", Order = 10,
+            EmitDefaultValue = false)]
+        public string SiteOrGatewayId { get; set; }
     }
 }
