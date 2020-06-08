@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/applications/{page}"
 
@@ -17,6 +17,7 @@
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject IRegistryServiceApi RegistryService
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
@@ -35,23 +36,20 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var application in _pagedapplicationList.Results)
-        {
+        @foreach (var application in _pagedapplicationList.Results) {
             <tr class="@((application.NotSeenSince != null? "enabled-false" : "enabled-true"))">
                 <td class="hover-text large">
                     <div>
                         @{
                             CommonHelper.ApplicationUri.AddOrUpdate(application.ApplicationId, application.ApplicationUri);
                         }
-                        @if (application.NotSeenSince != null)
-                        {
+                        @if (application.NotSeenSince != null) {
                             @application.ApplicationName
                         }
-                        else
-                        {
-                        <a href='endpoints/1/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
-                            @application.ApplicationName
-                        </a>
+                        else {
+                            <a href='endpoints/1/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
+                                @application.ApplicationName
+                            </a>
                         }
                     </div>
                 </td>
@@ -90,7 +88,7 @@
 
 <ErrorMessage PageError="@_pagedapplicationList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_applicationList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_applicationList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>
 
@@ -116,12 +114,15 @@
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public void PagerPageChanged(int page)
-    {
+    public async Task PagerPageChanged(int page) {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
         _applicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, _applicationList, ref _pagedapplicationList, CommonHelper.PageLength);
         NavigationManager.NavigateTo(NavigationManager.BaseUri + "applications/" + page);
+        for (int i = 0; i < _pagedapplicationList.Results.Count; i++)
+        {
+            _pagedapplicationList.Results[i] = (await RegistryService.GetApplicationAsync(_pagedapplicationList.Results[i].ApplicationId)).Application;
+        }
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
@@ -129,8 +130,7 @@
     /// <summary>
     /// OnInitialized
     /// </summary>
-    protected override void OnInitialized()
-    {
+    protected override void OnInitialized() {
         CommonHelper.Spinner = "loader-big";
     }
 
@@ -138,16 +138,13 @@
     /// OnAfterRenderAsync
     /// </summary>
     /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
             await UpdateApplicationAsync();
             StateHasChanged();
 
             _applicationEvent = await RegistryServiceEvents.SubscribeApplicationEventsAsync(
-                async data =>
-                {
+                async data => {
                     await InvokeAsync(() => ApplicationEvent(data));
                 });
         }
@@ -157,8 +154,7 @@
     /// Unregister application and remove it from UI
     /// </summary>
     /// <param name="applicationId"></param>
-    private async Task UnregisterApplicationUIAsync(string applicationId)
-    {
+    private async Task UnregisterApplicationUIAsync(string applicationId) {
         var index = _applicationList.Results.Select(t => t.ApplicationId).ToList().IndexOf(applicationId);
         _applicationList.Results.RemoveAt(index);
         _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
@@ -171,8 +167,7 @@
     /// Open then Drawer
     /// </summary>
     /// <param name="OpenDrawer"></param>
-    private void OpenDrawer(ApplicationInfoApiModel application)
-    {
+    private void OpenDrawer(ApplicationInfoApiModel application) {
         IsOpened = true;
         ApplicationData = application;
     }
@@ -180,8 +175,7 @@
     /// <summary>
     /// Close the Drawer
     /// </summary>
-    private void CloseDrawer()
-    {
+    private void CloseDrawer() {
         IsOpened = false;
         this.StateHasChanged();
     }
@@ -190,8 +184,7 @@
     /// Action on ApplicationEvent
     /// </summary>
     /// <param name="ev"></param>
-    private Task ApplicationEvent(ApplicationEventApiModel ev)
-    {
+    private Task ApplicationEvent(ApplicationEventApiModel ev) {
         _applicationList.Results.Update(ev);
         _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
         CommonHelper.CheckErrorOrEmpty<ApplicationInfoApiModel>(_pagedapplicationList, ref _tableView, ref _tableEmpty);
@@ -202,8 +195,7 @@
     /// <summary>
     /// Update application list
     /// </summary>
-    private async Task UpdateApplicationAsync()
-    {
+    private async Task UpdateApplicationAsync() {
         _applicationList = await RegistryHelper.GetApplicationListAsync();
         Page = "1";
         _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
@@ -214,10 +206,8 @@
     /// <summary>
     /// Dispose
     /// </summary>
-    public async void Dispose()
-    {
-        if (_applicationEvent != null)
-        {
+    public async void Dispose() {
+        if (_applicationEvent != null) {
             await _applicationEvent.DisposeAsync();
         }
     }
