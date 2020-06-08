@@ -55,13 +55,6 @@
                 "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access keyvault."
             }
         },
-        "datalakeServicePrincipalId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access datalake if deployed."
-            }
-        },
         "authorityUri": {
             "type": "string",
             "defaultValue": "https://login.microsoftonline.com",
@@ -372,9 +365,6 @@
                     },
                     "branchName": {
                         "value": "[parameters('branchName')]"
-                    },
-                    "datalakeServicePrincipalId": {
-                        "value": "[if(not(empty(parameters('datalakeServicePrincipalId'))), parameters('datalakeServicePrincipalId'), reference(variables('minimumInfrastructureResourceId')).outputs.managedIdentityPrincipalId.value)]"
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('minimumInfrastructureResourceId')).outputs.keyVaultName.value]"
