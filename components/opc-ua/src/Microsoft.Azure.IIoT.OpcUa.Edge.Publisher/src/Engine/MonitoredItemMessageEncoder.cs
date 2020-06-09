@@ -350,8 +350,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                         }
                         catch (Exception e) {
-                            _logger.Error(e, "Error in notification {notificationCounter}/{notificationCount}: {exception}",
-                                notificationCounter, message.Notifications.Count(), e.Message);
+                            _logger.Error(e, "Error in notification {notificationCounter}/{notificationCount}",
+                                notificationCounter, message.Notifications.Count());
                         }
 
                         yield return result;

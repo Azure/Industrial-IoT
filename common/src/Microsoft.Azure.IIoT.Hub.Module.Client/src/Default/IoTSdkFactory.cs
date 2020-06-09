@@ -211,12 +211,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// Create client
             /// </summary>
             /// <param name="client"></param>
-            /// <param name="logger"></param>
-            internal ModuleClientAdapter(ModuleClient client, ILogger logger) {
+            internal ModuleClientAdapter(ModuleClient client) {
                 _client = client ??
                     throw new ArgumentNullException(nameof(client));
-
-                _logger = logger;
             }
 
             /// <summary>
@@ -246,7 +243,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
 
                 var client = await CreateAsync(cs, transportSetting);
-                var adapter = new ModuleClientAdapter(client, logger);
+                var adapter = new ModuleClientAdapter(client);
 
                 // Configure
                 client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
@@ -409,8 +406,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 new GaugeConfiguration {
                     LabelNames = new[] { "module", "device", "timestamp_utc" }
                 });
-            private readonly ILogger _logger;
-
         }
 
         /// <summary>
