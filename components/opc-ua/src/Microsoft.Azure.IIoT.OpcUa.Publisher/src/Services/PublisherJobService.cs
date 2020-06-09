@@ -316,7 +316,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                                 PublishedData = new List<PublishedDataSetVariableModel>()
                             },
                             SubscriptionSettings = new PublishedDataSetSettingsModel {
-                                PublishingInterval = publishedItem.PublishingInterval
+                                PublishingInterval = publishedItem.PublishingInterval,
+                                ResolveDisplayName = true
                                 // ...
                             }
                         }
@@ -355,7 +356,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                 SamplingInterval = publishedItem.SamplingInterval,
                 PublishedVariableNodeId = publishedItem.NodeId,
                 PublishedVariableDisplayName = publishedItem.DisplayName,
-                HeartbeatInterval = publishedItem.HeartbeatInterval
+                HeartbeatInterval = publishedItem.HeartbeatInterval,
+                QueueSize = 1,
             });
         }
 
