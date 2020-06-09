@@ -56,13 +56,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (_config.MaxMessageSize.HasValue && _config.MaxMessageSize.Value > 0) {
                 _maxEncodedMessageSize = _config.MaxMessageSize.Value;
             }
-            
-            _diagnosticInterval = _config.DiagnosticsInterval.GetValueOrDefault(TimeSpan.MaxValue);
-            _batchTriggerInterval = _config.BatchTriggerInterval.GetValueOrDefault(TimeSpan.MaxValue);
-            _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed, null,
-                Timeout.Infinite, Timeout.Infinite);
-            _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed, null,
-                Timeout.Infinite, Timeout.Infinite);
+
+            _diagnosticInterval = _config.DiagnosticsInterval.GetValueOrDefault(TimeSpan.Zero);
+            _batchTriggerInterval = _config.BatchTriggerInterval.GetValueOrDefault(TimeSpan.Zero);
+            _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed);
+            _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
         }
 
         /// <inheritdoc/>
@@ -89,6 +87,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 IsRunning = true;
                 _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
                     async input => {
+                        if (_batchTriggerInterval > TimeSpan.Zero) {
+                            _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
+                        }
                         try {
                             if (_dataSetMessageBufferSize == 1) {
                                 return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
@@ -120,13 +121,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
                     async input => {
-                        await _messageSink.SendAsync(input).ConfigureAwait(false);
-                        if (_batchTriggerInterval > TimeSpan.Zero) {
-                            _batchTriggerIntervalTimer.Change(_batchTriggerInterval, _batchTriggerInterval);
+                        if (input != null && input.Any()) {
+                            await _messageSink.SendAsync(input).ConfigureAwait(false);
+                        }
+                        else {
+                            _logger.Information("Sink block in engine {Name} triggered with empty input",
+                                Name);
                         }
                     },
                     new ExecutionDataflowBlockOptions {
-                        CancellationToken = cancellationToken,
+                        CancellationToken = cancellationToken
                     });
                 _batchDataSetMessageBlock.LinkTo(_encodingBlock);
                 _encodingBlock.LinkTo(_batchNetworkMessageBlock);
@@ -145,11 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _messageTrigger.OnMessage -= MessageTriggerMessageReceived;
                 _diagnosticsOutputTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 _batchTriggerIntervalTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                await Task.WhenAll(
-                    _sinkBlock.Completion,
-                    _batchDataSetMessageBlock.Completion,
-                    _batchNetworkMessageBlock.Completion,
-                    _encodingBlock.Completion);
+                await _sinkBlock.Completion;
             }
         }
 
@@ -167,7 +167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
 
             var diagInfo = new StringBuilder();
-            diagInfo.Append("\n   DIAGNOSTICS INFORMATION for        : {host}\n");
+            diagInfo.Append("\n   DIAGNOSTICS INFORMATION for      : {host}\n");
             diagInfo.Append("   # Ingestion duration               : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)\n");
             string dataChangesAverage = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $" ({_messageTrigger.DataChangesCount / totalDuration:0.##}/s)" : "";
             diagInfo.Append("   # Ingress DataChanges (from OPC)   : {dataChangesCount,14:0}{dataChangesAverage}\n");
@@ -236,7 +236,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="state"></param>
         private void BatchTriggerIntervalTimer_Elapsed(object state) {
-            _batchTriggerIntervalTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _batchDataSetMessageBlock?.TriggerBatch();
         }
 
@@ -250,7 +249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _diagnosticStart = DateTime.UtcNow;
 
                 if (_batchTriggerInterval > TimeSpan.Zero) {
-                    _batchTriggerIntervalTimer.Change(_batchTriggerInterval, _batchTriggerInterval);
+                    _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
                 }
             }
             _batchDataSetMessageBlock.Post(args);

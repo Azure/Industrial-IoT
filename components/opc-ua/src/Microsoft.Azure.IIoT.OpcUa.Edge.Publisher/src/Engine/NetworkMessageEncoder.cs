@@ -80,8 +80,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
-            var encodingContext = messages.First(m => m.ServiceMessageContext != null)
-                .ServiceMessageContext;
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
@@ -162,8 +162,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
-            var encodingContext = messages.First(m => m.ServiceMessageContext != null)
-                .ServiceMessageContext;
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
@@ -230,8 +230,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
-            var encodingContext = messages.First(m => m.ServiceMessageContext != null)
-                .ServiceMessageContext;
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
@@ -279,8 +279,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
-            var encodingContext = messages.First(m => m.ServiceMessageContext != null)
-                .ServiceMessageContext;
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
             var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
