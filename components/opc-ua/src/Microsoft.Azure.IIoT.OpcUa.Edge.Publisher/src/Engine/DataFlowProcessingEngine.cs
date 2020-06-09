@@ -50,20 +50,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger = logger;
             _identity = identity;
 
-            _messageTrigger.OnMessage += MessageTriggerMessageReceived;
-
             if (_config.BatchSize.HasValue && _config.BatchSize.Value > 1) {
                 _dataSetMessageBufferSize = _config.BatchSize.Value;
             }
             if (_config.MaxMessageSize.HasValue && _config.MaxMessageSize.Value > 0) {
                 _maxEncodedMessageSize = _config.MaxMessageSize.Value;
             }
+            
+            _diagnosticInterval = _config.DiagnosticsInterval.GetValueOrDefault(TimeSpan.MaxValue);
+            _batchTriggerInterval = _config.BatchTriggerInterval.GetValueOrDefault(TimeSpan.MaxValue);
+            _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed, null,
+                Timeout.Infinite, Timeout.Infinite);
+            _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed, null,
+                Timeout.Infinite, Timeout.Infinite);
         }
 
         /// <inheritdoc/>
         public void Dispose() {
             _logger.Debug("Disposing {name}", Name);
-            _messageTrigger.OnMessage -= MessageTriggerMessageReceived;
             _diagnosticsOutputTimer?.Dispose();
             _batchTriggerIntervalTimer?.Dispose();
         }
@@ -83,17 +87,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     return;
                 }
                 IsRunning = true;
-                if (_config.DiagnosticsInterval.HasValue && _config.DiagnosticsInterval > TimeSpan.Zero) {
-                    _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed, null,
-                        _config.DiagnosticsInterval.Value,
-                        _config.DiagnosticsInterval.Value);
-                }
-
-                if (_config.BatchTriggerInterval.HasValue && _config.BatchTriggerInterval > TimeSpan.Zero) {
-                    _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed, null,
-                        _config.BatchTriggerInterval.Value,
-                        _config.BatchTriggerInterval.Value);
-                }
                 _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
                     async input => {
                         try {
@@ -126,18 +119,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     });
 
                 _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
-                    async input => await _messageSink.SendAsync(input).ConfigureAwait(false),
+                    async input => {
+                        await _messageSink.SendAsync(input).ConfigureAwait(false);
+                        if (_batchTriggerInterval > TimeSpan.Zero) {
+                            _batchTriggerIntervalTimer.Change(_batchTriggerInterval, _batchTriggerInterval);
+                        }
+                    },
                     new ExecutionDataflowBlockOptions {
-                        CancellationToken = cancellationToken
+                        CancellationToken = cancellationToken,
                     });
                 _batchDataSetMessageBlock.LinkTo(_encodingBlock);
                 _encodingBlock.LinkTo(_batchNetworkMessageBlock);
                 _batchNetworkMessageBlock.LinkTo(_sinkBlock);
 
+                _messageTrigger.OnMessage += MessageTriggerMessageReceived;
+                if (_diagnosticInterval > TimeSpan.Zero) {
+                    _diagnosticsOutputTimer.Change(_diagnosticInterval, _diagnosticInterval);
+                }
+
                 await _messageTrigger.RunAsync(cancellationToken).ConfigureAwait(false);
+
             }
             finally {
                 IsRunning = false;
+                _messageTrigger.OnMessage -= MessageTriggerMessageReceived;
+                _diagnosticsOutputTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                _batchTriggerIntervalTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                await Task.WhenAll(
+                    _sinkBlock.Completion,
+                    _batchDataSetMessageBlock.Completion,
+                    _batchNetworkMessageBlock.Completion,
+                    _encodingBlock.Completion);
             }
         }
 
@@ -224,6 +236,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="state"></param>
         private void BatchTriggerIntervalTimer_Elapsed(object state) {
+            _batchTriggerIntervalTimer.Change(Timeout.Infinite, Timeout.Infinite);
             _batchDataSetMessageBlock?.TriggerBatch();
         }
 
@@ -235,13 +248,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void MessageTriggerMessageReceived(object sender, DataSetMessageModel args) {
             if (_diagnosticStart == DateTime.MinValue) {
                 _diagnosticStart = DateTime.UtcNow;
+
+                if (_batchTriggerInterval > TimeSpan.Zero) {
+                    _batchTriggerIntervalTimer.Change(_batchTriggerInterval, _batchTriggerInterval);
+                }
             }
             _batchDataSetMessageBlock.Post(args);
         }
 
         private readonly int _dataSetMessageBufferSize = 1;
         private readonly int _networkMessageBufferSize = 1;
-        private Timer _batchTriggerIntervalTimer;
+        private readonly Timer _batchTriggerIntervalTimer;
+        private readonly TimeSpan _batchTriggerInterval;
+
         private readonly int _maxEncodedMessageSize = 256 * 1024;
 
         private readonly IEngineConfiguration _config;
@@ -254,7 +273,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private BatchBlock<DataSetMessageModel> _batchDataSetMessageBlock;
         private BatchBlock<NetworkMessageModel> _batchNetworkMessageBlock;
 
-        private Timer _diagnosticsOutputTimer;
+        private readonly Timer _diagnosticsOutputTimer;
+        private readonly TimeSpan _diagnosticInterval;
         private DateTime _diagnosticStart = DateTime.MinValue;
 
         private TransformManyBlock<DataSetMessageModel[], NetworkMessageModel> _encodingBlock;

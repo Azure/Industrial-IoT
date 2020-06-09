@@ -95,6 +95,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var identity = hostScope.Resolve<IIdentity>();
+                    ISessionManager sessionManager = null;
                     var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
@@ -107,6 +108,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await workerSupervisor.StartAsync();
+                        sessionManager = hostScope.Resolve<ISessionManager>();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
@@ -121,7 +123,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     }
                     finally {
                         await workerSupervisor.StopAsync();
-                        var sessionManager = hostScope.Resolve<ISessionManager>();
                         await sessionManager?.StopAsync();
                         await module.StopAsync();
                         OnRunning?.Invoke(this, false);
