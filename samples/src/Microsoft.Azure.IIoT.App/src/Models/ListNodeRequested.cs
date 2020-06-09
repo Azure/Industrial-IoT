@@ -3,11 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-using System;
-
 namespace Microsoft.Azure.IIoT.App.Models {
-
+    using System;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    
     public class ListNodeRequested {
 
         public ListNodeRequested(PublishedItemApiModel publishedItem) {
