@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Hub;
@@ -94,6 +95,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var identity = hostScope.Resolve<IIdentity>();
+                    ISessionManager sessionManager = null;
                     var server = new MetricServer(port: kPublisherPrometheusPort);
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
@@ -106,6 +108,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
                         await workerSupervisor.StartAsync();
+                        sessionManager = hostScope.Resolve<ISessionManager>();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
@@ -119,12 +122,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
+                        await workerSupervisor.StopAsync();
+                        await sessionManager?.StopAsync();
+                        await module.StopAsync();
+                        OnRunning?.Invoke(this, false);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
-                        await workerSupervisor.StopAsync();
-                        await module.StopAsync();
                         server.StopWhenEnabled(moduleConfig, logger);
-                        OnRunning?.Invoke(this, false);
                     }
                 }
             }
