@@ -108,7 +108,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                             "OpcTwin", version, this);
                         kTwinModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
-                        await client.InitializeAzync();
+                        await client.InitializeAsync();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {

@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// initializes the client configuration 
         /// </summary>
         /// <returns></returns>
-        Task InitializeAzync();
+        Task InitializeAsync();
 
         /// <summary>
         /// Add certificate to trust list

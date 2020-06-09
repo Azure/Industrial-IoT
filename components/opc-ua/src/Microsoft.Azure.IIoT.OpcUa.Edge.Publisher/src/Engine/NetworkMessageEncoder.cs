@@ -78,13 +78,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private IEnumerable<NetworkMessageModel> EncodeBatchAsJson(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
-            var notifications = GetNetworkMessages(messages, MessageEncoding.Json);
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
+            var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
             }
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.First().ServiceMessageContext;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
@@ -159,13 +160,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private IEnumerable<NetworkMessageModel> EncodeBatchAsUadp(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
-            var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp);
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
+            var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
             }
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.First().ServiceMessageContext;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
@@ -225,14 +227,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsJson(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-			
-            var notifications = GetNetworkMessages(messages, MessageEncoding.Json);
+
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
+            var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
             }
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.First().ServiceMessageContext;
             foreach (var networkMessage in notifications) {
                 var writer = new StringWriter();
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
@@ -273,13 +276,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsUadp(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-            var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp);
+
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
+            var notifications = GetNetworkMessages(messages, MessageEncoding.Uadp, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
             }
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.First().ServiceMessageContext;
             foreach (var networkMessage in notifications) {
                 var encoder = new BinaryEncoder(encodingContext);
                 encoder.WriteBoolean(null, false); // is not Batch
@@ -312,10 +317,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="encoding"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
         private IEnumerable<NetworkMessage> GetNetworkMessages(
-            IEnumerable<DataSetMessageModel> messages,
-            MessageEncoding encoding) {
+            IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
+            ServiceMessageContext context) {
+            if (context?.NamespaceUris == null) {
+                // declare all notifications in messages dropped 
+                foreach (var message in messages) {
+                    NotificationsDroppedCount += (uint)(message?.Notifications?.Count() ?? 0);
+                }
+                yield break;
+            }
 
             // TODO: Honor single message
             // TODO: Group by writer
@@ -338,7 +351,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             .Select(q => q.Any() ? q.Dequeue() : null)
                                 .Where(s => s != null)
                                     .ToDictionary(
-                                        s => s.NodeId.ToExpandedNodeId(message.ServiceMessageContext.NamespaceUris)
+                                        s => s.NodeId.ToExpandedNodeId(context.NamespaceUris)
                                             .AsString(message.ServiceMessageContext),
                                         s => s.Value);
                         var dataSetMessage = new DataSetMessage() {

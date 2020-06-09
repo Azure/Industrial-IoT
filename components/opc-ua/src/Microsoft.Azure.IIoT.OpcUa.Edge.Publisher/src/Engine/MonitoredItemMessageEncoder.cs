@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Opc.Ua.Encoders;
     using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -40,11 +39,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
-
-        /// <inheritdoc/>
-        public MonitoredItemMessageEncoder(ILogger logger) {
-            _logger = logger;
-        }
 
         /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
@@ -83,13 +77,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private IEnumerable<NetworkMessageModel> EncodeBatchAsJson(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json);
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
             }
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.First().ServiceMessageContext;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
@@ -164,13 +159,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private IEnumerable<NetworkMessageModel> EncodeBatchAsUadp(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp);
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
             }
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.First().ServiceMessageContext;
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
@@ -231,13 +227,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private IEnumerable<NetworkMessageModel> EncodeAsJson(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json);
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
             }
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.First().ServiceMessageContext;
             foreach (var networkMessage in notifications) {
                 var writer = new StringWriter();
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
@@ -279,13 +276,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private IEnumerable<NetworkMessageModel> EncodeAsUadp(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
 
-            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp);
+            // by design all messages are generated in the same session context,
+            // therefore it is safe to get the first message's context
+            var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
+                ?.ServiceMessageContext;
+            var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
             }
-            // by design all messages are generated in the same session context,
-            // therefore it is safe to get the first message's context
-            var encodingContext = messages.First().ServiceMessageContext;
             foreach (var networkMessage in notifications) {
                 var encoder = new BinaryEncoder(encodingContext);
                 encoder.WriteBoolean(null, false); // is not Batch
@@ -318,47 +316,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="encoding"></param>
+        /// <param name="context"></param>
         private IEnumerable<MonitoredItemMessage> GetMonitoredItemMessages(
-            IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding) {
+            IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
+            ServiceMessageContext context) {
+            if (context?.NamespaceUris == null) {
+                // declare all notifications in messages dropped 
+                foreach (var message in messages) {
+                    NotificationsDroppedCount += (uint)(message?.Notifications?.Count() ?? 0);
+                }
+                yield break;
+            }
             foreach (var message in messages) {
                 if (message.WriterGroup?.MessageType.GetValueOrDefault(MessageEncoding.Json) == encoding) {
-                    int notificationCounter = 0;
                     foreach (var notification in message.Notifications) {
-                        notificationCounter++;
-
-                        MonitoredItemMessage result = null;
-                        try {
-                            result = new MonitoredItemMessage {
-                                MessageContentMask = (message.Writer?.MessageSettings?
+                        var result = new MonitoredItemMessage {
+                            MessageContentMask = (message.Writer?.MessageSettings?
                                .DataSetMessageContentMask).ToMonitoredItemMessageMask(
                                    message.Writer?.DataSetFieldContentMask),
-                                ApplicationUri = message.ApplicationUri,
-                                EndpointUrl = message.EndpointUrl,
-                                ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
-                                NodeId = notification.NodeId.ToExpandedNodeId(message.ServiceMessageContext?.NamespaceUris),
-                                Timestamp = message.TimeStamp ?? DateTime.UtcNow,
-                                Value = notification.Value,
-                                DisplayName = notification.DisplayName,
-                                SequenceNumber = notification.SequenceNumber.GetValueOrDefault(0)
-                            };
-                            // force published timestamp into to source timestamp for the legacy heartbeat compatibility
-                            if (notification.IsHeartbeat &&
-                                ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) &&
-                                ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0)) {
-                                result.Value.SourceTimestamp = result.Timestamp;
-                            }
-
+                            ApplicationUri = message.ApplicationUri,
+                            EndpointUrl = message.EndpointUrl,
+                            ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
+                            NodeId = notification.NodeId.ToExpandedNodeId(context.NamespaceUris),
+                            Timestamp = message.TimeStamp ?? DateTime.UtcNow,
+                            Value = notification.Value,
+                            DisplayName = notification.DisplayName,
+                            SequenceNumber = notification.SequenceNumber.GetValueOrDefault(0)
+                        };
+                        // force published timestamp into to source timestamp for the legacy heartbeat compatibility
+                        if (notification.IsHeartbeat &&
+                            ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) &&
+                            ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0)) {
+                            result.Value.SourceTimestamp = result.Timestamp;
                         }
-                        catch (Exception e) {
-                            _logger.Error(e, $"Error in notification {notificationCounter}/{message.Notifications.Count()}");
-                        }
-
                         yield return result;
                     }
                 }
             }
         }
-
-        private readonly ILogger _logger;
     }
 }
