@@ -30,6 +30,7 @@
             <th class="width-small">Publishing Interval</th>
             <th class="width-small">Sampling Interval</th>
             <th class="width-small">Heartbeat Interval</th>
+            <th class="width-medium-large">Value</th>
             @if (IsIdGiven(DiscovererId) && IsIdGiven(ApplicationId) && IsIdGiven(SupervisorId)) {
                 <th class="width-xsmall">
                     <a href="/endpoints/1/@DiscovererId/@ApplicationId/@SupervisorId"><span class="oi oi-arrow-left"></span></a>
@@ -78,6 +79,20 @@
                         @{ string HeartbeatInterval = CommonHelper.None;
                             HeartbeatInterval = node.HeartbeatInterval == null ? CommonHelper.None : node.HeartbeatInterval.ToString();
                         } @HeartbeatInterval
+                    </div>
+                </td>
+                <td class="width-medium-large">
+                    <div class="value-scroll">
+                        @*<a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Action))">*@
+                            @{string outputValue = $"{node.Value}";}
+                            @{string outputType = $"({node.DataType})";}
+                            @{string outputStatus = $"({node.Status} -";}
+                            @{string outputTimestamp = $" {node.Timestamp})";}
+                            <span>@outputValue</span>
+                            <span>@outputType</span>
+                            <span>@outputStatus</span>
+                            <span>@outputTimestamp</span>
+                        @*</a>*@
                     </div>
                 </td>
                 <td></td>
@@ -156,6 +171,9 @@
             _nodeList = await PublisherHelper.PublishedAsync(EndpointId);
             Page = "1";
             _pagednodeList = _nodeList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _nodeList.Error);
+
+
+
             CommonHelper.Spinner = string.Empty;
             CommonHelper.CheckErrorOrEmpty<PublishedItemApiModel>(_pagednodeList, ref _tableView, ref _tableEmpty);
             StateHasChanged();

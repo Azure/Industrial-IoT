@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.App.Common;
     using System;
     using System.Threading.Tasks;
     using Serilog;
@@ -25,10 +26,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="publisherService"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public Publisher(IPublisherServiceApi publisherService, IJsonSerializer serializer, ILogger logger) {
+        public Publisher(IPublisherServiceApi publisherService, IJsonSerializer serializer, ILogger logger, UICommon commonHelper) {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _publisherService = publisherService ?? throw new ArgumentNullException(nameof(publisherService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _commonHelper = commonHelper ?? throw new ArgumentNullException(nameof(commonHelper));
         }
 
         /// <summary>
@@ -60,7 +62,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 pageResult.Error = errorMessage;
             }
-            pageResult.PageSize = 10;
+            pageResult.PageSize = _commonHelper.PageLength;
             pageResult.RowCount = pageResult.Results.Count;
             pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / pageResult.PageSize);
             return pageResult;
@@ -146,5 +148,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
         private readonly IJsonSerializer _serializer;
         private readonly IPublisherServiceApi _publisherService;
         private readonly ILogger _logger;
+        private readonly UICommon _commonHelper;
     }
 }
