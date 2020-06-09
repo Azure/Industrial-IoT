@@ -193,6 +193,12 @@
         }
         _pagedendpointList = _endpointList.GetPaged(page, CommonHelper.PageLength, null);
         NavigationManager.NavigateTo(NavigationManager.BaseUri + "endpoints/" + page + "/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId);
+        foreach (var endpoint in _pagedendpointList.Results)
+        {
+            //fetch the actual value
+            endpoint.EndpointModel = await RegistryService.GetEndpointAsync(endpoint.EndpointModel.Registration.Id);
+        }
+
         CommonHelper.Spinner = string.Empty;
         StateHasChanged();
     }
