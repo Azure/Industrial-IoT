@@ -71,13 +71,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
 
             var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
-            var connected = twin.IsConnected();
 
             var registration = new GatewayRegistration {
                 // Device
 
                 DeviceId = twin.Id,
                 Etag = twin.Etag,
+
+                // Connected
+                Connected = twin.IsConnected() ?? false,
 
                 // Tags
 
