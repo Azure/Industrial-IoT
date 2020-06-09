@@ -277,13 +277,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (IsClosed) {
                     return;
                 }
-
-                try {
-                    await _client.SendEventAsync(message);
-                }
-                catch (Exception e) {
-                    _logger.Error(e, "Error sending message to IoT Hub");
-                }
+                await _client.SendEventAsync(message);
             }
 
             /// <inheritdoc />
@@ -291,13 +285,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (IsClosed) {
                     return;
                 }
-
-                try {
-                    await _client.SendEventBatchAsync(messages);
-                }
-                catch (Exception e) {
-                    _logger.Error(e, "Error sending message batch to IoT Hub");
-                }
+                await _client.SendEventBatchAsync(messages);
             }
 
             /// <inheritdoc />
