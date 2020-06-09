@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.App.Validation {
 
             RuleFor(p => p.RequestedSamplingInterval)
                 .Must(BeAValidIntervalMs)
-                .WithMessage("Publishing interval cannot be less than 0 ms.");
+                .WithMessage("Sampling interval cannot be less than 0 ms.");
 
             RuleFor(p => p.RequestedHeartbeatInterval)
                 .Must(BeAValidIntervalSec)
