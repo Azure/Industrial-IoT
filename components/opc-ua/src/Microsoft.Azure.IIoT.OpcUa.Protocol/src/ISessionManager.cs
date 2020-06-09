@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using System.Threading.Tasks;
     using Opc.Ua.Client;
 
@@ -55,5 +54,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="subscription"></param>
         /// <returns></returns>
         void UnregisterSubscription(ISubscription subscription);
+
+        /// <summary>
+        /// stops all pending sessions
+        /// </summary>
+        /// <returns></returns>
+        Task StopAsync();
     }
 }
