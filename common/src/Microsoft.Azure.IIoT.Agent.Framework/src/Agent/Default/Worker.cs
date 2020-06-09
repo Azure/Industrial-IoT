@@ -221,7 +221,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     ct.ThrowIfCancellationRequested();
                     using (_jobProcess = new JobProcess(this, jobProcessInstruction,
                         _lifetimeScope, _logger)) {
-                        await _jobProcess.WaitAsync(ct); // Does not throw
+                        await _jobProcess.WaitAsync(ct).ConfigureAwait(false); // Does not throw
                     }
 
                     // Check if the job is to be continued with new configuration settings

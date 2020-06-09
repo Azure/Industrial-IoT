@@ -323,7 +323,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (context?.NamespaceUris == null) {
                 // declare all notifications in messages dropped 
                 foreach (var message in messages) {
-                    NotificationsDroppedCount += (uint)message?.Notifications?.Count();
+                    NotificationsDroppedCount += (uint)(message?.Notifications?.Count() ?? 0);
                 }
                 yield break;
             }

@@ -209,7 +209,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _logger.Error(ex, "Unexpected exception stopping processor thread");
             }
             finally {
-                await Task.WhenAll(processingTasks.ToArray());
+                await Task.WhenAll(processingTasks);
             }
         }
 
@@ -507,7 +507,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="wrapper"></param>
         /// <returns></returns>
         private async Task HandleDisconnectAsync(ConnectionIdentifier id, SessionWrapper wrapper) {
-            _logger.Debug("Removing Session '{id}'", id);
+            _logger.Debug("Removing session '{id}'", id);
             await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 _sessions.Remove(id);
