@@ -115,6 +115,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 _logger.Information("Worker stopped.");
             }
             catch (OperationCanceledException) { }
+            catch (Exception e) {
+                _logger.Error(e, "Stopping worker failed.");
+            }
             finally {
                 _cts?.Dispose();
                 _cts = null;
@@ -218,7 +221,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     ct.ThrowIfCancellationRequested();
                     using (_jobProcess = new JobProcess(this, jobProcessInstruction,
                         _lifetimeScope, _logger)) {
-                        await _jobProcess.WaitAsync(); // Does not throw
+                        await _jobProcess.WaitAsync(ct).ConfigureAwait(false); // Does not throw
                     }
 
                     // Check if the job is to be continued with new configuration settings
@@ -236,6 +239,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     }
                     _logger.Information("Processing job continuation...");
                 }
+            }
+            catch (OperationCanceledException) {
+                _logger.Information("Processing cancellation received ...");
+                _jobProcess = null;
             }
             finally {
                 _logger.Information("Worker: {WorkerId}, Job: {JobId} processing completed ... ",
@@ -294,8 +301,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             /// Wait till completion or heartbeat cancelling
             /// </summary>
             /// <returns></returns>
-            public Task WaitAsync() {
-                return _processor.ContinueWith(_ => Task.CompletedTask);
+            public Task WaitAsync(CancellationToken ct) {
+                return _processor.ContinueWith(_ => Task.CompletedTask, ct);
             }
 
             /// <inheritdoc/>
