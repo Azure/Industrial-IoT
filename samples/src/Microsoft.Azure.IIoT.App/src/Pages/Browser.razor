@@ -188,13 +188,13 @@
                     @if (node.Publishing == true && node.PublishedItem != null)
                     {
                         <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Publisher))">
-                            @(node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
+                            @(!IsTimeIntervalSet(node.PublishedItem.PublishingInterval) ? "1000" : node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString()) ms<br />
                         </a>
                         <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Publisher))">
-                            @(node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
+                            @(!IsTimeIntervalSet(node.PublishedItem.SamplingInterval) ? "1000" : node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString()) ms<br />
                         </a>
                         <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Publisher))">
-                            @(node.PublishedItem.HeartbeatInterval == null ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
+                            @(!IsTimeIntervalSet(node.PublishedItem.HeartbeatInterval) ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
                             <br />
                         </a>
                     }
@@ -458,9 +458,10 @@
     private async Task PublishNodeAsync(string endpointId, ListNode node)
     {
         node.Publishing = true;
-        var publishingInterval = node.PublishedItem?.PublishingInterval == null ? TimeSpan.FromMilliseconds(1000) : node.PublishedItem.PublishingInterval;
-        var samplingInterval = node.PublishedItem?.SamplingInterval == null ? TimeSpan.FromMilliseconds(1000) : node.PublishedItem.SamplingInterval;
-        var heartbeatInterval = node.PublishedItem?.HeartbeatInterval;
+        var item = node.PublishedItem;
+        var publishingInterval = IsTimeIntervalSet(item?.PublishingInterval) ? item.PublishingInterval : TimeSpan.FromMilliseconds(1000);
+        var samplingInterval = IsTimeIntervalSet(item?.SamplingInterval) ? item.SamplingInterval : TimeSpan.FromMilliseconds(1000);
+        var heartbeatInterval = IsTimeIntervalSet(item?.HeartbeatInterval) ? item.HeartbeatInterval : null;
         var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, samplingInterval, publishingInterval, heartbeatInterval, Credential);
         if (result)
         {
@@ -567,5 +568,15 @@
     {
         var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
         return secureData.UnprotectDeserialize<T>(serializedProtectedData);
+    }
+
+    /// <summary>
+    /// Checks whether the time interval is set or not
+    /// </summary>
+    /// <param name="interval"></param>
+    /// <returns>True when the interval is set, false otherwise</returns>
+    private bool IsTimeIntervalSet(TimeSpan? interval)
+    {
+        return interval != null && interval.Value != TimeSpan.MinValue;
     }
 }

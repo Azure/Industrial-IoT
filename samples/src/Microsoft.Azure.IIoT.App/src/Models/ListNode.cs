@@ -51,6 +51,6 @@ namespace Microsoft.Azure.IIoT.App.Models {
             {
                 return false;
             }
-        }
+        }       
     }
 }
