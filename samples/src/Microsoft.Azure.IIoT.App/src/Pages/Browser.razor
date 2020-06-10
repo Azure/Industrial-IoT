@@ -277,7 +277,7 @@
 
     public PagedResult<ListNode> NodeList = new PagedResult<ListNode>();
     public PagedResult<ListNode> PagedNodeList = new PagedResult<ListNode>();
-    public PagedResult<PublishedItemApiModel> PublishedNodes = new PagedResult<PublishedItemApiModel>();
+    public PagedResult<ListNode> PublishedNodes = new PagedResult<ListNode>();
     public CredentialModel Credential = new CredentialModel();
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
@@ -402,18 +402,18 @@
                                             NodeList);
         }
 
-        PublishedNodes = await Publisher.PublishedAsync(EndpointId);
+        PublishedNodes = await Publisher.PublishedAsync(EndpointId, false);
 
         foreach (var node in NodeList.Results)
         {
             if (node.NodeClass == NodeClass.Variable)
             {
                 // check if publishing enabled
-                foreach (var publishedItem in PublishedNodes.Results)
+                foreach (var publishedNode in PublishedNodes.Results)
                 {
-                    if (node.Id == publishedItem.NodeId)
+                    if (node.Id == publishedNode.PublishedItem.NodeId)
                     {
-                        node.PublishedItem = publishedItem;
+                        node.PublishedItem = publishedNode.PublishedItem;
                         node.Publishing = true;
                         break;
                     }

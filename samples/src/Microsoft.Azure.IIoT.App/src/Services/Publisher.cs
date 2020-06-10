@@ -9,11 +9,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.App.Common;
     using System;
     using System.Threading.Tasks;
     using Serilog;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
 
     /// <summary>
     /// Browser code behind
@@ -26,11 +28,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="publisherService"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public Publisher(IPublisherServiceApi publisherService, IJsonSerializer serializer, ILogger logger, UICommon commonHelper) {
+        public Publisher(IPublisherServiceApi publisherService, ITwinServiceApi twinService, IJsonSerializer serializer, ILogger logger, UICommon commonHelper) {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _publisherService = publisherService ?? throw new ArgumentNullException(nameof(publisherService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _commonHelper = commonHelper ?? throw new ArgumentNullException(nameof(commonHelper));
+            _twinService = twinService ?? throw new ArgumentNullException(nameof(twinService));
         }
 
         /// <summary>
@@ -38,8 +41,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="endpointId"></param>
         /// <returns>PublishedNode</returns>
-        public async Task<PagedResult<PublishedItemApiModel>> PublishedAsync(string endpointId) {
-            var pageResult = new PagedResult<PublishedItemApiModel>();
+        public async Task<PagedResult<ListNode>> PublishedAsync(string endpointId, bool readValues, CredentialModel credential = null) {
+            var pageResult = new PagedResult<ListNode>();
+            var model = new ValueReadRequestApiModel();
+
             try {
                 var continuationToken = string.Empty;
                 do {
@@ -48,7 +53,14 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                     if (result.Items != null) {
                         foreach (var item in result.Items) {
-                            pageResult.Results.Add(item);
+                            model.NodeId = item.NodeId;
+                            model.Header = Elevate(new RequestHeaderApiModel(), credential);
+                            var readResponse = readValues == true ? await _twinService.NodeValueReadAsync(endpointId, model) : null;
+                            pageResult.Results.Add(new ListNode {
+                                PublishedItem = item,
+                                Value = readResponse?.Value?.ToJson()?.TrimQuotes(),
+                                DataType = readResponse ?.DataType
+                            });
                         }
                     }
                 } while (!string.IsNullOrEmpty(continuationToken));
@@ -147,6 +159,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         private readonly IJsonSerializer _serializer;
         private readonly IPublisherServiceApi _publisherService;
+        private readonly ITwinServiceApi _twinService;
         private readonly ILogger _logger;
         private readonly UICommon _commonHelper;
     }
