@@ -11,8 +11,6 @@
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.Drawer
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
-@using Microsoft.Azure.IIoT.App.Data
-@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry
 @using Microsoft.Azure.IIoT.App.Common
 
@@ -38,7 +36,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var supervisor in _pagedsupervisorList.Results) {
+        @foreach (var supervisor in _pagedSupervisorList.Results) {
             <tr>
                 <td class="hover-text width-large">
                     <div>
@@ -56,7 +54,23 @@
                 @{string connectStatus = supervisor.Connected == null ? CommonHelper.None : supervisor.Connected == true ? "Connected" : "Disconnected";}
                 <td class="hover-text width-medium">
                     <div>
-                        @connectStatus
+                        @{
+                            string alt = connectStatus;
+
+                            switch (connectStatus)
+                            {
+                                case "Connected":
+                                    <i class="material-icons" title="@alt" aria-label="@alt">link</i>
+                                    break;
+                                case "Disconnected":
+                                case "(None)":
+                                    <i class="material-icons" title="@alt" aria-label="@alt">link_off</i>
+                                    break;
+                                default:
+                                    <i class="material-icons" title="@alt" aria-label="@alt">help</i>
+                                    break;
+                            }
+                        }
                     </div>
                 </td>
                 @{string syncStatus = supervisor.OutOfSync == null ? CommonHelper.None : supervisor.OutOfSync == true ? "Out of Sync" : "Synced";}
@@ -82,125 +96,12 @@
 </table>
 <div class="@_tableEmpty center">No Twin Modules found.</div>
 
-<Drawer HeaderText="Twin Module Status" ObjectData="@SupervisorId" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
+<Drawer HeaderText="Twin Module Status" ObjectData="@SupervisorId" IsOpen="@IsOpen" CloseDrawer="@(() => CloseDrawer())">
     <_DrawerSupervisorContent SupervisorId="@SupervisorId"></_DrawerSupervisorContent>
 </Drawer>
 
-<ErrorMessage PageError="@_pagedsupervisorList.Error" Status="@null"></ErrorMessage>
+<ErrorMessage PageError="@_pagedSupervisorList.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@_supervisorList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
+<Pager Result=@SupervisorList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>
-
-@code {
-
-    [Parameter]
-    public string Page { get; set; } = "1";
-
-    public string Status { get; set; }
-    public bool IsOpened { get; set; } = false;
-    public string SupervisorId { get; set; }
-    private PagedResult<SupervisorApiModel> _supervisorList =
-        new PagedResult<SupervisorApiModel>();
-    private PagedResult<SupervisorApiModel> _pagedsupervisorList =
-        new PagedResult<SupervisorApiModel>();
-    private IAsyncDisposable _supervisorEvent { get; set; }
-    private string _tableView = "visible";
-    private string _tableEmpty = "displayNone";
-
-    /// <summary>
-    /// Notify page change
-    /// </summary>
-    /// <param name="page"></param>
-    public async Task PagerPageChanged(int page) {
-        CommonHelper.Spinner = "loader-big";
-        StateHasChanged();
-        _supervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, _supervisorList, ref _pagedsupervisorList, CommonHelper.PageLength);
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "supervisors/" + page);
-        for (int i = 0; i < _pagedsupervisorList.Results.Count; i++) {
-            _pagedsupervisorList.Results[i] = await RegistryService.GetSupervisorAsync(_pagedsupervisorList.Results[i].Id);
-        }
-        CommonHelper.Spinner = string.Empty;
-        StateHasChanged();
-    }
-
-    /// <summary>
-    /// OnInitialized
-    /// </summary>
-    protected override void OnInitialized() {
-        CommonHelper.Spinner = "loader-big";
-    }
-
-    /// <summary>
-    /// OnAfterRenderAsync
-    /// </summary>
-    /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if (firstRender) {
-            await UpdateSupervisorAsync();
-            CommonHelper.Spinner = string.Empty;
-            CommonHelper.CheckErrorOrEmpty<SupervisorApiModel>(_pagedsupervisorList, ref _tableView, ref _tableEmpty);
-            StateHasChanged();
-
-            _supervisorEvent = await RegistryServiceEvents.SubscribeSupervisorEventsAsync(
-                async data => {
-                    await InvokeAsync(() => SupervisorEvent(data));
-                });
-        }
-    }
-
-    // <summary>
-    /// Open then Drawer
-    /// </summary>
-    /// <param name="OpenDrawer"></param>
-    private void OpenDrawer(string supervisorId) {
-        IsOpened = true;
-        SupervisorId = supervisorId;
-    }
-
-    /// <summary>
-    /// Close the Drawer
-    /// </summary>
-    private void CloseDrawer() {
-        IsOpened = false;
-        this.StateHasChanged();
-    }
-
-    /// <summary>
-    /// Reset Supervisor
-    /// </summary>
-    /// <param name="supervisorId"></param>
-    private async Task ResetSupervisorUIAsync(string supervisorId) {
-        Status = await RegistryHelper.ResetSupervisorAsync(supervisorId);
-    }
-
-    /// <summary>
-    /// action on Supervisor Event
-    /// </summary>
-    /// <param name="ev"></param>
-    private Task SupervisorEvent(SupervisorEventApiModel ev) {
-        _supervisorList.Results.Update(ev);
-        _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
-        StateHasChanged();
-        return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Update Supervisor list
-    /// </summary>
-    private async Task UpdateSupervisorAsync() {
-        _supervisorList = await RegistryHelper.GetSupervisorListAsync();
-        Page = "1";
-        _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
-        CommonHelper.Spinner = "";
-    }
-
-    /// <summary>
-    /// Dispose
-    /// </summary>
-    public async void Dispose() {
-        if (_supervisorEvent != null) {
-            await _supervisorEvent.DisposeAsync();
-        }
-    }
-}
