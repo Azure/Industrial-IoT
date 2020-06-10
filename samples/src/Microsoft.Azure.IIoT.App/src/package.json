@@ -1,0 +1,14 @@
+{
+  "name": "microsoft.azure.iiot.app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "material-design-icons": "^3.0.1"
+  }
+}

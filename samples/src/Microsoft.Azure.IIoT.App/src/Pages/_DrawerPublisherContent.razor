@@ -5,8 +5,6 @@
 
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.AspNetCore.Components;
-@using OpcUa.Api.Publisher.Models;
-@using Microsoft.Azure.IIoT.App.Models;
 
 @inject Registry RegistryHelper
 
@@ -25,20 +23,20 @@
             Display Name:
             <div class="body">@NodeData.NodeName</div>
         </div><br />
-              <EditForm Model="@_inputData" OnValidSubmit="@UpdatePublishedNodeConfigAsync">
+              <EditForm Model="@InputData" OnValidSubmit="@UpdatePublishedNodeConfigAsync">
                   <FluentValidator />
 
                   <div class="form-group">
                       <div class="label">Publishing Interval ms</div>
-                      <input @bind="@_inputData.RequestedPublishingInterval" aria-label="PublishingInterval" type="text" class="form-control" placeholder="@(_inputData.RequestedPublishingInterval)" />
+                      <input @bind="@InputData.RequestedPublishingInterval" aria-label="PublishingInterval" type="text" class="form-control" placeholder="@(InputData.RequestedPublishingInterval)" />
                   </div><br />
                   <div class="form-group">
                       <div class="label">Sampling Interval ms </div>
-                      <input @bind="@_inputData.RequestedSamplingInterval" aria-label="SamplingInterval" type="text" class="form-control" placeholder="@(_inputData.RequestedSamplingInterval)" />
+                      <input @bind="@InputData.RequestedSamplingInterval" aria-label="SamplingInterval" type="text" class="form-control" placeholder="@(InputData.RequestedSamplingInterval)" />
                   </div><br />
                   <div class="form-group">
                       <div class="label">Heartbeat Interval sec</div>
-                      <input @bind="@_inputData.RequestedHeartbeatInterval" aria-label="HeartbeatInterval" type="text" class="form-control" placeholder="@(_inputData.RequestedHeartbeatInterval)" />
+                      <input @bind="@InputData.RequestedHeartbeatInterval" aria-label="HeartbeatInterval" type="text" class="form-control" placeholder="@(InputData.RequestedHeartbeatInterval)" />
                   </div><br />
                   <hr />
                   <ValidationSummary />
@@ -48,37 +46,3 @@
               </EditForm>
 </div>
 </div>
-
-@code {
-    [Parameter]
-    public ListNode NodeData { get; set; }
-
-    [Parameter]
-    public EventCallback Onclick { get; set; }
-
-    private ListNodeRequested _inputData { get; set; }
-
-    /// <summary>
-    /// OnInitialized
-    /// </summary>
-    protected override void OnInitialized()
-    {
-        if (NodeData.PublishedItem == null)
-        {
-            NodeData.PublishedItem = new PublishedItemApiModel();
-        }
-
-        _inputData = new ListNodeRequested(NodeData.PublishedItem);
-    }
-
-
-    /// <summary>
-    /// Close Drawer and update discovery
-    /// </summary>
-    /// <param name="discoverer"></param>
-    private async Task UpdatePublishedNodeConfigAsync()
-    {
-        NodeData.TryUpdateData(_inputData);
-        await Onclick.InvokeAsync(NodeData);
-    }
-}

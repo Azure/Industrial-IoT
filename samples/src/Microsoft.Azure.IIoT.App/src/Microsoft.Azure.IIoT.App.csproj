@@ -18,13 +18,16 @@
     <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Components\ErrorMessage\" />
-    <Folder Include="Components\Pager\" />
     <Folder Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="bundleconfig.json" />
     <None Include="wwwroot\css\drawer.css" />
+    <None Include="wwwroot\css\material-icons\codepoints" />
+    <None Include="wwwroot\css\material-icons\MaterialIcons-Regular.ijmap" />
+    <None Include="wwwroot\css\material-icons\MaterialIcons-Regular.svg" />
+    <None Include="wwwroot\css\material-icons\MaterialIcons-Regular.woff2" />
+    <None Include="wwwroot\css\material-icons\README.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api\src\Microsoft.Azure.IIoT.Api.csproj" />
