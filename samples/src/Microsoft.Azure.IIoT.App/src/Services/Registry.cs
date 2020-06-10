@@ -322,7 +322,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 if (gateways != null) {
                     foreach (var gw in gateways.Items) {
-                        var gateway = gw; // (await _registryService.GetGatewayAsync(gw.Id)).Gateway;
+                        var gateway = (await _registryService.GetGatewayAsync(gw.Id)).Gateway;
                         pageResult.Results.Add(gateway);
                     }
                 }

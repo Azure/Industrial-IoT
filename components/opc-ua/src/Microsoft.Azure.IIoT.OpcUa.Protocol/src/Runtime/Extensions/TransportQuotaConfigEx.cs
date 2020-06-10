@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 MaxStringLength = transportQuotaConfig.MaxStringLength,
                 MaxBufferSize = transportQuotaConfig.MaxBufferSize,
                 ChannelLifetime = transportQuotaConfig.ChannelLifetime,
-                SecurityTokenLifetime = transportQuotaConfig.MaxArrayLength
+                SecurityTokenLifetime = transportQuotaConfig.SecurityTokenLifetime
             };
             return endpointConfiguration;
         }
