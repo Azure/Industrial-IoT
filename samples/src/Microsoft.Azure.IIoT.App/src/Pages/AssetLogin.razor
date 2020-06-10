@@ -6,27 +6,23 @@
 @page "/assetLogin"
 
 @using Microsoft.Azure.IIoT.App.Common
-@using Microsoft.Azure.IIoT.App.Models
 @using Microsoft.AspNetCore.DataProtection
 @using Microsoft.Azure.IIoT.App.Services.SecureData
-@using System
-
 
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject IDataProtectionProvider provider
 @inject UICommon CommonHelper
 @inject SecureData secureData
 
-
 <h1>Login</h1>
 
-@if (_showLogin)
+@if (ShowLogin)
 {
     <div class="col-md-12">
         <h1 class="h3 mb-3 font-weight-normal">Please Sign In</h1>
     </div>
 
-    <EditForm Model="@Credential" OnValidSubmit=@(async() => await SignIn())>
+    <EditForm Model="@Credential" OnValidSubmit=@(async() => await SignInAsync())>
         <DataAnnotationsValidator />
         <ValidationSummary />
         <div class="col-md-12 form-group">
@@ -53,98 +49,5 @@ else
         <h1 class="h3 mb-3 font-weight-normal">Hello, @Credential.Username</h1>
     </div>
 
-    <button @onclick="SignOut" class="btn btn-primary shadow-none">Logout</button>
-}
-
-
-@code {
-
-    public CredentialModel Credential = new CredentialModel();
-    private bool _showLogin = true;
- 
-
-    /// <summary>
-    /// OnAfterRenderAsync
-    /// </summary>
-    /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            // By this stage we know the client has connected back to the server, and
-            // browser services are available. So if we didn't load the data earlier,
-            // we should do so now, then trigger a new render
-            _showLogin = !(await CheckLoginAsync());
-            StateHasChanged();
-        }
-    }
-
-    /// <summary>
-    /// LoadAsync
-    /// </summary>
-    public async Task LoadAsync()
-    {
-        Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
-    }
-
-    /// <summary>
-    /// CheckLoginAsync
-    /// </summary>
-    /// <param name="bool"></param>
-    public async Task<bool> CheckLoginAsync()
-    {
-        bool isLoggedIn = false;
-        await LoadAsync();
-        if (Credential != null)
-        {
-            if (!String.IsNullOrEmpty(Credential.Username) && !String.IsNullOrEmpty(Credential.Password))
-            {
-                isLoggedIn = true;
-            }
-        }
-        else
-        {
-            Credential = new CredentialModel();
-        }
-
-        return isLoggedIn;
-    }
-
-    /// <summary>
-    /// SignOut
-    /// </summary>
-    public async Task SignOut()
-    {
-        await RemoveSecureItemAsync(CommonHelper.CredentialKey);
-        _showLogin = !(await CheckLoginAsync());
-        StateHasChanged();
-    }
-
-    /// <summary>
-    /// SignIn
-    /// </summary>
-    public async Task SignIn()
-    {
-        await SetSecureItemAsync(CommonHelper.CredentialKey, Credential);
-        _showLogin = !(await CheckLoginAsync());
-        StateHasChanged();
-    }
-
-
-    public async Task<T> GetSecureItemAsync<T>(string key)
-    {
-        var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
-        return secureData.UnprotectDeserialize<T>(serializedProtectedData);
-    }
-
-    public async Task SetSecureItemAsync<T>(string key, T data)
-    {
-        var serializedProtectedData = secureData.ProtectSerialize(data);
-        await sessionStorage.SetItemAsync(key, serializedProtectedData);
-    }
-
-    public async Task RemoveSecureItemAsync(string key)
-    {
-        await sessionStorage.RemoveItemAsync(key);
-    }
+    <button @onclick="SignOutAsync" class="btn btn-primary shadow-none">Logout</button>
 }

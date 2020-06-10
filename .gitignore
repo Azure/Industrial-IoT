@@ -37,3 +37,4 @@
 *.cache
 CodeCoverage
 coverage.cobertura.xml
+node_modules
