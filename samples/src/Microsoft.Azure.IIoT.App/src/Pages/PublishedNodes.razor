@@ -11,12 +11,14 @@
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.Azure.IIoT.App.Common
+@using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
 
 
 @inject NavigationManager NavigationManager
 @inject Publisher PublisherHelper
 @inject UICommon CommonHelper
 @inject Registry RegistryHelper
+@inject PublisherServiceEvents PublisherServiceEvents
 
 <h1>Published Nodes</h1>
 
@@ -28,14 +30,13 @@
             <th class="width-small">Publishing Interval</th>
             <th class="width-small">Sampling Interval</th>
             <th class="width-small">Heartbeat Interval</th>
-            @if (IsIdGiven(DiscovererId) && IsIdGiven(ApplicationId) && IsIdGiven(SupervisorId))
-            {
+            <th class="width-medium-large">Value</th>
+            @if (IsIdGiven(DiscovererId) && IsIdGiven(ApplicationId) && IsIdGiven(SupervisorId)) {
                 <th class="width-xsmall">
                     <a href="/endpoints/1/@DiscovererId/@ApplicationId/@SupervisorId"><span class="oi oi-arrow-left"></span></a>
                 </th>
             }
-            else
-            {
+            else {
                 <th class="width-xsmall">
                     <a href="/endpoints/1"><span class="oi oi-arrow-left"></span></a>
                 </th>
@@ -43,42 +44,53 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var node in PagedNodeList.Results)
-        {
+        @foreach (var node in PagedNodeList.Results) {
             <tr>
                 <td class="hover-text width-large">
                     <div>
                         @{ string NodeId = CommonHelper.None;
-                            NodeId = string.IsNullOrEmpty(node.NodeId) ? CommonHelper.None : node.NodeId;
+                            NodeId = string.IsNullOrEmpty(node.PublishedItem.NodeId) ? CommonHelper.None : node.PublishedItem.NodeId;
                         } @NodeId
                     </div>
                 </td>
-                <td class="hover-text width-large">
+                <td class="hover-text width-medium-large">
                     <div>
                         @{ string DisplayName = CommonHelper.None;
-                            DisplayName = string.IsNullOrEmpty(node.DisplayName) ? CommonHelper.None : node.DisplayName;
+                            DisplayName = string.IsNullOrEmpty(node.PublishedItem.DisplayName) ? CommonHelper.None : node.PublishedItem.DisplayName;
                         } @DisplayName
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
                         @{ string PublishingInterval = CommonHelper.None;
-                            PublishingInterval = node.PublishingInterval == null ? CommonHelper.None : node.PublishingInterval.ToString();
+                            PublishingInterval = node.PublishedItem.PublishingInterval == null ? CommonHelper.None : node.PublishedItem.PublishingInterval.ToString();
                         } @PublishingInterval
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
                         @{ string SamplingInterval = CommonHelper.None;
-                            SamplingInterval = node.SamplingInterval == null ? CommonHelper.None : node.SamplingInterval.ToString();
+                            SamplingInterval = node.PublishedItem.SamplingInterval == null ? CommonHelper.None : node.PublishedItem.SamplingInterval.ToString();
                         } @SamplingInterval
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
                         @{ string HeartbeatInterval = CommonHelper.None;
-                            HeartbeatInterval = node.HeartbeatInterval == null ? CommonHelper.None : node.HeartbeatInterval.ToString();
+                            HeartbeatInterval = node.PublishedItem.HeartbeatInterval == null ? CommonHelper.None : node.PublishedItem.HeartbeatInterval.ToString();
                         } @HeartbeatInterval
+                    </div>
+                </td>
+                <td class="width-medium-large">
+                    <div class="value-scroll">
+                        @{string outputValue = $"{node.Value}";}
+                        @{string outputType = $"({node.DataType})";}
+                        @{string outputStatus = $"({node.Status} -";}
+                        @{string outputTimestamp = $" {node.Timestamp})";}
+                        <span>@outputValue</span>
+                        <span>@outputType</span>
+                        <span>@outputStatus</span>
+                        <span>@outputTimestamp</span>
                     </div>
                 </td>
                 <td></td>
