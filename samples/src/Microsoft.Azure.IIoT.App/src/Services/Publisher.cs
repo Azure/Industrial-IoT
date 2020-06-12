@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         foreach (var item in result.Items) {
                             model.NodeId = item.NodeId;
                             model.Header = Elevate(new RequestHeaderApiModel(), credential);
-                            var readResponse = readValues == true ? await _twinService.NodeValueReadAsync(endpointId, model) : null;
+                            var readResponse = readValues ? await _twinService.NodeValueReadAsync(endpointId, model) : null;
                             pageResult.Results.Add(new ListNode {
                                 PublishedItem = item,
                                 Value = readResponse?.Value?.ToJson()?.TrimQuotes(),

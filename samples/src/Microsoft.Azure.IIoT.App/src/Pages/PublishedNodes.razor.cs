@@ -35,6 +35,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
         private IAsyncDisposable _publishEvent { get; set; }
+        private const string _valueGood = "Good";
 
         /// <summary>
         /// Notify page change
@@ -88,7 +89,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             foreach (var node in PagedNodeList.Results) {
                 if (node.PublishedItem.NodeId == samples.NodeId) {
                     node.Value = samples.Value?.ToJson()?.TrimQuotes();
-                    node.Status = string.IsNullOrEmpty(samples.Status) ? "Good" : samples.Status;
+                    node.Status = string.IsNullOrEmpty(samples.Status) ? _valueGood : samples.Status;
                     node.Timestamp = samples.Timestamp.Value.ToLocalTime().ToString();
                     this.StateHasChanged();
                 }
