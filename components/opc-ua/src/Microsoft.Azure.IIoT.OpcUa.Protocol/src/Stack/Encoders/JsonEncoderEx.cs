@@ -225,16 +225,24 @@ namespace Opc.Ua.Encoders {
         /// <inheritdoc/>
         public void WriteInt64(string property, long value) {
             if (PreWriteValue(property, value)) {
-                // always encode int64 as string
-                _writer.WriteValue(value.ToString());
+                if (UseAdvancedEncoding) {
+                    _writer.WriteValue(value);
+                }
+                else {
+                    _writer.WriteValue(value.ToString());
+                }
             }
         }
 
         /// <inheritdoc/>
         public void WriteUInt64(string property, ulong value) {
             if (PreWriteValue(property, value)) {
-                // always encode int64 as string
-                _writer.WriteValue(value.ToString());
+                if (UseAdvancedEncoding) {
+                    _writer.WriteValue(value);
+                }
+                else {
+                    _writer.WriteValue(value.ToString());
+                }
             }
         }
 
