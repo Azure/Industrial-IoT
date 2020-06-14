@@ -1,14 +1,7 @@
-/* Copyright (c) 1996-2016, OPC Foundation. All rights reserved.
-   The source code in this file is covered under a dual-license scenario:
-     - RCL: for OPC Foundation members in good-standing
-     - GPL V2: everybody else
-   RCL license terms accompanied with this source code. See http://opcfoundation.org/License/RCL/1.00/
-   GNU General Public License as published by the Free Software Foundation;
-   version 2 of the License are accompanied with this source code. See http://opcfoundation.org/License/GPLv2
-   This source code is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*/
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
     using Opc.Ua.Extensions;
@@ -232,24 +225,16 @@ namespace Opc.Ua.Encoders {
         /// <inheritdoc/>
         public void WriteInt64(string property, long value) {
             if (PreWriteValue(property, value)) {
-                if (UseAdvancedEncoding) {
-                    _writer.WriteValue(value);
-                }
-                else {
-                    _writer.WriteValue(value.ToString());
-                }
+                // always encode int64 as string
+                _writer.WriteValue(value.ToString());
             }
         }
 
         /// <inheritdoc/>
         public void WriteUInt64(string property, ulong value) {
             if (PreWriteValue(property, value)) {
-                if (UseAdvancedEncoding) {
-                    _writer.WriteValue(value);
-                }
-                else {
-                    _writer.WriteValue(value.ToString());
-                }
+                // always encode int64 as string
+                _writer.WriteValue(value.ToString());
             }
         }
 
@@ -600,7 +585,11 @@ namespace Opc.Ua.Encoders {
                 vararray.Length > 0) {
 
                 var type = vararray[0].TypeInfo?.BuiltInType;
-                if (vararray.All(v => v.TypeInfo?.BuiltInType == type)) {
+                var rank = vararray[0].TypeInfo?.ValueRank;
+
+                // TODO fails when different ranks are in use in array 
+                if (vararray.All(v =>
+                    v.TypeInfo?.BuiltInType == type)) {
                     // Demote and encode as simple array
                     variant = new TypeInfo(type ?? BuiltInType.Null, 1)
                         .CreateVariant(vararray

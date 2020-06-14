@@ -266,7 +266,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 DiagnosticsInterval = GetValueOrDefault(LegacyCliConfigKeys.DiagnosticsInterval, TimeSpan.FromSeconds(60)),
                 LogFileFlushTimeSpan = GetValueOrDefault(LegacyCliConfigKeys.LogFileFlushTimeSpanSec, TimeSpan.FromSeconds(30)),
                 LogFilename = GetValueOrDefault<string>(LegacyCliConfigKeys.LogFileName, null),
-                Transport = GetValueOrDefault(LegacyCliConfigKeys.HubTransport, TransportType.Mqtt.ToString()), // todo this seem not to be used ... 
+                Transport = GetValueOrDefault(LegacyCliConfigKeys.HubTransport, TransportType.Amqp.ToString()), // todo this seem not to be used ... 
                 MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, MessagingMode.Samples),
                 MessageEncoding = GetValueOrDefault(LegacyCliConfigKeys.MessageEncoding, MessageEncoding.Json),
                 FullFeaturedMessage = GetValueOrDefault(LegacyCliConfigKeys.FullFeaturedMessage, false),
