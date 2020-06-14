@@ -3,7 +3,6 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
  ------------------------------------------------------------*@
 
-@using Microsoft.Azure.IIoT.App.Models
 @using Microsoft.Azure.IIoT.App.Common
 @using Microsoft.Azure.IIoT.App.Services.SecureData
 
@@ -13,8 +12,6 @@
 @inject UICommon CommonHelper
 @inject SecureData secureData
 @inject NavigationManager NavigationManager
-
-
 
 <nav class="top-row pl-3 navbar navbar-dark ">
     @{ var releaseVersion = this.GetType().Assembly.GetReleaseVersion().ToString(3); }
@@ -47,20 +44,20 @@
                 </li>
                 <li class="nav-item px-3">
                     <NavLink class="nav-link" href="javascript: void(0)" @onclick="@(() => SubMenu())">
-                        <span class="oi @_subMenuIcon" aria-hidden="true"></span> More
+                        <span class="oi @SubMenuIcon" aria-hidden="true"></span> More
                     </NavLink>
                 </li>
-                <li class="nav-item px-5 @_subMenuDisplay">
+                <li class="nav-item px-5 @SubMenuDisplay">
                     <NavLink class="nav-link" href="supervisors/1">
                         <span class="oi oi-list-rich" aria-hidden="true"></span> Twin Module
                     </NavLink>
                 </li>
-                <li class="nav-item px-5 @_subMenuDisplay">
+                <li class="nav-item px-5 @SubMenuDisplay">
                     <NavLink class="nav-link" href="gateways/1">
                         <span class="oi oi-list" aria-hidden="true"></span> Gateway
                     </NavLink>
                 </li>
-                <li class="nav-item px-5 @_subMenuDisplay">
+                <li class="nav-item px-5 @SubMenuDisplay">
                     <NavLink class="nav-link " href="publishers/1">
                         <span class="oi oi-list" aria-hidden="true"></span> Publisher
                     </NavLink>
@@ -83,73 +80,3 @@
         </div>
     </Authorized>
 </AuthorizeView>
-
-@code {
-    bool collapseNavMenu = true;
-
-    string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-    public CredentialModel Credential = new CredentialModel();
-    private string _subMenuDisplay = "displayNone";
-    private string _subMenuIcon = "oi-expand-down";
-
-    /// <summary>
-    /// OnAfterRenderAsync
-    /// </summary>
-    /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
-            StateHasChanged();
-        }
-    }
-
-    protected override void OnInitialized()
-    {
-        NavigationManager.LocationChanged += HandleLocationChanged;
-    }
-
-    private async void HandleLocationChanged(object sender, LocationChangedEventArgs e)
-    {
-        Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
-        StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        NavigationManager.LocationChanged -= HandleLocationChanged;
-    }
-
-    void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-
-    private async Task<T> GetSecureItemAsync<T>(string key)
-    {
-        try
-        {
-            var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
-            return secureData.UnprotectDeserialize<T>(serializedProtectedData);
-        }
-        catch
-        {
-            return default;
-        }
-    }
-
-    private void SubMenu()
-    {
-        if (_subMenuDisplay == "displayNone")
-        {
-            _subMenuDisplay = "displayFlex";
-            _subMenuIcon = "oi-collapse-up";
-        }
-        else
-        {
-            _subMenuDisplay = "displayNone";
-            _subMenuIcon = "oi-expand-down";
-        }
-    }
-}

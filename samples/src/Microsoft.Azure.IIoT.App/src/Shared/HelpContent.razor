@@ -8,14 +8,14 @@
     <ul>
         <li>
             <a href="https://github.com/Azure/Industrial-IoT" target="_blank">Azure Industrial IoT GitHub page</a>
-        </li> 
+        </li>
         <li>
              <a href="https://github.com/Azure/Industrial-IoT/blob/master/docs/tutorials/tut-discover-assets.md" target="_blank">How to discover your assets with the Engineering Tool</a>
         </li>
          <li>
              <a href="https://github.com/Azure/Industrial-IoT/blob/master/docs/tutorials/tut-publish-data.md" target="_blank">How to publish data from your Assets using the Engineering Tool</a>
         </li>
-    </ul> 
+    </ul>
     <br>
     <h3>Give feedback and report bugs</h3>
     <div>
@@ -27,14 +27,7 @@
         <span>Please enter all other bugs, feature requests, documentation issues, or suggestions as GitHub Issues </span>
         <a href="https://github.com/Azure/Industrial-IoT/issues" target="_blank">here.</a>
     </div>
-        
+
      <br>
     <button @onclick="Close" class="btn btn-primary">Close</button>
 </div>
-
-@code {
-
-    [CascadingParameter] BlazoredModalInstance BlazoredModal { get; set; }
-
-    void Close() => BlazoredModal.Close(ModalResult.Ok(true));
-}

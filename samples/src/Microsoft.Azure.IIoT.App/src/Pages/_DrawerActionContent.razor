@@ -3,12 +3,8 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
  ------------------------------------------------------------*@
 
-@using Microsoft.Azure.IIoT.App.Services
-@using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.AspNetCore.Components;
-@using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
-@using Microsoft.Azure.IIoT.App.Models
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser BrowseManager
@@ -47,31 +43,31 @@
     </div>
     <hr />
     <div class="list-group-item text-left">
-        @if (_typeOfAction == ActionType.Read)
+        @if (TypeOfAction == ActionType.Read)
         {
-            <div class="@_responseClass">
+            <div class="@ResponseClass">
                 <span>value = </span>
-                <span>@_response</span>
+                <span>@Response</span>
                 <div class="reload">
                     <a class="oi oi-reload" href="javascript: void(0)" @onclick="@(() => ReadAsync(NodeData.Id))"></a>
                 </div>
             </div>
         }
-        else if (_typeOfAction == ActionType.Write)
+        else if (TypeOfAction == ActionType.Write)
         {
             <form>
                 <div class="form-group">
                     <label>Enter value</label>
-                    <input @bind="@_value" aria-label="value" type="text" class="form-control" placeholder="value" />
+                    <input @bind="@Value" aria-label="value" type="text" class="form-control" placeholder="value" />
                 </div>
                 <hr />
                 <div>
-                    <button @onclick="@(() => WriteAsync(NodeData.Id, _value))" type="button" class="btn btn-primary shadow-none">Apply</button>
+                    <button @onclick="@(() => WriteAsync(NodeData.Id, Value))" type="button" class="btn btn-primary shadow-none">Apply</button>
                 </div>
             </form>
-            <div class="@_responseClass">@_response</div>
+            <div class="@ResponseClass">@Response</div>
         }
-        else if (_typeOfAction == ActionType.Call)
+        else if (TypeOfAction == ActionType.Call)
         {
             @if (_parameters?.InputArguments != null)
             {
@@ -83,7 +79,7 @@
                         int i = index;
                         <div class="form-group">
                             <label>@parameter.Type.DisplayName</label>
-                            <input @bind="@_valueArray[i]" aria-label="value" type="text" class="form-control" placeholder="@parameter.Type.Description" />
+                            <input @bind="@Values[i]" aria-label="value" type="text" class="form-control" placeholder="@parameter.Type.Description" />
                         </div>
                         index++;
                     }
@@ -91,9 +87,9 @@
              }
             <hr />
             <div>
-                <button @onclick="@(async() => await CallAsync(NodeData.Id, _valueArray))" type="button" class="btn btn-primary shadow-none">Apply</button>
+                <button @onclick="@(async() => await CallAsync(NodeData.Id, Values))" type="button" class="btn btn-primary shadow-none">Apply</button>
             </div>
-            <div class="@_responseClass">
+            <div class="@ResponseClass">
                 @if (BrowseManager.MethodCallResponse != null)
                 {
                     if (BrowseManager.MethodCallResponse.Results.Count > 0)
@@ -112,84 +108,9 @@
                 else
                 {
                     <div>method call failed</div>
-                    <div>@_response</div>
+                    <div>@Response</div>
                 }
             </div>
         }
     </div>
 </div>
-
-@code {
-    [Parameter]
-    public ListNode NodeData { get; set; }
-
-    [Parameter]
-    public string EndpointId { get; set; }
-
-    [Parameter]
-    public PagedResult<ListNode> PagedNodeList { get; set; } = new PagedResult<ListNode>();
-
-    [Parameter]
-    public CredentialModel Credential { get; set; }
-
-    public enum ActionType { Nothing, Read, Write, Call, Publish };
-
-    private string _response { get; set; } = string.Empty;
-    private string _value { get; set; } = string.Empty;
-    private string[] _valueArray { get; set; }
-    private ActionType _typeOfAction { get; set; } = ActionType.Nothing;
-    private MethodMetadataResponseApiModel _parameters;
-    private string _responseClass = "list-group-item text-left margin body-action-content hidden";
-
-    private async Task SelectActionAsync(string nodeId, ChangeEventArgs action)
-    {
-        switch (action.Value)
-        {
-            case "Read":
-                _typeOfAction = ActionType.Read;
-                await ReadAsync(nodeId);
-                break;
-            case "Write":
-                _typeOfAction = ActionType.Write;
-                break;
-            case "Call":
-                _typeOfAction = ActionType.Call;
-                await ParameterAsync();
-                break;
-            default:
-                break;
-        }
-    }
-
-    private async Task ReadAsync(string nodeId)
-    {
-        _response = await BrowseManager.ReadValueAsync(EndpointId, nodeId, Credential);
-        _responseClass = "list-group-item text-left margin body-action-content visible";
-    }
-
-    private async Task WriteAsync(string nodeId, string value)
-    {
-        _response = await BrowseManager.WriteValueAsync(EndpointId, nodeId, value, Credential);
-
-        var newValue = await BrowseManager.ReadValueAsync(EndpointId, nodeId, Credential);
-        var index = PagedNodeList.Results.IndexOf(PagedNodeList.Results.SingleOrDefault(x => x.Id == nodeId));
-        PagedNodeList.Results[index].Value = newValue;
-        _responseClass = "list-group-item margin body-action-content visible";
-    }
-
-    private async Task ParameterAsync()
-    {
-        _response = await BrowseManager.GetParameterAsync(EndpointId, NodeData.Id, Credential);
-        _parameters = BrowseManager.Parameter;
-        if (_parameters.InputArguments != null)
-        {
-            _valueArray = new string[_parameters.InputArguments.Count];
-        }
-    }
-
-    private async Task CallAsync(string nodeId, string[] values)
-    {
-        _response = await BrowseManager.MethodCallAsync(_parameters, values, EndpointId, NodeData.Id, Credential);
-        _responseClass = "list-group-item margin body-action-content visible";
-    }
-}
