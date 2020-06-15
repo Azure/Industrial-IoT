@@ -280,7 +280,7 @@ Operations (Mutually exclusive):
             }
 
             /// <inheritdoc/>
-            public string Gateway => Utils.GetHostName();
+            public string Gateway => Dns.GetHostName();
 
             /// <inheritdoc/>
             public string DeviceId => Gateway;
@@ -626,7 +626,7 @@ Operations (Mutually exclusive):
                 _cts = new CancellationTokenSource();
                 if (endpoint.Url == null) {
                     _server = RunSampleServerAsync(_cts.Token, logger.Logger);
-                    endpoint.Url = "opc.tcp://" + Utils.GetHostName() +
+                    endpoint.Url = "opc.tcp://" + Dns.GetHostName() +
                         ":51210/UA/SampleServer";
                 }
                 else {

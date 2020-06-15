@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             }
             else {
                 model.AlternativeUrls = model.AlternativeUrls.MergeWith(
-                   endpoint.AlternativeUrls);
+                    endpoint.AlternativeUrls);
             }
             if (model.Url == null) {
                 model.Url = endpoint.Url;

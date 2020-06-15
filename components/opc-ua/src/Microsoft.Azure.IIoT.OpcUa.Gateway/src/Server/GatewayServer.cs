@@ -1603,7 +1603,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 ApplicationName = "Microsoft.Azure.IIoT.Gateway",
                 ApplicationType = Opc.Ua.ApplicationType.ClientAndServer,
                 ApplicationUri =
-                    $"urn:{Utils.GetHostName()}:Microsoft:Azure.IIoT.Gateway",
+                    $"urn:{Dns.GetHostName()}:Microsoft:Azure.IIoT.Gateway",
                 ProductUri = "https://www.github.com/Azure/Industrial-IoT",
 
                 SecurityConfiguration = new SecurityConfiguration {

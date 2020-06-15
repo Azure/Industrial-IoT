@@ -9,10 +9,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
-    using Opc.Ua;
-    using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Utils;
     using System.Linq;
+    using System.Net;
     using System.Net.Sockets;
+    using System.Threading.Tasks;
     using Xunit;
 
     [Collection(WriteCollection.Name)]
@@ -23,15 +24,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 () => new AddressSpaceServices(_server.Client,
                     new VariantEncoderFactory(), _server.Logger),
                 new EndpointModel {
-                    Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
-                    AlternativeUrls = Utils.GetHostAddresses(Utils.GetHostName())
-                        .Result?.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
-                            .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
+                    Url = $"opc.tcp://{_hostEntry?.HostName}:{_server.Port}/UA/SampleServer",
+                    AlternativeUrls = _hostEntry?.AddressList
+                        .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                        .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
                     Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }
 
         private readonly TestServerFixture _server;
+        private readonly IPHostEntry _hostEntry;
 
         [Fact]
         public async Task NodeMethodMetadataStaticScalarMethod1TestAsync() {
@@ -140,6 +142,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
 
         public AddressSpaceValueCallScalarTests(TestServerFixture server) {
             _server = server;
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Dns.GetHostName()))
+                ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
     }

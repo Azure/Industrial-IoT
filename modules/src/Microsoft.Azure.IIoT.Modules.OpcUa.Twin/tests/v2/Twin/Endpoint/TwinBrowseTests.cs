@@ -10,10 +10,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.Endpoint {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Opc.Ua;
-    using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Utils;
     using System.Linq;
+    using System.Net;
     using System.Net.Sockets;
+    using System.Threading.Tasks;
     using Xunit;
     using Autofac;
 
@@ -23,15 +24,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.Endpoint {
         public TwinBrowseTests(TestServerFixture server, TwinModuleFixture module) {
             _server = server;
             _module = module;
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Dns.GetHostName()))
+                ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
         private BrowseServicesTests<string> GetTests() {
             var endpoint = new EndpointRegistrationModel {
                 Endpoint = new EndpointModel {
-                    Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
-                    AlternativeUrls = Utils.GetHostAddresses(Utils.GetHostName())
-                            .Result?.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
-                                .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
+                    Url = $"opc.tcp://{_hostEntry?.HostName}:{_server.Port}/UA/SampleServer",
+                    AlternativeUrls = _hostEntry?.AddressList
+                        .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                        .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
                     Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 },
                 Id = "testid",
@@ -45,6 +48,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.Endpoint {
 
         private readonly TestServerFixture _server;
         private readonly TwinModuleFixture _module;
+        private readonly IPHostEntry _hostEntry;
 
         [Fact]
         public async Task NodeBrowseInRootTest1Async() {

@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua;
+    using System.Net;
     using System.Diagnostics.Tracing;
     using System.Collections.Generic;
 
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
                 }
                 config = connectionString.ToIoTHubConfig();
                 if (deviceId == null) {
-                    deviceId = Utils.GetHostName();
+                    deviceId = Dns.GetHostName();
                     Console.WriteLine($"Using <deviceId> '{deviceId}'");
                 }
                 if (moduleId == null) {

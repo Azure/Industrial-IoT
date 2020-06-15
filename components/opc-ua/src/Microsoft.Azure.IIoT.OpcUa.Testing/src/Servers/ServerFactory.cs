@@ -114,7 +114,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                 return new ApplicationConfiguration {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
-                    ApplicationUri = $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
+                    ApplicationUri = $"urn:{Dns.GetHostName()}:OPCFoundation:CoreSampleServer",
                     Extensions = new XmlElementCollection(
                         extensions.Select(XmlElementEx.SerializeObject)),
 

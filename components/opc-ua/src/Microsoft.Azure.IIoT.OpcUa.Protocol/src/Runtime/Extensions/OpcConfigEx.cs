@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         //  try to resolve the hostname
                         var hostname = !string.IsNullOrWhiteSpace(identity?.Gateway) ?
                             identity.Gateway : !string.IsNullOrWhiteSpace(identity?.DeviceId) ?
-                                identity.DeviceId : Utils.GetHostName();
+                                identity.DeviceId : Dns.GetHostName();
                         var alternateBaseAddresses = new List<string>();
                         try {
                             alternateBaseAddresses.Add($"urn://{hostname}");

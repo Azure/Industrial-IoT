@@ -13,11 +13,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
     using Serilog;
-    using Opc.Ua;
-    using System.Threading.Tasks;
     using System.Linq;
+    using System.Net;
     using System.Net.Sockets;
+    using System.Threading.Tasks;
     using Xunit;
 
     [Collection(ReadCollection.Name)]
@@ -26,6 +27,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
         public ReadControllerValuesTests(WebAppFixture factory, HistoryServerFixture server) {
             _factory = factory;
             _server = server;
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Dns.GetHostName()))
+                ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
         private HistoryReadValuesTests<string> GetTests() {
@@ -43,15 +46,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
         }
 
         public EndpointModel Endpoint => new EndpointModel {
-            Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
-            AlternativeUrls = Utils.GetHostAddresses(Utils.GetHostName())
-                .Result?.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
-                    .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
+            Url = $"opc.tcp://{_hostEntry?.HostName}:{_server.Port}/UA/SampleServer",
+            AlternativeUrls = _hostEntry?.AddressList
+                .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
             Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 
         private readonly WebAppFixture _factory;
         private readonly HistoryServerFixture _server;
+        private readonly IPHostEntry _hostEntry;
 
         [Fact]
         public async Task HistoryReadInt64ValuesTest1Async() {

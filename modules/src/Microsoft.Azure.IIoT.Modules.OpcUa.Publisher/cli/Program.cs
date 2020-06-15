@@ -16,13 +16,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
-    using Opc.Ua;
     using Serilog;
     using Serilog.Events;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.Tracing;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
                 config = connectionString.ToIoTHubConfig();
 
                 if (deviceId == null) {
-                    deviceId = Utils.GetHostName();
+                    deviceId = Dns.GetHostName();
                     Console.WriteLine($"Using <deviceId> '{deviceId}'");
                 }
                 if (moduleId == null) {
@@ -255,7 +255,7 @@ Options:
             public ServerWrapper(ILogger logger) {
                 _cts = new CancellationTokenSource();
                 _server = RunSampleServerAsync(_cts.Token, logger);
-                EndpointUrl = "opc.tcp://" + Utils.GetHostName() +
+                EndpointUrl = "opc.tcp://" + Dns.GetHostName() +
                     ":51210/UA/SampleServer";
             }
 
