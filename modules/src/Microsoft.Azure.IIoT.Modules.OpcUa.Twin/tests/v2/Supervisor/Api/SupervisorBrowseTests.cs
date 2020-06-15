@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using System.Net;
+    using Opc.Ua;
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
             return new BrowseServicesTests<EndpointApiModel>(
                 () => _module.HubContainer.Resolve<IBrowseServices<EndpointApiModel>>(),
                 new EndpointApiModel {
-                    Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+                    Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
                     Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }

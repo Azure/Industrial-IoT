@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using System.Net;
+    using Opc.Ua;
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         }
 
         private EndpointModel Endpoint => new EndpointModel {
-            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+            Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
             Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 

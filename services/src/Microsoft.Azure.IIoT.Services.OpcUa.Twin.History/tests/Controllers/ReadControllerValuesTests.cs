@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
-    using System.Net;
+    using Opc.Ua;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
         }
 
         public EndpointModel Endpoint => new EndpointModel {
-            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+            Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
             Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 

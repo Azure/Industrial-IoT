@@ -626,7 +626,7 @@ Operations (Mutually exclusive):
                 _cts = new CancellationTokenSource();
                 if (endpoint.Url == null) {
                     _server = RunSampleServerAsync(_cts.Token, logger.Logger);
-                    endpoint.Url = "opc.tcp://" + Dns.GetHostName() +
+                    endpoint.Url = "opc.tcp://" + Utils.GetHostName() +
                         ":51210/UA/SampleServer";
                 }
                 else {

@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Api.Binary {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Http.Default;
     using Serilog;
-    using System.Net;
+    using Opc.Ua;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Api.Binary {
         }
 
         public EndpointModel Endpoint => new EndpointModel {
-            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+            Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
             Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 

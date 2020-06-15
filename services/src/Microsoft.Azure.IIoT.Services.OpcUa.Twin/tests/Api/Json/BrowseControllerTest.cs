@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Api.Json {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Serilog;
-    using System.Net;
+    using Opc.Ua;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Api.Json {
         }
 
         public EndpointModel Endpoint => new EndpointModel {
-            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+            Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
             Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 

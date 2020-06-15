@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
-    using System.Net;
+    using Opc.Ua;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
                 () => new HistoricAccessAdapter<EndpointModel>(new AddressSpaceServices(_server.Client,
                     codec, _server.Logger), codec),
                 new EndpointModel {
-                    Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+                    Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
                     Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }

@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.Api {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using System.Net;
+    using Opc.Ua;
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.Api {
             return new HistoryReadValuesTests<EndpointApiModel>(
                 () => _module.HubContainer.Resolve<IHistorianServices<EndpointApiModel>>(),
                 new EndpointApiModel {
-                    Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+                    Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
                     Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }
