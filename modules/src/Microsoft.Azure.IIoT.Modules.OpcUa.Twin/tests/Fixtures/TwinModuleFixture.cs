@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Extensions.Configuration;
     using Autofac;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -74,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         /// </summary>
         public TwinModuleFixture() {
 
-            DeviceId = Dns.GetHostName();
+            DeviceId = Utils.GetHostName();
             ModuleId = Guid.NewGuid().ToString();
 
             ServerPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",

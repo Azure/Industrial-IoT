@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Endpoint {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.Utils;
+    using Opc.Ua;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Endpoint {
         public SupervisorValueReadScalarTests(TestServerFixture server, TwinModuleFixture module) {
             _server = server;
             _module = module;
-            _hostEntry = Try.Op(() => Dns.GetHostEntry(Dns.GetHostName()))
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 

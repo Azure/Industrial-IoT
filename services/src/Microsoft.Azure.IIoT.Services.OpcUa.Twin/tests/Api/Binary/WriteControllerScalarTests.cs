@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Api.Binary {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
+    using Opc.Ua;
     using Serilog;
     using System.Linq;
     using System.Net;
@@ -26,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Api.Binary {
         public WriteControllerScalarTests(WebAppFixture factory, TestServerFixture server) {
             _factory = factory;
             _server = server;
-            _hostEntry = Try.Op(() => Dns.GetHostEntry(Dns.GetHostName()))
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 

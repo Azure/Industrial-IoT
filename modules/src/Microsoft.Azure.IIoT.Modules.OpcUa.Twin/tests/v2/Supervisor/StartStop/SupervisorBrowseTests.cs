@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.Utils;
+    using Opc.Ua;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
@@ -23,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
 
         public SupervisorBrowseTests(TestServerFixture server) {
             _server = server;
-            _hostEntry = Try.Op(() => Dns.GetHostEntry(Dns.GetHostName()))
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 

@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.Utils;
+    using Opc.Ua;
     using System.Threading.Tasks;
     using System.Linq;
     using System.Net;
@@ -23,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
 
         public AddressSpaceReadValuesTests(HistoryServerFixture server) {
             _server = server;
-            _hostEntry = Try.Op(() => Dns.GetHostEntry(Dns.GetHostName()))
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 

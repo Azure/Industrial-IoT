@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
+    using Opc.Ua;
     using Serilog;
     using System.Linq;
     using System.Net;
@@ -27,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
         public ReadControllerValuesTests(WebAppFixture factory, HistoryServerFixture server) {
             _factory = factory;
             _server = server;
-            _hostEntry = Try.Op(() => Dns.GetHostEntry(Dns.GetHostName()))
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
