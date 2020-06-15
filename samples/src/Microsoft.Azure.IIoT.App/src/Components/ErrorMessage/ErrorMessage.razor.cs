@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.App.Components.ErrorMessage {
         public string Status { get; set; }
 
         public void CloseErrorMessage() {
-            //_display = "displayNone";
             PageError = null;
             Status = null;
         }

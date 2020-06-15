@@ -6,7 +6,6 @@
 @page "/errorMessage"
 
 @if (Status != null || PageError != null) {
-    //_display = "displayBlock";
     <div class="error-message">
         <div class="closediv">
             <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => CloseErrorMessage())" class="oi oi-x closebtn"></a>
