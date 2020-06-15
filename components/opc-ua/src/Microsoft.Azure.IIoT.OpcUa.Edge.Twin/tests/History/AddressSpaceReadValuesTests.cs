@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Opc.Ua;
     using System.Threading.Tasks;
+    using System.Linq;
+    using System.Net.Sockets;
     using Xunit;
 
     [Collection(HistoryReadCollection.Name)]
@@ -28,6 +30,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
                     codec, _server.Logger), codec),
                 new EndpointModel {
                     Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
+                    AlternativeUrls = Utils.GetHostAddresses(Utils.GetHostName())
+                        .Result?.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                            .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
                     Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }

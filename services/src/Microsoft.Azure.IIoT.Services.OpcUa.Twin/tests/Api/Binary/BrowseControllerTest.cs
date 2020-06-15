@@ -14,6 +14,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Api.Binary {
     using Serilog;
     using Opc.Ua;
     using System.Threading.Tasks;
+    using System.Linq;
+    using System.Net.Sockets;
     using Xunit;
 
     [Collection(ReadBinaryCollection.Name)]
@@ -38,6 +40,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Api.Binary {
 
         public EndpointModel Endpoint => new EndpointModel {
             Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
+            AlternativeUrls = Utils.GetHostAddresses(Utils.GetHostName())
+                .Result?.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                    .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
             Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 

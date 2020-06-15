@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Opc.Ua;
     using System.Threading.Tasks;
+    using System.Linq;
+    using System.Net.Sockets;
     using Xunit;
     using Autofac;
 
@@ -28,6 +30,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
                 () => _module.HubContainer.Resolve<INodeServices<EndpointApiModel>>(),
                 new EndpointApiModel {
                     Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
+                    AlternativeUrls = Utils.GetHostAddresses(Utils.GetHostName())
+                        .Result?.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                            .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
                     Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }

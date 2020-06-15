@@ -11,6 +11,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Opc.Ua;
     using System.Threading.Tasks;
+    using System.Linq;
+    using System.Net.Sockets;
     using Xunit;
 
     [Collection(WriteCollection.Name)]
@@ -22,6 +24,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                     new VariantEncoderFactory(), _server.Logger),
                 new EndpointModel {
                     Url = $"opc.tcp://{Utils.GetHostName()}:{_server.Port}/UA/SampleServer",
+                    AlternativeUrls = Utils.GetHostAddresses(Utils.GetHostName())
+                        .Result?.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                            .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
                     Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }
