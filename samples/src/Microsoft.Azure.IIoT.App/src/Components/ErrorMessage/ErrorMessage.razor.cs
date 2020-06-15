@@ -7,10 +7,17 @@ namespace Microsoft.Azure.IIoT.App.Components.ErrorMessage {
     using Microsoft.AspNetCore.Components;
 
     public partial class ErrorMessage {
+
         [Parameter]
         public string PageError { get; set; }
 
         [Parameter]
         public string Status { get; set; }
+
+        public void CloseErrorMessage() {
+            //_display = "displayNone";
+            PageError = null;
+            Status = null;
+        }
     }
 }
