@@ -1,7 +1,7 @@
 ﻿@*------------------------------------------------------------
-     Copyright (c) Microsoft Corporation.  All rights reserved.
-     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-    ------------------------------------------------------------*@
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+    Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
 
 @page "/endpoints/{page}"
 @page "/endpoints/{page}/{discovererId}/{applicationId}"
@@ -24,6 +24,7 @@
 @inject UICommon CommonHelper
 
 @implements IDisposable
+
 
 <h1>Endpoints</h1>
 
@@ -76,7 +77,7 @@
         {
             <tr class="@GetEndpointVisibilityString(endpoint)">
                 @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
-                endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
+               endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
                 {
                     <td class="hover-text width-large">
                         <div>
@@ -150,11 +151,13 @@
 </table>
 <div class="@_tableEmpty center">No Endpoints found.</div>
 
-<ErrorMessage PageError="@_pagedendpointList.Error" Status="@Status"></ErrorMessage>
+
 
 <Pager Result=@_endpointList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
 
 <div class="loader-pos @CommonHelper.Spinner"></div>
+
+<ErrorMessage PageError="@_pagedendpointList.Error" Status="@Status"></ErrorMessage>
 
 @code {
 
@@ -307,7 +310,14 @@
             }
             catch (Exception e)
             {
-                Status = e.Message;
+                if (e.Message.Contains("404103"))
+                {
+                    Status = "The endpoint is not available.";
+                }
+                else
+                {
+                    Status = e.Message;
+                }
             }
         }
         else
