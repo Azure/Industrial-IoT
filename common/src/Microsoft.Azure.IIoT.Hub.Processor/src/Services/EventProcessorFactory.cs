@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
 
         /// <inheritdoc/>
         public IEventProcessor CreateEventProcessor(PartitionContext context) {
-            return new DefaultProcessor(this, _logger);
+            return new DefaultProcessor(this, context, _logger);
         }
 
         /// <summary>
@@ -50,9 +50,15 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// Create processor
             /// </summary>
             /// <param name="outer"></param>
+            /// <param name="partitionContext"></param>
             /// <param name="logger"></param>
-            public DefaultProcessor(EventProcessorFactory outer, ILogger logger) {
+            public DefaultProcessor(
+                EventProcessorFactory outer,
+                PartitionContext partitionContext,
+                ILogger logger
+            ) {
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
+                _partitionContext = partitionContext ?? throw new ArgumentNullException(nameof(partitionContext));
                 _processorId = Guid.NewGuid().ToString();
                 _logger = logger?.ForContext("ProcessorId", _processorId)
                     ?? throw new ArgumentNullException(nameof(logger));
@@ -62,12 +68,15 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                     ?? long.MaxValue;
 
                 _sw = Stopwatch.StartNew();
-                logger.Information("EventProcessor {id} created", _processorId);
+                _logger.Information("EventProcessor {id} for partition {partitionId} created",
+                    _processorId, _partitionContext.PartitionId);
             }
 
             /// <inheritdoc/>
-            public async Task ProcessEventsAsync(PartitionContext context,
-                IEnumerable<EventData> messages) {
+            public async Task ProcessEventsAsync(
+                PartitionContext context,
+                IEnumerable<EventData> messages
+            ) {
                 if (messages == null || !messages.Any()) {
                     return;
                 }
@@ -92,13 +101,14 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 // Checkpoint if needed
                 if (_sw.ElapsedMilliseconds >= _interval) {
                     try {
-                        _logger.Debug("Checkpointing partition {partitionId}...", context.PartitionId);
+                        _logger.Debug("Checkpointing EventProcessor {id} for partition {partitionId}...",
+                            _processorId, context.PartitionId);
                         await context.CheckpointAsync();
                         _sw.Restart();
                     }
                     catch (Exception ex) {
-                        _logger.Debug(ex, "Failed checkpointing partition {partitionId}...",
-                            context.PartitionId);
+                        _logger.Debug(ex, "Failed checkpointing EventProcessor {id} for partition {partitionId}...",
+                            _processorId, context.PartitionId);
                         if (_sw.ElapsedMilliseconds >= 2 * _interval) {
                             // Give up checkpointing after trying a couple more times
                             _sw.Restart();
@@ -110,19 +120,22 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
 
             /// <inheritdoc/>
             public Task OpenAsync(PartitionContext context) {
-                _logger.Information("Partition for {id} opened", _processorId);
+                _logger.Information("EventProcessor {id} for partition {partitionId} opened",
+                    _processorId, context.PartitionId);
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc/>
             public Task ProcessErrorAsync(PartitionContext context, Exception error) {
-                _logger.Warning(error, "Processor {id} error", _processorId);
+                _logger.Warning(error, "EventProcessor {id} for partition {partitionId} error",
+                    _processorId, context.PartitionId);
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc/>
             public Task CloseAsync(PartitionContext context, CloseReason reason) {
-                _logger.Information("Partition {id} closed ({reason})", _processorId, reason);
+                _logger.Information("EventProcessor {id} for partition {partitionId} closed ({reason})",
+                    _processorId, context.PartitionId, reason);
                 return Task.CompletedTask;
             }
 
@@ -134,12 +147,13 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// <returns></returns>
             private async Task CheckpointAsync(PartitionContext context, EventData eventData) {
                 try {
-                    _logger.Debug("Checkpointing partition {partition} with {event}...",
-                        eventData, context.PartitionId);
+                    _logger.Debug("Checkpointing EventProcessor {id} for partition {partition} with {event}...",
+                        _processorId, context.PartitionId, eventData);
                     await context.CheckpointAsync(eventData).ConfigureAwait(false);
                 }
                 catch {
-                    _logger.Debug("Failed to checkpoint event {event}", eventData);
+                    _logger.Debug("Failed to checkpoint EventProcessor {id} for partition {partition} with event {event}",
+                        _processorId, context.PartitionId, eventData);
                 }
                 finally {
                     _sw.Restart();
@@ -279,6 +293,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             private readonly string _processorId;
             private readonly long? _interval;
             private readonly Stopwatch _sw;
+            private readonly PartitionContext _partitionContext;
         }
 
         private readonly ILogger _logger;
