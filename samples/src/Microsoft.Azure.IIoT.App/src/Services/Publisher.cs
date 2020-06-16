@@ -82,7 +82,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var requestApiModel = new PublishStartRequestApiModel() {
                     Item = new PublishedItemApiModel() {
                         NodeId = nodeId,
-                        DisplayName = displayName,
                         SamplingInterval = samplingInterval,
                         PublishingInterval = publishingInterval,
                         HeartbeatInterval = heartBeatInterval
