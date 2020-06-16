@@ -31,13 +31,15 @@
             @if (IsIdGiven(DiscovererId) && IsIdGiven(ApplicationId) && IsIdGiven(SupervisorId))
             {
                 <th class="width-xsmall">
-                    <a href="/endpoints/1/@DiscovererId/@ApplicationId/@SupervisorId"><span class="oi oi-arrow-left"></span></a>
+                    @{var link = @NavigationManager.BaseUri + "endpoints/1/" + @DiscovererId + "/" + @ApplicationId + "/" + @SupervisorId;}
+                    <a href="@link"><span class="oi oi-arrow-left"></span></a>
                 </th>
             }
             else
             {
                 <th class="width-xsmall">
-                    <a href="/endpoints/1"><span class="oi oi-arrow-left"></span></a>
+                    @{var link = @NavigationManager.BaseUri + "endpoints/1";}
+                    <a href="@link"><span class="oi oi-arrow-left"></span></a>
                 </th>
             }
         </tr>

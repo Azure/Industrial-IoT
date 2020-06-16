@@ -96,7 +96,8 @@
                     {
                         if (PagedNodeList.Results[0].DiscovererId != null)
                         {
-                            <a href='endpoints/1/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId'>
+                            var link = @NavigationManager.BaseUri + "endpoints/1/" + @PagedNodeList.Results[0].DiscovererId + "/" + @ApplicationId + "/" + @SupervisorId;
+                            <a href="@link">
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
