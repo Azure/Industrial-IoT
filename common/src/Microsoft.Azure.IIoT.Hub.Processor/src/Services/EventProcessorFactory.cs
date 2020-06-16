@@ -52,11 +52,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// <param name="outer"></param>
             /// <param name="partitionContext"></param>
             /// <param name="logger"></param>
-            public DefaultProcessor(
-                EventProcessorFactory outer,
-                PartitionContext partitionContext,
-                ILogger logger
-            ) {
+            public DefaultProcessor(EventProcessorFactory outer, PartitionContext partitionContext,
+                ILogger logger) {
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
                 _partitionContext = partitionContext ?? throw new ArgumentNullException(nameof(partitionContext));
                 _processorId = Guid.NewGuid().ToString();
@@ -73,10 +70,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             }
 
             /// <inheritdoc/>
-            public async Task ProcessEventsAsync(
-                PartitionContext context,
-                IEnumerable<EventData> messages
-            ) {
+            public async Task ProcessEventsAsync(PartitionContext context,
+                IEnumerable<EventData> messages) {
                 if (messages == null || !messages.Any()) {
                     return;
                 }
