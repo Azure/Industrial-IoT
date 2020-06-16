@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                         _sw.Restart();
                     }
                     catch (Exception ex) {
-                        _logger.Debug(ex, "Failed checkpointing EventProcessor {id} for partition {partitionId}...",
+                        _logger.Warning(ex, "Failed checkpointing EventProcessor {id} for partition {partitionId}...",
                             _processorId, context.PartitionId);
                         if (_sw.ElapsedMilliseconds >= 2 * _interval) {
                             // Give up checkpointing after trying a couple more times
@@ -152,7 +152,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                     await context.CheckpointAsync(eventData).ConfigureAwait(false);
                 }
                 catch {
-                    _logger.Debug("Failed to checkpoint EventProcessor {id} for partition {partition} with event {event}",
+                    _logger.Warning("Failed to checkpoint EventProcessor {id} for partition {partition} with event {event}",
                         _processorId, context.PartitionId, eventData);
                 }
                 finally {
