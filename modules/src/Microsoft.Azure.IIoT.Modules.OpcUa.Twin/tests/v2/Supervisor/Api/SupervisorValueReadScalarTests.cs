@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
             return new ReadScalarValueTests<EndpointApiModel>(
                 () => _module.HubContainer.Resolve<INodeServices<EndpointApiModel>>(),
                 new EndpointApiModel {
-                    Url = $"opc.tcp://{_hostEntry?.HostName}:{_server.Port}/UA/SampleServer",
+                    Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                     AlternativeUrls = _hostEntry?.AddressList
                         .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                         .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
