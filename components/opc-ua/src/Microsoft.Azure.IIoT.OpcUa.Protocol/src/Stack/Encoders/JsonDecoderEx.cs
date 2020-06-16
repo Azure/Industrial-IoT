@@ -1,7 +1,7 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-// -------------------------------------------------5-----------
+// ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
     using Opc.Ua.Extensions;
