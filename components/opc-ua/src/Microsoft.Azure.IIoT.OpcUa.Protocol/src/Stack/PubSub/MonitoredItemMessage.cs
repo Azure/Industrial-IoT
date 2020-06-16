@@ -311,7 +311,7 @@ namespace Opc.Ua.PubSub {
                 encoder.WriteString(nameof(MonitoredItemMessageContentMask.ApplicationUri), ApplicationUri);
             }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.DisplayName) != 0 &&
-                string.IsNullOrEmpty(DisplayName)) {
+                !string.IsNullOrEmpty(DisplayName)) {
                 encoder.WriteString(nameof(MonitoredItemMessageContentMask.DisplayName), DisplayName);
             }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) != 0) {

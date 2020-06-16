@@ -10,7 +10,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.History;
+    using Microsoft.Azure.IIoT.Utils;
+    using Opc.Ua;
+    using System.Linq;
     using System.Net;
+    using System.Net.Sockets;
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
@@ -20,6 +24,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
 
         public SupervisorReadValuesTests(HistoryServerFixture server) {
             _server = server;
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
+                ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
         private HistoryReadValuesTests<EndpointRegistrationModel> GetTests(
@@ -28,7 +34,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
                 () => services.Resolve<IHistorianServices<EndpointRegistrationModel>>(),
                 new EndpointRegistrationModel {
                     Endpoint = new EndpointModel {
-                        Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+                        Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+                        AlternativeUrls = _hostEntry?.AddressList
+                            .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                            .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
                         Certificate = _server.Certificate?.RawData?.ToThumbprint()
                     },
                     Id = "testid",
@@ -37,6 +46,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
         }
 
         private readonly HistoryServerFixture _server;
+        private readonly IPHostEntry _hostEntry;
 #if TEST_ALL
         private readonly bool _runAll = true;
 #else

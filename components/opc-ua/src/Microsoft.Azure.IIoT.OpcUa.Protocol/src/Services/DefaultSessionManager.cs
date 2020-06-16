@@ -236,7 +236,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 }
                                 break;
                             case SessionState.Running:
-                                // nothing to do
+                                if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
+                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct));
+                                }
                                 break;
                             case SessionState.Retry:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
@@ -483,6 +485,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 }
                             }
                             _logger.Debug("Refreshing done for session '{id}'", id);
+                            wrapper.State = SessionState.Running;
                             return;
                         }
                         wrapper.ReportedStatus = StatusCodes.BadNoCommunication;
