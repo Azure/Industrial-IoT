@@ -1120,9 +1120,13 @@ namespace Opc.Ua.Encoders {
             var result = array
                 .Select(t => ReadVariantFromToken(t, unsigned))
                 .ToArray();
+            var validBuiltInType = result.FirstOrDefault(v => v.TypeInfo?.BuiltInType != null).TypeInfo?.BuiltInType;
+            if (validBuiltInType == null) {
+                return Variant.Null;
+            }
             if (result
                 .Where(v => v != Variant.Null)
-                .All(v => v.TypeInfo.BuiltInType == result[0].TypeInfo.BuiltInType)) {
+                .All(v => v.TypeInfo.BuiltInType == validBuiltInType)) {
                 // TODO: This needs tests as it should not work.
                 return new Variant(result.Select(v => v.Value).ToArray());
             }
