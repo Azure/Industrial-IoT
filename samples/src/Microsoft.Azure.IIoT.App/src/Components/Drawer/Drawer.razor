@@ -5,51 +5,13 @@
 
 @page "/drawer"
 
-@using System
-@using Microsoft.AspNetCore.Components;
-
-@if (IsOpened) {
+@if (IsOpen) {
     OpenPanel();
-    <div class="@_divClass">
+    <div class="@DivClass">
         <div class="top-row drawer-top px-4">
             <div class="header ">@HeaderText</div>
         </div>
-        <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => ClosePanel())" class="@_closeIcon"></a>
+        <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => ClosePanel())" class="@CloseIcon"></a>
         @ChildContent
     </div>
-}
-
-@code {
-
-    [Parameter]
-    public string HeaderText { get; set; }
-
-    [Parameter]
-    public RenderFragment ChildContent { get; set; }
-
-    [Parameter]
-    public Object ObjectData { get; set; }
-
-    [Parameter]
-    public Action CloseDrawer { get; set; }
-
-    [Parameter]
-    public bool IsOpened { get; set; }
-
-    private string _divClass { get; set; } = "drawer";
-    private string _closeIcon { get; set; } = "oi oi-x closebtn";
-
-    private void OpenPanel()
-    {
-        _divClass = "drawer drawer-right-open";
-        _closeIcon = "oi oi-x closebtn";
-    }
-
-    private void ClosePanel()
-    {
-        _divClass = "drawer drawer-close";
-        _closeIcon = string.Empty;
-        IsOpened = false;
-        CloseDrawer.Invoke();
-    }
 }

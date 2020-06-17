@@ -5,9 +5,6 @@
 
 @page "/errorMessage"
 
-@using Microsoft.AspNetCore.Components;
-
-
 @if (PageError != null)
 {
     <div class="center">Error: @PageError</div>
@@ -15,14 +12,4 @@
 else if (Status != null)
 {
     <div class="center">Error: @Status</div>
-}
-
-
-@code {
-
-    [Parameter]
-    public string PageError { get; set; }
-
-    [Parameter]
-    public string Status { get; set; }
 }
