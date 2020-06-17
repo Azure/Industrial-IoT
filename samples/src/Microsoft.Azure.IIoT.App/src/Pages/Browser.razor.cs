@@ -194,9 +194,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             var heartbeatInterval = node.PublishedItem?.HeartbeatInterval;
             var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, samplingInterval, publishingInterval, heartbeatInterval, Credential);
             if (result) {
-                node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel() {
+                node.PublishedItem = new PublishedItemApiModel() {
                     NodeId = node.Id,
-                    DisplayName = node.NodeName,
                     PublishingInterval = publishingInterval,
                     SamplingInterval = samplingInterval,
                     HeartbeatInterval = heartbeatInterval
