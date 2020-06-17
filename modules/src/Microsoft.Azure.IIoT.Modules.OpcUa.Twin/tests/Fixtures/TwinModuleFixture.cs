@@ -29,13 +29,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Extensions.Configuration;
     using Autofac;
+    using Opc.Ua;
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Harness for opc twin module
@@ -73,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         /// </summary>
         public TwinModuleFixture() {
 
-            DeviceId = Guid.NewGuid().ToString();
+            DeviceId = Utils.GetHostName();
             ModuleId = Guid.NewGuid().ToString();
 
             ServerPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",

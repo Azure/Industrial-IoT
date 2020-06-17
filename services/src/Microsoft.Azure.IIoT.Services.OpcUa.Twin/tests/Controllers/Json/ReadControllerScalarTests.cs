@@ -12,8 +12,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Json {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
+    using Opc.Ua;
     using Serilog;
+    using System.Linq;
     using System.Net;
+    using System.Net.Sockets;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -23,6 +27,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Json {
         public ReadControllerScalarTests(WebAppFixture factory, TestServerFixture server) {
             _factory = factory;
             _server = server;
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
+                ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
         private ReadScalarValueTests<string> GetTests() {
@@ -39,12 +45,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Json {
         }
 
         public EndpointModel Endpoint => new EndpointModel {
-            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
+            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+            AlternativeUrls = _hostEntry?.AddressList
+                .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
             Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 
         private readonly WebAppFixture _factory;
         private readonly TestServerFixture _server;
+        private readonly IPHostEntry _hostEntry;
 
         [Fact]
         public async Task NodeReadStaticScalarBooleanValueVariableTestAsync() {

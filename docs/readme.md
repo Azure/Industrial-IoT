@@ -37,3 +37,4 @@ To get started
   * [What is OPC Vault?](services/vault.md)
 * [Explore and work with the REST API](api/readme.md)
 * [Explore the code structure](code-structure.md)
+* [Explore the C# API reference](../api/csharp-api/index.md)

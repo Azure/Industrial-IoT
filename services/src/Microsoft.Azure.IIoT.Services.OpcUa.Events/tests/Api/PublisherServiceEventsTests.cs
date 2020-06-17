@@ -33,21 +33,21 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
             var client = _factory.Resolve<IPublisherServiceEvents>();
 
             var endpointId = "testid";
-            var expected = new MonitoredItemMessageModel {
-                DataSetWriterId = "testid",
-                EndpointId = endpointId,
-                DisplayName = "holla",
-                NodeId = "nodeid",
-                SourceTimestamp = DateTime.UtcNow,
-                Timestamp = DateTime.UtcNow,
-                Value = v
-            };
+
             var result = new TaskCompletionSource<MonitoredItemMessageApiModel>();
             await using (await client.NodePublishSubscribeByEndpointAsync(endpointId, ev => {
                 result.SetResult(ev);
                 return Task.CompletedTask;
             })) {
-
+                var expected = new MonitoredItemMessageModel {
+                    DataSetWriterId = "testid",
+                    EndpointId = endpointId,
+                    DisplayName = "holla",
+                    NodeId = "nodeid",
+                    SourceTimestamp = DateTime.UtcNow,
+                    Timestamp = DateTime.UtcNow,
+                    Value = v
+                };
                 await bus.HandleSampleAsync(expected);
                 await Task.WhenAny(result.Task, Task.Delay(1000));
 
@@ -98,7 +98,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
                     await bus.HandleSampleAsync(expected);
                 }
 
-                await Task.WhenAny(result.Task, Task.Delay(5000));
+                await Task.WhenAny(result.Task, Task.Delay(10000));
                 Assert.True(result.Task.IsCompleted, $"{counter} received instead of {total}");
             }
         }
@@ -204,7 +204,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
             return GetStrings()
                 .Select(v => new object[] { v.Item1 })
                 .Concat(GetValues()
-                .Select(v => new object[] { v.Item1 }));
+                .Select(v => new object[] { v.Item2 }));
         }
     }
 }

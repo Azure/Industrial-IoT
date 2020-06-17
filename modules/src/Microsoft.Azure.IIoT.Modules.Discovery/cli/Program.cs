@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Extensions.Configuration;
+    using Opc.Ua;
     using Serilog.Events;
     using Serilog;
     using System;
@@ -78,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
                 }
                 config = connectionString.ToIoTHubConfig();
                 if (deviceId == null) {
-                    deviceId = Dns.GetHostName();
+                    deviceId = Utils.GetHostName();
                     Console.WriteLine($"Using <deviceId> '{deviceId}'");
                 }
                 if (moduleId == null) {

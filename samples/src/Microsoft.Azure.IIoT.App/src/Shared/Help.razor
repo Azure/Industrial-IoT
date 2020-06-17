@@ -6,11 +6,3 @@
 @inject IModalService Modal
 
 <a href="javascript: void(0)" @onclick="@(() => OpenModal())">Help</a>
-
-@code {
-
-    private void OpenModal()
-    {
-        Modal.Show<HelpContent>("Engineering Tool help page");
-    }
-}
