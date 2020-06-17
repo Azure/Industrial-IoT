@@ -107,6 +107,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge {
             // Add controllers as services so they'll be resolved.
             services.AddControllers().AddSerializers();
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
+
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
         }
 
         /// <summary>

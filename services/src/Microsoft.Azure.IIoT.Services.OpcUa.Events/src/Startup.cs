@@ -120,6 +120,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
                 .AddAzureSignalRService(Config);
 
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
+
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
         }
 
         /// <summary>

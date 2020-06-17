@@ -74,6 +74,9 @@ namespace Microsoft.Azure.IIoT.Services.All {
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
             services.AddApiVersioning();
+
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
         }
 
         /// <summary>
