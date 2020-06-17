@@ -5,11 +5,13 @@
 
 @page "/errorMessage"
 
-@if (PageError != null)
-{
-    <div class="center">Error: @PageError</div>
-}
-else if (Status != null)
-{
-    <div class="center">Error: @Status</div>
+@if (Status != null || PageError != null) {
+    <div class="error-message">
+        <div class="closediv">
+            <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => CloseErrorMessage())" class="oi oi-x closebtn"></a>
+        </div>
+        <div>
+            Error: @(Status ?? PageError)
+        </div>
+    </div>
 }
