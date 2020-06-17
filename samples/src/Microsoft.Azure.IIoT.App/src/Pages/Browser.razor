@@ -185,13 +185,13 @@
                     @if (node.Publishing == true && node.PublishedItem != null)
                     {
                         <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
-                            @(node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
+                            @(!IsTimeIntervalSet(node.PublishedItem.PublishingInterval) ? "1000" : node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString()) ms<br />
                         </a>
                         <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
-                            @(node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString() ?? "1000") ms<br />
+                            @(!IsTimeIntervalSet(node.PublishedItem.SamplingInterval) ? "1000" : node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString()) ms<br />
                         </a>
                         <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
-                            @(node.PublishedItem.HeartbeatInterval == null ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
+                            @(!IsTimeIntervalSet(node.PublishedItem.HeartbeatInterval) ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
                             <br />
                         </a>
                     }

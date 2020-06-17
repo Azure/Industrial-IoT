@@ -987,8 +987,13 @@ namespace Opc.Ua.Encoders {
             try {
                 switch (token.Type) {
                     case JTokenType.Integer:
-                        return !unsigned ? new Variant((long)token) :
-                            new Variant((ulong)token);
+                        try {
+                            return !unsigned ? new Variant((long)token) :
+                                new Variant((ulong)token);
+                        }
+                        catch (OverflowException){
+                            return new Variant((ulong)token);
+                        }
                     case JTokenType.Boolean:
                         return new Variant((bool)token);
                     case JTokenType.Bytes:
