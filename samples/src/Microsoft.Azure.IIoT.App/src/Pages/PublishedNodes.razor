@@ -65,21 +65,21 @@
                 <td class="hover-text width-small">
                     <div>
                         @{ string PublishingInterval = CommonHelper.None;
-                            PublishingInterval = node.PublishingInterval == null ? CommonHelper.None : node.PublishingInterval.ToString();
+                            PublishingInterval = node.PublishingInterval.HasValue && node.PublishingInterval.Value != TimeSpan.MinValue ? node.PublishingInterval.Value.Milliseconds.ToString() : CommonHelper.None;
                         } @PublishingInterval
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
                         @{ string SamplingInterval = CommonHelper.None;
-                            SamplingInterval = node.SamplingInterval == null ? CommonHelper.None : node.SamplingInterval.ToString();
+                            SamplingInterval = node.SamplingInterval.HasValue && node.SamplingInterval.Value != TimeSpan.MinValue ? node.SamplingInterval.Value.Milliseconds.ToString() : CommonHelper.None;
                         } @SamplingInterval
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
                         @{ string HeartbeatInterval = CommonHelper.None;
-                            HeartbeatInterval = node.HeartbeatInterval == null ? CommonHelper.None : node.HeartbeatInterval.ToString();
+                            HeartbeatInterval = node.HeartbeatInterval.HasValue && node.HeartbeatInterval.Value != TimeSpan.MinValue ? node.HeartbeatInterval.Value.Seconds.ToString() : CommonHelper.None;
                         } @HeartbeatInterval
                     </div>
                 </td>

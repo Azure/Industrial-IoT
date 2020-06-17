@@ -189,9 +189,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="node"></param>
         private async Task PublishNodeAsync(string endpointId, ListNode node) {
             node.Publishing = true;
-            var publishingInterval = node.PublishedItem?.PublishingInterval == null ? TimeSpan.FromMilliseconds(1000) : node.PublishedItem.PublishingInterval;
-            var samplingInterval = node.PublishedItem?.SamplingInterval == null ? TimeSpan.FromMilliseconds(1000) : node.PublishedItem.SamplingInterval;
-            var heartbeatInterval = node.PublishedItem?.HeartbeatInterval;
+            var item = node.PublishedItem;
+            var publishingInterval = IsTimeIntervalSet(item?.PublishingInterval) ? item.PublishingInterval : TimeSpan.FromMilliseconds(1000);
+            var samplingInterval = IsTimeIntervalSet(item?.SamplingInterval) ? item.SamplingInterval : TimeSpan.FromMilliseconds(1000);
+            var heartbeatInterval = IsTimeIntervalSet(item?.HeartbeatInterval) ? item.HeartbeatInterval : null;
             var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, samplingInterval, publishingInterval, heartbeatInterval, Credential);
             if (result) {
                 node.PublishedItem = new PublishedItemApiModel() {
@@ -283,6 +284,15 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private async Task<T> GetSecureItemAsync<T>(string key) {
             var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
             return secureData.UnprotectDeserialize<T>(serializedProtectedData);
+        }
+
+        /// <summary>
+        /// Checks whether the time interval is set or not
+        /// </summary>
+        /// <param name="interval"></param>
+        /// <returns>True when the interval is set, false otherwise</returns>
+        private bool IsTimeIntervalSet(TimeSpan? interval) {
+            return interval != null && interval.Value != TimeSpan.MinValue;
         }
     }
 }
