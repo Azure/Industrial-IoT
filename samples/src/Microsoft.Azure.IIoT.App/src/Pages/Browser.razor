@@ -242,7 +242,7 @@
 <Drawer HeaderText="Select Action" ObjectData="@NodeData" IsOpen="@IsOpen" CloseDrawer="@(() => CloseDrawer())">
     @if (DrawerType == Drawer.Action)
     {
-        <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" _pagedNodeList="@PagedNodeList" Credential="@Credential"></_DrawerActionContent>
+        <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" PagedNodeList="@PagedNodeList" Credential="@Credential"></_DrawerActionContent>
     }
     else
     {
