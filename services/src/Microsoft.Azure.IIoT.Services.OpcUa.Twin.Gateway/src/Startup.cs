@@ -4,33 +4,35 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Gateway.Server;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Auth.Server.Default;
+    using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
+    using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
-    using Microsoft.Azure.IIoT.Auth.Server.Default;
-    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.OpcUa.Gateway.Server;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport;
     using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.Ssl;
-    using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using Prometheus;
     using System;
     using ILogger = Serilog.ILogger;
-    using Prometheus;
 
     /// <summary>
     /// Webservice startup
@@ -105,6 +107,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
 
             // Add controllers as services so they'll be resolved.
             services.AddControllers();
+
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
+            services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
         }
 
         /// <summary>
