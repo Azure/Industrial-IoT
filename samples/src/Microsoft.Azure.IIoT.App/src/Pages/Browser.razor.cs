@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 
     public partial class Browser {
         [Parameter]
@@ -37,7 +38,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         public CredentialModel Credential { get; set; } = new CredentialModel();
         public bool IsOpen { get; set; } = false;
         public ListNode NodeData { get; set; }
-        public string EndpointUrl { get; set; } = null;
+        public EndpointInfoApiModel EndpointModel { get; set; } 
         private IAsyncDisposable PublishEvent { get; set; }
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
@@ -83,8 +84,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="firstRender"></param>
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
-                var endpoint = await registryService.GetEndpointAsync(EndpointId);
-                EndpointUrl = endpoint?.Registration?.EndpointUrl;
+                EndpointModel = await registryService.GetEndpointAsync(EndpointId);
                 Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
                 await BrowseTreeAsync(BrowseDirection.Forward, 0, true, FirstPage, string.Empty, new List<string>());
                 CommonHelper.Spinner = string.Empty;
@@ -207,7 +207,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 }
             }
             else {
-                node.PublishedItem = null;
                 node.Publishing = false;
             }
         }
@@ -220,7 +219,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private async Task UnPublishNodeAsync(string endpointId, ListNode node) {
             var result = await Publisher.StopPublishingAsync(endpointId, node.Id, Credential);
             if (result) {
-                node.PublishedItem = null;
                 node.Publishing = false;
             }
         }

@@ -362,6 +362,8 @@ a.adhocmargin {
 .subtitle {
     color: gray;
     font-weight: bold;
+    white-space: pre-wrap;
+    margin-bottom: 15px;
 }
 
 .error-message {
