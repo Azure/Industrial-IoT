@@ -4,42 +4,44 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App {
-    using Microsoft.Azure.IIoT.App.Services.SecureData;
-    using Microsoft.Azure.IIoT.App.Services;
-    using Microsoft.Azure.IIoT.App.Runtime;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Blazored.Modal;
+    using Blazored.SessionStorage;
+    using FluentValidation;
+    using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Components.Authorization;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Azure.IIoT.App.Common;
-    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.App.Runtime;
+    using Microsoft.Azure.IIoT.App.Services;
+    using Microsoft.Azure.IIoT.App.Services.SecureData;
+    using Microsoft.Azure.IIoT.App.Validation;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Storage;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Components.Authorization;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Hosting;
-    using Autofac.Extensions.DependencyInjection;
-    using Autofac;
+    using Microsoft.Extensions.Logging;
     using Serilog;
     using Serilog.Events;
     using System;
-    using Blazored.SessionStorage;
-    using Blazored.Modal;
-    using FluentValidation;
-    using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.App.Validation;
 
     /// <summary>
     /// Webapp startup
@@ -50,6 +52,11 @@ namespace Microsoft.Azure.IIoT.App {
         /// Configuration - Initialized in constructor
         /// </summary>
         public Config Config { get; }
+
+        /// <summary>
+        /// Service info - Initialized in constructor
+        /// </summary>
+        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
 
         /// <summary>
         /// Current hosting environment - Initialized in constructor
@@ -170,8 +177,9 @@ namespace Microsoft.Azure.IIoT.App {
              //   .AddAzureSignalRService(Config)
                 ;
 
-            // The following line enables Application Insights telemetry collection.
+            // Enable Application Insights telemetry collection.
             services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
+            services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
 
             services.AddServerSideBlazor();
             services.AddBlazoredSessionStorage();
@@ -186,6 +194,8 @@ namespace Microsoft.Azure.IIoT.App {
         public void ConfigureContainer(ContainerBuilder builder) {
 
             // Register configuration interfaces and logger
+            builder.RegisterInstance(ServiceInfo)
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().AsSelf();
             builder.RegisterInstance(Config.Configuration)
