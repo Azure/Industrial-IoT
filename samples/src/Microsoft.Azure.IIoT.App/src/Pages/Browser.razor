@@ -32,11 +32,16 @@
 
 <h1>Endpoint Control</h1>
 
-@if (EndpointUrl != null)
+@if (EndpointModel != null)
 {
-    <div class="subtitle">
-        Url: @EndpointUrl
-    </div>
+<div class="subtitle">
+Url: @EndpointModel.Registration.EndpointUrl
+Discoverer: @EndpointModel.Registration.DiscovererId
+Site: @EndpointModel.Registration.SiteId
+Security Mode: @EndpointModel.Registration.Endpoint.SecurityMode
+Security Policy: @CommonHelper.ExtractSecurityPolicy(EndpointModel.Registration.Endpoint.SecurityPolicy)
+Security Level: @EndpointModel.Registration.SecurityLevel
+</div>
 }
 
 <div>
@@ -76,7 +81,7 @@
 <table class="table @_tableView">
     <thead>
         <tr>
-            <th class="width-medium">Name</th>
+            <th class="width-small">Name</th>
             <th class="width-medium-large">Node Id</th>
             <th class="width-small">Node Type</th>
             <th class="width-medium-large">Value</th>
@@ -182,24 +187,16 @@
                     <button class="btn btn-primary btn-table-cell" @onclick="@(() => SetPublishingAsync(EndpointId, node))">@pubStatus</button>
                 </td>
                 <td class="width-small space-wrap">
-                    @if (node.Publishing == true && node.PublishedItem != null)
-                    {
-                        <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
-                            @(!IsTimeIntervalSet(node.PublishedItem.PublishingInterval) ? "1000" : node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString()) ms<br />
-                        </a>
-                        <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
-                            @(!IsTimeIntervalSet(node.PublishedItem.SamplingInterval) ? "1000" : node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString()) ms<br />
-                        </a>
-                        <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
-                            @(!IsTimeIntervalSet(node.PublishedItem.HeartbeatInterval) ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
-                            <br />
-                        </a>
-                    }
-                    else
-                    {
-                        <label>N/A</label>
-                    }
-
+                    <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
+                        @(!IsTimeIntervalSet(node.PublishedItem?.PublishingInterval) ? "1000" : node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString()) ms<br />
+                    </a>
+                    <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
+                        @(!IsTimeIntervalSet(node.PublishedItem?.SamplingInterval) ? "1000" : node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString()) ms<br />
+                    </a>
+                    <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
+                        @(!IsTimeIntervalSet(node.PublishedItem?.HeartbeatInterval) ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
+                        <br />
+                    </a>
                 </td>
             }
             else
