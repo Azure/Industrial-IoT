@@ -4,22 +4,24 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.All {
-    using Microsoft.Azure.IIoT.Services.All.Runtime;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
+    using Microsoft.Azure.IIoT.Services.All.Runtime;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Hosting;
-    using Autofac.Extensions.DependencyInjection;
-    using Autofac;
     using System;
-    using System.Threading.Tasks;
-    using System.Threading;
-    using System.Linq;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Mono app startup
@@ -74,6 +76,10 @@ namespace Microsoft.Azure.IIoT.Services.All {
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
             services.AddApiVersioning();
+
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
+            services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
         }
 
         /// <summary>

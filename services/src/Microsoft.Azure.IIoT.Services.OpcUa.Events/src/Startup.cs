@@ -4,18 +4,22 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Events.Auth;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
-    using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
+    using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
-    using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
-    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
@@ -25,16 +29,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Events.Auth;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
     using Prometheus;
     using System;
 
@@ -120,6 +122,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
                 .AddAzureSignalRService(Config);
 
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
+
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
+            services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
         }
 
         /// <summary>

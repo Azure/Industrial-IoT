@@ -4,44 +4,46 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Auth;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Migration;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Deploy;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
-    using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Services;
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
+    using Microsoft.Azure.IIoT.Module.Default;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Deploy;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Migration;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Auth;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.Azure.IIoT.Storage.Default;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Hosting;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
+    using Prometheus;
     using System;
     using ILogger = Serilog.ILogger;
-    using Prometheus;
 
     /// <summary>
     /// Webservice startup
@@ -122,6 +124,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             // Add controllers as services so they'll be resolved.
             services.AddControllers().AddSerializers();
             services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
+
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
+            services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
         }
 
         /// <summary>
