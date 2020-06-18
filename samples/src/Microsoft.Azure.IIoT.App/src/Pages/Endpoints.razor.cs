@@ -137,7 +137,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                     await RegistryService.ActivateEndpointAsync(endpointId);
                 }
                 catch (Exception e) {
-                    Status = e.Message;
+                    if (e.Message.Contains("404103")) {
+                        Status = "The endpoint is not available.";
+                    }
+                    else {
+                        Status = e.Message;
+                    }
                 }
             }
             else {
