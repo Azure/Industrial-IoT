@@ -102,10 +102,9 @@
                         @endpoint.EndpointModel.Registration.Endpoint.SecurityMode
                     </div>
                 </td>
-                @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
                 <td class="hover-text width-small">
                     <div>
-                        @securityPolicy
+                        @CommonHelper.ExtractSecurityPolicy(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy)
                     </div>
                 </td>
                 <td class="hover-text width-small">
