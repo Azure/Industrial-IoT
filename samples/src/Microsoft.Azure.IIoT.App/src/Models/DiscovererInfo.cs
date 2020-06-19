@@ -154,9 +154,11 @@ namespace Microsoft.Azure.IIoT.App.Models {
                     string.IsNullOrWhiteSpace(input.RequestedPortRangesToScan) ? string.Empty : 
                     input.RequestedPortRangesToScan;
 
-                DiscovererModel.RequestedConfig.DiscoveryUrls = input.RequestedDiscoveryUrls ?? new List<string>();
+                Patch.DiscoveryUrls = DiscovererModel.RequestedConfig.DiscoveryUrls = 
+                    input.RequestedDiscoveryUrls ?? new List<string>();
 
-                DiscovererModel.RequestedConfig.Locales = input.RequestedDiscoveryUrls ?? new List<string>();
+                Patch.Locales = DiscovererModel.RequestedConfig.Locales = 
+                    input.RequestedDiscoveryUrls ?? new List<string>();
 
                 return true;
             }
