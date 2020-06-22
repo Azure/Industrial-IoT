@@ -90,15 +90,15 @@ namespace Opc.Ua.Encoders {
         public void WriteEncodeable(string fieldName, IEncodeable value,
             Type systemType) {
             _wrapped.WriteEncodeable(
-fieldName, new EncodableWrapper(this, value), systemType);
+                fieldName, new EncodableWrapper(this, value), systemType);
         }
 
         /// <inheritdoc />
         public void WriteEncodeableArray(string fieldName, IList<IEncodeable> values,
             Type systemType) {
             _wrapped.WriteEncodeableArray(fieldName, values
-.Select(s => (IEncodeable)new EncodableWrapper(this, s))
-.ToArray(), systemType);
+                .Select(s => (IEncodeable)new EncodableWrapper(this, s))
+                .ToArray(), systemType);
         }
 
         /// <inheritdoc />

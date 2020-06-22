@@ -46,6 +46,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Publishing time
         /// </summary>
-        public DateTime Timestamp  { get; internal set; }
+        public DateTime Timestamp { get; internal set; }
     }
 }
