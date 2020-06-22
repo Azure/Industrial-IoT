@@ -342,7 +342,7 @@ Operations (Mutually exclusive):
         private class ConsoleEmitter : IEventEmitter {
 
             /// <inheritdoc/>
-            public string Gateway => Dns.GetHostName();
+            public string Gateway => Utils.GetHostName();
 
             /// <inheritdoc/>
             public string DeviceId => Gateway;

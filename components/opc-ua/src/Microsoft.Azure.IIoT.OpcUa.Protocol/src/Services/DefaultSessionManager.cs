@@ -39,6 +39,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _clientConfig = clientConfig;
             _logger = logger;
             _identity = identity;
+            _applicationConfiguration = _clientConfig.
+                ToApplicationConfigurationAsync(_identity, true, OnValidate).Result;
+            _endpointConfiguration = _clientConfig.ToEndpointConfiguration();
+
             _lock = new SemaphoreSlim(1, 1);
             _cts = new CancellationTokenSource();
             _runner = Task.Run(() => RunAsync(_cts.Token));
@@ -99,7 +103,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to get/create as session for Id '{id}'.", id);
+                _logger.Error(ex, "Failed to get/create session for Id '{id}'", id);
             }
             finally {
                 _lock.Release();
@@ -110,7 +114,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public async Task RemoveSessionAsync(ConnectionModel connection, bool onlyIfEmpty = true) {
             var key = new ConnectionIdentifier(connection);
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 if (!_sessions.TryGetValue(key, out var wrapper)) {
                     return;
@@ -142,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _sessions.Add(id, wrapper);
                 }
                 wrapper._subscriptions.AddOrUpdate(subscription.Id, subscription);
-                _logger.Information("Subscription '{id}' registered in session '{id}' in state {state}",
+                _logger.Information("Subscription '{subscriptionId}' registered/updated in session '{id}' in state {state}",
                     subscription.Id, id, wrapper.State);
                 if (wrapper.State == SessionState.Running) {
                     wrapper.State = SessionState.Refresh;
@@ -187,22 +191,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// stop all sessions
         /// </summary>
         /// <returns></returns>
-        private async Task StopAsync() {
-
-            Try.Op(() => _cts?.Cancel());
+        public async Task StopAsync() {
+            var processingTasks = new List<Task>();
             try {
-                await _runner;
+                _logger.Information("Stopping all sessions");
+                foreach (var session in _sessions.ToList()) {
+                    session.Value.State = SessionState.Disconnect;
+                    processingTasks.Add(session.Value.Processing);
+                }
+                TriggerKeepAlive();
+                Try.Op(() => _cts?.Cancel());
+                await _runner.ConfigureAwait(false);
+                _logger.Information("Succesfully stopped all sessions");
             }
             catch (OperationCanceledException) { }
             catch (Exception ex) {
-                _logger.Error(ex, "Unexpected exception stopping processor thread.");
+                _logger.Error(ex, "Unexpected exception stopping processor thread");
             }
-
-            foreach (var session in _sessions.ToList()) {
-                if (!session.Value.Processing.IsCompleted) {
-                    await session.Value.Processing;
-                }
-                await HandleDisconnectAsync(session.Key, session.Value).ConfigureAwait(false);
+            finally {
+                await Task.WhenAll(processingTasks);
             }
         }
 
@@ -229,7 +236,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 }
                                 break;
                             case SessionState.Running:
-                                // nothing to do
+                                if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
+                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct));
+                                }
                                 break;
                             case SessionState.Retry:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
@@ -256,13 +265,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
                     catch (Exception ex) {
-                        _logger.Error(ex, "Failed to process statemachine for Session Id '{id}'.", sessionWrapper.Key);
+                        _logger.Error(ex, "Failed to process statemachine for session Id '{id}'", sessionWrapper.Key);
                     }
                 }
 
                 var delay = Task.Delay(keepAliveCheckInterval, ct);
-                await Task.WhenAny(delay, _triggerKeepAlive.Task);
-                _logger.Debug("runner keep alive reset due to {delay} {trigger}",
+                await Task.WhenAny(delay, _triggerKeepAlive.Task).ConfigureAwait(false);
+                _logger.Debug("Runner Keepalive reset due to {delay} {trigger}",
                     delay.IsCompleted ? "checkAlive" : String.Empty,
                     _triggerKeepAlive.Task.IsCompleted ? "triggerKeepAlive" : String.Empty);
             }
@@ -274,7 +283,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="id"></param>
         /// <param name="wrapper"></param>
         /// <param name="ct"></param>
-        /// <returns>continue processing</returns>
+        /// <returns></returns>
         private async Task HandleRetryAsync(ConnectionIdentifier id,
             SessionWrapper wrapper, CancellationToken ct) {
             try {
@@ -286,7 +295,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     else {
                         _logger.Information("Session '{id}' set to disconnect in {state}", id, wrapper.State);
                         wrapper.State = SessionState.Disconnect;
-                        await HandleDisconnectAsync(id, wrapper);
+                        await HandleDisconnectAsync(id, wrapper).ConfigureAwait(false);
                         return;
                     }
                 }
@@ -295,8 +304,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 wrapper.MissedKeepAlives++;
-                _logger.Information("Session '{id}' missed {keepAlives} keep alive(s) due to {status}." +
-                        " Awaiting for reconnect...", id, wrapper.MissedKeepAlives, wrapper.ReportedStatus);
+                _logger.Information("Session '{id}' missed {keepAlives} Keepalive(s) due to {status}, " +
+                        "waiting to reconnect...", id, wrapper.MissedKeepAlives, wrapper.ReportedStatus);
                 if (!ct.IsCancellationRequested) {
                     wrapper.Session.Reconnect();
                     wrapper.ReportedStatus = StatusCodes.Good;
@@ -321,8 +330,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         case StatusCodes.BadSessionNotActivated:
                         case StatusCodes.BadServerHalted:
                         case StatusCodes.BadServerNotConnected:
-                            _logger.Warning("Failed to reconnect session '{id}'." +
-                                " Retry reconnection later.", id);
+                            _logger.Warning("Failed to reconnect session '{id}', " +
+                                "will retry later", id);
                             if (wrapper.MissedKeepAlives < wrapper.MaxKeepAlives) {
                                 // retry later
                                 return;
@@ -332,8 +341,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             break;
                     }
                 }
-                _logger.Warning("Failed to reconnect session '{id}' due to {exception}." +
-                    " Disposing and trying create new.", id, e.Message);
+                _logger.Warning("Failed to reconnect session '{id}' due to {exception}, " +
+                    " disposing and trying to create new", id, e.Message);
             }
 
             // cleanup the session
@@ -351,7 +360,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             wrapper.ReportedStatus = StatusCodes.Good;
             wrapper.State = SessionState.Failed;
 
-            await HandleInitAsync(id, wrapper, ct);
+            await HandleInitAsync(id, wrapper, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -360,7 +369,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="id"></param>
         /// <param name="wrapper"></param>
         /// <param name="ct"></param>
-        /// <returns>continue processing</returns>
+        /// <returns></returns>
         private async Task HandleFailedAsync(ConnectionIdentifier id,
             SessionWrapper wrapper, CancellationToken ct) {
             try {
@@ -373,7 +382,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         _logger.Information("Session '{id}' set to disconnect in {state}",
                                id, wrapper.State);
                         wrapper.State = SessionState.Disconnect;
-                        await HandleDisconnectAsync(id, wrapper);
+                        await HandleDisconnectAsync(id, wrapper).ConfigureAwait(false);
                         return;
                     }
                 }
@@ -381,7 +390,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     wrapper.IdleCount = 0;
                 }
                 if (!ct.IsCancellationRequested) {
-                    await HandleInitAsync(id, wrapper, ct);
+                    await HandleInitAsync(id, wrapper, ct).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) {
@@ -395,7 +404,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="id"></param>
         /// <param name="wrapper"></param>
         /// <param name="ct"></param>
-        /// <returns>continue processing</returns>
+        /// <returns></returns>
         private async Task HandleInitAsync(ConnectionIdentifier id,
         SessionWrapper wrapper, CancellationToken ct) {
             try {
@@ -405,7 +414,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     Try.Op(wrapper.Session.Dispose);
                     wrapper.Session = null;
                 }
-                _logger.Debug("Initializing sessio. '{id}'...", id);
+                _logger.Debug("Initializing session '{id}'...", id);
                 var endpointUrlCandidates = id.Connection.Endpoint.Url.YieldReturn();
                 if (id.Connection.Endpoint.AlternativeUrls != null) {
                     endpointUrlCandidates = endpointUrlCandidates.Concat(
@@ -415,9 +424,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 foreach (var endpointUrl in endpointUrlCandidates) {
                     try {
                         if (!ct.IsCancellationRequested) {
-                            var session = await CreateSessionAsync(endpointUrl, id, wrapper);
+                            var session = await CreateSessionAsync(endpointUrl, id, wrapper).ConfigureAwait(false);
                             if (session != null) {
-                                _logger.Information("Connected on {endpointUrl}", endpointUrl);
+                                _logger.Information("Connected to '{endpointUrl}'", endpointUrl);
                                 session.Handle = wrapper;
                                 wrapper.Session = session;
                                 foreach (var subscription in wrapper._subscriptions.Values) {
@@ -433,7 +442,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
                     catch (Exception ex) {
-                        _logger.Debug("Failed to connect on {endpointUrl}: {message} - try again...",
+                        _logger.Debug("Failed to connect to {endpointUrl}: {message} - try again...",
                             endpointUrl, ex.Message);
                         exceptions.Add(ex);
                     }
@@ -441,15 +450,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 throw new AggregateException(exceptions);
             }
             catch (ServiceResultException sre) {
-                _logger.Warning("Failed create session '{id}' due to {exception}.",
+                _logger.Warning("Failed to create session '{id}' due to {exception}",
                     id, sre.StatusCode.ToString());
             }
             catch (AggregateException aex) {
-                _logger.Warning("Failed create session '{id}' due to {exception}.",
+                _logger.Warning("Failed to create session '{id}' due to {exception}",
                     id, aex.Message);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Failed to create session '{id}'.", id);
+                _logger.Error(ex, "Failed to create session '{id}'", id);
             }
             wrapper.NumberOfConnectRetries++;
             wrapper.State = SessionState.Failed;
@@ -476,16 +485,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 }
                             }
                             _logger.Debug("Refreshing done for session '{id}'", id);
+                            wrapper.State = SessionState.Running;
                             return;
                         }
                         wrapper.ReportedStatus = StatusCodes.BadNoCommunication;
                     }
                     wrapper.State = SessionState.Retry;
-                    await HandleRetryAsync(id, wrapper, ct);
+                    await HandleRetryAsync(id, wrapper, ct).ConfigureAwait(false);
                 }
                 else {
                     wrapper.State = SessionState.Failed;
-                    await HandleInitAsync(id, wrapper, ct);
+                    await HandleInitAsync(id, wrapper, ct).ConfigureAwait(false);
                 }
             }
             catch (Exception e) {
@@ -498,10 +508,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="id"></param>
         /// <param name="wrapper"></param>
-        /// <returns>continue processing</returns>
+        /// <returns></returns>
         private async Task HandleDisconnectAsync(ConnectionIdentifier id, SessionWrapper wrapper) {
-            _logger.Debug("Removing idle Session '{id}'", id);
-            await _lock.WaitAsync();
+            _logger.Debug("Removing session '{id}'", id);
+            await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 _sessions.Remove(id);
             }
@@ -525,7 +535,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Session '{id}' removal failure.", id);
+                _logger.Error(ex, "Failed to remove session '{id}'", id);
+            }
+        }
+
+        // Validate certificates
+        private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e) {
+            if (e.Accept == true) {
+                return;
+            }
+            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
+                if (_applicationConfiguration.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
+                    _logger.Warning("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+                        "due to AutoAccept(UntrustedCertificates) set!",
+                        e.Certificate.Thumbprint, e.Certificate.Subject);
+                    e.Accept = true;
+                }
+
+                // Validate thumbprint
+                if (e.Certificate.RawData != null && !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint)) {
+                    
+                    if (_sessions.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
+                        e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate)) {
+                        e.Accept = true;
+
+                        _logger.Information("Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+                            "since it was specified in the endpoint!",
+                            e.Certificate.Thumbprint, e.Certificate.Subject);
+
+                        // add the certificate to trusted store
+                        _applicationConfiguration.SecurityConfiguration.AddTrustedPeer(e.Certificate.RawData);
+                        try {
+                            var store = _applicationConfiguration.
+                                SecurityConfiguration.TrustedPeerCertificates.OpenStore();
+
+                            try {
+                                store.Delete(e.Certificate.Thumbprint);
+                                store.Add(e.Certificate);
+                            }
+                            finally {
+                                store.Close();
+                            }
+                        }
+                        catch (Exception ex) {
+                            _logger.Warning(ex,"Failed to add peer certificate {Thumbprint}, '{Subject}' " +
+                                "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
+                        }
+                    }
+                }
+            }
+            if (!e.Accept) {
+                _logger.Information("Rejecting peer certificate {Thumbprint}, '{Subject}' " +
+                    "because of {Status}.", e.Certificate.Thumbprint, e.Certificate.Subject,
+                    e.Error.StatusCode);
             }
         }
 
@@ -538,29 +600,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <returns></returns>
         private async Task<Session> CreateSessionAsync(string endpointUrl, ConnectionIdentifier id,
             SessionWrapper wrapper) {
-            var sessionName = $"Azure IIoT: '{id}'";
-            // Validate certificates
-            void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e) {
-                if (!e.Accept && e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
-                    // Validate thumbprint provided
-                    if (e.Certificate.RawData != null &&
-                        id.Connection.Endpoint.Certificate != null &&
-                        e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate) {
-                        // Validate
-                        e.Accept = true;
-                    }
-                    else if (_clientConfig.AutoAcceptUntrustedCertificates) {
-                        _logger.Warning("Publisher is configured to accept untrusted certs. " +
-                            "Accepting untrusted certificate for endpoint {endpointUrl}",
-                            endpointUrl);
-                        e.Accept = true;
-                    }
-                }
-            };
-
-            var applicationConfiguration = await _clientConfig.
-                ToApplicationConfigurationAsync(_identity, true, OnValidate).ConfigureAwait(false);
-            var endpointConfiguration = _clientConfig.ToEndpointConfiguration();
+            var sessionName = $"Azure IIoT {id}";
 
             var endpointDescription = SelectEndpoint(endpointUrl,
                 id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy,
@@ -583,14 +623,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             var configuredEndpoint = new ConfiguredEndpoint(
-                null, endpointDescription, endpointConfiguration);
+                null, endpointDescription, _endpointConfiguration);
 
-            _logger.Information("Trying to create session '{id}' with name '{name}'...", id, sessionName);
+            _logger.Information("Creating session '{id}' for endpoint '{endpointUrl}'...", id, endpointUrl);
             using (new PerfMarker(_logger, sessionName)) {
                 var userIdentity = id.Connection.User.ToStackModel() ??
                     new UserIdentity(new AnonymousIdentityToken());
                 var session = await Session.Create(
-                    applicationConfiguration, configuredEndpoint,
+                    _applicationConfiguration, configuredEndpoint,
                     true, sessionName, _clientConfig.DefaultSessionTimeout,
                     userIdentity, null).ConfigureAwait(false);
                 session.Handle = wrapper;
@@ -605,14 +645,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 // TODO - store the created session id (node id)?
                 if (sessionName != session.SessionName) {
-                    _logger.Warning("Session ''{id}'' created with a revised name '{name}'",
+                    _logger.Warning("Session '{id}' created with a revised name '{name}'",
                         id, session.SessionName);
                 }
-                _logger.Information("Session '{id}' created. Loading compelx type system ... ", id);
+                _logger.Information("Session '{id}' created, loading complex type system ... ", id);
                 try {
                     var complexTypeSystem = new ComplexTypeSystem(session);
                     await complexTypeSystem.Load().ConfigureAwait(false);
-                    _logger.Information("Session '{id}' complex Type system loaded.", id);
+                    _logger.Information("Session '{id}' complex type system loaded", id);
                 }
                 catch (Exception ex) {
                     _logger.Error(ex, "Failed to load complex type system for session '{id}'", id);
@@ -648,7 +688,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Session '{name}' Notification processing failure", session.SessionName);
+                _logger.Error(ex, "Failed to process notifications for session '{name}'", session.SessionName);
             }
         }
 
@@ -662,7 +702,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             try {
                 if (session?.Handle is SessionWrapper wrapper) {
 
-                    _logger.Debug("Keep Alive received from session '{id}' : server current state: {state}",
+                    _logger.Debug("Keepalive received from session '{id}': server current state: {state}",
                         wrapper.Id, e.CurrentState);
 
                     if (ServiceResult.IsGood(e.Status)) {
@@ -684,7 +724,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     else {
                         wrapper.ReportedStatus = e.Status.Code;
-                        _logger.Information("Session '{id}' set to refresh due to KeepAlive with reported status {status}",
+                        _logger.Information("Session '{id}' set to refresh due to Keepalive with reported status {status}",
                             wrapper.Id, e.Status);
                         if (wrapper.State == SessionState.Running) {
                             wrapper.State = SessionState.Refresh;
@@ -693,13 +733,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
                 else {
-                    _logger.Warning("Keep Alive received from undifentfied session '{name}', server current state is {state}.",
+                    _logger.Warning("Keepalive received from unidentified session '{name}', server current state is {state}",
                         session?.SessionName, e.CurrentState);
 
                 }
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Session '{name}' KeepAlive processing failure.", session.SessionName);
+                _logger.Error(ex, "Failed to process Keepalive for session '{name}'", session.SessionName);
             }
         }
 
@@ -709,7 +749,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             switch (securityMode.Value) {
                 case SecurityMode.Best:
-                    throw new NotSupportedException("The security mode 'best' is not supported.");
+                    throw new NotSupportedException("The security mode 'best' is not supported");
                 case SecurityMode.None:
                     return MessageSecurityMode.None;
                 case SecurityMode.Sign:
@@ -717,7 +757,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 case SecurityMode.SignAndEncrypt:
                     return MessageSecurityMode.SignAndEncrypt;
                 default:
-                    throw new NotSupportedException($"The security mode '{securityMode}' is not implemented.");
+                    throw new NotSupportedException($"The security mode '{securityMode}' is not implemented");
             }
         }
 
@@ -910,5 +950,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly Task _runner;
         private readonly CancellationTokenSource _cts;
         private TaskCompletionSource<bool> _triggerKeepAlive;
+
+        private readonly ApplicationConfiguration _applicationConfiguration;
+        private readonly EndpointConfiguration _endpointConfiguration;
     }
 }

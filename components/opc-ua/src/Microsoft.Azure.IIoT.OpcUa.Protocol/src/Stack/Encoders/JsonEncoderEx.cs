@@ -600,7 +600,11 @@ namespace Opc.Ua.Encoders {
                 vararray.Length > 0) {
 
                 var type = vararray[0].TypeInfo?.BuiltInType;
-                if (vararray.All(v => v.TypeInfo?.BuiltInType == type)) {
+                var rank = vararray[0].TypeInfo?.ValueRank;
+
+                // TODO fails when different ranks are in use in array 
+                if (vararray.All(v =>
+                    v.TypeInfo?.BuiltInType == type)) {
                     // Demote and encode as simple array
                     variant = new TypeInfo(type ?? BuiltInType.Null, 1)
                         .CreateVariant(vararray

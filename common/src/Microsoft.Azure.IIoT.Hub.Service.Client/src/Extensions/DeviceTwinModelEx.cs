@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
             this Dictionary<string, VariantValue> props) {
             var collection = new TwinCollection();
             foreach (var item in props) {
-                collection[item.Key] = item.Value;
+                collection[item.Key] = item.Value.IsListOfValues ? item.Value.Values : item.Value.Value;
             }
             return collection;
         }

@@ -41,13 +41,6 @@
                 "description": "The name of the Azure datalake account created as part of this deployment."
             }
         },
-        "datalakeServicePrincipalId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Specifies the object ID of the service principal that should have write access to the datalake."
-            }
-        },
         "datalakeSkuName": {
             "type": "string",
             "defaultValue": "Standard_LRS",
@@ -344,12 +337,14 @@
         "tsiEventSourceName": "TelemetryEventHub",
         "tsiEventHubConsumerGroup": "telemetrytsi",
         "tsiEventSourceAuthorizationRuleResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', parameters('eventHubNamespaceName'), parameters('eventHubName'), parameters('tsiEventHubAuthorization'))]",
-        "tsiEnvironmentTagsValue": {
+        "tsiEnvironmentTagDisplayName": {
             "displayName": "[parameters('tsiEnvironmentDisplayName')]"
         },
-        "tsiEventSourceTagsValue": {
+        "tsiEnvironmentTagsValue": "[union(parameters('tags'), variables('tsiEnvironmentTagDisplayName'))]",
+        "tsiEventSourceTagDisplayName": {
             "displayName": "[parameters('tsiEventSourceDisplayName')]"
         },
+        "tsiEventSourceTagsValue": "[union(parameters('tags'), variables('tsiEventSourceTagDisplayName'))]",
         "tsiEnvironmentResourceId": "[resourceId('Microsoft.TimeSeriesInsights/environments', parameters('tsiEnvironmentName'))]",
         "dpsResourceId": "[resourceId('Microsoft.Devices/provisioningServices', parameters('dpsName'))]",
         "datalakeResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('datalakeName'))]",
@@ -440,29 +435,13 @@
             ]
         },
         {
-            "comments": "Datalake service principal role assignment",
-            "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
-            "condition": "[not(empty(parameters('datalakeServicePrincipalId')))]",
-            "apiVersion": "2018-09-01-preview",
-            "name": "[concat(parameters('datalakeName'), '/Microsoft.Authorization/', guid(uniqueString(parameters('datalakeName'))))]",
-            "tags" : "[parameters('tags')]",
-            "properties": {
-                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
-                "principalId": "[parameters('datalakeServicePrincipalId')]",
-                "principalType": "ServicePrincipal"
-            },
-            "dependsOn": [
-                "[variables('datalakeResourceId')]"
-            ]
-        },
-        {
             "comments": "Timeseries Insights Environment",
             "type": "Microsoft.TimeSeriesInsights/environments",
             "name": "[parameters('tsiEnvironmentName')]",
             "apiVersion": "2018-08-15-preview",
             "location": "[resourceGroup().location]",
             "kind": "[parameters('tsiEnvironmentKind')]",
-            "tags": "[parameters('tags')]",
+            "tags": "[variables('tsiEnvironmentTagsValue')]",
             "properties": {
                 "storageConfiguration": {
                     "accountName": "[parameters('tsiStorageName')]",
@@ -487,7 +466,6 @@
                 "name": "[parameters('tsiEnvironmentSkuName')]",
                 "capacity": "[parameters('tsiEnvironmentSkuCapacity')]"
             },
-            "tags": "[variables('tsiEnvironmentTagsValue')]",
             "dependsOn": [
             ]
         },
@@ -524,7 +502,7 @@
             "name": "[concat(parameters('tsiEnvironmentName'), '/', variables('tsiEventSourceName'))]",
             "apiVersion": "2018-08-15-preview",
             "location": "[resourceGroup().location]",
-            "tags": "[parameters('tags')]",
+            "tags": "[variables('tsiEventSourceTagsValue')]",
             "kind": "Microsoft.EventHub",
             "properties": {
                 "eventSourceResourceId": "[variables('eventHubResourceId')]",
@@ -535,7 +513,6 @@
                 "sharedAccessKey": "[listkeys(variables('tsiEventSourceAuthorizationRuleResourceId'), '2017-04-01').primaryKey]",
                 "timestampPropertyName": "TimeStamp"
             },
-            "tags": "[variables('tsiEventSourceTagsValue')]",
             "dependsOn": [
                 "[variables('tsiEnvironmentResourceId')]",
                 "[variables('tsiEventSourceAuthorizationRuleResourceId')]"

@@ -36,6 +36,10 @@ namespace Microsoft.Azure.IIoT.App.Common {
             }
         }
 
+        public string ExtractSecurityPolicy(string policy) {;
+            return policy[(policy.LastIndexOf("#") + 1)..policy.Length];
+        }
+
         public int PageLength { get; set; } = 10;
         public int PageLengthSmall { get; set; } = 4;
         public string None { get; set; } = "(None)";

@@ -10,6 +10,8 @@
     Layout = null;
 }
 
+@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,13 +19,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Engineering Tool</title>
     <base href="~/discoverers" />
+    @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
 <body>
     <link href="css/blazored-modal.min.css" rel="stylesheet" />
     <link async rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link async href="css/site.min.css" rel="stylesheet" />
     <link async href="css/spinner.min.css" rel="stylesheet" />
-    <link async href="~/css/drawer.min.css" rel="stylesheet" /> 
+    <link async href="~/css/drawer.min.css" rel="stylesheet" />
+    <link async href="~/css/material-icons.min.css" rel="stylesheet" />
     <app>
         <component type="typeof(App)" render-mode="ServerPrerendered" />
     </app>

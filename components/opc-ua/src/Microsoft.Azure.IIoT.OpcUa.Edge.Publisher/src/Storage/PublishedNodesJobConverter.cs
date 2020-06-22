@@ -197,9 +197,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     if (string.IsNullOrEmpty(node.Id)) {
                         node.Id = node.ExpandedNodeId;
                     }
-                    if (string.IsNullOrEmpty(node.DisplayName)) {
-                        node.DisplayName = node.Id;
-                    }
                     if (scaleTestCount == 1) {
                         yield return node;
                     }
@@ -207,7 +204,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         for (var i = 0; i < scaleTestCount; i++) {
                             yield return new OpcNodeModel {
                                 Id = node.Id,
-                                DisplayName = $"{node.DisplayName}_{i}",
+                                DisplayName = string.IsNullOrEmpty(node.DisplayName) ? 
+                                    $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
                                 ExpandedNodeId = node.ExpandedNodeId,
                                 HeartbeatInterval = node.HeartbeatInterval,
                                 HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,

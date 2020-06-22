@@ -62,15 +62,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
                     SentMessagesCount = 0;
                 }
-                using(kSendingDuration.NewTimer()) {
+                using (kSendingDuration.NewTimer()) {
                     var sw = new Stopwatch();
                     sw.Start();
 
-                    if (messagesCount == 1) {
-                        await _clientAccessor.Client.SendEventAsync(messageObjects.First());
+                    try {
+                        if (messagesCount == 1) {
+                            await _clientAccessor.Client.SendEventAsync(messageObjects.First()).ConfigureAwait(false);
+                        }
+                        else {
+                            await _clientAccessor.Client.SendEventBatchAsync(messageObjects).ConfigureAwait(false);
+                        }
                     }
-                    else {
-                        await _clientAccessor.Client.SendEventBatchAsync(messageObjects);
+                    catch (Exception e) {
+                        _logger.Error(e, "Error sending message(s) to IoT Hub");
                     }
 
                     sw.Stop();
@@ -101,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var msg = new Message(body) {
                 ContentType = contentType,
                 ContentEncoding = contentEncoding,
-                // TODO - setting CreationTime causes issues in the Azure IoT java SDK 
+                // TODO - setting CreationTime causes issues in the Azure IoT java SDK
                 //  revert the comment whrn the issue is fixed
                 //  CreationTimeUtc = DateTime.UtcNow
             };
@@ -125,8 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         CultureInfo.InvariantCulture);
         private static readonly Gauge kMessagesSent = Metrics.CreateGauge(
             "iiot_edge_publisher_messages", "Number of messages sent to IotHub",
-                new GaugeConfiguration
-                {
+                new GaugeConfiguration {
                     LabelNames = new[] { "runid", "timestamp_utc" }
                 });
         private static readonly Histogram kSendingDuration = Metrics.CreateHistogram(
