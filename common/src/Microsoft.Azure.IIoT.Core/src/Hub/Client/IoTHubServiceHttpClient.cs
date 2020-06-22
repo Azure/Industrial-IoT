@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         }
 
         /// <inheritdoc/>
-        public Task<DeviceTwinModel> CreateAsync(DeviceTwinModel twin, bool force,
+        public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin, bool force,
             CancellationToken ct) {
             if (twin == null) {
                 throw new ArgumentNullException(nameof(twin));
@@ -310,6 +310,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 Etag = (string)result["etag"],
                 Id = (string)result["deviceId"],
                 ModuleId = (string)result["moduleId"],
+                ConnectionState = (string)result["connectionState"],
                 Authentication = new DeviceAuthenticationModel {
                     PrimaryKey = (string)result["authentication"]["symmetricKey"]["primaryKey"],
                     SecondaryKey = (string)result["authentication"]["symmetricKey"]["secondaryKey"]

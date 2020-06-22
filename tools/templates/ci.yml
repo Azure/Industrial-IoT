@@ -99,4 +99,4 @@ jobs:
       command: test
       # projects: '$(folder)/**/tests/*.csproj'
       projects: '**/tests/*.csproj'
-      arguments: '--blame --configuration Release -- RunConfiguration.MaxCpuCount=1'
+      arguments: '--configuration Release'

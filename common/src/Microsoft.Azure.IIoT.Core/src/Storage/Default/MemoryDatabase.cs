@@ -315,9 +315,21 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 /// <param name="partitionKey"></param>
                 protected MemoryDocument(VariantValue value, string id, string partitionKey) {
                     Value = value;
-                    Id = id ?? Value.GetValueOrDefault("id", Guid.NewGuid().ToString());
-                    PartitionKey = partitionKey ?? Value.GetValueOrDefault("__pk",
-                        Guid.NewGuid().ToString());
+                    Etag = Value.GetValueOrDefault("_etag", string.Empty);
+                    if (string.IsNullOrEmpty(Etag)) {
+                        Etag = Guid.NewGuid().ToString();
+                        Value["_etag"].AssignValue(Etag);
+                    }
+                    Id = id ?? Value.GetValueOrDefault("id", string.Empty);
+                    if (string.IsNullOrEmpty(Id)) {
+                        Id = Guid.NewGuid().ToString();
+                        Value["id"].AssignValue(Id);
+                    }
+                    PartitionKey = partitionKey ?? Value.GetValueOrDefault("__pk", string.Empty);
+                    if (string.IsNullOrEmpty(PartitionKey)) {
+                        PartitionKey = Guid.NewGuid().ToString();
+                        Value["__pk"].AssignValue(PartitionKey);
+                    }
                 }
 
                 /// <inheritdoc/>
@@ -327,7 +339,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 public string PartitionKey { get; }
 
                 /// <inheritdoc/>
-                public string Etag { get; } = Guid.NewGuid().ToString();
+                public string Etag { get; }
 
                 /// <inheritdoc/>
                 public VariantValue Value { get; }

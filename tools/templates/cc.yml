@@ -31,7 +31,7 @@ jobs:
     inputs:
       command: test
       projects: '**/tests/*.csproj'
-      arguments: '--configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura -- RunConfiguration.MaxCpuCount=1'
+      arguments: '--configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
       publishTestResults: false
   - task: DotNetCoreCLI@2
     inputs:
