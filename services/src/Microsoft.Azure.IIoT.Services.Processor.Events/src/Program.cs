@@ -59,14 +59,26 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
                     .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest);
                 })
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-                .ConfigureContainer<ContainerBuilder>((context, builder) => {
+                .ConfigureContainer<ContainerBuilder>((hostBuilderContext, builder) => {
                     // registering services in the Autofac ContainerBuilder
-                    ConfigureContainer(builder, context.Configuration);
+                    ConfigureContainer(builder, hostBuilderContext.Configuration);
                 })
-                .ConfigureServices((hostContext, services) => {
-                    services.AddHostedService<StarterService>();
+                .ConfigureServices((hostBuilderContext, services) => {
+                    ConfigureServices(services, hostBuilderContext.Configuration);
                 })
                 .UseSerilog();
+        }
+
+        /// <summary>
+        /// This is where you register dependencies, add services to the container.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        public static void ConfigureServices(
+            IServiceCollection services,
+            IConfiguration configuration
+        ) {
+            services.AddHostedService<StarterService>();
         }
 
         /// <summary>
