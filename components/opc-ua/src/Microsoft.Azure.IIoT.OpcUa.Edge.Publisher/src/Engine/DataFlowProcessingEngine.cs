@@ -222,7 +222,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _identity.ModuleId ?? "", Name).Set(_messageEncoder.MessagesProcessedCount);
             kNotificationsPerMessageAvg.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_messageEncoder.AvgNotificationsPerMessage);
-            kMesageSizeAvg.WithLabels(_identity.DeviceId ?? "",
+            kMessageSizeAvg.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_messageEncoder.AvgMessageSize);
             kIoTHubQueueBuffer.WithLabels(_identity.DeviceId ?? "",
                 _identity.ModuleId ?? "", Name).Set(_sinkBlock.InputCount);
@@ -307,7 +307,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kNotificationsPerMessageAvg = Metrics.CreateGauge(
             "iiot_edge_publisher_notifications_per_message_average",
             "publisher engine opc notifications per iot message average", kGaugeConfig);
-        private static readonly Gauge kMesageSizeAvg = Metrics.CreateGauge(
+        private static readonly Gauge kMessageSizeAvg = Metrics.CreateGauge(
             "iiot_edge_publisher_encoded_message_size_average",
             "publisher engine iot message encoded body size average", kGaugeConfig);
     }
