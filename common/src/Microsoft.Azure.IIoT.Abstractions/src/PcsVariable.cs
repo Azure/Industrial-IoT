@@ -286,5 +286,8 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Resource group </summary>
         public const string PCS_RESOURCE_GROUP =
             "PCS_RESOURCE_GROUP";
+        /// <summary> Log file path environment variable </summary>
+        public const string PCS_LOGS_PATH =
+            "PCS_LOGS_PATH";
     }
 }

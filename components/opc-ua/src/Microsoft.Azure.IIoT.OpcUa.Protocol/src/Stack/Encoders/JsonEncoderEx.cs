@@ -602,7 +602,7 @@ namespace Opc.Ua.Encoders {
                 var type = vararray[0].TypeInfo?.BuiltInType;
                 var rank = vararray[0].TypeInfo?.ValueRank;
 
-                // TODO fails when different ranks are in use in array 
+                // TODO fails when different ranks are in use in array
                 if (vararray.All(v =>
                     v.TypeInfo?.BuiltInType == type)) {
                     // Demote and encode as simple array
@@ -1250,14 +1250,24 @@ namespace Opc.Ua.Encoders {
             if (value == null) {
                 return default;
             }
-            try {
-                if (value is object[] o) {
-                    return o.Cast<T>().ToArray();
-                }
-                if (value is T[] t) {
-                    return t;
-                }
+            if (value is T[] t) {
+                return t;
+            }
+            if (!(value is Array arr)) {
                 return ToTypedScalar<T>(value).YieldReturn().ToArray();
+            }
+            if (arr.Length == 0) {
+                return new List<T>();
+            }
+          //  if (arr.Length == 1) {
+          //      value = arr.GetValue(0);
+          //      if (value.GetType().IsArray) {
+          //          // Recursively unpack an array in array if needed
+          //          return ToTypedArray<T>(value);
+          //      }
+          //  }
+            try {
+                return arr.Cast<T>().ToArray();
             }
             catch (Exception ex) {
                 throw new ServiceResultException(StatusCodes.BadEncodingError,
