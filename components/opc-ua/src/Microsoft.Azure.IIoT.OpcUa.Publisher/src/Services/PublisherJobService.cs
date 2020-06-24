@@ -369,8 +369,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         /// <param name="connection"></param>
         private bool RemoveItemFromJob(WriterGroupJobModel publishJob,
             string nodeId, ConnectionModel connection) {
+            var found = false;
             foreach (var writer in publishJob.WriterGroup.DataSetWriters.ToList()) {
-                if (!writer.DataSet.DataSetSource.Connection.IsSameAs(connection)) {
+                if (!writer.DataSet.DataSetSource.Connection.Endpoint.IsSameAs(connection.Endpoint)) {
                     continue;
                 }
                 foreach (var item in writer.DataSet.DataSetSource.PublishedVariables.PublishedData.ToList()) {
@@ -380,11 +381,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                             // Trim writer also
                             publishJob.WriterGroup.DataSetWriters.Remove(writer);
                         }
-                        return true;
+                        found = true;
+                        break;
                     }
                 }
             }
-            return false;
+            return found;
         }
 
         /// <summary>
