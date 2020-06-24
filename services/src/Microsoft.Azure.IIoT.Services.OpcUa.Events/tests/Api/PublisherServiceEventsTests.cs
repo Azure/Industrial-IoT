@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
                     Value = v
                 };
                 await bus.HandleSampleAsync(expected);
-                await Task.WhenAny(result.Task, Task.Delay(1000));
+                await Task.WhenAny(result.Task, Task.Delay(5000));
 
                 Assert.True(result.Task.IsCompleted);
                 var received = result.Task.Result;
