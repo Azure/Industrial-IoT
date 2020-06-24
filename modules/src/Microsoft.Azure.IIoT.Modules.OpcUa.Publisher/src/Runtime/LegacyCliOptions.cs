@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
     /// </summary>
     public class LegacyCliOptions : Dictionary<string, string>, IAgentConfigProvider,
-        IEngineConfiguration, ILegacyCliModelProvider {
+        ISettingsController, IEngineConfiguration, ILegacyCliModelProvider {
         /// <summary>
         /// Creates a new instance of the the legacy CLI options based on existing configuration values.
         /// </summary>

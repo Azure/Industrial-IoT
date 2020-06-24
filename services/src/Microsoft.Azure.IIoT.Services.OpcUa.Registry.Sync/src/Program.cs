@@ -110,6 +110,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
             builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces();
 
+            // Add Application Insights dependency tracking.
+            builder.AddDependencyTracking(config, serviceInfo);
+
             // Add diagnostics
             builder.AddDiagnostics(config);
 
