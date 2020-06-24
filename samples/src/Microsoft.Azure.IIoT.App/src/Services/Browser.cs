@@ -127,10 +127,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                // skip this node
-                _logger.Error(e, "Can not browse node '{id}'", id);
-                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                pageResult.Error = errorMessage;
+                var message = $"Can not browse node '{id}'";
+                _logger.Error(e, message);
+                pageResult.Error = message;
             }
             return pageResult;
         }
@@ -194,9 +193,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                // skip this node
-                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                pageResult.Error = errorMessage;
+                var message = "Can not browse";
+                _logger.Error(e, message);
+                pageResult.Error = message;
             }
             return pageResult;
         }
