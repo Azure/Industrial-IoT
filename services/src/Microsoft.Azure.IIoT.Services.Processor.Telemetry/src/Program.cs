@@ -105,8 +105,12 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces();
 
-            // register diagnostics
+            // Add Application Insights dependency tracking.
+            builder.AddDependencyTracking(config, serviceInfo);
+
+            // Add diagnostics
             builder.AddDiagnostics(config);
+
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Event processor services

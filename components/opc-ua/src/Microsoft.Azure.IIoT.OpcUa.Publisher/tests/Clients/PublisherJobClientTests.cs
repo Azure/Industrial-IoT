@@ -173,8 +173,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         public async Task StartTwicePublishTest2Async() {
 
             using (var mock = Setup((v, q) => {
-                    throw new AssertActualExpectedException(null, q, "Query");
-                })) {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
 
                 IPublishServices<string> service = mock.Create<PublisherJobService>();
 
@@ -206,6 +206,108 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                 Assert.Null(list.ContinuationToken);
                 Assert.Equal(TimeSpan.FromSeconds(2), list.Items.First().PublishingInterval);
                 Assert.Equal(TimeSpan.FromSeconds(1), list.Items.First().SamplingInterval);
+            }
+        }
+
+        [Fact]
+        public async Task StartPublishSameNodeWithDifferentCredentialsOnlyHasLastInListAsync() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
+                    Item = new PublishedItemModel {
+                        NodeId = "i=2258"
+                    },
+                    Header = new RequestHeaderModel {
+                        Elevation = new CredentialModel {
+                            Type = CredentialType.UserName,
+                            Value = "abcdefg"
+                        }
+                    }
+                });
+                result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
+                    Item = new PublishedItemModel {
+                        NodeId = "i=2258"
+                    },
+                    Header = new RequestHeaderModel {
+                        Elevation = new CredentialModel {
+                            Type = CredentialType.UserName,
+                            Value = "123456"
+                        }
+                    }
+                });
+                result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
+                    Item = new PublishedItemModel {
+                        NodeId = "i=2258"
+                    },
+                    Header = new RequestHeaderModel {
+                        Elevation = new CredentialModel {
+                            Type = CredentialType.UserName,
+                            Value = "asdfasdf"
+                        }
+                    }
+                });
+
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.Single(list.Items);
+                Assert.Null(list.ContinuationToken);
+                Assert.Equal("i=2258", list.Items.Single().NodeId);
+            }
+        }
+
+        [Fact]
+        public async Task StartandStopPublishNodeWithDifferentCredentialsHasNoItemsInListAsync() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result1 = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
+                    Item = new PublishedItemModel {
+                        NodeId = "i=2258"
+                    },
+                    Header = new RequestHeaderModel {
+                        Elevation = new CredentialModel {
+                            Type = CredentialType.UserName,
+                            Value = "abcdefg"
+                        }
+                    }
+                });
+                var result2 = await service.NodePublishStopAsync("endpoint1", new PublishStopRequestModel {
+                    NodeId = "i=2258",
+                    Header = new RequestHeaderModel {
+                        Elevation = new CredentialModel {
+                            Type = CredentialType.UserName,
+                            Value = "123456"
+                        }
+                    }
+                });
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result1);
+                Assert.NotNull(result2);
+                Assert.Empty(list.Items);
+                Assert.Null(list.ContinuationToken);
             }
         }
 
