@@ -45,13 +45,18 @@
                         </a>
                     </div>
                 </td>
-                @{string siteId = supervisor.SiteId == null ? CommonHelper.None : supervisor.SiteId;}
                 <td class="hover-text width-medium">
                     <div>
-                        @siteId
+                        @(string.IsNullOrEmpty(supervisor.SiteId)
+                            ? CommonHelper.None
+                            : supervisor.SiteId)
                     </div>
                 </td>
-                @{string connectStatus = supervisor.Connected == null ? CommonHelper.None : supervisor.Connected == true ? "Connected" : "Disconnected";}
+                @{string connectStatus = supervisor.Connected == null
+                    ? CommonHelper.None
+                    : supervisor.Connected == true
+                        ? "Connected"
+                        : "Disconnected";}
                 <td class="hover-text width-medium">
                     <div>
                         @{
@@ -73,7 +78,11 @@
                         }
                     </div>
                 </td>
-                @{string syncStatus = supervisor.OutOfSync == null ? CommonHelper.None : supervisor.OutOfSync == true ? "Out of Sync" : "Synced";}
+                @{string syncStatus = supervisor.OutOfSync == null
+                    ? CommonHelper.None
+                    : supervisor.OutOfSync == true
+                        ? "Out of Sync"
+                        : "Synced";}
                 <td class="hover-text width-medium">
                     <div>
                         @syncStatus

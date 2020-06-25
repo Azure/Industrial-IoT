@@ -9,25 +9,37 @@
 
 <div class="drawer-content list-group">
     <div class="list-group-item text-left">
-        @{string applicationName = ApplicationData.ApplicationName == null ? CommonHelper.None : ApplicationData.ApplicationName;}
         <div class="label">
             Name:
-            <div class="body">@applicationName</div>
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.ApplicationName)
+                    ? CommonHelper.None
+                    : ApplicationData.ApplicationName)
+            </div>
         </div>
-        @{string ApplicationId = ApplicationData.ApplicationId == null ? CommonHelper.None : ApplicationData.ApplicationId;}
         <div class="label">
             Id:
-            <div class="body">@ApplicationId</div>
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.ApplicationId)
+                    ? CommonHelper.None
+                    : ApplicationData.ApplicationId)
+            </div>
         </div>
-        @{string applicationUri = ApplicationData.ApplicationUri == null ? CommonHelper.None : ApplicationData.ApplicationUri;}
         <div class="label">
             Uri:
-            <div class="body">@applicationUri</div>
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.ApplicationUri)
+                    ? CommonHelper.None
+                    : ApplicationData.ApplicationUri)
+            </div>
         </div>
-        @{string applicationType = ApplicationData.ApplicationType.ToString() == null ? CommonHelper.None : ApplicationData.ApplicationType.ToString();}
         <div class="label">
             Type:
-            <div class="body">@applicationType</div>
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.ApplicationType.ToString())
+                    ? CommonHelper.None
+                    : ApplicationData.ApplicationType.ToString())
+            </div>
         </div>
         <div class="label">
             Capabilities:
@@ -45,25 +57,37 @@
                 }
             }
         </div>
-        @{string discovererId = ApplicationData.DiscovererId == null ? CommonHelper.None : ApplicationData.DiscovererId;}
         <div class="label">
             Discoverer Id:
-            <div class="body">@discovererId</div>
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.DiscovererId)
+                    ? CommonHelper.None
+                    : ApplicationData.DiscovererId)
+            </div>
         </div>
-        @{string productUri = ApplicationData.ProductUri == null ? CommonHelper.None : ApplicationData.ProductUri;}
         <div class="label">
             Product Uri:
-            <div class="body">@productUri</div>
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.ProductUri)
+                    ? CommonHelper.None
+                    : ApplicationData.ProductUri)
+            </div>
         </div>
-        @{string siteId = ApplicationData.SiteId == null ? CommonHelper.None : ApplicationData.SiteId;}
         <div class="label">
             Site:
-            <div class="body">@siteId</div>
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.SiteId)
+                    ? CommonHelper.None
+                    : ApplicationData.SiteId)
+            </div>
         </div>
-        @{string gatewayServerUri = ApplicationData.GatewayServerUri == null ? CommonHelper.None : ApplicationData.GatewayServerUri;}
         <div class="label">
             Gateway Server Uri:
-            <div class="body">@gatewayServerUri</div>
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.GatewayServerUri)
+                    ? CommonHelper.None
+                    : ApplicationData.GatewayServerUri)
+            </div>
         </div>
         <div class="label">
             Host Addresses:
@@ -113,15 +137,21 @@
                 }
             }
         </div>
-        @{string timeCreated = ApplicationData.Created.Time.ToString() == null ? CommonHelper.None : ApplicationData.Created.Time.ToString();}
         <div class="label">
             Created:
-            <div class="body">@timeCreated</div>
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.Created.Time.ToString())
+                    ? CommonHelper.None
+                    : ApplicationData.Created.Time.ToString())
+            </div>
         </div>
-        @{string timeUpdated = ApplicationData.Updated.Time.ToString() == null ? CommonHelper.None : ApplicationData.Updated.Time.ToString();}
         <div class="label">
             Updated:
-            <div class="body">@timeUpdated</div>
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.Updated.Time.ToString())
+                    ? CommonHelper.None
+                    : ApplicationData.Updated.Time.ToString())
+            </div>
         </div>
     </div>
 </div>

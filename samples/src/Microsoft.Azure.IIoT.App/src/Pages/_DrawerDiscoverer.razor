@@ -29,27 +29,27 @@
             </div>
             <div class="form-group">
                 <label>Max Network Probes</label>
-                <input @bind="@InputData.RequestedMaxNetworkProbes" aria-label="maxNetworkProbes" id="MaxNetworkProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxNetworkProbes ?? "Max Network Probes")" />
+                <input @bind="@InputData.RequestedMaxNetworkProbes" aria-label="maxNetworkProbes" id="MaxNetworkProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxNetworkProbes ?? "")" />
             </div>
             <div class="form-group">
                 <label>Max Port Probes</label>
-                <input @bind="@InputData.RequestedMaxPortProbes" aria-label="maxPortProbes" id="MaxPortProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxPortProbes ?? "Max Port Probes")" />
+                <input @bind="@InputData.RequestedMaxPortProbes" aria-label="maxPortProbes" id="MaxPortProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxPortProbes ?? "")" />
             </div>
             <div class="form-group">
                 <label>Network Probe Timeout</label>
-                <input @bind="@InputData.RequestedNetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveNetworkProbeTimeout ?? "Network Probe Timeout")" />
+                <input @bind="@InputData.RequestedNetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveNetworkProbeTimeout ?? "")" />
             </div>
             <div class="form-group">
                 <label>Port Probe Timeout</label>
-                <input @bind="@InputData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortProbeTimeout ?? "Port Probe Timeout")" />
+                <input @bind="@InputData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortProbeTimeout ?? "")" />
             </div>
             <div class="form-group">
                 <label>Idle Time Between Scans</label>
-                <input @bind="@InputData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveIdleTimeBetweenScans ?? "Idle Time Between Scans")" />
+                <input @bind="@InputData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveIdleTimeBetweenScans ?? "")" />
             </div>
             <label>Discovery Urls</label>
             <div class="flex">
-                <input @bind="@DiscoveryUrl" aria-label="DiscoveryUrls" id="DiscoveryUrls" type="text" class="form-control" placeholder="Discovery Url" />
+                <input @bind="@DiscoveryUrl" aria-label="DiscoveryUrls" id="DiscoveryUrls" type="text" class="form-control" />
                 <button @onclick="@(() => InputData.AddDiscoveryUrl(DiscoveryUrl))" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
                 <button @onclick="@(() => InputData.RemoveDiscoveryUrl(DiscoveryUrl))" type="button" class="btn btn-primary shadow-none">Clear</button>
             </div>
