@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     public class DiscovererEventBusPublisher : IDiscovererRegistryListener {
 
         /// <summary>
-        /// Create event publisher
+        /// Create event discoverer
         /// </summary>
         /// <param name="bus"></param>
         public DiscovererEventBusPublisher(IEventBus bus) {

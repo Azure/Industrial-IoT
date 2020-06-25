@@ -49,10 +49,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
 
         /// <inheritdoc/>
         public TimeSpan Create(string name, out HttpMessageHandler handler) {
-            var resource = name == DefaultResourceId ? Resource.None : name;
-            if (resource != null && resource.StartsWith(Resource.Local)) {
-                resource = resource.Remove(0, Resource.Local.Length);
-            }
+            var resource = name == DefaultResourceId ? null : name;
 #pragma warning disable IDE0067 // Dispose objects before losing scope
             var del = new HttpHandlerDelegate(new HttpClientHandler(), resource,
 #pragma warning restore IDE0067 // Dispose objects before losing scope

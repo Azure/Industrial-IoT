@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             _hub = HubContainer.Resolve<IIoTHubTwinServices>();
 
             // Create module identitity
-            var twin = _hub.CreateOrUpdateAsync(new DeviceTwinModel {
+            var twin = _hub.CreateAsync(new DeviceTwinModel {
                 Id = DeviceId,
                 ModuleId = ModuleId
             }).Result;
@@ -226,7 +226,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                     Registration = endpoint,
                     ApplicationId = "uas" + Guid.NewGuid().ToString()
                 }.ToEndpointRegistration(_serializer).ToDeviceTwin(_serializer);
-            var result = _hub.CreateOrUpdateAsync(twin).Result;
+            var result = _hub.CreateAsync(twin).Result;
             var registry = HubContainer.Resolve<IEndpointRegistry>();
             var activate = HubContainer.Resolve<IEndpointActivation>();
             var endpoints = registry.ListAllEndpointsAsync().Result;

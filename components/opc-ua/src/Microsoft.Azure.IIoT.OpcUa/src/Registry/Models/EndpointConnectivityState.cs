@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-
     /// <summary>
     /// State of the endpoint after activation
     /// </summary>

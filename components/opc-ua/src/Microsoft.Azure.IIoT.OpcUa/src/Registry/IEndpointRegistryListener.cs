@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             EndpointInfoModel endpoint);
 
         /// <summary>
-        /// Activated endpoint
+        /// New endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             EndpointInfoModel endpoint);
 
         /// <summary>
-        /// Endpoint was deactivated
+        /// New endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             EndpointInfoModel endpoint);
 
         /// <summary>
-        /// Updated endpoint
+        /// New endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             EndpointInfoModel endpoint);
 
         /// <summary>
-        /// Deleted endpoint
+        /// New endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="endpointId"></param>

@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     public class PublishedDataItemsModel {
 
         /// <summary>
-        /// Data variables
+        /// Published data variables
         /// </summary>
         public List<PublishedDataSetVariableModel> PublishedData { get; set; }
     }

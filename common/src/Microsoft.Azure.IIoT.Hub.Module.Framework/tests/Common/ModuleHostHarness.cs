@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 var services = hubContainer.Resolve<IIoTHubTwinServices>();
 
                 // Create module
-                var twin = await services.CreateOrUpdateAsync(new DeviceTwinModel {
+                var twin = await services.CreateAsync(new DeviceTwinModel {
                     Id = "TestDevice",
                     ModuleId = "TestModule"
                 });
