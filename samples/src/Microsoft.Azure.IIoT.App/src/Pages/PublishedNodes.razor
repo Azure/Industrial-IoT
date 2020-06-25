@@ -50,37 +50,37 @@
             <tr>
                 <td class="hover-text width-large">
                     <div>
-                        @{ string NodeId = CommonHelper.None;
-                            NodeId = string.IsNullOrEmpty(node.PublishedItem.NodeId) ? CommonHelper.None : node.PublishedItem.NodeId;
-                        } @NodeId
+                        @(string.IsNullOrEmpty(node.PublishedItem.NodeId)
+                            ? CommonHelper.None
+                            : node.PublishedItem.NodeId)
                     </div>
                 </td>
                 <td class="hover-text width-medium-large">
                     <div>
-                        @{ string DisplayName = CommonHelper.None;
-                            DisplayName = string.IsNullOrEmpty(node.PublishedItem.DisplayName) ? CommonHelper.None : node.PublishedItem.DisplayName;
-                        } @DisplayName
+                        @(string.IsNullOrEmpty(node.PublishedItem.DisplayName)
+                            ? CommonHelper.None
+                            : node.PublishedItem.DisplayName)
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
-                        @{ string PublishingInterval = CommonHelper.None;
-                            PublishingInterval = node.PublishedItem.PublishingInterval.HasValue && node.PublishedItem.PublishingInterval.Value != TimeSpan.MinValue ? node.PublishedItem.PublishingInterval.Value.TotalMilliseconds.ToString() : CommonHelper.None;
-                        } @PublishingInterval
+                        @(node.PublishedItem.PublishingInterval.HasValue && node.PublishedItem.PublishingInterval.Value != TimeSpan.MinValue
+                            ? node.PublishedItem.PublishingInterval.Value.Milliseconds.ToString()
+                            : CommonHelper.None)
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
-                        @{ string SamplingInterval = CommonHelper.None;
-                            SamplingInterval = node.PublishedItem.SamplingInterval.HasValue && node.PublishedItem.SamplingInterval.Value != TimeSpan.MinValue ? node.PublishedItem.SamplingInterval.Value.TotalMilliseconds.ToString() : CommonHelper.None;
-                        } @SamplingInterval
+                        @(node.PublishedItem.SamplingInterval.HasValue && node.PublishedItem.SamplingInterval.Value != TimeSpan.MinValue
+                            ? node.PublishedItem.SamplingInterval.Value.Milliseconds.ToString()
+                            : CommonHelper.None)
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
-                        @{ string HeartbeatInterval = CommonHelper.None;
-                            HeartbeatInterval = node.PublishedItem.HeartbeatInterval.HasValue && node.PublishedItem.HeartbeatInterval.Value != TimeSpan.MinValue ? node.PublishedItem.HeartbeatInterval.Value.TotalSeconds.ToString() : CommonHelper.None;
-                        } @HeartbeatInterval
+                        @(node.PublishedItem.HeartbeatInterval.HasValue && node.PublishedItem.HeartbeatInterval.Value != TimeSpan.MinValue
+                            ? node.PublishedItem.HeartbeatInterval.Value.Seconds.ToString()
+                            : CommonHelper.None)
                     </div>
                 </td>
                 <td class="width-medium-large">
