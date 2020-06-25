@@ -105,8 +105,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
             }
             if (!string.IsNullOrEmpty(ehubHost)) {
-                // Running in edge mode - use mqtt over tcp
-                _transport = TransportOption.MqttOverTcp;
+                // Running in edge mode 
+                // the configured transport will be forced to it's OverTcp variant as follows:
+                // MqttOverTcp when Mqtt, MqttOverWebsocket or MqttOverTcp 
+                // and AmqpOverTcp otherwise
+
+                if (config.Transport != TransportOption.Any &&
+                    (config.Transport & TransportOption.Mqtt) != 0) {
+                    _transport = TransportOption.MqttOverTcp;
+                }
+                else {
+                    _transport = TransportOption.AmqpOverTcp;
+                }
                 _logger.Information("Connecting all clients to {edgeHub} using {transport}.",
                     ehubHost, _transport);
             }
