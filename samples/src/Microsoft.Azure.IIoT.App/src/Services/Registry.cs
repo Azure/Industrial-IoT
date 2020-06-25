@@ -85,8 +85,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Warning(e, "Can not get endpoint list");
-                pageResult.Error = e.Message;
+                var message = "Cannot get endpoint list";
+                _logger.Warning(e, message);
+                pageResult.Error = message;
             }
             return pageResult;
         }
@@ -153,8 +154,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Warning(e, "Can not get discoverers as list");
-                pageResult.Error = e.Message;
+                var message = "Cannot get discoverers as list";
+                _logger.Warning(e, message);
+                pageResult.Error = message;
             }
             return pageResult;
         }
@@ -210,8 +212,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Warning(e, "Can not get applications list");
-                pageResult.Error = e.Message;
+                var message = "Can not get applications list";
+                _logger.Warning(e, message);
+                pageResult.Error = message;
             }
             return pageResult;
         }
@@ -339,8 +342,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Warning(e, "Can not get gateways list");
-                pageResult.Error = e.Message;
+                var message = "Cannot get gateways list";
+                _logger.Warning(e, message);
+                pageResult.Error = message;
             }
             return pageResult;
         }
@@ -393,8 +397,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Warning(e, "Can not get publisher list");
-                pageResult.Error = e.Message;
+                var message = "Cannot get publisher list";
+                _logger.Warning(e, message);
+                pageResult.Error = message;
             }
             return pageResult;
         }
@@ -469,8 +474,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Warning(e, "Can not get supervisor list");
-                pageResult.Error = e.Message;
+                var message = "Cannot get supervisor list";
+                _logger.Warning(e, message);
+                pageResult.Error = message;
             }
             return pageResult;
         }
