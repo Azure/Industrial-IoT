@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                var message = "Can not get endpoint list";
+                var message = "Cannot get endpoint list";
                 _logger.Warning(e, message);
                 pageResult.Error = message;
             }
@@ -154,7 +154,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                var message = "Can not get discoverers as list";
+                var message = "Cannot get discoverers as list";
                 _logger.Warning(e, message);
                 pageResult.Error = message;
             }
@@ -342,7 +342,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                var message = "Can not get gateways list";
+                var message = "Cannot get gateways list";
                 _logger.Warning(e, message);
                 pageResult.Error = message;
             }
@@ -397,7 +397,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                var message = "Can not get publisher list";
+                var message = "Cannot get publisher list";
                 _logger.Warning(e, message);
                 pageResult.Error = message;
             }
@@ -474,7 +474,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                var message = "Can not get supervisor list";
+                var message = "Cannot get supervisor list";
                 _logger.Warning(e, message);
                 pageResult.Error = message;
             }
