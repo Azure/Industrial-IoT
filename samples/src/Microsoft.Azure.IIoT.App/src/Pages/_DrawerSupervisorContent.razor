@@ -13,20 +13,29 @@
     <div class="list-group-item text-left">
         @if (SupervisorStatus != null)
         {
-            string DeviceId = SupervisorStatus.DeviceId == null ? CommonHelper.None : SupervisorStatus.DeviceId;
             <div class="label">
                 DeviceId:
-                <div class="body">@DeviceId</div>
+                <div class="body">
+                    @(string.IsNullOrEmpty(SupervisorStatus.DeviceId)
+                        ? CommonHelper.None
+                        : SupervisorStatus.DeviceId)
+                </div>
             </div>
-            string ModuleId = SupervisorStatus.ModuleId == null ? CommonHelper.None : SupervisorStatus.ModuleId;
             <div class="label">
                 ModuleId:
-                <div class="body">@ModuleId</div>
+                <div class="body">
+                    @(string.IsNullOrEmpty(SupervisorStatus.ModuleId)
+                        ? CommonHelper.None
+                        : SupervisorStatus.ModuleId)
+                </div>
             </div>
-            string SiteId = SupervisorStatus.SiteId == null ? CommonHelper.None : SupervisorStatus.SiteId;
             <div class="label">
                 SiteId:
-                <div class="body">@SiteId</div>
+                <div class="body">
+                    @(string.IsNullOrEmpty(SupervisorStatus.SiteId)
+                        ? CommonHelper.None
+                        : SupervisorStatus.SiteId)
+                </div>
             </div>
             <div class="label">
                 Endpoints:
