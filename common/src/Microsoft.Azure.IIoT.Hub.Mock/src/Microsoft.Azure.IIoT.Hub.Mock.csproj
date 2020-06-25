@@ -4,7 +4,15 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT common IoT Hub twin registry mocking tool used in testing</Description>
     <Antlr4UseCSharpGenerator>True</Antlr4UseCSharpGenerator>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Antlr4" Version="4.6.6" />
   </ItemGroup>
