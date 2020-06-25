@@ -22,5 +22,11 @@
     "inputFiles": [
       "wwwroot/css/blazored-modal.css"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/css/material-icons.min.css",
+    "inputFiles": [
+      "wwwroot/css/material-icons/material-icons.css"
+    ]
   }
 ]

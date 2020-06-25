@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string Page { get; set; } = "1";
 
-        public const int PageLength = 10;
         public string Status { get; set; }
         public bool IsOpen { get; set; } = false;
         public ApplicationInfoApiModel ApplicationData { get; set; }

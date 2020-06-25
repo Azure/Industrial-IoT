@@ -107,6 +107,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
             builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces();
 
+            // Add Application Insights dependency tracking.
+            builder.AddDependencyTracking(config, serviceInfo);
+
             // Add diagnostics
             builder.AddDiagnostics(config);
 
