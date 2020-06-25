@@ -33,10 +33,10 @@ pushd %current-path%\deploy\scripts
 
 echo %*|find " -version" >nul
 if errorlevel 1 (
-    echo Using preview version...
+    echo Using preview version.
     %PWSH% -ExecutionPolicy Unrestricted ./deploy.ps1 %* -version preview
 ) else (
-    echo Using provided version...
+    echo Using provided version.
     %PWSH% -ExecutionPolicy Unrestricted ./deploy.ps1 %*
 )
 popd
