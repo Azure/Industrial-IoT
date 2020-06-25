@@ -53,10 +53,10 @@
                     </div>
                 </td>
                 @{string connectStatus = supervisor.Connected == null
-                        ? CommonHelper.None
-                        : supervisor.Connected == true
-                            ? "Connected"
-                            : "Disconnected";}
+                    ? CommonHelper.None
+                    : supervisor.Connected == true
+                        ? "Connected"
+                        : "Disconnected";}
                 <td class="hover-text width-medium">
                     <div>
                         @{
@@ -79,10 +79,10 @@
                     </div>
                 </td>
                 @{string syncStatus = supervisor.OutOfSync == null
-                        ? CommonHelper.None
-                        : supervisor.OutOfSync == true
-                            ? "Out of Sync"
-                            : "Synced";}
+                    ? CommonHelper.None
+                    : supervisor.OutOfSync == true
+                        ? "Out of Sync"
+                        : "Synced";}
                 <td class="hover-text width-medium">
                     <div>
                         @syncStatus
