@@ -64,6 +64,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// Allows a caller to get runtime status for a supervisor.
         /// </remarks>
         /// <param name="supervisorId">supervisor identifier</param>
+        /// <returns>Supervisor status</returns>
         [HttpGet("{supervisorId}/status")]
         public async Task<SupervisorStatusApiModel> GetSupervisorStatusAsync(
             string supervisorId) {
@@ -80,6 +81,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// </remarks>
         /// <param name="supervisorId">supervisor identifier</param>
         /// <param name="request">Patch request</param>
+        /// <returns></returns>
         [HttpPatch("{supervisorId}")]
         [Authorize(Policy = Policies.CanChange)]
         public async Task UpdateSupervisorAsync(string supervisorId,
@@ -99,6 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// identity identifier.
         /// </remarks>
         /// <param name="supervisorId">supervisor identifier</param>
+        /// <returns></returns>
         [HttpPost("{supervisorId}/reset")]
         [Authorize(Policy = Policies.CanManage)]
         public Task ResetSupervisorAsync(string supervisorId) {

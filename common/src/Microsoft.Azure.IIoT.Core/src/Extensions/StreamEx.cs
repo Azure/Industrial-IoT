@@ -14,7 +14,6 @@ namespace System.IO {
     /// </summary>
     public static class StreamEx {
 
-
         /// <summary>
         /// Zip string
         /// </summary>

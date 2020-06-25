@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Http.Auth {
             if (headers == null) {
                 throw new ArgumentNullException(nameof(headers));
             }
-            if (resourceId != null) {
+            if (!string.IsNullOrEmpty(resourceId)) {
                 //
                 // TODO: Eventually we also need scopes/desired permissions
                 // for the token, e.g. read, read/write, etc.

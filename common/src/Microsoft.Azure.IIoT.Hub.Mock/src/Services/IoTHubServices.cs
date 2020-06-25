@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         }
 
         /// <inheritdoc/>
-        public Task<DeviceTwinModel> CreateAsync(DeviceTwinModel twin, bool force,
+        public Task<DeviceTwinModel> CreateOrUpdateAsync(DeviceTwinModel twin, bool force,
             CancellationToken ct) {
             lock (_lock) {
                 var model = GetModel(twin.Id, twin.ModuleId);
@@ -305,6 +305,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                             Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))
                     };
                 }
+                if (Device.ConnectionState == null) {
+                    Device.ConnectionState = "Disconnected";
+                }
                 if (Twin.ConnectionState == null) {
                     Twin.ConnectionState = "Disconnected";
                 }
@@ -449,7 +452,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             public void Connect(IIoTClientCallback client) {
                 lock (_lock) {
                     Connection = client;
-                    Twin.ConnectionState = client == null ? "Disconnected" : "Connected";
+                    Twin.ConnectionState = Device.ConnectionState =
+                        client == null ? "Disconnected" : "Connected";
                 }
             }
 

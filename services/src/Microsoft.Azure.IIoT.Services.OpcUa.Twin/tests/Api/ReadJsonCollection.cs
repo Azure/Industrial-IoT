@@ -3,17 +3,12 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http {
-    using System;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Api {
+    using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
+    using Xunit;
 
-    /// <summary>
-    /// Http request options
-    /// </summary>
-    public class HttpRequestOptions {
-
-        /// <summary>
-        /// Request timeout
-        /// </summary>
-        public TimeSpan? Timeout { get; set; }
+    [CollectionDefinition(Name)]
+    public class ReadJsonCollection : ICollectionFixture<TestServerFixture> {
+        public const string Name = "ReadJsonApi";
     }
 }

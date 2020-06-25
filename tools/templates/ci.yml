@@ -65,6 +65,7 @@ jobs:
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/get-matrix.ps1
+      # arguments: -FileName Directory.Build.props
       arguments: -FileName azure-pipelines.yml
 - job: testall
   displayName: Run Tests for
@@ -96,5 +97,6 @@ jobs:
     timeoutInMinutes: 30
     inputs:
       command: test
+      # projects: '$(folder)/**/tests/*.csproj'
       projects: '**/tests/*.csproj'
       arguments: '--configuration Release'

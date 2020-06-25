@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                         },
                         ApplicationId = "ua326029342304923"
                     }.ToEndpointRegistration(_serializer).ToDeviceTwin(_serializer);
-                    await hub.CreateAsync(twin);
+                    await hub.CreateOrUpdateAsync(twin);
                     var registry = services.Resolve<IEndpointRegistry>();
                     var endpoints = await registry.ListAllEndpointsAsync();
                     var ep1 = endpoints.FirstOrDefault();
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                         ApplicationId = "ua326029342304923"
                     }.ToEndpointRegistration(_serializer).ToDeviceTwin(_serializer);
 
-                    await hub.CreateAsync(twin);
+                    await hub.CreateOrUpdateAsync(twin);
                     var registry = services.Resolve<IEndpointRegistry>();
                     var endpoints = await registry.ListAllEndpointsAsync();
                     var ep1 = endpoints.FirstOrDefault();
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                         ApplicationId = "ua326029342304923"
                     }.ToEndpointRegistration(_serializer).ToDeviceTwin(_serializer);
 
-                    await hub.CreateAsync(twin);
+                    await hub.CreateOrUpdateAsync(twin);
                     var registry = services.Resolve<IEndpointRegistry>();
                     var endpoints = await registry.ListAllEndpointsAsync();
                     var ep1 = endpoints.FirstOrDefault();
@@ -236,7 +236,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                             },
                             ApplicationId = "uas" + i
                         }.ToEndpointRegistration(_serializer).ToDeviceTwin(_serializer);
-                        await hub.CreateAsync(twin);
+                        await hub.CreateOrUpdateAsync(twin);
                     }
 
                     var registry = services.Resolve<IEndpointRegistry>();
