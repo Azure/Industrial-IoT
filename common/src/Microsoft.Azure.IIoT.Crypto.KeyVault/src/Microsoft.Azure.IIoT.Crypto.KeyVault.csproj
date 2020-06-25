@@ -4,7 +4,15 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT Cryptography with Keyvault</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Crypto\src\Microsoft.Azure.IIoT.Crypto.csproj" />
