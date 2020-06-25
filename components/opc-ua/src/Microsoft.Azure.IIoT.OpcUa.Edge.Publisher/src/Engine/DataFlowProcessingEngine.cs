@@ -170,7 +170,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             double messageSizeAveragePercent = Math.Round(_messageEncoder.AvgMessageSize / _maxEncodedMessageSize * 100);
             string messageSizeAveragePercentFormatted = $"({messageSizeAveragePercent}%)";
             double chunkSizeAverage = _messageEncoder.AvgMessageSize / (4 * 1024);
-            double estimatedMsgPerDay = Math.Ceiling(chunkSizeAverage) * sentMessagesPerSec * 60 * 60 * 24;
+            double estimatedMsgChunksPerDay = Math.Ceiling(chunkSizeAverage) * sentMessagesPerSec * 60 * 60 * 24;
 
             _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
 
@@ -195,7 +195,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
             diagInfo.Append("   # Outgress IoT message count        : {messageSinkSentMessagesCount,14:n0} {sentMessagesPerSecFormatted}\n");
-            diagInfo.Append("   # Estimated messages per day        : {messagesPerDay,14:n0}\n");
+            diagInfo.Append("   # Estimated IoT Chunks(4 KB) per day: {estimatedMsgChunksPerDay,14:n0}\n");
             diagInfo.Append("   # Connection retries                : {connectionRetries,14:0}\n");
 
             _logger.Information(diagInfo.ToString(),
@@ -214,7 +214,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _batchNetworkMessageBlock.OutputCount,
                 _sinkBlock.InputCount,
                 _messageSink.SentMessagesCount, sentMessagesPerSecFormatted,
-                estimatedMsgPerDay,
+                estimatedMsgChunksPerDay,
                 _messageTrigger.NumberOfConnectionRetries);
 
             string deviceId = _identity.DeviceId ?? "";
@@ -247,8 +247,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 .Set(_messageTrigger.NumberOfConnectionRetries);
             kChunkSizeAvg.WithLabels(deviceId, moduleId, Name)
                 .Set(chunkSizeAverage);
-            kEstimatedMsgPerday.WithLabels(deviceId, moduleId, Name)
-                .Set(estimatedMsgPerDay);
+            kEstimatedMsgChunksPerday.WithLabels(deviceId, moduleId, Name)
+                .Set(estimatedMsgChunksPerDay);
         }
 
         /// <summary>
@@ -346,8 +346,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kChunkSizeAvg = Metrics.CreateGauge(
             "iiot_edge_publisher_chunk_size_average",
             "IoT Hub chunk size average", kGaugeConfig);
-        private static readonly Gauge kEstimatedMsgPerday = Metrics.CreateGauge(
-            "iiot_edge_publisher_estimated_messages_per_day",
-            "Estimated IoT Hub messages charged per day", kGaugeConfig);
+        private static readonly Gauge kEstimatedMsgChunksPerday = Metrics.CreateGauge(
+            "iiot_edge_publisher_estimated_message_chunks_per_day",
+            "Estimated IoT Hub messages chunks charged per day", kGaugeConfig);
     }
 }
