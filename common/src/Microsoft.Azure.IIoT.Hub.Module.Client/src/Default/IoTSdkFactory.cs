@@ -398,16 +398,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             private readonly ModuleClient _client;
             private int _reconnectCounter;
-            private static readonly Gauge kReconnectionStatus = Metrics
-                .CreateGauge("iiot_edge_reconnected", "reconnected count",
-                    new GaugeConfiguration {
-                        LabelNames = new[] { "module", "device", "timestamp_utc"}
-                    });
-            private static readonly Gauge kDisconnectionStatus = Metrics
-                .CreateGauge("iiot_edge_disconnected", "reconnected count",
-                    new GaugeConfiguration {
-                        LabelNames = new[] { "module", "device", "timestamp_utc"}
-                    });
+            private static readonly Gauge kReconnectionStatus = Metrics.CreateGauge("iiot_edge_reconnected", "reconnected count",
+                new GaugeConfiguration {
+                    LabelNames = new[] { "module", "device", "timestamp_utc" }
+                });
+            private static readonly Gauge kDisconnectionStatus = Metrics.CreateGauge("iiot_edge_disconnected", "reconnected count",
+                new GaugeConfiguration {
+                    LabelNames = new[] { "module", "device", "timestamp_utc" }
+                });
         }
 
         /// <summary>
@@ -600,16 +598,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             private readonly DeviceClient _client;
             private int _reconnectCounter;
-            private static readonly Gauge kReconnectionStatus = Metrics
-                .CreateGauge("iiot_edge_device_reconnected", "reconnected count",
+            private static readonly Gauge kReconnectionStatus = Metrics.CreateGauge("iiot_edge_device_reconnected", "reconnected count",
                     new GaugeConfiguration {
                         LabelNames = new[] { "device", "timestamp_utc" }
                     });
-            private static readonly Gauge kDisconnectionStatus = Metrics
-                .CreateGauge("iiot_edge_device_disconnected", "disconnected count",
-                    new GaugeConfiguration {
-                        LabelNames = new[] { "device", "timestamp_utc" }
-                    });
+            private static readonly Gauge kDisconnectionStatus = Metrics.CreateGauge("iiot_edge_device_disconnected", "disconnected count",
+                new GaugeConfiguration {
+                    LabelNames = new[] { "device", "timestamp_utc" }
+                });
         }
 
         /// <summary>

@@ -23,11 +23,11 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
             // IoT hub and storage simulation
             builder.RegisterType<IoTHubServices>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces().SingleInstance();
 
             // Adapters
             builder.RegisterType<IoTHubDeviceEventHandler>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubTwinMethodClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()

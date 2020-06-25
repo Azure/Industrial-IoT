@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public bool Active { get; private set; }
 
             /// <inheritdoc/>
-            public int NumberOfConnectionRetries =>
+            public int NumberOfConnectionRetries => 
                 _outer._sessionManager.GetNumberOfConnectionRetries(_subscription.Connection);
 
             /// <inheritdoc/>
@@ -344,7 +344,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var applyChanges = false;
                 var noErrorFound = true;
                 var count = 0;
-                var codec = _outer._codec.Create(rawSubscription.Session.MessageContext);
                 if (monitoredItems == null || !monitoredItems.Any()) {
                     // cleanup
                     var toCleanupList = currentState.Select(t => t.Item);
@@ -401,6 +400,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var toAddList = desiredState.Except(currentState);
                 if (toAddList.Any()) {
                     count = 0;
+                    var codec = _outer._codec.Create(rawSubscription.Session.MessageContext);
                     // Add new monitored items not in current state
                     foreach (var toAdd in toAddList) {
                         // Create monitored item
@@ -625,14 +625,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                         modifySubscription = true;
                     }
-                    if (subscription.MaxNotificationsPerPublish !=
-                            _subscription.Configuration.MaxNotificationsPerPublish.GetValueOrDefault(0)) {
+                    if (subscription.MaxNotificationsPerPublish != _subscription.Configuration.MaxNotificationsPerPublish
+                            .GetValueOrDefault(0)) {
                         _logger.Debug(
                             "{subscription} Changing Max NotificationsPerPublish from {old} to {new}",
                             _subscription.Id, _subscription.Configuration?.MaxNotificationsPerPublish ?? 0,
                             configuration?.MaxNotificationsPerPublish ?? 0);
-                        subscription.MaxNotificationsPerPublish =
-                            _subscription.Configuration.MaxNotificationsPerPublish.GetValueOrDefault(0);
+                        subscription.MaxNotificationsPerPublish = _subscription.Configuration.MaxNotificationsPerPublish
+                            .GetValueOrDefault(0);
                         modifySubscription = true;
                     }
                     if (subscription.LifetimeCount != _subscription.Configuration.LifetimeCount
@@ -679,15 +679,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         return;
                     }
                     if (notification == null) {
-                        _logger.Warning(
-                            "DataChange for subscription: {Subscription} having empty notification",
+                        _logger.Warning("DataChange for subscription: {Subscription} having empty notification",
                             subscription.DisplayName);
                         return;
                     }
 
                     if (_currentlyMonitored == null) {
-                        _logger.Information(
-                            "DataChange for subscription: {Subscription} having no monitored items yet",
+                        _logger.Information("DataChange for subscription: {Subscription} having no monitored items yet",
                             subscription.DisplayName);
                         return;
                     }
@@ -862,7 +860,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (NextHeartbeat > currentPublish + TimeSpan.FromMilliseconds(50)) {
                     return false;
                 }
-                NextHeartbeat = TimeSpan.Zero < Template.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ?
+                NextHeartbeat = TimeSpan.Zero < Template.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero) ? 
                     currentPublish + Template.HeartbeatInterval.Value : DateTime.MaxValue;
                 return true;
             }
@@ -1071,5 +1069,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             new ConcurrentDictionary<string, SubscriptionWrapper>();
         private readonly ISessionManager _sessionManager;
         private readonly IVariantEncoderFactory _codec;
+
     }
 }

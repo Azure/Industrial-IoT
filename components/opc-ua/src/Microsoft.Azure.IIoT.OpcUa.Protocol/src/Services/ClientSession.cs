@@ -20,7 +20,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Wraps a session object to provide serialized access and connection and
@@ -56,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _keepAlive = keepAlive ?? TimeSpan.FromSeconds(5);
             _lastActivity = DateTime.UtcNow;
             // Align the default device method timeout
-            _opTimeout = maxOpTimeout ?? TimeSpan.FromMinutes(8);
+            _opTimeout = maxOpTimeout ?? TimeSpan.FromMinutes(5);
             _session = null;
             _acquired = new TaskCompletionSource<Session>();
             _urlQueue = new ConcurrentQueue<string>(_connection.Endpoint.GetAllUrls());

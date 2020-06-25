@@ -16,11 +16,6 @@ namespace Microsoft.Azure.IIoT.Http {
         public static readonly string None = null;
 
         /// <summary>
-        /// The resource is local to the client
-        /// </summary>
-        public static readonly string Local = nameof(Local) + ":";
-
-        /// <summary>
         /// Platform
         /// </summary>
         public static readonly string Platform = nameof(Platform);

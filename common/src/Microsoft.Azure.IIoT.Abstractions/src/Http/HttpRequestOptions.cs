@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http {
-    using System;
 
     /// <summary>
     /// Http request options
@@ -14,6 +13,6 @@ namespace Microsoft.Azure.IIoT.Http {
         /// <summary>
         /// Request timeout
         /// </summary>
-        public TimeSpan? Timeout { get; set; }
+        public int Timeout { get; set; } = 30000;
     }
 }
