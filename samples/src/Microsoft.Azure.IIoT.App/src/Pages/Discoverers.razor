@@ -55,7 +55,6 @@
         </tr>
     </thead>
     <tbody>
-        @{string connectStatus = "Disconnected"; }
         @foreach (var discoverer in _pagedDiscovererList.Results) {
             <tr>
                 @if (discoverer.HasApplication == true) {
@@ -70,7 +69,9 @@
                 else {
                     <td class="hover-text">@discoverer.DiscovererModel.Id</td>
                 }
-                @{connectStatus = discoverer.DiscovererModel.Connected == true ? "Connected" : "Disconnected";}
+                @{string connectStatus = discoverer.DiscovererModel.Connected == true
+                    ? "Connected"
+                    : "Disconnected";}
                 <td class="hover-text width-medium">
                     <div>
                         @{

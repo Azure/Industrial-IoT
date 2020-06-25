@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             new PagedResult<ListNode>();
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
-        private IAsyncDisposable _publishEvent { get; set; }
+        private IAsyncDisposable PublishEvent { get; set; }
         private const string _valueGood = "Good";
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                 CommonHelper.Spinner = string.Empty;
                 CommonHelper.CheckErrorOrEmpty(PagedNodeList, ref _tableView, ref _tableEmpty);
                 StateHasChanged();
-                _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
+                PublishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
                 samples => InvokeAsync(() => GetPublishedNodeData(samples)));
             }
         }
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                     node.Value = samples.Value?.ToJson()?.TrimQuotes();
                     node.Status = string.IsNullOrEmpty(samples.Status) ? _valueGood : samples.Status;
                     node.Timestamp = samples.Timestamp.Value.ToLocalTime().ToString();
-                    this.StateHasChanged();
+                    StateHasChanged();
                 }
             }
             return Task.CompletedTask;
@@ -101,8 +101,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// Dispose
         /// </summary>
         public async void Dispose() {
-            if (_publishEvent != null) {
-                await _publishEvent.DisposeAsync();
+            if (PublishEvent != null) {
+                await PublishEvent.DisposeAsync();
             }
         }
     }
