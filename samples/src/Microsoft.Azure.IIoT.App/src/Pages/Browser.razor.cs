@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
 
         public PagedResult<ListNode> NodeList { get; set; } = new PagedResult<ListNode>();
         public PagedResult<ListNode> PagedNodeList { get; set; } = new PagedResult<ListNode>();
-        public PagedResult<PublishedItemApiModel> PublishedNodes { get; set; } = new PagedResult<PublishedItemApiModel>();
+        public PagedResult<ListNode> PublishedNodes { get; set; } = new PagedResult<ListNode>();
         public CredentialModel Credential { get; set; } = new CredentialModel();
         public bool IsOpen { get; set; } = false;
         public ListNode NodeData { get; set; }
@@ -143,14 +143,14 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                                                 NodeList);
             }
 
-            PublishedNodes = await Publisher.PublishedAsync(EndpointId);
+            PublishedNodes = await Publisher.PublishedAsync(EndpointId, false);
 
             foreach (var node in NodeList.Results) {
                 if (node.NodeClass == NodeClass.Variable) {
                     // check if publishing enabled
-                    foreach (var publishedItem in PublishedNodes.Results) {
-                        if (node.Id == publishedItem.NodeId) {
-                            node.PublishedItem = publishedItem;
+                    foreach (var publishedNode in PublishedNodes.Results) {
+                        if (node.Id == publishedNode.PublishedItem.NodeId) {
+                            node.PublishedItem = publishedNode.PublishedItem;
                             node.Publishing = true;
                             break;
                         }

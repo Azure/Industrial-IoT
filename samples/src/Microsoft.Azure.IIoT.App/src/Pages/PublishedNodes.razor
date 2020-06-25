@@ -11,12 +11,14 @@
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.Azure.IIoT.App.Common
+@using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
 
 
 @inject NavigationManager NavigationManager
 @inject Publisher PublisherHelper
 @inject UICommon CommonHelper
 @inject Registry RegistryHelper
+@inject PublisherServiceEvents PublisherServiceEvents
 
 <h1>Published Nodes</h1>
 
@@ -28,15 +30,14 @@
             <th class="width-small">Publishing Interval</th>
             <th class="width-small">Sampling Interval</th>
             <th class="width-small">Heartbeat Interval</th>
-            @if (IsIdGiven(DiscovererId) && IsIdGiven(ApplicationId) && IsIdGiven(SupervisorId))
-            {
+            <th class="width-medium-large">Value</th>
+            @if (IsIdGiven(DiscovererId) && IsIdGiven(ApplicationId) && IsIdGiven(SupervisorId)) {
                 <th class="width-xsmall">
                     @{var link = @NavigationManager.BaseUri + "endpoints/1/" + @DiscovererId + "/" + @ApplicationId + "/" + @SupervisorId;}
                     <a href="@link"><span class="oi oi-arrow-left"></span></a>
                 </th>
             }
-            else
-            {
+            else {
                 <th class="width-xsmall">
                     @{var link = @NavigationManager.BaseUri + "endpoints/1";}
                     <a href="@link"><span class="oi oi-arrow-left"></span></a>
@@ -45,42 +46,49 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var node in PagedNodeList.Results)
-        {
+        @foreach (var node in PagedNodeList.Results) {
             <tr>
                 <td class="hover-text width-large">
                     <div>
                         @{ string NodeId = CommonHelper.None;
-                            NodeId = string.IsNullOrEmpty(node.NodeId) ? CommonHelper.None : node.NodeId;
+                            NodeId = string.IsNullOrEmpty(node.PublishedItem.NodeId) ? CommonHelper.None : node.PublishedItem.NodeId;
                         } @NodeId
                     </div>
                 </td>
-                <td class="hover-text width-large">
+                <td class="hover-text width-medium-large">
                     <div>
                         @{ string DisplayName = CommonHelper.None;
-                            DisplayName = string.IsNullOrEmpty(node.DisplayName) ? CommonHelper.None : node.DisplayName;
+                            DisplayName = string.IsNullOrEmpty(node.PublishedItem.DisplayName) ? CommonHelper.None : node.PublishedItem.DisplayName;
                         } @DisplayName
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
                         @{ string PublishingInterval = CommonHelper.None;
-                            PublishingInterval = node.PublishingInterval.HasValue && node.PublishingInterval.Value != TimeSpan.MinValue ? node.PublishingInterval.Value.Milliseconds.ToString() : CommonHelper.None;
+                            PublishingInterval = node.PublishedItem.PublishingInterval.HasValue && node.PublishedItem.PublishingInterval.Value != TimeSpan.MinValue ? node.PublishedItem.PublishingInterval.Value.TotalMilliseconds.ToString() : CommonHelper.None;
                         } @PublishingInterval
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
                         @{ string SamplingInterval = CommonHelper.None;
-                            SamplingInterval = node.SamplingInterval.HasValue && node.SamplingInterval.Value != TimeSpan.MinValue ? node.SamplingInterval.Value.Milliseconds.ToString() : CommonHelper.None;
+                            SamplingInterval = node.PublishedItem.SamplingInterval.HasValue && node.PublishedItem.SamplingInterval.Value != TimeSpan.MinValue ? node.PublishedItem.SamplingInterval.Value.TotalMilliseconds.ToString() : CommonHelper.None;
                         } @SamplingInterval
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
                         @{ string HeartbeatInterval = CommonHelper.None;
-                            HeartbeatInterval = node.HeartbeatInterval.HasValue && node.HeartbeatInterval.Value != TimeSpan.MinValue ? node.HeartbeatInterval.Value.Seconds.ToString() : CommonHelper.None;
+                            HeartbeatInterval = node.PublishedItem.HeartbeatInterval.HasValue && node.PublishedItem.HeartbeatInterval.Value != TimeSpan.MinValue ? node.PublishedItem.HeartbeatInterval.Value.TotalSeconds.ToString() : CommonHelper.None;
                         } @HeartbeatInterval
+                    </div>
+                </td>
+                <td class="width-medium-large">
+                    <div class="value-scroll">
+                        <span>@node.Value</span>
+                        <span>(@node.DataType)</span>
+                        <span>(@node.Status -</span>
+                        <span>@node.Timestamp)</span>
                     </div>
                 </td>
                 <td></td>
