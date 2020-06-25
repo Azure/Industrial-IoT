@@ -202,6 +202,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public async Task EnableAsync(Session session) {
                 try {
+                    ResolveDisplayNames(session);
                     Active = await ReapplyAsync(session, false).ConfigureAwait(false);
                     Enabled = true;
                 }
@@ -220,7 +221,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Active = false;
                     }
                     if (!Active) {
-                        ResolveDisplayNames(session);
                         Active = await ReapplyAsync(session, true).ConfigureAwait(false);
                         Enabled = true;
                     }
