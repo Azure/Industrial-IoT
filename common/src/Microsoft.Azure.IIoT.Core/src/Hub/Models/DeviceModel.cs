@@ -35,5 +35,12 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         [DataMember(Name = "authentication")]
         public DeviceAuthenticationModel Authentication { get; set; }
+
+        /// <summary>
+        /// Corresponding Device's ConnectionState
+        /// </summary>
+        [DataMember(Name = "connectionState",
+            EmitDefaultValue = false)]
+        public string ConnectionState { get; set; }
     }
 }

@@ -94,15 +94,14 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             if (!(httpRequest is HttpRequest wrapper)) {
                 throw new InvalidOperationException("Bad request");
             }
-#if DEBUG
-            // Increase timeout for the case where debugger is attached
-            if (Debugger.IsAttached) {
-                httpRequest.Options.Timeout *= 100;
-            }
-#endif
+
             using (var client = _factory.CreateClient(httpRequest.ResourceId ??
                 HttpHandlerFactory.DefaultResourceId)) {
-                client.Timeout = TimeSpan.FromMilliseconds(httpRequest.Options.Timeout);
+
+                if (httpRequest.Options.Timeout.HasValue) {
+                    client.Timeout = httpRequest.Options.Timeout.Value;
+                }
+
                 var sw = Stopwatch.StartNew();
                 _logger.Verbose("Sending {method} request to {uri}...", httpMethod,
                     httpRequest.Uri);

@@ -33,7 +33,7 @@ namespace Opc.Ua.PubSub {
         public string DataSetClassId { get; set; }
 
         /// <summary>
-        /// Message type 
+        /// Message type
         /// </summary>
         public string MessageType { get; set; } = "ua-data";
 
