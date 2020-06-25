@@ -38,13 +38,18 @@
                         @gateway.Id
                     </div>
                 </td>
-                @{ string siteId = gateway.SiteId == null ? CommonHelper.None : gateway.SiteId;}
                 <td class="hover-text width-large">
                     <div>
-                        @siteId
+                        @(string.IsNullOrEmpty(gateway.SiteId)
+                            ? CommonHelper.None
+                            : gateway.SiteId)
                     </div>
                 </td>
-                @{string connectStatus = gateway.Connected == null ? CommonHelper.None : gateway.Connected == true ? "Connected" : "Disconnected";}
+                @{string connectStatus = gateway.Connected == null
+                    ? CommonHelper.None
+                    : gateway.Connected == true
+                        ? "Connected"
+                        : "Disconnected";}
                 <td class="hover-text width-large">
                     <div>
                         @{
