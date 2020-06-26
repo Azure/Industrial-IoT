@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// to the passed in twin state</param>
         /// <param name="ct"></param>
         /// <returns>new device</returns>
-        Task<DeviceTwinModel> CreateAsync(
+        Task<DeviceTwinModel> CreateOrUpdateAsync(
             DeviceTwinModel device, bool force = false,
             CancellationToken ct = default);
 

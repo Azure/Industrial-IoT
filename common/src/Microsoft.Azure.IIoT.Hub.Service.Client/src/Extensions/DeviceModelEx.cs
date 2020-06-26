@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
             return new DeviceModel {
                 Id = module.DeviceId,
                 ModuleId = module.Id,
+                ConnectionState = module.ConnectionState.ToString(),
                 Authentication = module.Authentication.ToModel(),
                 Etag = module.ETag
             };
@@ -34,6 +35,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
             return new DeviceModel {
                 Id = device.Id,
                 ModuleId = null,
+                ConnectionState = device.ConnectionState.ToString(),
                 Authentication = device.Authentication.ToModel(),
                 Etag = device.ETag
             };

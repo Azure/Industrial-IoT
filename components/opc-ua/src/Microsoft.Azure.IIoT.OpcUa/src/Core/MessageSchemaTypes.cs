@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core {
         /// </summary>
         public const string NetworkMessageUadp =
             "application/x-network-message-uadp-v1";
-        
+
         /// <summary>
         /// Network Message Model using json encoding
         /// </summary>

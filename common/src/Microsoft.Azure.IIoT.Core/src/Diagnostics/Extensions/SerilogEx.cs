@@ -4,8 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Serilog {
+    using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Diagnostics;
     using System;
+    using System.Diagnostics;
+    using System.IO;
 
     /// <summary>
     /// Serilog extensions
@@ -25,8 +28,18 @@ namespace Serilog {
                 .Enrich.WithProperty("SourceContext", "Root")
                 .Enrich.FromLogContext();
             if (addConsole) {
-                configuration.WriteTo.Console(outputTemplate: kDefaultTemplate);
+                configuration = configuration.WriteTo.Console(outputTemplate: kDefaultTemplate);
             }
+
+            var path = Environment.GetEnvironmentVariable(PcsVariable.PCS_LOGS_PATH);
+            if (!string.IsNullOrEmpty(path)) {
+                configuration = configuration.WriteTo.File(Path.Combine(path,
+                    Process.GetCurrentProcess().ProcessName +
+                    Process.GetCurrentProcess().Id + ".log"),
+                    flushToDiskInterval: TimeSpan.FromSeconds(1),
+                    outputTemplate: kDefaultTemplate);
+            }
+
             configuration = configure(configuration, kDefaultTemplate);
             return configuration.MinimumLevel.ControlledBy(LogControl.Level);
         }

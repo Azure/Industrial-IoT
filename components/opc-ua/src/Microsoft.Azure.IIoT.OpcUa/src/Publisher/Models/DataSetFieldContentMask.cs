@@ -42,7 +42,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         RawData = 0x20,
 
-        // Publisher Extensions
         /// <summary>
         /// Node id included
         /// </summary>

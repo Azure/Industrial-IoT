@@ -515,7 +515,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 try {
                     await ApplyActivationFilterAsync(result.DiscoveryConfig?.ActivationFilter,
                         item, context);
-                    await _iothub.CreateAsync(item.ToDeviceTwin(_serializer), true);
+                    await _iothub.CreateOrUpdateAsync(item.ToDeviceTwin(_serializer), true);
 
                     var endpoint = item.ToServiceModel();
                     await _broker.NotifyAllAsync(l => l.OnEndpointNewAsync(context, endpoint));

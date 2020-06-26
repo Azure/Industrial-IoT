@@ -207,7 +207,7 @@ Options:
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, new NewtonSoftJsonSerializer(), logger);
             try {
-                await registry.CreateAsync(new DeviceTwinModel {
+                await registry.CreateOrUpdateAsync(new DeviceTwinModel {
                     Id = deviceId,
                     Tags = new Dictionary<string, VariantValue> {
                         [TwinProperty.Type] = IdentityType.Gateway
@@ -221,7 +221,7 @@ Options:
                 logger.Information("Gateway {deviceId} exists.", deviceId);
             }
             try {
-                await registry.CreateAsync(new DeviceTwinModel {
+                await registry.CreateOrUpdateAsync(new DeviceTwinModel {
                     Id = deviceId,
                     ModuleId = moduleId
                 }, false, CancellationToken.None);

@@ -80,7 +80,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         OperationTimeout = legacyCliModel.OperationTimeout,
                         Endpoint = new EndpointModel {
                             Url = item.EndpointUrl.OriginalString,
-                            SecurityMode = item.UseSecurity == false ?
+                            SecurityMode = item.UseSecurity == false &&
+                                item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
                                     SecurityMode.None : SecurityMode.Best
                         },
                         User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
@@ -120,7 +121,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                             TimeSpan.FromSeconds(node.HeartbeatInterval.Value) :
                                             legacyCliModel.DefaultHeartbeatInterval,
                                         QueueSize = legacyCliModel.DefaultQueueSize,
-                                        // TODO: skip first? 
+                                        // TODO: skip first?
                                         // SkipFirst = opcNode.SkipFirst,
                                     }).ToList()
                             }
@@ -204,7 +205,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         for (var i = 0; i < scaleTestCount; i++) {
                             yield return new OpcNodeModel {
                                 Id = node.Id,
-                                DisplayName = string.IsNullOrEmpty(node.DisplayName) ? 
+                                DisplayName = string.IsNullOrEmpty(node.DisplayName) ?
                                     $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
                                 ExpandedNodeId = node.ExpandedNodeId,
                                 HeartbeatInterval = node.HeartbeatInterval,

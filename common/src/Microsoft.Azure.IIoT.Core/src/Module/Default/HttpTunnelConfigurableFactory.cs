@@ -38,10 +38,10 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         }
 
         /// <inheritdoc/>
-        public TimeSpan Create(string name, out HttpMessageHandler handler) {
-            return UseTunnel ?
-                _tunnel.Create(name, out handler) :
-                _fallback.Create(name, out handler);
+        public TimeSpan Create(string resource, out HttpMessageHandler handler) {
+            return UseTunnel && (resource == null || !resource.StartsWith(Resource.Local)) ?
+                _tunnel.Create(resource, out handler) :
+                _fallback.Create(resource, out handler);
         }
 
         private readonly HttpTunnelHandlerFactory _tunnel;
