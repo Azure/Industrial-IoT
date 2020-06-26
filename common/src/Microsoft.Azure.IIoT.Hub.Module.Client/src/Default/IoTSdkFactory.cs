@@ -109,12 +109,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 // the configured transport (if provided) will be forced to it's OverTcp
                 // variant as follows: AmqpOverTcp when Amqp, AmqpOverWebsocket or AmqpOverTcp specified
                 // and MqttOverTcp otherwise. Default is MqttOverTcp
-                if (config.Transport != TransportOption.Any &&
-                    (config.Transport & TransportOption.Amqp) != 0) {
-                    _transport = TransportOption.AmqpOverTcp;
+                if ((config.Transport & TransportOption.Mqtt) != 0) {
+                    // prefer Mqtt over Amqp due to performance reasons
+                    _transport = TransportOption.MqttOverTcp;
                 }
                 else {
-                    _transport = TransportOption.MqttOverTcp;
+                    _transport = TransportOption.AmqpOverTcp;
                 }
                 _logger.Information("Connecting all clients to {edgeHub} using {transport}.",
                     ehubHost, _transport);
