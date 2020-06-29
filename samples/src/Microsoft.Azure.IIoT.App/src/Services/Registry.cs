@@ -405,6 +405,30 @@ namespace Microsoft.Azure.IIoT.App.Services {
         }
 
         /// <summary>
+        /// Update publisher
+        /// </summary>
+        /// <param name="discoverer"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public async Task<string> UpdatePublisherAsync(PublisherInfo publisher) {
+            try {
+                await _registryService.UpdatePublisherAsync(publisher.PublisherModel.Id, new PublisherUpdateApiModel {
+                    Configuration = publisher.PublisherModel.Configuration
+                });
+            }
+            catch (UnauthorizedAccessException) {
+                return "Unauthorized access: Bad User Access Denied.";
+            }
+            catch (Exception exception) {
+                _logger.Error(exception, "Failed to update publisher");
+                var errorMessageTrace = string.Concat(exception.Message,
+                    exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
+                return errorMessageTrace;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Unregister application
         /// </summary>
         /// <param name="applicationId"></param>
