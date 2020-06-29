@@ -17,13 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     /// <summary>
     /// Generic host service which manages IHostProcess objects.
     /// </summary>
-    class StarterService : IHostedService {
-
-        /// <summary>
-        /// List of IHostProcess objects that will be managed by this instance, provided by DI.
-        /// </summary>
-        private readonly List<IHostProcess> _hostProcesses;
-        private readonly ILogger _logger;
+    class HostStarterService : IHostedService {
 
         /// <summary>
         /// Details of application hosting environment.
@@ -45,7 +39,22 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
         /// </summary>
         public ServiceInfo ServiceInfo { get; }
 
-        public StarterService(
+        /// <summary>
+        /// List of IHostProcess objects that will be managed by this instance, provided by DI.
+        /// </summary>
+        private readonly List<IHostProcess> _hostProcesses;
+        private readonly ILogger _logger;
+
+        /// <summary>
+        /// Constructor for generic host service which manages IHostProcess objects.
+        /// </summary>
+        /// <param name="hostEnvironment"></param>
+        /// <param name="hostApplicationLifetime"></param>
+        /// <param name="config"></param>
+        /// <param name="serviceInfo"></param>
+        /// <param name="hostProcesses"></param>
+        /// <param name="logger"></param>
+        public HostStarterService(
             IHostEnvironment hostEnvironment,
             IHostApplicationLifetime hostApplicationLifetime,
             Config config,
@@ -67,6 +76,10 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
                 _logger.Debug("Starting all hosts...");
                 await Task.WhenAll(_hostProcesses.Select(h => h.StartAsync()));
                 _logger.Information("All hosts started.");
+
+                // Print some useful information at bootstrap time
+                _logger.Information("{service} service started with id {id}",
+                    ServiceInfo.Name, ServiceInfo.Id);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to start some hosts.");

@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             IServiceCollection services,
             IConfiguration configuration
         ) {
-            services.AddHostedService<StarterService>();
+            services.AddHostedService<HostStarterService>();
         }
 
         /// <summary>
