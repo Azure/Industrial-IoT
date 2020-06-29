@@ -81,6 +81,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             }
         }
 
+        private bool IsTimeIntervalSet(TimeSpan? interval) {
+            return interval != null && interval.Value != TimeSpan.MinValue;
+        }
+
         /// <summary>
         /// Open then Drawer
         /// </summary>

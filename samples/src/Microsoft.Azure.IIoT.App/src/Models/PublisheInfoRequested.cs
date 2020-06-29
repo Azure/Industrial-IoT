@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.App.Models {
             get => (_requestedHeartbeatInterval != null && _requestedHeartbeatInterval.Value != TimeSpan.MinValue ?
                 _requestedHeartbeatInterval.Value.TotalSeconds.ToString() : null);
             set => _requestedHeartbeatInterval = string.IsNullOrWhiteSpace(value) ?
-                (TimeSpan?)null : TimeSpan.FromSeconds(Convert.ToDouble(value));
+                TimeSpan.MinValue : TimeSpan.FromSeconds(Convert.ToDouble(value));
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.App.Models {
             get => (_requestedJobCheckInterval != null && _requestedJobCheckInterval.Value != TimeSpan.MinValue ?
                 _requestedJobCheckInterval.Value.TotalSeconds.ToString() : null);
             set => _requestedJobCheckInterval = string.IsNullOrWhiteSpace(value) ?
-                (TimeSpan?)null : TimeSpan.FromSeconds(Convert.ToDouble(value));
+                TimeSpan.MinValue : TimeSpan.FromSeconds(Convert.ToDouble(value));
         }
     }
 }

@@ -22,21 +22,21 @@ namespace Microsoft.Azure.IIoT.App.Models {
                     PublisherModel.Configuration.MaxWorkers = int.Parse(input.RequestedMaxWorkers);
                 }
                 else {
-                    PublisherModel.Configuration.MaxWorkers = null;
+                    PublisherModel.Configuration.MaxWorkers = -1;
                 }
 
                 if (!string.IsNullOrEmpty(input.RequestedHeartbeatInterval)) {
                     PublisherModel.Configuration.HeartbeatInterval = TimeSpan.FromSeconds(Convert.ToDouble(input.RequestedHeartbeatInterval));
                 }
                 else {
-                    PublisherModel.Configuration.HeartbeatInterval = null;
+                    PublisherModel.Configuration.HeartbeatInterval = TimeSpan.MinValue;
                 }
 
                 if (!string.IsNullOrEmpty(input.RequestedJobCheckInterval)) {
                     PublisherModel.Configuration.JobCheckInterval = TimeSpan.FromSeconds(Convert.ToDouble(input.RequestedJobCheckInterval));
                 }
                 else {
-                    PublisherModel.Configuration.JobCheckInterval = null;
+                    PublisherModel.Configuration.JobCheckInterval = TimeSpan.MinValue;
                 }
 
                 return true;

@@ -6,15 +6,11 @@
 namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using System.Threading.Tasks;
 
     public partial class _DrawerPublisher {
         [Parameter]
         public PublisherInfo Publisher { get; set; }
-
-        [Parameter]
-        public EventCallback Onclick { get; set; }
 
         private PublisheInfoRequested InputData { get; set; }
 
@@ -30,7 +26,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// </summary>
         private async Task UpdatePublisherConfigAsync() {
             Publisher.TryUpdateData(InputData);
-            await Onclick.InvokeAsync(Publisher.PublisherModel);
             await RegistryHelper.UpdatePublisherAsync(Publisher);
         }
     }
