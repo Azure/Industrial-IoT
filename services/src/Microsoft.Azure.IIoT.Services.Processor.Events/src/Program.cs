@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
-        public static void ConfigureContainer(
+        public static ContainerBuilder ConfigureContainer(
             ContainerBuilder builder,
             IConfiguration configuration
         ) {
@@ -151,6 +151,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
                 .AsImplementedInterfaces();
             builder.RegisterType<ServiceBusEventBus>()
                 .AsImplementedInterfaces().SingleInstance();
+
+            return builder;
         }
     }
 }
