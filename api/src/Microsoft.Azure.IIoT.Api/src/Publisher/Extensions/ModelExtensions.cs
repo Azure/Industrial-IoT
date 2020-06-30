@@ -547,6 +547,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 SourceTimestamp = model.SourceTimestamp,
                 SourcePicoseconds = model.SourcePicoseconds,
                 Timestamp = model.Timestamp,
+                SequenceNumber = model.SequenceNumber,
                 Value = model.Value?.Copy(),
                 DataType = model.DataType,
                 Status = model.Status
