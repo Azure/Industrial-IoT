@@ -96,7 +96,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
             var config = new Config(configuration);
 
             builder.RegisterInstance(serviceInfo)
-                .AsSelf()
                 .AsImplementedInterfaces();
 
             // Register configuration interfaces

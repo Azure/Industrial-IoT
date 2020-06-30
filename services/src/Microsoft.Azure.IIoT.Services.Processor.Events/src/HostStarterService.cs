@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Events {
 
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Services.Processor.Events.Runtime;
     using Microsoft.Extensions.Hosting;
     using System;
@@ -37,7 +38,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
         /// <summary>
         /// Service information, will be provided by DI.
         /// </summary>
-        public ServiceInfo ServiceInfo { get; }
+        public IProcessIdentity ServiceInfo { get; }
 
         /// <summary>
         /// List of IHostProcess objects that will be managed by this instance, provided by DI.
@@ -58,7 +59,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             IHostEnvironment hostEnvironment,
             IHostApplicationLifetime hostApplicationLifetime,
             Config config,
-            ServiceInfo serviceInfo,
+            IProcessIdentity serviceInfo,
             IEnumerable<IHostProcess> hostProcesses,
             ILogger logger
         ) {

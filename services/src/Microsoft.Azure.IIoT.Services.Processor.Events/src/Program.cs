@@ -95,9 +95,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
 
             // Making sure that we reuse the same ServiceInfo instance.
             builder.RegisterInstance(serviceInfo)
-                .AsSelf()
-                .AsImplementedInterfaces()
-                .SingleInstance();
+                .AsImplementedInterfaces();
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
