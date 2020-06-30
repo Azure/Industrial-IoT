@@ -4,34 +4,33 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
+
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
+    using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
+    using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth.IoTHub;
+    using Microsoft.Azure.IIoT.Crypto.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Tasks.Default;
-    using Microsoft.Azure.IIoT.Crypto.Default;
-    using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Auth.IoTHub;
-    using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
-    using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Messaging.Default;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
+    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
+    using Microsoft.Azure.IIoT.Module.Default;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime;
+    using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Extensions.Configuration;
-    using Autofac;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Serilog;
     using System;
-    using System.IO;
-    using System.Runtime.Loader;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Sync service handles jobs out of process for other services.
@@ -43,69 +42,65 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
-
-            // Load hosting configuration
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true)
-                .AddFromDotEnvFile()
-                .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddCommandLine(args)
-                // Above configuration providers will provide connection
-                // details for KeyVault configuration provider.
-                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
-                .Build();
-
-            // Set up dependency injection for the event processor host
-            RunAsync(config).Wait();
+            CreateHostBuilder(args).Build().Run();
         }
 
         /// <summary>
-        /// Run event bus host
+        /// Create host builder
         /// </summary>
-        /// <param name="config"></param>
+        /// <param name="args"></param>
         /// <returns></returns>
-        public static async Task RunAsync(IConfiguration config) {
-            var exit = false;
-            while (!exit) {
-                // Wait until the agent unloads or is cancelled
-                var tcs = new TaskCompletionSource<bool>();
-                AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-                using (var container = ConfigureContainer(config).Build()) {
-                    var logger = container.Resolve<ILogger>();
-                    try {
-                        logger.Information("Registry sync service started.");
-                        exit = await tcs.Task;
-                    }
-                    catch (InvalidConfigurationException e) {
-                        logger.Error(e,
-                            "Error starting registry sync service  - exit!");
-                        return;
-                    }
-                    catch (Exception ex) {
-                        logger.Error(ex,
-                            "Error running registry sync service - restarting!");
-                    }
-                }
-            }
+        public static IHostBuilder CreateHostBuilder(string[] args) {
+            return Host.CreateDefaultBuilder(args)
+                .ConfigureHostConfiguration(configHost => {
+                    configHost.AddFromDotEnvFile()
+                    .AddEnvironmentVariables()
+                    .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                    // Above configuration providers will provide connection
+                    // details for KeyVault configuration provider.
+                    .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest);
+                })
+                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .ConfigureContainer<ContainerBuilder>((hostBuilderContext, builder) => {
+                    // registering services in the Autofac ContainerBuilder
+                    ConfigureContainer(builder, hostBuilderContext.Configuration);
+                })
+                .ConfigureServices((hostBuilderContext, services) => {
+                    ConfigureServices(services, hostBuilderContext.Configuration);
+                })
+                .UseSerilog();
+        }
+
+        /// <summary>
+        /// This is where you register dependencies, add services to the container.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        public static void ConfigureServices(
+            IServiceCollection services,
+            IConfiguration configuration
+        ) {
+            services.AddHostedService<HostStarterService>();
         }
 
         /// <summary>
         /// Autofac configuration.
         /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
         public static ContainerBuilder ConfigureContainer(
+            ContainerBuilder builder,
             IConfiguration configuration) {
 
             var serviceInfo = new ServiceInfo();
             var config = new Config(configuration);
-            var builder = new ContainerBuilder();
 
             builder.RegisterInstance(serviceInfo)
                 .AsImplementedInterfaces();
 
             // Register configuration interfaces
             builder.RegisterInstance(config)
+                .AsSelf()
                 .AsImplementedInterfaces();
             builder.RegisterInstance(config.Configuration)
                 .AsImplementedInterfaces();
@@ -175,11 +170,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
             builder.RegisterType<TwinModuleDiagnosticsClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<ActivationSyncHost>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder;
