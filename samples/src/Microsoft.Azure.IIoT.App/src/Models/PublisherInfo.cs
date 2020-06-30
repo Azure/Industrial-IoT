@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// </summary>
         public PublisherApiModel PublisherModel { get; set; }
 
-        public bool TryUpdateData(PublisheInfoRequested input) {
+        public bool TryUpdateData(PublisherInfoRequested input) {
             try {
                 PublisherModel.Configuration ??= new PublisherConfigApiModel();
 

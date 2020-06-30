@@ -35,8 +35,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var publisher in _pagedPublisherList.Results)
-        {
+        @foreach (var publisher in _pagedPublisherList.Results) {
             <tr>
                 <td class="hover-text width-large">
                     <div>
@@ -50,8 +49,7 @@
                         @{ string JobCheckInterval = CommonHelper.None;}
                         @{ string JobOrchestratorUrl = CommonHelper.None;}
                         @{ string MaxWorkers = CommonHelper.None;}
-                        @if (publisher.Configuration != null)
-                        {
+                        @if (publisher.Configuration != null) {
                             Capabilities = publisher.Configuration.Capabilities == null ? CommonHelper.None : publisher.Configuration.Capabilities.ToString();
                             HeartbeatInterval = !IsTimeIntervalSet(publisher.Configuration.HeartbeatInterval) ? CommonHelper.None : publisher.Configuration.HeartbeatInterval.Value.TotalSeconds.ToString();
                             JobCheckInterval = !IsTimeIntervalSet(publisher.Configuration.JobCheckInterval) ? CommonHelper.None : publisher.Configuration.JobCheckInterval.Value.TotalSeconds.ToString();

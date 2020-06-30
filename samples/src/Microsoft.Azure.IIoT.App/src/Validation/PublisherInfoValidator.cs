@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.App.Validation {
     using FluentValidation;
     using Microsoft.Azure.IIoT.App.Models;
 
-    public class PublisherInfoValidator : AbstractValidator<PublisheInfoRequested> {
+    public class PublisherInfoValidator : AbstractValidator<PublisherInfoRequested> {
 
         private static readonly ValidationUtils utils = new ValidationUtils();
 

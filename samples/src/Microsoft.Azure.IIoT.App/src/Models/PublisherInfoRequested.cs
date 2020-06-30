@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.App.Models {
     using System;
 
-    public class PublisheInfoRequested {
+    public class PublisherInfoRequested {
 
-        public PublisheInfoRequested(PublisherInfo publisher) {
+        public PublisherInfoRequested(PublisherInfo publisher) {
             _requestedMaxWorkers = publisher?.PublisherModel?.Configuration?.MaxWorkers;
             _requestedHeartbeatInterval = publisher?.PublisherModel?.Configuration?.HeartbeatInterval;
             _requestedJobCheckInterval = publisher?.PublisherModel?.Configuration?.JobCheckInterval;

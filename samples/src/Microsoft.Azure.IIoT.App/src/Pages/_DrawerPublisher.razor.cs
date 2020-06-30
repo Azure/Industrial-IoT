@@ -12,13 +12,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public PublisherInfo Publisher { get; set; }
 
-        private PublisheInfoRequested InputData { get; set; }
+        private PublisherInfoRequested InputData { get; set; }
 
         /// <summary>
         /// OnInitialized
         /// </summary>
         protected override void OnInitialized() {
-            InputData = new PublisheInfoRequested(Publisher);
+            InputData = new PublisherInfoRequested(Publisher);
         }
 
         /// <summary>
