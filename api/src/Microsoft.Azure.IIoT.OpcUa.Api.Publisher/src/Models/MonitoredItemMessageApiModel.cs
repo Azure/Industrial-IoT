@@ -103,5 +103,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "serverPicoseconds", Order = 13,
             EmitDefaultValue = false)]
         public ushort? ServerPicoseconds { get; set; }
+
+        /// <summary>
+        /// Sequence Number
+        /// </summary>
+        [DataMember(Name = "sequenceNumber", Order = 14,
+            EmitDefaultValue = false)]
+        public uint? SequenceNumber { get; set; }
     }
 }
