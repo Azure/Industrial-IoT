@@ -458,7 +458,7 @@
                     },
                     {
                         "type": "string",
-                        "name": "dataSetClassId"
+                        "name": "nodeId"
                     }
                 ]
             },
