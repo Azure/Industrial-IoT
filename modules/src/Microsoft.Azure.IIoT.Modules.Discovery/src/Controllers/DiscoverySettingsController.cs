@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -96,6 +97,13 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Controllers {
             set => _config.IdleTimeBetweenScans =
                 value;
             get => _discovery.Configuration.IdleTimeBetweenScans;
+        }
+
+        /// <summary>
+        /// Discovery Urls to scan
+        /// </summary>
+        public List<string> DiscoveryUrls {
+            set => _config.DiscoveryUrls = value;
         }
 
         /// <summary>
