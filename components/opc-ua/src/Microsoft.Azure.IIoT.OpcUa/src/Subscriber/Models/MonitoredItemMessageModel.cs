@@ -76,5 +76,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// Server pico
         /// </summary>
         public ushort? ServerPicoseconds { get; set; }
+
+        /// <summary>
+        /// Sequence Number
+        /// </summary>
+        public uint? SequenceNumber { get; set; }
     }
 }

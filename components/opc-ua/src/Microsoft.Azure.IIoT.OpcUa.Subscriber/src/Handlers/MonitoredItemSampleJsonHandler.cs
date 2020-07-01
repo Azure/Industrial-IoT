@@ -51,39 +51,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                      is MonitoredItemMessage message) {
                     var type = BuiltInType.Null;
                     var codec = _encoder.Create(context);
-                    var dataset = new DataSetMessageModel {
+                    var sample = new MonitoredItemMessageModel {
                         PublisherId = (message.ExtensionFields != null &&
                             message.ExtensionFields.TryGetValue("PublisherId", out var publisherId))
                                 ? publisherId : message.ApplicationUri ?? message.EndpointUrl,
-                        MessageId = null,
-                        DataSetClassId = message.NodeId.AsString(null),
                         DataSetWriterId = (message.ExtensionFields != null &&
                             message.ExtensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
                                 ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
-                        SequenceNumber = message.SequenceNumber,
-                        Status = StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
-                        MetaDataVersion = "1.0",
+                        NodeId = message.NodeId.AsString(context),
+                        DisplayName = message.DisplayName,
                         Timestamp = message.Timestamp,
-                        Payload = new Dictionary<string, DataValueModel>() {
-                            [message.NodeId.AsString(context)] = new DataValueModel {
-                                Value = message?.Value == null
+                        SequenceNumber = message.SequenceNumber,
+                        Value = message?.Value == null
                                     ? null : codec.Encode(message.Value.WrappedValue, out type),
-                                DataType = type == BuiltInType.Null
+                        DataType = type == BuiltInType.Null
                                     ? null : type.ToString(),
-                                Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
-                                    ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
-                                SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)
-                                    ? null : message?.Value?.SourceTimestamp,
-                                SourcePicoseconds = (message?.Value?.SourcePicoseconds == 0)
-                                    ? null : message?.Value?.SourcePicoseconds,
-                                ServerTimestamp = (message?.Value?.ServerTimestamp == DateTime.MinValue)
-                                    ? null : message?.Value?.ServerTimestamp,
-                                ServerPicoseconds = (message?.Value?.ServerPicoseconds == 0)
-                                    ? null : message?.Value?.ServerPicoseconds
-                            }
-                        }
+                        Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
+                            ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
+                        SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)
+                            ? null : message?.Value?.SourceTimestamp,
+                        SourcePicoseconds = (message?.Value?.SourcePicoseconds == 0)
+                            ? null : message?.Value?.SourcePicoseconds,
+                        ServerTimestamp = (message?.Value?.ServerTimestamp == DateTime.MinValue)
+                            ? null : message?.Value?.ServerTimestamp,
+                        ServerPicoseconds = (message?.Value?.ServerPicoseconds == 0)
+                            ? null : message?.Value?.ServerPicoseconds,
+                        EndpointId = (message.ExtensionFields != null &&
+                            message.ExtensionFields.TryGetValue("EndpointId", out var endpointId))
+                                ? endpointId : message.ApplicationUri ?? message.EndpointUrl,
                     };
-                    await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset)));
+                    await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));
                 }
             }
             catch (Exception ex) {
