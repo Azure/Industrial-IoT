@@ -1,0 +1,39 @@
+﻿@*------------------------------------------------------------
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
+
+@using Microsoft.Azure.IIoT.App.Common
+@using Microsoft.Azure.IIoT.App.Services
+
+@inject UICommon CommonHelper
+@inject Registry RegistryHelper
+
+<div class="drawer-content list-group">
+    <div class="list-group-item text-justify list-group-item-heading">
+        <b>Enter configuration parameters and click on apply.</b>
+    </div>
+    <hr />
+    <div class="list-group-item text-left">
+        <EditForm Model="@InputData" OnValidSubmit="@UpdatePublisherConfigAsync">
+            <FluentValidator />
+            <div class="form-group">
+                <div class="label">Heartbeat Interval sec</div>
+                <input @bind="@InputData.RequestedHeartbeatInterval" aria-label="HeartbeatInterval" type="text" class="form-control" placeholder="@(InputData.RequestedHeartbeatInterval)" />
+            </div><br />
+            <div class="form-group">
+                <div class="label">Job Check Interval sec</div>
+                <input @bind="@InputData.RequestedJobCheckInterval" aria-label="JobCheckInterval" type="text" class="form-control" placeholder="@(InputData.RequestedJobCheckInterval)" />
+            </div><br />
+            <div class="form-group">
+                <div class="label">Max Workers</div>
+                <input @bind="@InputData.RequestedMaxWorkers" aria-label="MaxWorkers" type="text" class="form-control" placeholder="@(InputData.RequestedMaxWorkers)" />
+            </div><br />
+            <hr />
+            <ValidationSummary />
+            <div>
+                <button type="submit" class="btn btn-primary shadow-none">Apply</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
