@@ -114,9 +114,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
                 Log.Information($"Creating SignalR Service: {signalRName} ...");
 
-                // Constructor of SignalRFeature will set Flag to "ServiceMode".
-                // Bug report for adding feature to explicitly set the Flag to "ServiceMode":
-                // https://github.com/Azure/azure-sdk-for-net/issues/8806
                 var serviceModeFeature = new SignalRFeature {
                     Flag = ServiceMode.Serverless.Flag,
                     Value = ServiceMode.Serverless.Value
