@@ -91,6 +91,12 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                     }
                     await _handler.HandleAsync(eventData.Body.Array, properties,
                         () => CheckpointAsync(context, eventData));
+
+                    if (context.CancellationToken.IsCancellationRequested) {
+                        // Checkpoint to the last processed event.
+                        await CheckpointAsync(context, eventData);
+                        context.CancellationToken.ThrowIfCancellationRequested();
+                    }
                 }
 
                 // Checkpoint if needed
@@ -122,8 +128,10 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
 
             /// <inheritdoc/>
             public Task ProcessErrorAsync(PartitionContext context, Exception error) {
-                _logger.Warning(error, "EventProcessor {id} for partition {partitionId} error",
-                    _processorId, context.PartitionId);
+                if (!(error is OperationCanceledException)) {
+                    _logger.Warning(error, "EventProcessor {id} for partition {partitionId} error",
+                        _processorId, context.PartitionId);
+                }
                 return Task.CompletedTask;
             }
 
@@ -142,13 +150,15 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// <returns></returns>
             private async Task CheckpointAsync(PartitionContext context, EventData eventData) {
                 try {
-                    _logger.Debug("Checkpointing EventProcessor {id} for partition {partition} with {event}...",
-                        _processorId, context.PartitionId, eventData);
+                    _logger.Debug("Checkpointing EventProcessor {id} for partition {partition} with event with " +
+                        "{sequenceNumber} SequenceNumber and {offset} Offset ...", _processorId, context.PartitionId,
+                        eventData.SystemProperties.SequenceNumber, eventData.SystemProperties.Offset);
                     await context.CheckpointAsync(eventData).ConfigureAwait(false);
                 }
-                catch {
-                    _logger.Warning("Failed to checkpoint EventProcessor {id} for partition {partition} with event {event}",
-                        _processorId, context.PartitionId, eventData);
+                catch (Exception ex) {
+                    _logger.Warning(ex, "Failed to checkpoint EventProcessor {id} for partition {partition} with " +
+                        "event with {sequenceNumber} SequenceNumber and {offset} Offset", _processorId,
+                        context.PartitionId, eventData.SystemProperties.SequenceNumber, eventData.SystemProperties.Offset);
                 }
                 finally {
                     _sw.Restart();
