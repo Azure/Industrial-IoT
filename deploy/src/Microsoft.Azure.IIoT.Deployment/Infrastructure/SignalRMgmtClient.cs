@@ -29,9 +29,17 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// Defines possible ServiceModes for SignalR service.
         /// </summary>
         public class ServiceMode {
-            private ServiceMode(string value) { Value = value; }
 
-            public string Value { get; set; }
+            private const string kServiceModeFlag = "ServiceMode";
+
+            private ServiceMode(string value) {
+                Value = value;
+                Flag = kServiceModeFlag;
+            }
+
+            public string Flag { get; }
+
+            public string Value { get; }
 
             public static ServiceMode Default { get { return new ServiceMode("Default"); } }
             public static ServiceMode Serverless { get { return new ServiceMode("Serverless"); } }
@@ -110,10 +118,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 // Bug report for adding feature to explicitly set the Flag to "ServiceMode":
                 // https://github.com/Azure/azure-sdk-for-net/issues/8806
                 var serviceModeFeature = new SignalRFeature {
+                    Flag = ServiceMode.Serverless.Flag,
                     Value = ServiceMode.Serverless.Value
                 };
 
-                var signalRCreateParameters = new SignalRCreateParameters() {
+                var signalRCreateParameters = new SignalRResource() {
                     Location = resourceGroup.RegionName,
                     Tags = tags,
 
@@ -122,11 +131,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         Tier = "Standard",
                         Capacity = 1,
                     },
-                    Properties = new SignalRCreateOrUpdateProperties {
-                        HostNamePrefix = signalRName,
-                        Features = new List<SignalRFeature> {
-                           serviceModeFeature
-                        }
+                    HostNamePrefix = signalRName,
+                    Features = new List<SignalRFeature> {
+                        serviceModeFeature
                     }
                 };
 
