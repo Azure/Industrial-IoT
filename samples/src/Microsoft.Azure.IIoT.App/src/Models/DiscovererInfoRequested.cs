@@ -70,9 +70,7 @@ namespace Microsoft.Azure.IIoT.App.Models
         /// Clear url list
         /// </summary>
         public void ClearDiscoveryUrlList(List<string> list) {
-            if (list != null) {
-                list.Clear();
-            } 
+            list?.Clear();
         }
 
         /// <summary>

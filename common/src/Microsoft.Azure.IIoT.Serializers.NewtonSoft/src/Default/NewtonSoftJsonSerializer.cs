@@ -236,7 +236,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
                                 JsonSerializer.CreateDefault(_serializer.Settings));
                         }
                         else {
-                            List<string> output = new List<string>();
+                            var output = new List<string>();
                             foreach(var item in Token) {
                                 output.Add(item.First.ToString());
                         }
