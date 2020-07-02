@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                 ct.ThrowIfCancellationRequested();
             }
             while (continuation != null);
-            _logger.Information("Identity Token update finished.");
+            _logger.Information("Job orchestrator url updated to {url} on all twins.", url);
         }
 
         private readonly IJobOrchestratorEndpoint _endpoint;

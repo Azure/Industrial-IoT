@@ -5,8 +5,8 @@
 
 namespace Autofac {
     using Autofac.Core.Registration;
-    using Serilog;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog;
     using System;
 
     /// <summary>

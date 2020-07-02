@@ -17,6 +17,7 @@ stages:
   - template: tools/templates/sdl.yml
 - stage: pack
   displayName: 'Package and Sign Nuget'
+  condition: ${{ ne(variables['Build.Reason'], 'PullRequest') }}
   dependsOn:
   - build
   jobs:
@@ -25,6 +26,7 @@ stages:
       sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
 - stage: iiot_deployment
   displayName: 'Build Installer'
+  condition: ${{ ne(variables['Build.Reason'], 'PullRequest') }}
   dependsOn:
   - build
   jobs:
@@ -35,13 +37,14 @@ stages:
   - template: tools/templates/iiot_deployment_mac.yml
 - stage: images
   displayName: 'Build Images'
+  condition: ${{ ne(variables['Build.Reason'], 'PullRequest') }}
   dependsOn:
   - build
   jobs:
   - template: tools/templates/acrbuild.yml
 - stage: coverage 
   displayName: 'Code Coverage'
-  condition: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+  condition: ${{ ne(variables['Build.Reason'], 'PullRequest') }}
   dependsOn:
   - build
   jobs:

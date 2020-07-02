@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT {
             "PCS_ADLSG2_ACCOUNT_KEY";
         /// <summary> ADLS Gen2 endpoint suffix </summary>
         public const string PCS_ADLSG2_ENDPOINTSUFFIX =
-            "PCS_ADLSG2_CONNSTRING";
+            "PCS_ADLSG2_ENDPOINTSUFFIX";
         /// <summary> CDM storage drive </summary>
         public const string PCS_CDM_DRIVE_NAME =
             "PCS_ADLSG2_CONTAINER_CDM";
@@ -286,5 +286,8 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Resource group </summary>
         public const string PCS_RESOURCE_GROUP =
             "PCS_RESOURCE_GROUP";
+        /// <summary> Log file path environment variable </summary>
+        public const string PCS_LOGS_PATH =
+            "PCS_LOGS_PATH";
     }
 }

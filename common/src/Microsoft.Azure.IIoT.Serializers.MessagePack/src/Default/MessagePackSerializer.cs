@@ -51,7 +51,8 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             IEnumerable<IMessagePackFormatterResolverProvider> providers = null) {
             // Create options
             var resolvers = new List<MessagePackSerializerOptions> {
-                MessagePackVariantFormatterResolver.Instance
+                MessagePackVariantFormatterResolver.Instance,
+                ExceptionFormatterResolver.Instance
             };
             if (providers != null) {
                 foreach (var provider in providers) {
@@ -563,6 +564,72 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
                         return default;
                     }
                     return new MessagePackVariantValue(o, options, false) as T;
+                }
+#endif
+            }
+
+            private readonly ConcurrentDictionary<Type, IMessagePackFormatter> _cache =
+                new ConcurrentDictionary<Type, IMessagePackFormatter>();
+        }
+
+        /// <summary>
+        /// Exception resolver
+        /// </summary>
+        private class ExceptionFormatterResolver : MessagePackSerializerOptions {
+
+            public static readonly ExceptionFormatterResolver Instance =
+                new ExceptionFormatterResolver();
+
+            /// <inheritdoc/>
+            public IMessagePackFormatter<T> GetFormatter<T>() {
+                if (typeof(Exception).IsAssignableFrom(typeof(T))) {
+                    return (IMessagePackFormatter<T>)GetVariantFormatter(typeof(T));
+                }
+                return null;
+            }
+
+            /// <summary>
+            /// Create Message pack variant formater of specifed type
+            /// </summary>
+            /// <param name="type"></param>
+            /// <returns></returns>
+            internal IMessagePackFormatter GetVariantFormatter(Type type) {
+                return _cache.GetOrAdd(type,
+                    (IMessagePackFormatter)Activator.CreateInstance(
+                        typeof(ExceptionFormatter<>).MakeGenericType(type)));
+            }
+
+            /// <summary>
+            /// Variant formatter
+            /// </summary>
+            private sealed class ExceptionFormatter<T> : IMessagePackFormatter<T>
+                where T : Exception, new() {
+
+#if MessagePack2
+                /// <inheritdoc/>
+                public void Serialize(ref MessagePackWriter writer, T value,
+                    MessagePackSerializerOptions options) {
+                }
+#else
+                /// <inheritdoc/>
+                public int Serialize(ref byte[] bytes, int offset, T value,
+                    MessagePackSerializerOptions options) {
+                    return offset;
+                }
+#endif
+
+#if MessagePack2
+                /// <inheritdoc/>
+                public T Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options) {
+                    // Read variant from reader
+                    return new T();
+                }
+#else
+                /// <inheritdoc/>
+                public T Deserialize(byte[] bytes, int offset, MessagePackSerializerOptions options,
+                    out int readSize) {
+                    readSize = 0;
+                    return new T();
                 }
 #endif
             }

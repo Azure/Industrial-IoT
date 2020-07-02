@@ -69,10 +69,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                // skip this node
-                _logger.Error(e, "Cannot get published nodes for endpointId'{endpointId}'", endpointId);
-                var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                pageResult.Error = errorMessage;
+                var message = $"Cannot get published nodes for endpointId'{endpointId}'";
+                _logger.Error(e, message);
+                pageResult.Error = message;
             }
             pageResult.PageSize = _commonHelper.PageLength;
             pageResult.RowCount = pageResult.Results.Count;

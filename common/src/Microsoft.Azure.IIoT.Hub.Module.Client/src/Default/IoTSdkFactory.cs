@@ -105,8 +105,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
             }
             if (!string.IsNullOrEmpty(ehubHost)) {
-                // Running in edge mode - use mqtt over tcp
-                _transport = TransportOption.MqttOverTcp;
+                // Running in edge mode 
+                // the configured transport (if provided) will be forced to it's OverTcp
+                // variant as follows: AmqpOverTcp when Amqp, AmqpOverWebsocket or AmqpOverTcp specified
+                // and MqttOverTcp otherwise. Default is MqttOverTcp
+                if ((config.Transport & TransportOption.Mqtt) != 0) {
+                    // prefer Mqtt over Amqp due to performance reasons
+                    _transport = TransportOption.MqttOverTcp;
+                }
+                else {
+                    _transport = TransportOption.AmqpOverTcp;
+                }
                 _logger.Information("Connecting all clients to {edgeHub} using {transport}.",
                     ehubHost, _transport);
             }
@@ -398,14 +407,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             private readonly ModuleClient _client;
             private int _reconnectCounter;
-            private static readonly Gauge kReconnectionStatus = Metrics.CreateGauge("iiot_edge_reconnected", "reconnected count",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "module", "device", "timestamp_utc" }
-                });
-            private static readonly Gauge kDisconnectionStatus = Metrics.CreateGauge("iiot_edge_disconnected", "reconnected count",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "module", "device", "timestamp_utc" }
-                });
+            private static readonly Gauge kReconnectionStatus = Metrics
+                .CreateGauge("iiot_edge_reconnected", "reconnected count",
+                    new GaugeConfiguration {
+                        LabelNames = new[] { "module", "device", "timestamp_utc"}
+                    });
+            private static readonly Gauge kDisconnectionStatus = Metrics
+                .CreateGauge("iiot_edge_disconnected", "reconnected count",
+                    new GaugeConfiguration {
+                        LabelNames = new[] { "module", "device", "timestamp_utc"}
+                    });
         }
 
         /// <summary>
@@ -598,14 +609,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             private readonly DeviceClient _client;
             private int _reconnectCounter;
-            private static readonly Gauge kReconnectionStatus = Metrics.CreateGauge("iiot_edge_device_reconnected", "reconnected count",
+            private static readonly Gauge kReconnectionStatus = Metrics
+                .CreateGauge("iiot_edge_device_reconnected", "reconnected count",
                     new GaugeConfiguration {
                         LabelNames = new[] { "device", "timestamp_utc" }
                     });
-            private static readonly Gauge kDisconnectionStatus = Metrics.CreateGauge("iiot_edge_device_disconnected", "disconnected count",
-                new GaugeConfiguration {
-                    LabelNames = new[] { "device", "timestamp_utc" }
-                });
+            private static readonly Gauge kDisconnectionStatus = Metrics
+                .CreateGauge("iiot_edge_device_disconnected", "disconnected count",
+                    new GaugeConfiguration {
+                        LabelNames = new[] { "device", "timestamp_utc" }
+                    });
         }
 
         /// <summary>

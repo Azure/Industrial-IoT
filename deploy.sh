@@ -66,5 +66,11 @@ fi
 
 # Call powershell script
 curdir="$( cd "$(dirname "$0")" ; pwd -P )"
-pwsh -File $curdir/deploy/scripts/deploy.ps1 "$@" -version preview
-
+version=' -version'
+if [[ "$@" == *"$version"* ]]; then
+  echo "Using provided version..."
+  pwsh -File $curdir/deploy/scripts/deploy.ps1 "$@"
+else
+  echo "Using preview version..."
+  pwsh -File $curdir/deploy/scripts/deploy.ps1 "$@" -version preview
+fi

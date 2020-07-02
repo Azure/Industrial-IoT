@@ -245,7 +245,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications",
                 Resource.Platform);
             _serializer.SerializeToRequest(request, content);
-            request.Options.Timeout = 60000;
+            if (request.Options.Timeout == null) {
+                request.Options.Timeout = TimeSpan.FromMinutes(3);
+            }
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -258,7 +260,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/discover",
                 Resource.Platform);
             _serializer.SerializeToRequest(request, content);
-            request.Options.Timeout = 60000;
+            if (request.Options.Timeout == null) {
+                request.Options.Timeout = TimeSpan.FromMinutes(3);
+            }
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }

@@ -261,7 +261,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         }
 
         /// <summary>
-        /// Find publishers
+        /// Find gateways
         /// </summary>
         /// <param name="service"></param>
         /// <param name="query"></param>
