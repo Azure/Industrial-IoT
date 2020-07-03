@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Processor.Events {
+namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
     using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>

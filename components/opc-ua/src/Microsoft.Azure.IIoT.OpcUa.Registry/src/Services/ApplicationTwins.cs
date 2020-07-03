@@ -206,7 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<ApplicationInfoModel> AddAsync(
             ApplicationInfoModel application, bool? disabled, CancellationToken ct) {
             var registration = application.ToApplicationRegistration(disabled);
-            var twin = await _iothub.CreateAsync(registration.ToDeviceTwin(_serializer), false, ct);
+            var twin = await _iothub.CreateOrUpdateAsync(registration.ToDeviceTwin(_serializer), false, ct);
             var result = twin.ToApplicationRegistration().ToServiceModel();
             return result;
         }

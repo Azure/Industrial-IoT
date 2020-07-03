@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
             GetBoolOrDefault(kEnableMetricsKey, () => true);
         /// <summary>Transports to use</summary>
         public TransportOption Transport => (TransportOption)Enum.Parse(typeof(TransportOption),
-            GetStringOrDefault(kTransportKey, () => nameof(TransportOption.Any)), true);
+            GetStringOrDefault(kTransportKey, () => nameof(TransportOption.MqttOverTcp)), true);
 
         /// <summary>
         /// Create configuration

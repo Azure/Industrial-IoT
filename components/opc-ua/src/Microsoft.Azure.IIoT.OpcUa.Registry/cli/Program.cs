@@ -215,7 +215,7 @@ Operations (Mutually exclusive):
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
                 config, new NewtonSoftJsonSerializer(), logger);
 
-            await registry.CreateAsync(new DeviceTwinModel {
+            await registry.CreateOrUpdateAsync(new DeviceTwinModel {
                 Id = deviceId,
                 ModuleId = moduleId
             }, true, CancellationToken.None);
@@ -254,7 +254,7 @@ Operations (Mutually exclusive):
                         item.Properties.Desired.Add(property, null);
                     }
                 }
-                await registry.CreateAsync(item, true, CancellationToken.None);
+                await registry.CreateOrUpdateAsync(item, true, CancellationToken.None);
             }
         }
 

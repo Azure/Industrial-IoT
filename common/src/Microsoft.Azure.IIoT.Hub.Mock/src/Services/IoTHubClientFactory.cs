@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
     using System;
@@ -12,7 +13,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk

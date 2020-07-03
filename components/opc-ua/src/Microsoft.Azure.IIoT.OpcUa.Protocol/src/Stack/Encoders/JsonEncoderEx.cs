@@ -1,14 +1,7 @@
-/* Copyright (c) 1996-2016, OPC Foundation. All rights reserved.
-   The source code in this file is covered under a dual-license scenario:
-     - RCL: for OPC Foundation members in good-standing
-     - GPL V2: everybody else
-   RCL license terms accompanied with this source code. See http://opcfoundation.org/License/RCL/1.00/
-   GNU General Public License as published by the Free Software Foundation;
-   version 2 of the License are accompanied with this source code. See http://opcfoundation.org/License/GPLv2
-   This source code is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*/
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
     using Opc.Ua.Extensions;
@@ -602,7 +595,7 @@ namespace Opc.Ua.Encoders {
                 var type = vararray[0].TypeInfo?.BuiltInType;
                 var rank = vararray[0].TypeInfo?.ValueRank;
 
-                // TODO fails when different ranks are in use in array 
+                // TODO fails when different ranks are in use in array
                 if (vararray.All(v =>
                     v.TypeInfo?.BuiltInType == type)) {
                     // Demote and encode as simple array
@@ -1235,7 +1228,7 @@ namespace Opc.Ua.Encoders {
                 }
             }
 
-            // oops - should never happen.
+            // Should never happen.
             throw new ServiceResultException(StatusCodes.BadEncodingError,
                 $"Bad variant: Type '{value.GetType().FullName}' is not allowed in Variant.");
         }
@@ -1250,14 +1243,24 @@ namespace Opc.Ua.Encoders {
             if (value == null) {
                 return default;
             }
-            try {
-                if (value is object[] o) {
-                    return o.Cast<T>().ToArray();
-                }
-                if (value is T[] t) {
-                    return t;
-                }
+            if (value is T[] t) {
+                return t;
+            }
+            if (!(value is Array arr)) {
                 return ToTypedScalar<T>(value).YieldReturn().ToArray();
+            }
+            if (arr.Length == 0) {
+                return new List<T>();
+            }
+            if (arr.Length == 1) {
+                value = arr.GetValue(0);
+                if (value.GetType().IsArray) {
+                    // Recursively unpack an array in array if needed
+                    return ToTypedArray<T>(value);
+                }
+            }
+            try {
+                return arr.Cast<T>().ToArray();
             }
             catch (Exception ex) {
                 throw new ServiceResultException(StatusCodes.BadEncodingError,

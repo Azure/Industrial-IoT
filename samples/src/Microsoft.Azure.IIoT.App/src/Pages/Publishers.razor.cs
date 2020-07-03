@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Data;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+    using Microsoft.Azure.IIoT.App.Models;
 
     public partial class Publishers {
         [Parameter]
@@ -22,6 +23,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private IAsyncDisposable _publisherEvent;
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
+
+        public bool IsOpen { get; set; } = false;
+        public PublisherInfo Publisher { get; set; }
 
         /// <summary>
         /// Notify page change
@@ -75,6 +79,27 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             if (_publisherEvent != null) {
                 await _publisherEvent.DisposeAsync();
             }
+        }
+
+        private bool IsTimeIntervalSet(TimeSpan? interval) {
+            return interval != null && interval.Value != TimeSpan.MinValue;
+        }
+
+        /// <summary>
+        /// Open then Drawer
+        /// </summary>
+        /// <param name="OpenDrawer"></param>
+        private void OpenDrawer(PublisherApiModel publisherModel) {
+            IsOpen = true;
+            Publisher = new PublisherInfo { PublisherModel = publisherModel };
+        }
+
+        /// <summary>
+        /// Close the Drawer
+        /// </summary>
+        private void CloseDrawer() {
+            IsOpen = false;
+            StateHasChanged();
         }
     }
 }

@@ -151,8 +151,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             if (model?.SiteId != null) {
                 // If site id provided, include it in search
-                query += $"AND (tags.{TwinProperty.SiteId} = '{model.SiteId}' OR deviceId = " +
-                    $"'{model.SiteId})') ";
+                query +=
+$"AND (tags.{TwinProperty.SiteId} = '{model.SiteId}' OR deviceId = '{model.SiteId}') ";
             }
             if (model?.Connected != null) {
                 // If flag provided, include it in search

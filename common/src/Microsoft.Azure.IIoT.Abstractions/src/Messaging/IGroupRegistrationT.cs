@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Messaging {
+
     /// <summary>
     /// Typed registration
     /// </summary>

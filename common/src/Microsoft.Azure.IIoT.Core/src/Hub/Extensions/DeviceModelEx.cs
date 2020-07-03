@@ -4,11 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
+    using System;
 
     /// <summary>
     /// Device model extensions
     /// </summary>
     public static class DeviceModelEx {
+
+        /// <summary>
+        /// Check whether device is connected
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static bool? IsConnected(this DeviceModel model) {
+            return model.ConnectionState?.EqualsIgnoreCase("Connected");
+        }
 
         /// <summary>
         /// Clone twin
@@ -23,6 +33,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 Etag = model.Etag,
                 Id = model.Id,
                 ModuleId = model.ModuleId,
+                ConnectionState = model.ConnectionState,
                 Authentication = model.Authentication.Clone()
             };
         }
