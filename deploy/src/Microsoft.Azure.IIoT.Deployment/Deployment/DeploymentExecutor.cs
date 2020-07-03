@@ -1201,6 +1201,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
+            // We will wait a bit before initating resource deployment to AKS. This is so that components
+            // deployed from jumpbox have enough time to get to a functional state. We have seen issues
+            // with creation of ClusterIssuer resource if cert-manager webhooks are not yet operational.
+            const int millisecondsDelay = 30*1000;
+            await Task.Delay(millisecondsDelay);
+
             await DeployResourcesToAksAsync(
                 aksKubeConfig,
                 iiotEnvironment,
