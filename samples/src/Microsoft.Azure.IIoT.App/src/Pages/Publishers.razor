@@ -6,12 +6,13 @@
 @page "/publishers/{page}"
 
 @using Microsoft.AspNetCore.Components;
-@using Microsoft.Azure.IIoT.App.Services
-@using Microsoft.Azure.IIoT.App.Components.Drawer
-@using Microsoft.Azure.IIoT.App.Components.Pager
-@using Microsoft.Azure.IIoT.App.Components.ErrorMessage
+@using Microsoft.Azure.IIoT.App.Services;
+@using Microsoft.Azure.IIoT.App.Components.Drawer;
+@using Microsoft.Azure.IIoT.App.Components.Pager;
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-@using Microsoft.Azure.IIoT.App.Common
+@using Microsoft.Azure.IIoT.App.Common;
+@using Microsoft.Azure.IIoT.App.Components.Icons;
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
@@ -62,13 +63,13 @@
                             @HeartbeatInterval
                         </a>
                         <br />
-                        JobCheckInterval: 
+                        JobCheckInterval:
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(publisher))">
                             @JobCheckInterval
                         </a>
                         <br />
                         JobOrchestratorUrl: @JobOrchestratorUrl<br />
-                        MaxWorkers: 
+                        MaxWorkers:
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(publisher))">
                             @MaxWorkers
                         </a>
@@ -96,25 +97,7 @@
                           ? "Connected"
                           : "Disconnected";}
                 <td class="hover-text width-small">
-                    <div>
-                        @{
-                            string alt = connectStatus;
-
-                            switch (connectStatus)
-                            {
-                                case "Connected":
-                                    <i class="material-icons" title="@alt" aria-label="@alt">link</i>
-                                    break;
-                                case "Disconnected":
-                                case "(None)":
-                                    <i class="material-icons" title="@alt" aria-label="@alt">link_off</i>
-                                    break;
-                                default:
-                                    <i class="material-icons" title="@alt" aria-label="@alt">help</i>
-                                    break;
-                            }
-                        }
-                    </div>
+                    <ConnectStatus Status="@connectStatus"/>
                 </td>
                 <td class="hover-text width-small">
                     <div>

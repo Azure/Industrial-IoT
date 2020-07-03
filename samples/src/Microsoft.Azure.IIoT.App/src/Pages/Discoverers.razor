@@ -7,15 +7,16 @@
 @page "/discoverers"
 @page "/discoverers/{page}"
 
-@using Microsoft.Azure.IIoT.App.Models
-@using Microsoft.Azure.IIoT.App.Services
-@using Microsoft.Azure.IIoT.App.Components.Pager
-@using Microsoft.Azure.IIoT.App.Components.Drawer
-@using Microsoft.Azure.IIoT.App.Components.ErrorMessage
-@using Microsoft.AspNetCore.Components
-@using Microsoft.Azure.IIoT.OpcUa.Api.Registry
-@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
-@using Microsoft.Azure.IIoT.App.Common
+@using Microsoft.Azure.IIoT.App.Models;
+@using Microsoft.Azure.IIoT.App.Services;
+@using Microsoft.Azure.IIoT.App.Components.Pager;
+@using Microsoft.Azure.IIoT.App.Components.Drawer;
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage;
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+@using Microsoft.Azure.IIoT.App.Common;
+@using Microsoft.Azure.IIoT.App.Components.Icons;
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
@@ -34,11 +35,14 @@
                                               }))">
         Run ad-hoc discovery
     </a>
-    @if (DiscovererData != null) {
-        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery) {
+    @if (DiscovererData != null)
+    {
+        if (DiscovererData.IsSearching && DiscovererData.isAdHocDiscovery)
+        {
             <div class="spinnermargin loader"></div>
         }
-        else {
+        else
+        {
             <div class="spinnermargin"></div>
         }
     }
@@ -55,9 +59,11 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var discoverer in _pagedDiscovererList.Results) {
+        @foreach (var discoverer in _pagedDiscovererList.Results)
+        {
             <tr>
-                @if (discoverer.HasApplication == true) {
+                @if (discoverer.HasApplication == true)
+                {
                     <td class="hover-text width-large">
                         <div>
                             <a href='endpoints/1/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll/@RegistryHelper.PathAll'>
@@ -66,42 +72,27 @@
                         </div>
                     </td>
                 }
-                else {
+                else
+                {
                     <td class="hover-text">@discoverer.DiscovererModel.Id</td>
                 }
                 @{string connectStatus = discoverer.DiscovererModel.Connected == true
-                    ? "Connected"
-                    : "Disconnected";}
+                      ? "Connected"
+                      : "Disconnected";}
                 <td class="hover-text width-medium">
-                    <div>
-                        @{
-                            string alt = connectStatus;
-
-                            switch (connectStatus)
-                            {
-                                case "Connected":
-                                    <i class="material-icons" title="@alt" aria-label="@alt">link</i>
-                                    break;
-                                case "Disconnected":
-                                case "(None)":
-                                    <i class="material-icons" title="@alt" aria-label="@alt">link_off</i>
-                                    break;
-                                default:
-                                    <i class="material-icons" title="@alt" aria-label="@alt">help</i>
-                                    break;
-                            }
-                        }
-                    </div>
+                    <ConnectStatus Status="@connectStatus" />
                 </td>
                 <td class="width-medium">
                     @{bool isDisconnected = discoverer.DiscovererModel.Connected != true;}
                     @{bool isEnabled = discoverer.ScanStatus == true;}
                     @{string scanStatus = isEnabled ? "Turn off" : "Turn on";}
                     <button class="btn btn-primary" disabled=@isDisconnected @onclick="(() => SetScanAsync(discoverer, !isEnabled))">@scanStatus</button>
-                    @if (discoverer.IsSearching) {
+                    @if (discoverer.IsSearching)
+                    {
                         <div class=" pos-right loader"></div>
                     }
-                    else {
+                    else
+                    {
                         <div class=" pos-right"></div>
                     }
                 </td>
@@ -129,13 +120,16 @@
                             @(discoverer.EffectiveIdleTimeBetweenScans ?? "Default")<br />
                         </a>
                         Discovery Urls:
-                        @if (discoverer.EffectiveDiscoveryUrls.Count == 0) {
+                        @if (discoverer.EffectiveDiscoveryUrls.Count == 0)
+                        {
                             <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                                 (None)
                             </a>
                         }
-                        else {
-                            @foreach (var url in discoverer.EffectiveDiscoveryUrls) {
+                        else
+                        {
+                            @foreach (var url in discoverer.EffectiveDiscoveryUrls)
+                            {
                                 <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                                     @url<br />
                                 </a>
