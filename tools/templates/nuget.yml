@@ -13,7 +13,7 @@ jobs:
     displayName: 'Install .NET Core SDK for signing'
     inputs:
       packageType: sdk
-      version: 2.0.x
+      version: 2.1.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: UseDotNet@2
