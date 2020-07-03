@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     Location = resourceGroup.RegionName,
                     Tags = tags,
 
-                    Sku = new Sku {
+                    Sku = new WorkspaceSku {
                         Name = "PerGB2018"
                     }
                 };
