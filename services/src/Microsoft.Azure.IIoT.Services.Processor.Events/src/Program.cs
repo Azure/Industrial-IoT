@@ -128,6 +128,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             builder.RegisterType<EventProcessorFactory>()
                 .AsImplementedInterfaces();
 
+            // Prometheus metric server
+            builder.RegisterType<MetricServerHost>()
+                .AsImplementedInterfaces().SingleInstance()
+                .WithParameter("port", 9500);
+
             // Handle iot hub telemetry events...
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces();

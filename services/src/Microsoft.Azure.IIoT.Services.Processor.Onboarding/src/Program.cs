@@ -134,6 +134,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
             builder.RegisterType<EventProcessorFactory>()
                 .AsImplementedInterfaces();
 
+            // Prometheus metric server
+            builder.RegisterType<MetricServerHost>()
+                .AsImplementedInterfaces().SingleInstance()
+                .WithParameter("port", 9501);
+
             // Handle device events
             builder.RegisterType<IoTHubDeviceEventHandler>()
                 .AsImplementedInterfaces();

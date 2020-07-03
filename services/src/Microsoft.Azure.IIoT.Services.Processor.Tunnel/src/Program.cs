@@ -121,6 +121,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel {
             builder.RegisterType<EventProcessorFactory>()
                 .AsImplementedInterfaces();
 
+            // Prometheus metric server
+            builder.RegisterType<MetricServerHost>()
+                .AsImplementedInterfaces().SingleInstance()
+                .WithParameter("port", 9504);
+
             // Handle tunnel server events
             builder.RegisterType<IoTHubDeviceEventHandler>()
                 .AsImplementedInterfaces();

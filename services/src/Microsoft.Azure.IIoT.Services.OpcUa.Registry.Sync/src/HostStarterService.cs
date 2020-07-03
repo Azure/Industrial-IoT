@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
     using System.Threading;
     using System.Threading.Tasks;
     using Serilog;
-    using Prometheus;
 
     /// <summary>
     /// Generic host service which manages IHostProcess objects.
@@ -46,8 +45,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
         /// </summary>
         private readonly List<IHostProcess> _hostProcesses;
         private readonly ILogger _logger;
-        private readonly IMetricServer _metricServer;
-        private const int kSyncPrometheusPort = 9505;
 
         /// <summary>
         /// Constructor for generic host service which manages IHostProcess objects.
@@ -72,7 +69,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
             ServiceInfo = serviceInfo ?? throw new ArgumentNullException(nameof(serviceInfo));
             _hostProcesses = hostProcesses?.ToList() ?? throw new ArgumentNullException(nameof(hostProcesses));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _metricServer = new KestrelMetricServer(port: kSyncPrometheusPort);
         }
 
         /// <inheritdoc/>
@@ -85,8 +81,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
                 // Print some useful information at bootstrap time
                 _logger.Information("{service} service started with id {id}",
                     ServiceInfo.Name, ServiceInfo.Id);
-                _metricServer.Start();
-                _logger.Information("Started prometheus at {0}/metrics", kSyncPrometheusPort);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to start some hosts.");
@@ -100,8 +94,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
                 _logger.Debug("Stopping all hosts...");
                 await Task.WhenAll(_hostProcesses.Select(h => h.StopAsync()));
                 _logger.Information("All hosts stopped.");
-                await _metricServer.StopAsync();
-                _logger.Information("Metric server stopped.");
             }
             catch (Exception ex) {
                 _logger.Warning(ex, "Failed to stop all hosts.");

@@ -156,13 +156,13 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// <returns></returns>
             private async Task CheckpointAsync(PartitionContext context, EventData eventData) {
                 try {
-                    _logger.Debug("Checkpointing EventProcessor {id} for partition {partition} with event with " +
+                    _logger.Debug("Checkpointing EventProcessor {id} for partition {partitionId} with event with " +
                         "{sequenceNumber} SequenceNumber and {offset} Offset ...", _processorId, context.PartitionId,
                         eventData.SystemProperties.SequenceNumber, eventData.SystemProperties.Offset);
                     await context.CheckpointAsync(eventData).ConfigureAwait(false);
                 }
                 catch (Exception ex) {
-                    _logger.Warning(ex, "Failed to checkpoint EventProcessor {id} for partition {partition} with " +
+                    _logger.Warning(ex, "Failed to checkpoint EventProcessor {id} for partition {partitionId} with " +
                         "event with {sequenceNumber} SequenceNumber and {offset} Offset", _processorId,
                         context.PartitionId, eventData.SystemProperties.SequenceNumber, eventData.SystemProperties.Offset);
                     kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "checkpoint_failed").Inc();
@@ -309,7 +309,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             private static readonly Gauge kEventProcessorDetails = Metrics
                 .CreateGauge("iiot_event_processor_info", "details about event processor",
                     new GaugeConfiguration {
-                        LabelNames = new[] { "id", "partition", "status" }
+                        LabelNames = new[] { "id", "partition_id", "status" }
                     });
         }
 

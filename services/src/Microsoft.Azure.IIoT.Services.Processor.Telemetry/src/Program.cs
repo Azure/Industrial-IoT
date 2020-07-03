@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
     using Microsoft.Extensions.DependencyInjection;
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Azure.IIoT.Messaging.Default;
 
     /// <summary>
     /// IoT Hub device telemetry event processor host.  Processes all
@@ -113,6 +114,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
                 .AsImplementedInterfaces();
+
+            // Prometheus metric server
+            builder.RegisterType<MetricServerHost>()
+                .AsImplementedInterfaces().SingleInstance()
+                .WithParameter("port", 9502);
 
             // Handle telemetry events
             builder.RegisterType<IoTHubDeviceEventHandler>()

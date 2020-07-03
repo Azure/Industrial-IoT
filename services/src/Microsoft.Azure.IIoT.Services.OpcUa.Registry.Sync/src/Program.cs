@@ -139,6 +139,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
             builder.RegisterType<ServiceBusEventBus>()
                 .AsImplementedInterfaces().SingleInstance();
 
+            // Prometheus metric server
+            builder.RegisterType<MetricServerHost>()
+                .AsImplementedInterfaces().SingleInstance()
+                .WithParameter("port", 9505);
+
             // Register task processor
             builder.RegisterType<TaskProcessor>()
                 .AsImplementedInterfaces().SingleInstance();
