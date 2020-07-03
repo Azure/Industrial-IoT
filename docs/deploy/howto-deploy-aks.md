@@ -568,6 +568,7 @@ The following Azure regions are supported by `Microsoft.Azure.IIoT.Deployment` f
 ### AKS
 
 All cloud microservices of Industrial IoT solution are deployed to an AKS Kubernetes cluster.
+`Microsoft.Azure.IIoT.Deployment` deploys `1.16.9` version of Kubernetes.
 
 #### Resource Definitions
 
@@ -586,6 +587,7 @@ directory.
 To see state of microservices you can check Kubernetes dashboard.
 
 You can follow this tutorial to do that: [Access the Kubernetes web dashboard in Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/kubernetes-dashboard).
+Please follow the steps for `1.16.9` version.
 
 Alternatively, you can run the following commands:
 
@@ -598,33 +600,30 @@ Alternatively, you can run the following commands:
 
     More details about the command and its optional parameters can be found [here](https://docs.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-install-cli).
 
-2. Get access credentials for a managed Kubernetes cluster. You would need the name of the resource group
-    containing AKS resource and the name of the AKS resource:
+2. Get admin access credentials for a managed Kubernetes cluster. You would need the name of the resource
+    group containing AKS resource and the name of the AKS resource:
 
     ```bash
-    az aks get-credentials --resource-group myResourceGroup --name myAKSCluster
+    az aks get-credentials --admin --resource-group myResourceGroup --name myAKSCluster
     ```
 
     More details about the command and its optional parameters can be found [here](https://docs.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-get-credentials).
 
-3. Create `ClusterRoleBinding` that will bind `ServiceAccount` of Kubernetes dashboard to `cluster-admin`
-    role. By default, the Kubernetes dashboard is deployed with minimal read access and displays RBAC access
-    errors.
+3. Open a proxy to Kubernetes API Server:
 
     ```bash
-    kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+    kubectl proxy
     ```
 
-4. Open the dashboard for a Kubernetes cluster in a web browser. You would need the name of the resource
-    group containing AKS resource and the name of the AKS resource:
+    More details about the command and its optional parameters can be found [here](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#proxy).
 
-    ```bash
-    az aks browse --resource-group myResourceGroup --name myAKSCluster
-    ```
+4. Open the following URL in your browser: `http://127.0.0.1:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy`
 
-    More details about the command and its optional parameters can be found [here](https://docs.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-browse).
+5. Sign in to Kubernetes dashboard using kubeconfig:
 
-    This will open a Kubernetes dashboard in a web browser.
+   * Select `Kubeconfig` and click `Choose kubeconfig file` to open file selector.
+   * Select your `kubeconfig` file (defaults to `$HOME/.kube/config`).
+   * Click `Sign In`.
 
 #### APIs of Microservices
 
