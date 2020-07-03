@@ -159,14 +159,10 @@ Security Level: @EndpointModel.Registration.SecurityLevel
                 <td class="width-medium-large">
                     <div class="value-scroll">
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Action))">
-                            @{string outputValue = $"{node.Value}";}
-                            @{string outputType = $"({node.DataType})";}
-                            @{string outputStatus = $"({node.Status} -";}
-                            @{string outputTimestamp = $" {node.Timestamp})";}
-                            <span>@outputValue</span>
-                            <span>@outputType</span>
-                            <span>@outputStatus</span>
-                            <span>@outputTimestamp</span>
+                            <span>@node.Value</span>
+                            <span>(@node.DataType)</span>
+                            <span>(@node.Status -</span>
+                            <span> @node.Timestamp)</span>
                         </a>
                     </div>
                 </td>
