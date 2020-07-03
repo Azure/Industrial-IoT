@@ -10,7 +10,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Controllers {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-
+    using Microsoft.Azure.IIoT.Hub;
+   
     /// <summary>
     /// Discovery settings controller
     /// </summary>
@@ -102,8 +103,9 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Controllers {
         /// <summary>
         /// Discovery Urls to scan
         /// </summary>
-        public List<string> DiscoveryUrls {
-            set => _config.DiscoveryUrls = value;
+        public Dictionary<string, string> DiscoveryUrls {
+            set => _discoveryUrls = value;
+            get => _discoveryUrls;
         }
 
         /// <summary>
@@ -123,12 +125,15 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Controllers {
         /// </summary>
         /// <returns></returns>
         public async Task ApplyAsync() {
+            _config.DiscoveryUrls = _discoveryUrls?.DecodeAsList();
+
             await _discovery.ConfigureAsync(_mode, _config.Clone());
             await _discovery.ScanAsync();
         }
 
         private readonly IScannerServices _discovery;
         private readonly DiscoveryConfigModel _config;
+        private Dictionary<string, string> _discoveryUrls;
         private DiscoveryMode _mode;
     }
 }

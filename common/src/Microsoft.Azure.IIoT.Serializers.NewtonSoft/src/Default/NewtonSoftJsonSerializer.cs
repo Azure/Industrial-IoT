@@ -231,17 +231,8 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             /// <inheritdoc/>
             public override object ConvertTo(Type type) {
                 try {
-                        if (type != typeof(List<string>)) {
-                            return Token.ToObject(type,
-                                JsonSerializer.CreateDefault(_serializer.Settings));
-                        }
-                        else {
-                            var output = new List<string>();
-                            foreach(var item in Token) {
-                                output.Add(item.First.ToString());
-                        }
-                        return output;
-                    }
+                    return Token.ToObject(type,
+                        JsonSerializer.CreateDefault(_serializer.Settings));                   
                 }
                 catch (JsonReaderException ex) {
                     throw new SerializerException(ex.Message, ex);
