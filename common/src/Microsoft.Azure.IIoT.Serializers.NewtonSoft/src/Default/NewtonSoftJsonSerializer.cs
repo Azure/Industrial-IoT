@@ -232,7 +232,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             public override object ConvertTo(Type type) {
                 try {
                     return Token.ToObject(type,
-                        JsonSerializer.CreateDefault(_serializer.Settings));                   
+                        JsonSerializer.CreateDefault(_serializer.Settings));
                 }
                 catch (JsonReaderException ex) {
                     throw new SerializerException(ex.Message, ex);
