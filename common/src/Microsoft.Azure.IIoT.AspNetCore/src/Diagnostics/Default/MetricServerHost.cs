@@ -1,10 +1,9 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Messaging.Default {
-
+namespace Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default {
     using Serilog;
     using System;
     using System.Threading.Tasks;
@@ -18,18 +17,18 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
         /// <summary>
         /// Auto registers metric server
         /// </summary>
-        /// <param name="port"></param>
+        /// <param name="config"></param>
         /// <param name="logger"></param>
-        public MetricServerHost(int? port, ILogger logger) {
-            _port = port ?? throw new ArgumentNullException(nameof(port));
+        public MetricServerHost(IMetricServerConfig config, ILogger logger) {
+            _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _metricServer = new KestrelMetricServer(_port);
+            _metricServer = new KestrelMetricServer(_config.Port);
         }
 
         /// <inheritdoc/>
         public Task StartAsync() {
             _metricServer.Start();
-            _logger.Information("Started prometheus at {0}/metrics", _port);
+            _logger.Information("Started prometheus at {0}/metrics", _config.Port);
             return Task.CompletedTask;
         }
 
@@ -40,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
         }
 
         private readonly IMetricServer _metricServer;
-        private readonly int _port;
+        private readonly IMetricServerConfig _config;
         private readonly ILogger _logger;
     }
 }

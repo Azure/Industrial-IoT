@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
     using System.Collections;
     using System.Diagnostics;
     using Autofac;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Prometheus;
 
     /// <summary>

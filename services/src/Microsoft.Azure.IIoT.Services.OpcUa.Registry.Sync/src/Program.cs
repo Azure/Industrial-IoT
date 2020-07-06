@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
+    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.IoTHub;
     using Microsoft.Azure.IIoT.Crypto.Default;
@@ -141,8 +142,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
 
             // Prometheus metric server
             builder.RegisterType<MetricServerHost>()
-                .AsImplementedInterfaces().SingleInstance()
-                .WithParameter("port", 9505);
+                .AsImplementedInterfaces().SingleInstance();
 
             // Register task processor
             builder.RegisterType<TaskProcessor>()
