@@ -82,8 +82,7 @@
             <th class="width-small">Status</th>
             <th class="width-xsmall">
                 @if (PagedNodeList.Results.Count > 0) {
-                    if (PagedNodeList.Results[0].ParentName != "Root")
-                    {
+                    if (PagedNodeList.Results[0].ParentName != "Root") {
                         <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(PagedNodeList.Results[0].NextParentId, PagedNodeList.Results[0].ParentIdList, PagedNodeList.Results[0].ParentIdList.Count - 1))">
                             <span class="oi oi-arrow-left"></span>
                         </a>
@@ -138,8 +137,8 @@
                         </div>
                     </td>
                 }
-                @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
-                  ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite))) {
+                @if (node.NodeClass == NodeClass.Variable && node.AccessLevel.HasFlag(NodeAccessLevel.CurrentRead) ||
+                  node.AccessLevel.HasFlag(NodeAccessLevel.CurrentWrite)) {
                     <td class="width-medium-large">
                         <div class="value-scroll">
                             <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Action))">
