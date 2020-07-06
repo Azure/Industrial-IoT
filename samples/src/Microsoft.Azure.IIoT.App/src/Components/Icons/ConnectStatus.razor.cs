@@ -6,8 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Components.Icons {
     using Microsoft.AspNetCore.Components;
 
-    public partial class ConnectStatus
-    {
+    public partial class ConnectStatus {
         [Parameter]
         public string Status { get; set; }
     }
