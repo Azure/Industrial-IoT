@@ -67,6 +67,13 @@ namespace Microsoft.Azure.IIoT.App.Models
         }
 
         /// <summary>
+        /// Clear url list
+        /// </summary>
+        public void ClearDiscoveryUrlList(List<string> list) {
+            list?.Clear();
+        }
+
+        /// <summary>
         /// List of locales to filter with during discovery
         /// </summary>
         public List<string> RequestedLocales { get; set; }

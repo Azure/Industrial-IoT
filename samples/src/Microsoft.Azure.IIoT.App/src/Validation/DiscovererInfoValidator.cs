@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Validation {
     using System;
     using FluentValidation;
+    using System.Collections.Generic;
     using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.Net.Models;
 
@@ -40,6 +41,10 @@ namespace Microsoft.Azure.IIoT.App.Validation {
             RuleFor(p => p.RequestedIdleTimeBetweenScans)
                 .Must(BeAValidTimeFormat)
                 .WithMessage("Invalid input value for idle time between scans.");
+
+            RuleFor(p => p.RequestedDiscoveryUrls)
+                .Must(BeAValidDiscoveryUrl)
+                .WithMessage("Invalid input value for discovery url. Clear and insert a new value");
         }
        
         private bool BeValidAddressRanges(string value) {
@@ -85,6 +90,14 @@ namespace Microsoft.Azure.IIoT.App.Validation {
             }
 
             return false;
+        }
+
+        private bool BeAValidDiscoveryUrl(List<string> value) {
+            if (value != null) {
+                return !(value.Contains(null) || value.Contains(string.Empty));
+            }
+
+            return true;    
         }
     }
 }
