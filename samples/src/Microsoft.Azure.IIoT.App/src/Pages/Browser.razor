@@ -1,13 +1,14 @@
 @*------------------------------------------------------------
-  Copyright (c) Microsoft Corporation.  All rights reserved.
-  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
- ------------------------------------------------------------*@
+     Copyright (c) Microsoft Corporation.  All rights reserved.
+     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+    ------------------------------------------------------------*@
 
 @page "/browser/{page}/{applicationId}/{endpointId}"
 @page "/browser/{page}/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
 
 @using Microsoft.Azure.IIoT.App.Services;
 @using Microsoft.Azure.IIoT.App.Components.Pager;
+@using Microsoft.Azure.IIoT.App.Components.Drawer;
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage;
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
@@ -33,14 +34,14 @@
 
 @if (EndpointModel != null)
 {
-<div class="subtitle">
-Url: @EndpointModel.Registration.EndpointUrl
-Discoverer: @EndpointModel.Registration.DiscovererId
-Site: @EndpointModel.Registration.SiteId
-Security Mode: @EndpointModel.Registration.Endpoint.SecurityMode
-Security Policy: @CommonHelper.ExtractSecurityPolicy(EndpointModel.Registration.Endpoint.SecurityPolicy)
-Security Level: @EndpointModel.Registration.SecurityLevel
-</div>
+    <div class="subtitle">
+        Url: @EndpointModel.Registration.EndpointUrl
+        Discoverer: @EndpointModel.Registration.DiscovererId
+        Site: @EndpointModel.Registration.SiteId
+        Security Mode: @EndpointModel.Registration.Endpoint.SecurityMode
+        Security Policy: @CommonHelper.ExtractSecurityPolicy(EndpointModel.Registration.Endpoint.SecurityPolicy)
+        Security Level: @EndpointModel.Registration.SecurityLevel
+    </div>
 }
 
 <div>
@@ -113,117 +114,117 @@ Security Level: @EndpointModel.Registration.SecurityLevel
     <tbody>
         @foreach (var node in PagedNodeList.Results)
         {
-        <tr>
-            <td class="hover-text width-medium">
-                <div>
-                    @node.NodeName
-                </div>
-            </td>
-            <td class="hover-text width-medium-large">
-                <div>
-                    @node.Id
-                </div>
-            </td>
-            @if (node.Children && (node.NodeClass != NodeClass.Method))
-            {
-                <td class="hover-text width-small">
+            <tr>
+                <td class="hover-text width-medium">
                     <div>
-                        <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
+                        @node.NodeName
+                    </div>
+                </td>
+                <td class="hover-text width-medium-large">
+                    <div>
+                        @node.Id
+                    </div>
+                </td>
+                @if (node.Children && (node.NodeClass != NodeClass.Method))
+                {
+                    <td class="hover-text width-small">
+                        <div>
+                            <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
+                                @node.NodeClass
+                            </a>
+                        </div>
+                    </td>
+                }
+                else if (node.NodeClass == NodeClass.Method)
+                {
+                    <td class="hover-text width-small">
+                        <div>
+                            <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Action))">
+                                @node.NodeClass
+                            </a>
+                        </div>
+                    </td>
+                }
+                else
+                {
+                    <td class="hover-text width-small">
+                        <div>
                             @node.NodeClass
-                        </a>
-                    </div>
-                </td>
-            }
-            else if (node.NodeClass == NodeClass.Method)
-            {
-                <td class="hover-text width-small">
-                    <div>
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Action))">
-                            @node.NodeClass
-                        </a>
-                    </div>
-                </td>
-            }
-            else
-            {
-                <td class="hover-text width-small">
-                    <div>
-                        @node.NodeClass
-                    </div>
-                </td>
-            }
-            @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
-               ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
-            {
-                <td class="width-medium-large">
-                    <div class="value-scroll">
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Action))">
-                            <span>@node.Value</span>
-                            <span>(@node.DataType)</span>
-                            <span>(@node.Status -</span>
-                            <span> @node.Timestamp)</span>
-                        </a>
-                    </div>
-                </td>
-            }
-            else
-            {
-                <td class="hover-text width-small">
-                    <div>
-                        N/A
-                    </div>
-                </td>
-            }
+                        </div>
+                    </td>
+                }
+                @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
+                  ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
+                {
+                    <td class="width-medium-large">
+                        <div class="value-scroll">
+                            <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Action))">
+                                <span>@node.Value</span>
+                                <span>(@node.DataType)</span>
+                                <span>(@node.Status -</span>
+                                <span> @node.Timestamp)</span>
+                            </a>
+                        </div>
+                    </td>
+                }
+                else
+                {
+                    <td class="hover-text width-small">
+                        <div>
+                            N/A
+                        </div>
+                    </td>
+                }
 
-            @if (node.NodeClass == NodeClass.Variable)
-            {
-                <td class="width-small">
-                    @{string pubStatus = (node.Publishing == true) ? "Turn off" : "Turn on";}
-                    <button class="btn btn-primary btn-table-cell" @onclick="@(() => SetPublishingAsync(EndpointId, node))">@pubStatus</button>
-                </td>
-                <td class="width-small space-wrap">
-                    <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
-                        @(!IsTimeIntervalSet(node.PublishedItem?.PublishingInterval) ? "1000" : node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString()) ms<br />
-                    </a>
-                    <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
-                        @(!IsTimeIntervalSet(node.PublishedItem?.SamplingInterval) ? "1000" : node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString()) ms<br />
-                    </a>
-                    <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
-                        @(!IsTimeIntervalSet(node.PublishedItem?.HeartbeatInterval) ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
-                        <br />
-                    </a>
-                </td>
-            }
-            else
-            {
-                <td class="hover-text width-small">
-                    <div>
-                        N/A
-                    </div>
-                </td>
-                <td class="hover-text width-small">
-                    <div>
-                        N/A
-                    </div>
-                </td>
-            }
-            @if (node.ErrorMessage != null)
-            {
-                <td class="hover-text width-small">
-                    <div>
-                        @node.ErrorMessage
-                    </div>
-                </td>
-            }
-            else
-            {
-                <td class="hover-text width-small">
-                    <div>
-                        OK
-                    </div>
-                </td>
-            }
-        </tr>
+                @if (node.NodeClass == NodeClass.Variable)
+                {
+                    <td class="width-small">
+                        @{string pubStatus = (node.Publishing == true) ? "Turn off" : "Turn on";}
+                        <button class="btn btn-primary btn-table-cell" @onclick="@(() => SetPublishingAsync(EndpointId, node))">@pubStatus</button>
+                    </td>
+                    <td class="width-small space-wrap">
+                        <label>Publishing: </label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
+                            @(!IsTimeIntervalSet(node.PublishedItem?.PublishingInterval) ? "1000" : node.PublishedItem.PublishingInterval?.TotalMilliseconds.ToString()) ms<br />
+                        </a>
+                        <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
+                            @(!IsTimeIntervalSet(node.PublishedItem?.SamplingInterval) ? "1000" : node.PublishedItem.SamplingInterval?.TotalMilliseconds.ToString()) ms<br />
+                        </a>
+                        <label>HeartBeat: </label><a href="jpavascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Publisher))">
+                            @(!IsTimeIntervalSet(node.PublishedItem?.HeartbeatInterval) ? "-" : node.PublishedItem.HeartbeatInterval?.TotalSeconds.ToString() + " sec")
+                            <br />
+                        </a>
+                    </td>
+                }
+                else
+                {
+                    <td class="hover-text width-small">
+                        <div>
+                            N/A
+                        </div>
+                    </td>
+                    <td class="hover-text width-small">
+                        <div>
+                            N/A
+                        </div>
+                    </td>
+                }
+                @if (node.ErrorMessage != null)
+                {
+                    <td class="hover-text width-small">
+                        <div>
+                            @node.ErrorMessage
+                        </div>
+                    </td>
+                }
+                else
+                {
+                    <td class="hover-text width-small">
+                        <div>
+                            OK
+                        </div>
+                    </td>
+                }
+            </tr>
         }
     </tbody>
 </table>
