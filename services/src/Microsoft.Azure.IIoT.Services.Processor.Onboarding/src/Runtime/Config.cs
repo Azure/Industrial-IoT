@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
+    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
     using Microsoft.Azure.IIoT.Messaging.EventHub;
-    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Storage;
@@ -24,7 +24,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
         IEventHubConsumerConfig, IServiceBusConfig, IIoTHubConfig,
-        IEventProcessorConfig, ICosmosDbConfig, IItemContainerConfig {
+        IEventProcessorConfig, ICosmosDbConfig, IItemContainerConfig,
+        IMetricServerConfig {
 
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
@@ -71,6 +72,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding.Runtime {
         public string EventHubConnString => _eh.EventHubConnString;
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
+
+        /// <inheritdoc/>
+        public int Port => 9501;
 
         /// <summary>
         /// Configuration constructor

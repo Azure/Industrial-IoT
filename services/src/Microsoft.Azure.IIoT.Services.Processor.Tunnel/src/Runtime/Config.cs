@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel.Runtime {
+    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
@@ -17,7 +18,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel.Runtime {
     /// Telemetry processor service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
-        IEventHubConsumerConfig, IIoTHubConfig, IEventProcessorConfig {
+        IEventHubConsumerConfig, IIoTHubConfig, IEventProcessorConfig,
+        IMetricServerConfig {
 
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
@@ -52,6 +54,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel.Runtime {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
+
+        /// <inheritdoc/>
+        public int Port => 9504;
 
         /// <summary>
         /// Configuration constructor
