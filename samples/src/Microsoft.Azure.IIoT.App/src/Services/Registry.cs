@@ -137,18 +137,15 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         }
                         pageResult.Results.Add(info);
                     }
-                    if (previousPage != null) {
-                        previousPage.Results.AddRange(pageResult.Results);
-                        pageResult.Results = previousPage.Results;
-                    }
+                }
+                if (previousPage != null) {
+                    previousPage.Results.AddRange(pageResult.Results);
+                    pageResult.Results = previousPage.Results;
+                }
 
-                    pageResult.ContinuationToken = discoverers.ContinuationToken;
-                    pageResult.PageSize = _commonHelper.PageLengthSmall;
-                    pageResult.RowCount = pageResult.Results.Count;
-                }
-                else {
-                    pageResult.Error = "No Discoveres Found";
-                }
+                pageResult.ContinuationToken = discoverers.ContinuationToken;
+                pageResult.PageSize = _commonHelper.PageLengthSmall;
+                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
