@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
 
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -133,6 +134,10 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Onboarding {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
                 .AsImplementedInterfaces();
+
+            // Prometheus metric server
+            builder.RegisterType<MetricServerHost>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Handle device events
             builder.RegisterType<IoTHubDeviceEventHandler>()

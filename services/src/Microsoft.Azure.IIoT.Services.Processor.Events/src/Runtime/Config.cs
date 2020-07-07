@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
+    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
@@ -20,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
         IEventHubConsumerConfig, IServiceBusConfig, IIoTHubConfig,
-        IEventProcessorConfig {
+        IEventProcessorConfig, IMetricServerConfig {
 
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
@@ -58,6 +59,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
+
+        /// <inheritdoc/>
+        public int Port => 9500;
 
         /// <summary>
         /// Configuration constructor

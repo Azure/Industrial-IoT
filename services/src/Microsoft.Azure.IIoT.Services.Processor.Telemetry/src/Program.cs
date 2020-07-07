@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
+    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics.Default;
     using Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime;
     using Microsoft.Azure.IIoT.Messaging.EventHub.Services;
     using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
@@ -113,6 +114,10 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
                 .AsImplementedInterfaces();
+
+            // Prometheus metric server
+            builder.RegisterType<MetricServerHost>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Handle telemetry events
             builder.RegisterType<IoTHubDeviceEventHandler>()

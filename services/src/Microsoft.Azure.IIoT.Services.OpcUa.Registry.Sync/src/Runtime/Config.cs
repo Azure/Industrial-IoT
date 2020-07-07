@@ -12,16 +12,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime {
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Azure.IIoT.Auth;
     using System;
 
     /// <summary>
     /// Alerting agent configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IIoTHubConfig, IServiceBusConfig,
-        IIdentityTokenUpdaterConfig, IActivationSyncConfig, IJobOrchestratorEndpoint {
+        IIdentityTokenUpdaterConfig, IActivationSyncConfig, IJobOrchestratorEndpoint,
+        IMetricServerConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -40,6 +42,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime {
         public TimeSpan TokenStaleInterval => _id.TokenStaleInterval;
         /// <inheritdoc/>
         public TimeSpan UpdateInterval => _id.UpdateInterval;
+
+        /// <inheritdoc/>
+        public int Port => 9505;
 
         /// <summary>
         /// Configuration constructor
