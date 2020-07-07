@@ -1121,15 +1121,38 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // Create and setup a jumpbox for AKS.
 
-            // First we need to upload jumpbox setup script to Blob Container.
-            const string blobName = "jumpbox.sh";
-            var jumpboxShUri = await UploadBlobAsync(
+            // First we need to upload jumpbox setup script and YAML files that
+            // will be used by it to Blob Container.
+            const string jumpboxShBlobName = "jumpbox.sh";
+            var jumpboxShBlobUri = await UploadBlobAsync(
                 storageAccountGen2ConectionString,
                 deploymentScriptsBlobContainer.Name,
-                blobName,
+                jumpboxShBlobName,
                 Resources.Scripts.jumpbox,
                 cancellationToken
             );
+
+            const string omsAgentConfBlobName = "04_oms_agent_configmap.yaml";
+            var omsAgentConfBlobUri = await UploadBlobAsync(
+                storageAccountGen2ConectionString,
+                deploymentScriptsBlobContainer.Name,
+                omsAgentConfBlobName,
+                Resources.IIoTK8SResources._04_oms_agent_configmap,
+                cancellationToken
+            );
+
+            const string clusterIssuerBlobName = "90_letsencrypt_cluster_issuer.yaml";
+            var clusterIssuerBlobUri = await UploadBlobAsync(
+                storageAccountGen2ConectionString,
+                deploymentScriptsBlobContainer.Name,
+                clusterIssuerBlobName,
+                Resources.IIoTK8SResources._90_letsencrypt_cluster_issuer,
+                cancellationToken
+            );
+
+            // Wait a bit before starting the deployment.
+            const int millisecondsDelay = 30 * 1000;
+            await Task.Delay(millisecondsDelay);
 
             const string jumpboxPublicIpName = "jumpbox-ip";
             const string jumpboxNetworkInterfaceName = "jumpbox-networkInterface";
@@ -1158,7 +1181,22 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 {"aksRbacGuid", aksRoleGuid.ToString()},
                 {"storageBuiltInRoleType", storageRoleType},
                 {"storageRbacGuid", storageRoleGuid.ToString()},
-                {"scriptFileUris", new List<string> { jumpboxShUri } }
+                {"scriptFileUris", new List<string> {
+                    jumpboxShBlobUri,
+                    omsAgentConfBlobUri,
+                    clusterIssuerBlobUri
+                    }
+                },
+                // azure-industrial-iot Helm chart details
+                {"helmRepoUrl", "https://microsoft.github.io/charts/repo"},
+                {"helmChartVersion", "0.3.0"},
+                // azure-industrial-iot Helm chart values
+                {"aiiotImageTag", "2.7.167"},
+                {"aiiotTenantId", _authConf.TenantId.ToString()},
+                {"aiiotKeyVaultUri", keyVault.Properties.VaultUri},
+                {"aiiotServicesAppId", _applicationsManager.GetServiceApplication().AppId},
+                {"aiiotServicesAppSecret", _applicationsManager.GetServiceApplicationSecret()},
+                {"aiiotServicesHostname", aksPublicIp.DnsSettings.Fqdn}
             };
 
             var jumpboxDeployment = await _resourceManagementClient
@@ -1192,27 +1230,27 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            // Deploy IIoT services to AKS cluster
-            // Get KubeConfig
-            var aksKubeConfig = await _aksManagementClient
-                .GetClusterAdminCredentialsAsync(
-                    _resourceGroup,
-                    aksCluster.Name,
-                    cancellationToken
-                );
+            //// Deploy IIoT services to AKS cluster
+            //// Get KubeConfig
+            //var aksKubeConfig = await _aksManagementClient
+            //    .GetClusterAdminCredentialsAsync(
+            //        _resourceGroup,
+            //        aksCluster.Name,
+            //        cancellationToken
+            //    );
 
-            // We will wait a bit before initating resource deployment to AKS. This is so that components
-            // deployed from jumpbox have enough time to get to a functional state. We have seen issues
-            // with creation of ClusterIssuer resource if cert-manager webhooks are not yet operational.
-            const int millisecondsDelay = 30*1000;
-            await Task.Delay(millisecondsDelay);
+            //// We will wait a bit before initating resource deployment to AKS. This is so that components
+            //// deployed from jumpbox have enough time to get to a functional state. We have seen issues
+            //// with creation of ClusterIssuer resource if cert-manager webhooks are not yet operational.
+            //const int millisecondsDelay = 30*1000;
+            //await Task.Delay(millisecondsDelay);
 
-            await DeployResourcesToAksAsync(
-                aksKubeConfig,
-                iiotEnvironment,
-                aksPublicIp.DnsSettings.Fqdn,
-                cancellationToken
-            );
+            //await DeployResourcesToAksAsync(
+            //    aksKubeConfig,
+            //    iiotEnvironment,
+            //    aksPublicIp.DnsSettings.Fqdn,
+            //    cancellationToken
+            //);
 
             // After we have endpoint for accessing Azure IIoT microservices we
             // will update client application to have Redirect URIs.
