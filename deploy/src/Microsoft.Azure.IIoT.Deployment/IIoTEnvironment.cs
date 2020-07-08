@@ -24,6 +24,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_IOTHUB_EVENTHUBENDPOINT;
         public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS;
         public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY;
+        public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL;
+        public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING;
 
         // Cosmos DB
         public readonly string PCS_COSMOSDB_CONNSTRING;
@@ -139,8 +141,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
             IotHubDescription iotHub,
             string iotHubOwnerConnectionString,
             string iotHubEventHubEventsEndpointName,
-            EventHubConsumerGroupInfo iotHubEventHubEventsConsumerGroup,
-            EventHubConsumerGroupInfo iotHubEventHubTelemetryConsumerGroup,
+            EventHubConsumerGroupInfo iotHubEventHubConsumerGroupEvents,
+            EventHubConsumerGroupInfo iotHubEventHubConsumerGroupTelemetry,
+            EventHubConsumerGroupInfo iotHubEventHubConsumerGroupTunnel,
+            EventHubConsumerGroupInfo iotHubEventHubConsumerGroupOnboarding,
             // Cosmos DB
             string cosmosDBAccountConnectionString,
             // Storage Account
@@ -174,8 +178,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // IoT Hub
             PCS_IOTHUB_CONNSTRING = iotHubOwnerConnectionString;
             PCS_IOTHUB_EVENTHUBENDPOINT = iotHub.Properties.EventHubEndpoints[iotHubEventHubEventsEndpointName].Endpoint;
-            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS = iotHubEventHubEventsConsumerGroup.Name;
-            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY = iotHubEventHubTelemetryConsumerGroup.Name;
+            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS = iotHubEventHubConsumerGroupEvents.Name;
+            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY = iotHubEventHubConsumerGroupTelemetry.Name;
+            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL = iotHubEventHubConsumerGroupTunnel.Name;
+            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING = iotHubEventHubConsumerGroupOnboarding.Name;
 
             // Cosmos DB
             PCS_COSMOSDB_CONNSTRING = cosmosDBAccountConnectionString;
@@ -294,6 +300,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_IOTHUB_EVENTHUBENDPOINT)}", PCS_IOTHUB_EVENTHUBENDPOINT },
                 { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS },
                 { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY },
+                { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL },
+                { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING },
 
                 // Cosmos DB
                 { $"{nameof(PCS_COSMOSDB_CONNSTRING)}", PCS_COSMOSDB_CONNSTRING },

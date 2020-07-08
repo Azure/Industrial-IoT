@@ -929,7 +929,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     _resourceGroup,
                     iotHub,
                     IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
-                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_CONSUMER_GROUP_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_CONSUMER_GROUP_EVENTS_NAME,
                     cancellationToken
                 );
 
@@ -939,7 +939,27 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     _resourceGroup,
                     iotHub,
                     IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
-                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_TELEMETRY_CONSUMER_GROUP_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TELEMETRY_NAME,
+                    cancellationToken
+                );
+
+            // Create "tunnel" consumer group.
+            var iotHubEventHubCGTunnel = await _iotHubManagementClient
+                .CreateEventHubConsumerGroupAsync(
+                    _resourceGroup,
+                    iotHub,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TUNNEL_NAME,
+                    cancellationToken
+                );
+
+            // Create "onboarding" consumer group.
+            var iotHubEventHubCGOnboarding = await _iotHubManagementClient
+                .CreateEventHubConsumerGroupAsync(
+                    _resourceGroup,
+                    iotHub,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_CONSUMER_GROUP_ONBOARDING_NAME,
                     cancellationToken
                 );
 
@@ -1084,6 +1104,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
                 iotHubEventHubCGEvents,
                 iotHubEventHubCGTelemetry,
+                iotHubEventHubCGTunnel,
+                iotHubEventHubCGOnboarding,
                 // Cosmos DB
                 cosmosDBAccountConnectionString,
                 // Storage Account
