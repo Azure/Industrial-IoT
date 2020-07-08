@@ -76,6 +76,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
         // SignalR
         public readonly string PCS_SIGNALR_CONNSTRING;
+        public readonly string PCS_SIGNALR_MODE;
 
         // Authentication
         public readonly string PCS_AUTH_REQUIRED;
@@ -141,6 +142,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string serviceBusConnectionString,
             // SignalR
             string signalRConnectionString,
+            string signalRServiceMode,
             // Key Vault
             VaultInner keyVault,
             string dataprotectionKeyName,
@@ -214,6 +216,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             // SignalR
             PCS_SIGNALR_CONNSTRING = signalRConnectionString;
+            PCS_SIGNALR_MODE = signalRServiceMode;
 
             // Authentication
             PCS_AUTH_REQUIRED = $"{true}";
@@ -307,6 +310,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
                 // SignalR
                 { $"{nameof(PCS_SIGNALR_CONNSTRING)}", PCS_SIGNALR_CONNSTRING },
+                { $"{nameof(PCS_SIGNALR_MODE)}", PCS_SIGNALR_MODE },
 
                 // Authentication
                 { $"{nameof(PCS_AUTH_REQUIRED)}", PCS_AUTH_REQUIRED },

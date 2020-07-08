@@ -1029,10 +1029,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
 
             // SignalR
+            var signalRServiceMode = SignalRMgmtClient.ServiceMode.Default;
             var signalRCreationTask = _signalRManagementClient
                 .CreateAsync(
                     _resourceGroup,
                     _signalRName,
+                    signalRServiceMode,
                     _defaultTagsDict,
                     cancellationToken
                 );
@@ -1127,6 +1129,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 serviceBusNamespaceConnectionString,
                 // SignalR
                 signalRConnectionString,
+                signalRServiceMode.Value,
                 // Key Vault
                 keyVault,
                 IIoTKeyVaultClient.DATAPROTECTION_KEY_NAME,
