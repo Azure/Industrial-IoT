@@ -508,7 +508,7 @@ The following details of the Azure Storage account would be required:
 
 ## Installing the Chart
 
-This chart installs `2.7.170` version of components by default.
+This chart installs `2.8.2` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -572,7 +572,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.7.170`           |
+| `image.tag`         | Image tag                                | `2.8.2`             |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
