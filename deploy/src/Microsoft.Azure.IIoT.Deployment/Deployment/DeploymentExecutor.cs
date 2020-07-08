@@ -891,7 +891,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
 
             storageAccountGen2HNSConectionString = await _storageManagementClient
-                .GetStorageAccountConectionStringAsync(
+                .GetStorageAccountDataLakeConectionStringAsync(
                     _resourceGroup,
                     storageAccountGen2HNS,
                     cancellationToken
