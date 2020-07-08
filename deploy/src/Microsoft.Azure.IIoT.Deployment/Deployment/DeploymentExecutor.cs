@@ -1079,6 +1079,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             var applicationInsightsComponent = await applicationInsightsComponentCreationTask;
 
+            var operationalInsightsWorkspaceKeys = await _operationalInsightsManagementClient
+                .GetSharedKeysAsync(_resourceGroup, operationalInsightsWorkspace, cancellationToken);
+
             // Wat for Public IP of AKS before creating IIoTEnvironment
             var aksCluster = await aksClusterCreationTask;
 
@@ -1129,7 +1132,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 IIoTKeyVaultClient.DATAPROTECTION_KEY_NAME,
                 // Application Insights
                 applicationInsightsComponent,
+                // Log Analytics Workspace
+                operationalInsightsWorkspace,
+                operationalInsightsWorkspaceKeys.PrimarySharedKey,
+                // Service URL
                 serviceURL,
+                // App Registrations
                 _applicationsManager.GetServiceApplication(),
                 _applicationsManager.GetServiceApplicationSecret(),
                 _applicationsManager.GetClientApplication(),

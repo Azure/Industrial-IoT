@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using Microsoft.Azure.Management.EventHub.Fluent.Models;
     using Microsoft.Azure.Management.IotHub.Models;
     using Microsoft.Azure.Management.KeyVault.Fluent.Models;
+    using Microsoft.Azure.Management.OperationalInsights.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
 
     using Microsoft.Graph;
@@ -56,6 +57,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
         // Application Insights
         public readonly string PCS_APPINSIGHTS_INSTRUMENTATIONKEY;
+
+        // Log Analytics Workspace
+        public readonly string PCS_WORKSPACE_ID;
+        public readonly string PCS_WORKSPACE_KEY;
 
         // Service URLs
         public readonly string PCS_SERVICE_URL;
@@ -168,7 +173,12 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string dataprotectionKeyName,
             // Application Insights
             ApplicationInsightsComponent applicationInsightsComponent,
+            // Log Analytics Workspace
+            Workspace workspace,
+            string workspaceKey,
+            // Service URL
             string serviceURL,
+            // App Registrations
             Application serviceApplication,
             string serviceApplicationSecret,
             Application clientApplication,
@@ -212,6 +222,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             // Application Insights
             PCS_APPINSIGHTS_INSTRUMENTATIONKEY = applicationInsightsComponent.InstrumentationKey;
+
+            // Log Analytics Workspace
+            PCS_WORKSPACE_ID = workspace.Id;
+            PCS_WORKSPACE_KEY = workspaceKey;
 
             // Service URLs
             PCS_SERVICE_URL = serviceURL;
@@ -332,6 +346,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
                 // Application Insights
                 { $"{nameof(PCS_APPINSIGHTS_INSTRUMENTATIONKEY)}", PCS_APPINSIGHTS_INSTRUMENTATIONKEY },
+
+                // Log Analytics Workspace
+                { $"{nameof(PCS_WORKSPACE_ID)}", PCS_WORKSPACE_ID },
+                { $"{nameof(PCS_WORKSPACE_KEY)}", PCS_WORKSPACE_KEY },
 
                 // Service URLs
                 { $"{nameof(PCS_SERVICE_URL)}", PCS_SERVICE_URL },
