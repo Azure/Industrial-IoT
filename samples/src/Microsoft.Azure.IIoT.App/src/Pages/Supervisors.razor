@@ -1,18 +1,19 @@
 ﻿@*------------------------------------------------------------
-     Copyright (c) Microsoft Corporation.  All rights reserved.
-     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-    ------------------------------------------------------------*@
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
 
 @page "/supervisors"
 @page "/supervisors/{page}"
 
 @using Microsoft.AspNetCore.Components;
-@using Microsoft.Azure.IIoT.App.Services
-@using Microsoft.Azure.IIoT.App.Components.Pager
-@using Microsoft.Azure.IIoT.App.Components.Drawer
-@using Microsoft.Azure.IIoT.App.Components.ErrorMessage
-@using Microsoft.Azure.IIoT.OpcUa.Api.Registry
-@using Microsoft.Azure.IIoT.App.Common
+@using Microsoft.Azure.IIoT.App.Services;
+@using Microsoft.Azure.IIoT.App.Components.Pager;
+@using Microsoft.Azure.IIoT.App.Components.Drawer;
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+@using Microsoft.Azure.IIoT.App.Common;
+@using Microsoft.Azure.IIoT.App.Components.Icons;
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
@@ -53,36 +54,18 @@
                     </div>
                 </td>
                 @{string connectStatus = supervisor.Connected == null
-                    ? CommonHelper.None
-                    : supervisor.Connected == true
-                        ? "Connected"
-                        : "Disconnected";}
+                      ? CommonHelper.None
+                      : supervisor.Connected == true
+                          ? "Connected"
+                          : "Disconnected";}
                 <td class="hover-text width-medium">
-                    <div>
-                        @{
-                            string alt = connectStatus;
-
-                            switch (connectStatus)
-                            {
-                                case "Connected":
-                                    <i class="material-icons" title="@alt" aria-label="@alt">link</i>
-                                    break;
-                                case "Disconnected":
-                                case "(None)":
-                                    <i class="material-icons" title="@alt" aria-label="@alt">link_off</i>
-                                    break;
-                                default:
-                                    <i class="material-icons" title="@alt" aria-label="@alt">help</i>
-                                    break;
-                            }
-                        }
-                    </div>
+                    <ConnectStatus Status="@connectStatus" />
                 </td>
                 @{string syncStatus = supervisor.OutOfSync == null
-                    ? CommonHelper.None
-                    : supervisor.OutOfSync == true
-                        ? "Out of Sync"
-                        : "Synced";}
+                      ? CommonHelper.None
+                      : supervisor.OutOfSync == true
+                          ? "Out of Sync"
+                          : "Synced";}
                 <td class="hover-text width-medium">
                     <div>
                         @syncStatus

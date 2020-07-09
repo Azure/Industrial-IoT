@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
+    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Cdm;
     using Microsoft.Azure.IIoT.OpcUa.Cdm.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -18,7 +19,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
     /// Cdm processor service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
-        IEventHubConsumerConfig, ICdmFolderConfig, IEventProcessorConfig {
+        IEventHubConsumerConfig, ICdmFolderConfig, IEventProcessorConfig,
+        IMetricServerConfig {
 
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
@@ -55,6 +57,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
         public string StorageDrive => _cdm.StorageDrive;
         /// <inheritdoc/>
         public string StorageFolder => _cdm.StorageFolder;
+
+        /// <inheritdoc/>
+        public int Port => 9503;
 
         /// <summary>
         /// Configuration constructor
