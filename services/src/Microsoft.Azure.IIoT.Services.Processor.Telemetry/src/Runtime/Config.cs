@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
+    using Microsoft.Azure.IIoT.AspNetCore.Diagnostics;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
@@ -16,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
     /// Telemetry processor service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorHostConfig,
-        IEventHubConsumerConfig, IEventProcessorConfig {
+        IEventHubConsumerConfig, IEventProcessorConfig, IMetricServerConfig {
 
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
@@ -48,6 +49,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         public string AccountName => _ep.AccountName;
         /// <inheritdoc/>
         public string AccountKey => _ep.AccountKey;
+
+        /// <inheritdoc/>
+        public int Port => 9502;
 
         /// <summary>
         /// Configuration constructor
