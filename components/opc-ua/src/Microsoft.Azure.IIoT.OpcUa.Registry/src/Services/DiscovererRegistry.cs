@@ -221,14 +221,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
             }
 
-            var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct);
-            return new DiscovererListModel {
-                ContinuationToken = queryResult.ContinuationToken,
-                Items = queryResult.Items
+            try {
+                var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct);
+                return new DiscovererListModel {
+                    ContinuationToken = queryResult.ContinuationToken,
+                    Items = queryResult.Items
                     .Select(t => t.ToDiscovererRegistration())
                     .Select(s => s.ToServiceModel())
                     .ToList()
-            };
+                };
+            }
+            catch (Exception e) {
+                if (e.Message == string.Empty) {
+                    var newNessage = "IotHubQuotaExceeded. Send and Receive operations are blocked for this hub until the next UTC day";
+                    throw new ResourceInvalidStateException(newNessage, e.InnerException);
+                }
+                else {
+                    throw;
+                }
+            } 
         }
 
         private readonly IIoTHubTwinServices _iothub;
