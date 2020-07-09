@@ -79,7 +79,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
 
             // Configure create options and version per os specified
             string createOptions;
-            //string version;
             if (isLinux) {
                 // Linux
                 createOptions = "{}";
