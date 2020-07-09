@@ -83,14 +83,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             if (isLinux) {
                 // Linux
                 createOptions = "{}";
-                //version = "0.0.4-amd64";
             }
             else {
                 // Windows
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator"
                 });
-                //version = "0.0.5-windows-amd64";
             }
             createOptions = createOptions.Replace("\"", "\\\"");
             var image = $"azureiotedge/azureiotedge-metrics-collector-sample:0.1";
@@ -133,10 +131,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 },
                 ""$edgeHub"": {
                     ""properties.desired.routes.upstream"": ""FROM /messages/* INTO $upstream""
-                },
-                ""metricscollector"": {
-                    ""properties.desired"": {
-                    }
                 }
             }";
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(content);
