@@ -16,6 +16,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         Off,
 
         /// <summary>
+        /// Look for DiscoveryUrls
+        /// </summary>
+        Url,
+
+        /// <summary>
         /// Find and use local discovery server on edge device
         /// </summary>
         Local,

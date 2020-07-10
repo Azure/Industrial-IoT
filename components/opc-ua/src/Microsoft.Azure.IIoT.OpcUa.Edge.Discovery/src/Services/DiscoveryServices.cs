@@ -278,9 +278,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
             DiscoveryRequest request) {
 
             var discoveryUrls = await GetDiscoveryUrlsAsync(request.DiscoveryUrls);
-            if (request.Mode == DiscoveryMode.Off) {
-                return await DiscoverServersAsync(request, discoveryUrls,
+            if (request.Mode == DiscoveryMode.Url) {
+                var discovered1 = await DiscoverServersAsync(request, discoveryUrls,
                     request.Configuration.Locales);
+                return discovered1;
+                //return await DiscoverServersAsync(request, discoveryUrls,
+                //    request.Configuration.Locales);
             }
 
             _logger.Information("Start {mode} discovery run...", request.Mode);
