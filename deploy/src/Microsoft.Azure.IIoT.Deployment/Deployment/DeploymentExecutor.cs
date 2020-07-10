@@ -1222,9 +1222,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 },
                 // azure-industrial-iot Helm chart details
                 {"helmRepoUrl", "https://microsoft.github.io/charts/repo"},
-                {"helmChartVersion", "0.3.0"},
+                {"helmChartVersion", "0.3.1"},
                 // azure-industrial-iot Helm chart values
-                {"aiiotImageTag", "2.7.167"},
+                {"aiiotImageTag", "2.7.170"},
                 {"aiiotTenantId", _authConf.TenantId.ToString()},
                 {"aiiotKeyVaultUri", keyVault.Properties.VaultUri},
                 {"aiiotServicesAppId", _applicationsManager.GetServiceApplication().AppId},
