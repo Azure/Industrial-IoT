@@ -1263,28 +1263,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            //// Deploy IIoT services to AKS cluster
-            //// Get KubeConfig
-            //var aksKubeConfig = await _aksManagementClient
-            //    .GetClusterAdminCredentialsAsync(
-            //        _resourceGroup,
-            //        aksCluster.Name,
-            //        cancellationToken
-            //    );
-
-            //// We will wait a bit before initating resource deployment to AKS. This is so that components
-            //// deployed from jumpbox have enough time to get to a functional state. We have seen issues
-            //// with creation of ClusterIssuer resource if cert-manager webhooks are not yet operational.
-            //const int millisecondsDelay = 30*1000;
-            //await Task.Delay(millisecondsDelay);
-
-            //await DeployResourcesToAksAsync(
-            //    aksKubeConfig,
-            //    iiotEnvironment,
-            //    aksPublicIp.DnsSettings.Fqdn,
-            //    cancellationToken
-            //);
-
             // After we have endpoint for accessing Azure IIoT microservices we
             // will update client application to have Redirect URIs.
             // This will be performed in UpdateClientApplicationRedirectUrisAsync() call.
@@ -1453,51 +1431,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             Log.Debug("Uploadede data to Azure Blob.");
             return blobClient.Uri.ToString();
-        }
-
-        /// <summary>
-        /// Deploy all necessary resources to AKS, including Azure IIoT components.
-        /// Returns IP address of Azure IIoT Ingress.
-        /// </summary>
-        /// <param name="kubeConfig"></param>
-        /// <param name="iiotEnvironment"></param>
-        /// <param name="defaultSslCertificate"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        protected async Task<string> DeployResourcesToAksAsync(
-            string kubeConfig,
-            IIoTEnvironment iiotEnvironment,
-            string ingressHostname = null,
-            CancellationToken cancellationToken = default
-        ) {
-            if (string.IsNullOrWhiteSpace(kubeConfig)) {
-                throw new ArgumentNullException(nameof(kubeConfig));
-            }
-            if (iiotEnvironment is null) {
-                throw new ArgumentNullException(nameof(iiotEnvironment));
-            }
-
-            var iiotK8SClient = new IIoTK8SClient(kubeConfig);
-
-            // enable scraping of Prometheus metrics
-            await iiotK8SClient.EnablePrometheusMetricsScrapingAsync(cancellationToken);
-
-            // Create a ClusterIssuer that uses Let's Encrypt 
-            await iiotK8SClient.CreateLetsencryptClusterIssuerAsync(cancellationToken);
-
-            // industrial-iot namespace
-            await iiotK8SClient.CreateIIoTNamespaceAsync(cancellationToken);
-            await iiotK8SClient.SetupIIoTServiceAccountAsync(cancellationToken);
-            await iiotK8SClient.DeployIIoTServicesAsync(iiotEnvironment.Dict, cancellationToken);
-
-            // Note that NGINX Ingress Controller is already instaled from jumpbox.
-            // So we will create Ingress for our Industrial IoT services and wait for
-            // IP address of its LoadBalancer.
-            var iiotIngress = await iiotK8SClient.CreateIIoTIngressAsync(ingressHostname, cancellationToken);
-            var iiotIngressIPAddresses = await iiotK8SClient.WaitForIngressIPAsync(iiotIngress, cancellationToken);
-            var iiotIngressIPAdress = iiotIngressIPAddresses.FirstOrDefault().Ip;
-
-            return iiotIngressIPAdress;
         }
 
         /// <summary>
