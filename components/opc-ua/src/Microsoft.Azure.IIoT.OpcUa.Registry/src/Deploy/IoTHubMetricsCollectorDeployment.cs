@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                                 ""value"": ""promMetrics""
                             },
                             ""MetricsEndpointsCSV"": {
-                                ""value"": ""http://edgeHub:9600/metrics,http://edgeAgent:9600/metrics,http://twin:9701/metrics,http://publisher:9702/metrics""
+                                ""value"": ""http://twin:9701/metrics,http://publisher:9702/metrics""
                             },
                             ""ScrapeFrequencyInSecs"": {
                                 ""value"": ""120""
