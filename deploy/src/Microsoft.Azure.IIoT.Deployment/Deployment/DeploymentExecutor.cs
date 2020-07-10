@@ -844,7 +844,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
 
             // Create Blob container for IoT Hub storage.
-            iotHubBlobContainer= await _storageManagementClient
+            iotHubBlobContainer = await _storageManagementClient
                 .CreateBlobContainerAsync(
                     _resourceGroup,
                     storageAccountGen2,
@@ -1199,6 +1199,17 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var storageRoleType = "StorageBlobDataReader";
             var storageRoleGuid = Guid.NewGuid();
 
+            var helmSettings = _configurationProvider.GetHelmSettings();
+            // azure-industrial-iot Helm chart details
+            var helmRepoUrl = helmSettings?.RepoUrl ?? HelmSettings._defaultRepoUrl;
+            var helmChartVersion = helmSettings?.ChartVersion ?? HelmSettings._defaultChartVersion;
+            // azure-industrial-iot Helm chart values
+            var aiiotImageTag = helmSettings?.ImageTag ?? HelmSettings._defaultImageTag;
+            var aiiotTenantId = _authConf.TenantId.ToString();
+            var aiiotKeyVaultUri = keyVault.Properties.VaultUri;
+            var aiiotServicesAppId = _applicationsManager.GetServiceApplication().AppId;
+            var aiiotServicesAppSecret = _applicationsManager.GetServiceApplicationSecret();
+
             var jumpboxDeploymentParameters = new Dictionary<string, object> {
                 {"nsgId", networkSecurityGroup.Id},
                 {"subnetId", virtualNetworkVmSubnet.Id},
@@ -1221,14 +1232,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     }
                 },
                 // azure-industrial-iot Helm chart details
-                {"helmRepoUrl", "https://microsoft.github.io/charts/repo"},
-                {"helmChartVersion", "0.3.1"},
+                {"helmRepoUrl", helmRepoUrl},
+                {"helmChartVersion", helmChartVersion},
                 // azure-industrial-iot Helm chart values
-                {"aiiotImageTag", "2.7.170"},
-                {"aiiotTenantId", _authConf.TenantId.ToString()},
-                {"aiiotKeyVaultUri", keyVault.Properties.VaultUri},
-                {"aiiotServicesAppId", _applicationsManager.GetServiceApplication().AppId},
-                {"aiiotServicesAppSecret", _applicationsManager.GetServiceApplicationSecret()},
+                {"aiiotImageTag", aiiotImageTag},
+                {"aiiotTenantId", aiiotTenantId},
+                {"aiiotKeyVaultUri", aiiotKeyVaultUri},
+                {"aiiotServicesAppId", aiiotServicesAppId},
+                {"aiiotServicesAppSecret", aiiotServicesAppSecret},
                 {"aiiotServicesHostname", aksPublicIp.DnsSettings.Fqdn}
             };
 
