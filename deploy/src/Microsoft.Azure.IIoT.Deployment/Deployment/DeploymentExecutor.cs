@@ -544,7 +544,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         protected async Task DeleteApplicationsAsync(
             CancellationToken cancellationToken = default
         ) {
-            await _applicationsManager.DeleteApplicationsAsync(cancellationToken);
+            if (_applicationsManager != null) {
+                await _applicationsManager.DeleteApplicationsAsync(cancellationToken);
+            }
         }
 
         /// <summary>
