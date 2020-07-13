@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         public string ApplicationName { get; set; }
 
         /// <summary> Application base URL details </summary>
-        public string ApplicationURL { get; set; }
+        public string ApplicationUrl { get; set; }
 
         /// <summary> Resource group details </summary>
         public ResourceGroupSettings ResourceGroup { get; set; }

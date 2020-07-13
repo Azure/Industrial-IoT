@@ -62,7 +62,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         /// <inheritdoc/>
         public abstract ApplicationRegistrationDefinition GetApplicationRegistrationDefinition();
 
-        public abstract string GetApplicationURL();
+        /// <inheritdoc/>
+        public abstract string GetApplicationUrl();
 
         /// <inheritdoc/>
         public abstract HelmSettings GetHelmSettings();

@@ -433,9 +433,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         }
 
         /// <inheritdoc/>
-        public override string GetApplicationURL() {
-            if (!string.IsNullOrEmpty(_appSettings?.ApplicationURL)) {
-                return _appSettings.ApplicationURL;
+        public override string GetApplicationUrl() {
+            if (!string.IsNullOrEmpty(_appSettings?.ApplicationUrl)) {
+                return _appSettings.ApplicationUrl;
             }
 
             return null;

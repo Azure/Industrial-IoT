@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         private AuthenticationConfiguration _authConf;
         private ISubscription _subscription;
         private string _applicationName;
-        private string _applicationURL;
+        private string _applicationUrl;
         private IResourceGroup _resourceGroup;
 
         private IAuthenticationManager _authenticationManager;
@@ -511,25 +511,25 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var runMode = _configurationProvider.GetRunMode();
 
             if (RunMode.ApplicationRegistration == runMode) {
-                _applicationURL = _configurationProvider.GetApplicationURL();
+                _applicationUrl = _configurationProvider.GetApplicationUrl();
 
-                if (!string.IsNullOrEmpty(_applicationURL)) {
+                if (!string.IsNullOrEmpty(_applicationUrl)) {
                     await _applicationsManager
                         .UpdateClientApplicationRedirectUrisAsync(
-                            _applicationURL,
+                            _applicationUrl,
                             cancellationToken
                         );
                 }
                 else {
                     Log.Information("Client application redirectUris will not " +
-                        "be configured since ApplicationURL is not provided.");
+                        "be configured since ApplicationUrl is not provided.");
                 }
             }
             else if (RunMode.Full == runMode) {
-                // _applicationURL will be set up by CreateAzureResourcesAsync() call;
+                // _applicationUrl will be set up by CreateAzureResourcesAsync() call;
                 await _applicationsManager
                     .UpdateClientApplicationRedirectUrisAsync(
-                        _applicationURL,
+                        _applicationUrl,
                         cancellationToken
                     );
             } else {
@@ -1277,7 +1277,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // After we have endpoint for accessing Azure IIoT microservices we
             // will update client application to have Redirect URIs.
             // This will be performed in UpdateClientApplicationRedirectUrisAsync() call.
-            _applicationURL = aksPublicIp.DnsSettings.Fqdn;
+            _applicationUrl = aksPublicIp.DnsSettings.Fqdn;
 
             // Waiting for unfinished tasks.
             await keyVaultConfCreationTask;

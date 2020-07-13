@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         /// Get application base URL that should be used for generating RedirectUris.
         /// </summary>
         /// <returns></returns>
-        string GetApplicationURL();
+        string GetApplicationUrl();
 
         /// <summary>
         /// Get Helm chart settings.
