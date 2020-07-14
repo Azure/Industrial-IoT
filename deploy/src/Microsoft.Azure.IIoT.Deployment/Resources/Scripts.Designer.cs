@@ -73,19 +73,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///#   3. Install Helm
         ///#   4. Install stable/nginx-ingress Helm chart
         ///#   5. Install jetstack/cert-manager Helm chart
+        ///#   6. Install &lt;repo&gt;/azure-industrial-iot Helm chart
         ///#
         ///################################################################################
         ///
         ///set -e
         ///set -x
         ///
-        ///RESOURCE_GROUP=
-        ///AKS_CLUSTER=
-        ///ROLE=
-        ///LOAD_BALANCER_IP=
-        ///PUBLIC_IP_DNS_LABEL=
+        ///CWD=$(pwd)
         ///
-        ///# [rest of string was truncated]&quot;;.
+        ///RESOURCE_G [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string jumpbox {
             get {
