@@ -654,10 +654,6 @@
                                 "value": "[concat('DefaultEndpointsProtocol=https', ';EndpointSuffix=', environment().suffixes.storage, ';AccountName=', parameters('storageName'), ';AccountKey=', listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value)]"
                             },
                             {
-                                "key": "PCS_STORAGE_KEY",
-                                "value": "[listKeys(variables('storageResourceId'), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]"
-                            },
-                            {
                                 "key": "PCS_COSMOSDB_CONNSTRING",
                                 "value": "[concat('AccountEndpoint=', reference(variables('cosmosDbResourceId')).documentEndpoint, ';AccountKey=', listkeys(variables('cosmosDbResourceId'), '2016-03-19').primaryMasterKey, ';')]"
                             },
