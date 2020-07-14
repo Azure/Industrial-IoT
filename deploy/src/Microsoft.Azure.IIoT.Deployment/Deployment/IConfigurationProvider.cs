@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         public RunMode GetRunMode();
 
         /// <summary>
-        /// 
+        /// Get authentication details for Azure.
         /// </summary>
         /// <param name="azureEnvironments"></param>
         /// <returns> List of available Azure environments </returns>
