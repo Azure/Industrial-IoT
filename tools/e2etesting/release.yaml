@@ -8,15 +8,18 @@ pool:
   name: 'Azure-IoT-Manufacturing'
 
 variables:
-- name: IAIBlobUrl
-  value: https://azureiiot.blob.core.windows.net/binaries/master/
-- name: IAIVersion
-  value: 2.7.160
-- name: Region
-  value: EastUS
+- name: 'IAIBlobUrl'
+  value: 'https://azureiiot.blob.core.windows.net/binaries/master/'
+- name: 'IAIVersion'
+  value: '2.7.160'
+- name: 'Region'
+  value: 'EastUS'
+- name: 'ResourceGroupName'
+  value: 'Deployment_$(Build.BuildNumber)'
 
 steps:
 - task: PowerShell@2
+  displayName: "Download IAI binaries"
   inputs:
     targetType: 'filePath'
     filePath: $(System.DefaultWorkingDirectory)\tools\e2etesting\DownloadIAIBinaries.ps1
@@ -26,12 +29,14 @@ steps:
       -IAIVersion "$(IAIVersion)"
 
 - task: AzureKeyVault@1
+  displayName: "Retrieve KeyVault secrets"
   inputs:
     azureSubscription: 'IOT-OPC-WALLS-MSI'
     KeyVaultName: 'automatedtesting'
     SecretsFilter: '*'
 
 - task: AzurePowerShell@4
+  displayName: "Replace parameters in appSettings.json (for IAI)"
   inputs:
     azureSubscription: 'IOT-OPC-WALLS-MSI'
     azurePowerShellVersion: 'latestVersion'
@@ -40,7 +45,7 @@ steps:
     scriptArguments: > # Use this to avoid newline characters in multiline string
       -ClientId "$(IAIClientId)"
       -ClientSecret "$(IAIClientSecret)"
-      -ApplicationName "Deployment_$(Build.BuildNumber)"
+      -ApplicationName "$(ResourceGroupName)"
       -AppSettingsFilename "$(System.DefaultWorkingDirectory)\tools\e2etesting\appsettings.json"
-      -ResourceGroupName "Deployment_$(Build.BuildNumber)"
+      -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
