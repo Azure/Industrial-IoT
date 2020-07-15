@@ -7,6 +7,14 @@
 pool:
   name: 'Azure-IoT-Manufacturing'
 
+variables:
+- name: IAIBlobUrl
+  value: https://azureiiot.blob.core.windows.net/binaries/master/
+- name: IAIVersion
+  value: 2.7.160
+- name: Region
+  value: EastUS
+
 steps:
 - task: PowerShell@2
   inputs:
@@ -14,7 +22,8 @@ steps:
     filePath: $(System.DefaultWorkingDirectory)\tools\e2etesting\DownloadIAIBinaries.ps1
     workingDirectory: 
     arguments: > # Use this to avoid newline characters in multiline string
-      -IAIVersion "2.7.160"
+      -IAIBlobUrl "$(IAIBlobUrl)"
+      -IAIVersion "$(IAIVersion)"
 
 - task: AzureKeyVault@1
   inputs:
@@ -31,7 +40,7 @@ steps:
     scriptArguments: > # Use this to avoid newline characters in multiline string
       -ClientId "$(IAIClientId)"
       -ClientSecret "$(IAIClientSecret)"
-      -ApplicationName "Deployment_$(System.JobId)"
+      -ApplicationName "Deployment_$(Build.BuildNumber)"
       -AppSettingsFilename "$(System.DefaultWorkingDirectory)\tools\e2etesting\appsettings.json"
-      -ResourceGroupName "Deployment_$(System.JobId)"
-      -Region "USEast"
+      -ResourceGroupName "Deployment_$(Build.BuildNumber)"
+      -Region "$(Region)"

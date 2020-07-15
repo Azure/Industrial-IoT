@@ -48,6 +48,17 @@ if (!$AppSettingsFilename) {
     Write-Host "##vso[task.complete result=Failed]AppSettingsFilename not set, exiting."
 }
 
+Write-Host "##[group]Parameter values"
+Write-Host "TenantId: $($TenantId)"
+Write-Host "SubscriptionId: $($SubscriptionId)"
+Write-Host "ClientId: $($ClientId)"
+Write-Host "ClientSecret: $($ClientSecret)"
+Write-Host "ApplicationName: $($ApplicationName)"
+Write-Host "ResourceGroupName: $($ResourceGroupName)"
+Write-Host "Region: $($Region)"
+Write-Host "AppSettingsFilename: $($AppSettingsFilename)"
+Write-Host "##[endgroup]"
+
 $fileContent = Get-Content $AppSettingsFilename -Raw
 
 $fileContent = $fileContent -replace "{{TenantId}}", $TenantId

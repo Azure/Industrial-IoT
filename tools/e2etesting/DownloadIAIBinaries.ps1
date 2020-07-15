@@ -1,6 +1,6 @@
 param(
     [string]
-    $IAIBlobUrl = "https://azureiiot.blob.core.windows.net/binaries/master/",
+    $IAIBlobUrl,
 
     [string]
     $IAIVersion,
@@ -9,7 +9,10 @@ param(
     $IAILocalFolder
 )
 
-# $IAIVersion = "2.7.160"
+if (!$IAIBlobUrl) {
+    Write-Host "##vso[task.complete result=Failed]IAIBlobUrl not set, exiting."
+}
+
 if (!$IAILocalFolder) {
     $IAILocalFolder = $PSScriptRoot
     Write-Host "##vso[task.logissue type=warning]IAILocalFolder not set, using $($IAILocalFolder)."
