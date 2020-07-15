@@ -53,7 +53,6 @@ The following factory setups are provided for reference. A slow node changes eve
 5. Set the container options for the OPC Publisher. The `si` value sets publishing of messages to the IoT Hub to every 10 s. The option `mm` sets the messaging mode and `me` the encoding.   
 ```
 {
-    "Hostname": "publisher",
     "Cmd": [
         "publisher",
         "--pf=/appdata/pn.json",
@@ -62,25 +61,12 @@ The following factory setups are provided for reference. A slow node changes eve
         "--aa",
         "--si=10",
         "--bs=100",
-        "--fd=true",
-        "--fm=true",
         "--mm=PubSub",
         "--me=Uadp"
     ],
     "HostConfig": {
-        "PortBindings": {
-            "62222/tcp": [
-                {
-                    "HostPort": "62222"
-                }
-            ]
-        },
         "Binds": [
-            "x509certstores:/root/.dotnet/corefx/cryptography/x509stores",
             "/var/iiotedge:/appdata"
-        ],
-        "ExtraHosts": [
-            "localhost:127.0.0.1"
         ]
     }
 }
