@@ -44,7 +44,7 @@ if (!$AppSettingsFilename) {
     Write-Host "##vso[task.complete result=Failed]AppSettingsFilename not set, exiting."
 }
 
-$fileContent = Get-Content $ApplicationName -Raw
+$fileContent = Get-Content $AppSettingsFilename -Raw
 
 $fileContent = $fileContent -replace "{{TenantId}}", $TenantId
 $fileContent = $fileContent -replace "{{SubscriptionId}}", $SubscriptionId
