@@ -27,11 +27,11 @@ Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Micro
 To get started
 
 * [Deploy the platform components and Edge Gateway](deploy/readme.md) 
-* [Run through the Tutorials](tutorials/readme.md).
+* [Run through the Tutorials](tutorials/readme.md)
 
 ## Learn more
 
-* Read up on the Azure Industrial IoT platform [architecture](architecture.md) and [flow](architecture-flow.md).
+* Read up on the Azure Industrial IoT platform [architecture](architecture.md) and [flow](architecture-flow.md)
 * Read about the [Industrial IoT cloud Microservices](services/readme.md)
   * [What is OPC Twin?](services/twin.md)
   * [What is OPC Vault?](services/vault.md)
