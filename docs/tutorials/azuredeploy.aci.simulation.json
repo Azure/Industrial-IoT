@@ -11,14 +11,14 @@
         },
         "vmUsername": {
             "type": "string",
-            "defaultValue": "someadmin",
+            "defaultValue": "admin",
             "metadata": {
                 "description": "Username for the IoT Edge VM"
             }
         },
         "vmPassword": {
             "type": "securestring",
-            "defaultValue": "p@ssword1",
+            "defaultValue": "",
             "metadata": {
                 "description": "Password for IoT Edge VM"
             }
