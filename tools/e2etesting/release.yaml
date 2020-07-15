@@ -8,18 +8,17 @@ pool:
   name: 'Azure-IoT-Manufacturing'
 
 steps:
- - task: PowerShell@2
-   input:
-     targetType: 'filePath'
-     filePath: $(System.DefaultWorkingDirectory)\tools\e2etesting\DownloadIAIBinaries.ps1
-     workingDirectory: 
-     arguments: > # Use this to avoid newline characters in multiline string
-       -IAIVersion "2.7.160"
-   displayName: 'Download IAI Binaries'
+- task: PowerShell@2
+  inputs:
+    targetType: 'filePath'
+    filePath: $(System.DefaultWorkingDirectory)\tools\e2etesting\DownloadIAIBinaries.ps1
+    workingDirectory: 
+    arguments: > # Use this to avoid newline characters in multiline string
+      -IAIVersion "2.7.160"
 
-   - task: AzureKeyVault@1
-     inputs:
-       azureSubscription: 'IOT-OPC-WALLS(9dd2b4d0-3dad-4aeb-85d8-c3addb78127a)'
-       KeyVaultName: 'automatedtesting'
-       SecretsFilter: '*'
-       RunAsPreJob: false
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'IOT-OPC-WALLS(9dd2b4d0-3dad-4aeb-85d8-c3addb78127a)'
+    KeyVaultName: 'automatedtesting'
+    SecretsFilter: '*'
+
