@@ -15,17 +15,15 @@ Param(
 
 if (!$TenantId -or !$SubscriptionId) {
     Write-Host "Getting Azure Context..."
-    $context = Get-AzureRmContext
+    $context = Get-AzContext
 
     if (!$SubscriptionId) {
-        Write-Host "Getting Subscription information..."
-        $subscription = Get-AzureRmSubscription -Name $context.SubscriptionName
-        $SubscriptionId = $subscription.Id
+        $SubscriptionId = $context.Subscription.Id
         Write-Host "Using Subscription Id $($subscriptionId)."
     }
 
     if (!$TenantId) {
-        $TenantId = $context.TenantId
+        $TenantId = $context.Tenant.Id
         Write-Host "Using TenantId $($TenantId)."
     }
 }
