@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         private AuthenticationConfiguration _authConf;
         private ISubscription _subscription;
         private string _applicationName;
-        private string _applicationURL;
+        private string _applicationUrl;
         private IResourceGroup _resourceGroup;
 
         private IAuthenticationManager _authenticationManager;
@@ -511,25 +511,25 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var runMode = _configurationProvider.GetRunMode();
 
             if (RunMode.ApplicationRegistration == runMode) {
-                _applicationURL = _configurationProvider.GetApplicationURL();
+                _applicationUrl = _configurationProvider.GetApplicationUrl();
 
-                if (!string.IsNullOrEmpty(_applicationURL)) {
+                if (!string.IsNullOrEmpty(_applicationUrl)) {
                     await _applicationsManager
                         .UpdateClientApplicationRedirectUrisAsync(
-                            _applicationURL,
+                            _applicationUrl,
                             cancellationToken
                         );
                 }
                 else {
                     Log.Information("Client application redirectUris will not " +
-                        "be configured since ApplicationURL is not provided.");
+                        "be configured since ApplicationUrl is not provided.");
                 }
             }
             else if (RunMode.Full == runMode) {
-                // _applicationURL will be set up by CreateAzureResourcesAsync() call;
+                // _applicationUrl will be set up by CreateAzureResourcesAsync() call;
                 await _applicationsManager
                     .UpdateClientApplicationRedirectUrisAsync(
-                        _applicationURL,
+                        _applicationUrl,
                         cancellationToken
                     );
             } else {
@@ -544,7 +544,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         protected async Task DeleteApplicationsAsync(
             CancellationToken cancellationToken = default
         ) {
-            await _applicationsManager.DeleteApplicationsAsync(cancellationToken);
+            if (_applicationsManager != null) {
+                await _applicationsManager.DeleteApplicationsAsync(cancellationToken);
+            }
         }
 
         /// <summary>
@@ -844,7 +846,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
 
             // Create Blob container for IoT Hub storage.
-            iotHubBlobContainer= await _storageManagementClient
+            iotHubBlobContainer = await _storageManagementClient
                 .CreateBlobContainerAsync(
                     _resourceGroup,
                     storageAccountGen2,
@@ -891,7 +893,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
 
             storageAccountGen2HNSConectionString = await _storageManagementClient
-                .GetStorageAccountConectionStringAsync(
+                .GetStorageAccountDataLakeConectionStringAsync(
                     _resourceGroup,
                     storageAccountGen2HNS,
                     cancellationToken
@@ -929,7 +931,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     _resourceGroup,
                     iotHub,
                     IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
-                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_CONSUMER_GROUP_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_CONSUMER_GROUP_EVENTS_NAME,
                     cancellationToken
                 );
 
@@ -939,7 +941,27 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     _resourceGroup,
                     iotHub,
                     IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
-                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_TELEMETRY_CONSUMER_GROUP_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TELEMETRY_NAME,
+                    cancellationToken
+                );
+
+            // Create "tunnel" consumer group.
+            var iotHubEventHubCGTunnel = await _iotHubManagementClient
+                .CreateEventHubConsumerGroupAsync(
+                    _resourceGroup,
+                    iotHub,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TUNNEL_NAME,
+                    cancellationToken
+                );
+
+            // Create "onboarding" consumer group.
+            var iotHubEventHubCGOnboarding = await _iotHubManagementClient
+                .CreateEventHubConsumerGroupAsync(
+                    _resourceGroup,
+                    iotHub,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_CONSUMER_GROUP_ONBOARDING_NAME,
                     cancellationToken
                 );
 
@@ -1009,10 +1031,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
 
             // SignalR
+            var signalRServiceMode = SignalRMgmtClient.ServiceMode.Default;
             var signalRCreationTask = _signalRManagementClient
                 .CreateAsync(
                     _resourceGroup,
                     _signalRName,
+                    signalRServiceMode,
                     _defaultTagsDict,
                     cancellationToken
                 );
@@ -1059,6 +1083,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             var applicationInsightsComponent = await applicationInsightsComponentCreationTask;
 
+            var operationalInsightsWorkspaceKeys = await _operationalInsightsManagementClient
+                .GetSharedKeysAsync(_resourceGroup, operationalInsightsWorkspace, cancellationToken);
+
             // Wat for Public IP of AKS before creating IIoTEnvironment
             var aksCluster = await aksClusterCreationTask;
 
@@ -1084,6 +1111,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
                 iotHubEventHubCGEvents,
                 iotHubEventHubCGTelemetry,
+                iotHubEventHubCGTunnel,
+                iotHubEventHubCGOnboarding,
                 // Cosmos DB
                 cosmosDBAccountConnectionString,
                 // Storage Account
@@ -1102,12 +1131,18 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 serviceBusNamespaceConnectionString,
                 // SignalR
                 signalRConnectionString,
+                signalRServiceMode.Value,
                 // Key Vault
                 keyVault,
                 IIoTKeyVaultClient.DATAPROTECTION_KEY_NAME,
                 // Application Insights
                 applicationInsightsComponent,
+                // Log Analytics Workspace
+                operationalInsightsWorkspace,
+                operationalInsightsWorkspaceKeys.PrimarySharedKey,
+                // Service URL
                 serviceURL,
+                // App Registrations
                 _applicationsManager.GetServiceApplication(),
                 _applicationsManager.GetServiceApplicationSecret(),
                 _applicationsManager.GetClientApplication(),
@@ -1121,15 +1156,38 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // Create and setup a jumpbox for AKS.
 
-            // First we need to upload jumpbox setup script to Blob Container.
-            const string blobName = "jumpbox.sh";
-            var jumpboxShUri = await UploadBlobAsync(
+            // First we need to upload jumpbox setup script and YAML files that
+            // will be used by it to Blob Container.
+            const string jumpboxShBlobName = "jumpbox.sh";
+            var jumpboxShBlobUri = await UploadBlobAsync(
                 storageAccountGen2ConectionString,
                 deploymentScriptsBlobContainer.Name,
-                blobName,
+                jumpboxShBlobName,
                 Resources.Scripts.jumpbox,
                 cancellationToken
             );
+
+            const string omsAgentConfBlobName = "04_oms_agent_configmap.yaml";
+            var omsAgentConfBlobUri = await UploadBlobAsync(
+                storageAccountGen2ConectionString,
+                deploymentScriptsBlobContainer.Name,
+                omsAgentConfBlobName,
+                Resources.IIoTK8SResources._04_oms_agent_configmap,
+                cancellationToken
+            );
+
+            const string clusterIssuerBlobName = "90_letsencrypt_cluster_issuer.yaml";
+            var clusterIssuerBlobUri = await UploadBlobAsync(
+                storageAccountGen2ConectionString,
+                deploymentScriptsBlobContainer.Name,
+                clusterIssuerBlobName,
+                Resources.IIoTK8SResources._90_letsencrypt_cluster_issuer,
+                cancellationToken
+            );
+
+            // Wait a bit before starting the deployment.
+            const int millisecondsDelay = 30 * 1000;
+            await Task.Delay(millisecondsDelay);
 
             const string jumpboxPublicIpName = "jumpbox-ip";
             const string jumpboxNetworkInterfaceName = "jumpbox-networkInterface";
@@ -1142,6 +1200,17 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var aksRoleGuid = Guid.NewGuid();
             var storageRoleType = "StorageBlobDataReader";
             var storageRoleGuid = Guid.NewGuid();
+
+            var helmSettings = _configurationProvider.GetHelmSettings();
+            // azure-industrial-iot Helm chart details
+            var helmRepoUrl = helmSettings?.RepoUrl ?? HelmSettings._defaultRepoUrl;
+            var helmChartVersion = helmSettings?.ChartVersion ?? HelmSettings._defaultChartVersion;
+            // azure-industrial-iot Helm chart values
+            var aiiotImageTag = helmSettings?.ImageTag ?? HelmSettings._defaultImageTag;
+            var aiiotTenantId = _authConf.TenantId.ToString();
+            var aiiotKeyVaultUri = keyVault.Properties.VaultUri;
+            var aiiotServicesAppId = _applicationsManager.GetServiceApplication().AppId;
+            var aiiotServicesAppSecret = _applicationsManager.GetServiceApplicationSecret();
 
             var jumpboxDeploymentParameters = new Dictionary<string, object> {
                 {"nsgId", networkSecurityGroup.Id},
@@ -1158,7 +1227,22 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 {"aksRbacGuid", aksRoleGuid.ToString()},
                 {"storageBuiltInRoleType", storageRoleType},
                 {"storageRbacGuid", storageRoleGuid.ToString()},
-                {"scriptFileUris", new List<string> { jumpboxShUri } }
+                {"scriptFileUris", new List<string> {
+                    jumpboxShBlobUri,
+                    omsAgentConfBlobUri,
+                    clusterIssuerBlobUri
+                    }
+                },
+                // azure-industrial-iot Helm chart details
+                {"helmRepoUrl", helmRepoUrl},
+                {"helmChartVersion", helmChartVersion},
+                // azure-industrial-iot Helm chart values
+                {"aiiotImageTag", aiiotImageTag},
+                {"aiiotTenantId", aiiotTenantId},
+                {"aiiotKeyVaultUri", aiiotKeyVaultUri},
+                {"aiiotServicesAppId", aiiotServicesAppId},
+                {"aiiotServicesAppSecret", aiiotServicesAppSecret},
+                {"aiiotServicesHostname", aksPublicIp.DnsSettings.Fqdn}
             };
 
             var jumpboxDeployment = await _resourceManagementClient
@@ -1192,32 +1276,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            // Deploy IIoT services to AKS cluster
-            // Get KubeConfig
-            var aksKubeConfig = await _aksManagementClient
-                .GetClusterAdminCredentialsAsync(
-                    _resourceGroup,
-                    aksCluster.Name,
-                    cancellationToken
-                );
-
-            // We will wait a bit before initating resource deployment to AKS. This is so that components
-            // deployed from jumpbox have enough time to get to a functional state. We have seen issues
-            // with creation of ClusterIssuer resource if cert-manager webhooks are not yet operational.
-            const int millisecondsDelay = 30*1000;
-            await Task.Delay(millisecondsDelay);
-
-            await DeployResourcesToAksAsync(
-                aksKubeConfig,
-                iiotEnvironment,
-                aksPublicIp.DnsSettings.Fqdn,
-                cancellationToken
-            );
-
             // After we have endpoint for accessing Azure IIoT microservices we
             // will update client application to have Redirect URIs.
             // This will be performed in UpdateClientApplicationRedirectUrisAsync() call.
-            _applicationURL = aksPublicIp.DnsSettings.Fqdn;
+            _applicationUrl = aksPublicIp.DnsSettings.Fqdn;
 
             // Waiting for unfinished tasks.
             await keyVaultConfCreationTask;
@@ -1382,51 +1444,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             Log.Debug("Uploadede data to Azure Blob.");
             return blobClient.Uri.ToString();
-        }
-
-        /// <summary>
-        /// Deploy all necessary resources to AKS, including Azure IIoT components.
-        /// Returns IP address of Azure IIoT Ingress.
-        /// </summary>
-        /// <param name="kubeConfig"></param>
-        /// <param name="iiotEnvironment"></param>
-        /// <param name="defaultSslCertificate"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        protected async Task<string> DeployResourcesToAksAsync(
-            string kubeConfig,
-            IIoTEnvironment iiotEnvironment,
-            string ingressHostname = null,
-            CancellationToken cancellationToken = default
-        ) {
-            if (string.IsNullOrWhiteSpace(kubeConfig)) {
-                throw new ArgumentNullException(nameof(kubeConfig));
-            }
-            if (iiotEnvironment is null) {
-                throw new ArgumentNullException(nameof(iiotEnvironment));
-            }
-
-            var iiotK8SClient = new IIoTK8SClient(kubeConfig);
-
-            // enable scraping of Prometheus metrics
-            await iiotK8SClient.EnablePrometheusMetricsScrapingAsync(cancellationToken);
-
-            // Create a ClusterIssuer that uses Let's Encrypt 
-            await iiotK8SClient.CreateLetsencryptClusterIssuerAsync(cancellationToken);
-
-            // industrial-iot namespace
-            await iiotK8SClient.CreateIIoTNamespaceAsync(cancellationToken);
-            await iiotK8SClient.SetupIIoTServiceAccountAsync(cancellationToken);
-            await iiotK8SClient.DeployIIoTServicesAsync(iiotEnvironment.Dict, cancellationToken);
-
-            // Note that NGINX Ingress Controller is already instaled from jumpbox.
-            // So we will create Ingress for our Industrial IoT services and wait for
-            // IP address of its LoadBalancer.
-            var iiotIngress = await iiotK8SClient.CreateIIoTIngressAsync(ingressHostname, cancellationToken);
-            var iiotIngressIPAddresses = await iiotK8SClient.WaitForIngressIPAsync(iiotIngress, cancellationToken);
-            var iiotIngressIPAdress = iiotIngressIPAddresses.FirstOrDefault().Ip;
-
-            return iiotIngressIPAdress;
         }
 
         /// <summary>
