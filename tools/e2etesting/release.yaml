@@ -32,5 +32,7 @@ steps:
     scriptArguments: > # Use this to avoid newline characters in multiline string
       -ClientId "$(IAIClientId)"
       -ClientSecret "$(IAIClientSecret)"
-      -ApplicationName "$(ApplicationName)"
+      -ApplicationName "Deployment_$(System.JobId)"
       -AppSettingsFilename "appSettings.json"
+      -ResourceGroupName "Deployment_$(System.JobId)"
+      -Region "USEast"

@@ -10,7 +10,11 @@ Param(
     [string]
     $ApplicationName,
     [string]
-    $AppSettingsFilename
+    $AppSettingsFilename,
+    [string]
+    $ResourceGroupName,
+    [string]
+    $Region
 )
 
 if (!$TenantId -or !$SubscriptionId) {
@@ -51,5 +55,7 @@ $fileContent = $fileContent -replace "{{SubscriptionId}}", $SubscriptionId
 $fileContent = $fileContent -replace "{{ClientId}}", $ClientId
 $fileContent = $fileContent -replace "{{ClientSecret}}", $ClientSecret
 $fileContent = $fileContent -replace "{{ApplicationName}}", $ApplicationName
+$fileContent = $fileContent -replace "{{ResourceGroupName}}", $ResourceGroupName
+$fileContent = $fileContent -replace "{{Region}}", $Region
 
 $fileContent | Out-File $AppSettingsFilename -Force -Encoding utf8
