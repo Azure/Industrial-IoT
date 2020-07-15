@@ -29,15 +29,20 @@
 
 `Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Azure Industrial IoT solution.
 It takes care of deploying Azure infrastructure resources and microservices of Azure Industrial IoT solution.
+By default, it deploys `2.7.170` version of Azure Industrial IoT microservices.
 
 The main difference compared to the [script based deployment](howto-deploy-all-in-one.md) option is that
 from an infrastructure perspective `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
 Kubernetes Service (AKS) cluster, while `deploy.ps1` runs the entire platform as a web application.
 
-`Microsoft.Azure.IIoT.Deployment` deploys `2.7.170` version of Azure Industrial IoT microservices.
-
 Source codes of `Microsoft.Azure.IIoT.Deployment` can be found in the following directory:
 [deploy/src/Microsoft.Azure.IIoT.Deployment/](../../deploy/src/Microsoft.Azure.IIoT.Deployment/)
+
+Latest compiled binaries of `Microsoft.Azure.IIoT.Deployment` (version `2.8.5`) can be found here:
+
+* [linux-x64](https://azureiiot.blob.core.windows.net/binaries/master/2.8.5/linux-x64/Microsoft.Azure.IIoT.Deployment)
+* [osx-x64](https://azureiiot.blob.core.windows.net/binaries/master/2.8.5/osx-x64/Microsoft.Azure.IIoT.Deployment)
+* [win-x64](https://azureiiot.blob.core.windows.net/binaries/master/2.8.5/win-x64/Microsoft.Azure.IIoT.Deployment.exe)
 
 ## Running Microsoft.Azure.IIoT.Deployment
 
