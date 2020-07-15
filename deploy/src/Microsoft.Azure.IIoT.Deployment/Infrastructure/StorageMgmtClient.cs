@@ -30,6 +30,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         private const string kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT = 
             "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}";
+        private const string kSTORAGE_ACCOUNT_DATA_LAKE_CONECTION_STRING_FORMAT =
+            "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix=dfs.{2}";
 
         private readonly StorageManagementClient _storageManagementClient;
         private readonly AzureEnvironment _azureEnvironment;
@@ -386,6 +388,37 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             var storageAccountConectionString = string.Format(
                 kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT,
+                storageAccount.Name,
+                storageAccountKey.Value,
+                _azureEnvironment.StorageEndpointSuffix
+            );
+
+            return storageAccountConectionString;
+        }
+
+        /// <summary>
+        /// Get connection string for Storage Account with data lake specific endpoint suffix.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="storageAccount"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<string> GetStorageAccountDataLakeConectionStringAsync(
+            IResourceGroup resourceGroup,
+            StorageAccountInner storageAccount,
+            CancellationToken cancellationToken = default
+        ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (storageAccount is null) {
+                throw new ArgumentNullException(nameof(storageAccount));
+            }
+
+            var storageAccountKey = await GetStorageAccountKeyAsync(resourceGroup, storageAccount, cancellationToken);
+
+            var storageAccountConectionString = string.Format(
+                kSTORAGE_ACCOUNT_DATA_LAKE_CONECTION_STRING_FORMAT,
                 storageAccount.Name,
                 storageAccountKey.Value,
                 _azureEnvironment.StorageEndpointSuffix
