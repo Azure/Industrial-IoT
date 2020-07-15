@@ -26,13 +26,12 @@ steps:
   inputs:
     azureSubscription: 'IOT-OPC-WALLS-MSI'
     azurePowerShellVersion: 'latestVersion'
-    workingDirectory: '$(System.DefaultWorkingDirectory)\tools\e2etesting\'
     scriptType: filePath
     scriptPath: '$(System.DefaultWorkingDirectory)\tools\e2etesting\ReplaceVariablesInAppSettings.ps1'
     scriptArguments: > # Use this to avoid newline characters in multiline string
       -ClientId "$(IAIClientId)"
       -ClientSecret "$(IAIClientSecret)"
       -ApplicationName "Deployment_$(System.JobId)"
-      -AppSettingsFilename "appSettings.json"
+      -AppSettingsFilename "$(System.DefaultWorkingDirectory)\tools\e2etesting\appsettings.json"
       -ResourceGroupName "Deployment_$(System.JobId)"
       -Region "USEast"
