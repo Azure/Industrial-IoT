@@ -3,17 +3,15 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-trigger:
-- master
-
 pool:
-  vmImage: 'ubuntu-latest'
+  name: 'Azure-IoT-Manufacturing'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+ - task: PowerShell@2
+   input:
+     targetType: 'filePath'
+     filePath: $(System.DefaultWorkingDirectory)\tools\e2etesting\DownloadIAIBinaries.ps1
+     workingDirectory: 
+     arguments: > # Use this to avoid newline characters in multiline string
+       -IAIVersion "2.7.160"
+   displayName: 'Download IAI Binaries'
