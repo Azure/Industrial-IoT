@@ -8,17 +8,28 @@ pool:
   name: 'Azure-IoT-Manufacturing'
 
 steps:
-- task: PowerShell@2
-  inputs:
-    targetType: 'filePath'
-    filePath: $(System.DefaultWorkingDirectory)\tools\e2etesting\DownloadIAIBinaries.ps1
-    workingDirectory: 
-    arguments: > # Use this to avoid newline characters in multiline string
-      -IAIVersion "2.7.160"
+# - task: PowerShell@2
+#   inputs:
+#     targetType: 'filePath'
+#     filePath: $(System.DefaultWorkingDirectory)\tools\e2etesting\DownloadIAIBinaries.ps1
+#     workingDirectory: 
+#     arguments: > # Use this to avoid newline characters in multiline string
+#       -IAIVersion "2.7.160"
 
-- task: AzureKeyVault@1
+# - task: AzureKeyVault@1
+#   inputs:
+#     azureSubscription: 'IOT-OPC-WALLS-MSI'
+#     KeyVaultName: 'automatedtesting'
+#     SecretsFilter: '*'
+
+- task: AzurePowerShell@4
   inputs:
     azureSubscription: 'IOT-OPC-WALLS-MSI'
-    KeyVaultName: 'automatedtesting'
-    SecretsFilter: '*'
-
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(System.DefaultWorkingDirectory)\tools\e2etesting\ReplaceVariablesInAppSettings.ps1'
+    scriptArguments: > # Use this to avoid newline characters in multiline string
+      -ClientId ""
+      -ClientSecret ""
+      -ApplicationName ""
+      -AppSettingsFilename ""
