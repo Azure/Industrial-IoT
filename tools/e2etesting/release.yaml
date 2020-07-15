@@ -18,7 +18,7 @@ steps:
 
 - task: AzureKeyVault@1
   inputs:
-    azureSubscription: 'IOT-OPC-WALLS(9dd2b4d0-3dad-4aeb-85d8-c3addb78127a)'
+    azureSubscription: 'IOT-OPC-WALLS-MSI'
     KeyVaultName: 'automatedtesting'
     SecretsFilter: '*'
 
