@@ -220,13 +220,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     query += $"AND connectionState != 'Connected' ";
                 }
             }
+
             var queryResult = await _iothub.QueryDeviceTwinsAsync(query, null, pageSize, ct);
             return new DiscovererListModel {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
-                .Select(t => t.ToDiscovererRegistration())
-                .Select(s => s.ToServiceModel())
-                .ToList()
+                    .Select(t => t.ToDiscovererRegistration())
+                    .Select(s => s.ToServiceModel())
+                    .ToList()
             };
         }
 
