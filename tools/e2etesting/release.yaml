@@ -53,9 +53,9 @@ steps:
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
 
- - task: CmdLine@2
-   inputs:
-     script: '$(IAILocalFilename)'
-     workingDirectory: '$(System.DefaultWorkingDirectory)\tools\e2etesting\'
+- task: CmdLine@2
+  inputs:
+    script: '$(IAILocalFilename)'
+    workingDirectory: '$(System.DefaultWorkingDirectory)\tools\e2etesting\'
 
 
