@@ -47,7 +47,7 @@ $blobObjects = $blobObjects | ?{ $_.Name.StartsWith("master") -and $_.Name.EndsW
 if ($IAIVersion -eq "latest") {
     $blobObject = $blobObjects | sort -Descending Name | select -First 1
 } else {
-    $blobObject = $blobObject | ?{ $_.name -contains $IAIVersion } | select -First 1
+    $blobObject = $blobObjects | ?{ $_.Name.Contains($IAIVersion) } | select -First 1
 }
 
 $version = $blobObject.Name.Split("/") | select -Skip 1 -First 1
