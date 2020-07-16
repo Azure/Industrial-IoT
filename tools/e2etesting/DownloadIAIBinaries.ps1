@@ -30,15 +30,13 @@ if (!$IAIVersion) {
     $IAIVersion = "latest"
 }
 
-Import-Module Azure.Storage -Force
-
-$context = New-AzureStorageContext -StorageAccountName azureiiot -Anonymous
+$context = New-AzStorageContext -StorageAccountName $IAIStorageAccountName -Anonymous
 
 if (!$context) {
     Write-Host "##vso[task.complete result=Failed]Could not retrieve storage context with name '$($IAIStorageAccountName), exiting.'"
 }
 
-$blobObjects = Get-AzureStorageBlob -Container $IAIStorageAccountContainerName -Context $context
+$blobObjects = Get-AzStorageBlob -Container $IAIStorageAccountContainerName -Context $context
 
 if (!$blobObjects) {
     Write-Host "##vso[task.complete result=Failed]Could not get blob contents in storage account '$($IAIStorageAccountName), container '$($IAIStorageAccountContainerName)', exiting.'"
