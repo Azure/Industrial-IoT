@@ -22,6 +22,7 @@ variables:
 steps:
 - task: PowerShell@2
   displayName: "Download IAI binaries"
+  pwsh: true
   inputs:
     targetType: 'filePath'
     filePath: $(System.DefaultWorkingDirectory)\tools\e2etesting\DownloadIAIBinaries.ps1
