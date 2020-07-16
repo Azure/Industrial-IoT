@@ -2,7 +2,7 @@
 
 [Home](readme.md)
 
-The Industrial-IoT repository includes all Azure Industrial IoT platform components:
+The Industrial-IoT repository includes all Azure Industrial IoT Platform components:
 
 * **Api**
   The Api folder contains projects and nuget packages that represent the API of the included Microservices.   It also includes a handy Command Line Interface to excercise these APIs.
