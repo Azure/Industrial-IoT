@@ -10,8 +10,10 @@ pool:
   name: 'Azure-IoT-Manufacturing'
 
 variables:
-- name: 'IAIBlobUrl'
-  value: 'https://azureiiot.blob.core.windows.net/binaries/master/'
+- name: 'IAIStorageAccountName'
+  value: 'azureiiot'
+- name: 'IAIStorageAccountContainerName'
+  value: 'binaries'
 - name: 'ResourceGroupName'
   value: 'deployment$(Build.BuildNumber)'
 - name: 'ApplicationName'
@@ -25,7 +27,8 @@ steps:
     filePath: $(System.DefaultWorkingDirectory)\tools\e2etesting\DownloadIAIBinaries.ps1
     workingDirectory: 
     arguments: > # Use this to avoid newline characters in multiline string
-      -IAIBlobUrl "$(IAIBlobUrl)"
+      -IAIStorageAccountName "$(IAIStorageAccountName)"
+      -IAIStorageAccountContainerName "$(IAIStorageAccountContainerName)"
       -IAIVersion "$(IAIVersion)"
 
 - task: AzureKeyVault@1
@@ -50,9 +53,9 @@ steps:
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
 
-# - task: CmdLine@2
-#   inputs:
-#     script: 'Microsoft.Azure.IIoT.Deployment.exe'
-#     workingDirectory: '$(System.DefaultWorkingDirectory)\tools\e2etesting\'
+ - task: CmdLine@2
+   inputs:
+     script: '$(IAILocalFilename)'
+     workingDirectory: '$(System.DefaultWorkingDirectory)\tools\e2etesting\'
 
 
