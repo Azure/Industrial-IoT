@@ -4,6 +4,8 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+name: $(Date:yyyyMMdd)$(Rev:rr)
+
 pool:
   name: 'Azure-IoT-Manufacturing'
 
@@ -11,7 +13,9 @@ variables:
 - name: 'IAIBlobUrl'
   value: 'https://azureiiot.blob.core.windows.net/binaries/master/'
 - name: 'ResourceGroupName'
-  value: 'Deployment_$(Build.BuildNumber)'
+  value: 'deployment$(Build.BuildNumber)'
+- name: 'ApplicationName'
+  value: 'deployment$(Build.BuildNumber)'
 
 steps:
 - task: PowerShell@2
@@ -41,7 +45,7 @@ steps:
     scriptArguments: > # Use this to avoid newline characters in multiline string
       -ClientId "$(IAIClientId)"
       -ClientSecret "$(IAIClientSecret)"
-      -ApplicationName "$(ResourceGroupName)"
+      -ApplicationName "$(ApplicationName)"
       -AppSettingsFilename "$(System.DefaultWorkingDirectory)\tools\e2etesting\appsettings.json"
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
