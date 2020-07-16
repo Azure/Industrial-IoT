@@ -22,9 +22,9 @@ variables:
 steps:
 - task: PowerShell@2
   displayName: "Download IAI binaries"
-  pwsh: true
   inputs:
     targetType: 'filePath'
+    pwsh: true
     filePath: $(System.DefaultWorkingDirectory)\tools\e2etesting\DownloadIAIBinaries.ps1
     workingDirectory: 
     arguments: > # Use this to avoid newline characters in multiline string
