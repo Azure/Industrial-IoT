@@ -10,10 +10,6 @@ pool:
 variables:
 - name: 'IAIBlobUrl'
   value: 'https://azureiiot.blob.core.windows.net/binaries/master/'
-- name: 'IAIVersion'
-  value: '2.7.160'
-- name: 'Region'
-  value: 'EastUS'
 - name: 'ResourceGroupName'
   value: 'Deployment_$(Build.BuildNumber)'
 
@@ -49,3 +45,10 @@ steps:
       -AppSettingsFilename "$(System.DefaultWorkingDirectory)\tools\e2etesting\appsettings.json"
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
+
+# - task: CmdLine@2
+#   inputs:
+#     script: 'Microsoft.Azure.IIoT.Deployment.exe'
+#     workingDirectory: '$(System.DefaultWorkingDirectory)\tools\e2etesting\'
+
+
