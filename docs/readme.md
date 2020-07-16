@@ -10,7 +10,7 @@ Azure [Industrial IoT](industrial-iot-components.md) allows plant operators to d
 
 ### Analyze, react to events, and control equipment from anywhere
 
-Operations personnel can subscribe to and react to events on the factory floor from anywhere in the world.  The Microservices' REST APIs mirror the [OPC UA](opcua.md) services edge-side and are secured using OAUTH authentication and authorization backed by Azure Active Directory (AAD). This enables your cloud applications to browse server address spaces or read/write variables and execute methods using HTTPS and simple OPC UA JSON payloads.  
+Operations personnel can subscribe to and react to events on the factory floor from anywhere in the world. The Microservices' REST APIs mirror the [OPC UA](opcua.md) services edge-side and are secured using OAUTH authentication and authorization backed by Azure Active Directory (AAD). This enables your cloud applications to browse server address spaces or read/write variables and execute methods using HTTPS and simple OPC UA JSON payloads.  
 
 ### Simple developer experience
 
