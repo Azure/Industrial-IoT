@@ -16,7 +16,7 @@ While there are several resources needed to run the IIoT Cloud Platform, most of
 
 | IoT Hub size | Max. msg/day  |
 | ------------ | ------------: |
-| S1	         |       400,000 |
+| S1           |       400,000 |
 | S2           |     6,000,000 |
 | S3           |   300,000,000 |
 
@@ -35,12 +35,12 @@ The following factory setups are provided for reference. A slow node changes eve
 
 | Factory size | PLCs | Slow nodes | Fast nodes | Values/s/PLC | VM size | IoT Hub |
 | ------------ | ---: | ---------: | ---------: | -----------: | ------- | ------- |
-| Small	       |   25 |        250 |         50 |           75 | >= B2ms | 8 * S1  |
+| Small        |   25 |        250 |         50 |           75 | >= B2ms | 8 * S1  |
 | Medium       |   50 |      1,250 |        250 |          375 | >= B2ms | 5 * S2  |
 | Large        |   75 |      3,750 |        750 |        1,125 | >= B4ms | 1 * S3  |
 
 ## Simulation
-1. Deploy IoT Hub or [minimal configuration](https://github.com/Azure/Industrial-IoT/blob/master/deploy/templates/azuredeploy.minimum.json) to a resource group called `rg-iiot`, use the reference above to roughly size the hub
+1. Deploy IoT Hub or [minimal configuration](../../deploy/templates/azuredeploy.minimum.json) to a resource group called `rg-iiot`, use the reference above to roughly size the hub
 2. To deploy the ARM template on the Azure Portal:
 - Create the resource group and select it
 - Click on *Add* and select *Template deployment (deploy using custom templates)*
