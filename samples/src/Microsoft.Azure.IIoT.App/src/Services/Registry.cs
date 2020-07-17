@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using System.Linq;
     using System.Threading.Tasks;
     using Serilog;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     public class Registry {
 
@@ -151,6 +152,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
+            }
+            catch (ResourceInvalidStateException) {
+                pageResult.Error = "IotHubQuotaExceeded. Send and Receive operations are blocked for this hub until the next UTC day.";
             }
             catch (Exception e) {
                 var message = "Cannot get discoverers as list";

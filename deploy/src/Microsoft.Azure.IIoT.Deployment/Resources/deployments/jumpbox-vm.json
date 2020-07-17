@@ -163,6 +163,54 @@
             "metadata": {
                 "description": "Tags for resources."
             }
+        },
+        "helmRepoUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "URL of the Helm repository containing azure-industrial-iot chart"
+            }
+        },
+        "helmChartVersion": {
+            "type": "string",
+            "metadata": {
+                "description": "Version of azure-industrial-iot Helm chart to use"
+            }
+        },
+        "aiiotImageTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Docker image tag for Azure Industrial IoT components"
+            }
+        },
+        "aiiotTenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Tenant ID"
+            }
+        },
+        "aiiotKeyVaultUri": {
+            "type": "string",
+            "metadata": {
+                "description": "URI of Azure Key Vault"
+            }
+        },
+        "aiiotServicesAppId": {
+            "type": "string",
+            "metadata": {
+                "description": "AppId of AAD App Registration for ServicesApp"
+            }
+        },
+        "aiiotServicesAppSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Client secret (password) of AAD App Registration for ServicesApp"
+            }
+        },
+        "aiiotServicesHostname": {
+            "type": "string",
+            "metadata": {
+                "description": "Hostname on which components of Azure Industrial IoT solution will be available externally"
+            }
         }
     },
     "variables": {
@@ -313,7 +361,7 @@
                     "timestamp": 1000000
                 },
                 "protectedSettings": {
-                    "managedIdentity" : {},
+                    "managedIdentity": {},
                     "fileUris": "[parameters('scriptFileUris')]",
                     "commandToExecute": "[concat(
                         'sudo -H bash jumpbox.sh',
@@ -321,7 +369,15 @@
                         ' --aks_cluster ', parameters('aksClusterName'),
                         ' --role ', parameters('aksBuiltInRoleType'),
                         ' --load_balancer_ip ', parameters('aksPublicIpAddress'),
-                        ' --public_ip_dns_label ', parameters('aksPublicIpDnsLabel')
+                        ' --public_ip_dns_label ', parameters('aksPublicIpDnsLabel'),
+                        ' --helm_repo_url ', parameters('helmRepoUrl'),
+                        ' --helm_chart_version ', parameters('helmChartVersion'),
+                        ' --aiiot_image_tag ', parameters('aiiotImageTag'),
+                        ' --aiiot_tenant_id ', parameters('aiiotTenantId'),
+                        ' --aiiot_key_vault_uri ', parameters('aiiotKeyVaultUri'),
+                        ' --aiiot_services_app_id ', parameters('aiiotServicesAppId'),
+                        ' --aiiot_services_app_secret ', parameters('aiiotServicesAppSecret'),
+                        ' --aiiot_services_hostname ', parameters('aiiotServicesHostname')
                     )]"
                 }
             }
