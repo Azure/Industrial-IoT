@@ -36,6 +36,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_STORAGE_CONTAINER_DATAPROTECTION;
 
         // ADLS Gen2 Storage Account
+        // NOTE: PCS_ADLSG2_ACCOUNT, PCS_ADLSG2_ACCOUNT_KEY and PCS_ADLSG2_ENDPOINTSUFFIX are required
+        // for <2.8.5 version of components as processing of PCS_ADLSG2_CONNSTRING is not present there.
+        public readonly string PCS_ADLSG2_ACCOUNT;
+        public readonly string PCS_ADLSG2_ACCOUNT_KEY;
+        public readonly string PCS_ADLSG2_ENDPOINTSUFFIX;
         public readonly string PCS_ADLSG2_CONNSTRING;
         public readonly string PCS_ADLSG2_CONTAINER_CDM;
         public readonly string PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER;
@@ -130,6 +135,9 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string storageAccountConectionString,
             string storageAccountContainerDataprotection,
             // ADLS Gen2 Storage Account
+            string adlsAccount,
+            string adlsAccountKey,
+            string adlsEndpointSuffix,
             string adlsConectionString,
             string adlsContainerCdm,
             string adlsContainerCdmRootFolder,
@@ -176,6 +184,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_STORAGE_CONTAINER_DATAPROTECTION = storageAccountContainerDataprotection;
 
             // ADLS Gen2 Storage Account
+            // NOTE: PCS_ADLSG2_ACCOUNT, PCS_ADLSG2_ACCOUNT_KEY and PCS_ADLSG2_ENDPOINTSUFFIX are required
+            // for <2.8.5 version of components as processing of PCS_ADLSG2_CONNSTRING is not present there.
+            PCS_ADLSG2_ACCOUNT = adlsAccount;
+            PCS_ADLSG2_ACCOUNT_KEY = adlsAccountKey;
+            PCS_ADLSG2_ENDPOINTSUFFIX = adlsEndpointSuffix;
             PCS_ADLSG2_CONNSTRING = adlsConectionString;
             PCS_ADLSG2_CONTAINER_CDM = adlsContainerCdm;
             PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER = adlsContainerCdmRootFolder;
@@ -270,6 +283,9 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_STORAGE_CONTAINER_DATAPROTECTION)}", PCS_STORAGE_CONTAINER_DATAPROTECTION },
 
                 // ADLS Gen2 Storage Account
+                { $"{nameof(PCS_ADLSG2_ACCOUNT)}", PCS_ADLSG2_ACCOUNT },
+                { $"{nameof(PCS_ADLSG2_ACCOUNT_KEY)}", PCS_ADLSG2_ACCOUNT_KEY },
+                { $"{nameof(PCS_ADLSG2_ENDPOINTSUFFIX)}", PCS_ADLSG2_ENDPOINTSUFFIX },
                 { $"{nameof(PCS_ADLSG2_CONNSTRING)}", PCS_ADLSG2_CONNSTRING },
                 { $"{nameof(PCS_ADLSG2_CONTAINER_CDM)}", PCS_ADLSG2_CONTAINER_CDM },
                 { $"{nameof(PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER)}", PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER },

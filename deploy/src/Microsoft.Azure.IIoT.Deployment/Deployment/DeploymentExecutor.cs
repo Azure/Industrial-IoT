@@ -880,6 +880,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // Create Storage Account Gen2 with hierarchical namespace enabled.
             StorageAccountInner storageAccountGen2HNS;
+            StorageAccountKey storageAccountGen2HNSKey;
+            string storageAccountGen2HNSEndpointSuffix;
             string storageAccountGen2HNSConectionString;
             BlobContainerInner powerbiContainer;
 
@@ -892,6 +894,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
+            // NOTE: storageAccountGen2HNSKey and storageAccountGen2HNSEndpointSuffix are required for
+            // <2.8.5 version of components as processing of storageAccountGen2HNSConectionString is not
+            // present there.
+            storageAccountGen2HNSKey = await _storageManagementClient
+                .GetStorageAccountKeyAsync(
+                    _resourceGroup,
+                    storageAccountGen2HNS,
+                    cancellationToken
+                );
+            storageAccountGen2HNSEndpointSuffix = _storageManagementClient.GetDataLakeEndpointSuffix();
             storageAccountGen2HNSConectionString = await _storageManagementClient
                 .GetStorageAccountDataLakeConectionStringAsync(
                     _resourceGroup,
@@ -1119,6 +1131,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 storageAccountGen2ConectionString,
                 dataprotectionBlobContainer.Name,
                 // ADLS Gen2 Storage Account with enabled HNS
+                storageAccountGen2HNS.Name,
+                storageAccountGen2HNSKey.Value,
+                storageAccountGen2HNSEndpointSuffix,
                 storageAccountGen2HNSConectionString,
                 powerbiContainer.Name,
                 StorageMgmtClient.POWERBI_ROOT_FOLDER,
