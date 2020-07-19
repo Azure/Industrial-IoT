@@ -59,7 +59,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Debug("Message counter has been reset to prevent overflow. " +
                         "So far, {SentMessagesCount} messages has been sent to IoT Hub.",
                         SentMessagesCount);
-                    kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
                     SentMessagesCount = 0;
                 }
                 using (kSendingDuration.NewTimer()) {
@@ -82,7 +81,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
                 }
                 SentMessagesCount += messagesCount;
-                kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
+                var deviceTwin = await _clientAccessor.Client.GetTwinAsync();
+                kMessagesSent.WithLabels(deviceTwin?.DeviceId, deviceTwin?.ModuleId, IotHubMessageSinkGuid,
+                    IotHubMessageSinkStartTime, DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+                        CultureInfo.InvariantCulture)).Set(messagesCount);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
@@ -131,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kMessagesSent = Metrics.CreateGauge(
             "iiot_edge_publisher_messages", "Number of messages sent to IotHub",
                 new GaugeConfiguration {
-                    LabelNames = new[] { "runid", "timestamp_utc" }
+                    LabelNames = new[] {"deviceid", "module", "runid", "timestamp_utc", "publishing_timestamp_utc" }
                 });
         private static readonly Histogram kSendingDuration = Metrics.CreateHistogram(
             "iiot_edge_publisher_messages_duration", "Histogram of message sending durations");
