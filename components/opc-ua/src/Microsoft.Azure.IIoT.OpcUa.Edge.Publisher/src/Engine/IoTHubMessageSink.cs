@@ -81,8 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
                 }
                 SentMessagesCount += messagesCount;
-                var deviceTwin = await _clientAccessor.Client.GetTwinAsync();
-                kMessagesSent.WithLabels(deviceTwin?.DeviceId, deviceTwin?.ModuleId, IotHubMessageSinkGuid,
+                kMessagesSent.WithLabels(IotHubMessageSinkGuid,
                     IotHubMessageSinkStartTime, DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                         CultureInfo.InvariantCulture)).Set(messagesCount);
             }
@@ -133,7 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kMessagesSent = Metrics.CreateGauge(
             "iiot_edge_publisher_messages", "Number of messages sent to IotHub",
                 new GaugeConfiguration {
-                    LabelNames = new[] {"deviceid", "module", "runid", "timestamp_utc", "publishing_timestamp_utc" }
+                    LabelNames = new[] {"runid", "timestamp_utc", "publish_timestamp_utc" }
                 });
         private static readonly Histogram kSendingDuration = Metrics.CreateHistogram(
             "iiot_edge_publisher_messages_duration", "Histogram of message sending durations");
