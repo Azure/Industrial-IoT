@@ -59,6 +59,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Debug("Message counter has been reset to prevent overflow. " +
                         "So far, {SentMessagesCount} messages has been sent to IoT Hub.",
                         SentMessagesCount);
+                    kMessagesSent.WithLabels(IotHubMessageSinkGuid,
+                        IotHubMessageSinkStartTime, GetCurrentTimestampUtcRoundedToMins()).Set(SentMessagesCount);
                     SentMessagesCount = 0;
                 }
                 using (kSendingDuration.NewTimer()) {
@@ -82,8 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 SentMessagesCount += messagesCount;
                 kMessagesSent.WithLabels(IotHubMessageSinkGuid,
-                    IotHubMessageSinkStartTime, DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                        CultureInfo.InvariantCulture)).Set(messagesCount);
+                    IotHubMessageSinkStartTime, GetCurrentTimestampUtcRoundedToMins(15)).Set(SentMessagesCount);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
@@ -121,6 +122,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 msg.Properties.Add(CommonProperties.ContentEncoding, contentEncoding);
             }
             return msg;
+        }
+
+        /// <summary>
+        /// Gets the formatted current timestamp in UTC
+        /// </summary>
+        private string GetCurrentTimestampUtcRoundedToMins(int mins) {
+            DateTime dt = DateTime.UtcNow;
+            TimeSpan d = TimeSpan.FromMinutes(mins);
+            DateTime now = new DateTime((dt.Ticks + d.Ticks - 1) / d.Ticks * d.Ticks, dt.Kind);
+            return now.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+                    CultureInfo.InvariantCulture);
         }
 
         private const long kMessageCounterResetThreshold = long.MaxValue - 10000;

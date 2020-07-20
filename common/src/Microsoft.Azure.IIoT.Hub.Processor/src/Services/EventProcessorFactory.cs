@@ -47,6 +47,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         /// </summary>
         private class DefaultProcessor : IEventProcessor {
 
+            private long SentMessagesCount { get; set; }
+
             /// <summary>
             /// Create processor
             /// </summary>
@@ -103,8 +105,9 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                         context.CancellationToken.ThrowIfCancellationRequested();
                     }
                 }
+                SentMessagesCount += messagesCount;
                 kEventProcessorMessages.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
-                    context.PartitionId, GetCurrentTimestampUtc()).Set(messagesCount);
+                    context.PartitionId, GetCurrentTimestampUtcRoundedToMins(15)).Set(SentMessagesCount);
 
                 // Checkpoint if needed
                 if (_sw.ElapsedMilliseconds >= _interval) {
@@ -185,8 +188,11 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             /// <summary>
             /// Gets the formatted current timestamp in UTC
             /// </summary>
-            private string GetCurrentTimestampUtc() {
-                return DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+            private string GetCurrentTimestampUtcRoundedToMins(int mins) {
+                DateTime dt= DateTime.UtcNow;
+                TimeSpan d = TimeSpan.FromMinutes(mins);
+                DateTime now = new DateTime((dt.Ticks + d.Ticks - 1) / d.Ticks * d.Ticks, dt.Kind);
+                return now.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                         CultureInfo.InvariantCulture);
             }
 
