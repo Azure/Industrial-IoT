@@ -38,7 +38,7 @@ On Linux:
 ./deploy.sh
 ```
 
-See [detailed instructions](docs\deploy\howto-deploy-all-in-one.md) and [additional deployment options](docs\deploy\readme.md).
+See [detailed instructions](docs/deploy/howto-deploy-all-in-one.md) and [additional deployment options](docs/deploy/readme.md).
 
 ## Learn more
 
@@ -74,7 +74,7 @@ Alternatively, the full deployment script deploys the following additional manag
 
 ## Give feedback and report bugs
 
-Please report any security related issues by following our [security](security.md) process.
+Please report any security related issues by following our [security process](security.md).
 
 Please enter all other bugs, feature requests, documentation issues, or suggestions as [GitHub issues](https://github.com/Azure/Industrial-IoT/issues).
 
