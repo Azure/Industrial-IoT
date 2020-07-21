@@ -71,6 +71,10 @@ spec:
         resources:
 {{ toYaml .Values.deployment.microServices.onboarding.resources | indent 10 }}
 {{- end }}
+        {{- if .Values.prometheus.scrape }}
+        ports:
+        - containerPort: 9501
+        {{- end }}
         envFrom:
         - secretRef:
             name: {{ include "azure-industrial-iot.env.fullname" . }}
