@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         "So far, {SentMessagesCount} messages has been sent to IoT Hub.",
                         SentMessagesCount);
                     kMessagesSent.WithLabels(IotHubMessageSinkGuid,
-                        IotHubMessageSinkStartTime, GetCurrentTimestampUtcRoundedToMins()).Set(SentMessagesCount);
+                        IotHubMessageSinkStartTime, GetCurrentTimestampUtcRoundedToMins(15)).Set(SentMessagesCount);
                     SentMessagesCount = 0;
                 }
                 using (kSendingDuration.NewTimer()) {
