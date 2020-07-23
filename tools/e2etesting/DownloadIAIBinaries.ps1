@@ -75,4 +75,4 @@ Write-Host "Download complete"
 Write-Host "##[endgroup]"
 
 Write-Host "Settings Pipelines-Variable 'IAILocalFilename' to $($iaiLocalFilename)..."
-Write-Host "##vso[task.setvariable variable=IAILocalFilename;isOutput=true]$($iaiLocalFilename)"
+Write-Host "##vso[task.setvariable variable=IAILocalFilename]$($iaiLocalFilename)"
