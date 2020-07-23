@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         /// </summary>
         private class DefaultProcessor : IEventProcessor {
 
-            private long SentMessagesCount { get; set; }
+            private long TotalMessagesCount { get; set; }
 
             /// <summary>
             /// Create processor
@@ -105,9 +105,9 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                         context.CancellationToken.ThrowIfCancellationRequested();
                     }
                 }
-                SentMessagesCount += messagesCount;
+                TotalMessagesCount += messagesCount;
                 kEventProcessorMessages.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
-                    context.PartitionId, GetCurrentTimestampUtcRoundedToMins(15)).Set(SentMessagesCount);
+                    context.PartitionId, Floor(DateTime.UtcNow, TimeSpan.FromMinutes(180))).Set(TotalMessagesCount);
 
                 // Checkpoint if needed
                 if (_sw.ElapsedMilliseconds >= _interval) {
@@ -161,6 +161,14 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             }
 
             /// <summary>
+            /// Gets the formatted current timestamp (UTC) rounded down according to the defined interval
+            /// </summary>
+            private static string Floor(DateTime dt, TimeSpan interval) {
+                return dt.AddTicks(-(dt.Ticks % interval.Ticks)).ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
+                        CultureInfo.InvariantCulture);
+            }
+
+            /// <summary>
             /// Wraps checkpointing
             /// </summary>
             /// <param name="context"></param>
@@ -183,17 +191,6 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 finally {
                     _sw.Restart();
                 }
-            }
-
-            /// <summary>
-            /// Gets the formatted current timestamp in UTC
-            /// </summary>
-            private string GetCurrentTimestampUtcRoundedToMins(int mins) {
-                DateTime dt= DateTime.UtcNow;
-                TimeSpan d = TimeSpan.FromMinutes(mins);
-                DateTime now = new DateTime((dt.Ticks + d.Ticks - 1) / d.Ticks * d.Ticks, dt.Kind);
-                return now.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                        CultureInfo.InvariantCulture);
             }
 
             /// <summary>
