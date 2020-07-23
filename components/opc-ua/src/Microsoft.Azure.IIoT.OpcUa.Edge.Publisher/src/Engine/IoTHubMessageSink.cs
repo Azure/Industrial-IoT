@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kMessagesSent = Metrics.CreateGauge(
             "iiot_edge_publisher_messages", "Number of messages sent to IotHub",
                 new GaugeConfiguration {
-                    LabelNames = new[] {"runid", "timestamp_utc", "publish_timestamp_utc" }
+                    LabelNames = new[] { "runid", "timestamp_utc", "publish_timestamp_utc" }
                 });
         private static readonly Histogram kSendingDuration = Metrics.CreateHistogram(
             "iiot_edge_publisher_messages_duration", "Histogram of message sending durations");
