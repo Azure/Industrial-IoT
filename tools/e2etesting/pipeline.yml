@@ -68,7 +68,7 @@ jobs:
 - job: prepnewman
   displayName: "Prepare Postman-Tests"
   dependsOn: deploy
-  condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
+# condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
   pool:
     name: 'Azure-IoT-Manufacturing'
   steps:
