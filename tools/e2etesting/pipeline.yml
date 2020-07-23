@@ -68,7 +68,7 @@ jobs:
 - job: prepnewman
   displayName: "Prepare Postman-Tests"
   dependsOn: deploy
-# condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
+  condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
   pool:
     name: 'Azure-IoT-Manufacturing'
   steps:
@@ -83,6 +83,7 @@ jobs:
 - job: runnewman
   displayName: Run Newman
   dependsOn: prepnewman
+  condition: eq(dependencies.prepnewman.result, 'Succeeded')
   pool:
     name: 'Azure-IoT-Manufacturing'
   strategy:
