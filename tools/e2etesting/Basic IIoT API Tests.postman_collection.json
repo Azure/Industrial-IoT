@@ -109,9 +109,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{BaseUrl}}/registry/v2/applications",
+					"raw": "{{ServiceUrl}}/registry/v2/applications",
 					"host": [
-						"{{BaseUrl}}"
+						"{{ServiceUrl}}"
 					],
 					"path": [
 						"registry",
