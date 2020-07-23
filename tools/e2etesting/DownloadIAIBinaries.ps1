@@ -22,7 +22,7 @@ if (!$IAIStorageAccountContainerName) {
 
 if (!$IAILocalFolder) {
     $IAILocalFolder = $PSScriptRoot
-    Write-Host "##vso[task.logissue type=warning]IAILocalFolder not set, using $($IAILocalFolder)."
+    Write-Host "IAILocalFolder not set, using $($IAILocalFolder)."
 }
 
 if (!$IAIVersion) {

@@ -19,7 +19,7 @@ jobs:
     value: 'binaries'
   steps:
   - task: PowerShell@2
-    displayName: "IAI preparation"
+    displayName: "Download IAI binaries"
     inputs:
       targetType: 'filePath'
       pwsh: true

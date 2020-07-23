@@ -15,4 +15,3 @@ foreach ($collectionFile in $collectionFiles) {
 }
 
 Write-Host ("##vso[task.setVariable variable=postmanJobsMatrix;isOutput=true] {0}" -f ($jobs | ConvertTo-Json -Compress))
-
