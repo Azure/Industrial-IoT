@@ -1,5 +1,7 @@
 name: $(Date:yyyyMMdd)$(Rev:rr)
 
+trigger: none
+
 variables:
 - name: 'BasePath'
   value: '$(System.DefaultWorkingDirectory)\tools\e2etesting'
