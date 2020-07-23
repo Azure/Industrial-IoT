@@ -59,6 +59,7 @@ jobs:
       workingDirectory: '$(BasePath)'
 
   - task: PowerShell@2
+    name: parseenvfile
     displayName: "Parse .env file"
     inputs:
       targetType: 'filePath'
@@ -84,6 +85,15 @@ jobs:
   displayName: Run Newman
   dependsOn: prepnewman
   condition: eq(dependencies.prepnewman.result, 'Succeeded')
+  variables:
+    - name: 'pcs-service-url'
+      value: $[ dependencies.deploy.outputs['parseenvfile.pcs-service-url'] ]
+    - name: 'pcs-auth-tenant'
+      value: $[ dependencies.deploy.outputs['parseenvfile.pcs-auth-tenant'] ]
+    - name: 'pcs-auth-client-appid'
+      value: $[ dependencies.deploy.outputs['parseenvfile.pcs-auth-client-appid'] ]
+    - name: 'pcs-auth-client-secret'
+      value: $[ dependencies.deploy.outputs['parseenvfile.pcs-auth-client-secret'] ]
   pool:
     name: 'Azure-IoT-Manufacturing'
   strategy:
@@ -116,4 +126,4 @@ jobs:
       scriptType: 'InlineScript'
       inline: |
         Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
-        Remove-AzResourceGroup '$($ResourceGroupName)' -Force
+        Get-AzResourceGroup -Name "$($ResourceGroupName)"
