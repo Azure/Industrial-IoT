@@ -37,7 +37,7 @@ jobs:
       KeyVaultName: '$(KeyVaultName)'
       SecretsFilter: '*'
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: "Replace parameters in appSettings.json (for IAI)"
     inputs:
       azureSubscription: 'IOT-OPC-WALLS-MSI'
@@ -101,6 +101,19 @@ jobs:
       inputs:
         script: newman run "$(collectionFile)" --env-var ServiceUrl="$(pcs-service-url)" --env-var TenantId="$(pcs-auth-tenant)" --env-var ClientId="$(pcs-auth-client-appid)" --env-var ClientSecret="$(pcs-auth-client-secret)" --env-var ApplicationName="$(ApplicationName)"
 
-
-
-
+- job: cleanup
+  displayName: Cleanup
+  dependsOn: runnewman
+  condition: and(always(), eq(variables['Cleanup'], true))
+  pool:
+    name: 'Azure-IoT-Manufacturing'
+  steps:
+  - task: AzurePowerShell@5
+    displayName: "Replace parameters in appSettings.json (for IAI)"
+    inputs:
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'InlineScript'
+      inline: |
+        Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
+        Remove-AzResourceGroup '$($ResourceGroupName)' -Force
