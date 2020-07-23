@@ -99,7 +99,7 @@ jobs:
     - task: CmdLine@2
       displayName: 'Run Newman for $(collectionFile)'
       inputs:
-        script: newman run '$(collectionFile)' --env-var ServiceUrl='$(pcs-service-url)' --env-var TenantId='$(pcs-auth-tenant) --env-var ClientId='$(pcs-auth-client-appid) --env-var ClientSecret='$(pcs-auth-client-secret)' --env-var ApplicationName='$(ApplicationName)'
+        script: newman run "$(collectionFile)" --env-var ServiceUrl="$(pcs-service-url)" --env-var TenantId="$(pcs-auth-tenant)" --env-var ClientId="$(pcs-auth-client-appid)" --env-var ClientSecret="$(pcs-auth-client-secret)" --env-var ApplicationName="$(ApplicationName)"
 
 
 
