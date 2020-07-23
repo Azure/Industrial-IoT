@@ -52,11 +52,13 @@ jobs:
         -AppSettingsFilename "$(BasePath)\appsettings.json"
         -ResourceGroupName "$(ResourceGroupName)"
         -Region "$(Region)"
+
   - task: CmdLine@2
     displayName: 'Run deployment with IAI'
     inputs:
       script: '$(IAILocalFilename)'
       workingDirectory: '$(BasePath)'
+
   - task: PowerShell@2
     displayName: "Parse .env file"
     inputs:
@@ -88,7 +90,6 @@ jobs:
       displayName: 'Run Newman for $(collectionFile)'
       inputs:
         script: newman run '$(collectionFile)' --env-var ServiceUrl='$(PCS_SERVICE_URL)' --env-var TenantId='$(PCS_AUTH_TENANT) --env-var ClientId='$(PCS_AUTH_CLIENT_APPID) --env-var ClientSecret='$(PCS_AUTH_CLIENT_SECRET)' --env-var ApplicationName='$(ApplicationName)'
-        workingDirectory: '$(BasePath)'
 
 
 
