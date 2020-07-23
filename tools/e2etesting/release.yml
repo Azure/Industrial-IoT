@@ -66,7 +66,7 @@ jobs:
 
 - job: prepnewman
   displayName: "Prepare Postman-Tests"
-  dependsOn: runiai
+  dependsOn: deploy
   pool:
     name: 'Azure-IoT-Manufacturing'
   steps:
