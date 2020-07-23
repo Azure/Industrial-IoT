@@ -1,15 +1,12 @@
 name: $(Date:yyyyMMdd)$(Rev:rr)
 
 variables:
-- name: 'ResourceGroupName'
-  value: 'deployment$(Build.BuildNumber)'
-- name: 'ApplicationName'
-  value: 'deployment$(Build.BuildNumber)'
 - name: 'BasePath'
   value: '$(System.DefaultWorkingDirectory)\tools\e2etesting'
 
 jobs:
 - job: deploy
+  condition: ne(variables['UseExisting'], true)
   displayName: 'Prepare and run IAI'
   pool:
     name: 'Azure-IoT-Manufacturing'
@@ -35,7 +32,7 @@ jobs:
     displayName: 'Retrieve KeyVault secrets'
     inputs:
       azureSubscription: 'IOT-OPC-WALLS-MSI'
-      KeyVaultName: 'automatedtesting'
+      KeyVaultName: '$(KeyVaultName)'
       SecretsFilter: '*'
 
   - task: AzurePowerShell@4
@@ -66,9 +63,24 @@ jobs:
       pwsh: true
       filePath: $(BasePath)\ParseEnvFile.ps1
 
+- job: useexisting
+  condition: eq(variables['UseExisting'], true)
+  displayName: 'Read data from existing environment'
+  pool:
+    name: 'Azure-IoT-Manufacturing'
+  steps:
+  - task: AzureKeyVault@1
+    displayName: 'Retrieve KeyVault secrets'
+    inputs:
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      KeyVaultName: '$(KeyVaultName)'
+      SecretsFilter: '*'
+
 - job: prepnewman
   displayName: "Prepare Postman-Tests"
-  dependsOn: deploy
+  dependsOn:
+    - deploy
+    - useexisting
   pool:
     name: 'Azure-IoT-Manufacturing'
   steps:
@@ -83,13 +95,15 @@ jobs:
 - job: runnewman
   displayName: Run Newman
   dependsOn: prepnewman
+  pool:
+    name: 'Azure-IoT-Manufacturing'
   strategy:
     matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
   steps:
     - task: CmdLine@2
       displayName: 'Run Newman for $(collectionFile)'
       inputs:
-        script: newman run '$(collectionFile)' --env-var ServiceUrl='$(PCS_SERVICE_URL)' --env-var TenantId='$(PCS_AUTH_TENANT) --env-var ClientId='$(PCS_AUTH_CLIENT_APPID) --env-var ClientSecret='$(PCS_AUTH_CLIENT_SECRET)' --env-var ApplicationName='$(ApplicationName)'
+        script: newman run '$(collectionFile)' --env-var ServiceUrl='$(pcs-service-url)' --env-var TenantId='$(pcs-auth-tenant) --env-var ClientId='$(pcs-auth-client-appid) --env-var ClientSecret='$(pcs-auth-client-secret)' --env-var ApplicationName='$(ApplicationName)'
 
 
 
