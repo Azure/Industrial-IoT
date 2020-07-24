@@ -23,6 +23,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
     public sealed class PublisherJobService : IPublishServices<string> {
 
         /// <summary>
+        /// Read default batch trigger interval from environment.
+        /// </summary>
+        internal Lazy<TimeSpan> DefaultBatchTriggerInterval => new Lazy<TimeSpan>(() => {
+            var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL");
+            if (!string.IsNullOrEmpty(env)) {
+                if (int.TryParse(env, out var milliseconds) && milliseconds > 0) {
+                    return TimeSpan.FromMilliseconds(milliseconds);
+                }
+                if (TimeSpan.TryParse(env, out var ts) && ts > TimeSpan.Zero) {
+                    return ts;
+                }
+            }
+            return TimeSpan.FromSeconds(10); // default
+        });
+
+        /// <summary>
+        /// Read default batch trigger size from environment.
+        /// </summary>
+        internal Lazy<int> DefaultBatchSize => new Lazy<int>(() => {
+            var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE");
+            if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var size) &&
+                size > 1 && size <= 3000) {
+                return size;
+            }
+            return 50; // default
+        });
+
+        /// <summary>
         /// Create client
         /// </summary>
         /// <param name="endpoints"></param>
@@ -253,8 +281,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     },
                 },
                 Engine = new EngineConfigurationModel() {
-                    BatchSize = DefaultBatchSize,
-                    BatchTriggerInterval = DefaultBatchTriggerInterval,
+                    BatchSize = DefaultBatchSize.Value,
+                    BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0
                 },
@@ -262,37 +290,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             };
         }
 
-        /// <summary>
-        /// Read default batch trigger interval from environment.
-        /// </summary>
-        private static TimeSpan? DefaultBatchTriggerInterval {
-            get {
-                var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL");
-                if (!string.IsNullOrEmpty(env)) {
-                    if (int.TryParse(env, out var milliseconds) && milliseconds > 0) {
-                        return TimeSpan.FromMilliseconds(milliseconds);
-                    }
-                    if (TimeSpan.TryParse(env, out var ts) && ts > TimeSpan.Zero) {
-                        return ts;
-                    }
-                }
-                return TimeSpan.FromSeconds(10); // default
-            }
-        }
-
-        /// <summary>
-        /// Read default batch trigger size from environment.
-        /// </summary>
-        private static int? DefaultBatchSize {
-            get {
-                var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE");
-                if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var size) &&
-                    size > 1 && size <= 3000) {
-                    return size;
-                }
-                return 50; // default
-            }
-        }
 
         /// <summary>
         /// Add or update item in job
