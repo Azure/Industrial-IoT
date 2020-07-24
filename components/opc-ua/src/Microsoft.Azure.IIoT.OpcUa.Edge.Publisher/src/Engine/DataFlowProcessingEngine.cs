@@ -125,16 +125,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
                     async input => {
-                        var sw = Stopwatch.StartNew();
                         if (input != null && input.Any()) {
                             await _messageSink.SendAsync(input).ConfigureAwait(false);
                         }
                         else {
-                            _logger.Information("Sink block in engine {Name} triggered with empty input",
-                                Name);
-                        }
-                        if (sw.ElapsedMilliseconds > 100) {
-                            _logger.Information("Sink block took {elapsed} ms", sw.ElapsedMilliseconds);
+                            _logger.Information("Sink block in engine {Name} triggered with empty input", Name);
                         }
                     },
                     new ExecutionDataflowBlockOptions {
@@ -268,7 +263,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="state"></param>
         private void BatchTriggerIntervalTimer_Elapsed(object state) {
             _batchDataSetMessageBlock?.TriggerBatch();
-            _batchNetworkMessageBlock?.TriggerBatch();
         }
 
         /// <summary>
