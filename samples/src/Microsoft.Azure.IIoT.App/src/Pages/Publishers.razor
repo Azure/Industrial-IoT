@@ -52,8 +52,8 @@
                         @{ string MaxWorkers = CommonHelper.None;}
                         @if (publisher.Configuration != null) {
                             Capabilities = publisher.Configuration.Capabilities == null ? CommonHelper.None : publisher.Configuration.Capabilities.ToString();
-                            HeartbeatInterval = !IsTimeIntervalSet(publisher.Configuration.HeartbeatInterval) ? CommonHelper.None : publisher.Configuration.HeartbeatInterval.Value.TotalSeconds.ToString();
-                            JobCheckInterval = !IsTimeIntervalSet(publisher.Configuration.JobCheckInterval) ? CommonHelper.None : publisher.Configuration.JobCheckInterval.Value.TotalSeconds.ToString();
+                            HeartbeatInterval = !IsTimeIntervalSet(publisher.Configuration.HeartbeatInterval) ? CommonHelper.None : publisher.Configuration.HeartbeatInterval.Value.TotalSeconds.ToString() + " sec";
+                            JobCheckInterval = !IsTimeIntervalSet(publisher.Configuration.JobCheckInterval) ? CommonHelper.None : publisher.Configuration.JobCheckInterval.Value.TotalSeconds.ToString() + " sec";
                             JobOrchestratorUrl = string.IsNullOrEmpty(publisher.Configuration.JobOrchestratorUrl) ? CommonHelper.None : publisher.Configuration.JobOrchestratorUrl;
                             MaxWorkers = publisher.Configuration.MaxWorkers == null ? CommonHelper.None : publisher.Configuration.MaxWorkers.ToString();
                         }
