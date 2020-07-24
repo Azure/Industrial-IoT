@@ -12,12 +12,12 @@ namespace Microsoft.Azure.IIoT.App.Models {
             RequestedMaxWorkers = publisher?.PublisherModel?.Configuration?.MaxWorkers.ToString();
 
             TimeSpan? heartbeatInterval = publisher?.PublisherModel?.Configuration?.HeartbeatInterval;
-            if (heartbeatInterval.HasValue && heartbeatInterval >= TimeSpan.Zero) {
+            if (heartbeatInterval.HasValue && heartbeatInterval.Value >= TimeSpan.Zero) {
                 RequestedHeartbeatInterval = heartbeatInterval.Value.TotalSeconds.ToString();
             }
 
             TimeSpan? jobCheckInterval = publisher?.PublisherModel?.Configuration?.JobCheckInterval;
-            if (jobCheckInterval.HasValue && jobCheckInterval >= TimeSpan.Zero) {
+            if (jobCheckInterval.HasValue && jobCheckInterval.Value >= TimeSpan.Zero) {
                 RequestedJobCheckInterval = jobCheckInterval.Value.TotalSeconds.ToString();
             }
         }

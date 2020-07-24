@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.App.Validation {
         public PublisherInfoValidator() {
             RuleFor(p => p.RequestedMaxWorkers)
                 .Must(BePositiveInteger)
-                .WithMessage("Max workers must be an integer and cannot be less than 1.");
+                .WithMessage("Max workers must be an integer greater or equal to 1.");
 
             RuleFor(p => p.RequestedHeartbeatInterval)
                 .Must(BeAValidIntervalSec)
