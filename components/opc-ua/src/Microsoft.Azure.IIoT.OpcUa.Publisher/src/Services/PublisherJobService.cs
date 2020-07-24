@@ -229,13 +229,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                 var publishJob = (WriterGroupJobModel)_serializer.DeserializeJobConfiguration(
                     job.JobConfiguration, job.JobConfigurationType);
                 if (publishJob != null) {
-
-                    if (publishJob.Engine != null) {
-                        publishJob.Engine.BatchTriggerInterval = null;
-                        publishJob.Engine.BatchSize = 1;
-                    }
-                    publishJob.MessagingMode = MessagingMode.Samples;
-
                     return publishJob;
                 }
             }
@@ -260,8 +253,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     },
                 },
                 Engine = new EngineConfigurationModel() {
-                    BatchSize = 1,
-                    BatchTriggerInterval = null,
+                    BatchSize = 50,
+                    BatchTriggerInterval = TimeSpan.FromSeconds(10),
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0
                 },

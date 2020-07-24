@@ -20,8 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public static IWriterGroupConfig ToWriterGroupJobConfiguration(
             this WriterGroupJobModel model, string publisherId) {
             return new WriterGroupJobConfig {
-                BatchSize = 1, // 2.7 disabled: model.Engine?.BatchSize,
-                BatchTriggerInterval = null, // 2.7 disabled: model.Engine?.BatchTriggerInterval,
+                BatchSize = model.Engine?.BatchSize,
+                BatchTriggerInterval = model.Engine?.BatchTriggerInterval,
                 PublisherId = publisherId,
                 DiagnosticsInterval = model.Engine?.DiagnosticsInterval,
                 WriterGroup = model.WriterGroup,
