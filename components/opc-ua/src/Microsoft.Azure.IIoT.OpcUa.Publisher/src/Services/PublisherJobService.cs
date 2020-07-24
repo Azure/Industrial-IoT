@@ -276,7 +276,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                         return milliseconds <= 0 ? default : TimeSpan.FromMilliseconds(milliseconds);
                     }
                 }
-                return TimeSpan.FromMilliseconds(500);
+                return TimeSpan.FromSeconds(10);
             }
         }
 
