@@ -269,14 +269,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             get {
                 var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL");
                 if (!string.IsNullOrEmpty(env)) {
-                    if (TimeSpan.TryParse(env, out var ts)) {
-                        return ts <= TimeSpan.Zero ? default : ts;
+                    if (int.TryParse(env, out var milliseconds) && milliseconds > 0) {
+                        return TimeSpan.FromMilliseconds(milliseconds);
                     }
-                    if (int.TryParse(env, out var milliseconds)) {
-                        return milliseconds <= 0 ? default : TimeSpan.FromMilliseconds(milliseconds);
+                    if (TimeSpan.TryParse(env, out var ts) && ts > TimeSpan.Zero) {
+                        return ts;
                     }
                 }
-                return TimeSpan.FromSeconds(10);
+                return TimeSpan.FromSeconds(10); // default
             }
         }
 
@@ -286,10 +286,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         private static int? DefaultBatchSize {
             get {
                 var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE");
-                if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var size)) {
-                    return size <= 0 ? default : size;
+                if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var size) &&
+                    size > 1 && size <= 3000) {
+                    return size;
                 }
-                return 50;
+                return 50; // default
             }
         }
 
@@ -379,7 +380,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                 };
                 variables = dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData;
                 publishJob.WriterGroup.DataSetWriters.Add(dataSetWriter);
-
             }
 
             // Add to published variable list items
