@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -104,23 +105,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     },
                     new ExecutionDataflowBlockOptions {
+                        BoundedCapacity = _dataSetMessageBufferSize * 10,
                         CancellationToken = cancellationToken
                     });
 
                 _batchDataSetMessageBlock = new BatchBlock<DataSetMessageModel>(
                     _dataSetMessageBufferSize,
                     new GroupingDataflowBlockOptions {
+                        BoundedCapacity = _dataSetMessageBufferSize * 10,
                         CancellationToken = cancellationToken
                     });
 
                 _batchNetworkMessageBlock = new BatchBlock<NetworkMessageModel>(
                     _networkMessageBufferSize,
                     new GroupingDataflowBlockOptions {
+                        BoundedCapacity = _networkMessageBufferSize,
                         CancellationToken = cancellationToken
                     });
 
                 _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
                     async input => {
+                        var sw = Stopwatch.StartNew();
                         if (input != null && input.Any()) {
                             await _messageSink.SendAsync(input).ConfigureAwait(false);
                         }
@@ -128,8 +133,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             _logger.Information("Sink block in engine {Name} triggered with empty input",
                                 Name);
                         }
+                        if (sw.ElapsedMilliseconds > 100) {
+                            _logger.Information("Sink block took {elapsed} ms", sw.ElapsedMilliseconds);
+                        }
                     },
                     new ExecutionDataflowBlockOptions {
+                        BoundedCapacity = _networkMessageBufferSize,
                         CancellationToken = cancellationToken
                     });
                 _batchDataSetMessageBlock.LinkTo(_encodingBlock);
@@ -177,12 +186,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var diagInfo = new StringBuilder();
             diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
             diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
-            string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $"({dataChangesPerSec:0.##}/s)" : "";
+            string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $"({dataChangesPerSec:#,0.##}/s)" : "";
             diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
-            string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $"({valueChangesPerSec:0.##}/s)" : "";
+            string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $"({valueChangesPerSec:#,0.##}/s)" : "";
             diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
 
             diagInfo.AppendLine("  # Ingress BatchBlock buffer size     : {batchDataSetMessageBlockOutputCount,14:0}");
+            diagInfo.AppendLine("  # Ingress Notifications dropped      : {ingressDroppedCount,14:n0}");
             diagInfo.AppendLine("  # Encoding Block input/output size   : {encodingBlockInputCount,14:0} | {encodingBlockOutputCount:0}");
             diagInfo.AppendLine("  # Encoder Notifications processed    : {notificationsProcessedCount,14:n0}");
             diagInfo.AppendLine("  # Encoder Notifications dropped      : {notificationsDroppedCount,14:n0}");
@@ -204,6 +214,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _messageTrigger.DataChangesCount, dataChangesPerSecFormatted,
                 _messageTrigger.ValueChangesCount, valueChangesPerSecFormatted,
                 _batchDataSetMessageBlock.OutputCount,
+                _dataSetMessageDroppedCount,
                 _encodingBlock.InputCount, _encodingBlock.OutputCount,
                 _messageEncoder.NotificationsProcessedCount,
                 _messageEncoder.NotificationsDroppedCount,
@@ -257,6 +268,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="state"></param>
         private void BatchTriggerIntervalTimer_Elapsed(object state) {
             _batchDataSetMessageBlock?.TriggerBatch();
+            _batchNetworkMessageBlock?.TriggerBatch();
         }
 
         /// <summary>
@@ -272,14 +284,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
                 }
             }
-            _batchDataSetMessageBlock.Post(args);
+            var result = _batchDataSetMessageBlock.Post(args);
+            if (!result) {
+                _dataSetMessageDroppedCount++;
+            }
         }
 
         private readonly int _dataSetMessageBufferSize = 1;
         private readonly int _networkMessageBufferSize = 1;
         private readonly Timer _batchTriggerIntervalTimer;
         private readonly TimeSpan _batchTriggerInterval;
-
+        private int _dataSetMessageDroppedCount = 0;
         private readonly int _maxEncodedMessageSize = 256 * 1024;
 
         private readonly IEngineConfiguration _config;
