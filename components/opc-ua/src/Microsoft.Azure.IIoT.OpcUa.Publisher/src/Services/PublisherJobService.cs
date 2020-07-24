@@ -253,13 +253,44 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     },
                 },
                 Engine = new EngineConfigurationModel() {
-                    BatchSize = 50,
-                    BatchTriggerInterval = TimeSpan.FromSeconds(10),
+                    BatchSize = DefaultBatchSize,
+                    BatchTriggerInterval = DefaultBatchTriggerInterval,
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0
                 },
                 ConnectionString = null
             };
+        }
+
+        /// <summary>
+        /// Read default batch trigger interval from environment.
+        /// </summary>
+        private static TimeSpan? DefaultBatchTriggerInterval {
+            get {
+                var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL");
+                if (!string.IsNullOrEmpty(env)) {
+                    if (TimeSpan.TryParse(env, out var ts)) {
+                        return ts <= TimeSpan.Zero ? default : ts;
+                    }
+                    if (int.TryParse(env, out var milliseconds)) {
+                        return milliseconds <= 0 ? default : TimeSpan.FromMilliseconds(milliseconds);
+                    }
+                }
+                return TimeSpan.FromMilliseconds(500);
+            }
+        }
+
+        /// <summary>
+        /// Read default batch trigger size from environment.
+        /// </summary>
+        private static int? DefaultBatchSize {
+            get {
+                var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE");
+                if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var size)) {
+                    return size <= 0 ? default : size;
+                }
+                return 50;
+            }
         }
 
         /// <summary>
