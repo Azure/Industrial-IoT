@@ -816,6 +816,8 @@ Function New-Deployment() {
         Write-Host
         Write-Host "Registering client and services AAD applications in your tenant..."
         $aadRegisterContext = $context
+
+        # Use context of auth tenant
         if (![string]::IsNullOrEmpty($authTenantId)) {
             Connect-AzAccount -Tenant $authTenantId -ContextName AuthTenantId -Force
             $aadRegisterContext = Select-AzContext AuthTenantId
@@ -827,6 +829,9 @@ Function New-Deployment() {
         Write-Host "Client and services AAD applications registered..."
         Write-Host
         $aadAddReplyUrls = $true
+
+        # Restore AD context
+        Set-AzContext -Context $context
     }
     elseif (($script:aadConfig -is [string]) -and (Test-Path $script:aadConfig)) {
         # read configuration from file
@@ -897,6 +902,11 @@ Function New-Deployment() {
 
             Set-ResourceGroupTags -state "Complete"
             Write-Host "Deployment succeeded."
+
+            # Use context of auth tenant
+            if (![string]::IsNullOrEmpty($authTenantId)) {
+                Set-AzContext -Tenant $authTenantId
+            }
 
             #
             # Add reply urls
