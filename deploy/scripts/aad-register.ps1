@@ -395,7 +395,9 @@ Function New-ADApplications() {
         Write-Host "'$($clientDisplayName)' updated with required resource access."
 
         $replyUrls = New-Object System.Collections.Generic.List[System.String]
-        $replyUrls.Add("$($script:Webapp)signin-oidc")
+        if (![string]::IsNullOrEmpty($script:Webapp)) {
+            $replyUrls.Add("$($script:Webapp)signin-oidc")
+        }
 
         Set-AzureADApplication -ObjectId $webAadApplication.ObjectId `
             -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `

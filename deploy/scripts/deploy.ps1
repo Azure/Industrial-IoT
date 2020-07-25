@@ -38,6 +38,9 @@
  .PARAMETER aadApplicationName
     The application name to use when registering aad application.  If not set, uses applicationName
 
+ .PARAMETER authTenantId
+    Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription.
+
  .PARAMETER acrRegistryName
     An optional name of a Azure container registry to deploy containers from.
 
@@ -70,6 +73,7 @@ param(
     [string] $subscriptionId,
     [string] $accountName,
     [string] $aadApplicationName,
+    [string] $authTenantId,
     [string] $acrRegistryName,
     [string] $acrSubscriptionName,
     [string] $simulationProfile,
@@ -811,8 +815,14 @@ Function New-Deployment() {
         # register aad application
         Write-Host
         Write-Host "Registering client and services AAD applications in your tenant..."
+        $aadRegisterContext = $context
+        if ([string]::IsNullOrEmpty($authTenantId)) {
+            Connect-AzAccount -Tenant $authTenantId -ContextName AuthTenantId -Force
+            $aadRegisterContext = Select-AzContext AuthTenantId
+        }
+
         $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
-            -Context $context -Name $script:aadApplicationName
+            -Context $aadRegisterContext -Name $script:aadApplicationName
 
         Write-Host "Client and services AAD applications registered..."
         Write-Host
