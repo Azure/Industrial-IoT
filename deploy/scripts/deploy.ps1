@@ -782,7 +782,7 @@ Function New-Deployment() {
             $templateParameters.Add("edgeVmSize", $edgeVmSize)
         }
 
-        # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulatoin containers.
+        # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulation containers.
         $simulationVmSizes = Get-AzVMSize $script:resourceGroupLocation `
             | Where-Object { $availableVmNames -icontains $_.Name } `
             | Where-Object {

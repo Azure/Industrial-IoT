@@ -94,7 +94,6 @@ The deployment script tries to register 2 Azure Active Directory (AAD) applicati
 An administrator with the relevant rights to the tenant can create the AAD applications for you. The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from deploying. The output of the script is an object containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
 
 ```pwsh
-pwsh
 cd deploy/scripts
 ./aad-register.ps1 -Name <application-name> -Output aad.json
 ./deploy.ps1 -aadConfig aad.json ...
