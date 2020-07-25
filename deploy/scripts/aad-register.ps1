@@ -56,7 +56,7 @@ Function Select-Context() {
             -Environment $environmentName `
             -ErrorAction Stop
 
-        $reply = Read-Host -Prompt "Save credention in .user file [y/n]"
+        $reply = Read-Host -Prompt "Save credentials in .user file [y/n]"
         if ($reply -match "[yY]") {
             Save-AzContext -Path $contextFile -Profile $connection
         }
