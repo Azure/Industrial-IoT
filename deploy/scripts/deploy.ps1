@@ -684,6 +684,9 @@ Function New-Deployment() {
             $templateParameters.Add("serviceSiteName", $script:applicationName)
         }
     }
+
+    $StartTime = $(get-date)
+    write-host "Start time: $($StartTime.ToShortTimeString())"
     
     # Select docker images to use
     if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
@@ -842,6 +845,9 @@ Function New-Deployment() {
     if (![string]::IsNullOrEmpty($script:aadConfig.Authority)) {
         $templateParameters.Add("authorityUri", $script:aadConfig.Authority)
     }
+    if (![string]::IsNullOrEmpty($script:aadConfig.tenantId)) {
+        $templateParameters.Add("authTenantId", $script:aadConfig.tenantId)
+    }
 
     # Register current aad user to access keyvault
     if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
@@ -964,6 +970,9 @@ Function New-Deployment() {
                     $replyUrls | ForEach-Object { Write-Host $_ }
                 }
             }
+
+            $elapsedTime = $(get-date) - $StartTime
+            write-host "Elapsed time (hh:mm:ss): $($elapsedTime.ToString("hh\:mm\:ss"))" 
 
             #
             # Create environment file
