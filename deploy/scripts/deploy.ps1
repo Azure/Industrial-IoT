@@ -816,7 +816,7 @@ Function New-Deployment() {
         Write-Host
         Write-Host "Registering client and services AAD applications in your tenant..."
         $aadRegisterContext = $context
-        if ([string]::IsNullOrEmpty($authTenantId)) {
+        if (![string]::IsNullOrEmpty($authTenantId)) {
             Connect-AzAccount -Tenant $authTenantId -ContextName AuthTenantId -Force
             $aadRegisterContext = Select-AzContext AuthTenantId
         }
