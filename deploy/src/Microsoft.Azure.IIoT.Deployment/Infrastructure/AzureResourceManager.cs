@@ -209,5 +209,20 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             return subscriptions;
         }
+
+        /// <summary>
+        /// Returns the list of available Kubernetes versions available for the given Azure region.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ISet<string>> ListKubernetesVersionsAsync(
+            Region region,
+            CancellationToken cancellationToken = default
+        ) {
+            var kubernetesVersions = await _azure
+                .KubernetesClusters
+                .ListKubernetesVersionsAsync(region, cancellationToken);
+
+            return kubernetesVersions;
+        }
     }
 }
