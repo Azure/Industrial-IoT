@@ -31,10 +31,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             Subscription?.NumberOfConnectionRetries ?? 0;
 
         /// <inheritdoc/>
-        public long ValueChangesCount { get; private set; }
+        public long ValueChangesCount => _valueChangesCount;
 
         /// <inheritdoc/>
-        public long DataChangesCount { get; private set; }
+        public long DataChangesCount => _dataChangesCount;
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
@@ -282,12 +282,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
                                 " value changes were invoked by message source.",
                                 _outer.DataChangesCount, _outer.ValueChangesCount);
-                            _outer.DataChangesCount = 0;
-                            _outer.ValueChangesCount = 0;
+                            Interlocked.Exchange(ref _outer._dataChangesCount, 0);
+                            Interlocked.Exchange(ref _outer._valueChangesCount, 0);
                         }
 
-                        _outer.ValueChangesCount += message.Notifications.Count();
-                        _outer.DataChangesCount++;
+                        Interlocked.Add(ref _outer._valueChangesCount, message.Notifications.Count());
+                        Interlocked.Increment(ref _outer._dataChangesCount);
                         _outer.OnMessage?.Invoke(sender, message);
                     }
                 }
@@ -312,6 +312,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly List<DataSetWriterSubscription> _subscriptions;
         private readonly WriterGroupModel _writerGroup;
         private readonly ISubscriptionManager _subscriptionManager;
+        private long _valueChangesCount;
+        private long _dataChangesCount;
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
     }
 }
