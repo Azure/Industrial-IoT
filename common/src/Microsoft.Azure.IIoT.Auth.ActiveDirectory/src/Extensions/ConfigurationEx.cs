@@ -198,10 +198,10 @@ namespace Microsoft.Extensions.Configuration {
                 }
                 catch (Exception ex) {
                     throw new InvalidConfigurationException(
-                        "A keyvault uri was provided could not access keyvault at the address. " +
-                        "If you want to read configuration from keyvault, make sure " +
-                        "the keyvault is reachable, the required permissions are configured " +
-                        "on keyvault and authentication provider information is available. " +
+                        "Could not access the provided keyvault URI. " +
+                        "If you want to read configuration from the keyvault, make sure " +
+                        "it is reachable, the required permissions are configured " +
+                        "and authentication provider information is available. " +
                         "Sign into Visual Studio or Azure CLI on this machine and try again.", ex);
                 }
                 if (!lazyLoad) {
