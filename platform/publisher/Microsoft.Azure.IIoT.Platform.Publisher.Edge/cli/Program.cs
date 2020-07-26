@@ -18,7 +18,9 @@ namespace Microsoft.Azure.IIoT.Platform.Publisher.Edge.Cli {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -33,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Platform.Publisher.Edge.Cli {
         public static void Main(string[] args) {
 
             var inputRate = 30000; // x values total per second
-            var notifications = 1; // over x messages
+            var notifications = 1000; // over x messages
             var outputRate = 100; // x network messages per second
             var mode = MessagingMode.Samples;
             var encoding = MessageEncoding.Json;
@@ -327,11 +329,15 @@ Options:
             }
 
             public async Task SendAsync(IEnumerable<NetworkMessageModel> messages) {
-                var numberOfMessages = messages.Count();
-                if (_outputRate < 1000) {
-                    await Task.Delay(1000 / _outputRate / numberOfMessages); // Sending rate
+                var numberOfMessages = 0;
+                foreach (var message in messages) {
+                    numberOfMessages++;
+                    // await File.WriteAllTextAsync("test.json", Encoding.UTF8.GetString(message.Body));
+                    Interlocked.Increment(ref _sentMessagesCount);
                 }
-                Interlocked.Add(ref _sentMessagesCount, numberOfMessages);
+                if (_outputRate < 1000) {
+                    await Task.Delay((1000 / _outputRate) * numberOfMessages); // Sending rate
+                }
             }
 
 
