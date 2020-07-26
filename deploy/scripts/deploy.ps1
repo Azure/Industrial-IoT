@@ -879,6 +879,10 @@ Function New-Deployment() {
     if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
         $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.UserPrincipalId)
     }
+    else {
+        $userPrincipalId = (Get-AzADUser -UserPrincipalName (Get-AzContext).Account.Id).Id
+        $templateParameters.Add("keyVaultPrincipalId", $userPrincipalId)
+    }
 
     # Add IoTSuiteType tag. This tag will be applied for all resources.
     $tags = @{"IoTSuiteType" = "AzureIndustrialIoT-$($script:version)-PS1"}
