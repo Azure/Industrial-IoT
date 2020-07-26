@@ -89,15 +89,34 @@ It is possible that the name of the website is already in use. If you run into t
 
 ### Azure Active Directory Registration
 
-The deployment script tries to register 2 Azure Active Directory (AAD) applications representing the client and the platform (service). Depending on your rights to the selected AAD tenant, this might fail.
+The deployment script tries to register two Azure Active Directory (AAD) applications representing the client and the platform (service). This requires [Global Administrator, Application Administrator or Cloud Application Administrator](https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent) rights.
 
-An administrator with the relevant rights to the tenant can create the AAD applications for you. The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from deploying. The output of the script is an object containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
-
-```pwsh
-cd deploy/scripts
-./aad-register.ps1 -Name <application-name> -Output aad.json
-./deploy.ps1 -aadConfig aad.json ...
+If the deployment fails or if you see the following error when trying to sign-in, see further below for more options:
 ```
+Need admin approval
+<APPLICATION> needs permission to access resources in your organization that only an admin can grant. Please ask an admin to grant permission to this app before you can use it.
+```
+
+Option 1: Create your own AAD tenant, in which you are the admin
+  - Azure Portal: Create a resource -> Azure Active Directory  
+  - After about 1 min, click the link to manage the directory, or click on your account profile at the top right of the Azure Portal -> Switch directory, then select it from *All Directories*
+  - Copy the Tenant ID
+
+Start the deployment
+
+   ```pwsh
+   ./deploy -authTenantId <NEW_AAD_TENANT_ID>`
+   ```
+
+Option 2: Ask your AAD admin to grant tenant-wide admin consent for your application, there might be a process or tool for this in your enterprise environment
+
+Option 3: An AAD admin can create the AAD applications for you. The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
+
+   ```pwsh
+   cd deploy/scripts
+   ./aad-register.ps1 -Name <application-name> -Output aad.json
+   ./deploy.ps1 -aadConfig aad.json
+   ```
 
 ### Missing Script dependencies
 
@@ -142,13 +161,12 @@ Using the `deploy/scripts/deploy.ps1` script you can deploy several configuratio
 
 To support these scenarios, the `deploy.ps1` takes the following parameters:
 
-```bash
-
+```
  .PARAMETER type
-    The type of deployment (local, services, app, all)
+    The type of deployment (local, services, app, all).
 
  .PARAMETER resourceGroupName
-    Can be the name of an existing or a new resource group
+    Can be the name of an existing or a new resource group.
 
  .PARAMETER resourceGroupLocation
     Optional, a resource group location. If specified, will try to create a new resource group in this location.
@@ -172,13 +190,16 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
     A previously created az context to be used as authentication.
 
  .PARAMETER aadApplicationName
-    The application name to use when registering aad application. If not set, uses applicationName
+    The application name to use when registering aad application. If not set, uses applicationName.
+
+ .PARAMETER authTenantId
+    Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription.
 
  .PARAMETER acrRegistryName
     An optional name of a Azure container registry to deploy containers from.
 
  .PARAMETER acrSubscriptionName
-    The subscription of the container registry if differemt from the specified subscription.
+    The subscription of the container registry if different from the specified subscription.
 ```
 
 ## Next steps

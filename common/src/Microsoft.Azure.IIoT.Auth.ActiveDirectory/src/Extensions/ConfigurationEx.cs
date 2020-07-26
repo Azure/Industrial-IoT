@@ -197,6 +197,7 @@ namespace Microsoft.Extensions.Configuration {
                     await provider.ValidateReadSecretAsync(keyVaultUrlVarName);
                 }
                 catch (Exception ex) {
+                    // https://github.com/Azure/Industrial-IoT/tree/master/deploy/helm/azure-industrial-iot#load-configuration-from-azure-key-vault
                     throw new InvalidConfigurationException(
                         "Could not access the provided keyvault URI. " +
                         "If you want to read configuration from the keyvault, make sure " +
