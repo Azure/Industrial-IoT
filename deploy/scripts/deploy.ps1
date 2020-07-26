@@ -536,7 +536,8 @@ Function New-Password() {
 #******************************************************************************
 Function Get-EnvironmentVariables() {
     Param(
-        $deployment
+        $deployment,
+        $authTenantId
     )
     if (![string]::IsNullOrEmpty($script:resourceGroupName)) {
         Write-Output "PCS_RESOURCE_GROUP=$($script:resourceGroupName)"
@@ -549,10 +550,18 @@ Function Get-EnvironmentVariables() {
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_AUTH_PUBLIC_CLIENT_APPID=$($var)"
     }
+
     $var = $deployment.Outputs["tenantId"].Value
+    if (![string]::IsNullOrEmpty($authTenantId)) {
+        if (![string]::IsNullOrEmpty($var)) {
+            Write-Output "PCS_MSI_TENANT=$($var)"
+        }
+        $var = $authTenantId
+    }
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_AUTH_TENANT=$($var)"
     }
+
     $var = $deployment.Outputs["tsiUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_TSI_URL=$($var)"
@@ -606,7 +615,7 @@ Function Write-EnvironmentVariables() {
         if ($writeFile) {
             if (Test-Path $ENVVARS) {
                 $prompt = "Overwrite existing .env file in $rootDir? [y/n]"
-                if ( $reply -match "[yY]" ) {
+                if ($reply -match "[yY]") {
                     Remove-Item $ENVVARS -Force
                 }
                 else {
@@ -629,7 +638,7 @@ Function Write-EnvironmentVariables() {
         Write-Host
     }
     else {
-        Get-EnvironmentVariables $deployment | Out-Default
+        Get-EnvironmentVariables $deployment $authTenantId | Out-Default
     }
 }
 
