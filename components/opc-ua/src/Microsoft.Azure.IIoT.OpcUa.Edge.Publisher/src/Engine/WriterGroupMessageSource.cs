@@ -31,10 +31,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             Subscription?.NumberOfConnectionRetries ?? 0;
 
         /// <inheritdoc/>
-        public int ValueChangesCount { get; private set; } = 0;
+        public long ValueChangesCount { get; private set; }
 
         /// <inheritdoc/>
-        public int DataChangesCount { get; private set; } = 0;
+        public long DataChangesCount { get; private set; }
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
@@ -312,6 +312,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly List<DataSetWriterSubscription> _subscriptions;
         private readonly WriterGroupModel _writerGroup;
         private readonly ISubscriptionManager _subscriptionManager;
-        private const int kNumberOfInvokedMessagesResetThreshold = int.MaxValue - 10000;
+        private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
     }
 }
