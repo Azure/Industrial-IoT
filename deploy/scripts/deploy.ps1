@@ -536,8 +536,7 @@ Function New-Password() {
 #******************************************************************************
 Function Get-EnvironmentVariables() {
     Param(
-        $deployment,
-        $authTenantId
+        $deployment
     )
     if (![string]::IsNullOrEmpty($script:resourceGroupName)) {
         Write-Output "PCS_RESOURCE_GROUP=$($script:resourceGroupName)"
@@ -552,7 +551,8 @@ Function Get-EnvironmentVariables() {
     }
 
     $var = $deployment.Outputs["tenantId"].Value
-    if (![string]::IsNullOrEmpty($authTenantId)) {
+    $authTenantId = $script:aadConfig.TenantId
+    if($var -ne $authTenantId) {
         if (![string]::IsNullOrEmpty($var)) {
             Write-Output "PCS_MSI_TENANT=$($var)"
         }
@@ -638,7 +638,7 @@ Function Write-EnvironmentVariables() {
         Write-Host
     }
     else {
-        Get-EnvironmentVariables $deployment $authTenantId | Out-Default
+        Get-EnvironmentVariables $deployment | Out-Default
     }
 }
 
