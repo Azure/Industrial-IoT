@@ -87,16 +87,16 @@ Ensure you use a short and simple resource group name. The name is used also to 
 
 It is possible that the name of the website is already in use. If you run into this error, you need to use a different application name.
 
-### Azure Active Directory Registration
+### Azure Active Directory registration
 
-The deployment script tries to register two Azure Active Directory (AAD) applications representing the client and the platform (service). This requires [Global Administrator, Application Administrator or Cloud Application Administrator](https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent) rights.
+The deployment script tries to register three AAD applications representing the web app, the client and the platform (service). This requires [Global Administrator, Application Administrator or Cloud Application Administrator](https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent) rights.
 
-If the deployment fails or if you see the following error when trying to sign-in, see further below for more options:
+If the deployment fails or if you see the following error when trying to sign-in, see further below for options:
 
-> Need admin approval  
+> **Need admin approval**  
 > \<APPLICATION\> needs permission to access resources in your organization that only an admin can grant. Please ask an admin to grant permission to this app before you can use it.
 
-Option 1: Create your own AAD tenant, in which you are the admin
+**Option 1**: Create your own AAD tenant, in which you are the admin
   - Azure Portal: Create a resource -> Azure Active Directory  
   - After about 1 min, click the link to manage the directory, or click on your account profile at the top right of the Azure Portal -> Switch directory, then select it from *All Directories*
   - Copy the Tenant ID
@@ -107,9 +107,9 @@ Start the deployment
    ./deploy -authTenantId <NEW_AAD_TENANT_ID>`
    ```
 
-Option 2: Ask your AAD admin to grant tenant-wide admin consent for your application, there might be a process or tool for this in your enterprise environment
+**Option 2**: Ask your AAD admin to grant tenant-wide admin consent for your application, there might be a process or tool for this in your enterprise environment
 
-Option 3: An AAD admin can create the AAD applications for you. The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
+**Option 3**: An AAD admin can create the AAD applications for you. The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
 
    ```pwsh
    cd deploy/scripts
@@ -121,7 +121,7 @@ Option 3: An AAD admin can create the AAD applications for you. The `deploy/scri
 
 On **Windows**, the script uses Powershell, which comes with Windows. The deploy batch file uses it to install all required modules.
 
-In case you run into issues, e.g. because you want to use pscore, run following two commands in PowerShell as Administrator. For more info on AzureAD and Az modules, refer [here](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps).
+In case you run into issues, e.g. because you want to use pscore, run following two commands in PowerShell as Administrator. See more information about [AzureAD and Az modules](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps).
 
    ```pwsh
    Install-Module -Name Az -AllowClobber
