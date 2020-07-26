@@ -53,6 +53,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 .ToList();
             try {
                 var messagesCount = messageObjects.Count;
+                if (messagesCount == 0) {
+                    return;
+                }
                 _logger.Verbose("Sending {count} objects to IoT Hub...", messagesCount);
 
                 if (SentMessagesCount > kMessageCounterResetThreshold) {

@@ -36,6 +36,15 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         }
 
         /// <summary>
+        /// Get scheduler
+        /// </summary>
+        /// <param name="maxDegreeOfParallelism"></param>
+        /// <returns></returns>
+        public static TaskScheduler Get(int maxDegreeOfParallelism = 1) {
+            return new LimitingTaskScheduler(maxDegreeOfParallelism);
+        }
+
+        /// <summary>
         /// Scheduler implementation
         /// </summary>
         private class LimitingTaskScheduler : TaskScheduler {
@@ -192,4 +201,5 @@ namespace Microsoft.Azure.IIoT.Tasks.Default {
         private static readonly TaskFactory kFactory;
         private static readonly LimitingTaskScheduler kScheduler;
     }
+
 }

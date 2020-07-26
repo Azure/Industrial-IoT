@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     return ts;
                 }
             }
-            return TimeSpan.FromSeconds(10); // default
+            return TimeSpan.FromMilliseconds(500); // default
         });
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                 size > 1 && size <= 3000) {
                 return size;
             }
-            return 50; // default
+            return 1000; // default
         });
 
         /// <summary>
