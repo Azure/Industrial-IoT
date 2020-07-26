@@ -92,10 +92,9 @@ It is possible that the name of the website is already in use. If you run into t
 The deployment script tries to register two Azure Active Directory (AAD) applications representing the client and the platform (service). This requires [Global Administrator, Application Administrator or Cloud Application Administrator](https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent) rights.
 
 If the deployment fails or if you see the following error when trying to sign-in, see further below for more options:
-```
-Need admin approval
-<APPLICATION> needs permission to access resources in your organization that only an admin can grant. Please ask an admin to grant permission to this app before you can use it.
-```
+
+> Need admin approval  
+> \<APPLICATION\> needs permission to access resources in your organization that only an admin can grant. Please ask an admin to grant permission to this app before you can use it.
 
 Option 1: Create your own AAD tenant, in which you are the admin
   - Azure Portal: Create a resource -> Azure Active Directory  
