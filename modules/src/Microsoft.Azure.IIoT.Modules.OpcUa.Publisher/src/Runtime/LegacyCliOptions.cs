@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         "event setting of nodes without a skip first event setting.",
                         (bool b) => this[LegacyCliConfigKeys.SkipFirstDefault] = b.ToString() },
 
-                    { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." + 
+                    { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." +
                         "Default is 'true', for legacy compatibility use 'false'",
                         (bool b) => this[LegacyCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
@@ -211,7 +211,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 #pragma warning restore 67
 
         /// <summary>
-        /// The batch size 
+        /// The batch size
         /// </summary>
         public int? BatchSize => LegacyCliModel.BatchSize;
 
@@ -226,7 +226,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public TimeSpan? DiagnosticsInterval => LegacyCliModel.DiagnosticsInterval;
 
         /// <summary>
-        /// the Maximum (IoT D2C) message size 
+        /// the Maximum (IoT D2C) message size
         /// </summary>
         public int? MaxMessageSize => LegacyCliModel.MaxMessageSize;
 
@@ -283,8 +283,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 TrustedPeerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcTrustedCertStorePath, "pki/trusted"),
                 RejectedCertificateStorePath = GetValueOrDefault(LegacyCliConfigKeys.OpcRejectedCertStorePath, "pki/rejected"),
                 TrustedIssuerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcIssuerCertStorePath, "pki/issuer"),
-                BatchSize = GetValueOrDefault(LegacyCliConfigKeys.BatchSize, 50),
-                BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
+                BatchSize = GetValueOrDefault(LegacyCliConfigKeys.BatchSize, 1000),
+                BatchTriggerInterval = GetValueOrDefault(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromMilliseconds(500)),
                 MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.MaxMessageSize, 0),
                 ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1)
             };
