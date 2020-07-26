@@ -819,6 +819,7 @@ Function New-Deployment() {
 
         # Use context of auth tenant
         if (![string]::IsNullOrEmpty($authTenantId)) {
+            Write-Host "Connecting to AAD tenant $($authTenantId)..."
             Connect-AzAccount -Tenant $authTenantId -ContextName AuthTenantId -Force
             $aadRegisterContext = Select-AzContext AuthTenantId
         }
@@ -831,6 +832,7 @@ Function New-Deployment() {
         $aadAddReplyUrls = $true
 
         # Restore AD context
+        Write-Host "Switching to AAD tenant $($context.Tenant)..."
         Set-AzContext -Context $context
     }
     elseif (($script:aadConfig -is [string]) -and (Test-Path $script:aadConfig)) {
@@ -905,7 +907,8 @@ Function New-Deployment() {
 
             # Use context of auth tenant
             if (![string]::IsNullOrEmpty($authTenantId)) {
-                Set-AzContext -Tenant $authTenantId
+                Write-Host "Switching to AAD tenant $($authTenantId)..."
+                Select-AzContext AuthTenantId
             }
 
             #
