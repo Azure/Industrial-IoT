@@ -43,7 +43,7 @@
                 <label>Port Probe Timeout</label>
                 <input @bind="@InputData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortProbeTimeout ?? "")" />
             </div>
-            <div class="form-group">
+            <div class="form-group @IdleTimeView">
                 <label>Idle Time Between Scans</label>
                 <input @bind="@InputData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveIdleTimeBetweenScans ?? "")" />
             </div>
