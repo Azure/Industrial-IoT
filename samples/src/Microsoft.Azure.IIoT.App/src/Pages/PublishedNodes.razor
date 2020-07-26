@@ -1,17 +1,17 @@
 ﻿@*------------------------------------------------------------
-     Copyright (c) Microsoft Corporation.  All rights reserved.
-     Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
-    ------------------------------------------------------------*@
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
 
 @page "/PublishedNodes/{page}/{endpointId}"
 @page "/PublishedNodes/{page}/{endpointId}/{discovererId}/{applicationId}/{supervisorId}"
 
 @using Microsoft.AspNetCore.Components;
-@using Microsoft.Azure.IIoT.App.Services
-@using Microsoft.Azure.IIoT.App.Components.Pager
-@using Microsoft.Azure.IIoT.App.Components.ErrorMessage
-@using Microsoft.Azure.IIoT.App.Common
-@using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
+@using Microsoft.Azure.IIoT.App.Services;
+@using Microsoft.Azure.IIoT.App.Components.Pager;
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage;
+@using Microsoft.Azure.IIoT.App.Common;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
 
 
 @inject NavigationManager NavigationManager
@@ -88,7 +88,7 @@
                         <span>@node.Value</span>
                         <span>(@node.DataType)</span>
                         <span>(@node.Status -</span>
-                        <span>@node.Timestamp)</span>
+                        <span> @node.Timestamp)</span>
                     </div>
                 </td>
                 <td></td>

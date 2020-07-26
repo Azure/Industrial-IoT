@@ -19,17 +19,12 @@
                     <option value="@ActionType.Nothing">Select an action</option>
                     @if (NodeData.NodeClass == NodeClass.Variable)
                     {
-                        if (NodeData.AccessLevel == NodeAccessLevel.CurrentRead)
+                        if (NodeData.AccessLevel.HasFlag(NodeAccessLevel.CurrentRead))
                         {
                             <option value="@ActionType.Read">@ActionType.Read.ToString()</option>
                         }
-                        if (NodeData.AccessLevel == NodeAccessLevel.CurrentWrite)
+                        if (NodeData.AccessLevel.HasFlag(NodeAccessLevel.CurrentWrite))
                         {
-                            <option value="@ActionType.Write">@ActionType.Write.ToString()</option>
-                        }
-                        if (NodeData.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite))
-                        {
-                            <option value="@ActionType.Read">@ActionType.Read.ToString()</option>
                             <option value="@ActionType.Write">@ActionType.Write.ToString()</option>
                         }
                     }

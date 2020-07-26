@@ -46,15 +46,18 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Dps idscope </summary>
         public const string PCS_DPS_IDSCOPE =
             "PCS_DPS_IDSCOPE";
-        /// <summary> datalake account </summary>
+        /// <summary> ADLS Gen2 account </summary>
         public const string PCS_ADLSG2_ACCOUNT =
             "PCS_ADLSG2_ACCOUNT";
-        /// <summary> datalake account key </summary>
+        /// <summary> ADLS Gen2 account key </summary>
         public const string PCS_ADLSG2_ACCOUNT_KEY =
             "PCS_ADLSG2_ACCOUNT_KEY";
         /// <summary> ADLS Gen2 endpoint suffix </summary>
         public const string PCS_ADLSG2_ENDPOINTSUFFIX =
             "PCS_ADLSG2_ENDPOINTSUFFIX";
+        /// <summary> ADLS Gen2 connection string </summary>
+        public const string PCS_ADLSG2_CONNSTRING =
+            "PCS_ADLSG2_CONNSTRING";
         /// <summary> CDM storage drive </summary>
         public const string PCS_CDM_DRIVE_NAME =
             "PCS_ADLSG2_CONTAINER_CDM";

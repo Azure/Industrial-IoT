@@ -19,10 +19,10 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
     * [Azure Service Bus Namespace](#azure-service-bus-namespace)
     * [Azure Key Vault](#azure-key-vault)
       * [Data Protection Key (Optional)](#data-protection-key-optional)
-    * [Azure SignalR](#azure-signalr)
   * [Recommended Azure Resources](#recommended-azure-resources)
     * [Azure AAD App Registration](#azure-aad-app-registration)
   * [Optional Azure Resources](#optional-azure-resources)
+    * [Azure SignalR](#azure-signalr)
     * [Azure Application Insights](#azure-application-insights)
     * [Azure Log Analytics Workspace](#azure-log-analytics-workspace)
     * [Azure Data Lake Storage Gen2](#azure-data-lake-storage-gen2)
@@ -279,29 +279,6 @@ to `dataprotection`.
 
 Configuration parameter for data protection key in Azure Key Vault is `azure.keyVault.key.dataProtection`.
 
-#### Azure SignalR
-
-You would need to have an existing Azure SignalR instance. Here are the steps to
-[create an Azure SignalR Service instance](https://docs.microsoft.com/azure/azure-signalr/signalr-quickstart-azure-functions-csharp#create-an-azure-signalr-service-instance).
-When creating Azure SignalR instance please set `Service mode` to `Default` in step 3.
-
-You can also create an Azure SignalR service using [Azure CLI](https://docs.microsoft.com/cli/azure/signalr?view=azure-cli-latest#az-signalr-create):
-
-```bash
-$ az signalr create --name MySignalR --resource-group MyResourceGroup --sku Standard_S1 --unit-count 1 --service-mode Default
-```
-
-The following details of Azure SignalR service would be required:
-
-* Connection string. This can be obtained with the following command:
-
-  ```bash
-  $ az signalr key list --name MySignalR --resource-group MyResourceGroup --query "primaryConnectionString"
-  "Endpoint=https://mysignalr.service.signalr.net;AccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;Version=1.0;"
-  ```
-
-* Service Mode. Use the value that you set when creating Azure SignalR instance.
-
 ### Recommended Azure Resources
 
 #### Azure AAD App Registration
@@ -408,6 +385,30 @@ The following details of **ClientsApp** AAD App Registrations will be required:
 
 ### Optional Azure Resources
 
+#### Azure SignalR
+
+If you want to enable deployment of Engineering Tool as part of deployment of the chart then you will need
+to have an existing Azure SignalR instance. Here are the steps to
+[create an Azure SignalR Service instance](https://docs.microsoft.com/azure/azure-signalr/signalr-quickstart-azure-functions-csharp#create-an-azure-signalr-service-instance).
+When creating Azure SignalR instance please set `Service mode` to `Default` in step 3.
+
+You can also create an Azure SignalR service using [Azure CLI](https://docs.microsoft.com/cli/azure/signalr?view=azure-cli-latest#az-signalr-create):
+
+```bash
+$ az signalr create --name MySignalR --resource-group MyResourceGroup --sku Standard_S1 --unit-count 1 --service-mode Default
+```
+
+The following details of Azure SignalR service would be required:
+
+* Connection string. This can be obtained with the following command:
+
+  ```bash
+  $ az signalr key list --name MySignalR --resource-group MyResourceGroup --query "primaryConnectionString"
+  "Endpoint=https://mysignalr.service.signalr.net;AccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;Version=1.0;"
+  ```
+
+* Service Mode. Use the value that you set when creating Azure SignalR instance.
+
 #### Azure Application Insights
 
 You can enable delivery of telemetry and logs from components of Azure Industrial IoT to an Azure
@@ -507,7 +508,7 @@ The following details of the Azure Storage account would be required:
 
 ## Installing the Chart
 
-This chart installs `2.7.105` version of components by default.
+This chart installs `2.8.2` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -548,8 +549,6 @@ $ helm install azure-iiot azure-iiot/azure-industrial-iot --namespace azure-iiot
   --set azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx=<EventHubTelemetryUxConsumerGroup> \
   --set azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<ServiceBusNamespaceConnectionString> \
   --set azure.keyVault.uri=<KeyVaultURI> \
-  --set azure.signalR.connectionString=<SignalRConnectionString> \
-  --set azure.signalR.serviceMode=<SignalRServiceMode> \
   --set azure.auth.required=false
 ```
 
@@ -573,7 +572,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.7.105`           |
+| `image.tag`         | Image tag                                | `2.8.2`             |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
@@ -956,10 +955,6 @@ azure:
 
   keyVault:
     uri: <KeyVaultURI>
-
-  signalR:
-    connectionString: <SignalRConnectionString>
-    serviceMode: <SignalRServiceMode>
 
   auth:
     required: false

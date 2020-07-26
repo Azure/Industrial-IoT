@@ -1,0 +1,21 @@
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
+
+@{
+    string alt = Status;
+
+    switch (Status) {
+        case "Connected":
+            <i class="material-icons" title="@alt" aria-label="@alt">link</i>
+            break;
+        case "Disconnected":
+        case "(None)":
+            <i class="material-icons" title="@alt" aria-label="@alt">link_off</i>
+            break;
+        default:
+            <i class="material-icons" title="@alt" aria-label="@alt">help</i>
+            break;
+    }
+}
