@@ -909,7 +909,7 @@ Function New-Deployment() {
         try {
             if (![string]::IsNullOrEmpty($adminUser) -and ![string]::IsNullOrEmpty($adminPassword)) {
                 Write-Host
-                Write-Host "The following User and Password can be used to log into deployed VM's:"
+                Write-Host "The following username and password can be used to log into the deployed VMs:"
                 Write-Host
                 Write-Host $adminUser
                 Write-Host $adminPassword

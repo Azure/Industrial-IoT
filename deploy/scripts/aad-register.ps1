@@ -229,7 +229,7 @@ Function New-ADApplications() {
                 ObjectId = $userObjectId
             }
             $user = New-Object psobject -Property $properties
-            $useFallBackUser = true
+            $useFallBackUser = $true
         }
 
         # Get or create native client application
@@ -427,7 +427,7 @@ Function New-ADApplications() {
 
         # Reset ObjectId to use the one from the default tenant.
         if($useFallBackUser) {
-            $user.ObjectId = null
+            $user.ObjectId = $null
         }
 
         return [pscustomobject] @{
