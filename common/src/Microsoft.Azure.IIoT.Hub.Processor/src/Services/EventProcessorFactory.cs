@@ -333,7 +333,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                         LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id", "status" }
                     });
             private static readonly Gauge kOldEvent = Metrics
-                .CreateGauge("iiot_event_processor_old_events", "number of messages skipped due to being old",
+                .CreateGauge("iiot_event_processor_skipped_events", "number of messages skipped due to being old",
                     new GaugeConfiguration {
                         LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id" }
                     });
