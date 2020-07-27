@@ -23,6 +23,9 @@
  .PARAMETER subscriptionName
     Or alternatively the subscription name.
 
+ .PARAMETER tenantId
+    The Azure Active Directory tenant tied to the subscription(s).
+
  .PARAMETER accountName
     The account name to use if not to use default.
 
@@ -69,8 +72,9 @@ param(
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
-    [string] $subscriptionName,
     [string] $subscriptionId,
+    [string] $subscriptionName,
+    [string] $tenantId,
     [string] $accountName,
     [string] $aadApplicationName,
     [string] $authTenantId,
@@ -126,23 +130,31 @@ Function Select-Context() {
         }
     }
 
+    $tenantIdArg = @{}
+    
+    if (![string]::IsNullOrEmpty($script:tenantId)) {
+        $tenantIdArg = @{
+            TenantId = $script:tenantId
+        }
+    }
+
     $subscriptionDetails = $null
     if (![string]::IsNullOrEmpty($script:subscriptionName)) {
-        $subscriptionDetails = Get-AzSubscription -SubscriptionName $script:subscriptionName
+        $subscriptionDetails = Get-AzSubscription -SubscriptionName $script:subscriptionName @tenantIdArg
         if (!$subscriptionDetails -and !$script:interactive) {
             throw "Invalid subscription provided with -subscriptionName"
         }
     }
 
     if (!$subscriptionDetails -and ![string]::IsNullOrEmpty($script:subscriptionId)) {
-        $subscriptionDetails = Get-AzSubscription -SubscriptionId $script:subscriptionId
+        $subscriptionDetails = Get-AzSubscription -SubscriptionId $script:subscriptionId @tenantIdArg
         if (!$subscriptionDetails -and !$script:interactive) {
             throw "Invalid subscription provided with -subscriptionId"
         }
     }
 
     if (!$subscriptionDetails) {
-        $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq "Enabled" }
+        $subscriptions = Get-AzSubscription @tenantIdArg | Where-Object { $_.State -eq "Enabled" }
 
         if ($subscriptions.Count -eq 0) {
             throw "No active subscriptions found - exiting."
@@ -175,7 +187,7 @@ Function Select-Context() {
             }
             $subscriptionId = $subscriptions[$option - 1].Id
         }
-        $subscriptionDetails = Get-AzSubscription -SubscriptionId $subscriptionId
+        $subscriptionDetails = Get-AzSubscription -SubscriptionId $subscriptionId @tenantIdArg
         if (!$subscriptionDetails) {
             throw "Failed to get details for subscription $($subscriptionId)"
         }
@@ -268,7 +280,7 @@ Function Select-RegistryCredentials() {
 
     if (![string]::IsNullOrEmpty($script:acrSubscriptionName) `
             -and ($context.Subscription.Name -ne $script:acrSubscriptionName)) {
-        $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName
+        $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName @tenantIdArg
         if (!$acrSubscription) {
             Write-Warning "Specified container registry subscription $($script:acrSubscriptionName) not found."
         }
