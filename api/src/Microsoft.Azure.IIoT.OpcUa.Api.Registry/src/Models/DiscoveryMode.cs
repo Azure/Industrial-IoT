@@ -19,12 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         Off,
 
         /// <summary>
-        /// Look for DiscoveryUrls
-        /// </summary>
-        [EnumMember]
-        Url,
-
-        /// <summary>
         /// Find and use local discovery server on edge device
         /// </summary>
         [EnumMember]
@@ -46,6 +40,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Perform a deep scan of all networks.
         /// </summary>
         [EnumMember]
-        Scan
+        Scan,
+
+        /// <summary>
+        /// Look for DiscoveryUrls
+        /// </summary>
+        [EnumMember]
+        Url
     }
 }
