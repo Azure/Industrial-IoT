@@ -930,7 +930,7 @@ Function New-Deployment() {
             $replyUrls = New-Object System.Collections.Generic.List[System.String]
             if ($aadAddReplyUrls) {
                 # retrieve existing urls
-                $app = Get-AzADApplication -ObjectId $aadConfig.WebAppPrincipalId
+                $app = Get-AzADApplication -ApplicationId $aadConfig.WebAppId
                 if ($app.ReplyUrls -and ($app.ReplyUrls.Count -ne 0)) {
                     $replyUrls = $app.ReplyUrls;
                 }
@@ -941,10 +941,10 @@ Function New-Deployment() {
                 Write-Host "The deployed application can be found at:"
                 Write-Host $website
                 Write-Host
-                if (![string]::IsNullOrEmpty($script:aadConfig.WebAppPrincipalId)) {
+                if (![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
                     if (!$aadAddReplyUrls) {
                         Write-Host "To be able to use the application you need to register the following"
-                        Write-Host "reply url for AAD application $($script:aadConfig.WebAppPrincipalId):"
+                        Write-Host "reply url for AAD application $($script:aadConfig.WebAppId):"
                         Write-Host "$($website)/signin-oidc"
                     }
                     else {
@@ -953,7 +953,7 @@ Function New-Deployment() {
                 }
             }
 
-            if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.WebAppPrincipalId)) {
+            if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
                 $serviceUri = $deployment.Outputs["serviceUrl"].Value
 
                 if (![string]::IsNullOrEmpty($serviceUri)) {
@@ -981,7 +981,7 @@ Function New-Deployment() {
             if ($aadAddReplyUrls) {
                 # register reply urls in web application registration
                 Write-Host
-                Write-Host "Registering reply urls for $($aadConfig.WebAppPrincipalId)..."
+                Write-Host "Registering reply urls for $($aadConfig.WebAppId)..."
 
                 try {
                     # assumes we are still connected
@@ -992,17 +992,17 @@ Function New-Deployment() {
                     #    & (Join-Path $script:ScriptDir "aad-update.ps1") `
                     #        $context `
                     #        -ObjectId $aadConfig.WebAppPrincipalId -ReplyUrls $replyUrls
-                    Update-AzADApplication -ObjectId $aadConfig.WebAppPrincipalId -ReplyUrl $replyUrls `
+                    Update-AzADApplication -ApplicationId $aadConfig.WebAppId -ReplyUrl $replyUrls `
                         | Out-Null
 
-                    Write-Host "Reply urls registered in web app $($aadConfig.WebAppPrincipalId)..."
+                    Write-Host "Reply urls registered in web app $($aadConfig.WebAppId)..."
                     Write-Host
                 }
                 catch {
                     Write-Host $_.Exception.Message
                     Write-Host
                     Write-Host "Registering reply urls failed. Please add the following urls to"
-                    Write-Host "the web app '$($aadConfig.WebAppPrincipalId)' manually:"
+                    Write-Host "the web app '$($aadConfig.WebAppId)' manually:"
                     $replyUrls | ForEach-Object { Write-Host $_ }
                 }
             }
