@@ -113,7 +113,7 @@ Start the deployment
 
    ```pwsh
    cd deploy/scripts
-   ./aad-register.ps1 -Name <application-name> -Output aad.json
+   ./aad-register.ps1 -Name <application-name> -ReplyUrl https://<name>.azurewebsites.net/ -Output aad.json
    ./deploy.ps1 -aadConfig aad.json
    ```
 

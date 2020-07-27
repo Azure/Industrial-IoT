@@ -8,6 +8,9 @@
  .PARAMETER Name
     The Name prefix under which to register the applications
 
+ .PARAMETER ReplyUrl
+    A reply_url to register, e.g. https://<NAME>.azurewebsites.net/
+
  .PARAMETER Context
     A previously created az context (optional)
 #>
@@ -15,6 +18,7 @@
 param(
     [Parameter(Mandatory = $true)] [string] $Name,
     $Context,
+    [string] $ReplyUrl = $null,
     [string] $Output = $null,
     [string] $EnvironmentName = "AzureCloud"
 )
@@ -390,8 +394,13 @@ Function New-ADApplications() {
         }
         Write-Host "'$($clientDisplayName)' updated with required resource access."
 
+        $replyUrls = New-Object System.Collections.Generic.List[System.String]
+        if (![string]::IsNullOrEmpty($script:ReplyUrl)) {
+            $replyUrls.Add("$($script:ReplyUrl)signin-oidc")
+        }
+
         Set-AzureADApplication -ObjectId $webAadApplication.ObjectId `
-            -RequiredResourceAccess $requiredResourcesAccess `
+            -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `
             -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True | Out-Null
         # Grant permissions to web app
         try {
