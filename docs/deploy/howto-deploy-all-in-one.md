@@ -14,7 +14,7 @@ This article explains how to deploy the Azure Industrial IoT Platform and Simula
 
 The platform and simulation can also be deployed using the deploy script.
 
-1. If you have not done so yet, clone the GitHub repository. To clone the repository you need git. If you do not have git installed on your system, follow the instructions for [Linux or Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), or [Windows](https://gitforwindows.org/) to install it. Open a new command prompt or terminal and run:
+1. If you have not done so yet, clone the GitHub repository. To clone the repository, you need git. If you do not have git installed on your system, follow the instructions for [Linux or Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), or [Windows](https://gitforwindows.org/) to install it. Open a new command prompt or terminal and run:
 
    ```bash
    git clone https://github.com/Azure/Industrial-IoT
@@ -35,7 +35,7 @@ The platform and simulation can also be deployed using the deploy script.
      ./deploy.sh
      ```
 
-   > Additional supported parameters can be found [here](#deployment-script-options).
+   > See [additional supported parameters](#deployment-script-options).
 
 3. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription. It also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication, this requires the [Application Developer](https://docs.microsoft.com/en-us/azure/active-directory/users-groups-roles/directory-assign-admin-roles#application-developer) role.
    Deployment will take several minutes. An example of what you'd see once the solution is successfully deployed:
@@ -52,7 +52,7 @@ The platform and simulation can also be deployed using the deploy script.
 
 ### Execution Policy
 
-If you receive a message that the execution policy not being set you can set the execution policy when starting the powershell session:
+If you receive a message that the execution policy not being set, you can set the execution policy when starting the PowerShell session:
 
 ```pwsh
 pwsh -ExecutionPolicy Unrestricted
@@ -117,6 +117,8 @@ Start the deployment
    ./deploy.ps1 -aadConfig aad.json
    ```
 
+If you need additional reply URLs, you may add them manually as this does not require AAD admin rights.
+
 ### Missing Script dependencies
 
 On **Windows**, the script uses Powershell, which comes with Windows. The deploy batch file uses it to install all required modules.
@@ -132,11 +134,11 @@ On non - **Ubuntu** Linux or in case you run into issues follow the guidance in 
 
 ### Deploy from Linux other than Ubuntu
 
-To install all necessary requirements on other Linux distributions follow these steps:
+To install all necessary requirements on other Linux distributions, follow these steps:
 
 1. First [install PowerShell](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-linux?view=powershell-7). Follow the instructions for your Linux distribution.
 
-2. Open powershell using `sudo pwsh`.
+2. Open PowerShell using `sudo pwsh`.
 
 3. Install the required Azure Az Powershell module:
 
