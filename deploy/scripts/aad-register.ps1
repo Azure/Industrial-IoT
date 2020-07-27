@@ -219,6 +219,17 @@ Function New-ADApplications() {
             Write-Verbose "Getting user principal for $($creds.Account.Id) failed."
         }
 
+        if(!$user) {
+            $accountId = (Get-AzContext).Account.Id.Replace("@", "_")
+            $userObjectId = (Get-AzureADUser -Filter "startswith(userPrincipalName, '$($accountId)')").ObjectId
+
+            $properties = @{
+                UserPrincipalName = $accountId
+                ObjectId = $userObjectId
+            }
+            $user = New-Object psobject -Property $properties
+        }
+
         # Get or create native client application
         $clientDisplayName = $applicationName + "-client"
         $clientAadApplication = Get-AzureADApplication -Filter "DisplayName eq '$clientDisplayName'"
