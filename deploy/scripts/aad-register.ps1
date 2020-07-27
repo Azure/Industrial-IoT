@@ -219,6 +219,7 @@ Function New-ADApplications() {
             Write-Verbose "Getting user principal for $($creds.Account.Id) failed."
         }
 
+        # May be using authTenantId, get ObjectId from external account.  
         if(!$user) {
             $accountId = (Get-AzContext).Account.Id.Replace("@", "_")
             $userObjectId = (Get-AzureADUser -Filter "startswith(userPrincipalName, '$($accountId)')").ObjectId
@@ -228,6 +229,7 @@ Function New-ADApplications() {
                 ObjectId = $userObjectId
             }
             $user = New-Object psobject -Property $properties
+            $useFallBackUser = true
         }
 
         # Get or create native client application
@@ -422,6 +424,11 @@ Function New-ADApplications() {
             Write-Host "$($_.Exception) - this must be done manually with appropriate permissions."
         }
         Write-Host "'$($webDisplayName)' updated with required resource access."
+
+        # Reset ObjectId to use the one from the default tenant.
+        if($useFallBackUser) {
+            $user.ObjectId = null
+        }
 
         return [pscustomobject] @{
             TenantId           = $creds.Tenant.Id
