@@ -96,7 +96,19 @@ If the deployment fails or if you see the following error when trying to sign-in
 > **Need admin approval**  
 > \<APPLICATION\> needs permission to access resources in your organization that only an admin can grant. Please ask an admin to grant permission to this app before you can use it.
 
-**Option 1**: Create your own AAD tenant, in which you are the admin
+**Option 1** (recommended for production): Ask your AAD admin to grant tenant-wide admin consent for your application, there might be a process or tool for this in your enterprise environment.
+
+**Option 2** (recommended for production): An AAD admin can create the AAD applications for you. The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
+
+   ```pwsh
+   cd deploy/scripts
+   ./aad-register.ps1 -Name <application-name> -ReplyUrl https://<name>.azurewebsites.net/ -Output aad.json
+   ./deploy.ps1 -aadConfig aad.json
+   ```
+
+If you need additional reply URLs, you may add them manually as this does not require AAD admin rights.
+
+**Option 3** (recommended as PoC): Create your [own AAD tenant](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-create-new-tenant), in which you are the admin
   - Azure Portal: Create a resource -> Azure Active Directory  
   - After about 1 min, click the link to manage the directory, or click on your account profile at the top right of the Azure Portal -> Switch directory, then select it from *All Directories*
   - Copy the Tenant ID
@@ -106,18 +118,6 @@ Start the deployment
    ```pwsh
    ./deploy -authTenantId <NEW_AAD_TENANT_ID>`
    ```
-
-**Option 2**: Ask your AAD admin to grant tenant-wide admin consent for your application, there might be a process or tool for this in your enterprise environment
-
-**Option 3**: An AAD admin can create the AAD applications for you. The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
-
-   ```pwsh
-   cd deploy/scripts
-   ./aad-register.ps1 -Name <application-name> -ReplyUrl https://<name>.azurewebsites.net/ -Output aad.json
-   ./deploy.ps1 -aadConfig aad.json
-   ```
-
-If you need additional reply URLs, you may add them manually as this does not require AAD admin rights.
 
 ### Missing Script dependencies
 
