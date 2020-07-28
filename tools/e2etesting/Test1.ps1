@@ -1,1 +1,1 @@
-Write-Host "##vso[task.setvariable variable=My-Variable;issecret=true;isOutput=true]Hello World"
+Write-Host "##vso[task.setvariable variable=MyVariable;issecret=true;isOutput=true]Hello World"
