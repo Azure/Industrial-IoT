@@ -21,24 +21,24 @@ We have also built an application running on Azure that lets you access the serv
 ## Getting started
 
 Clone the repository:
-```bash
-git clone https://github.com/Azure/Industrial-IoT
-cd Industrial-IoT
-```
+  ```bash
+  git clone https://github.com/Azure/Industrial-IoT
+  cd Industrial-IoT
+  ```
 
 Start the deployment
 
 On Windows:
-```pwsh
-.\deploy
-```
+  ```pwsh
+  .\deploy
+  ```
 
 On Linux:
-```bash
-./deploy.sh
-```
+  ```bash
+  ./deploy.sh
+  ```
 
-See [detailed instructions](docs/deploy/howto-deploy-all-in-one.md) and [additional deployment options](docs/deploy/readme.md).
+For more information, see the [detailed instructions](docs/deploy/howto-deploy-all-in-one.md) and [additional deployment options](docs/deploy/readme.md).
 
 ## Learn more
 
