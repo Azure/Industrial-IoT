@@ -2,6 +2,9 @@ name: $(Date:yyyyMMdd)$(Rev:rr)
 
 trigger: none
 
+pool:
+  name: 'Azure-IoT-Manufacturing'
+
 steps:
   - task: AzurePowerShell@5
     displayName: "Testing"
