@@ -77,7 +77,7 @@ jobs:
       scriptType: filePath
       scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
       scriptArguments: >
-        -KeyVaultUrl "$(IAIClientId)"
+        -KeyVaultUrl "$(PCS_KEYVAULT_URL)"
         -ResourceGroupName "$(ResourceGroupName)"
 
 - job: prepnewman
