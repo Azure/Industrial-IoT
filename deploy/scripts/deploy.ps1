@@ -23,6 +23,9 @@
  .PARAMETER subscriptionName
     Or alternatively the subscription name.
 
+ .PARAMETER tenantId
+    The Azure Active Directory tenant tied to the subscription(s).
+
  .PARAMETER accountName
     The account name to use if not to use default.
 
@@ -37,6 +40,9 @@
 
  .PARAMETER aadApplicationName
     The application name to use when registering aad application.  If not set, uses applicationName
+
+ .PARAMETER authTenantId
+    Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription.
 
  .PARAMETER acrRegistryName
     An optional name of a Azure container registry to deploy containers from.
@@ -66,10 +72,12 @@ param(
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
-    [string] $subscriptionName,
     [string] $subscriptionId,
+    [string] $subscriptionName,
+    [string] $tenantId,
     [string] $accountName,
     [string] $aadApplicationName,
+    [string] $authTenantId,
     [string] $acrRegistryName,
     [string] $acrSubscriptionName,
     [string] $simulationProfile,
@@ -122,23 +130,31 @@ Function Select-Context() {
         }
     }
 
+    $tenantIdArg = @{}
+    
+    if (![string]::IsNullOrEmpty($script:tenantId)) {
+        $tenantIdArg = @{
+            TenantId = $script:tenantId
+        }
+    }
+
     $subscriptionDetails = $null
     if (![string]::IsNullOrEmpty($script:subscriptionName)) {
-        $subscriptionDetails = Get-AzSubscription -SubscriptionName $script:subscriptionName
+        $subscriptionDetails = Get-AzSubscription -SubscriptionName $script:subscriptionName @tenantIdArg
         if (!$subscriptionDetails -and !$script:interactive) {
             throw "Invalid subscription provided with -subscriptionName"
         }
     }
 
     if (!$subscriptionDetails -and ![string]::IsNullOrEmpty($script:subscriptionId)) {
-        $subscriptionDetails = Get-AzSubscription -SubscriptionId $script:subscriptionId
+        $subscriptionDetails = Get-AzSubscription -SubscriptionId $script:subscriptionId @tenantIdArg
         if (!$subscriptionDetails -and !$script:interactive) {
             throw "Invalid subscription provided with -subscriptionId"
         }
     }
 
     if (!$subscriptionDetails) {
-        $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq "Enabled" }
+        $subscriptions = Get-AzSubscription @tenantIdArg | Where-Object { $_.State -eq "Enabled" }
 
         if ($subscriptions.Count -eq 0) {
             throw "No active subscriptions found - exiting."
@@ -171,7 +187,7 @@ Function Select-Context() {
             }
             $subscriptionId = $subscriptions[$option - 1].Id
         }
-        $subscriptionDetails = Get-AzSubscription -SubscriptionId $subscriptionId
+        $subscriptionDetails = Get-AzSubscription -SubscriptionId $subscriptionId @tenantIdArg
         if (!$subscriptionDetails) {
             throw "Failed to get details for subscription $($subscriptionId)"
         }
@@ -264,7 +280,7 @@ Function Select-RegistryCredentials() {
 
     if (![string]::IsNullOrEmpty($script:acrSubscriptionName) `
             -and ($context.Subscription.Name -ne $script:acrSubscriptionName)) {
-        $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName
+        $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName @tenantIdArg
         if (!$acrSubscription) {
             Write-Warning "Specified container registry subscription $($script:acrSubscriptionName) not found."
         }
@@ -545,10 +561,19 @@ Function Get-EnvironmentVariables() {
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_AUTH_PUBLIC_CLIENT_APPID=$($var)"
     }
+
     $var = $deployment.Outputs["tenantId"].Value
+    $authTenantId = $script:aadConfig.TenantId
+    if($var -ne $authTenantId) {
+        if (![string]::IsNullOrEmpty($var)) {
+            Write-Output "PCS_MSI_TENANT=$($var)"
+        }
+        $var = $authTenantId
+    }
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_AUTH_TENANT=$($var)"
     }
+
     $var = $deployment.Outputs["tsiUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_TSI_URL=$($var)"
@@ -602,7 +627,7 @@ Function Write-EnvironmentVariables() {
         if ($writeFile) {
             if (Test-Path $ENVVARS) {
                 $prompt = "Overwrite existing .env file in $rootDir? [y/n]"
-                if ( $reply -match "[yY]" ) {
+                if ($reply -match "[yY]") {
                     Remove-Item $ENVVARS -Force
                 }
                 else {
@@ -684,6 +709,9 @@ Function New-Deployment() {
             $templateParameters.Add("serviceSiteName", $script:applicationName)
         }
     }
+
+    $StartTime = $(get-date)
+    write-host "Start time: $($StartTime.ToShortTimeString())"
     
     # Select docker images to use
     if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
@@ -775,7 +803,7 @@ Function New-Deployment() {
             $templateParameters.Add("edgeVmSize", $edgeVmSize)
         }
 
-        # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulatoin containers.
+        # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulation containers.
         $simulationVmSizes = Get-AzVMSize $script:resourceGroupLocation `
             | Where-Object { $availableVmNames -icontains $_.Name } `
             | Where-Object {
@@ -808,12 +836,25 @@ Function New-Deployment() {
         # register aad application
         Write-Host
         Write-Host "Registering client and services AAD applications in your tenant..."
+        $aadRegisterContext = $context
+
+        # Use context of auth tenant
+        if (![string]::IsNullOrEmpty($authTenantId)) {
+            Write-Host "Connecting to AAD tenant $($authTenantId)..."
+            Connect-AzAccount -Tenant $authTenantId -ContextName AuthTenantId -Force
+            $aadRegisterContext = Select-AzContext AuthTenantId
+        }
+
         $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
-            -Context $context -Name $script:aadApplicationName
+            -Context $aadRegisterContext -Name $script:aadApplicationName
 
         Write-Host "Client and services AAD applications registered..."
         Write-Host
         $aadAddReplyUrls = $true
+
+        # Restore AD context
+        Write-Host "Switching to AAD tenant $($context.Tenant)..."
+        Set-AzContext -Context $context
     }
     elseif (($script:aadConfig -is [string]) -and (Test-Path $script:aadConfig)) {
         # read configuration from file
@@ -842,10 +883,17 @@ Function New-Deployment() {
     if (![string]::IsNullOrEmpty($script:aadConfig.Authority)) {
         $templateParameters.Add("authorityUri", $script:aadConfig.Authority)
     }
+    if (![string]::IsNullOrEmpty($script:aadConfig.tenantId)) {
+        $templateParameters.Add("authTenantId", $script:aadConfig.tenantId)
+    }
 
     # Register current aad user to access keyvault
     if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
         $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.UserPrincipalId)
+    }
+    else {
+        $userPrincipalId = (Get-AzADUser -UserPrincipalName (Get-AzContext).Account.Id).Id
+        $templateParameters.Add("keyVaultPrincipalId", $userPrincipalId)
     }
 
     # Add IoTSuiteType tag. This tag will be applied for all resources.
@@ -861,7 +909,7 @@ Function New-Deployment() {
         try {
             if (![string]::IsNullOrEmpty($adminUser) -and ![string]::IsNullOrEmpty($adminPassword)) {
                 Write-Host
-                Write-Host "The following User and Password can be used to log into deployed VM's:"
+                Write-Host "The following username and password can be used to log into the deployed VMs:"
                 Write-Host
                 Write-Host $adminUser
                 Write-Host $adminPassword
@@ -882,13 +930,19 @@ Function New-Deployment() {
             Set-ResourceGroupTags -state "Complete"
             Write-Host "Deployment succeeded."
 
+            # Use context of auth tenant
+            if (![string]::IsNullOrEmpty($authTenantId)) {
+                Write-Host "Switching to AAD tenant $($authTenantId)..."
+                Select-AzContext AuthTenantId
+            }
+
             #
             # Add reply urls
             #
             $replyUrls = New-Object System.Collections.Generic.List[System.String]
             if ($aadAddReplyUrls) {
                 # retrieve existing urls
-                $app = Get-AzADApplication -ObjectId $aadConfig.WebAppPrincipalId
+                $app = Get-AzADApplication -ApplicationId $aadConfig.WebAppId
                 if ($app.ReplyUrls -and ($app.ReplyUrls.Count -ne 0)) {
                     $replyUrls = $app.ReplyUrls;
                 }
@@ -899,10 +953,10 @@ Function New-Deployment() {
                 Write-Host "The deployed application can be found at:"
                 Write-Host $website
                 Write-Host
-                if (![string]::IsNullOrEmpty($script:aadConfig.WebAppPrincipalId)) {
+                if (![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
                     if (!$aadAddReplyUrls) {
                         Write-Host "To be able to use the application you need to register the following"
-                        Write-Host "reply url for AAD application $($script:aadConfig.WebAppPrincipalId):"
+                        Write-Host "reply url for AAD application $($script:aadConfig.WebAppId):"
                         Write-Host "$($website)/signin-oidc"
                     }
                     else {
@@ -911,7 +965,7 @@ Function New-Deployment() {
                 }
             }
 
-            if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.WebAppPrincipalId)) {
+            if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
                 $serviceUri = $deployment.Outputs["serviceUrl"].Value
 
                 if (![string]::IsNullOrEmpty($serviceUri)) {
@@ -939,7 +993,7 @@ Function New-Deployment() {
             if ($aadAddReplyUrls) {
                 # register reply urls in web application registration
                 Write-Host
-                Write-Host "Registering reply urls for $($aadConfig.WebAppPrincipalId)..."
+                Write-Host "Registering reply urls for $($aadConfig.WebAppId)..."
 
                 try {
                     # assumes we are still connected
@@ -950,20 +1004,23 @@ Function New-Deployment() {
                     #    & (Join-Path $script:ScriptDir "aad-update.ps1") `
                     #        $context `
                     #        -ObjectId $aadConfig.WebAppPrincipalId -ReplyUrls $replyUrls
-                    Update-AzADApplication -ObjectId $aadConfig.WebAppPrincipalId -ReplyUrl $replyUrls `
+                    Update-AzADApplication -ApplicationId $aadConfig.WebAppId -ReplyUrl $replyUrls `
                         | Out-Null
 
-                    Write-Host "Reply urls registered in web app $($aadConfig.WebAppPrincipalId)..."
+                    Write-Host "Reply urls registered in web app $($aadConfig.WebAppId)..."
                     Write-Host
                 }
                 catch {
                     Write-Host $_.Exception.Message
                     Write-Host
                     Write-Host "Registering reply urls failed. Please add the following urls to"
-                    Write-Host "the web app '$($aadConfig.WebAppPrincipalId)' manually:"
+                    Write-Host "the web app '$($aadConfig.WebAppId)' manually:"
                     $replyUrls | ForEach-Object { Write-Host $_ }
                 }
             }
+
+            $elapsedTime = $(get-date) - $StartTime
+            write-host "Elapsed time (hh:mm:ss): $($elapsedTime.ToString("hh\:mm\:ss"))" 
 
             #
             # Create environment file
