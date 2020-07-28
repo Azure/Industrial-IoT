@@ -66,6 +66,19 @@ jobs:
       pwsh: true
       filePath: $(BasePath)\ParseEnvFile.ps1
 
+  - task: AzurePowerShell@5
+    displayName: "Add permissions to KeyVault"
+    inputs:
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'InlineScript'
+      inline: |
+        $keyVaultName = $(PCS_KEYVAULT_URL).Split('.')[0].Split('/')[2]
+        $upn = (Get-AzContext).Account.Id
+
+        Write-Host "Adding List,Get-Permissions for secrets of vault $($keyVaultName) for user $($upn)"
+        Set-AzureRmKeyVaultAccessPolicy -VaultName '$keyVaultName' -UserPrincipalName '$upn' -PermissionsToSecrets get,list
+
 - job: prepnewman
   displayName: "Prepare Postman-Tests"
   dependsOn: deploy
@@ -84,23 +97,12 @@ jobs:
 - job: runnewman
   displayName: Run Newman
   dependsOn: prepnewman
-  condition: eq(dependencies.prepnewman.result, 'Succeeded')
-  variables:
-    - name: 'pcs-service-url'
-      value: $[ dependencies.deploy.outputs['parseenvfile.pcs-service-url'] ]
-    - name: 'pcs-auth-tenant'
-      value: $[ dependencies.deploy.outputs['parseenvfile.pcs-auth-tenant'] ]
-    - name: 'pcs-auth-client-appid'
-      value: $[ dependencies.deploy.outputs['parseenvfile.pcs-auth-client-appid'] ]
-    - name: 'pcs-auth-client-secret'
-      value: $[ dependencies.deploy.outputs['parseenvfile.pcs-auth-client-secret'] ]
   pool:
     name: 'Azure-IoT-Manufacturing'
   strategy:
     matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
   steps:
     - task: AzureKeyVault@1
-      condition: eq(variables['UseExisting'], true)
       displayName: 'Retrieve KeyVault secrets from existing deployment'
       inputs:
         azureSubscription: 'IOT-OPC-WALLS-MSI'
@@ -119,7 +121,7 @@ jobs:
     name: 'Azure-IoT-Manufacturing'
   steps:
   - task: AzurePowerShell@5
-    displayName: "Replace parameters in appSettings.json (for IAI)"
+    displayName: "Delete Resource Group"
     inputs:
       azureSubscription: 'IOT-OPC-WALLS-MSI'
       azurePowerShellVersion: 'latestVersion'

@@ -28,6 +28,6 @@ foreach ($line in $envContent) {
     $value = $parts[1]
 
     Write-Host "Assigning Pipelines-Variable '$($key)'..."
-    Write-Host "##vso[task.setvariable variable=$($key);issecret=true;isOutput=true]$($value)"
+    Write-Host "##vso[task.setvariable variable=$($key);issecret=true]$($value)"
 }
 
