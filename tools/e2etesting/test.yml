@@ -15,7 +15,7 @@ jobs:
     displayName: "Write Output variable"
     inputs:
       targetType: 'filePath'
-      pwsh: true
+      #pwsh: true
       filePath: $(BasePath)\Test1.ps1
 
 - job: B
