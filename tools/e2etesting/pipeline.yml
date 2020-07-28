@@ -5,6 +5,8 @@ trigger: none
 variables:
 - name: 'BasePath'
   value: '$(System.DefaultWorkingDirectory)\tools\e2etesting'
+- name: 'ClientCredentialsKeyVaultName'
+  value: "automatedtesting"
 
 jobs:
 - job: deploy
@@ -34,7 +36,7 @@ jobs:
     displayName: 'Retrieve KeyVault secrets'
     inputs:
       azureSubscription: 'IOT-OPC-WALLS-MSI'
-      KeyVaultName: '$(KeyVaultName)'
+      KeyVaultName: '$(ClientCredentialsKeyVaultName)'
       SecretsFilter: '*'
 
   - task: AzurePowerShell@5
