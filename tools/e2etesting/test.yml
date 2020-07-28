@@ -21,7 +21,8 @@ jobs:
 - job: B
   displayName: "Prepare Postman-Tests"
   variables:
-  - MyVariableFromA: $[ dependencies.A.outputs['outputstep.MyVariable'] ]
+  - name: MyVariableFromA
+    value: $[ dependencies.A.outputs['outputstep.MyVariable'] ]
   dependsOn: A
   pool:
     name: 'Azure-IoT-Manufacturing'
