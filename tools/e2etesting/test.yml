@@ -24,7 +24,7 @@ jobs:
   displayName: "Job B"
   variables:
   - name: MyVariableFromA
-    value: $[ dependencies.A.outputs['outputstep.MyVariable'] ]
+    value: $[ dependencies.A.outputs['outputstep.My-Variable'] ]
   dependsOn: A
   pool:
     name: 'Azure-IoT-Manufacturing'
