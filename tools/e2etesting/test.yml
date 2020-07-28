@@ -2,39 +2,12 @@ name: $(Date:yyyyMMdd)$(Rev:rr)
 
 trigger: none
 
-variables:
-- name: 'BasePath'
-  value: '$(System.DefaultWorkingDirectory)\tools\e2etesting'
-
-jobs:
-- job: A
-  displayName: 'Job A'
-  pool:
-    name: 'Azure-IoT-Manufacturing'
-  steps:
-  - task: PowerShell@2
-    name: outputstep
-    displayName: "Write Output variable"
+steps:
+- task: AzurePowerShell@5
+    displayName: "Testing"
     inputs:
-      targetType: 'filePath'
-      pwsh: true
-      filePath: $(BasePath)\Test1.ps1
-
-- job: B
-  displayName: "Job B"
-  variables:
-  - name: MyVariableFromA
-    value: $[ dependencies.A.outputs['outputstep.My-Variable'] ]
-  dependsOn: A
-  pool:
-    name: 'Azure-IoT-Manufacturing'
-  steps:
-  - task: PowerShell@2
-    displayName: "echo value"
-    inputs:
-      targetType: 'filePath'
-      pwsh: true
-      filePath: $(BasePath)\Test2.ps1
-      arguments: >
-        -Value "$(MyVariableFromA)"
-  - script: echo $(MyVariableFromA)
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'InlineScript'
+      inline: |
+        Get-AzContext
