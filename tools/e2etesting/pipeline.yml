@@ -79,6 +79,7 @@ jobs:
       scriptArguments: >
         -KeyVaultUrl "$(PCS_KEYVAULT_URL)"
         -ResourceGroupName "$(ResourceGroupName)"
+        -ObjectId "$(MSIObjectId)"
 
 - job: prepnewman
   displayName: "Prepare Postman-Tests"
@@ -143,4 +144,4 @@ jobs:
       scriptType: 'InlineScript'
       inline: |
         Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
-        Get-AzResourceGroup -Name "$(ResourceGroupName)"
+        Get-AzResourceGroup -Name "$(ResourceGroupName)" | Delete-AzResourceGroup -Force

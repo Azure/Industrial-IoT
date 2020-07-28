@@ -1,14 +1,10 @@
 Param(
     $KeyVaultUrl,
-    $ResourceGroupName
+    $ResourceGroupName,
+    $ObjectId
 )
 
 $keyVaultName = $KeyVaultUrl.Split('.')[0].Split('/')[2]
-
-$vm = Get-AzVm -Name $env:COMPUTERNAME
-$objectId = $vm.Identity.PrincipalId
-
-Write-Host "Using ObjectId '$($objectId)' ($($env:COMPUTERNAME)) for access permissions."
 
 Write-Host "Adding List,Get-Permissions for secrets of vault '$($keyVaultName)' for user '$($upn)'"
 Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ResourceGroupName $ResourceGroupName -ObjectId $objectId -PermissionsToSecrets get,list
