@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Encoder to encode data set writer messages
@@ -16,17 +15,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Number of notifications that are too big to be processed to IotHub Messages
         /// </summary>
-        uint NotificationsDroppedCount { get; }
+        long NotificationsDroppedCount { get; }
 
         /// <summary>
         /// Number of successfully processed notifications from OPC client
         /// </summary>
-        uint NotificationsProcessedCount { get; }
+        long NotificationsProcessedCount { get; }
 
         /// <summary>
         /// Number of successfully processed messages
         /// </summary>
-        uint MessagesProcessedCount { get; }
+        long MessagesProcessedCount { get; }
 
         /// <summary>
         /// Average notifications in a message
@@ -44,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <param name="message"></param>
         /// <param name="maxMessageSize"></param>
         /// <returns></returns>
-        Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
+        IEnumerable<NetworkMessageModel> Encode(
             IEnumerable<DataSetMessageModel> message, int maxMessageSize);
 
         /// <summary>
@@ -53,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <param name="messages"></param>
         /// <param name="maxMessageSize"></param>
         /// <returns></returns>
-        Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync
+        IEnumerable<NetworkMessageModel> EncodeBatch
             (IEnumerable<DataSetMessageModel> messages, int maxMessageSize);
     }
 }

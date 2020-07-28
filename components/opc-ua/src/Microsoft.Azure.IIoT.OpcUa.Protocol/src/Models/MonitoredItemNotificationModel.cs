@@ -21,17 +21,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Node id
         /// </summary>
-        public NodeId NodeId { get; internal set; }
+        public NodeId NodeId { get; set; }
 
         /// <summary>
         /// Attribute monitored
         /// </summary>
-        public uint AttributeId { get; internal set; }
+        public uint AttributeId { get; set; }
 
         /// <summary>
         /// Display name
         /// </summary>
-        public string DisplayName { get; internal set; }
+        public string DisplayName { get; set; }
 
         /// <summary>
         /// Sequence number

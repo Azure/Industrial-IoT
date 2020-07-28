@@ -19,6 +19,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         long SentMessagesCount { get; }
 
         /// <summary>
+        /// Messages failing to send
+        /// </summary>
+        long SendErrorCount { get; }
+
+        /// <summary>
         /// Send network message
         /// </summary>
         /// <param name="messages"></param>

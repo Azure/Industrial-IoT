@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -27,13 +28,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     public class NetworkMessageEncoder : IMessageEncoder {
 
         /// <inheritdoc/>
-        public uint NotificationsDroppedCount { get; private set; }
+        public long NotificationsDroppedCount => _notificationsDroppedCount;
 
         /// <inheritdoc/>
-        public uint NotificationsProcessedCount { get; private set; }
+        public long NotificationsProcessedCount => _notificationsProcessedCount;
 
         /// <inheritdoc/>
-        public uint MessagesProcessedCount { get; private set; }
+        public long MessagesProcessedCount => _messagesProcessedCount;
 
         /// <inheritdoc/>
         public double AvgNotificationsPerMessage { get; private set; }
@@ -42,31 +43,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public double AvgMessageSize { get; private set; }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
+        public IEnumerable<NetworkMessageModel> Encode(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-            try {
-                var resultJson = EncodeAsJson(messages, maxMessageSize);
-                var resultUadp = EncodeAsUadp(messages, maxMessageSize);
-                var result = resultJson.Concat(resultUadp);
-                return Task.FromResult(result);
-            }
-            catch (Exception e) {
-                return Task.FromException<IEnumerable<NetworkMessageModel>>(e);
-            }
+            var resultJson = EncodeAsJson(messages, maxMessageSize);
+            var resultUadp = EncodeAsUadp(messages, maxMessageSize);
+            return resultJson.Concat(resultUadp);
         }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync(
+        public IEnumerable<NetworkMessageModel> EncodeBatch(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-            try {
-                var resultJson = EncodeBatchAsJson(messages, maxMessageSize);
-                var resultUadp = EncodeBatchAsUadp(messages, maxMessageSize);
-                var result = resultJson.Concat(resultUadp);
-                return Task.FromResult(result);
-            }
-            catch (Exception e) {
-                return Task.FromException<IEnumerable<NetworkMessageModel>>(e);
-            }
+            var resultJson = EncodeBatchAsJson(messages, maxMessageSize);
+            var resultUadp = EncodeBatchAsUadp(messages, maxMessageSize);
+            return resultJson.Concat(resultUadp);
         }
 
         /// <summary>
@@ -107,13 +96,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (notificationSize > maxMessageSize) {
                         // we cannot handle this notification. Drop it.
                         // TODO Trace
-                        NotificationsDroppedCount++;
+                        Interlocked.Increment(ref _notificationsDroppedCount);
                         processing = current.MoveNext();
                     }
                     else {
                         messageCompleted = maxMessageSize < (messageSize + notificationSize);
                         if (!messageCompleted) {
-                            NotificationsProcessedCount++;
+                            Interlocked.Increment(ref _notificationsProcessedCount);
                             chunk.Add(notification);
                             processing = current.MoveNext();
                             messageSize += notificationSize + (processing ? 1 : 0);
@@ -128,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         UseUriEncoding = true,
                         UseReversibleEncoding = false
                     };
-                    foreach(var element in chunk) { 
+                    foreach(var element in chunk) {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
@@ -143,7 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         (MessagesProcessedCount + 1);
                     AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
                         chunk.Count) / (MessagesProcessedCount + 1);
-                        MessagesProcessedCount++;
+                    Interlocked.Increment(ref _messagesProcessedCount);
                     chunk.Clear();
                     messageSize = 2;
                     yield return encoded;
@@ -183,7 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (notificationSize > maxMessageSize) {
                         // we cannot handle this notification. Drop it.
                         // TODO Trace
-                        NotificationsDroppedCount++;
+                        Interlocked.Increment(ref _notificationsDroppedCount);
                         processing = current.MoveNext();
                     }
                     else {
@@ -191,7 +180,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                         if (!messageCompleted) {
                             chunk.Add(notification);
-                            NotificationsProcessedCount++;
+                            Interlocked.Increment(ref _notificationsProcessedCount);
                             processing = current.MoveNext();
                             messageSize += notificationSize;
                         }
@@ -211,7 +200,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         (MessagesProcessedCount + 1);
                     AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
                         chunk.Count) / (MessagesProcessedCount + 1);
-                    MessagesProcessedCount++;
+                    Interlocked.Increment(ref _messagesProcessedCount);
                     chunk.Clear();
                     messageSize = 4;
                     yield return encoded;
@@ -255,15 +244,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
                     // TODO Trace
-                    NotificationsDroppedCount++;
+                    Interlocked.Increment(ref _notificationsDroppedCount);
                     yield break;
                 }
-                NotificationsProcessedCount++;
+                Interlocked.Increment(ref _notificationsProcessedCount);
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                     (MessagesProcessedCount + 1);
                 AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
                     (MessagesProcessedCount + 1);
-                MessagesProcessedCount++;
+                Interlocked.Increment(ref _messagesProcessedCount);
                 yield return encoded;
             }
         }
@@ -299,15 +288,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
                     // TODO Trace
-                    NotificationsDroppedCount++;
+                    Interlocked.Increment(ref _notificationsDroppedCount);
                     yield break;
                 }
-                NotificationsProcessedCount++;
+                Interlocked.Increment(ref _notificationsProcessedCount);
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                     (MessagesProcessedCount + 1);
                 AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
                     (MessagesProcessedCount + 1);
-                MessagesProcessedCount++;
+                Interlocked.Increment(ref _messagesProcessedCount);
                 yield return encoded;
             }
         }
@@ -323,9 +312,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
             ServiceMessageContext context) {
             if (context?.NamespaceUris == null) {
-                // declare all notifications in messages dropped 
+                // declare all notifications in messages dropped
                 foreach (var message in messages) {
-                    NotificationsDroppedCount += (uint)(message?.Notifications?.Count() ?? 0);
+                    Interlocked.Add(ref _notificationsDroppedCount, (message?.Notifications?.Count() ?? 0));
                 }
                 yield break;
             }
@@ -376,5 +365,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
         }
+
+        private long _notificationsDroppedCount;
+        private long _notificationsProcessedCount;
+        private long _messagesProcessedCount;
     }
 }

@@ -25,6 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public long SentMessagesCount { get; private set; }
+        /// <inheritdoc/>
+        public long SendErrorCount { get; private set; }
 
         /// <summary>
         /// Create IoT hub message sink
@@ -53,6 +55,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 .ToList();
             try {
                 var messagesCount = messageObjects.Count;
+                if (messagesCount == 0) {
+                    return;
+                }
                 _logger.Verbose("Sending {count} objects to IoT Hub...", messagesCount);
 
                 if (SentMessagesCount > kMessageCounterResetThreshold) {
@@ -67,15 +72,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     sw.Start();
 
                     try {
-                        if (messagesCount == 1) {
-                            await _clientAccessor.Client.SendEventAsync(messageObjects.First()).ConfigureAwait(false);
-                        }
-                        else {
-                            await _clientAccessor.Client.SendEventBatchAsync(messageObjects).ConfigureAwait(false);
+                        foreach (var message in messageObjects) {
+                            await _clientAccessor.Client.SendEventAsync(message).ConfigureAwait(false);
                         }
                     }
                     catch (Exception e) {
                         _logger.Error(e, "Error sending message(s) to IoT Hub");
+                        SendErrorCount += messagesCount;
+                        return;
                     }
 
                     sw.Stop();
@@ -103,6 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <returns></returns>
         private static Message CreateMessage(byte[] body, string eventSchema,
             string contentType, string contentEncoding, string messageId) {
+            Debug.Assert(body.Length < 256 * 1024);
             var msg = new Message(body) {
                 ContentType = contentType,
                 ContentEncoding = contentEncoding,

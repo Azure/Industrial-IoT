@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {
+    "Microsoft.Azure.IIoT.Services.Processor.Onboarding": {
       "commandName": "Project"
     }
   }

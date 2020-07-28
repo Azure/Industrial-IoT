@@ -31,10 +31,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             Subscription?.NumberOfConnectionRetries ?? 0;
 
         /// <inheritdoc/>
-        public int ValueChangesCount { get; private set; } = 0;
+        public long ValueChangesCount => _valueChangesCount;
 
         /// <inheritdoc/>
-        public int DataChangesCount { get; private set; } = 0;
+        public long DataChangesCount => _dataChangesCount;
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
@@ -263,7 +263,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 try {
                     var message = new DataSetMessageModel {
                         // TODO: Filter changes on the monitored items contained in the template
-                        Notifications = notification.Notifications.ToList(),
+                        Notifications = notification.Notifications,
                         ServiceMessageContext = notification.ServiceMessageContext,
                         SubscriptionId = notification.SubscriptionId,
                         SequenceNumber = sequenceNumber,
@@ -282,12 +282,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
                                 " value changes were invoked by message source.",
                                 _outer.DataChangesCount, _outer.ValueChangesCount);
-                            _outer.DataChangesCount = 0;
-                            _outer.ValueChangesCount = 0;
+                            Interlocked.Exchange(ref _outer._dataChangesCount, 0);
+                            Interlocked.Exchange(ref _outer._valueChangesCount, 0);
                         }
 
-                        _outer.ValueChangesCount += message.Notifications.Count();
-                        _outer.DataChangesCount++;
+                        Interlocked.Add(ref _outer._valueChangesCount, notification.Notifications.Count);
+                        Interlocked.Increment(ref _outer._dataChangesCount);
                         _outer.OnMessage?.Invoke(sender, message);
                     }
                 }
@@ -312,6 +312,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly List<DataSetWriterSubscription> _subscriptions;
         private readonly WriterGroupModel _writerGroup;
         private readonly ISubscriptionManager _subscriptionManager;
-        private const int kNumberOfInvokedMessagesResetThreshold = int.MaxValue - 10000;
+        private long _valueChangesCount;
+        private long _dataChangesCount;
+        private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
     }
 }
