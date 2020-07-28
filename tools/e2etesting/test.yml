@@ -1,5 +1,7 @@
 name: $(Date:yyyyMMdd)$(Rev:rr)
 
+trigger: none
+
 variables:
 - name: 'BasePath'
   value: '$(System.DefaultWorkingDirectory)\tools\e2etesting'
@@ -33,6 +35,6 @@ jobs:
       targetType: 'filePath'
       pwsh: true
       filePath: $(BasePath)\Test2.ps1
-      scriptArguments: >
+      arguments: >
         -Value "$(MyVariableFromA)"
   - script: echo $(MyVariableFromA)
