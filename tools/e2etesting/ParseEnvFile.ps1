@@ -24,7 +24,7 @@ foreach ($line in $envContent) {
     if ([string]::IsNullOrWhiteSpace($parts[0])) { continue }
     if ([string]::IsNullOrWhiteSpace($parts[1])) { continue }
 
-    $key = $parts[0].Replace("_", "-").ToLower()
+    $key = $parts[0]
     $value = $parts[1]
 
     Write-Host "Assigning Pipelines-Variable '$($key)'..."
