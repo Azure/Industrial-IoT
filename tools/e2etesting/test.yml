@@ -2,12 +2,15 @@ name: $(Date:yyyyMMdd)$(Rev:rr)
 
 trigger: none
 
+pool:
+  name: 'Azure-IoT-Manufacturing'
+
 steps:
-- task: AzurePowerShell@5
+  - task: AzurePowerShell@5
     displayName: "Testing"
     inputs:
       azureSubscription: 'IOT-OPC-WALLS-MSI'
       azurePowerShellVersion: 'latestVersion'
       scriptType: 'InlineScript'
       inline: |
-        Get-AzContext
+        (Get-AzContext).Account
