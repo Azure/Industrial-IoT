@@ -13,4 +13,4 @@ steps:
       azurePowerShellVersion: 'latestVersion'
       scriptType: 'InlineScript'
       inline: |
-        Get-AzContext
+        (Get-AzContext).Account
