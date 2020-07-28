@@ -338,7 +338,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                         LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id" }
                     });
             private static readonly Gauge kEventProcessorMessages = Metrics
-                .CreateGauge("iiot_event_processor_message_count", "number of messages processed",
+                .CreateGauge("iiot_event_processor_events", "number of messages processed",
                     new GaugeConfiguration {
                         LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id", "read_timestamp_utc" }
                     });
