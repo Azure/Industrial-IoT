@@ -68,16 +68,15 @@ jobs:
 
   - task: AzurePowerShell@5
     displayName: "Add permissions to KeyVault"
+    name: keyvaultpermissions
     inputs:
       azureSubscription: 'IOT-OPC-WALLS-MSI'
       azurePowerShellVersion: 'latestVersion'
-      scriptType: 'InlineScript'
-      inline: |
-        $keyVaultName = $(PCS_KEYVAULT_URL).Split('.')[0].Split('/')[2]
-        $upn = (Get-AzContext).Account.Id
-
-        Write-Host "Adding List,Get-Permissions for secrets of vault $($keyVaultName) for user $($upn)"
-        Set-AzureRmKeyVaultAccessPolicy -VaultName '$keyVaultName' -UserPrincipalName '$upn' -PermissionsToSecrets get,list
+      scriptType: filePath
+      scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+      scriptArguments: >
+        -KeyVaultUrl "$(IAIClientId)"
+        -ResourceGroupName "$(ResourceGroupName)"
 
 - job: prepnewman
   displayName: "Prepare Postman-Tests"
@@ -99,15 +98,28 @@ jobs:
   dependsOn: prepnewman
   pool:
     name: 'Azure-IoT-Manufacturing'
+  variables:
+  - name: KeyVaultNameFromDeployment
+    value: $[ dependencies.deploy.outputs['keyvaultpermissions.KeyVaultName'] ]
   strategy:
-    matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
+    matrix: $[ dependencies.prepnewman.outputs['keyvaultpermissions.postmanJobsMatrix'] ]
   steps:
     - task: AzureKeyVault@1
+      condition: eq(variables['UseExisting'], true)
       displayName: 'Retrieve KeyVault secrets from existing deployment'
       inputs:
         azureSubscription: 'IOT-OPC-WALLS-MSI'
         KeyVaultName: '$(KeyVaultName)'
         SecretsFilter: '*'
+
+    - task: AzureKeyVault@1
+      condition: ne(variables['UseExisting'], true)
+      displayName: 'Retrieve KeyVault secrets'
+      inputs:
+        azureSubscription: 'IOT-OPC-WALLS-MSI'
+        KeyVaultName: '$(KeyVaultNameFromDeployment)'
+        SecretsFilter: '*'
+
     - task: CmdLine@2
       displayName: 'Run Newman for $(collectionFile)'
       inputs:
@@ -128,4 +140,4 @@ jobs:
       scriptType: 'InlineScript'
       inline: |
         Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
-        Get-AzResourceGroup -Name "$($ResourceGroupName)"
+        Get-AzResourceGroup -Name "$(ResourceGroupName)"
