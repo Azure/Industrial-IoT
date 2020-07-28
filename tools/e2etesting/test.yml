@@ -1,0 +1,33 @@
+name: $(Date:yyyyMMdd)$(Rev:rr)
+
+variables:
+- name: 'BasePath'
+  value: '$(System.DefaultWorkingDirectory)\tools\e2etesting'
+
+jobs:
+- job: A
+  displayName: 'Job A'
+  pool:
+    name: 'Azure-IoT-Manufacturing'
+  steps:
+  - task: PowerShell@2
+    displayName: "Write Output variable"
+    inputs:
+      targetType: 'filePath'
+      pwsh: true
+      filePath: $(BasePath)\Test1.ps1
+
+- job: B
+  displayName: "Prepare Postman-Tests"
+  dependsOn: A
+  pool:
+    name: 'Azure-IoT-Manufacturing'
+  steps:
+  - task: PowerShell@2
+    displayName: "Generate Postman-Jobs"
+    inputs:
+      targetType: 'filePath'
+      pwsh: true
+      filePath: $(BasePath)\Test2.ps1
+      scriptArguments: >
+        -Value "$(MyVariable)"
