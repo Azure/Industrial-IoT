@@ -7,11 +7,11 @@ variables:
 jobs:
 - job: A
   displayName: 'Job A'
-  name: outputstep
   pool:
     name: 'Azure-IoT-Manufacturing'
   steps:
   - task: PowerShell@2
+    name: outputstep
     displayName: "Write Output variable"
     inputs:
       targetType: 'filePath'
