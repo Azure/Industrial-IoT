@@ -19,7 +19,7 @@ jobs:
       filePath: $(BasePath)\Test1.ps1
 
 - job: B
-  displayName: "Prepare Postman-Tests"
+  displayName: "Job B"
   variables:
   - name: MyVariableFromA
     value: $[ dependencies.A.outputs['outputstep.MyVariable'] ]
@@ -28,10 +28,11 @@ jobs:
     name: 'Azure-IoT-Manufacturing'
   steps:
   - task: PowerShell@2
-    displayName: "Generate Postman-Jobs"
+    displayName: "echo value"
     inputs:
       targetType: 'filePath'
       pwsh: true
       filePath: $(BasePath)\Test2.ps1
       scriptArguments: >
         -Value "$(MyVariableFromA)"
+  - script: echo $(MyVariableFromA)
