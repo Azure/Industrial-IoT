@@ -15,14 +15,13 @@ jobs:
     displayName: "Write Output variable"
     inputs:
       targetType: 'filePath'
-      #pwsh: true
+      pwsh: true
       filePath: $(BasePath)\Test1.ps1
 
 - job: B
   displayName: "Prepare Postman-Tests"
   variables:
-  - name: "MyVariable"
-    value: $[ dependencies.A.outputs['outputstep.MyVariable'] ]
+  - MyVariableFromA: $[ dependencies.A.outputs['outputstep.MyVariable'] ]
   dependsOn: A
   pool:
     name: 'Azure-IoT-Manufacturing'
@@ -34,4 +33,4 @@ jobs:
       pwsh: true
       filePath: $(BasePath)\Test2.ps1
       scriptArguments: >
-        -Value "$(MyVariable)"
+        -Value "$(MyVariableFromA)"
