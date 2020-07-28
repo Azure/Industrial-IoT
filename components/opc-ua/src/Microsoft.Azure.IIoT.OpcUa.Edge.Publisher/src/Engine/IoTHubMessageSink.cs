@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Collections.Generic;
     using System.Diagnostics;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Module;
     using System.Globalization;
 
     /// <summary>
@@ -60,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         "So far, {SentMessagesCount} messages has been sent to IoT Hub.",
                         SentMessagesCount);
                     kMessagesSent.WithLabels(IotHubMessageSinkGuid,
-                        IotHubMessageSinkStartTime, Floor(DateTime.UtcNow, TimeSpan.FromMinutes(180))).Set(SentMessagesCount);
+                        IotHubMessageSinkStartTime).Set(SentMessagesCount);
                     SentMessagesCount = 0;
                 }
                 using (kSendingDuration.NewTimer()) {
@@ -84,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 SentMessagesCount += messagesCount;
                 kMessagesSent.WithLabels(IotHubMessageSinkGuid,
-                    IotHubMessageSinkStartTime, Floor(DateTime.UtcNow, TimeSpan.FromMinutes(180))).Set(SentMessagesCount);
+                    IotHubMessageSinkStartTime).Set(SentMessagesCount);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error while sending messages to IoT Hub."); // we do not set the block into a faulted state.
@@ -124,14 +123,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return msg;
         }
 
-        /// <summary>
-        /// Gets the formatted current timestamp (UTC) rounded down according to the defined interval
-        /// </summary>
-        private static string Floor(DateTime dt, TimeSpan interval) {
-            return dt.AddTicks(-(dt.Ticks % interval.Ticks)).ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                    CultureInfo.InvariantCulture);
-        }
-
         private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
         private readonly ILogger _logger;
         private readonly IClientAccessor _clientAccessor;
@@ -141,7 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kMessagesSent = Metrics.CreateGauge(
             "iiot_edge_publisher_messages", "Number of messages sent to IotHub",
                 new GaugeConfiguration {
-                    LabelNames = new[] { "runid", "timestamp_utc", "publish_timestamp_utc" }
+                    LabelNames = new[] { "runid", "timestamp_utc" }
                 });
         private static readonly Histogram kSendingDuration = Metrics.CreateHistogram(
             "iiot_edge_publisher_messages_duration", "Histogram of message sending durations");

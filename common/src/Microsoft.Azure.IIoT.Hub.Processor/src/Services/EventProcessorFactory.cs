@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 }
                 TotalMessagesCount += messagesCount;
                 kEventProcessorMessages.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
-                    context.PartitionId, Floor(DateTime.UtcNow, TimeSpan.FromMinutes(180))).Set(TotalMessagesCount);
+                    context.PartitionId).Set(TotalMessagesCount);
 
                 // Checkpoint if needed
                 if (_sw.ElapsedMilliseconds >= _interval) {
@@ -158,14 +158,6 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 kEventProcessorDetails.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
                     context.PartitionId, "closed").Inc();
                 return Task.CompletedTask;
-            }
-
-            /// <summary>
-            /// Gets the formatted current timestamp (UTC) rounded down according to the defined interval
-            /// </summary>
-            private static string Floor(DateTime dt, TimeSpan interval) {
-                return dt.AddTicks(-(dt.Ticks % interval.Ticks)).ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
-                        CultureInfo.InvariantCulture);
             }
 
             /// <summary>
@@ -340,7 +332,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             private static readonly Gauge kEventProcessorMessages = Metrics
                 .CreateGauge("iiot_event_processor_events", "number of messages processed",
                     new GaugeConfiguration {
-                        LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id", "read_timestamp_utc" }
+                        LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id" }
                     });
         }
 
