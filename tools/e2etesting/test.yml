@@ -3,7 +3,7 @@ name: $(Date:yyyyMMdd)$(Rev:rr)
 trigger: none
 
 steps:
-- task: AzurePowerShell@5
+  - task: AzurePowerShell@5
     displayName: "Testing"
     inputs:
       azureSubscription: 'IOT-OPC-WALLS-MSI'
