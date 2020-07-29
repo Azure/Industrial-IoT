@@ -164,10 +164,13 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
 
 ```
  .PARAMETER type
-    The type of deployment (local, services, app, all).
+    The type of deployment (minimum, local, services, simulation, app, all).
+
+ .PARAMETER version
+    Set to "latest" or another mcr image tag to deploy - if not set deploys current master branch ("preview").
 
  .PARAMETER resourceGroupName
-    Can be the name of an existing or a new resource group.
+    Can be the name of an existing or new resource group.
 
  .PARAMETER resourceGroupLocation
     Optional, a resource group location. If specified, will try to create a new resource group in this location.
@@ -178,29 +181,44 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
  .PARAMETER subscriptionName
     Or alternatively the subscription name.
 
- .PARAMETER accountName
-    The account name to use if not to use default.
-
- .PARAMETER applicationName
-    The name of the application if not local deployment. 
-
- .PARAMETER aadConfig
-    The aad configuration file or object (use aad-register.ps1 to create). If not provided, calls aad-register.ps1.
-
- .PARAMETER context
-    A previously created az context to be used as authentication.
-
- .PARAMETER aadApplicationName
-    The application name to use when registering aad application. If not set, uses applicationName.
+ .PARAMETER tenantId
+    The Azure Active Directory tenant tied to the subscription(s) that should be listed as options.
 
  .PARAMETER authTenantId
     Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription.
 
+ .PARAMETER applicationName
+    The name of the application, if not local deployment.
+
+ .PARAMETER aadConfig
+    The aad configuration object (use aad-register.ps1 to create object). If not provided, calls aad-register.ps1.
+
+ .PARAMETER context
+    A previously created az context to be used for authentication.
+
+ .PARAMETER aadApplicationName
+    The application name to use when registering aad application. If not set, uses applicationName.
+
  .PARAMETER acrRegistryName
-    An optional name of a Azure container registry to deploy containers from.
+    An optional name of an Azure container registry to deploy containers from.
 
  .PARAMETER acrSubscriptionName
-    The subscription of the container registry if different from the specified subscription.
+    The subscription of the container registry, if different from the specified subscription.
+
+ .PARAMETER environmentName
+    The cloud environment to use (defaults to Azure Cloud).
+
+ .PARAMETER simulationProfile
+    If you are deploying a simulation, the simulation profile to use, if not default.
+
+ .PARAMETER numberOfSimulationsPerEdge
+    Number of simulations to deploy per edge.
+
+ .PARAMETER numberOfLinuxGateways
+    Number of Linux gateways to deploy into the simulation.
+
+ .PARAMETER numberOfWindowsGateways
+    Number of Windows gateways to deploy into the simulation.
 ```
 
 ## Next steps
