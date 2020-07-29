@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
     using System.Diagnostics;
     using Autofac;
     using Prometheus;
+    using System.Globalization;
 
     /// <summary>
     /// Default event hub event processor factory.
@@ -46,6 +47,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         /// </summary>
         private class DefaultProcessor : IEventProcessor {
 
+            private long TotalMessagesCount { get; set; }
+
             /// <summary>
             /// Create processor
             /// </summary>
@@ -67,7 +70,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 _sw = Stopwatch.StartNew();
                 _logger.Information("EventProcessor {id} for partition {partitionId} created",
                     _processorId, _partitionContext.PartitionId);
-                kEventProcessorDetails.WithLabels(_processorId, _partitionContext.PartitionId, "created").Inc();
+                kEventProcessorDetails.WithLabels(_processorId, _partitionContext.EventHubPath, _partitionContext.ConsumerGroupName,
+                    _partitionContext.PartitionId, "created").Inc();
             }
 
             /// <inheritdoc/>
@@ -76,13 +80,15 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 if (messages == null || !messages.Any()) {
                     return;
                 }
+                var messagesCount = 0;
                 foreach (var eventData in messages) {
+                    messagesCount++;
                     if (_outer._config.SkipEventsOlderThan != null &&
                         eventData.SystemProperties.TryGetValue("x-opt-enqueued-time", out var enqueued) &&
                         (DateTime)enqueued + _outer._config.SkipEventsOlderThan < DateTime.UtcNow ) {
+                        kOldEvent.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName, context.PartitionId).Inc();
                         continue;
                     }
-
                     var properties = new EventProperties(eventData.SystemProperties,
                         eventData.Properties);
                     if (eventData.Body.Array == null) {
@@ -99,6 +105,9 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                         context.CancellationToken.ThrowIfCancellationRequested();
                     }
                 }
+                TotalMessagesCount += messagesCount;
+                kEventProcessorMessages.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
+                    context.PartitionId).Set(TotalMessagesCount);
 
                 // Checkpoint if needed
                 if (_sw.ElapsedMilliseconds >= _interval) {
@@ -111,7 +120,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                     catch (Exception ex) {
                         _logger.Warning(ex, "Failed checkpointing EventProcessor {id} for partition {partitionId}...",
                             _processorId, context.PartitionId);
-                        kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "checkpoint_failed").Inc();
+                        kEventProcessorDetails.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
+                            context.PartitionId, "checkpoint_failed").Inc();
                         if (_sw.ElapsedMilliseconds >= 2 * _interval) {
                             // Give up checkpointing after trying a couple more times
                             _sw.Restart();
@@ -125,7 +135,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             public Task OpenAsync(PartitionContext context) {
                 _logger.Information("EventProcessor {id} for partition {partitionId} opened",
                     _processorId, context.PartitionId);
-                kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "opened").Inc();
+                kEventProcessorDetails.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
+                    context.PartitionId, "opened").Inc();
                 return Task.CompletedTask;
             }
 
@@ -134,7 +145,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 if (!(error is OperationCanceledException)) {
                     _logger.Warning(error, "EventProcessor {id} for partition {partitionId} error",
                         _processorId, context.PartitionId);
-                    kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "error").Inc();
+                    kEventProcessorDetails.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
+                        context.PartitionId, "error").Inc();
                 }
                 return Task.CompletedTask;
             }
@@ -143,7 +155,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             public Task CloseAsync(PartitionContext context, CloseReason reason) {
                 _logger.Information("EventProcessor {id} for partition {partitionId} closed ({reason})",
                     _processorId, context.PartitionId, reason);
-                kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "closed").Inc();
+                kEventProcessorDetails.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
+                    context.PartitionId, "closed").Inc();
                 return Task.CompletedTask;
             }
 
@@ -164,7 +177,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                     _logger.Warning(ex, "Failed to checkpoint EventProcessor {id} for partition {partitionId} with " +
                         "event with {sequenceNumber} SequenceNumber and {offset} Offset", _processorId,
                         context.PartitionId, eventData.SystemProperties.SequenceNumber, eventData.SystemProperties.Offset);
-                    kEventProcessorDetails.WithLabels(_processorId, context.PartitionId, "checkpoint_failed").Inc();
+                    kEventProcessorDetails.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
+                        context.PartitionId, "checkpoint_failed").Inc();
                 }
                 finally {
                     _sw.Restart();
@@ -308,7 +322,17 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             private static readonly Gauge kEventProcessorDetails = Metrics
                 .CreateGauge("iiot_event_processor_info", "details about event processor",
                     new GaugeConfiguration {
-                        LabelNames = new[] { "id", "partition_id", "status" }
+                        LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id", "status" }
+                    });
+            private static readonly Gauge kOldEvent = Metrics
+                .CreateGauge("iiot_event_processor_skipped_events", "number of messages skipped due to being old",
+                    new GaugeConfiguration {
+                        LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id" }
+                    });
+            private static readonly Gauge kEventProcessorMessages = Metrics
+                .CreateGauge("iiot_event_processor_events", "number of messages processed",
+                    new GaugeConfiguration {
+                        LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id" }
                     });
         }
 
