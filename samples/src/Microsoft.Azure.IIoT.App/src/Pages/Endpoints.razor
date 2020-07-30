@@ -75,9 +75,11 @@
              endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized) {
             <td class="hover-text width-large">
                 <div>
-                    @{ string discover = DiscovererId ?? RegistryHelper.PathAll; }
-                    @{ string application = ApplicationId ?? RegistryHelper.PathAll; }
-                    @{ string supervisor = SupervisorId ?? RegistryHelper.PathAll; }
+                    @{
+                        string discover = DiscovererId ?? RegistryHelper.PathAll; 
+                        string application = ApplicationId ?? RegistryHelper.PathAll;
+                        string supervisor = SupervisorId ?? RegistryHelper.PathAll;
+                    }
                     <a href='browser/1/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id'>
                         @endpoint.EndpointModel.Registration.Endpoint.Url
                     </a>
