@@ -51,12 +51,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public IEnumerable<NetworkMessageModel> EncodeBatch(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
-            //  var sw = System.Diagnostics.Stopwatch.StartNew();
-            //  Console.WriteLine($"Encode {messages.Count()}...");
             var resultJson = EncodeBatchAsJson(messages, maxMessageSize);
-            //  Console.WriteLine($"into {resultJson.Count()} took {sw.Elapsed}");
-            //  var resultUadp = EncodeBatchAsUadp(messages, maxMessageSize);
-            //  return resultJson.Concat(resultUadp);
+        //  var resultUadp = EncodeBatchAsUadp(messages, maxMessageSize);
+        //  return resultJson.Concat(resultUadp);
             return resultJson;
         }
 

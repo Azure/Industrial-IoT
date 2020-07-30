@@ -52,6 +52,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 _logHook = broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
             }
 
+            System.Net.ServicePointManager.UseNagleAlgorithm = false;
+            System.Net.ServicePointManager.Expect100Continue = false;
+            System.Net.ServicePointManager.DefaultConnectionLimit = int.MaxValue;
+
             // The runtime injects this as an environment variable
             var deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
             var moduleId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
@@ -105,7 +109,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
             }
             if (!string.IsNullOrEmpty(ehubHost)) {
-                // Running in edge mode 
+                // Running in edge mode
                 // the configured transport (if provided) will be forced to it's OverTcp
                 // variant as follows: AmqpOverTcp when Amqp, AmqpOverWebsocket or AmqpOverTcp specified
                 // and MqttOverTcp otherwise. Default is MqttOverTcp
@@ -142,7 +146,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             if ((_transport & TransportOption.MqttOverTcp) != 0) {
                 var setting = new MqttTransportSettings(
-                    TransportType.Mqtt_Tcp_Only);
+                    TransportType.Mqtt_Tcp_Only) { PublishToServerQoS = 0 };
                 if (_bypassCertValidation) {
                     setting.RemoteCertificateValidationCallback =
                         (sender, certificate, chain, sslPolicyErrors) => true;
@@ -151,7 +155,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
             if ((_transport & TransportOption.MqttOverWebsocket) != 0) {
                 var setting = new MqttTransportSettings(
-                    TransportType.Mqtt_WebSocket_Only);
+                    TransportType.Mqtt_WebSocket_Only) { PublishToServerQoS = 0 };
                 if (_bypassCertValidation) {
                     setting.RemoteCertificateValidationCallback =
                         (sender, certificate, chain, sslPolicyErrors) => true;
