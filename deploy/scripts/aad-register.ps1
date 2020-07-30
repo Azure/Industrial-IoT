@@ -8,6 +8,9 @@
  .PARAMETER Name
     The Name prefix under which to register the applications
 
+ .PARAMETER ReplyUrl
+    A reply_url to register, e.g. https://<NAME>.azurewebsites.net/
+
  .PARAMETER Context
     A previously created az context (optional)
 #>
@@ -15,6 +18,7 @@
 param(
     [Parameter(Mandatory = $true)] [string] $Name,
     $Context,
+    [string] $ReplyUrl = $null,
     [string] $Output = $null,
     [string] $EnvironmentName = "AzureCloud"
 )
@@ -215,6 +219,19 @@ Function New-ADApplications() {
             Write-Verbose "Getting user principal for $($creds.Account.Id) failed."
         }
 
+        # May be using authTenantId, get ObjectId from external account.  
+        if(!$user) {
+            $accountId = (Get-AzContext).Account.Id.Replace("@", "_")
+            $userObjectId = (Get-AzureADUser -Filter "startswith(userPrincipalName, '$($accountId)')").ObjectId
+
+            $properties = @{
+                UserPrincipalName = $accountId
+                ObjectId = $userObjectId
+            }
+            $user = New-Object psobject -Property $properties
+            $useFallBackUser = $true
+        }
+
         # Get or create native client application
         $clientDisplayName = $applicationName + "-client"
         $clientAadApplication = Get-AzureADApplication -Filter "DisplayName eq '$clientDisplayName'"
@@ -390,8 +407,13 @@ Function New-ADApplications() {
         }
         Write-Host "'$($clientDisplayName)' updated with required resource access."
 
+        $replyUrls = New-Object System.Collections.Generic.List[System.String]
+        if (![string]::IsNullOrEmpty($script:ReplyUrl)) {
+            $replyUrls.Add("$($script:ReplyUrl)signin-oidc")
+        }
+
         Set-AzureADApplication -ObjectId $webAadApplication.ObjectId `
-            -RequiredResourceAccess $requiredResourcesAccess `
+            -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `
             -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True | Out-Null
         # Grant permissions to web app
         try {
@@ -402,6 +424,11 @@ Function New-ADApplications() {
             Write-Host "$($_.Exception) - this must be done manually with appropriate permissions."
         }
         Write-Host "'$($webDisplayName)' updated with required resource access."
+
+        # Reset ObjectId to use the one from the default tenant.
+        if($useFallBackUser) {
+            $user.ObjectId = $null
+        }
 
         return [pscustomobject] @{
             TenantId           = $creds.Tenant.Id

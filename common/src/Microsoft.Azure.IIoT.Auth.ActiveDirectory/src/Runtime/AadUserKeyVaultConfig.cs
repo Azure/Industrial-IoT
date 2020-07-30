@@ -35,8 +35,9 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         public string ClientSecret => null;
         /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
+            () => GetStringOrDefault(PcsVariable.PCS_MSI_TENANT,
             () => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
-                () => null))?.Trim();
+                () => null)))?.Trim();
         /// <summary>Authority url</summary>
         public string InstanceUrl => GetStringOrDefault(kAuth_AuthorityUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_AAD_INSTANCE,
