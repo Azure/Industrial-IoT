@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private string DiscoveryUrl { get; set; }
         private string Status { get; set; }
         private string ButtonLabel { get; set; }
+        private string IdleTimeView { get; set; }
 
         /// <summary>
         /// OnInitialized
@@ -26,9 +27,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         protected override void OnInitialized() {
             if (DiscovererData.isAdHocDiscovery) {
                 ButtonLabel = "Apply & Scan";
+                IdleTimeView = "displayNone";
+
             }
             else {
                 ButtonLabel = "Apply";
+                IdleTimeView = "displayBlock";
             }
             InputData = new DiscovererInfoRequested();
         }

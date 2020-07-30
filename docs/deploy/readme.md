@@ -17,5 +17,5 @@ Alternative options to deploy the platform services include:
 
 - Deploying Azure Industrial IoT Platform to [Azure Kubernetes Service (AKS)](howto-deploy-aks.md) as production solution.
 - Deploying Azure Industrial IoT Platform microservices into an existing Kubernetes cluster [using Helm](howto-deploy-helm.md).
-- Deploying [Azure Kubernetes Service (AKS) cluster on top of Azure Industrial IoT platform created by deployment script and adding Azure Industrial IoT components into the cluster](howto-add-aks-to-ps1.md).
+- Deploying [Azure Kubernetes Service (AKS) cluster on top of Azure Industrial IoT Platform created by deployment script and adding Azure Industrial IoT components into the cluster](howto-add-aks-to-ps1.md).
 - For development and testing purposes, you can also [deploy only the Microservices dependencies in Azure](howto-deploy-local.md) and [run Microservices locally](howto-run-microservices-locally.md).

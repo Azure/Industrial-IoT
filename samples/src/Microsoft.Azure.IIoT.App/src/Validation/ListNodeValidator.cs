@@ -14,15 +14,15 @@ namespace Microsoft.Azure.IIoT.App.Validation {
         public ListNodeValidator() {
             RuleFor(p => p.RequestedPublishingInterval)
                 .Must(BeAValidIntervalMs)
-                .WithMessage("Publishing interval cannot be less than 0 ms.");
+                .WithMessage("Publishing interval must be a number greater than 0 ms.");
 
             RuleFor(p => p.RequestedSamplingInterval)
                 .Must(BeAValidIntervalMs)
-                .WithMessage("Sampling interval cannot be less than 0 ms.");
+                .WithMessage("Sampling interval must be a number greater than 0 ms.");
 
             RuleFor(p => p.RequestedHeartbeatInterval)
                 .Must(BeAValidIntervalSec)
-                .WithMessage("Heartbeat interval cannot be less than 0 second.");
+                .WithMessage("Heartbeat interval must be a number greater than 0 second.");
         }
 
         private bool BeAValidIntervalMs(string value) {
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.App.Validation {
             }
 
             if (double.TryParse(value, out double result)) {
-                return result >= 0;
+                return result > 0;
             }
 
             return false;
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.App.Validation {
             }
 
             if (double.TryParse(value, out double result)) {
-                return result >= 0;
+                return result > 0;
             }
 
             return false;
