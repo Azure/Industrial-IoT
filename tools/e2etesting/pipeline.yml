@@ -104,7 +104,7 @@ jobs:
     name: 'Azure-IoT-Manufacturing'
   variables:
   - name: KeyVaultNameFromDeployment
-    value: $[ dependencies.deploy.outputs['keyvaultpermissions.KeyVaultName'] ]
+    value: $[ dependencies.deploy.outputs['keyvaultpermissions.KeyVaultNameFromDeployment'] ]
   strategy:
     matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
   steps:

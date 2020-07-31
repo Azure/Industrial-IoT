@@ -10,4 +10,4 @@ Write-Host "Adding List,Get-Permissions for secrets of vault '$($keyVaultName)' 
 Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ResourceGroupName $ResourceGroupName -ObjectId $objectId -PermissionsToSecrets get,list
 
 Write-Host "Setting output-variable 'KeyVaultName' to '$($keyVaultName)'"
-Write-Host "##vso[task.setvariable variable=KeyVaultName;isOutput=true]$keyVaultName"
+Write-Host "##vso[task.setvariable variable=KeyVaultNameFromDeployment;isOutput=true]$($keyVaultName)"
