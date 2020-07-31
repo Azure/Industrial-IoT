@@ -122,7 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }, null).Result;
 
                 // Assert
-                Assert.True(records.Items.Count == discoverers.Count(x => x.Discovery == DiscoveryMode.Network));
+                Assert.True(records.Items.Count == discoverers.Count(x => x.RequestedMode == DiscoveryMode.Network));
             }
         }
 
