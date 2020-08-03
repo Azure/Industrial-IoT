@@ -83,14 +83,15 @@
             <th class="width-xsmall">
                 @if (PagedNodeList.Results.Count > 0) {
                     if (PagedNodeList.Results[0].ParentName != "Root") {
-                        <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(PagedNodeList.Results[0].NextParentId, PagedNodeList.Results[0].ParentIdList, PagedNodeList.Results[0].ParentIdList.Count - 1))">
+                        <a aria-label="back" href="javascript: void(0)"
+                           @onclick="@(() => GetTreeBackAsync(PagedNodeList.Results[0].NextParentId, PagedNodeList.Results[0].ParentIdList, PagedNodeList.Results[0].ParentIdList.Count - 1))">
                             <span class="oi oi-arrow-left"></span>
                         </a>
                     }
                     else {
                         if (PagedNodeList.Results[0].DiscovererId != null) {
                             var link = @NavigationManager.BaseUri + "endpoints/1/" + @PagedNodeList.Results[0].DiscovererId + "/" + @ApplicationId + "/" + @SupervisorId;
-                            <a href="@link">
+                            <a aria-label="back" href="@link">
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }

@@ -377,6 +377,17 @@ a.adhocmargin {
     z-index: 1000;
 }
 
+.section-toggle-button {
+    text-align: left;
+    display: block;
+    width: 100%;
+    color: black;
+    flex: auto;
+    background: none;
+    border: 0;
+    padding: 2px;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;
