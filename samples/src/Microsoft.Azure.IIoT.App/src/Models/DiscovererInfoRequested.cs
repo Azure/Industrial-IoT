@@ -48,11 +48,15 @@ namespace Microsoft.Azure.IIoT.App.Models
         /// List of preset discovery urls to use
         /// </summary>
         public List<string> RequestedDiscoveryUrls { get; set; }
+
         /// <summary>
         /// Add url
         /// </summary>
         public void AddDiscoveryUrl(string url)
         {
+            if (string.IsNullOrWhiteSpace(url) || (RequestedDiscoveryUrls?.Contains(url) ?? false)) {
+                return;
+            }
             RequestedDiscoveryUrls ??= new List<string>();
             RequestedDiscoveryUrls.Add(url);
         }
@@ -62,15 +66,16 @@ namespace Microsoft.Azure.IIoT.App.Models
         /// </summary>
         public void RemoveDiscoveryUrl(string url)
         {
-            RequestedDiscoveryUrls ??= new List<string>();
-            RequestedDiscoveryUrls.Remove(url);
+            if (RequestedDiscoveryUrls != null) {
+                RequestedDiscoveryUrls.Remove(url);
+            }
         }
 
         /// <summary>
         /// Clear url list
         /// </summary>
-        public void ClearDiscoveryUrlList(List<string> list) {
-            list?.Clear();
+        public void ClearDiscoveryUrlList() {
+            RequestedDiscoveryUrls?.Clear();
         }
 
         /// <summary>

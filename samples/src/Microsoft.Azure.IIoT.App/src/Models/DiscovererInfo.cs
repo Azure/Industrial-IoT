@@ -166,5 +166,18 @@ namespace Microsoft.Azure.IIoT.App.Models {
                 return false;
             }
         }
+
+        public DiscovererInfoRequested ToDiscovererInfoRequested() {
+            return new DiscovererInfoRequested() {
+                RequestedAddressRangesToScan = EffectiveAddressRangesToScan,
+                RequestedPortRangesToScan = EffectivePortRangesToScan,
+                RequestedMaxNetworkProbes = EffectiveMaxNetworkProbes,
+                RequestedMaxPortProbes = EffectiveMaxPortProbes,
+                RequestedNetworkProbeTimeout = EffectiveNetworkProbeTimeout,
+                RequestedPortProbeTimeout = EffectivePortProbeTimeout,
+                RequestedIdleTimeBetweenScans = EffectiveIdleTimeBetweenScans,
+                RequestedDiscoveryUrls = new List<string>(EffectiveDiscoveryUrls)
+            };
+        }
     }
 }
