@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using Microsoft.Azure.Management.EventHub.Fluent.Models;
     using Microsoft.Azure.Management.IotHub.Models;
     using Microsoft.Azure.Management.KeyVault.Fluent.Models;
+    using Microsoft.Azure.Management.OperationalInsights.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
 
     using Microsoft.Graph;
@@ -24,6 +25,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_IOTHUB_EVENTHUBENDPOINT;
         public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS;
         public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY;
+        public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL;
+        public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING;
 
         // Cosmos DB
         public readonly string PCS_COSMOSDB_CONNSTRING;
@@ -33,6 +36,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_STORAGE_CONTAINER_DATAPROTECTION;
 
         // ADLS Gen2 Storage Account
+        // NOTE: PCS_ADLSG2_ACCOUNT, PCS_ADLSG2_ACCOUNT_KEY and PCS_ADLSG2_ENDPOINTSUFFIX are required
+        // for <2.8.5 version of components as processing of PCS_ADLSG2_CONNSTRING is not present there.
+        public readonly string PCS_ADLSG2_ACCOUNT;
+        public readonly string PCS_ADLSG2_ACCOUNT_KEY;
+        public readonly string PCS_ADLSG2_ENDPOINTSUFFIX;
         public readonly string PCS_ADLSG2_CONNSTRING;
         public readonly string PCS_ADLSG2_CONTAINER_CDM;
         public readonly string PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER;
@@ -55,44 +63,25 @@ namespace Microsoft.Azure.IIoT.Deployment {
         // Application Insights
         public readonly string PCS_APPINSIGHTS_INSTRUMENTATIONKEY;
 
+        // Log Analytics Workspace
+        public readonly string PCS_WORKSPACE_ID;
+        public readonly string PCS_WORKSPACE_KEY;
+
         // Service URLs
         public readonly string PCS_SERVICE_URL;
-
-        // AKS internal service URLs
-        public readonly string PCS_TWIN_REGISTRY_URL_INTERNAL;
-        public readonly string PCS_TWIN_SERVICE_URL_INTERNAL;
-        public readonly string PCS_HISTORY_SERVICE_URL_INTERNAL;
-        public readonly string PCS_VAULT_SERVICE_URL_INTERNAL;
-        public readonly string PCS_ONBOARDING_SERVICE_URL_INTERNAL;
-        public readonly string PCS_PUBLISHER_SERVICE_URL_INTERNAL;
-        public readonly string PCS_JOBS_SERVICE_URL_INTERNAL;
-        public readonly string PCS_JOB_ORCHESTRATOR_SERVICE_URL_INTERNAL;
-        public readonly string PCS_CONFIGURATION_SERVICE_URL_INTERNAL;
-
-        // Externally accessible service URLs
-        public readonly string PCS_TWIN_REGISTRY_URL_EXTERNAL;
-        public readonly string PCS_TWIN_SERVICE_URL_EXTERNAL;
-        public readonly string PCS_HISTORY_SERVICE_URL_EXTERNAL;
-        public readonly string PCS_VAULT_SERVICE_URL_EXTERNAL;
-        public readonly string PCS_ONBOARDING_SERVICE_URL_EXTERNAL;
-        public readonly string PCS_PUBLISHER_SERVICE_URL_EXTERNAL;
-        public readonly string PCS_JOBS_SERVICE_URL_EXTERNAL;
-        public readonly string PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
-        public readonly string PCS_CONFIGURATION_SERVICE_URL_EXTERNAL;
 
         // Service URLs that will be consumed by microservices.
         public readonly string PCS_TWIN_REGISTRY_URL;
         public readonly string PCS_TWIN_SERVICE_URL;
         public readonly string PCS_HISTORY_SERVICE_URL;
         public readonly string PCS_VAULT_SERVICE_URL;
-        public readonly string PCS_ONBOARDING_SERVICE_URL;
         public readonly string PCS_PUBLISHER_SERVICE_URL;
-        public readonly string PCS_JOBS_SERVICE_URL;
-        public readonly string PCS_JOB_ORCHESTRATOR_SERVICE_URL;
-        public readonly string PCS_CONFIGURATION_SERVICE_URL;
+        public readonly string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL;
+        public readonly string PCS_EVENTS_SERVICE_URL;
 
         // SignalR
         public readonly string PCS_SIGNALR_CONNSTRING;
+        public readonly string PCS_SIGNALR_MODE;
 
         // Authentication
         public readonly string PCS_AUTH_REQUIRED;
@@ -115,13 +104,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_HISTORY_SERVICE_PATH_BASE;
         public readonly string PCS_GATEWAY_SERVICE_PATH_BASE;
         public readonly string PCS_VAULT_SERVICE_PATH_BASE;
-        public readonly string PCS_ONBOARDING_SERVICE_PATH_BASE;
         public readonly string PCS_PUBLISHER_SERVICE_PATH_BASE;
-        public readonly string PCS_CONFIGURATION_SERVICE_PATH_BASE;
-        public readonly string PCS_EDGE_MANAGER_SERVICE_PATH_BASE;
+        public readonly string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE;
+        public readonly string PCS_EVENTS_SERVICE_PATH_BASE;
         public readonly string PCS_FRONTEND_APP_SERVICE_PATH_BASE;
-        public readonly string PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE;
-        public readonly string PCS_JOBS_SERVICE_PATH_BASE;
 
         // AspNetCore
         public readonly string ASPNETCORE_FORWARDEDHEADERS_ENABLED;
@@ -139,14 +125,19 @@ namespace Microsoft.Azure.IIoT.Deployment {
             IotHubDescription iotHub,
             string iotHubOwnerConnectionString,
             string iotHubEventHubEventsEndpointName,
-            EventHubConsumerGroupInfo iotHubEventHubEventsConsumerGroup,
-            EventHubConsumerGroupInfo iotHubEventHubTelemetryConsumerGroup,
+            EventHubConsumerGroupInfo iotHubEventHubConsumerGroupEvents,
+            EventHubConsumerGroupInfo iotHubEventHubConsumerGroupTelemetry,
+            EventHubConsumerGroupInfo iotHubEventHubConsumerGroupTunnel,
+            EventHubConsumerGroupInfo iotHubEventHubConsumerGroupOnboarding,
             // Cosmos DB
             string cosmosDBAccountConnectionString,
             // Storage Account
             string storageAccountConectionString,
             string storageAccountContainerDataprotection,
             // ADLS Gen2 Storage Account
+            string adlsAccount,
+            string adlsAccountKey,
+            string adlsEndpointSuffix,
             string adlsConectionString,
             string adlsContainerCdm,
             string adlsContainerCdmRootFolder,
@@ -159,12 +150,18 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string serviceBusConnectionString,
             // SignalR
             string signalRConnectionString,
+            string signalRServiceMode,
             // Key Vault
             VaultInner keyVault,
             string dataprotectionKeyName,
             // Application Insights
             ApplicationInsightsComponent applicationInsightsComponent,
+            // Log Analytics Workspace
+            Workspace workspace,
+            string workspaceKey,
+            // Service URL
             string serviceURL,
+            // App Registrations
             Application serviceApplication,
             string serviceApplicationSecret,
             Application clientApplication,
@@ -174,8 +171,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // IoT Hub
             PCS_IOTHUB_CONNSTRING = iotHubOwnerConnectionString;
             PCS_IOTHUB_EVENTHUBENDPOINT = iotHub.Properties.EventHubEndpoints[iotHubEventHubEventsEndpointName].Endpoint;
-            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS = iotHubEventHubEventsConsumerGroup.Name;
-            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY = iotHubEventHubTelemetryConsumerGroup.Name;
+            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS = iotHubEventHubConsumerGroupEvents.Name;
+            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY = iotHubEventHubConsumerGroupTelemetry.Name;
+            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL = iotHubEventHubConsumerGroupTunnel.Name;
+            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING = iotHubEventHubConsumerGroupOnboarding.Name;
 
             // Cosmos DB
             PCS_COSMOSDB_CONNSTRING = cosmosDBAccountConnectionString;
@@ -185,6 +184,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_STORAGE_CONTAINER_DATAPROTECTION = storageAccountContainerDataprotection;
 
             // ADLS Gen2 Storage Account
+            // NOTE: PCS_ADLSG2_ACCOUNT, PCS_ADLSG2_ACCOUNT_KEY and PCS_ADLSG2_ENDPOINTSUFFIX are required
+            // for <2.8.5 version of components as processing of PCS_ADLSG2_CONNSTRING is not present there.
+            PCS_ADLSG2_ACCOUNT = adlsAccount;
+            PCS_ADLSG2_ACCOUNT_KEY = adlsAccountKey;
+            PCS_ADLSG2_ENDPOINTSUFFIX = adlsEndpointSuffix;
             PCS_ADLSG2_CONNSTRING = adlsConectionString;
             PCS_ADLSG2_CONTAINER_CDM = adlsContainerCdm;
             PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER = adlsContainerCdmRootFolder;
@@ -207,48 +211,25 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // Application Insights
             PCS_APPINSIGHTS_INSTRUMENTATIONKEY = applicationInsightsComponent.InstrumentationKey;
 
+            // Log Analytics Workspace
+            PCS_WORKSPACE_ID = workspace.Id;
+            PCS_WORKSPACE_KEY = workspaceKey;
+
             // Service URLs
             PCS_SERVICE_URL = serviceURL;
 
-            var iiotNamespace = "industrial-iot";
-
-            // AKS internal service URLs
-            PCS_TWIN_REGISTRY_URL_INTERNAL = $"http://{"registry-service"}.{iiotNamespace}:{9042}";
-            PCS_TWIN_SERVICE_URL_INTERNAL = $"http://{"twin-service"}.{iiotNamespace}:{9041}";
-            PCS_HISTORY_SERVICE_URL_INTERNAL = $"http://{"history-service"}.{iiotNamespace}:{9043}";
-            PCS_VAULT_SERVICE_URL_INTERNAL = $"http://{"vault-service"}.{iiotNamespace}:{9044}";
-            PCS_ONBOARDING_SERVICE_URL_INTERNAL = $"http://{"onboarding-service"}.{iiotNamespace}:{9060}";
-            PCS_PUBLISHER_SERVICE_URL_INTERNAL = $"http://{"publisher-service"}.{iiotNamespace}:{9045}";
-            PCS_JOBS_SERVICE_URL_INTERNAL = $"http://{"publisher-jobs-service"}.{iiotNamespace}:{9046}";
-            PCS_JOB_ORCHESTRATOR_SERVICE_URL_INTERNAL = $"http://{"edge-jobs-service"}.{iiotNamespace}:{9051}";
-            PCS_CONFIGURATION_SERVICE_URL_INTERNAL = $"http://{"configuration-service"}.{iiotNamespace}:{9050}";
-
-            // Externally accessible service URLs
-            serviceURL = serviceURL.TrimEnd('/');
-            PCS_TWIN_REGISTRY_URL_EXTERNAL = $"{serviceURL}/registry/";
-            PCS_TWIN_SERVICE_URL_EXTERNAL = $"{serviceURL}/twin/";
-            PCS_HISTORY_SERVICE_URL_EXTERNAL = $"{serviceURL}/history/";
-            PCS_VAULT_SERVICE_URL_EXTERNAL = $"{serviceURL}/vault/";
-            PCS_ONBOARDING_SERVICE_URL_EXTERNAL = $"{serviceURL}/onboarding/";
-            PCS_PUBLISHER_SERVICE_URL_EXTERNAL = $"{serviceURL}/publisher/";
-            PCS_JOBS_SERVICE_URL_EXTERNAL = $"{serviceURL}/jobs/";
-            PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL = $"{serviceURL}/edge/jobs/";
-            PCS_CONFIGURATION_SERVICE_URL_EXTERNAL = $"{serviceURL}/configuration/";
-
             // Service URLs that will be consumed by microservices.
-            PCS_TWIN_REGISTRY_URL = PCS_TWIN_REGISTRY_URL_INTERNAL;
-            PCS_TWIN_SERVICE_URL = PCS_TWIN_SERVICE_URL_INTERNAL;
-            PCS_HISTORY_SERVICE_URL = PCS_HISTORY_SERVICE_URL_INTERNAL;
-            PCS_VAULT_SERVICE_URL = PCS_VAULT_SERVICE_URL_INTERNAL;
-            PCS_ONBOARDING_SERVICE_URL = PCS_ONBOARDING_SERVICE_URL_INTERNAL;
-            PCS_PUBLISHER_SERVICE_URL = PCS_PUBLISHER_SERVICE_URL_INTERNAL;
-            PCS_JOBS_SERVICE_URL = PCS_JOBS_SERVICE_URL_INTERNAL;
-            // NOTE: PCS_JOB_ORCHESTRATOR_SERVICE_URL should be externally accessible URL.
-            PCS_JOB_ORCHESTRATOR_SERVICE_URL = PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
-            PCS_CONFIGURATION_SERVICE_URL = PCS_CONFIGURATION_SERVICE_URL_INTERNAL;
+            PCS_TWIN_REGISTRY_URL = $"{serviceURL}/registry/";
+            PCS_TWIN_SERVICE_URL = $"{serviceURL}/twin/";
+            PCS_HISTORY_SERVICE_URL = $"{serviceURL}/history/";
+            PCS_VAULT_SERVICE_URL = $"{serviceURL}/vault/";
+            PCS_PUBLISHER_SERVICE_URL = $"{serviceURL}/publisher/";
+            PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL = $"{serviceURL}/edge/publisher/";
+            PCS_EVENTS_SERVICE_URL = $"{serviceURL}/events/";
 
             // SignalR
             PCS_SIGNALR_CONNSTRING = signalRConnectionString;
+            PCS_SIGNALR_MODE = signalRServiceMode;
 
             // Authentication
             PCS_AUTH_REQUIRED = $"{true}";
@@ -273,13 +254,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_HISTORY_SERVICE_PATH_BASE = "/history";
             PCS_GATEWAY_SERVICE_PATH_BASE = "/ua";
             PCS_VAULT_SERVICE_PATH_BASE = "/vault";
-            PCS_ONBOARDING_SERVICE_PATH_BASE = "/onboarding";
             PCS_PUBLISHER_SERVICE_PATH_BASE = "/publisher";
-            PCS_CONFIGURATION_SERVICE_PATH_BASE = "/configuration";
-            PCS_EDGE_MANAGER_SERVICE_PATH_BASE = "/edge/manage";
+            PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE = "/edge/publisher";
+            PCS_EVENTS_SERVICE_PATH_BASE = "/events";
             PCS_FRONTEND_APP_SERVICE_PATH_BASE = "/frontend";
-            PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE = "/edge/jobs";
-            PCS_JOBS_SERVICE_PATH_BASE = "/jobs";
 
             // AspNetCore
             ASPNETCORE_FORWARDEDHEADERS_ENABLED = $"{true}";
@@ -294,6 +272,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_IOTHUB_EVENTHUBENDPOINT)}", PCS_IOTHUB_EVENTHUBENDPOINT },
                 { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS },
                 { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY },
+                { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL },
+                { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING },
 
                 // Cosmos DB
                 { $"{nameof(PCS_COSMOSDB_CONNSTRING)}", PCS_COSMOSDB_CONNSTRING },
@@ -303,6 +283,9 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_STORAGE_CONTAINER_DATAPROTECTION)}", PCS_STORAGE_CONTAINER_DATAPROTECTION },
 
                 // ADLS Gen2 Storage Account
+                { $"{nameof(PCS_ADLSG2_ACCOUNT)}", PCS_ADLSG2_ACCOUNT },
+                { $"{nameof(PCS_ADLSG2_ACCOUNT_KEY)}", PCS_ADLSG2_ACCOUNT_KEY },
+                { $"{nameof(PCS_ADLSG2_ENDPOINTSUFFIX)}", PCS_ADLSG2_ENDPOINTSUFFIX },
                 { $"{nameof(PCS_ADLSG2_CONNSTRING)}", PCS_ADLSG2_CONNSTRING },
                 { $"{nameof(PCS_ADLSG2_CONTAINER_CDM)}", PCS_ADLSG2_CONTAINER_CDM },
                 { $"{nameof(PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER)}", PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER },
@@ -325,20 +308,25 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 // Application Insights
                 { $"{nameof(PCS_APPINSIGHTS_INSTRUMENTATIONKEY)}", PCS_APPINSIGHTS_INSTRUMENTATIONKEY },
 
+                // Log Analytics Workspace
+                { $"{nameof(PCS_WORKSPACE_ID)}", PCS_WORKSPACE_ID },
+                { $"{nameof(PCS_WORKSPACE_KEY)}", PCS_WORKSPACE_KEY },
+
                 // Service URLs
                 { $"{nameof(PCS_SERVICE_URL)}", PCS_SERVICE_URL },
+
+                // Service URLs that will be consumed by microservices.
                 { $"{nameof(PCS_TWIN_REGISTRY_URL)}", PCS_TWIN_REGISTRY_URL },
                 { $"{nameof(PCS_TWIN_SERVICE_URL)}", PCS_TWIN_SERVICE_URL },
                 { $"{nameof(PCS_HISTORY_SERVICE_URL)}", PCS_HISTORY_SERVICE_URL },
                 { $"{nameof(PCS_VAULT_SERVICE_URL)}", PCS_VAULT_SERVICE_URL },
-                { $"{nameof(PCS_ONBOARDING_SERVICE_URL)}", PCS_ONBOARDING_SERVICE_URL },
                 { $"{nameof(PCS_PUBLISHER_SERVICE_URL)}", PCS_PUBLISHER_SERVICE_URL },
-                { $"{nameof(PCS_JOBS_SERVICE_URL)}", PCS_JOBS_SERVICE_URL },
-                { $"{nameof(PCS_JOB_ORCHESTRATOR_SERVICE_URL)}", PCS_JOB_ORCHESTRATOR_SERVICE_URL },
-                { $"{nameof(PCS_CONFIGURATION_SERVICE_URL)}", PCS_CONFIGURATION_SERVICE_URL },
+                { $"{nameof(PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL)}", PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL },
+                { $"{nameof(PCS_EVENTS_SERVICE_URL)}", PCS_EVENTS_SERVICE_URL },
 
                 // SignalR
                 { $"{nameof(PCS_SIGNALR_CONNSTRING)}", PCS_SIGNALR_CONNSTRING },
+                { $"{nameof(PCS_SIGNALR_MODE)}", PCS_SIGNALR_MODE },
 
                 // Authentication
                 { $"{nameof(PCS_AUTH_REQUIRED)}", PCS_AUTH_REQUIRED },
@@ -361,13 +349,10 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_HISTORY_SERVICE_PATH_BASE)}", PCS_HISTORY_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_GATEWAY_SERVICE_PATH_BASE)}", PCS_GATEWAY_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_VAULT_SERVICE_PATH_BASE)}", PCS_VAULT_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_ONBOARDING_SERVICE_PATH_BASE)}", PCS_ONBOARDING_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_PUBLISHER_SERVICE_PATH_BASE)}", PCS_PUBLISHER_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_CONFIGURATION_SERVICE_PATH_BASE)}", PCS_CONFIGURATION_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_EDGE_MANAGER_SERVICE_PATH_BASE)}", PCS_EDGE_MANAGER_SERVICE_PATH_BASE },
+                { $"{nameof(PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE)}", PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE },
+                { $"{nameof(PCS_EVENTS_SERVICE_PATH_BASE)}", PCS_EVENTS_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_FRONTEND_APP_SERVICE_PATH_BASE)}", PCS_FRONTEND_APP_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE)}", PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_JOBS_SERVICE_PATH_BASE)}", PCS_JOBS_SERVICE_PATH_BASE },
 
                 // AspNetCore
                 { $"{nameof(ASPNETCORE_FORWARDEDHEADERS_ENABLED)}", ASPNETCORE_FORWARDEDHEADERS_ENABLED },
@@ -385,26 +370,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
         /// <param name="path"></param>
         public void WriteToFile(string path) {
             try {
-                // We will create a new dictionary where service URLs would be externally
-                // accessible ones. That is required so that client applications consuming
-                // the file can run outside of AKS cluster.
-                var extDict = Dict
-                    .ToDictionary(
-                        entry => entry.Key.Clone(),
-                        entry => entry.Value.Clone()
-                     );
-
-                extDict[nameof(PCS_TWIN_REGISTRY_URL)] = PCS_TWIN_REGISTRY_URL_EXTERNAL;
-                extDict[nameof(PCS_TWIN_SERVICE_URL)] = PCS_TWIN_SERVICE_URL_EXTERNAL;
-                extDict[nameof(PCS_HISTORY_SERVICE_URL)] = PCS_HISTORY_SERVICE_URL_EXTERNAL;
-                extDict[nameof(PCS_VAULT_SERVICE_URL)] = PCS_VAULT_SERVICE_URL_EXTERNAL;
-                extDict[nameof(PCS_ONBOARDING_SERVICE_URL)] = PCS_ONBOARDING_SERVICE_URL_EXTERNAL;
-                extDict[nameof(PCS_PUBLISHER_SERVICE_URL)] = PCS_PUBLISHER_SERVICE_URL_EXTERNAL;
-                extDict[nameof(PCS_JOBS_SERVICE_URL)] = PCS_JOBS_SERVICE_URL_EXTERNAL;
-                extDict[nameof(PCS_JOB_ORCHESTRATOR_SERVICE_URL)] = PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
-                extDict[nameof(PCS_CONFIGURATION_SERVICE_URL)] = PCS_CONFIGURATION_SERVICE_URL_EXTERNAL;
-
-                var iiotEnvVarLines = extDict
+                var iiotEnvVarLines = Dict
                     .Select(kvp => $"{kvp.Key}={kvp.Value}")
                     .ToList();
 

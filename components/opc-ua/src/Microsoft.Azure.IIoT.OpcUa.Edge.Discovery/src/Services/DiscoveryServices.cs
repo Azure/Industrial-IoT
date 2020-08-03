@@ -276,15 +276,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// <returns></returns>
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
             DiscoveryRequest request) {
-
             var discoveryUrls = await GetDiscoveryUrlsAsync(request.DiscoveryUrls);
-            if (request.Mode == DiscoveryMode.Off) {
-                return await DiscoverServersAsync(request, discoveryUrls,
-                    request.Configuration.Locales);
-            }
 
             _logger.Information("Start {mode} discovery run...", request.Mode);
             var watch = Stopwatch.StartNew();
+
+            if (request.Mode == DiscoveryMode.Url) {
+                var discoveredUrl = await DiscoverServersAsync(request, discoveryUrls,
+                    request.Configuration.Locales);
+
+                _logger.Information("Discovery took {elapsed} and found {count} servers.",
+                watch.Elapsed, discoveredUrl.Count);
+                return discoveredUrl;
+            }
 
             //
             // Set up scanner pipeline and start discovery

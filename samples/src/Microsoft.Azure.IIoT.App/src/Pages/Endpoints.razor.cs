@@ -30,6 +30,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             new PagedResult<EndpointInfo>();
         private PagedResult<EndpointInfo> PagedendpointList { get; set; } =
             new PagedResult<EndpointInfo>();
+        public EndpointInfo EndpointData { get; set; }
+        public bool IsOpen { get; set; } = false;
+
         private string _tableView = "visible";
         private string _tableEmpty = "displayNone";
         private IAsyncDisposable _endpointEvents;
@@ -153,6 +156,23 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                     Status = e.Message;
                 }
             }
+        }
+
+        // <summary>
+        /// Open then Drawer
+        /// </summary>
+        /// <param name="OpenDrawer"></param>
+        private void OpenDrawer(EndpointInfo endpoint) {
+            IsOpen = true;
+            EndpointData = endpoint;
+        }
+
+        /// <summary>
+        /// Close the Drawer
+        /// </summary>
+        private void CloseDrawer() {
+            IsOpen = false;
+            StateHasChanged();
         }
     }
 }

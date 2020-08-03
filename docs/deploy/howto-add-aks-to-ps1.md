@@ -2,7 +2,7 @@
 
 [Home](readme.md)
 
-This article explains how to add an AKS cluster and deploy components of Azure Industrial IoT platform using
+This article explains how to add an AKS cluster and deploy components of Azure Industrial IoT Platform using
 a Helm chart on top of a platform deployed through either `deploy.cmd` or `deploy.sh` scripts.
 
 ## Table of contents <!-- omit in toc -->
@@ -31,15 +31,15 @@ a Helm chart on top of a platform deployed through either `deploy.cmd` or `deplo
 ## Introduction
 
 `deploy.cmd` or `deploy.sh` scripts
-are deploying components of Azure Industrial IoT platform into two instances of Azure App Services, and as
+are deploying components of Azure Industrial IoT Platform into two instances of Azure App Services, and as
 such they do not provide high degree of scalability and high-availability. We recommend using those scripts
 for PoC and demo purposes. For production scenarios, we recommend running component of Azure Industrial IoT
 platform in Kubernetes cluster. This article will guide you through the steps of making your existing
 deployment into a more production-ready one.
 
 Please note that we also provide `Microsoft.Azure.IIoT.Deployment (Preview)` command-line application, which
-similar to deployment scripts creates an instance of Azure Industrial IoT platform. In contrast to
-deployment scripts, it deploys components of Azure Industrial IoT platform into an AKS cluster. Please use
+similar to deployment scripts creates an instance of Azure Industrial IoT Platform. In contrast to
+deployment scripts, it deploys components of Azure Industrial IoT Platform into an AKS cluster. Please use
 that application if you are starting from scratch:
 
 * Deploying Azure Industrial IoT Platform to [Azure Kubernetes Service (AKS)](howto-deploy-aks.md) as
@@ -81,7 +81,7 @@ The steps to create AKS cluster with static public IP address bellow are based o
 
 ### Create an AKS cluster
 
-Go to the resource group that houses your deployment of Azure Industrial IoT platform and create and AKS
+Go to the resource group that houses your deployment of Azure Industrial IoT Platform and create and AKS
 cluster in it. Please follow the steps in this tutorial and note the steps below it:
 
 * [Create an AKS cluster using Azure portal](https://docs.microsoft.com/azure/aks/kubernetes-walkthrough-portal#create-an-aks-cluster)
@@ -496,9 +496,10 @@ use `aiiot.yaml` that you created above and run the following command:
 helm install aiiot --namespace aiiot .\deploy\helm\azure-industrial-iot\ -f aiiot.yaml
 ```
 
-`aiiot.yaml` that we created above is for `0.3.0` version of the Helm chart. Please modify it accordingly if
-you install a different version of the chart. Please check documentation of each version for a list of
-applicable values for that specific version.
+`aiiot.yaml` that we created above is for `0.4.0` or `0.3.1` versions of the Helm chart. Please modify it
+accordingly if you want to install a different version of the chart. Please check documentation of each
+version for a list of applicable values for that specific version. Documentation links of different versions
+of the chart can be found in [Deploying Azure Industrial IoT Platform Microservices Using Helm](howto-deploy-helm.md).
 
 You can also install the charts from one of Helm repositories that we publish to. For that you would first
 add Helm repository and then install the chart from there as shown bellow.
@@ -506,8 +507,11 @@ add Helm repository and then install the chart from there as shown bellow.
 ```bash
 helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
 helm repo update
-helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0.3.0 -f aiiot.yaml
+helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0.3.1 -f aiiot.yaml
 ```
+
+Please note that the version of the chart in GitHub repo will be ahead of chart versions that we publish
+to Helm repositories.
 
 ### Check status of deployed resources
 
