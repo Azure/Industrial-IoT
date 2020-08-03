@@ -66,9 +66,7 @@ namespace Microsoft.Azure.IIoT.App.Models
         /// </summary>
         public void RemoveDiscoveryUrl(string url)
         {
-            if (RequestedDiscoveryUrls != null) {
-                RequestedDiscoveryUrls.Remove(url);
-            }
+            RequestedDiscoveryUrls?.Remove(url);
         }
 
         /// <summary>
