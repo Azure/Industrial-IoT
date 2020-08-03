@@ -65,14 +65,16 @@
                         <ul class="list-unstyled">
                             @if (InputData.RequestedDiscoveryUrls == null || InputData.RequestedDiscoveryUrls.Count == 0) {
                                 <li>(None)</li>
-                            } else {
+                            }
+                            else {
                                 foreach (var discoveryUrl in InputData.RequestedDiscoveryUrls) {
                                     <li>@discoveryUrl</li>
                                 }
                             }
                         </ul>
                     </div>
-                } else {
+                } 
+                else {
                     <button @onclick="@UrlListButtonClick" aria-label="Show Discovery URL list" type="button" class="btn btn-primary shadow-none section-toggle-button">
                         <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="16" height="16">
                             <path d="m 6,3 5,5 5,-5 z" fill="#797979" />

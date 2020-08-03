@@ -52,8 +52,7 @@ namespace Microsoft.Azure.IIoT.App.Models
         /// <summary>
         /// Add url
         /// </summary>
-        public void AddDiscoveryUrl(string url)
-        {
+        public void AddDiscoveryUrl(string url) {
             if (string.IsNullOrWhiteSpace(url) || (RequestedDiscoveryUrls?.Contains(url) ?? false)) {
                 return;
             }
@@ -64,8 +63,7 @@ namespace Microsoft.Azure.IIoT.App.Models
         /// <summary>
         /// Remove url
         /// </summary>
-        public void RemoveDiscoveryUrl(string url)
-        {
+        public void RemoveDiscoveryUrl(string url) {
             RequestedDiscoveryUrls?.Remove(url);
         }
 
@@ -84,8 +82,7 @@ namespace Microsoft.Azure.IIoT.App.Models
         /// <summary>
         /// Add locale
         /// </summary>
-        public void AddLocale(string locale)
-        {
+        public void AddLocale(string locale) {
             RequestedLocales ??= new List<string>();
             RequestedLocales.Add(locale);
         }
