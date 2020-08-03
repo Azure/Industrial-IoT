@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// Dataflow engine
     /// </summary>
     public class DataFlowProcessingEngine : IProcessingEngine, IDisposable {
-
+        
         /// <inheritdoc/>
         public bool IsRunning { get; private set; }
 
@@ -193,6 +193,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  # Estimated IoT Chunks (4 KB) per day: {estimatedMsgChunksPerDay,14:n0}");
             diagInfo.AppendLine("  # Outgress Batch Block buffer size   : {batchNetworkMessageBlockOutputCount,14:0}");
             diagInfo.AppendLine("  # Outgress input buffer count        : {sinkBlockInputCount,14:n0}");
+            diagInfo.AppendLine("  # Outgress input buffer dropped      : {sinkBlockInputDroppedCount,14:n0}");
 
             string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  # Outgress IoT message count         : {messageSinkSentMessagesCount,14:n0} {sentMessagesPerSecFormatted}");
@@ -214,6 +215,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 estimatedMsgChunksPerDay,
                 _batchNetworkMessageBlock.OutputCount,
                 _sinkBlock.InputCount,
+                _sinkBlockInputDroppedCount,
                 _messageSink.SentMessagesCount, sentMessagesPerSecFormatted,
                 _messageTrigger.NumberOfConnectionRetries);
 
@@ -239,6 +241,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 .Set(_messageEncoder.AvgMessageSize);
             kIoTHubQueueBuffer.WithLabels(deviceId, moduleId, Name)
                 .Set(_sinkBlock.InputCount);
+            kIoTHubQueueBufferDroppedCount.WithLabels(deviceId, moduleId, Name)
+                .Set(_sinkBlockInputDroppedCount);
             kSentMessagesCount.WithLabels(deviceId, moduleId, Name)
                 .Set(_messageSink.SentMessagesCount);
             kSentMessagesPerSecond.WithLabels(deviceId, moduleId, Name)
@@ -272,7 +276,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
                 }
             }
-            _batchDataSetMessageBlock.Post(args);
+
+            if(_sinkBlock.InputCount >= MaxOutgressMessages) {
+                _sinkBlockInputDroppedCount++;
+            }
+            else {
+                _batchDataSetMessageBlock.Post(args);
+            }
         }
 
         private readonly int _dataSetMessageBufferSize = 1;
@@ -299,6 +309,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private TransformManyBlock<DataSetMessageModel[], NetworkMessageModel> _encodingBlock;
         private ActionBlock<NetworkMessageModel[]> _sinkBlock;
 
+        /// <summary>
+        /// Define the maximum size of messages, 200 messages with 256KB ends up in 51,2 MB memory consumed
+        /// </summary>
+        private const int MaxOutgressMessages = 200;
+
+        /// <summary>
+        /// Counts the amount of messages that couldn't be send to IoTHub
+        /// </summary>
+        private ulong _sinkBlockInputDroppedCount;
+
         private static readonly GaugeConfiguration kGaugeConfig = new GaugeConfiguration {
             LabelNames = new[] { "deviceid", "module", "triggerid" }
         };
@@ -316,7 +336,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             "Opc DataChanges/second delivered for processing", kGaugeConfig);
         private static readonly Gauge kIoTHubQueueBuffer = Metrics.CreateGauge(
             "iiot_edge_publisher_iothub_queue_size",
-            "IoT messages queued sending", kGaugeConfig);
+            "IoT messages queued sending", kGaugeConfig); 
+            private static readonly Gauge kIoTHubQueueBufferDroppedCount = Metrics.CreateGauge(
+            "iiot_edge_publisher_iothub_queue_dropped_count",
+            "IoT messages dropped", kGaugeConfig); 
         private static readonly Gauge kSentMessagesCount = Metrics.CreateGauge(
             "iiot_edge_publisher_sent_iot_messages",
             "IoT messages sent to hub", kGaugeConfig);
