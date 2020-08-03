@@ -289,5 +289,17 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Log file path environment variable </summary>
         public const string PCS_LOGS_PATH =
             "PCS_LOGS_PATH";
+        /// <summary> Set interval for batching; can be set as milliseconds from 100 to 3,600,000 ms.  Other values (e.g. <= 0) will result in the default value of 10,000 ms (10 seconds).</summary>
+        /// <remarks>
+        /// The environment variables must be set on the Publisher container Pod to affect the settings in all job configurations from this point on that are performed using the Publisher REST API.  (iot/opc-publisher-service).
+        /// </remarks>
+        public const string PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL =
+            "PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL";
+        /// <summary> Set the batching size; can be set as a value between 2 and 1000. Every other value will result in the default of 50 subscription notifications per batch being set.</summary>
+        /// <remarks>
+        /// The environment variables must be set on the Publisher container Pod to affect the settings in all job configurations from this point on that are performed using the Publisher REST API.  (iot/opc-publisher-service).
+        /// </remarks>
+        public const string PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE =
+            "PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE";
     }
 }
