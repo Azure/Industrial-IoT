@@ -188,6 +188,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                             .Distinct());
                         break;
                     case DiscoveryMode.Off:
+                    case DiscoveryMode.Url:
                     default:
                         AddressRanges = Enumerable.Empty<AddressRange>();
                         break;
@@ -209,6 +210,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                         PortRanges = PortRange.OpcUa;
                         break;
                     case DiscoveryMode.Off:
+                    case DiscoveryMode.Url:
                     default:
                         PortRanges = Enumerable.Empty<PortRange>();
                         break;
