@@ -60,13 +60,6 @@ jobs:
       script: '$(IAILocalFilename)'
       workingDirectory: '$(BasePath)'
 
-  - task: PowerShell@2
-    displayName: "Parse .env file"
-    inputs:
-      targetType: 'filePath'
-      pwsh: true
-      filePath: $(BasePath)\ParseEnvFile.ps1
-
   - task: AzurePowerShell@5
     displayName: "Add permissions to KeyVault"
     name: keyvaultpermissions
