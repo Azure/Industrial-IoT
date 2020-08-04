@@ -61,6 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _batchTriggerInterval = _config.BatchTriggerInterval.GetValueOrDefault(TimeSpan.Zero);
             _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed);
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
+            _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(200);
         }
 
         /// <inheritdoc/>
@@ -277,7 +278,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
 
-            if(_sinkBlock.InputCount >= MaxOutgressMessages) {
+            if(_sinkBlock.InputCount >= _maxOutgressMessages) {
                 _sinkBlockInputDroppedCount++;
             }
             else {
@@ -310,9 +311,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private ActionBlock<NetworkMessageModel[]> _sinkBlock;
 
         /// <summary>
-        /// Define the maximum size of messages, 200 messages with 256KB ends up in 51,2 MB memory consumed
+        /// Define the maximum size of messages
         /// </summary>
-        private const int MaxOutgressMessages = 200;
+        private readonly int _maxOutgressMessages;
 
         /// <summary>
         /// Counts the amount of messages that couldn't be send to IoTHub

@@ -82,6 +82,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public int? MaxMessageSize { get; set; }
 
         /// <summary>
+        /// Define the maximum amount of the IoT D2C messages
+        /// </summary>
+        public int? MaxOutgressMessages { get; set; }
+
+        /// <summary>
         /// The time to flush the log file to the disc.
         /// </summary>
         public TimeSpan? LogFileFlushTimeSpan { get; set; }
