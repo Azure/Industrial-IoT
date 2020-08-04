@@ -31,5 +31,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         /// Diagnostics interval
         /// </summary>
         TimeSpan? DiagnosticsInterval { get; }
+
+        /// <summary>
+        /// Define the maximum number of messages in outgress buffer, 
+        /// Default: 200 messages with 256KB ends 
+        /// up in 50 MB memory consumed
+        /// </summary>
+        int? MaxOutgressMessages { get; }
     }
 }
