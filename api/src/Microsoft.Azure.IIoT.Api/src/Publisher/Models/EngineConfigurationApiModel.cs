@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public int? MaxMessageSize { get; set; }
 
         /// <summary>
-        /// Max IoT D2C messages
+        /// Max IoT D2C outgress message buffer size
         /// </summary>
         [DataMember(Name = "maxOutgressMessages", Order = 4,
             EmitDefaultValue = false)]

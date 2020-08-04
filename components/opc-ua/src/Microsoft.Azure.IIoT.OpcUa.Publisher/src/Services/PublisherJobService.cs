@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         });
 
         /// <summary>
-        /// Read default max outgress messages from environment
+        /// Read default max outgress message buffer size from environment
         /// </summary>
         internal Lazy<int> DefaultMaxOutgressMessages => new Lazy<int>(() => {
             var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES");

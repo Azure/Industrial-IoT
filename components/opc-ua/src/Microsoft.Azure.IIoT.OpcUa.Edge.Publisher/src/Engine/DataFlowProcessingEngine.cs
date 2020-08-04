@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// Dataflow engine
     /// </summary>
     public class DataFlowProcessingEngine : IProcessingEngine, IDisposable {
-        
+
         /// <inheritdoc/>
         public bool IsRunning { get; private set; }
 
