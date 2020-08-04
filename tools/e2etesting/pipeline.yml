@@ -60,6 +60,13 @@ jobs:
       script: '$(IAILocalFilename)'
       workingDirectory: '$(BasePath)'
 
+  - task: PowerShell@2
+    displayName: "Parse .env file"
+    inputs:
+      targetType: 'filePath'
+      pwsh: true
+      filePath: $(BasePath)\ParseEnvFile.ps1
+
   - task: AzurePowerShell@5
     displayName: "Add permissions to KeyVault"
     name: keyvaultpermissions
@@ -98,7 +105,7 @@ jobs:
     matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
   steps:
   - task: AzurePowerShell@5
-    displayName: "Set KeyVaultName-Variable"
+    displayName: 'Set KeyVaultName-Variable'
     inputs:
       azureSubscription: 'IOT-OPC-WALLS-MSI'
       azurePowerShellVersion: 'latestVersion'
@@ -112,7 +119,7 @@ jobs:
     inputs:
       azureSubscription: 'IOT-OPC-WALLS-MSI'
       KeyVaultName: '$(KeyVaultName)'
-        SecretsFilter: '*'
+      SecretsFilter: '*'
 
   - task: CmdLine@2
     displayName: 'Run Newman for $(collectionFile)'
