@@ -13,7 +13,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using System.Linq;
     using System.Threading.Tasks;
     using Serilog;
-    using Microsoft.Azure.IIoT.Exceptions;
 
     public class Registry {
 
@@ -123,38 +122,36 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     }
                 }
 
-                if (discoverers != null) {
-                    if (discoverers.Items != null && discoverers.Items.Any()) {
-                        foreach (var disc in discoverers.Items) {
-                            var discoverer = await _registryService.GetDiscovererAsync(disc.Id);
-                            var info = new DiscovererInfo {
-                                DiscovererModel = discoverer,
-                                HasApplication = false,
-                                ScanStatus = (discoverer.Discovery == DiscoveryMode.Off) || (discoverer.Discovery == null) ? false : true
-                            };
-                            applicationModel.DiscovererId = discoverer.Id;
-                            var applications = await _registryService.QueryApplicationsAsync(applicationModel, 1);
-                            if (applications != null) {
-                                info.HasApplication = true;
-                            }
-                            pageResult.Results.Add(info);
+                if (discoverers != null && discoverers.Items.Any()) {
+                    foreach (var disc in discoverers.Items) {
+                        var discoverer = await _registryService.GetDiscovererAsync(disc.Id);
+                        var info = new DiscovererInfo {
+                            DiscovererModel = discoverer,
+                            HasApplication = false,
+                            ScanStatus = (discoverer.Discovery == DiscoveryMode.Off) || (discoverer.Discovery == null) ? false : true
+                        };
+                        applicationModel.DiscovererId = discoverer.Id;
+                        var applications = await _registryService.QueryApplicationsAsync(applicationModel, 1);
+                        if (applications != null) {
+                            info.HasApplication = true;
                         }
+                        pageResult.Results.Add(info);
                     }
-                }
-                if (previousPage != null) {
-                    previousPage.Results.AddRange(pageResult.Results);
-                    pageResult.Results = previousPage.Results;
-                }
+                    if (previousPage != null) {
+                        previousPage.Results.AddRange(pageResult.Results);
+                        pageResult.Results = previousPage.Results;
+                    }
 
-                pageResult.ContinuationToken = discoverers.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLengthSmall;
-                pageResult.RowCount = pageResult.Results.Count;
+                    pageResult.ContinuationToken = discoverers.ContinuationToken;
+                    pageResult.PageSize = _commonHelper.PageLengthSmall;
+                    pageResult.RowCount = pageResult.Results.Count;
+                }
+                else {
+                    pageResult.Error = "No Discoveres Found";
+                }
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
-            }
-            catch (ResourceInvalidStateException) {
-                pageResult.Error = "IotHubQuotaExceeded. Send and Receive operations are blocked for this hub until the next UTC day.";
             }
             catch (Exception e) {
                 var message = "Cannot get discoverers as list";
@@ -229,13 +226,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <returns></returns>
         public async Task<string> SetDiscoveryAsync(DiscovererInfo discoverer) {
             try {
-                var discoveryMode = DiscoveryMode.Off;
-                if (discoverer.DiscovererModel.DiscoveryConfig?.DiscoveryUrls != null && discoverer.ScanStatus) {
-                    discoveryMode = DiscoveryMode.Url;
-                }
-                else {
-                    discoveryMode = discoverer.ScanStatus ? DiscoveryMode.Fast : DiscoveryMode.Off;
-                }
+                var discoveryMode = discoverer.ScanStatus ? DiscoveryMode.Fast : DiscoveryMode.Off;
                 await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, discoverer.Patch);
                 discoverer.Patch = new DiscoveryConfigApiModel();
             }

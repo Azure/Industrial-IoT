@@ -58,7 +58,6 @@ namespace Microsoft.Azure.IIoT.Http {
                 case HttpStatusCode.PreconditionFailed:
                     throw new ResourceOutOfDateException(message, inner);
                 case HttpStatusCode.InternalServerError:
-                    throw new ResourceInvalidStateException(message, inner);
                 case HttpStatusCode.GatewayTimeout:
                 case HttpStatusCode.ServiceUnavailable:
                 case HttpStatusCode.TemporaryRedirect:

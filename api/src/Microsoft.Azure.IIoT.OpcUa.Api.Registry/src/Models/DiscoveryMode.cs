@@ -40,12 +40,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Perform a deep scan of all networks.
         /// </summary>
         [EnumMember]
-        Scan,
-
-        /// <summary>
-        /// Look for DiscoveryUrls
-        /// </summary>
-        [EnumMember]
-        Url
+        Scan
     }
 }

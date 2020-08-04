@@ -388,44 +388,44 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         }
 
         /// <summary>
-        /// Update Redirect URIs of client application with URIs based on provided applicationUrl.
+        /// Update Redirect URIs of client application with URIs based on provided applicationURL.
         /// </summary>
-        /// <param name="applicationUrl"></param>
+        /// <param name="applicationURL"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task UpdateClientApplicationRedirectUrisAsync(
-            string applicationUrl,
+            string applicationURL,
             CancellationToken cancellationToken = default
         ) {
-            if (string.IsNullOrWhiteSpace(applicationUrl)) {
-                throw new ArgumentNullException(nameof(applicationUrl));
+            if (string.IsNullOrWhiteSpace(applicationURL)) {
+                throw new ArgumentNullException(nameof(applicationURL));
             }
 
-            applicationUrl = applicationUrl.Trim();
+            applicationURL = applicationURL.Trim();
 
-            if (!applicationUrl.StartsWith("https://") && !applicationUrl.StartsWith("http://")) {
-                applicationUrl = $"https://{applicationUrl}";
+            if (!applicationURL.StartsWith("https://") && !applicationURL.StartsWith("http://")) {
+                applicationURL = $"https://{applicationURL}";
             }
 
-            if (!applicationUrl.EndsWith("/")) {
-                applicationUrl += "/";
+            if (!applicationURL.EndsWith("/")) {
+                applicationURL += "/";
             }
 
             Log.Information($"Updating RedirectUris of client " +
-                $"application to point to '{applicationUrl}'");
+                $"application to point to '{applicationURL}'");
 
             var redirectUris = new List<string> {
-                $"{applicationUrl}registry/swagger/oauth2-redirect.html",
-                $"{applicationUrl}twin/swagger/oauth2-redirect.html",
-                $"{applicationUrl}history/swagger/oauth2-redirect.html",
-                $"{applicationUrl}vault/swagger/oauth2-redirect.html",
-                $"{applicationUrl}onboarding/swagger/oauth2-redirect.html",
-                $"{applicationUrl}publisher/swagger/oauth2-redirect.html",
-                $"{applicationUrl}jobs/swagger/oauth2-redirect.html",
-                $"{applicationUrl}configuration/swagger/oauth2-redirect.html",
-                $"{applicationUrl}edge/jobs/swagger/oauth2-redirect.html",
-                $"{applicationUrl}edge/manage/swagger/oauth2-redirect.html",
-                $"{applicationUrl}frontend/signin-oidc",
+                $"{applicationURL}registry/swagger/oauth2-redirect.html",
+                $"{applicationURL}twin/swagger/oauth2-redirect.html",
+                $"{applicationURL}history/swagger/oauth2-redirect.html",
+                $"{applicationURL}vault/swagger/oauth2-redirect.html",
+                $"{applicationURL}onboarding/swagger/oauth2-redirect.html",
+                $"{applicationURL}publisher/swagger/oauth2-redirect.html",
+                $"{applicationURL}jobs/swagger/oauth2-redirect.html",
+                $"{applicationURL}configuration/swagger/oauth2-redirect.html",
+                $"{applicationURL}edge/jobs/swagger/oauth2-redirect.html",
+                $"{applicationURL}edge/manage/swagger/oauth2-redirect.html",
+                $"{applicationURL}frontend/signin-oidc",
             };
 
             _clientApplication = await _msGraphServiceClient

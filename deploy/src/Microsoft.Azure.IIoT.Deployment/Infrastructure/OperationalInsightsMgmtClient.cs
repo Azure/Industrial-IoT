@@ -17,9 +17,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Serilog;
 
-    /// <summary>
-    /// Log Analytics workspaces management client.
-    /// </summary>
     class OperationalInsightsMgmtClient : IDisposable
     {
 
@@ -27,11 +24,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         private readonly OperationalInsightsManagementClient _operationalInsightsManagementClient;
 
-        /// <summary>
-        /// Constructor of Log Analytics workspaces management client.
-        /// </summary>
-        /// <param name="subscriptionId"></param>
-        /// <param name="restClient"></param>
         public OperationalInsightsMgmtClient(
             string subscriptionId,
             RestClient restClient
@@ -54,12 +46,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             };
         }
 
-        /// <summary>
-        /// Generate Log Analytics workspaces name with given prefix and length of random suffix.
-        /// </summary>
-        /// <param name="prefix"></param>
-        /// <param name="suffixLen"></param>
-        /// <returns></returns>
         public static string GenerateWorkspaceName(
             string prefix = DEFAULT_NAME_PREFIX,
             int suffixLen = 5
@@ -67,14 +53,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return SdkContext.RandomResourceName(prefix, suffixLen);
         }
 
-        /// <summary>
-        /// Create Log Analytics workspaces.
-        /// </summary>
-        /// <param name="resourceGroup"></param>
-        /// <param name="operationalInsightsWorkspaceName"></param>
-        /// <param name="tags"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
         public async Task<Workspace> CreateOperationalInsightsWorkspaceAsync(
             IResourceGroup resourceGroup,
             string operationalInsightsWorkspaceName,
@@ -114,28 +92,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 Log.Error(ex, $"Failed to create Azure Operational Insights Workspace: {operationalInsightsWorkspaceName}");
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Get shared keys for Log Analytics workspaces.
-        /// </summary>
-        /// <param name="resourceGroup"></param>
-        /// <param name="workspace"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task<SharedKeys> GetSharedKeysAsync(
-            IResourceGroup resourceGroup,
-            Workspace workspace,
-            CancellationToken cancellationToken = default
-        ) {
-            var sharedKeys = await _operationalInsightsManagementClient.SharedKeys
-                .GetSharedKeysAsync(
-                    resourceGroup.Name,
-                    workspace.Name,
-                    cancellationToken
-                );
-
-            return sharedKeys;
         }
 
         public void Dispose() {

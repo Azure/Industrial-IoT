@@ -765,9 +765,6 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "appInsightsId": {
-                        "value": "[variables('appinsightsResourceId')]",
-                    },
                     "workbookSourceId": {
                         "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
                     },
@@ -784,7 +781,6 @@
                 }
             },
             "dependsOn": [
-                "[variables('appinsightsResourceId')]"
             ]
         }
     ],

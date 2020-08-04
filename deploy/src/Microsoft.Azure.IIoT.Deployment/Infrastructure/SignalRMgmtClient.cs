@@ -93,14 +93,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// </summary>
         /// <param name="resourceGroup"></param>
         /// <param name="signalRName"></param>
-        /// <param name="serviceMode"></param>
         /// <param name="tags"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task<SignalRResource> CreateAsync(
             IResourceGroup resourceGroup,
             string signalRName,
-            ServiceMode serviceMode,
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
@@ -117,8 +115,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 Log.Information($"Creating SignalR Service: {signalRName} ...");
 
                 var serviceModeFeature = new SignalRFeature {
-                    Flag = serviceMode.Flag,
-                    Value = serviceMode.Value
+                    Flag = ServiceMode.Serverless.Flag,
+                    Value = ServiceMode.Serverless.Value
                 };
 
                 var signalRCreateParameters = new SignalRResource() {

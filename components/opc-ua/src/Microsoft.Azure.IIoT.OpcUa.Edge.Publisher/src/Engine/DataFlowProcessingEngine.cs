@@ -177,9 +177,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var diagInfo = new StringBuilder();
             diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
             diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
-            string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $"({dataChangesPerSec:#,0.##}/s)" : "";
+            string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $"({dataChangesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
-            string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $"({valueChangesPerSec:#,0.##}/s)" : "";
+            string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $"({valueChangesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
 
             diagInfo.AppendLine("  # Ingress BatchBlock buffer size     : {batchDataSetMessageBlockOutputCount,14:0}");
