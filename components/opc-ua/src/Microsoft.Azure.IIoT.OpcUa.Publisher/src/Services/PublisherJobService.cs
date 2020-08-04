@@ -49,6 +49,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         });
 
         /// <summary>
+        /// Read default max outgress message buffer size from environment
+        /// </summary>
+        internal Lazy<int> DefaultMaxOutgressMessages => new Lazy<int>(() => {
+            var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES");
+            if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var maxOutgressMessages) &&
+                maxOutgressMessages > 1 && maxOutgressMessages <= 25000) {
+                return maxOutgressMessages;
+            }
+            return 200; //default
+        });
+
+        /// <summary>
         /// Create client
         /// </summary>
         /// <param name="endpoints"></param>
@@ -261,12 +273,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                             BatchSize = DefaultBatchSize.Value,
                             BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
                             DiagnosticsInterval = TimeSpan.FromSeconds(60),
-                            MaxMessageSize = 0
-                        };
+                            MaxMessageSize = 0,
+                            MaxOutgressMessages = DefaultMaxOutgressMessages.Value
+                    };
                     }
                     else {
                         publishJob.Engine.BatchTriggerInterval = DefaultBatchTriggerInterval.Value;
                         publishJob.Engine.BatchSize = DefaultBatchSize.Value;
+                        publishJob.Engine.MaxOutgressMessages = DefaultMaxOutgressMessages.Value;
                     }
                     return publishJob;
                 }
@@ -295,8 +309,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     BatchSize = DefaultBatchSize.Value,
                     BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
-                    MaxMessageSize = 0
-                },
+                    MaxMessageSize = 0,
+                    MaxOutgressMessages = DefaultMaxOutgressMessages.Value
+        },
                 ConnectionString = null
             };
         }
