@@ -87,9 +87,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 IsRunning = true;
                 _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
                     async input => {
-                        if (_batchTriggerInterval > TimeSpan.Zero) {
-                            _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
-                        }
                         try {
                             if (_dataSetMessageBufferSize == 1) {
                                 return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
@@ -256,6 +253,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="state"></param>
         private void BatchTriggerIntervalTimer_Elapsed(object state) {
+            if (_batchTriggerInterval > TimeSpan.Zero) {
+                _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
+            }
             _batchDataSetMessageBlock?.TriggerBatch();
         }
 
