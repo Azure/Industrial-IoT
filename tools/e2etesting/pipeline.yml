@@ -97,27 +97,27 @@ jobs:
   strategy:
     matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
   steps:
-    - task: AzurePowerShell@5
-      displayName: "Set KeyVaultName-Variable"
-      inputs:
-        azureSubscription: 'IOT-OPC-WALLS-MSI'
-        azurePowerShellVersion: 'latestVersion'
-        scriptType: filePath
-        scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
-        scriptArguments: >
-          -ResourceGroupName "$(ResourceGroupName)"
+  - task: AzurePowerShell@5
+    displayName: "Set KeyVaultName-Variable"
+    inputs:
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+      scriptArguments: >
+        -ResourceGroupName "$(ResourceGroupName)"
 
-    - task: AzureKeyVault@1
-      displayName: 'Retrieve KeyVault secrets from existing deployment'
-      inputs:
-        azureSubscription: 'IOT-OPC-WALLS-MSI'
-        KeyVaultName: '$(KeyVaultName)'
-          SecretsFilter: '*'
+  - task: AzureKeyVault@1
+    displayName: 'Retrieve KeyVault secrets from existing deployment'
+    inputs:
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      KeyVaultName: '$(KeyVaultName)'
+        SecretsFilter: '*'
 
-    - task: CmdLine@2
-      displayName: 'Run Newman for $(collectionFile)'
-      inputs:
-        script: newman run "$(collectionFile)" --env-var ServiceUrl="$(pcs-service-url)" --env-var TenantId="$(pcs-auth-tenant)" --env-var ClientId="$(pcs-auth-client-appid)" --env-var ClientSecret="$(pcs-auth-client-secret)" --env-var ApplicationName="$(ApplicationName)"
+  - task: CmdLine@2
+    displayName: 'Run Newman for $(collectionFile)'
+    inputs:
+      script: newman run "$(collectionFile)" --env-var ServiceUrl="$(pcs-service-url)" --env-var TenantId="$(pcs-auth-tenant)" --env-var ClientId="$(pcs-auth-client-appid)" --env-var ClientSecret="$(pcs-auth-client-secret)" --env-var ApplicationName="$(ApplicationName)"
 
 - job: cleanup
   displayName: Cleanup
