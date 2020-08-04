@@ -60,14 +60,6 @@ jobs:
       script: '$(IAILocalFilename)'
       workingDirectory: '$(BasePath)'
 
-  - task: PowerShell@2
-    name: parseenvfile
-    displayName: "Parse .env file"
-    inputs:
-      targetType: 'filePath'
-      pwsh: true
-      filePath: $(BasePath)\ParseEnvFile.ps1
-
   - task: AzurePowerShell@5
     displayName: "Add permissions to KeyVault"
     name: keyvaultpermissions
@@ -102,26 +94,24 @@ jobs:
   condition: eq(dependencies.prepnewman.result, 'Succeeded')
   pool:
     name: 'Azure-IoT-Manufacturing'
-  variables:
-  - name: KeyVaultNameFromDeployment
-    value: $[ dependencies.deploy.outputs['keyvaultpermissions.KeyVaultNameFromDeployment'] ]
   strategy:
     matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
   steps:
+  - task: AzurePowerShell@5
+    displayName: "Set KeyVaultName-Variable"
+    inputs:
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+      scriptArguments: >
+        -ResourceGroupName "$(ResourceGroupName)"
+
     - task: AzureKeyVault@1
-      condition: eq(variables['UseExisting'], true)
       displayName: 'Retrieve KeyVault secrets from existing deployment'
       inputs:
         azureSubscription: 'IOT-OPC-WALLS-MSI'
         KeyVaultName: '$(KeyVaultName)'
-        SecretsFilter: '*'
-
-    - task: AzureKeyVault@1
-      condition: ne(variables['UseExisting'], true)
-      displayName: 'Retrieve KeyVault secrets'
-      inputs:
-        azureSubscription: 'IOT-OPC-WALLS-MSI'
-        KeyVaultName: '$(KeyVaultNameFromDeployment)'
         SecretsFilter: '*'
 
     - task: CmdLine@2
