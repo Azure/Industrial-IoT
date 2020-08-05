@@ -127,7 +127,7 @@ Function Select-Context() {
     }
 
     $tenantIdArg = @{}
-    
+
     if (![string]::IsNullOrEmpty($script:tenantId)) {
         $tenantIdArg = @{
             TenantId = $script:tenantId
@@ -849,8 +849,10 @@ Function New-Deployment() {
         $aadAddReplyUrls = $true
 
         # Restore AD context
-        Write-Host "Switching to AAD tenant $($context.Tenant)..."
-        Set-AzContext -Context $context
+        if (![string]::IsNullOrEmpty($authTenantId)) {
+            Write-Host "Switching to AAD tenant $($context.Tenant)..."
+            Set-AzContext -Context $context
+        }
     }
     elseif (($script:aadConfig -is [string]) -and (Test-Path $script:aadConfig)) {
         # read configuration from file
@@ -889,7 +891,13 @@ Function New-Deployment() {
     }
     else {
         $userPrincipalId = (Get-AzADUser -UserPrincipalName (Get-AzContext).Account.Id).Id
-        $templateParameters.Add("keyVaultPrincipalId", $userPrincipalId)
+
+        if (![string]::IsNullOrEmpty($userPrincipalId)) {
+            $templateParameters.Add("keyVaultPrincipalId", $userPrincipalId)
+        }
+        else {
+            $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.FallBackPrincipalId)
+        }
     }
 
     # Add IoTSuiteType tag. This tag will be applied for all resources.
@@ -906,7 +914,6 @@ Function New-Deployment() {
             if (![string]::IsNullOrEmpty($adminUser) -and ![string]::IsNullOrEmpty($adminPassword)) {
                 Write-Host
                 Write-Host "The following username and password can be used to log into the deployed VMs:"
-                Write-Host
                 Write-Host $adminUser
                 Write-Host $adminPassword
                 Write-Host
