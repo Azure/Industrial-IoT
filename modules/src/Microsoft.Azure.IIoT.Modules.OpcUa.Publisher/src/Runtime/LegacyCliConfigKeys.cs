@@ -98,6 +98,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string MaxMessageSize = "MaxMessageSize";
 
         /// <summary>
+        /// Key for the max (IoT Hub D2C) messages
+        /// </summary>
+        public const string MaxOutgressMessages = "MaxOutgressMessages";
+
+        /// <summary>
         /// Key for the scale test monitored items clones count .
         /// </summary>
         public const string ScaleTestCount = "ScaleTestCount";

@@ -53,7 +53,7 @@
             @if (IsIdGiven(DiscovererId)) {
                 <th class="width-xsmall">
                     @{var link = @NavigationManager.BaseUri + "discoverers/1";}
-                    <a href="@link">
+                    <a aria-label="back" href="@link">
                         <span class="oi oi-arrow-left"></span>
                     </a>
                 </th>
@@ -61,7 +61,7 @@
             else if (IsIdGiven(ApplicationId)) {
                 <th class="width-xsmall">
                     @{var link = @NavigationManager.BaseUri + "applications/1";}
-                    <a href="@link">
+                    <a aria-label="back" href="@link">
                         <span class="oi oi-arrow-left"></span>
                     </a>
                 </th>
