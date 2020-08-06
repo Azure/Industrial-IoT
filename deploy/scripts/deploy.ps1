@@ -3,10 +3,10 @@
     Deploys Industrial IoT services to Azure.
 
  .DESCRIPTION
-    Deploys the Industrial IoT services dependencies and optionally micro services and UI to Azure.
+    Deploys the Industrial IoT services dependencies, and optionally microservices and UI to Azure.
 
  .PARAMETER type
-    The type of deployment (minimum, local, services, simulation, app, all).
+    The type of deployment (minimum, local, services, simulation, app, all), defaults to all.
 
  .PARAMETER version
     Set to "latest" or another mcr image tag to deploy - if not set deploys current master branch ("preview").
@@ -48,7 +48,7 @@
     The subscription of the container registry, if different from the specified subscription.
 
  .PARAMETER environmentName
-    The cloud environment to use (defaults to Azure Cloud).
+    The cloud environment to use, defaults to AzureCloud.
 
  .PARAMETER simulationProfile
     If you are deploying a simulation, the simulation profile to use, if not default.
@@ -708,7 +708,7 @@ Function New-Deployment() {
 
     $StartTime = $(get-date)
     write-host "Start time: $($StartTime.ToShortTimeString())"
-    
+
     # Select docker images to use
     if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
         if ([string]::IsNullOrEmpty($script:version)) {

@@ -21,16 +21,14 @@ The platform and simulation can also be deployed using the deploy script.
    cd Industrial-IoT
    ```
 
-2. Open a command prompt or terminal to the repository root and run:
+2. Start the guided deployment:
 
    - On Windows:
-
      ```pwsh
      .\deploy
      ```
 
-   - On Linux:
-
+   - On Linux or Mac:
      ```bash
      ./deploy.sh
      ```
@@ -42,9 +40,9 @@ The platform and simulation can also be deployed using the deploy script.
 
    ![Deployment Result](../media/deployment-succeeded.png)
 
-   The output includes the URL of the public endpoint.  
+   The output includes the URL of the public endpoint.
 
-   In case you run into issues please follow the steps [below](#troubleshooting-deployment-failures).
+   In case you run into issues please follow the [troubleshooting steps](#troubleshooting-deployment-failures).
 
 4. Once the script completes successfully, select whether you want to save the `.env` file. You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](../tutorials/tut-use-cli.md) or for debugging.
 
@@ -81,7 +79,7 @@ Choose R to run once.
 
 ### Resource group name
 
-Ensure you use a short and simple resource group name. The name is used also to name resources as such it must comply with resource naming requirements.  
+Ensure you use a short and simple resource group name. The name is used also to name resources as such it must comply with resource naming requirements.
 
 ### Website name already in use
 
@@ -106,10 +104,10 @@ If the deployment fails or if you see the following error when trying to sign-in
    ./deploy.ps1 -aadConfig aad.json
    ```
 
-If you need additional reply URLs, you may add them manually as this does not require AAD admin rights.
+If you need additional reply URLs, you may add them manually as this does not require AAD admin rights. The script `aad-register.ps1` also supports the parameter `-tenandId`, which can be used to explicitly select an AAD tenant, and can be executed from the [Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview).
 
 **Option 3** (recommended as PoC): Create your [own AAD tenant](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-create-new-tenant), in which you are the admin
-  - Azure Portal: Create a resource -> Azure Active Directory  
+  - Azure Portal: Create a resource -> Azure Active Directory
   - After about 1 min, click the link to manage the directory, or click on your account profile at the top right of the Azure Portal -> Switch directory, then select it from *All Directories*
   - Copy the Tenant ID
 
@@ -164,7 +162,7 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
 
 ```
  .PARAMETER type
-    The type of deployment (minimum, local, services, simulation, app, all).
+    The type of deployment (minimum, local, services, simulation, app, all), defaults to all.
 
  .PARAMETER version
     Set to "latest" or another mcr image tag to deploy - if not set deploys current master branch ("preview").
@@ -206,7 +204,7 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
     The subscription of the container registry, if different from the specified subscription.
 
  .PARAMETER environmentName
-    The cloud environment to use (defaults to Azure Cloud).
+    The cloud environment to use, defaults to AzureCloud.
 
  .PARAMETER simulationProfile
     If you are deploying a simulation, the simulation profile to use, if not default.
