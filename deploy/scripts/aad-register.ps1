@@ -442,8 +442,12 @@ Function New-ADApplications() {
         Write-Host "'$($clientDisplayName)' updated with required resource access."
 
         $replyUrls = New-Object System.Collections.Generic.List[System.String]
-        if (![string]::IsNullOrEmpty($script:ReplyUrl)) {
-            $replyUrls.Add("$($script:ReplyUrl)signin-oidc")
+        $replyUrl = $script:ReplyUrl
+        if (![string]::IsNullOrEmpty($replyUrl)) {
+            # Append "/" if necessary.
+            $replyUrl = If ($replyUrl.Substring($replyUrl.Length - 1, 1) -eq "/") { $replyUrl } Else {$replyUrl + "/"}
+            $replyUrls.Add("$($replyUrl)signin-oidc")
+            Write-Host "Registering $($replyUrl) as reply URL ..."
         }
 
         Set-AzureADApplication -ObjectId $webAadApplication.ObjectId `
