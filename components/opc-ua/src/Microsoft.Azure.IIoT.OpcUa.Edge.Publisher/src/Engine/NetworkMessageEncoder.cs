@@ -91,6 +91,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var messageSize = 2; // array brackets
             maxMessageSize -= 2048; // reserve 2k for header
             var chunk = new Collection<NetworkMessage>();
+            ulong notificationsPerMessage = 0;
             while (processing) {
                 var notification = current.Current;
                 var messageCompleted = false;
@@ -115,6 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         if (!messageCompleted) {
                             NotificationsProcessedCount++;
                             chunk.Add(notification);
+                            notificationsPerMessage += (ulong)notification.Messages.Sum(m => m.Payload.Count);
                             processing = current.MoveNext();
                             messageSize += notificationSize + (processing ? 1 : 0);
                         }
@@ -142,10 +144,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
                     AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
-                        chunk.Count) / (MessagesProcessedCount + 1);
+                        notificationsPerMessage) / (MessagesProcessedCount + 1);
                         MessagesProcessedCount++;
                     chunk.Clear();
                     messageSize = 2;
+                    notificationsPerMessage = 0;
                     yield return encoded;
                 }
             }
@@ -173,6 +176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var messageSize = 4; // array length size
             maxMessageSize -= 2048; // reserve 2k for header
             var chunk = new Collection<NetworkMessage>();
+            ulong notificationsPerMessage = 0;
             while (processing) {
                 var notification = current.Current;
                 var messageCompleted = false;
@@ -191,6 +195,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                         if (!messageCompleted) {
                             chunk.Add(notification);
+                            notificationsPerMessage += (ulong)notification.Messages.Sum(m => m.Payload.Count);
                             NotificationsProcessedCount++;
                             processing = current.MoveNext();
                             messageSize += notificationSize;
@@ -210,10 +215,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                         (MessagesProcessedCount + 1);
                     AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
-                        chunk.Count) / (MessagesProcessedCount + 1);
+                        notificationsPerMessage) / (MessagesProcessedCount + 1);
                     MessagesProcessedCount++;
                     chunk.Clear();
                     messageSize = 4;
+                    notificationsPerMessage = 0;
                     yield return encoded;
                 }
             }
@@ -237,6 +243,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 yield break;
             }
             foreach (var networkMessage in notifications) {
+                ulong notificationsPerMessage = (ulong)networkMessage.Messages.Sum(m => m.Payload.Count);
                 var writer = new StringWriter();
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
                     UseAdvancedEncoding = true,
@@ -261,7 +268,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 NotificationsProcessedCount++;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                     (MessagesProcessedCount + 1);
-                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
+                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + notificationsPerMessage) /
                     (MessagesProcessedCount + 1);
                 MessagesProcessedCount++;
                 yield return encoded;
@@ -285,7 +292,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (notifications.Count() == 0) {
                 yield break;
             }
+
             foreach (var networkMessage in notifications) {
+                ulong notificationsPerMessage = (ulong)networkMessage.Messages.Sum(m => m.Payload.Count);
                 var encoder = new BinaryEncoder(encodingContext);
                 encoder.WriteBoolean(null, false); // is not Batch
                 encoder.WriteEncodeable(null, networkMessage);
@@ -305,7 +314,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 NotificationsProcessedCount++;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
                     (MessagesProcessedCount + 1);
-                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + 1) /
+                AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount + notificationsPerMessage) /
                     (MessagesProcessedCount + 1);
                 MessagesProcessedCount++;
                 yield return encoded;
