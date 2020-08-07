@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
 
     /// <summary>
-    /// Pub sub writer group job
+    /// PubSub writer group job
     /// </summary>
     public class WriterGroupJobModel {
 
