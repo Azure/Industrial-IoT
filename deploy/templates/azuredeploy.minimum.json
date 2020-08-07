@@ -20,7 +20,7 @@
             "type": "string",
             "defaultValue": "master",
             "metadata": {
-                "description": "The branch from which to deploy deploy services and application. Default to master."
+                "description": "The branch from which to deploy services and application. Default to master."
             }
         },
         "storageName": {
