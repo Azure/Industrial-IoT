@@ -100,7 +100,7 @@ If the deployment fails or if you see the following error when trying to sign-in
 
    ```pwsh
    cd deploy/scripts
-   ./aad-register.ps1 -Name <application-name> -ReplyUrl https://<name>.azurewebsites.net/ -Output aad.json
+   ./aad-register.ps1 -Name <application-name> -ReplyUrl https://<application-name>.azurewebsites.net/ -Output aad.json
    ./deploy.ps1 -aadConfig aad.json
    ```
 
