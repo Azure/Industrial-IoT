@@ -235,7 +235,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// The Maximum (IoT D2C) message buffer size
         /// </summary>
-        public int? MaxOutgressMessages => LegacyCliModel.MaxOutgressMessages;
+        public int? MaxEgressMessageQueue => LegacyCliModel.MaxOutgressMessages;
 
         /// <summary>
         /// The model of the CLI arguments.

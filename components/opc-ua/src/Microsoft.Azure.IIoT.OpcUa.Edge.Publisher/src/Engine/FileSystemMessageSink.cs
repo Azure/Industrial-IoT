@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     public class FileSystemMessageSink : IMessageSink {
 
         /// <inheritdoc/>
-        public long SentMessagesCount { get; private set; }
+        public ulong SentMessagesCount { get; private set; }
 
         /// <summary>
         /// Create sink

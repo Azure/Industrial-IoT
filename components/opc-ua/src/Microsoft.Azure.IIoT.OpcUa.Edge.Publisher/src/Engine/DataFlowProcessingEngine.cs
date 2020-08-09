@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _batchTriggerInterval = _config.BatchTriggerInterval.GetValueOrDefault(TimeSpan.Zero);
             _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed);
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
-            _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(200);
+            _maxEgressMessageQueue = _config.MaxEgressMessageQueue.GetValueOrDefault(8192); // = 4 GB / 2 / (256 * 1024)
         }
 
         /// <inheritdoc/>
@@ -88,12 +88,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 IsRunning = true;
                 _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
                     async input => {
+                        _notificationsProcessingCount = input.Sum(m => m.Notifications.Count());
                         try {
                             if (_dataSetMessageBufferSize == 1) {
-                                return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
+                                return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize - _encodedMessageSizeOverhead).ConfigureAwait(false);
                             }
                             else {
-                                return await _messageEncoder.EncodeBatchAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
+                                return await _messageEncoder.EncodeBatchAsync(input, _maxEncodedMessageSize - _encodedMessageSizeOverhead).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) {
@@ -102,23 +103,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     },
                     new ExecutionDataflowBlockOptions {
-                        CancellationToken = cancellationToken
+                        CancellationToken = cancellationToken,
                     });
 
                 _batchDataSetMessageBlock = new BatchBlock<DataSetMessageModel>(
                     _dataSetMessageBufferSize,
                     new GroupingDataflowBlockOptions {
-                        CancellationToken = cancellationToken
+                        CancellationToken = cancellationToken,
                     });
 
                 _batchNetworkMessageBlock = new BatchBlock<NetworkMessageModel>(
                     _networkMessageBufferSize,
                     new GroupingDataflowBlockOptions {
-                        CancellationToken = cancellationToken
+                        CancellationToken = cancellationToken,
                     });
 
                 _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
                     async input => {
+                        _messagesSendingCount = input.Length;
                         if (input != null && input.Any()) {
                             await _messageSink.SendAsync(input).ConfigureAwait(false);
                         }
@@ -128,8 +130,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     },
                     new ExecutionDataflowBlockOptions {
-                        CancellationToken = cancellationToken
+                        CancellationToken = cancellationToken,
                     });
+
                 _batchDataSetMessageBlock.LinkTo(_encodingBlock);
                 _encodingBlock.LinkTo(_batchNetworkMessageBlock);
                 _batchNetworkMessageBlock.LinkTo(_sinkBlock);
@@ -140,7 +143,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 await _messageTrigger.RunAsync(cancellationToken).ConfigureAwait(false);
-
             }
             finally {
                 IsRunning = false;
@@ -176,45 +178,57 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
             diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
             string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $"({dataChangesPerSec:0.##}/s)" : "";
-            diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
+            diagInfo.AppendLine("  | Ingress OPC DataChanges            : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
             string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $"({valueChangesPerSec:0.##}/s)" : "";
-            diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
+            diagInfo.AppendLine("  | Ingress OPC ValueChanges           : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
 
-            diagInfo.AppendLine("  # Ingress BatchBlock buffer size     : {batchDataSetMessageBlockOutputCount,14:0}");
-            diagInfo.AppendLine("  # Encoding Block input/output size   : {encodingBlockInputCount,14:0} | {encodingBlockOutputCount:0}");
-            diagInfo.AppendLine("  # Encoder Notifications processed    : {notificationsProcessedCount,14:n0}");
-            diagInfo.AppendLine("  # Encoder Notifications dropped      : {notificationsDroppedCount,14:n0}");
-            diagInfo.AppendLine("  # Encoder IoT Messages processed     : {messagesProcessedCount,14:n0}");
-            diagInfo.AppendLine("  # Encoder avg Notifications/Message  : {notificationsPerMessage,14:0}");
-            diagInfo.AppendLine("  # Encoder avg IoT Message body size  : {messageSizeAverage,14:n0} {messageSizeAveragePercentFormatted}");
-            diagInfo.AppendLine("  # Encoder avg IoT Chunk (4 KB) usage : {chunkSizeAverage,14:0.#}");
-            diagInfo.AppendLine("  # Estimated IoT Chunks (4 KB) per day: {estimatedMsgChunksPerDay,14:n0}");
-            diagInfo.AppendLine("  # Outgress Batch Block buffer size   : {batchNetworkMessageBlockOutputCount,14:0}");
-            diagInfo.AppendLine("  # Outgress input buffer count        : {sinkBlockInputCount,14:n0}");
-            diagInfo.AppendLine("  # Outgress input buffer dropped      : {sinkBlockInputDroppedCount,14:n0}");
+            diagInfo.AppendLine("  v Ingress BatchBlock queue           : {batchDataSetMessageBlockOutputCount,14:0} batches");
+            diagInfo.AppendLine("  | Encoding block input | output queue: {encodingBlockInputCount,14:0} batches | {encodingBlockOutputCount:0} messages");
+            diagInfo.AppendLine("  | Encoder processing                 : {notificationsProcessingCount,14:n0} OPC values");
+            diagInfo.AppendLine("  | Encoder processed                  : {notificationsProcessedCount,14:n0} OPC values");
+            diagInfo.AppendLine("  | Encoder dropped                    : {notificationsDroppedCount,14:n0} OPC values");
+            diagInfo.AppendLine("  | Encoder IoT Hub processed          : {messagesProcessedCount,14:n0} messages");
+            diagInfo.AppendLine("  | Encoder avg IoT Hub message        : {AvgNotificationsPerMessage,14:0} OPC values/message");
+            diagInfo.AppendLine("  | Encoder avg IoT Hub message body   : {AvgMessageSize,14:n0} bytes {messageSizeAveragePercentFormatted}");
+            diagInfo.AppendLine("  v Encoder avg IoT Hub usage          : {chunkSizeAverage,14:0.#} 4-KB-chunks");
+            diagInfo.AppendLine("  | Egress BatchBlock output queue     : {batchNetworkMessageBlockOutputCount,14:0} messages");
+            diagInfo.AppendLine("  | Egress IoT Hub queue               : {sinkBlockInputCount,14:n0} messages");
+            diagInfo.AppendLine("  | Egress IoT Hub sending             : {messagesSendingCount,14:n0} messages");
+            diagInfo.AppendLine("  | Egress dropped                     : {sinkBlockInputDroppedCount,14:n0} OPC values");
 
             string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
-            diagInfo.AppendLine("  # Outgress IoT message count         : {messageSinkSentMessagesCount,14:n0} {sentMessagesPerSecFormatted}");
-            diagInfo.AppendLine("  # Connection retries                 : {connectionRetries,14:0}");
+            diagInfo.AppendLine("  v Egress IoT Hub sent                : {SentMessagesCount,14:n0} messages {sentMessagesPerSecFormatted}");
+            diagInfo.AppendLine("  # Estimated egress                   : {estimatedNotificationsSent,14:n0} OPC values");
+            diagInfo.AppendLine("  # Estimated IoT Hub usage            : {estimatedMsgChunksPerDay,14:n0} 4-KB-chunks per day");
+            diagInfo.AppendLine("  # Connection retries                 : {NumberOfConnectionRetries,14:0}");
 
             _logger.Information(diagInfo.ToString(),
-                Name,
-                TimeSpan.FromSeconds(totalDuration),
+                Name, // host
+                TimeSpan.FromSeconds(totalDuration), // duration
                 _messageTrigger.DataChangesCount, dataChangesPerSecFormatted,
                 _messageTrigger.ValueChangesCount, valueChangesPerSecFormatted,
-                _batchDataSetMessageBlock.OutputCount,
-                _encodingBlock.InputCount, _encodingBlock.OutputCount,
+                _batchDataSetMessageBlock.OutputCount, // batchDataSetMessageBlockOutputCount
+                _encodingBlock.InputCount, _encodingBlock.OutputCount, // encodingBlockInputCount | encodingBlockOutputCount
+                _messageEncoder.NotificationsProcessedCount < _messageTrigger.ValueChangesCount &&
+                _messageEncoder.NotificationsProcessedCount + (ulong)_notificationsProcessingCount < _messageTrigger.ValueChangesCount
+                    ? _notificationsProcessingCount
+                    : 0,
                 _messageEncoder.NotificationsProcessedCount,
                 _messageEncoder.NotificationsDroppedCount,
                 _messageEncoder.MessagesProcessedCount,
                 _messageEncoder.AvgNotificationsPerMessage,
                 _messageEncoder.AvgMessageSize, messageSizeAveragePercentFormatted,
                 chunkSizeAverage,
-                estimatedMsgChunksPerDay,
-                _batchNetworkMessageBlock.OutputCount,
-                _sinkBlock.InputCount,
+                _batchNetworkMessageBlock.OutputCount, // batchNetworkMessageBlockOutputCount
+                _sinkBlock.InputCount, // sinkBlockInputCount
+                _messageSink.SentMessagesCount < _messageEncoder.MessagesProcessedCount &&
+                _messageSink.SentMessagesCount + (ulong)_messagesSendingCount < _messageEncoder.MessagesProcessedCount
+                    ? _messagesSendingCount
+                    : 0,
                 _sinkBlockInputDroppedCount,
                 _messageSink.SentMessagesCount, sentMessagesPerSecFormatted,
+                _messageEncoder.AvgNotificationsPerMessage * _messageSink.SentMessagesCount, // estimatedNotificationsSent
+                estimatedMsgChunksPerDay,
                 _messageTrigger.NumberOfConnectionRetries);
 
             string deviceId = _identity.DeviceId ?? "";
@@ -278,8 +292,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
 
-            if(_sinkBlock.InputCount >= _maxOutgressMessages) {
-                _sinkBlockInputDroppedCount++;
+            if(_sinkBlock.InputCount >= _maxEgressMessageQueue) {
+                _sinkBlockInputDroppedCount += (ulong)args.Notifications.Count();
             }
             else {
                 _batchDataSetMessageBlock.Post(args);
@@ -292,6 +306,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly TimeSpan _batchTriggerInterval;
 
         private readonly int _maxEncodedMessageSize = 256 * 1024;
+        private readonly int _encodedMessageSizeOverhead = 1 * 1024;
 
         private readonly IEngineConfiguration _config;
         private readonly IMessageSink _messageSink;
@@ -311,12 +326,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private ActionBlock<NetworkMessageModel[]> _sinkBlock;
 
         /// <summary>
-        /// Define the maximum size of messages
+        /// Maximum size of message output queue.
         /// </summary>
-        private readonly int _maxOutgressMessages;
+        private readonly int _maxEgressMessageQueue;
 
         /// <summary>
-        /// Counts the amount of messages that couldn't be send to IoTHub
+        /// Number of notifications being encoded.
+        /// </summary>
+        private int _notificationsProcessingCount;
+
+        /// <summary>
+        /// Number of messages being sent.
+        /// </summary>
+        private int _messagesSendingCount;
+
+        /// <summary>
+        /// Amount of messages that couldn't be sent to IoT Hub.
         /// </summary>
         private ulong _sinkBlockInputDroppedCount;
 
@@ -337,10 +362,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             "Opc DataChanges/second delivered for processing", kGaugeConfig);
         private static readonly Gauge kIoTHubQueueBuffer = Metrics.CreateGauge(
             "iiot_edge_publisher_iothub_queue_size",
-            "IoT messages queued sending", kGaugeConfig); 
+            "IoT messages queued sending", kGaugeConfig);
             private static readonly Gauge kIoTHubQueueBufferDroppedCount = Metrics.CreateGauge(
             "iiot_edge_publisher_iothub_queue_dropped_count",
-            "IoT messages dropped", kGaugeConfig); 
+            "IoT messages dropped", kGaugeConfig);
         private static readonly Gauge kSentMessagesCount = Metrics.CreateGauge(
             "iiot_edge_publisher_sent_iot_messages",
             "IoT messages sent to hub", kGaugeConfig);
