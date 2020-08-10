@@ -11,7 +11,7 @@
         },
         "vmUsername": {
             "type": "string",
-            "defaultValue": "admin",
+            "defaultValue": "iotadmin",
             "metadata": {
                 "description": "Username for the IoT Edge VM"
             }
