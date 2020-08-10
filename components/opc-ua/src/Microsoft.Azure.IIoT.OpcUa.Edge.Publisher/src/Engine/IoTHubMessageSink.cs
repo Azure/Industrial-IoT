@@ -122,7 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return msg;
         }
 
-        private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
+        private const ulong kMessageCounterResetThreshold = ulong.MaxValue - 10000;
         private readonly ILogger _logger;
         private readonly IClientAccessor _clientAccessor;
         private readonly string IotHubMessageSinkGuid = Guid.NewGuid().ToString();
