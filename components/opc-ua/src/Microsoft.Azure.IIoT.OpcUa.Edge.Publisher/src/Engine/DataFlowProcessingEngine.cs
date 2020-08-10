@@ -171,6 +171,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             double chunkSizeAverage = _messageEncoder.AvgMessageSize / (4 * 1024);
             double estimatedMsgChunksPerDay = Math.Ceiling(chunkSizeAverage) * sentMessagesPerSec * 60 * 60 * 24;
 
+            // Account for report inaccuracies due to timing.
+            double estimatedNotificationsSent = Math.Min(
+                _messageEncoder.AvgNotificationsPerMessage * _messageSink.SentMessagesCount,
+                _messageTrigger.ValueChangesCount);
+
             _logger.Debug("Identity {deviceId}; {moduleId}", _identity.DeviceId, _identity.ModuleId);
 
             var diagInfo = new StringBuilder();
@@ -182,20 +187,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  | Ingress OPC ValueChanges           : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
 
             diagInfo.AppendLine("  v Ingress BatchBlock queue           : {batchDataSetMessageBlockOutputCount,14:0} batches");
-            diagInfo.AppendLine("  | Encoding block input | output queue: {encodingBlockInputCount,14:0} batches | {encodingBlockOutputCount:0} messages");
+            diagInfo.AppendLine("  | Encoding block input | output queue: {encodingBlockInputCount,14:0} batches | {encodingBlockOutputCount:0} messages" + $" (~{_encodingBlock.OutputCount * _messageEncoder.AvgNotificationsPerMessage:#} OPC values)");
             diagInfo.AppendLine("  | Encoder processed                  : {notificationsProcessedCount,14:n0} OPC values");
             diagInfo.AppendLine("  | Encoder dropped                    : {notificationsDroppedCount,14:n0} OPC values");
             diagInfo.AppendLine("  | Encoder IoT Hub processed          : {messagesProcessedCount,14:n0} messages");
             diagInfo.AppendLine("  | Encoder avg IoT Hub message        : {AvgNotificationsPerMessage,14:0} OPC values/message");
             diagInfo.AppendLine("  | Encoder avg IoT Hub message body   : {AvgMessageSize,14:n0} bytes {messageSizeAveragePercentFormatted}");
             diagInfo.AppendLine("  v Encoder avg IoT Hub usage          : {chunkSizeAverage,14:0.#} 4-KB-chunks");
-            diagInfo.AppendLine("  | Egress BatchBlock output queue     : {batchNetworkMessageBlockOutputCount,14:0} messages");
+            diagInfo.AppendLine("  | Egress BatchBlock output queue     : {batchNetworkMessageBlockOutputCount,14:0} messages" + $" (~{_batchNetworkMessageBlock.OutputCount * _messageEncoder.AvgNotificationsPerMessage:#} OPC values)");
             diagInfo.AppendLine("  | Egress IoT Hub queue               : {sinkBlockInputCount,14:n0} messages");
-            diagInfo.AppendLine("  | Egress dropped                     : {sinkBlockInputDroppedCount,14:n0} OPC values");
+            diagInfo.AppendLine("  | Egress dropped                     : {sinkBlockInputDroppedCount,14:n0} OPC values" + $" ({_sinkBlockInputDroppedCount / _messageTrigger.ValueChangesCount:P0})");
 
             string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  v Egress IoT Hub sent                : {SentMessagesCount,14:n0} messages {sentMessagesPerSecFormatted}");
-            diagInfo.AppendLine("  # Calculated IoT Hub egress          : {estimatedNotificationsSent,14:n0} OPC values");
+            diagInfo.AppendLine("  # Calculated IoT Hub egress          : {estimatedNotificationsSent,14:n0} OPC values" + $" ({estimatedNotificationsSent / _messageTrigger.ValueChangesCount:P0})");
             diagInfo.AppendLine("  # Estimated IoT Hub usage            : {estimatedMsgChunksPerDay,14:n0} 4-KB-chunks per day");
             diagInfo.AppendLine("  # Connection retries                 : {NumberOfConnectionRetries,14:0}");
 
@@ -218,9 +223,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _sinkBlock.InputCount, // sinkBlockInputCount
                 _sinkBlockInputDroppedCount,
                 _messageSink.SentMessagesCount, sentMessagesPerSecFormatted,
-                // Account for report inaccuracies due to timing.
-                Math.Min(_messageEncoder.AvgNotificationsPerMessage * _messageSink.SentMessagesCount,
-                    _messageTrigger.ValueChangesCount), // estimatedNotificationsSent
+                estimatedNotificationsSent,
                 estimatedMsgChunksPerDay,
                 _messageTrigger.NumberOfConnectionRetries);
 
