@@ -196,7 +196,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  v Encoder avg IoT Hub usage          : {chunkSizeAverage,14:0.#} 4-KB-chunks");
             diagInfo.AppendLine("  | Egress BatchBlock output queue     : {batchNetworkMessageBlockOutputCount,14:0} messages" + $" (~{_batchNetworkMessageBlock.OutputCount * _messageEncoder.AvgNotificationsPerMessage:n0} OPC values)");
             diagInfo.AppendLine("  | Egress IoT Hub queue               : {sinkBlockInputCount,14:n0} messages");
-            diagInfo.AppendLine("  | Egress dropped                     : {sinkBlockInputDroppedCount,14:n0} OPC values" + $" ({_sinkBlockInputDroppedCount / _messageTrigger.ValueChangesCount:P0})");
+            diagInfo.AppendLine("  | Egress dropped                     : {sinkBlockInputDroppedCount,14:n0} OPC values" + $" ({(double)_sinkBlockInputDroppedCount / _messageTrigger.ValueChangesCount:P0})");
 
             string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  v Egress IoT Hub sent                : {SentMessagesCount,14:n0} messages {sentMessagesPerSecFormatted}");
