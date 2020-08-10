@@ -193,17 +193,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  | Encoder IoT Hub processed          : {messagesProcessedCount,14:n0} messages");
             diagInfo.AppendLine("  | Encoder avg IoT Hub message        : {AvgNotificationsPerMessage,14:0} OPC values/message");
             diagInfo.AppendLine("  | Encoder avg IoT Hub message body   : {AvgMessageSize,14:n0} bytes {messageSizeAveragePercent}");
-            diagInfo.AppendLine("  v Encoder avg IoT Hub usage          : {chunkSizeAverage,14:0.#} 4-KB-chunks");
+            diagInfo.AppendLine("  v Encoder avg IoT Hub usage          : {chunkSizeAverage,14:0.#} 4-KB chunks");
             string batchNetworkOutputValues = _batchNetworkMessageBlock.OutputCount > 0 ? $" (~{_batchNetworkMessageBlock.OutputCount * _messageEncoder.AvgNotificationsPerMessage:n0} OPC values)" : "";
             diagInfo.AppendLine("  | Egress BatchBlock output queue     : {batchNetworkMessageBlockOutputCount,14:0} messages" + batchNetworkOutputValues);
-            string sinkBlockInputValues = _sinkBlock.InputCount > 0 ? $" (~{_sinkBlock.InputCount * _messageEncoder.AvgNotificationsPerMessage:n0} OPC values)" : "";
+            string sinkBlockInputValues = _sinkBlock.InputCount > 0 ? $" (~{_sinkBlock.InputCount * _messageEncoder.AvgNotificationsPerMessage:n0} OPC values, {_sinkBlock.InputCount * _messageEncoder.AvgNotificationsPerMessage / _messageTrigger.ValueChangesCount:P0})" : "";
             diagInfo.AppendLine("  | Egress IoT Hub queue               : {sinkBlockInputCount,14:n0} messages" + sinkBlockInputValues);
-            diagInfo.AppendLine("  | Egress dropped                     : {sinkBlockInputDroppedCount,14:n0} OPC values" + $" ({(double)_sinkBlockInputDroppedCount / _messageTrigger.ValueChangesCount:P0})");
+            string egressDroppedPercent = _sinkBlockInputDroppedCount > 0 ? $" ({(double)_sinkBlockInputDroppedCount / _messageTrigger.ValueChangesCount:P0})" : "";
+            diagInfo.AppendLine("  | Egress dropped                     : {sinkBlockInputDroppedCount,14:n0} OPC values" + egressDroppedPercent);
 
             string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  v Egress IoT Hub sent                : {SentMessagesCount,14:n0} messages {sentMessagesPerSecFormatted}");
             diagInfo.AppendLine("  # Calculated IoT Hub egress          : {estimatedNotificationsSent,14:n0} OPC values" + $" ({estimatedNotificationsSent / _messageTrigger.ValueChangesCount:P0})");
-            diagInfo.AppendLine("  # Estimated IoT Hub usage            : {estimatedMsgChunksPerDay,14:n0} 4-KB-chunks per day");
+            diagInfo.AppendLine("  # Estimated IoT Hub usage            : {estimatedMsgChunksPerDay,14:n0} 4-KB chunks per day");
             diagInfo.AppendLine("  # Connection retries                 : {NumberOfConnectionRetries,14:0}");
 
             _logger.Information(diagInfo.ToString(),
