@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Opc.Ua.PubSub;
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -90,7 +89,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
             maxMessageSize -= 2048; // reserve 2k for header
-            var chunk = new Collection<NetworkMessage>();
+            var chunk = new List<NetworkMessage>(notifications.Count());
             ulong notificationsPerMessage = 0;
             while (processing) {
                 var notification = current.Current;
@@ -175,7 +174,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
             maxMessageSize -= 2048; // reserve 2k for header
-            var chunk = new Collection<NetworkMessage>();
+            var chunk = new List<NetworkMessage>(notifications.Count());
             ulong notificationsPerMessage = 0;
             while (processing) {
                 var notification = current.Current;
