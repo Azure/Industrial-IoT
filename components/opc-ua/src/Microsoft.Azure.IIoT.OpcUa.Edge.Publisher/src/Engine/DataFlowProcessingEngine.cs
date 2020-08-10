@@ -166,8 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             double valueChangesPerSec = _messageTrigger.ValueChangesCount / totalDuration;
             double dataChangesPerSec = _messageTrigger.DataChangesCount / totalDuration;
             double sentMessagesPerSec = totalDuration > 0 ? _messageSink.SentMessagesCount / totalDuration : 0;
-            double messageSizeAveragePercent = Math.Round(_messageEncoder.AvgMessageSize / _maxEncodedMessageSize * 100);
-            string messageSizeAveragePercentFormatted = $"({messageSizeAveragePercent}%)";
+            string messageSizeAveragePercent = $"({_messageEncoder.AvgMessageSize / _maxEncodedMessageSize:P0})";
             double chunkSizeAverage = _messageEncoder.AvgMessageSize / (4 * 1024);
             double estimatedMsgChunksPerDay = Math.Ceiling(chunkSizeAverage) * sentMessagesPerSec * 60 * 60 * 24;
 
@@ -193,7 +192,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  | Encoder dropped                    : {notificationsDroppedCount,14:n0} OPC values");
             diagInfo.AppendLine("  | Encoder IoT Hub processed          : {messagesProcessedCount,14:n0} messages");
             diagInfo.AppendLine("  | Encoder avg IoT Hub message        : {AvgNotificationsPerMessage,14:0} OPC values/message");
-            diagInfo.AppendLine("  | Encoder avg IoT Hub message body   : {AvgMessageSize,14:n0} bytes {messageSizeAveragePercentFormatted}");
+            diagInfo.AppendLine("  | Encoder avg IoT Hub message body   : {AvgMessageSize,14:n0} bytes {messageSizeAveragePercent}");
             diagInfo.AppendLine("  v Encoder avg IoT Hub usage          : {chunkSizeAverage,14:0.#} 4-KB-chunks");
             string batchNetworkOutputValues = _batchNetworkMessageBlock.OutputCount > 0 ? $" (~{_batchNetworkMessageBlock.OutputCount * _messageEncoder.AvgNotificationsPerMessage:n0} OPC values)" : "";
             diagInfo.AppendLine("  | Egress BatchBlock output queue     : {batchNetworkMessageBlockOutputCount,14:0} messages" + batchNetworkOutputValues);
@@ -219,7 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _messageEncoder.NotificationsDroppedCount,
                 _messageEncoder.MessagesProcessedCount,
                 _messageEncoder.AvgNotificationsPerMessage,
-                _messageEncoder.AvgMessageSize, messageSizeAveragePercentFormatted,
+                _messageEncoder.AvgMessageSize, messageSizeAveragePercent,
                 chunkSizeAverage,
                 _batchNetworkMessageBlock.OutputCount, // batchNetworkMessageBlockOutputCount
                 _sinkBlock.InputCount, // sinkBlockInputCount
