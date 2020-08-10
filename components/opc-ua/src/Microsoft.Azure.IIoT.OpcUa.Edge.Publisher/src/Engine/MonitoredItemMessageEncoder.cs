@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using Opc.Ua.Extensions;
@@ -20,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Serilog;
 
     /// <summary>
     /// Publisher monitored item message encoder
@@ -114,7 +114,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (notificationSize > maxMessageSize) {
                         // Message too large, drop it.
                         NotificationsDroppedCount++;
-                        _logger.LogWarning("Message too large, dropped {notificationsPerMessage} values");
+                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
                         processing = current.MoveNext();
                     }
                     else {
@@ -189,12 +189,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (notificationSize > maxMessageSize) {
                         // Message too large, drop it.
                         NotificationsDroppedCount++;
-                        _logger.LogWarning("Message too large, dropped {notificationsPerMessage} values");
+                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
                         processing = current.MoveNext();
                     }
                     else {
                         messageCompleted = maxMessageSize < (messageSize + notificationSize);
-
                         if (!messageCompleted) {
                             chunk.Add(notification);
                             NotificationsProcessedCount++;
@@ -261,7 +260,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // Message too large, drop it.
                     NotificationsDroppedCount++;
-                    _logger.LogWarning("Message too large, dropped {notificationsPerMessage} values");
+                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
                     yield break;
                 }
                 NotificationsProcessedCount++;
@@ -305,7 +304,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // Message too large, drop it.
                     NotificationsDroppedCount++;
-                    _logger.LogWarning("Message too large, dropped {notificationsPerMessage} values");
+                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
                     yield break;
                 }
                 NotificationsProcessedCount++;
@@ -331,7 +330,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // Declare all notifications in messages as dropped.
                 int totalNotifications = messages.Sum(m => m?.Notifications?.Count() ?? 0);
                 NotificationsDroppedCount += (uint)totalNotifications;
-                _logger.LogWarning("Namespace is empty, dropped {totalNotifications} values");
+                _logger.Warning("Namespace is empty, dropped {totalNotifications} values");
                 yield break;
             }
             foreach (var message in messages) {

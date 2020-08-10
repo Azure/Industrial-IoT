@@ -62,6 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed);
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
             _maxEgressMessageQueue = _config.MaxEgressMessageQueue.GetValueOrDefault(8192); // = 4 GB / 2 / (256 * 1024)
+            _logger.Information($"Max. egress message queue: {_maxEgressMessageQueue} messages ({_maxEgressMessageQueue * 256 / 1024} MB)");
         }
 
         /// <inheritdoc/>
@@ -88,7 +89,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 IsRunning = true;
                 _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
                     async input => {
-                        _notificationsProcessingCount = input.Sum(m => m.Notifications.Count());
                         try {
                             if (_dataSetMessageBufferSize == 1) {
                                 return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize - _encodedMessageSizeOverhead).ConfigureAwait(false);
@@ -120,7 +120,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 _sinkBlock = new ActionBlock<NetworkMessageModel[]>(
                     async input => {
-                        _messagesSendingCount = input.Length;
                         if (input != null && input.Any()) {
                             await _messageSink.SendAsync(input).ConfigureAwait(false);
                         }
@@ -198,7 +197,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  v Egress IoT Hub sent                : {SentMessagesCount,14:n0} messages {sentMessagesPerSecFormatted}");
-            diagInfo.AppendLine("  # Estimated egress                   : {estimatedNotificationsSent,14:n0} OPC values");
+            diagInfo.AppendLine("  # Calculated IoT Hub egress          : {estimatedNotificationsSent,14:n0} OPC values");
             diagInfo.AppendLine("  # Estimated IoT Hub usage            : {estimatedMsgChunksPerDay,14:n0} 4-KB-chunks per day");
             diagInfo.AppendLine("  # Connection retries                 : {NumberOfConnectionRetries,14:0}");
 
@@ -209,11 +208,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _messageTrigger.ValueChangesCount, valueChangesPerSecFormatted,
                 _batchDataSetMessageBlock.OutputCount, // batchDataSetMessageBlockOutputCount
                 _encodingBlock.InputCount, _encodingBlock.OutputCount, // encodingBlockInputCount | encodingBlockOutputCount
-                _messageEncoder.NotificationsProcessedCount < _messageTrigger.ValueChangesCount &&
-                _messageEncoder.NotificationsProcessedCount + (ulong)_notificationsProcessingCount < _messageTrigger.ValueChangesCount
-                    ? _notificationsProcessingCount
+                // Account for report inaccuracies due to timing.
+                _messageTrigger.ValueChangesCount > _messageEncoder.NotificationsProcessedCount
+                    ? _messageTrigger.ValueChangesCount - _messageEncoder.NotificationsProcessedCount
                     : 0,
-                _messageEncoder.NotificationsProcessedCount,
+                Math.Min(_messageEncoder.NotificationsProcessedCount,
+                    _messageTrigger.ValueChangesCount), // NotificationsProcessedCount
                 _messageEncoder.NotificationsDroppedCount,
                 _messageEncoder.MessagesProcessedCount,
                 _messageEncoder.AvgNotificationsPerMessage,
@@ -221,13 +221,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 chunkSizeAverage,
                 _batchNetworkMessageBlock.OutputCount, // batchNetworkMessageBlockOutputCount
                 _sinkBlock.InputCount, // sinkBlockInputCount
-                _messageSink.SentMessagesCount < _messageEncoder.MessagesProcessedCount &&
-                _messageSink.SentMessagesCount + (ulong)_messagesSendingCount < _messageEncoder.MessagesProcessedCount
-                    ? _messagesSendingCount
+                // Account for report inaccuracies due to timing.
+                _messageEncoder.MessagesProcessedCount > _messageSink.SentMessagesCount
+                    ? _messageEncoder.MessagesProcessedCount - _messageSink.SentMessagesCount
                     : 0,
                 _sinkBlockInputDroppedCount,
                 _messageSink.SentMessagesCount, sentMessagesPerSecFormatted,
-                _messageEncoder.AvgNotificationsPerMessage * _messageSink.SentMessagesCount, // estimatedNotificationsSent
+                // Account for report inaccuracies due to timing.
+                Math.Min(_messageEncoder.AvgNotificationsPerMessage * _messageSink.SentMessagesCount,
+                    _messageTrigger.ValueChangesCount), // estimatedNotificationsSent
                 estimatedMsgChunksPerDay,
                 _messageTrigger.NumberOfConnectionRetries);
 
@@ -306,6 +308,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly TimeSpan _batchTriggerInterval;
 
         private readonly int _maxEncodedMessageSize = 256 * 1024;
+        // Max msg size (256 KB) is protocol-agnostic (does not incl. headers),
+        // a 1 KB buffer should be enough.
         private readonly int _encodedMessageSizeOverhead = 1 * 1024;
 
         private readonly IEngineConfiguration _config;
@@ -326,19 +330,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private ActionBlock<NetworkMessageModel[]> _sinkBlock;
 
         /// <summary>
-        /// Maximum size of message output queue.
+        /// Maximum size of egress message queue.
         /// </summary>
         private readonly int _maxEgressMessageQueue;
-
-        /// <summary>
-        /// Number of notifications being encoded.
-        /// </summary>
-        private int _notificationsProcessingCount;
-
-        /// <summary>
-        /// Number of messages being sent.
-        /// </summary>
-        private int _messagesSendingCount;
 
         /// <summary>
         /// Amount of messages that couldn't be sent to IoT Hub.

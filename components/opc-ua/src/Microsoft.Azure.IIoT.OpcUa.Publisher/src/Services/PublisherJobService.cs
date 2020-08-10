@@ -49,15 +49,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         });
 
         /// <summary>
-        /// Read default max outgress message buffer size from environment
+        /// Read default max egress message queue size from environment
         /// </summary>
-        internal Lazy<int> DefaultMaxOutgressMessages => new Lazy<int>(() => {
+        internal Lazy<int> DefaultMaxEgressMessageQueue => new Lazy<int>(() => {
             var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES");
-            if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var maxOutgressMessages) &&
-                maxOutgressMessages > 1 && maxOutgressMessages <= 25000) {
-                return maxOutgressMessages;
+            if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var maxEgressMessageQueue) &&
+                maxEgressMessageQueue > 1 && maxEgressMessageQueue <= 25000) {
+                return maxEgressMessageQueue;
             }
-            return 200; //default
+            return 8192; // Default (8192 * 256 KB = 2 GB).
         });
 
         /// <summary>
@@ -274,13 +274,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                             BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
                             DiagnosticsInterval = TimeSpan.FromSeconds(60),
                             MaxMessageSize = 0,
-                            MaxOutgressMessages = DefaultMaxOutgressMessages.Value
+                            MaxEgressMessageQueue = DefaultMaxEgressMessageQueue.Value
                     };
                     }
                     else {
                         publishJob.Engine.BatchTriggerInterval = DefaultBatchTriggerInterval.Value;
                         publishJob.Engine.BatchSize = DefaultBatchSize.Value;
-                        publishJob.Engine.MaxOutgressMessages = DefaultMaxOutgressMessages.Value;
+                        publishJob.Engine.MaxEgressMessageQueue = DefaultMaxEgressMessageQueue.Value;
                     }
                     return publishJob;
                 }
@@ -310,7 +310,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0,
-                    MaxOutgressMessages = DefaultMaxOutgressMessages.Value
+                    MaxEgressMessageQueue = DefaultMaxEgressMessageQueue.Value
         },
                 ConnectionString = null
             };
