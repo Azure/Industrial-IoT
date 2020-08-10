@@ -183,7 +183,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             diagInfo.AppendLine("  v Ingress BatchBlock queue           : {batchDataSetMessageBlockOutputCount,14:0} batches");
             diagInfo.AppendLine("  | Encoding block input | output queue: {encodingBlockInputCount,14:0} batches | {encodingBlockOutputCount:0} messages");
-            diagInfo.AppendLine("  | Encoder processing                 : {notificationsProcessingCount,14:n0} OPC values");
             diagInfo.AppendLine("  | Encoder processed                  : {notificationsProcessedCount,14:n0} OPC values");
             diagInfo.AppendLine("  | Encoder dropped                    : {notificationsDroppedCount,14:n0} OPC values");
             diagInfo.AppendLine("  | Encoder IoT Hub processed          : {messagesProcessedCount,14:n0} messages");
@@ -192,7 +191,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  v Encoder avg IoT Hub usage          : {chunkSizeAverage,14:0.#} 4-KB-chunks");
             diagInfo.AppendLine("  | Egress BatchBlock output queue     : {batchNetworkMessageBlockOutputCount,14:0} messages");
             diagInfo.AppendLine("  | Egress IoT Hub queue               : {sinkBlockInputCount,14:n0} messages");
-            diagInfo.AppendLine("  | Egress IoT Hub sending             : {messagesSendingCount,14:n0} messages");
             diagInfo.AppendLine("  | Egress dropped                     : {sinkBlockInputDroppedCount,14:n0} OPC values");
 
             string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
@@ -209,9 +207,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _batchDataSetMessageBlock.OutputCount, // batchDataSetMessageBlockOutputCount
                 _encodingBlock.InputCount, _encodingBlock.OutputCount, // encodingBlockInputCount | encodingBlockOutputCount
                 // Account for report inaccuracies due to timing.
-                _messageTrigger.ValueChangesCount > _messageEncoder.NotificationsProcessedCount
-                    ? _messageTrigger.ValueChangesCount - _messageEncoder.NotificationsProcessedCount
-                    : 0,
                 Math.Min(_messageEncoder.NotificationsProcessedCount,
                     _messageTrigger.ValueChangesCount), // NotificationsProcessedCount
                 _messageEncoder.NotificationsDroppedCount,
@@ -221,10 +216,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 chunkSizeAverage,
                 _batchNetworkMessageBlock.OutputCount, // batchNetworkMessageBlockOutputCount
                 _sinkBlock.InputCount, // sinkBlockInputCount
-                // Account for report inaccuracies due to timing.
-                _messageEncoder.MessagesProcessedCount > _messageSink.SentMessagesCount
-                    ? _messageEncoder.MessagesProcessedCount - _messageSink.SentMessagesCount
-                    : 0,
                 _sinkBlockInputDroppedCount,
                 _messageSink.SentMessagesCount, sentMessagesPerSecFormatted,
                 // Account for report inaccuracies due to timing.
