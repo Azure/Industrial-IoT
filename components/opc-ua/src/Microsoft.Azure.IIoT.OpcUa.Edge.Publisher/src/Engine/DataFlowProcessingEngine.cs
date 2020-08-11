@@ -198,12 +198,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             diagInfo.AppendLine("  | Egress BatchBlock output queue     : {batchNetworkMessageBlockOutputCount,14:0} messages" + batchNetworkOutputValues);
             string sinkBlockInputValues = _sinkBlock.InputCount > 0 ? $" (~{_sinkBlock.InputCount * _messageEncoder.AvgNotificationsPerMessage:n0} OPC values)" : "";
             diagInfo.AppendLine("  | Egress IoT Hub queue               : {sinkBlockInputCount,14:n0} messages" + sinkBlockInputValues);
-            string egressDroppedPercent = _sinkBlockInputDroppedCount > 0 ? $" ({(double)_sinkBlockInputDroppedCount / _messageTrigger.ValueChangesCount:P0})" : "";
+            string egressDroppedPercent = _sinkBlockInputDroppedCount > 0 ? $" ({GetValuePercentage(_sinkBlockInputDroppedCount)})" : "";
             diagInfo.AppendLine("  | Egress dropped                     : {sinkBlockInputDroppedCount,14:n0} OPC values" + egressDroppedPercent);
 
             string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  v Egress IoT Hub sent                : {SentMessagesCount,14:n0} messages {sentMessagesPerSecFormatted}");
-            diagInfo.AppendLine("  # Calculated IoT Hub egress          : {estimatedNotificationsSent,14:n0} OPC values" + $" ({estimatedNotificationsSent / _messageTrigger.ValueChangesCount:P0})");
+            diagInfo.AppendLine("  # Calculated IoT Hub egress          : {estimatedNotificationsSent,14:n0} OPC values" + $" ({GetValuePercentage(estimatedNotificationsSent)})");
             diagInfo.AppendLine("  # Estimated IoT Hub usage            : {estimatedMsgChunksPerDay,14:n0} 4-KB chunks per day");
             diagInfo.AppendLine("  # Connection retries                 : {NumberOfConnectionRetries,14:0}");
 
@@ -298,6 +298,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _batchDataSetMessageBlock.Post(args);
             }
         }
+
+        /// <summary>
+        /// Gets the percentage of a number of values
+        /// in relation the total ValueChanges.
+        /// </summary>
+        /// <param name="valueCount"></param>
+        private string GetValuePercentage(double valueCount) =>
+            $"{valueCount / _messageTrigger.ValueChangesCount:P0}";
 
         private readonly int _dataSetMessageBufferSize = 1;
         private readonly int _networkMessageBufferSize = 1;
