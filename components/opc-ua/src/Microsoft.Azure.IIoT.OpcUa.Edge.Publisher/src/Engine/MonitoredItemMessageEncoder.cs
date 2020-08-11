@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Opc.Ua.PubSub;
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -96,7 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
-            var chunk = new List<MonitoredItemMessage>(notifications.Count());
+            var chunk = new Collection<MonitoredItemMessage>();
             while (processing) {
                 var notification = current.Current;
                 var messageCompleted = false;
@@ -177,7 +178,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
-            var chunk = new List<MonitoredItemMessage>(notifications.Count());
+            var chunk = new Collection<MonitoredItemMessage>();
             while (processing) {
                 var notification = current.Current;
                 var messageCompleted = false;
