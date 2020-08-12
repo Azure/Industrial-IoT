@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Serilog;
 
     /// <summary>
     /// Publisher monitored item message encoder
@@ -30,24 +29,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public uint NotificationsDroppedCount { get; private set; }
 
         /// <inheritdoc/>
-        public ulong NotificationsProcessedCount { get; private set; }
+        public uint NotificationsProcessedCount { get; private set; }
 
         /// <inheritdoc/>
-        public ulong MessagesProcessedCount { get; private set; }
+        public uint MessagesProcessedCount { get; private set; }
 
         /// <inheritdoc/>
         public double AvgNotificationsPerMessage { get; private set; }
 
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
-
-        /// <inheritdoc/>
-        private readonly ILogger _logger;
-
-        /// <inheritdoc/>
-        public MonitoredItemMessageEncoder(ILogger logger) {
-            _logger = logger;
-        }
 
         /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
@@ -97,6 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 2; // array brackets
+            maxMessageSize -= 2048; // reserve 2k for header
             var chunk = new Collection<MonitoredItemMessage>();
             while (processing) {
                 var notification = current.Current;
@@ -112,9 +104,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     helperEncoder.Close();
                     var notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
                     if (notificationSize > maxMessageSize) {
-                        // Message too large, drop it.
+                        // we cannot handle this notification. Drop it.
+                        // TODO Trace
                         NotificationsDroppedCount++;
-                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
                         processing = current.MoveNext();
                     }
                     else {
@@ -178,6 +170,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var current = notifications.GetEnumerator();
             var processing = current.MoveNext();
             var messageSize = 4; // array length size
+            maxMessageSize -= 2048; // reserve 2k for header
             var chunk = new Collection<MonitoredItemMessage>();
             while (processing) {
                 var notification = current.Current;
@@ -187,13 +180,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     helperEncoder.WriteEncodeable(null, notification);
                     var notificationSize = helperEncoder.CloseAndReturnBuffer().Length;
                     if (notificationSize > maxMessageSize) {
-                        // Message too large, drop it.
+                        // we cannot handle this notification. Drop it.
+                        // TODO Trace
                         NotificationsDroppedCount++;
-                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
                         processing = current.MoveNext();
                     }
                     else {
                         messageCompleted = maxMessageSize < (messageSize + notificationSize);
+
                         if (!messageCompleted) {
                             chunk.Add(notification);
                             NotificationsProcessedCount++;
@@ -258,9 +252,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson
                 };
                 if (encoded.Body.Length > maxMessageSize) {
-                    // Message too large, drop it.
+                    // this message is too large to be processed. Drop it
+                    // TODO Trace
                     NotificationsDroppedCount++;
-                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
                     yield break;
                 }
                 NotificationsProcessedCount++;
@@ -302,9 +296,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     MessageSchema = MessageSchemaTypes.MonitoredItemMessageBinary
                 };
                 if (encoded.Body.Length > maxMessageSize) {
-                    // Message too large, drop it.
+                    // this message is too large to be processed. Drop it
+                    // TODO Trace
                     NotificationsDroppedCount++;
-                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
                     yield break;
                 }
                 NotificationsProcessedCount++;
@@ -327,10 +321,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
             ServiceMessageContext context) {
             if (context?.NamespaceUris == null) {
-                // Declare all notifications in messages as dropped.
-                int totalNotifications = messages.Sum(m => m?.Notifications?.Count() ?? 0);
-                NotificationsDroppedCount += (uint)totalNotifications;
-                _logger.Warning("Namespace is empty, dropped {totalNotifications} values");
+                // declare all notifications in messages dropped 
+                foreach (var message in messages) {
+                    NotificationsDroppedCount += (uint)(message?.Notifications?.Count() ?? 0);
+                }
                 yield break;
             }
             foreach (var message in messages) {

@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 BatchTriggerInterval = model.BatchTriggerInterval,
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxMessageSize = model.MaxMessageSize,
-                MaxEgressMessageQueue = model.MaxEgressMessageQueue
+                MaxOutgressMessages = model.MaxOutgressMessages
             };
         }
     }

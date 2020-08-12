@@ -21,12 +21,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Number of successfully processed notifications from OPC client
         /// </summary>
-        ulong NotificationsProcessedCount { get; }
+        uint NotificationsProcessedCount { get; }
 
         /// <summary>
         /// Number of successfully processed messages
         /// </summary>
-        ulong MessagesProcessedCount { get; }
+        uint MessagesProcessedCount { get; }
 
         /// <summary>
         /// Average notifications in a message

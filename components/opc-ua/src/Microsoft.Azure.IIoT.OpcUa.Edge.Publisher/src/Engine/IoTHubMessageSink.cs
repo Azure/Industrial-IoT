@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     public class IoTHubMessageSink : IMessageSink, IDisposable {
 
         /// <inheritdoc/>
-        public ulong SentMessagesCount { get; private set; }
+        public long SentMessagesCount { get; private set; }
 
         /// <summary>
         /// Create IoT hub message sink
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     sw.Stop();
                     _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
                 }
-                SentMessagesCount += (ulong)messagesCount;
+                SentMessagesCount += messagesCount;
                 kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
             }
             catch (Exception ex) {
@@ -122,7 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return msg;
         }
 
-        private const ulong kMessageCounterResetThreshold = ulong.MaxValue - 10000;
+        private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
         private readonly ILogger _logger;
         private readonly IClientAccessor _clientAccessor;
         private readonly string IotHubMessageSinkGuid = Guid.NewGuid().ToString();

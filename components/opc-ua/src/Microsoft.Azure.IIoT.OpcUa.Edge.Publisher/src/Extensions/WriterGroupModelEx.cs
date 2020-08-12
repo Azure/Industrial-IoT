@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 DiagnosticsInterval = model.Engine?.DiagnosticsInterval,
                 WriterGroup = model.WriterGroup,
                 MaxMessageSize = model.Engine?.MaxMessageSize,
-                MaxEgressMessageQueue = model.Engine?.MaxEgressMessageQueue
+                MaxOutgressMessages = model.Engine?.MaxOutgressMessages
             };
         }
     }

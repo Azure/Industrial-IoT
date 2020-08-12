@@ -133,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             BatchTriggerInterval = _config.BatchTriggerInterval,
                             DiagnosticsInterval = _config.DiagnosticsInterval,
                             MaxMessageSize = _config.MaxMessageSize,
-                            MaxEgressMessageQueue = _config.MaxEgressMessageQueue
+                            MaxOutgressMessages = _config.MaxOutgressMessages
                         },
                         WriterGroup = new WriterGroupModel {
                             MessageType = legacyCliModel.MessageEncoding,
