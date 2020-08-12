@@ -294,7 +294,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
                 MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.MaxMessageSize, 0),
                 ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1),
-                MaxEgressMessageQueue = GetValueOrDefault(LegacyCliConfigKeys.MaxEgressMessageQueue, 8192) // 8192 * 256 KB = 2 GB.
+                MaxEgressMessageQueue = GetValueOrDefault(LegacyCliConfigKeys.MaxEgressMessageQueue, 4096) // 4096 * 256 KB = 1 GB.
             };
         }
 

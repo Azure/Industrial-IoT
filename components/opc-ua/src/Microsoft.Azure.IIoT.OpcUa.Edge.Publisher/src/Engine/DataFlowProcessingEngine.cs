@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _batchTriggerInterval = _config.BatchTriggerInterval.GetValueOrDefault(TimeSpan.Zero);
             _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed);
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
-            _maxEgressMessageQueue = _config.MaxEgressMessageQueue.GetValueOrDefault(8192); // = 4 GB / 2 / (256 * 1024)
+            _maxEgressMessageQueue = _config.MaxEgressMessageQueue.GetValueOrDefault(4096); // = 2 GB / 2 / (256 * 1024)
             _logger.Information($"Max. egress message queue: {_maxEgressMessageQueue} messages ({_maxEgressMessageQueue * 256 / 1024} MB)");
         }
 
