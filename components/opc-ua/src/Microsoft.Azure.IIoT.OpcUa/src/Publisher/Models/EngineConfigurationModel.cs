@@ -32,10 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public TimeSpan? DiagnosticsInterval { get; set; }
 
         /// <summary>
-        /// Define the maximum size of outgress message buffer
-        /// Default: 200 messages with 256KB ends 
-        /// up in 50 MB memory consumed
+        /// Maximum size of egress message queue
         /// </summary>
-        public int? MaxOutgressMessages { get; set; }
+        public int? MaxEgressMessageQueue { get; set; }
     }
 }
