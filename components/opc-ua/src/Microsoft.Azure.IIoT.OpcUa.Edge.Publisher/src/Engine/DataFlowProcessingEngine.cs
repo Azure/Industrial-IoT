@@ -305,7 +305,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="valueCount"></param>
         private string GetValuePercentage(double valueCount) =>
-            $"{valueCount / _messageTrigger.ValueChangesCount:P0}";
+            $"{(_messageTrigger.ValueChangesCount > 0? valueCount / _messageTrigger.ValueChangesCount : 0):P0}";
 
         private readonly int _dataSetMessageBufferSize = 1;
         private readonly int _networkMessageBufferSize = 1;
