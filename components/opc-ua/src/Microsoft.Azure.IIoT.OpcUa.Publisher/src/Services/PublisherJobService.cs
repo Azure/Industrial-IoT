@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         /// Read default max egress message queue size from environment
         /// </summary>
         internal Lazy<int> DefaultMaxEgressMessageQueue => new Lazy<int>(() => {
-            var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES");
+            var env = Environment.GetEnvironmentVariable(PcsVariable.PCS_MAX_EGRESS_MESSAGE_QUEUE);
             if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var maxEgressMessageQueue) &&
                 maxEgressMessageQueue > 1 && maxEgressMessageQueue <= 25000) {
                 return maxEgressMessageQueue;
