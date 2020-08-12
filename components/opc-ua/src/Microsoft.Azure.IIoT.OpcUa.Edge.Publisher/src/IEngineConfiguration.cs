@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         TimeSpan? BatchTriggerInterval { get; }
 
         /// <summary>
-        /// Maximum mesage size for the encoded messages
+        /// Maximum mesage size for the encoded messages 
         /// typically the IoT Hub's mas D2C message size
         /// </summary>
         int? MaxMessageSize { get; }
@@ -33,8 +33,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         TimeSpan? DiagnosticsInterval { get; }
 
         /// <summary>
-        /// Maximum size of egress message queue
+        /// Define the maximum number of messages in outgress buffer, 
+        /// Default: 200 messages with 256KB ends 
+        /// up in 50 MB memory consumed
         /// </summary>
-        int? MaxEgressMessageQueue { get; }
+        int? MaxOutgressMessages { get; }
     }
 }
