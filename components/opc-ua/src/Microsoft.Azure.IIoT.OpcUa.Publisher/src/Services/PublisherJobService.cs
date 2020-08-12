@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                 maxEgressMessageQueue > 1 && maxEgressMessageQueue <= 25000) {
                 return maxEgressMessageQueue;
             }
-            return 8192; // Default (8192 * 256 KB = 2 GB).
+            return 4096; // Default (4096 * 256 KB = 1 GB).
         });
 
         /// <summary>

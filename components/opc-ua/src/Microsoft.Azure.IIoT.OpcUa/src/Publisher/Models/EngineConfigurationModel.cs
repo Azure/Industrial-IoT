@@ -33,7 +33,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
 
         /// <summary>
         /// Maximum size of egress message queue
-        /// Default: 8192 messages @ 256 KB = 2 GB of memory.
         /// </summary>
         public int? MaxEgressMessageQueue { get; set; }
     }
