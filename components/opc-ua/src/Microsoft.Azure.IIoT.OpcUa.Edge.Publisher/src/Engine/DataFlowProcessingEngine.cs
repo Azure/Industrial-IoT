@@ -313,9 +313,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly TimeSpan _batchTriggerInterval;
 
         private readonly int _maxEncodedMessageSize = 256 * 1024;
-        // Max msg size (256 KB) is protocol-agnostic (does not incl. headers),
-        // a 1 KB buffer should be enough.
-        private readonly int _encodedMessageSizeOverhead = 1 * 1024;
+        private readonly int _encodedMessageSizeOverhead = 2 * 1024;
 
         private readonly IEngineConfiguration _config;
         private readonly IMessageSink _messageSink;
