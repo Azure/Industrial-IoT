@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         "event setting of nodes without a skip first event setting.",
                         (bool b) => this[LegacyCliConfigKeys.SkipFirstDefault] = b.ToString() },
 
-                    { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." + 
+                    { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." +
                         "Default is 'true', for legacy compatibility use 'false'",
                         (bool b) => this[LegacyCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
@@ -144,8 +144,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int k) => this[LegacyCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
                     { "ms|iothubmessagesize=", "The maximum size of the (IoT D2C) message.",
                         (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
-                    { "om|maxoutgressmessages=", "The maximum size of the (IoT D2C) message outgress buffer",
-                        (int i) => this[LegacyCliConfigKeys.MaxOutgressMessages] = i.ToString() },
+                    { "em|maxegressmessagequeue=", "The maximum size of the (IoT D2C) message egress queue.",
+                        (int i) => this[LegacyCliConfigKeys.MaxEgressMessageQueue] = i.ToString() },
 
                     // testing purposes
                     { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
@@ -213,7 +213,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 #pragma warning restore 67
 
         /// <summary>
-        /// The batch size 
+        /// The batch size
         /// </summary>
         public int? BatchSize => LegacyCliModel.BatchSize;
 
@@ -228,14 +228,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public TimeSpan? DiagnosticsInterval => LegacyCliModel.DiagnosticsInterval;
 
         /// <summary>
-        /// the Maximum (IoT D2C) message size 
+        /// the Maximum (IoT D2C) message size
         /// </summary>
         public int? MaxMessageSize => LegacyCliModel.MaxMessageSize;
 
         /// <summary>
         /// The Maximum (IoT D2C) message buffer size
         /// </summary>
-        public int? MaxOutgressMessages => LegacyCliModel.MaxOutgressMessages;
+        public int? MaxEgressMessageQueue => LegacyCliModel.MaxEgressMessageQueue;
 
         /// <summary>
         /// The model of the CLI arguments.
@@ -294,7 +294,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
                 MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.MaxMessageSize, 0),
                 ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1),
-                MaxOutgressMessages = GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, 200)
+                MaxEgressMessageQueue = GetValueOrDefault(LegacyCliConfigKeys.MaxEgressMessageQueue, 4096) // 4096 * 256 KB = 1 GB.
             };
         }
 
