@@ -163,8 +163,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="state"></param>
         private void DiagnosticsOutputTimer_Elapsed(object state) {
             double totalDuration = _diagnosticStart != DateTime.MinValue ? (DateTime.UtcNow - _diagnosticStart).TotalSeconds : 0;
-            double valueChangesPerSec = _messageTrigger.ValueChangesCount / totalDuration;
-            double dataChangesPerSec = _messageTrigger.DataChangesCount / totalDuration;
+            double valueChangesPerSec = totalDuration > 0 ? _messageTrigger.ValueChangesCount / totalDuration : 0;
+            double dataChangesPerSec = totalDuration > 0 ? _messageTrigger.DataChangesCount / totalDuration : 0;
             double sentMessagesPerSec = totalDuration > 0 ? _messageSink.SentMessagesCount / totalDuration : 0;
             string messageSizeAveragePercent = $"({_messageEncoder.AvgMessageSize / _maxEncodedMessageSize:P0})";
             double chunkSizeAverage = _messageEncoder.AvgMessageSize / (4 * 1024);
