@@ -28,13 +28,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// The number of all monitored items value changes
         /// that have been invoked by this message source.
         /// </summary>
-        int ValueChangesCount { get; }
+        ulong ValueChangesCount { get; }
 
         /// <summary>
-        /// The number of all dataChange Notifications 
+        /// The number of all dataChange Notifications
         /// that have been invoked by this message source.
         /// </summary>
-        int DataChangesCount { get; }
+        ulong DataChangesCount { get; }
 
         /// <summary>
         /// Writer events

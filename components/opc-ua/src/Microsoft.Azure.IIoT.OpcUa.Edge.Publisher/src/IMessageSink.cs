@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Messages sent so far
         /// </summary>
-        long SentMessagesCount { get; }
+        ulong SentMessagesCount { get; }
 
         /// <summary>
         /// Send network message
