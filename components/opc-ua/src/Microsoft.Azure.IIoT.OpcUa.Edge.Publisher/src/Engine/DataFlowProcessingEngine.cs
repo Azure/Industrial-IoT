@@ -180,9 +180,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var diagInfo = new StringBuilder();
             diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
             diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
-            string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $"({dataChangesPerSec:0.##}/s)" : "";
+            string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 ? $"({dataChangesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  | Ingress OPC DataChanges            : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
-            string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $"({valueChangesPerSec:0.##}/s)" : "";
+            string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 ? $"({valueChangesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  | Ingress OPC ValueChanges           : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
 
             diagInfo.AppendLine("  v Ingress BatchBlock queue           : {batchDataSetMessageBlockOutputCount,14:0} batches");
@@ -201,7 +201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             string egressDroppedPercent = _sinkBlockInputDroppedCount > 0 ? $" ({GetValuePercentage(_sinkBlockInputDroppedCount)})" : "";
             diagInfo.AppendLine("  | Egress dropped                     : {sinkBlockInputDroppedCount,14:n0} OPC values" + egressDroppedPercent);
 
-            string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
+            string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  v Egress IoT Hub sent                : {SentMessagesCount,14:n0} messages {sentMessagesPerSecFormatted}");
             diagInfo.AppendLine("  # Calculated IoT Hub egress          : {estimatedNotificationsSent,14:n0} OPC values" + $" ({GetValuePercentage(estimatedNotificationsSent)})");
             diagInfo.AppendLine("  # Estimated IoT Hub usage            : {estimatedMsgChunksPerDay,14:n0} 4-KB chunks per day");
@@ -214,7 +214,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _messageTrigger.ValueChangesCount, valueChangesPerSecFormatted,
                 _batchDataSetMessageBlock.OutputCount, // batchDataSetMessageBlockOutputCount
                 _encodingBlock.InputCount, _encodingBlock.OutputCount, // encodingBlockInputCount | encodingBlockOutputCount
-                // Account for report inaccuracies due to timing.
+                                                                       // Account for report inaccuracies due to timing.
                 Math.Min(_messageEncoder.NotificationsProcessedCount,
                     _messageTrigger.ValueChangesCount), // NotificationsProcessedCount
                 _messageEncoder.NotificationsDroppedCount,
@@ -291,7 +291,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
 
-            if(_sinkBlock.InputCount >= _maxEgressMessageQueue) {
+            if (_sinkBlock.InputCount >= _maxEgressMessageQueue) {
                 _sinkBlockInputDroppedCount += (ulong)args.Notifications.Count();
             }
             else {
@@ -305,7 +305,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="valueCount"></param>
         private string GetValuePercentage(double valueCount) =>
-            $"{(_messageTrigger.ValueChangesCount > 0? valueCount / _messageTrigger.ValueChangesCount : 0):P0}";
+            $"{(_messageTrigger.ValueChangesCount > 0 ? valueCount / _messageTrigger.ValueChangesCount : 0):P0}";
 
         private readonly int _dataSetMessageBufferSize = 1;
         private readonly int _networkMessageBufferSize = 1;
@@ -360,9 +360,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kIoTHubQueueBuffer = Metrics.CreateGauge(
             "iiot_edge_publisher_iothub_queue_size",
             "IoT messages queued sending", kGaugeConfig);
-            private static readonly Gauge kIoTHubQueueBufferDroppedCount = Metrics.CreateGauge(
-            "iiot_edge_publisher_iothub_queue_dropped_count",
-            "IoT messages dropped", kGaugeConfig);
+        private static readonly Gauge kIoTHubQueueBufferDroppedCount = Metrics.CreateGauge(
+        "iiot_edge_publisher_iothub_queue_dropped_count",
+        "IoT messages dropped", kGaugeConfig);
         private static readonly Gauge kSentMessagesCount = Metrics.CreateGauge(
             "iiot_edge_publisher_sent_iot_messages",
             "IoT messages sent to hub", kGaugeConfig);
