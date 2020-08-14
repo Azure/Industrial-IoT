@@ -214,7 +214,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _messageTrigger.ValueChangesCount, valueChangesPerSecFormatted,
                 _batchDataSetMessageBlock.OutputCount, // batchDataSetMessageBlockOutputCount
                 _encodingBlock.InputCount, _encodingBlock.OutputCount, // encodingBlockInputCount | encodingBlockOutputCount
-                                                                       // Account for report inaccuracies due to timing.
+                // Account for report inaccuracies due to timing.
                 Math.Min(_messageEncoder.NotificationsProcessedCount,
                     _messageTrigger.ValueChangesCount), // NotificationsProcessedCount
                 _messageEncoder.NotificationsDroppedCount,
@@ -361,8 +361,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             "iiot_edge_publisher_iothub_queue_size",
             "IoT messages queued sending", kGaugeConfig);
         private static readonly Gauge kIoTHubQueueBufferDroppedCount = Metrics.CreateGauge(
-        "iiot_edge_publisher_iothub_queue_dropped_count",
-        "IoT messages dropped", kGaugeConfig);
+            "iiot_edge_publisher_iothub_queue_dropped_count",
+            "IoT messages dropped", kGaugeConfig);
         private static readonly Gauge kSentMessagesCount = Metrics.CreateGauge(
             "iiot_edge_publisher_sent_iot_messages",
             "IoT messages sent to hub", kGaugeConfig);
