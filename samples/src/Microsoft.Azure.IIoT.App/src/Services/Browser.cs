@@ -116,8 +116,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
                 pageResult.Results = previousPage.Results;
                 pageResult.ContinuationToken = browseData.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLength;
-                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
@@ -175,8 +173,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 pageResult.Results = previousPage.Results;
                 pageResult.ContinuationToken = browseDataNext.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLength;
-                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";

@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.App.Common {
         public int PageLength { get; set; } = 10;
         public int PageLengthSmall { get; set; } = 4;
         public string None { get; set; } = "(None)";
-        public string Spinner { get; set; }
         public string CredentialKey { get; } = "credential";
         public Dictionary<string, string> ApplicationUri { get; set; } = new Dictionary<string, string>();
     }

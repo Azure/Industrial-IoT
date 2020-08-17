@@ -126,8 +126,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
 
                 pageResult.ContinuationToken = discoverers.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLengthSmall;
-                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";

@@ -4,11 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Data {
-    using System;
 
     public abstract class PagedResultBase {
-        public int PageSize { get; set; }
-        public int RowCount { get; set; }
         public string Error { get; set; }
         public string ContinuationToken { get; set; }
     }
