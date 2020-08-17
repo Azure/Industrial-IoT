@@ -69,7 +69,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
 
                 pageResult.ContinuationToken = endpoints.ContinuationToken;
-                pageResult.ItemsCount += _commonHelper.PageLength;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
@@ -178,8 +177,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     pageResult.Results = previousPage.Results;
                     pageResult.ContinuationToken = applications.ContinuationToken;
                 }
-
-                pageResult.ItemsCount += _commonHelper.PageLength;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
@@ -287,19 +284,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     gateways = await _registryService.QueryGatewaysAsync(gatewayModel, _commonHelper.PageLength);
-                    if (!string.IsNullOrEmpty(gateways.ContinuationToken)) {
-                        pageResult.ItemsCount = 2;
-                    }
                 }
                 else {
                     gateways = await _registryService.ListGatewaysAsync(previousPage.ContinuationToken, _commonHelper.PageLength);
-
-                    if (string.IsNullOrEmpty(gateways.ContinuationToken)) {
-                        pageResult.ItemsCount = previousPage.ItemsCount;
-                    }
-                    else {
-                        pageResult.ItemsCount = previousPage.ItemsCount + 1;
-                    }
                 }
 
                 if (gateways != null) {
@@ -314,8 +301,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     pageResult.Results = previousPage.Results;
                     pageResult.ContinuationToken = gateways.ContinuationToken;
                 }
-
-                pageResult.ItemsCount += _commonHelper.PageLength;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
@@ -358,8 +343,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     pageResult.Results = previousPage.Results;
                     pageResult.ContinuationToken = publishers.ContinuationToken;
                 }
-
-                pageResult.ItemsCount += _commonHelper.PageLengthSmall;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
@@ -448,8 +431,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     pageResult.Results = previousPage.Results;
                     pageResult.ContinuationToken = supervisors.ContinuationToken;
                 }
-
-                pageResult.ItemsCount = _commonHelper.PageLength;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";

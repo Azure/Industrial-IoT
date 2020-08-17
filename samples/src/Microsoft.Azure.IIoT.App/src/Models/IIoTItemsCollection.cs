@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.App.Models {
     using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Data;
 
-    public abstract class IIoTItemsPage<T> : ComponentBase, IDisposable where T : class {
+    public abstract class IIoTItemsCollection<T> : ComponentBase, IDisposable where T : class {
         public PagedResult<T> Items { get; set; } = new PagedResult<T>();
 
         public bool IsLoading { get; set; }

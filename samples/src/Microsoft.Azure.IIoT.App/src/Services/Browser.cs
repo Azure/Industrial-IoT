@@ -95,10 +95,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     Path.RemoveRange(index, Path.Count - index);
                 }
 
-                if (!string.IsNullOrEmpty(browseData.ContinuationToken)) {
-                    pageResult.ItemsCount = 2;
-                }
-
                 if (browseData.References != null) {
                     foreach (var nodeReference in browseData.References) {
                         previousPage.Results.Add(new ListNode {
@@ -157,13 +153,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
             try {
                 var browseDataNext = await _twinService.NodeBrowseNextAsync(endpointId, modelNext);
-
-                if (string.IsNullOrEmpty(browseDataNext.ContinuationToken)) {
-                    pageResult.ItemsCount = previousPage.ItemsCount;
-                }
-                else {
-                    pageResult.ItemsCount = previousPage.ItemsCount + 1;
-                }
 
                 if (browseDataNext.References != null) {
                     foreach (var nodeReference in browseDataNext.References) {
