@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Pub/sub job description
+    /// PubSub job description
     /// </summary>
     [DataContract]
     public class WriterGroupApiModel {
