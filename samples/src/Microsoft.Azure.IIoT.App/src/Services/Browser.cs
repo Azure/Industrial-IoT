@@ -96,7 +96,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
 
                 if (!string.IsNullOrEmpty(browseData.ContinuationToken)) {
-                    pageResult.PageCount = 2;
+                    pageResult.ItemsCount = 2;
                 }
 
                 if (browseData.References != null) {
@@ -159,10 +159,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var browseDataNext = await _twinService.NodeBrowseNextAsync(endpointId, modelNext);
 
                 if (string.IsNullOrEmpty(browseDataNext.ContinuationToken)) {
-                    pageResult.PageCount = previousPage.PageCount;
+                    pageResult.ItemsCount = previousPage.ItemsCount;
                 }
                 else {
-                    pageResult.PageCount = previousPage.PageCount + 1;
+                    pageResult.ItemsCount = previousPage.ItemsCount + 1;
                 }
 
                 if (browseDataNext.References != null) {

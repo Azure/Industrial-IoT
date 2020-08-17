@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="previousPage"></param>
         /// <returns>EndpointInfoApiModel</returns>
         public async Task<PagedResult<EndpointInfo>> GetEndpointListAsync(
-            string discovererId, string applicationId, string supervisorId, PagedResult<EndpointInfo> previousPage = null) {
+            string discovererId, string applicationId, string supervisorId, PagedResult<EndpointInfo> previousPage = null, bool getNextPage = false) {
 
             var pageResult = new PagedResult<EndpointInfo>();
 
@@ -49,21 +49,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     IncludeNotSeenSince = true
                 };
 
-                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     endpoints = await _registryService.QueryEndpointsAsync(query, null, _commonHelper.PageLength);
-                    if (!string.IsNullOrEmpty(endpoints.ContinuationToken)) {
-                        pageResult.PageCount = 2;
-                    }
                 }
                 else {
                     endpoints = await _registryService.ListEndpointsAsync(previousPage.ContinuationToken, null, _commonHelper.PageLength);
-
-                    if (string.IsNullOrEmpty(endpoints.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
                 }
 
                 foreach (var ep in endpoints.Items) {
@@ -79,8 +69,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
 
                 pageResult.ContinuationToken = endpoints.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLength;
-                pageResult.RowCount = pageResult.Results.Count;
+                pageResult.ItemsCount += _commonHelper.PageLength;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
@@ -98,7 +87,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="previousPage"></param>
         /// <returns>DiscovererInfo</returns>
-        public async Task<PagedResult<DiscovererInfo>> GetDiscovererListAsync(PagedResult<DiscovererInfo> previousPage =  null) {
+        public async Task<PagedResult<DiscovererInfo>> GetDiscovererListAsync(PagedResult<DiscovererInfo> previousPage = null, bool getNextPage = false) {
             var pageResult = new PagedResult<DiscovererInfo>();
 
             try {
@@ -106,21 +95,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var applicationModel = new ApplicationRegistrationQueryApiModel();
                 var discoverers = new DiscovererListApiModel();
 
-                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (!getNextPage || string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     discoverers = await _registryService.QueryDiscoverersAsync(discovererModel, _commonHelper.PageLengthSmall);
-                    if (!string.IsNullOrEmpty(discoverers.ContinuationToken)) {
-                        pageResult.PageCount = 2;
-                    }
                 }
                 else {
                     discoverers = await _registryService.ListDiscoverersAsync(previousPage.ContinuationToken, _commonHelper.PageLengthSmall);
-
-                    if (string.IsNullOrEmpty(discoverers.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
                 }
 
                 if (discoverers != null) {
@@ -141,9 +120,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         }
                     }
                 }
-                if (previousPage != null) {
+
+                if (previousPage != null && getNextPage) {
                     previousPage.Results.AddRange(pageResult.Results);
-                    pageResult.Results = previousPage.Results;
+                    pageResult.Results = previousPage.Results;            
                 }
 
                 pageResult.ContinuationToken = discoverers.ContinuationToken;
@@ -169,7 +149,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="previousPage"></param>
         /// <returns>ApplicationInfoApiModel</returns>
-        public async Task<PagedResult<ApplicationInfoApiModel>> GetApplicationListAsync(PagedResult<ApplicationInfoApiModel> previousPage = null) {
+        public async Task<PagedResult<ApplicationInfoApiModel>> GetApplicationListAsync(PagedResult<ApplicationInfoApiModel> previousPage = null, bool getNextPage = false) {
             var pageResult = new PagedResult<ApplicationInfoApiModel>();
 
             try {
@@ -178,22 +158,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 };
                 var applications = new ApplicationInfoListApiModel();
 
-                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     applications = await _registryService.QueryApplicationsAsync(query, _commonHelper.PageLength);
-                    if (!string.IsNullOrEmpty(applications.ContinuationToken)) {
-                        pageResult.PageCount = 2;
-                    }
                 }
                 else
                 {
                     applications = await _registryService.ListApplicationsAsync(previousPage.ContinuationToken, _commonHelper.PageLength);
-
-                    if (string.IsNullOrEmpty(applications.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
                 }
 
                 if (applications != null) {
@@ -202,14 +172,14 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         pageResult.Results.Add(application);
                     }
                 }
+
                 if (previousPage != null) {
                     previousPage.Results.AddRange(pageResult.Results);
                     pageResult.Results = previousPage.Results;
+                    pageResult.ContinuationToken = applications.ContinuationToken;
                 }
 
-                pageResult.ContinuationToken = applications.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLength;
-                pageResult.RowCount = pageResult.Results.Count;
+                pageResult.ItemsCount += _commonHelper.PageLength;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
@@ -308,27 +278,27 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="previousPage"></param>
         /// <returns>GatewayApiModel</returns>
-        public async Task<PagedResult<GatewayApiModel>> GetGatewayListAsync(PagedResult<GatewayApiModel> previousPage = null) {
+        public async Task<PagedResult<GatewayApiModel>> GetGatewayListAsync(PagedResult<GatewayApiModel> previousPage = null, bool getNextPage = false) {
             var pageResult = new PagedResult<GatewayApiModel>();
 
             try {
                 var gatewayModel = new GatewayQueryApiModel();
                 var gateways = new GatewayListApiModel();
 
-                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     gateways = await _registryService.QueryGatewaysAsync(gatewayModel, _commonHelper.PageLength);
                     if (!string.IsNullOrEmpty(gateways.ContinuationToken)) {
-                        pageResult.PageCount = 2;
+                        pageResult.ItemsCount = 2;
                     }
                 }
                 else {
                     gateways = await _registryService.ListGatewaysAsync(previousPage.ContinuationToken, _commonHelper.PageLength);
 
                     if (string.IsNullOrEmpty(gateways.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
+                        pageResult.ItemsCount = previousPage.ItemsCount;
                     }
                     else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
+                        pageResult.ItemsCount = previousPage.ItemsCount + 1;
                     }
                 }
 
@@ -338,14 +308,14 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         pageResult.Results.Add(gateway);
                     }
                 }
+
                 if (previousPage != null) {
                     previousPage.Results.AddRange(pageResult.Results);
                     pageResult.Results = previousPage.Results;
+                    pageResult.ContinuationToken = gateways.ContinuationToken;
                 }
 
-                pageResult.ContinuationToken = gateways.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLength;
-                pageResult.RowCount = pageResult.Results.Count;
+                pageResult.ItemsCount += _commonHelper.PageLength;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
@@ -363,28 +333,18 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="previousPage"></param>
         /// <returns>PublisherApiModel</returns>
-        public async Task<PagedResult<PublisherApiModel>> GetPublisherListAsync(PagedResult<PublisherApiModel> previousPage = null) {
+        public async Task<PagedResult<PublisherApiModel>> GetPublisherListAsync(PagedResult<PublisherApiModel> previousPage = null, bool getNextPage = false) {
             var pageResult = new PagedResult<PublisherApiModel>();
 
             try {
                 var publisherModel = new PublisherQueryApiModel();
                 var publishers = new PublisherListApiModel();
 
-                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     publishers = await _registryService.QueryPublishersAsync(publisherModel, null, _commonHelper.PageLengthSmall);
-                    if (!string.IsNullOrEmpty(publishers.ContinuationToken)) {
-                        pageResult.PageCount = 2;
-                    }
                 }
                 else {
                     publishers = await _registryService.ListPublishersAsync(previousPage.ContinuationToken, null, _commonHelper.PageLengthSmall);
-
-                    if (string.IsNullOrEmpty(publishers.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
                 }
 
                 if (publishers != null) {
@@ -396,11 +356,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 if (previousPage != null) {
                     previousPage.Results.AddRange(pageResult.Results);
                     pageResult.Results = previousPage.Results;
+                    pageResult.ContinuationToken = publishers.ContinuationToken;
                 }
 
-                pageResult.ContinuationToken = publishers.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLengthSmall;
-                pageResult.RowCount = pageResult.Results.Count;
+                pageResult.ItemsCount += _commonHelper.PageLengthSmall;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
@@ -463,7 +422,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="previousPage"></param>
         /// <returns>SupervisorApiModel</returns>
-        public async Task<PagedResult<SupervisorApiModel>> GetSupervisorListAsync(PagedResult<SupervisorApiModel> previousPage = null) {
+        public async Task<PagedResult<SupervisorApiModel>> GetSupervisorListAsync(PagedResult<SupervisorApiModel> previousPage = null, bool getNextPage = false) {
 
             var pageResult = new PagedResult<SupervisorApiModel>();
 
@@ -471,21 +430,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var model = new SupervisorQueryApiModel();
                 var supervisors = new SupervisorListApiModel();
 
-                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     supervisors = await _registryService.QuerySupervisorsAsync(model, null, _commonHelper.PageLength);
-                    if (!string.IsNullOrEmpty(supervisors.ContinuationToken)) {
-                        pageResult.PageCount = 2;
-                    }
                 }
                 else {
                     supervisors = await _registryService.ListSupervisorsAsync(previousPage.ContinuationToken, null, _commonHelper.PageLengthSmall);
-
-                    if (string.IsNullOrEmpty(supervisors.ContinuationToken)) {
-                        pageResult.PageCount = previousPage.PageCount;
-                    }
-                    else {
-                        pageResult.PageCount = previousPage.PageCount + 1;
-                    }
                 }
 
                 if (supervisors != null) {
@@ -497,11 +446,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 if (previousPage != null) {
                     previousPage.Results.AddRange(pageResult.Results);
                     pageResult.Results = previousPage.Results;
+                    pageResult.ContinuationToken = supervisors.ContinuationToken;
                 }
 
-                pageResult.ContinuationToken = supervisors.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLength;
-                pageResult.RowCount = pageResult.Results.Count;
+                pageResult.ItemsCount = _commonHelper.PageLength;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
