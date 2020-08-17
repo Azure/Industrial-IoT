@@ -22,8 +22,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string SupervisorId { get; set; } = string.Empty;
 
-        private IAsyncDisposable PublishEvent { get; set; }
-
         private const string _valueGood = "Good";
 
         protected override async Task GetItems(bool getNextPage) {

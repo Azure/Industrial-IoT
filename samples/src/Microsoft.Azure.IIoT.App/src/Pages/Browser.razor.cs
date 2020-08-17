@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         protected override async Task GetItems(bool getNextPage) {
             EndpointModel = await registryService.GetEndpointAsync(EndpointId);
             Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
-            await BrowseTreeAsync(BrowseDirection.Forward, 0, string.Empty, new List<string>());
+            await BrowseTreeAsync(BrowseDirection.Forward, 0, getNextPage, string.Empty, new List<string>());
         }
 
         protected override async Task SubscribeEvents() {
@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="id"></param>
         /// <param name="parentId"></param>
         private async Task GetTreeAsync(string id, List<string> parentId) {
-            await BrowseTreeAsync(BrowseDirection.Forward, 0, id, parentId);
+            await BrowseTreeAsync(BrowseDirection.Forward, 0, false, id, parentId);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="id"></param>
         /// <param name="parentId"></param>
         private async Task GetTreeBackAsync(string id, List<string> parentId, int index) {
-            await BrowseTreeAsync(BrowseDirection.Backward, index, id, parentId);
+            await BrowseTreeAsync(BrowseDirection.Backward, index, false, id, parentId);
             NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
         }
 
@@ -78,10 +78,10 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         /// <param name="id"></param>
         /// <param name="parentId"></param>
         /// <param name="direction"></param>
-        private async Task BrowseTreeAsync(BrowseDirection direction, int index, string id = null, List<string> parentId = null) {
+        private async Task BrowseTreeAsync(BrowseDirection direction, int index, bool isLoadingMore, string id = null, List<string> parentId = null) {
             IsLoading = true;
 
-            if (Items.ItemsCount == 0) {
+            if (!isLoadingMore) {
                 ParentId = parentId;
                 Items = await BrowseManager.GetTreeAsync(EndpointId,
                                             id,
