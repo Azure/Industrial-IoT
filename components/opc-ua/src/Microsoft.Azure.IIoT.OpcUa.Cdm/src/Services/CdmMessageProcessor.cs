@@ -512,7 +512,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
                 if (manifest != null) {
                     manifest.Name = "IIoTOpcUaPubSub";
-                    manifest.ManifestName = "IIoT OPC UA Pub/Sub Manifest";
+                    manifest.ManifestName = "IIoT OPC UA PubSub Manifest";
                     manifest.Imports.Add(kFoundationJsonPath);
                     manifest.Schema = "cdm:/schema.cdm.json";
                     manifest.JsonSchemaSemanticVersion = "1.0.0";

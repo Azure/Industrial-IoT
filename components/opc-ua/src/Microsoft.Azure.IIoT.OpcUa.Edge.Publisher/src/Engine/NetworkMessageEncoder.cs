@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Creates pub/sub encoded messages
+    /// Creates PubSub encoded messages
     /// </summary>
     public class NetworkMessageEncoder : IMessageEncoder {
 
