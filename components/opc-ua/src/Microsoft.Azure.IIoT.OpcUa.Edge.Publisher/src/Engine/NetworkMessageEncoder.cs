@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Serilog;
 
     /// <summary>
-    /// Creates pub/sub encoded messages
+    /// Creates PubSub encoded messages
     /// </summary>
     public class NetworkMessageEncoder : IMessageEncoder {
         /// <inheritdoc/>

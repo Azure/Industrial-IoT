@@ -68,7 +68,7 @@ Binary Encoding
 }
 ```
 
-### OPC UA Pub/Sub Mode
+### OPC UA PubSub Mode
 
 Json Encoding
 
@@ -493,7 +493,7 @@ Message body is
 }
 ```
 
-### OPC UA Pub/Sub Mode
+### OPC UA PubSub Mode
 
 Message body is
 ```json
