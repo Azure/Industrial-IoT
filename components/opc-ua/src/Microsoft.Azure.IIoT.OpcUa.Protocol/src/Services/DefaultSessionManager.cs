@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ReportedStatus = StatusCodes.Good,
                         IdleCount = 0
                     };
-                    _sessions.Add(id, wrapper);
+                    _sessions.AddOrUpdate(id, wrapper);
                     TriggerKeepAlive();
                 }
                 switch (wrapper.State) {
@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Session = null,
                         IdleCount = 0
                     };
-                    _sessions.Add(id, wrapper);
+                    _sessions.AddOrUpdate(id, wrapper);
                 }
                 wrapper._subscriptions.AddOrUpdate(subscription.Id, subscription);
                 _logger.Information("Subscription '{subscriptionId}' registered/updated in session '{id}' in state {state}",
@@ -513,7 +513,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _logger.Debug("Removing session '{id}'", id);
             await _lock.WaitAsync().ConfigureAwait(false);
             try {
-                _sessions.Remove(id);
+                _sessions.Remove(id, out _);
             }
             finally {
                 _lock.Release();
@@ -940,8 +940,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ILogger _logger;
         private readonly IClientServicesConfig _clientConfig;
         private readonly IIdentity _identity;
-        private readonly Dictionary<ConnectionIdentifier, SessionWrapper> _sessions =
-            new Dictionary<ConnectionIdentifier, SessionWrapper>();
+        private readonly ConcurrentDictionary<ConnectionIdentifier, SessionWrapper> _sessions =
+            new ConcurrentDictionary<ConnectionIdentifier, SessionWrapper>();
         private readonly SemaphoreSlim _lock;
         private const int kDefaultOperationTimeout = 15000;
 
