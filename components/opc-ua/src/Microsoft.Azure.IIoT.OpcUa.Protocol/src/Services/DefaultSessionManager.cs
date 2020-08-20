@@ -214,7 +214,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
-        /// Session manager's conmnection management runner task
+        /// Session manager's connection management runner task
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -312,7 +312,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     wrapper.State = SessionState.Running;
                     wrapper.MissedKeepAlives = 0;
 
-                    // reactivate all subscriptons
+                    // reactivate all subscriptions
                     foreach (var subscription in wrapper._subscriptions.Values) {
                         if (!ct.IsCancellationRequested) {
                             await subscription.ActivateAsync(wrapper.Session).ConfigureAwait(false);
@@ -373,7 +373,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private async Task HandleFailedAsync(ConnectionIdentifier id,
             SessionWrapper wrapper, CancellationToken ct) {
             try {
-                // check if session requires clenup
+                // check if session requires cleanup
                 if (!wrapper._subscriptions.Any()) {
                     if (wrapper.IdleCount < wrapper.MaxKeepAlives) {
                         wrapper.IdleCount++;
