@@ -232,32 +232,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         switch (wrapper.State) {
                             case SessionState.Refresh:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct));
+                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct), ct);
                                 }
                                 break;
                             case SessionState.Running:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct));
+                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct), ct);
                                 }
                                 break;
                             case SessionState.Retry:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleRetryAsync(id, wrapper, ct));
+                                    wrapper.Processing = Task.Run(() => HandleRetryAsync(id, wrapper, ct), ct);
                                 }
                                 break;
                             case SessionState.Init:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleInitAsync(id, wrapper, ct));
+                                    wrapper.Processing = Task.Run(() => HandleInitAsync(id, wrapper, ct), ct);
                                 }
                                 break;
                             case SessionState.Failed:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleFailedAsync(id, wrapper, ct));
+                                    wrapper.Processing = Task.Run(() => HandleFailedAsync(id, wrapper, ct), ct);
                                 }
                                 break;
                             case SessionState.Disconnect:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleDisconnectAsync(id, wrapper));
+                                    wrapper.Processing = Task.Run(() => HandleDisconnectAsync(id, wrapper), ct);
                                 }
                                 break;
                             default:
