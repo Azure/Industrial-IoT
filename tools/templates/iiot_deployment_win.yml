@@ -43,8 +43,6 @@ jobs:
       zipAfterPublish: false
   - task: AntiMalware@3
     displayName: 'Run Virus scan'
-    # Job will continue if this task fails.
-    continueOnError: true
     inputs:
       InputType: 'Basic'
       ScanType: 'CustomScan'
@@ -53,7 +51,7 @@ jobs:
       SupportLogOnError: false
       TreatSignatureUpdateFailureAs: 'Warning'
       SignatureFreshness: 'UpToDate'
-      TreatStaleSignatureAs: 'Error'
+      TreatStaleSignatureAs: 'Warning'
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
     displayName: 'Executable Signing'
     condition: and(succeeded(), eq('${{ parameters.sign }}', 'True'))
