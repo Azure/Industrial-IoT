@@ -43,6 +43,8 @@ jobs:
       zipAfterPublish: false
   - task: AntiMalware@3
     displayName: 'Run Virus scan'
+    # Job will continue if this task fails.
+    continueOnError: true
     inputs:
       InputType: 'Basic'
       ScanType: 'CustomScan'
