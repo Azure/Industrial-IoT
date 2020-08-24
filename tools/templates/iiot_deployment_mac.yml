@@ -46,7 +46,7 @@ jobs:
       artifact: iiot_deployment_release_$(setVersionInfo.Version_Full)_${{ parameters.runtime }}
   - task: AzureCLI@2
     displayName: 'Copy to Blob'
-    condition: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/'))
     inputs:
       azureSubscription: azureiiot-storage
       scriptType: pscore

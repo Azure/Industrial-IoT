@@ -54,7 +54,7 @@ jobs:
       TreatStaleSignatureAs: 'Error'
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
     displayName: 'Executable Signing'
-    condition: ${{ eq(parameters.sign, 'True') }}
+    condition: and(succeeded(), eq('${{ parameters.sign }}', 'True'))
     inputs:
       ConnectedServiceName: 'Code Signing Certificate'
       FolderPath: '$(Build.ArtifactStagingDirectory)'
@@ -114,7 +114,7 @@ jobs:
       artifact: iiot_deployment_release_$(setVersionInfo.Version_Prefix)_${{ parameters.runtime }}
   - task: AzureCLI@2
     displayName: 'Copy to Blob'
-    condition: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/'))
     inputs:
       azureSubscription: azureiiot-storage
       scriptType: pscore
