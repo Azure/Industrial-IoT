@@ -51,10 +51,10 @@ jobs:
       SupportLogOnError: false
       TreatSignatureUpdateFailureAs: 'Warning'
       SignatureFreshness: 'UpToDate'
-      TreatStaleSignatureAs: 'Error'
+      TreatStaleSignatureAs: 'Warning'
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
     displayName: 'Executable Signing'
-    condition: ${{ eq(parameters.sign, 'True') }}
+    condition: and(succeeded(), eq('${{ parameters.sign }}', 'True'))
     inputs:
       ConnectedServiceName: 'Code Signing Certificate'
       FolderPath: '$(Build.ArtifactStagingDirectory)'
@@ -114,7 +114,7 @@ jobs:
       artifact: iiot_deployment_release_$(setVersionInfo.Version_Prefix)_${{ parameters.runtime }}
   - task: AzureCLI@2
     displayName: 'Copy to Blob'
-    condition: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/'))
     inputs:
       azureSubscription: azureiiot-storage
       scriptType: pscore
@@ -124,3 +124,6 @@ jobs:
         az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.exe --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.exe
         az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.pdb --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.pdb
         az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.md5 --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.md5
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.exe --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.exe
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.pdb --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.pdb
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.md5 --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.md5
