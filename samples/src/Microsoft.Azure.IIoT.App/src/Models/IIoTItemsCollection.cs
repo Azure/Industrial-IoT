@@ -56,7 +56,6 @@ namespace Microsoft.Azure.IIoT.App.Models {
         /// <returns></returns>
         protected async Task LoadMoreItems() {
             IsLoading = true;
-            StateHasChanged();
             if (!string.IsNullOrEmpty(Items.ContinuationToken)) {
                 await GetItems(true);
             }
