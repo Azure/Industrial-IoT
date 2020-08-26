@@ -3,15 +3,18 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 ------------------------------------------------------------*@
 
-@page "/applications/{page}"
+@page "/applications"
 
 @using Microsoft.AspNetCore.Components;
-@using Microsoft.Azure.IIoT.App.Services;
-@using Microsoft.Azure.IIoT.App.Components.Pager;
+@using Microsoft.Azure.IIoT.App.Common;
+@using Microsoft.Azure.IIoT.App.Components.Buttons;
 @using Microsoft.Azure.IIoT.App.Components.Drawer;
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage;
+@using Microsoft.Azure.IIoT.App.Components.Loader;
+@using Microsoft.Azure.IIoT.App.Models;
+@using Microsoft.Azure.IIoT.App.Services;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-@using Microsoft.Azure.IIoT.App.Common;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
@@ -19,7 +22,7 @@
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
-@implements IDisposable
+@inherits IIoTItemsCollection<ApplicationInfoApiModel>
 
 <h1>Assets</h1>
 
@@ -34,18 +37,21 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var application in _pagedApplicationList.Results) {
+        @foreach (var application in Items.Results)
+        {
             <tr class="@((application.NotSeenSince != null? "enabled-false" : "enabled-true"))">
                 <td class="hover-text large">
                     <div>
                         @{
                             CommonHelper.ApplicationUri.AddOrUpdate(application.ApplicationId, application.ApplicationUri);
                         }
-                        @if (application.NotSeenSince != null) {
+                        @if (application.NotSeenSince != null)
+                        {
                             @application.ApplicationName
                         }
-                        else {
-                            <a href='endpoints/1/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
+                        else
+                        {
+                            <a href='endpoints/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
                                 @application.ApplicationName
                             </a>
                         }
@@ -84,8 +90,8 @@
     <_DrawerAssetContent ApplicationData="@ApplicationData"></_DrawerAssetContent>
 </Drawer>
 
-<ErrorMessage PageError="@_pagedApplicationList.Error" Status="@null"></ErrorMessage>
+<ErrorMessage PageError="@Items.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@ApplicationList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
+<Spinner IsLoading=@IsLoading></Spinner>
 
-<div class="loader-pos @CommonHelper.Spinner"></div>
+<LoadMore Result="@Items" IsLoading=@IsLoading LoadMoreItems=@(async() => await LoadMoreItems()) />

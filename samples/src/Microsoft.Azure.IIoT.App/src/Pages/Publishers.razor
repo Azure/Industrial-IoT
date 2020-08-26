@@ -3,16 +3,19 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 ------------------------------------------------------------*@
 
-@page "/publishers/{page}"
+@page "/publishers"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services;
+@using Microsoft.Azure.IIoT.App.Components.Buttons;
 @using Microsoft.Azure.IIoT.App.Components.Drawer;
-@using Microsoft.Azure.IIoT.App.Components.Pager;
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage;
+@using Microsoft.Azure.IIoT.App.Components.Loader;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
 @using Microsoft.Azure.IIoT.App.Common;
 @using Microsoft.Azure.IIoT.App.Components.Icons;
+@using Microsoft.Azure.IIoT.App.Models;
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
@@ -20,7 +23,7 @@
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
-@implements IDisposable
+@inherits IIoTItemsCollection<PublisherApiModel>
 
 <h1>Publishers</h1>
 
@@ -36,7 +39,8 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var publisher in _pagedPublisherList.Results) {
+        @foreach (var publisher in Items.Results)
+        {
             <tr>
                 <td class="hover-text width-large">
                     <div>
@@ -50,13 +54,14 @@
                         @{ string JobCheckInterval = CommonHelper.None;}
                         @{ string JobOrchestratorUrl = CommonHelper.None;}
                         @{ string MaxWorkers = CommonHelper.None;}
-                        @if (publisher.Configuration != null) {
+                        @if (publisher.Configuration != null)
+                        {
                             Capabilities = publisher.Configuration.Capabilities == null ? CommonHelper.None : publisher.Configuration.Capabilities.ToString();
-                            HeartbeatInterval = 
+                            HeartbeatInterval =
                                 !IsTimeIntervalSet(publisher.Configuration.HeartbeatInterval) ?
                                     CommonHelper.None : publisher.Configuration.HeartbeatInterval.Value.TotalSeconds.ToString() + " sec";
-                            JobCheckInterval = 
-                                !IsTimeIntervalSet(publisher.Configuration.JobCheckInterval) ? 
+                            JobCheckInterval =
+                                !IsTimeIntervalSet(publisher.Configuration.JobCheckInterval) ?
                                     CommonHelper.None : publisher.Configuration.JobCheckInterval.Value.TotalSeconds.ToString() + " sec";
                             JobOrchestratorUrl = string.IsNullOrEmpty(publisher.Configuration.JobOrchestratorUrl) ? CommonHelper.None : publisher.Configuration.JobOrchestratorUrl;
                             MaxWorkers = publisher.Configuration.MaxWorkers == null ? CommonHelper.None : publisher.Configuration.MaxWorkers.ToString();
@@ -96,12 +101,12 @@
                     </div>
                 </td>
                 @{string connectStatus = publisher.Connected == null
-                      ? CommonHelper.None
-                      : publisher.Connected == true
-                          ? "Connected"
-                          : "Disconnected";}
+                                  ? CommonHelper.None
+                                  : publisher.Connected == true
+                                      ? "Connected"
+                                      : "Disconnected";}
                 <td class="hover-text width-small">
-                    <ConnectStatus Status="@connectStatus"/>
+                    <ConnectStatus Status="@connectStatus" />
                 </td>
                 <td class="hover-text width-small">
                     <div>
@@ -118,8 +123,8 @@
     <_DrawerPublisher Publisher="@Publisher"></_DrawerPublisher>
 </Drawer>
 
-<ErrorMessage PageError="@_pagedPublisherList.Error" Status="@null"></ErrorMessage>
+<ErrorMessage PageError="@Items.Error" Status="@null"></ErrorMessage>
 
-<Pager Result=@PublisherList PageChanged="@(async(Page) => await PagerPageChangedAsync(Page))" />
+<LoadMore Result=@Items IsLoading=@IsLoading LoadMoreItems=@(async() => await LoadMoreItems()) />
 
-<div class="loader-pos @CommonHelper.Spinner"></div>
+<Spinner IsLoading=@IsLoading></Spinner>
