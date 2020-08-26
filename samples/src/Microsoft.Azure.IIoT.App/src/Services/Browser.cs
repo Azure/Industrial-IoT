@@ -95,10 +95,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     Path.RemoveRange(index, Path.Count - index);
                 }
 
-                if (!string.IsNullOrEmpty(browseData.ContinuationToken)) {
-                    pageResult.PageCount = 2;
-                }
-
                 if (browseData.References != null) {
                     foreach (var nodeReference in browseData.References) {
                         previousPage.Results.Add(new ListNode {
@@ -120,8 +116,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
                 pageResult.Results = previousPage.Results;
                 pageResult.ContinuationToken = browseData.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLength;
-                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
@@ -158,13 +152,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
             try {
                 var browseDataNext = await _twinService.NodeBrowseNextAsync(endpointId, modelNext);
 
-                if (string.IsNullOrEmpty(browseDataNext.ContinuationToken)) {
-                    pageResult.PageCount = previousPage.PageCount;
-                }
-                else {
-                    pageResult.PageCount = previousPage.PageCount + 1;
-                }
-
                 if (browseDataNext.References != null) {
                     foreach (var nodeReference in browseDataNext.References) {
                         previousPage.Results.Add(new ListNode {
@@ -186,8 +173,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 pageResult.Results = previousPage.Results;
                 pageResult.ContinuationToken = browseDataNext.ContinuationToken;
-                pageResult.PageSize = _commonHelper.PageLength;
-                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";

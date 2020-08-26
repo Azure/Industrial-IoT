@@ -14,11 +14,13 @@ namespace Microsoft.Azure.IIoT.App.Pages {
 
         public SupervisorStatusApiModel SupervisorStatus { get; set; }
 
+        public bool IsLoading { get; set; }
+
         /// <summary>
         /// OnInitialized
         /// </summary>
         protected override void OnInitialized() {
-            CommonHelper.Spinner = "loader-big";
+            IsLoading = true;
         }
 
         /// <summary>
@@ -28,7 +30,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         protected override async Task OnAfterRenderAsync(bool firstRender) {
             if (firstRender) {
                 SupervisorStatus = await RegistryHelper.GetSupervisorStatusAsync(SupervisorId);
-                CommonHelper.Spinner = "";
+                IsLoading = false;
                 StateHasChanged();
             }
         }
