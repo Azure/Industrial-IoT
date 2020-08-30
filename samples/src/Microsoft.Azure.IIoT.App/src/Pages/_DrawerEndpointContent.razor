@@ -5,6 +5,7 @@
 
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
 @using Microsoft.Azure.IIoT.App.Common;
+@using Microsoft.Azure.IIoT.App.Components.Loader; 
 
 @inject UICommon CommonHelper
 @inject IRegistryServiceApi RegistryService
@@ -77,6 +78,6 @@
                 </div>
             </div>
         }
-        <div class="loader-pos @CommonHelper.Spinner"></div>
+        <Spinner IsLoading=@IsLoading></Spinner>
     </div>
 </div>
