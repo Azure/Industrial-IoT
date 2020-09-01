@@ -178,15 +178,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 },
                 AddonProfiles = new Dictionary<string, ManagedClusterAddonProfile> {
                     { "omsagent", new ManagedClusterAddonProfile {
-                        Enabled = true,
-                        Config = new Dictionary<string, string> {
-                            { "logAnalyticsWorkspaceResourceID", operationalInsightsWorkspace.Id }
+                            Enabled = true,
+                            Config = new Dictionary<string, string> {
+                                { "logAnalyticsWorkspaceResourceID", operationalInsightsWorkspace.Id }
+                            }
                         }
-                    }
                     },
                     { "httpApplicationRouting", new ManagedClusterAddonProfile {
-                        Enabled = false
-                    }
+                            Enabled = false
+                        }
                     }
                 },
                 //NodeResourceGroup = aksResourceGroupName, // This is not propagated yet.
