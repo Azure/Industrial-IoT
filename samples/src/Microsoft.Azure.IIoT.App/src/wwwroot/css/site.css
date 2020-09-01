@@ -257,6 +257,11 @@ th {
     width: 60%;
 }
 
+.loader-discovery {
+    float: right;
+    margin-right: 90px;
+}
+
 .label {
     font-weight: bold;
 }
