@@ -187,21 +187,21 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             var queryString = $"SELECT * FROM r WHERE ";
             if (query?.Status != null) {
                 queryString +=
-$"r.{nameof(JobDocument.Status)} = @state AND ";
+                    $"r.{nameof(JobDocument.Status)} = @state AND ";
                 queryParameters.Add("@state", query.Status.Value);
             }
             if (query?.Name != null) {
                 queryString +=
-$"r.{nameof(JobDocument.Name)} = @name AND ";
+                    $"r.{nameof(JobDocument.Name)} = @name AND ";
                 queryParameters.Add("@name", query.Name);
             }
             if (query?.JobConfigurationType != null) {
                 queryString +=
-$"r.{nameof(JobDocument.Type)} = @type AND ";
+                    $"r.{nameof(JobDocument.Type)} = @type AND ";
                 queryParameters.Add("@type", query.JobConfigurationType);
             }
             queryString +=
-$"r.{nameof(JobDocument.ClassType)} = '{JobDocument.ClassTypeName}'";
+                $"r.{nameof(JobDocument.ClassType)} = '{JobDocument.ClassTypeName}'";
             return queryString;
         }
 

@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                 ++index;
             }
 
-            var selection = ReadIndex(azureEnvironments.Count(), "Select Azure environment: ");
+            var selection = ReadIndex(azureEnvironments.Count(), "Select Azure environment (using its index): ");
 
             return azureEnvironments.ElementAt(selection);
         }
@@ -205,7 +205,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                     ++index;
                 }
 
-                var selection = ReadIndex(subscriptionsCount, "Please select which subscription to use: ");
+                var selection = ReadIndex(subscriptionsCount, "Select subscription to use (using its index): ");
                 subscription = subscriptionsList.ElementAt(selection);
             }
 
@@ -303,7 +303,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                 ++index;
             }
 
-            var selection = ReadIndex(resourceGroups.Count(), "Select an option: ");
+            var selection = ReadIndex(resourceGroups.Count(), "Select resource group (using its index): ");
             return resourceGroups.ElementAt(selection);
         }
 
@@ -373,7 +373,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                 ++index;
             }
 
-            var regionSelection = ReadIndex(regions.Count(), "Select a region: ");
+            var regionSelection = ReadIndex(regions.Count(), "Select region (using its index): ");
             var region = regions.ElementAt(regionSelection);
 
             return region;

@@ -348,6 +348,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             if (_configurationProvider.IfUseExistingResourceGroup()) {
                 var resourceGroups = await _azureResourceManager
                     .GetResourceGroupsAsync(cancellationToken);
+
+                resourceGroups = resourceGroups
+                    .OrderBy(resourceGroup => resourceGroup.Name.ToLower())
+                    .ToList();
+
                 _resourceGroup = _configurationProvider
                     .GetExistingResourceGroup(resourceGroups);
             }
