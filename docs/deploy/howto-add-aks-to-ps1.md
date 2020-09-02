@@ -67,10 +67,13 @@ that application if you are starting from scratch:
   az aks install-cli
   ```
 
-* Helm 3: You can run the following command to install `helm` using Azure CLI:
+* Helm 3: Please follow the steps in the official documentation to install Helm CLI:
+  [Installing Helm](https://helm.sh/docs/intro/install/)
+
+  Alternatively, you can run the following command to install `helm` using Azure CLI:
 
   ```bash
-  az acr helm install-cli
+  az acr helm install-cli --client-version "3.2.0"
   ```
 
 ## Deployment Steps
