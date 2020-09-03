@@ -312,7 +312,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0,
                     MaxOutgressMessages = DefaultMaxOutgressMessages.Value
-        },
+                },
                 ConnectionString = null
             };
         }
@@ -330,8 +330,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             PublishedItemModel publishedItem, string endpointId, string publisherId,
             ConnectionModel connection, string dataSetWriterName = null) {
 
-            var dataSetWriterId = string.IsNullOrEmpty(dataSetWriterName) ? GetDefaultId(endpointId) : dataSetWriterName
-                + '_' + publishedItem.PublishingInterval;
+            var dataSetWriterId =
+                (string.IsNullOrEmpty(dataSetWriterName) ? GetDefaultId(endpointId) : dataSetWriterName) +
+                (publishedItem.PublishingInterval.HasValue ?
+                    ('_' + publishedItem.PublishingInterval.Value.TotalMilliseconds.ToString()) : String.Empty);
 
             // Simple - first remove - then add.
             RemoveItemFromJob(publishJob, publishedItem.NodeId, connection);
