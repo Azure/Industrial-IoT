@@ -718,7 +718,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         private static async Task DelayOrThrow(ILogger logger, Func<Exception, bool> cont,
             Func<int, Exception, int> policy, int maxRetry, int k, Exception ex,
             CancellationToken ct) {
-            if ((k > maxRetry || !cont(ex)) && !(ex is ITransientException)) {
+            if (k > maxRetry || !cont(ex)) {
                 logger?.Verbose(ex, "Give up after {k}", k);
                 throw ex;
             }
