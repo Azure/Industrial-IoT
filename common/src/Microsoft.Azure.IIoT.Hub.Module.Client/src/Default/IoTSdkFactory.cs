@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     moduleId = _cs.ModuleId;
                     ehubHost = _cs.GatewayHostName ?? ehubHost;
 
-                    if (!string.IsNullOrWhiteSpace(ehubHost)) {
+                    if (string.IsNullOrWhiteSpace(_cs.GatewayHostName) && !string.IsNullOrWhiteSpace(ehubHost)) {
                         _cs = IotHubConnectionStringBuilder.Create(
                             config.EdgeHubConnectionString + ";GatewayHostName=" + ehubHost);
                     }
