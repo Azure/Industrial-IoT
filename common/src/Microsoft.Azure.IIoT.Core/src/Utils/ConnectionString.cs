@@ -48,8 +48,6 @@ namespace Microsoft.Azure.IIoT.Utils {
             EndpointSuffix,
             /// <summary>default protocol</summary>
             DefaultEndpointsProtocol,
-            /// <summary>Name of Gateway (IoT Edge itself)</summary>
-            GatewayHostName
         }
 
         /// <summary>
@@ -96,11 +94,6 @@ namespace Microsoft.Azure.IIoT.Utils {
         public string Endpoint => this[Id.AccountName] ?? this[Id.AccountEndpoint] ?? this[Id.Endpoint];
 
         /// <summary>
-        /// Get hostname of gateway
-        /// </summary>
-        public string GatewayHostName => this[Id.GatewayHostName];
-
-        /// <summary>
         /// Parse connection string
         /// </summary>
         /// <param name="connectionString"></param>
@@ -117,18 +110,9 @@ namespace Microsoft.Azure.IIoT.Utils {
                 if (i < 0) {
                     throw new InvalidDataContractException("Bad key value pair.");
                 }
-                
-                var key = elem.Substring(0, i);
-                var value = elem.Substring(i + 1);
-
-                if (string.IsNullOrWhiteSpace(value)) {
-                    throw new InvalidDataContractException("Bad key value pair.");
-                }
-
                 // Throws argument if already exists or parse fails...
-                cs._items.Add(
-                    (Id)Enum.Parse(typeof(Id), key, true),
-                    value);
+                cs._items.Add((Id)Enum.Parse(typeof(Id), elem.Substring(0, i), true),
+                    elem.Substring(i + 1));
             }
             return cs;
         }
