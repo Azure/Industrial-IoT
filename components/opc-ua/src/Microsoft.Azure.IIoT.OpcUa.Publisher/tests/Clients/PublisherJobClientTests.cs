@@ -416,6 +416,498 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             }
         }
 
+        [Fact]
+        public async Task BulkPublishTest1Async() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258",
+                            PublishingInterval = TimeSpan.FromSeconds(2),
+                            SamplingInterval = TimeSpan.FromSeconds(1)
+                        }
+                    }
+                });
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.Single(list.Items);
+                Assert.Null(list.ContinuationToken);
+                Assert.Equal("i=2258", list.Items.Single().NodeId);
+                Assert.Equal(TimeSpan.FromSeconds(2), list.Items.Single().PublishingInterval);
+                Assert.Equal(TimeSpan.FromSeconds(1), list.Items.Single().SamplingInterval);
+            }
+        }
+
+        [Fact]
+        public async Task BulkPublishTest2Async() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                var result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258",
+                        }
+                    }
+                });
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.Single(list.Items);
+                Assert.Null(list.ContinuationToken);
+                Assert.Equal("i=2258", list.Items.Single().NodeId);
+                Assert.Null(list.Items.Single().PublishingInterval);
+                Assert.Null(list.Items.Single().SamplingInterval);
+            }
+        }
+
+        [Fact]
+        public async Task StartStopBulkPublishTestAsync() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258",
+                            PublishingInterval = TimeSpan.FromSeconds(2),
+                            SamplingInterval = TimeSpan.FromSeconds(1)
+                        }
+                    }
+                });
+
+                var result2 = await service.NodePublishStopAsync("endpoint1", new PublishStopRequestModel {
+                    NodeId = "i=2258"
+                });
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.NotNull(result2);
+                Assert.Empty(list.Items);
+                Assert.Null(list.ContinuationToken);
+            }
+        }
+
+        [Fact]
+        public async Task StartTwiceBulkPublishTest1Async() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258",
+                            PublishingInterval = TimeSpan.FromSeconds(2),
+                            SamplingInterval = TimeSpan.FromSeconds(1)
+                        }
+                    }
+                });
+                result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258",
+                            PublishingInterval = TimeSpan.FromSeconds(2),
+                            SamplingInterval = TimeSpan.FromSeconds(1)
+                        }
+                    }
+                });
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.Single(list.Items);
+                Assert.Null(list.ContinuationToken);
+                Assert.Equal("i=2258", list.Items.Single().NodeId);
+                Assert.Equal(TimeSpan.FromSeconds(2), list.Items.Single().PublishingInterval);
+                Assert.Equal(TimeSpan.FromSeconds(1), list.Items.Single().SamplingInterval);
+            }
+        }
+
+        [Fact]
+        public async Task StartTwiceBulkPublishTest2Async() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258",
+                            PublishingInterval = TimeSpan.FromSeconds(2),
+                            SamplingInterval = TimeSpan.FromSeconds(1)
+                        }
+                    }
+                });
+                result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2259",
+                            PublishingInterval = TimeSpan.FromSeconds(2),
+                            SamplingInterval = TimeSpan.FromSeconds(1)
+                        }
+                    }
+                });
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.Equal(2, list.Items.Count);
+                Assert.Null(list.ContinuationToken);
+                Assert.Equal(TimeSpan.FromSeconds(2), list.Items.First().PublishingInterval);
+                Assert.Equal(TimeSpan.FromSeconds(1), list.Items.First().SamplingInterval);
+            }
+        }
+
+        [Fact]
+        public async Task BulkPublishSameNodeWithDifferentCredentialsOnlyHasLastInListAsync() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258"
+                        }
+                    },
+                    Header = new RequestHeaderModel {
+                        Elevation = new CredentialModel {
+                            Type = CredentialType.UserName,
+                            Value = "abcdefg"
+                        }
+                    }
+                });
+                result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258"
+                        }
+                    },
+                    Header = new RequestHeaderModel {
+                        Elevation = new CredentialModel {
+                            Type = CredentialType.UserName,
+                            Value = "123456"
+                        }
+                    }
+                });
+                result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258"
+                        }
+                    },
+                    Header = new RequestHeaderModel {
+                        Elevation = new CredentialModel {
+                            Type = CredentialType.UserName,
+                            Value = "asdfasdf"
+                        }
+                    }
+                });
+
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.Single(list.Items);
+                Assert.Null(list.ContinuationToken);
+                Assert.Equal("i=2258", list.Items.Single().NodeId);
+            }
+        }
+
+        [Fact]
+        public async Task StartandStopBulkPublishNodeWithDifferentCredentialsHasNoItemsInListAsync() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result1 = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258"
+                        }
+                    },
+                    Header = new RequestHeaderModel {
+                        Elevation = new CredentialModel {
+                            Type = CredentialType.UserName,
+                            Value = "abcdefg"
+                        }
+                    }
+                });
+                var result2 = await service.NodePublishStopAsync("endpoint1", new PublishStopRequestModel {
+                    NodeId = "i=2258",
+                    Header = new RequestHeaderModel {
+                        Elevation = new CredentialModel {
+                            Type = CredentialType.UserName,
+                            Value = "123456"
+                        }
+                    }
+                });
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result1);
+                Assert.NotNull(result2);
+                Assert.Empty(list.Items);
+                Assert.Null(list.ContinuationToken);
+            }
+        }
+
+        [Fact]
+        public async Task BulkTwicePublishTest3Async() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258",
+                            PublishingInterval = TimeSpan.FromSeconds(2),
+                            SamplingInterval = TimeSpan.FromSeconds(1)
+                        }
+                    }
+                });
+                result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel {
+                            NodeId = "i=2258",
+                            PublishingInterval = TimeSpan.FromSeconds(3),
+                            SamplingInterval = TimeSpan.FromSeconds(2)
+                        }
+                    }
+                });
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.Single(list.Items);
+                Assert.Null(list.ContinuationToken);
+                Assert.Equal("i=2258", list.Items.Single().NodeId);
+                Assert.Equal(TimeSpan.FromSeconds(3), list.Items.Single().PublishingInterval);
+                Assert.Equal(TimeSpan.FromSeconds(2), list.Items.Single().SamplingInterval);
+            }
+        }
+
+        [Fact]
+        public async Task StartStopMultipleBulkPublishTestAsync() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                for (var i = 0; i < 100; i++) {
+                    var result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                        NodesToAdd = new List<PublishedItemModel> {
+                            new PublishedItemModel {
+                                NodeId = "i=" + (i + 1000),
+                                PublishingInterval = TimeSpan.FromSeconds(i),
+                                SamplingInterval = TimeSpan.FromSeconds(i + 1)
+                            }
+                        }
+                    });
+                    Assert.NotNull(result);
+                }
+                for (var i = 0; i < 50; i++) {
+                    var result = await service.NodePublishStopAsync("endpoint1", new PublishStopRequestModel {
+                        NodeId = "i=" + (i + 1000)
+                    });
+                    Assert.NotNull(result);
+                }
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.Equal(50, list.Items.Count);
+                Assert.Null(list.ContinuationToken);
+
+                // Run
+                for (var i = 0; i < 100; i++) {
+                    var result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                        NodesToAdd = new List<PublishedItemModel> {
+                            new PublishedItemModel {
+                                NodeId = "i=" + (i + 2000),
+                                PublishingInterval = TimeSpan.FromSeconds(i),
+                                SamplingInterval = TimeSpan.FromSeconds(i + 1)
+                            }
+                        }
+                    });
+                    Assert.NotNull(result);
+                }
+                for (var i = 0; i < 50; i++) {
+                    var result = await service.NodePublishStopAsync("endpoint1", new PublishStopRequestModel {
+                        NodeId = "i=" + (i + 2000)
+                    });
+                    Assert.NotNull(result);
+                }
+
+                list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.Equal(100, list.Items.Count);
+                Assert.Null(list.ContinuationToken);
+            }
+        }
+
+
+        [Fact]
+        public async Task AddRemoveMultipleBulkPublishTestAsync() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                var nodesToAdd = new List<PublishedItemModel>();
+                var nodesToRemove = new List<string>();
+                for (var i = 0; i < 100; i++) {
+                    nodesToAdd.Add(new PublishedItemModel {
+                        NodeId = "i=" + (i + 1000),
+                        PublishingInterval = TimeSpan.FromSeconds(i),
+                        SamplingInterval = TimeSpan.FromSeconds(i + 1)
+                    });
+                    if (i % 2 == 0) {
+                        nodesToRemove.Add("i=" + (i + 1000));
+                    }
+                }
+
+                var result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                        NodesToAdd = nodesToAdd
+                    });
+
+                Assert.NotNull(result);
+
+                result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                    NodesToRemove = nodesToRemove
+                });
+
+                Assert.NotNull(result);
+                
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.Equal(50, list.Items.Count);
+                Assert.Null(list.ContinuationToken);
+
+                // Run
+                for (var i = 0; i < 100; i++) {
+                    result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                        NodesToAdd = new List<PublishedItemModel> {
+                            new PublishedItemModel {
+                                NodeId = "i=" + (i + 2000),
+                                PublishingInterval = TimeSpan.FromSeconds(i),
+                                SamplingInterval = TimeSpan.FromSeconds(i + 1)
+                            }
+                        }
+                    });
+                    Assert.NotNull(result);
+                }
+                for (var i = 0; i < 50; i++) {
+                    result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
+                        NodesToRemove = new List<string> {
+                                "i=" + (i + 2000)
+                            }
+                    });
+                    Assert.NotNull(result);
+                }
+
+                list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.Equal(100, list.Items.Count);
+                Assert.Null(list.ContinuationToken);
+            }
+        }
+
+
         /// <summary>
         /// Setup mock
         /// </summary>
