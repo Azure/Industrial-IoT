@@ -141,11 +141,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                        
                         patched.Configuration.HeartbeatInterval =
                             request.Configuration.HeartbeatInterval;
-                        
-                        patched.Configuration.JobCheckInterval =
-                            request.Configuration.JobCheckInterval.Value.Ticks == 0 ?
-                                null : request.Configuration.JobCheckInterval;
-                       
+
+                        if (request.Configuration.JobCheckInterval != null) { 
+                            patched.Configuration.JobCheckInterval =
+                                request.Configuration.JobCheckInterval.Value.Ticks == 0 ?
+                                    null : request.Configuration.JobCheckInterval;
+                        }
+                        else {
+                            request.Configuration.JobCheckInterval = null;
+                        }
+
                         patched.Configuration.MaxWorkers =
                             request.Configuration.MaxWorkers <= 0 ?
                                 null : request.Configuration.MaxWorkers;
