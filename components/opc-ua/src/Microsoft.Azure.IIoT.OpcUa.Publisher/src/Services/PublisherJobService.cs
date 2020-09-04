@@ -141,9 +141,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                 };
 
                 if (request.NodesToAdd != null) {
+                    var dataSetWriterName = Guid.NewGuid().ToString();
                     foreach (var item in request.NodesToAdd) {
                         AddOrUpdateItemInJob(publishJob, item, endpointId, job.Id,
-                            connection);
+                            connection, dataSetWriterName);
                         jobChanged = true;
                     }
                 }
@@ -311,7 +312,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0,
                     MaxOutgressMessages = DefaultMaxOutgressMessages.Value
-        },
+                },
                 ConnectionString = null
             };
         }
@@ -324,9 +325,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         /// <param name="endpointId"></param>
         /// <param name="publisherId"></param>
         /// <param name="connection"></param>
+        /// <param name="dataSetWriterName"></param>
         private void AddOrUpdateItemInJob(WriterGroupJobModel publishJob,
             PublishedItemModel publishedItem, string endpointId, string publisherId,
-            ConnectionModel connection) {
+            ConnectionModel connection, string dataSetWriterName = null) {
+
+            var dataSetWriterId =
+                (string.IsNullOrEmpty(dataSetWriterName) ? GetDefaultId(endpointId) : dataSetWriterName) +
+                (publishedItem.PublishingInterval.HasValue ?
+                    ('_' + publishedItem.PublishingInterval.Value.TotalMilliseconds.ToString()) : String.Empty);
 
             // Simple - first remove - then add.
             RemoveItemFromJob(publishJob, publishedItem.NodeId, connection);
@@ -335,8 +342,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             List<PublishedDataSetVariableModel> variables = null;
             foreach (var writer in publishJob.WriterGroup.DataSetWriters) {
                 if (writer.DataSet.DataSetSource.Connection.IsSameAs(connection) &&
-                    writer.DataSet.DataSetSource.SubscriptionSettings?.PublishingInterval ==
-                        publishedItem.PublishingInterval) {
+                    writer.DataSetWriterId == dataSetWriterId ) {
                     System.Diagnostics.Debug.Assert(writer.DataSet.DataSetSource.PublishedVariables.PublishedData != null);
                     variables = writer.DataSet.DataSetSource.PublishedVariables.PublishedData;
                     writer.DataSet.DataSetMetaData.ConfigurationVersion.MinorVersion++;
@@ -346,7 +352,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             if (variables == null) {
                 // No writer found - add new one with a published dataset
                 var dataSetWriter = new DataSetWriterModel {
-                    DataSetWriterId = GetDefaultId(endpointId),
+                    DataSetWriterId = dataSetWriterId,
                     DataSet = new PublishedDataSetModel {
                         Name = null,
                         DataSetMetaData = new DataSetMetaDataModel {
@@ -361,7 +367,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                             ["EndpointId"] = endpointId,
                             ["PublisherId"] = publisherId,
                             // todo, probably not needed
-                            ["DataSetWriterId"] = endpointId
+                            ["DataSetWriterId"] = dataSetWriterId
                         },
                         DataSetSource = new PublishedDataSetSourceModel {
                             Connection = connection,
