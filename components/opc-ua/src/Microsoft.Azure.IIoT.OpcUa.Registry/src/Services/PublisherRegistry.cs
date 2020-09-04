@@ -133,31 +133,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         if (patched.Configuration == null) {
                             patched.Configuration = new PublisherConfigModel();
                         }
-                        if (request.Configuration.JobOrchestratorUrl != null) {
-                            patched.Configuration.JobOrchestratorUrl =
-                                string.IsNullOrEmpty(
-                                    request.Configuration.JobOrchestratorUrl.Trim()) ?
-                                        null : request.Configuration.JobOrchestratorUrl;
-                        }
-                        if (request.Configuration.HeartbeatInterval != null) {
-                            patched.Configuration.HeartbeatInterval =
-                                request.Configuration.HeartbeatInterval;
-                        }
-                        if (request.Configuration.JobCheckInterval != null) {
-                            patched.Configuration.JobCheckInterval =
-                                request.Configuration.JobCheckInterval.Value.Ticks == 0 ?
-                                    null : request.Configuration.JobCheckInterval;
-                        }
-                        if (request.Configuration.MaxWorkers != null) {
-                            patched.Configuration.MaxWorkers =
-                                request.Configuration.MaxWorkers <= 0 ?
-                                    null : request.Configuration.MaxWorkers;
-                        }
-                        if (request.Configuration.Capabilities != null) {
-                            patched.Configuration.Capabilities =
-                                request.Configuration.Capabilities.Count == 0 ?
-                                    null : request.Configuration.Capabilities;
-                        }
+                        
+                        patched.Configuration.JobOrchestratorUrl =
+                            string.IsNullOrEmpty(
+                                request.Configuration.JobOrchestratorUrl?.Trim()) ?
+                                    null : request.Configuration.JobOrchestratorUrl;
+                       
+                        patched.Configuration.HeartbeatInterval =
+                            request.Configuration.HeartbeatInterval;
+                        
+                        patched.Configuration.JobCheckInterval =
+                            request.Configuration.JobCheckInterval.Value.Ticks == 0 ?
+                                null : request.Configuration.JobCheckInterval;
+                       
+                        patched.Configuration.MaxWorkers =
+                            request.Configuration.MaxWorkers <= 0 ?
+                                null : request.Configuration.MaxWorkers;
+                        
+                        patched.Configuration.Capabilities =
+                            request.Configuration.Capabilities?.Count == 0 ?
+                                null : request.Configuration.Capabilities; 
                     }
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
