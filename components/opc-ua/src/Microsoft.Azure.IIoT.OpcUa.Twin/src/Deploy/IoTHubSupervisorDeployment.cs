@@ -82,20 +82,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                 ";
             }
 
-
             // Configure create options per os specified
             string createOptions;
             if (isLinux) {
                 // Linux
                 createOptions = _serializer.SerializeToString(new {
-                    Hostname = "twin"
+                    Hostname = "twin",
+                    Cmd = new[] {
+                        "PkiRootPath=/mount/pki"
+                    },
+                    HostConfig = new {
+                        Binds = new[] {
+                            "/mount:/mount"
+                        }
+                    }
                 });
             }
             else {
                 // Windows
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator",
-                    Hostname = "twin"
+                    Hostname = "twin",
+                    Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                    },
+                    HostConfig = new {
+                        Mounts = new[] {
+                            new {
+                                Type = "bind",
+                                Source = "C:\\\\ProgramData\\\\iotedge",
+                                Target = "C:\\\\mount"
+                            }
+                        }
+                    }
                 });
             }
             createOptions = createOptions.Replace("\"", "\\\"");
