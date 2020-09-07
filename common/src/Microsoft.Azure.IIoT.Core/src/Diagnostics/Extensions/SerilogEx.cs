@@ -66,6 +66,6 @@ namespace Serilog {
         }
 
         private const string kDefaultTemplate =
-            "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext:lj}] {Message:lj} {NewLine}{Exception}";
+            "[{Timestamp:u} {Level:u3} {SourceContext:lj}] {Message:lj} {NewLine}{Exception}";
     }
 }
