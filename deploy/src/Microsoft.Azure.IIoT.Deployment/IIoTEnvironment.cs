@@ -222,7 +222,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_TWIN_REGISTRY_URL = $"{serviceURL}/registry/";
             PCS_TWIN_SERVICE_URL = $"{serviceURL}/twin/";
             PCS_HISTORY_SERVICE_URL = $"{serviceURL}/history/";
-            PCS_VAULT_SERVICE_URL = $"{serviceURL}/vault/";
             PCS_PUBLISHER_SERVICE_URL = $"{serviceURL}/publisher/";
             PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL = $"{serviceURL}/edge/publisher/";
             PCS_EVENTS_SERVICE_URL = $"{serviceURL}/events/";
@@ -253,7 +252,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_TWIN_SERVICE_PATH_BASE = "/twin";
             PCS_HISTORY_SERVICE_PATH_BASE = "/history";
             PCS_GATEWAY_SERVICE_PATH_BASE = "/ua";
-            PCS_VAULT_SERVICE_PATH_BASE = "/vault";
             PCS_PUBLISHER_SERVICE_PATH_BASE = "/publisher";
             PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE = "/edge/publisher";
             PCS_EVENTS_SERVICE_PATH_BASE = "/events";
