@@ -3,8 +3,8 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:25390/",
-      "sslPort": 44397
+      "applicationUrl": "http://localhost:1217/",
+      "sslPort": 44365
     }
   },
   "profiles": {
@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "Microsoft.Azure.IIoT.Services.OpcUa.Vault.Tests": {
+    "Microsoft.Azure.IIoT.Services.Processor.Onboarding": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
