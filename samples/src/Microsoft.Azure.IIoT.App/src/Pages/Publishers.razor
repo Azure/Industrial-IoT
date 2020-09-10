@@ -120,7 +120,7 @@
 <div class="@_tableEmpty center">No Publishers found.</div>
 
 <Drawer HeaderText="Publisher Config" ObjectData="@Publisher" IsOpen="@IsOpen" CloseDrawer="@(() => CloseDrawer())">
-    <_DrawerPublisher Publisher="@Publisher"></_DrawerPublisher>
+    <_DrawerPublisher Publisher="@Publisher" Onclick="(() => ClickHandler())"></_DrawerPublisher>
 </Drawer>
 
 <ErrorMessage PageError="@Items.Error" Status="@null"></ErrorMessage>
