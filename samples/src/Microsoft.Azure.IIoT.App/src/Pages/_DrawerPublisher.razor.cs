@@ -12,6 +12,9 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public PublisherInfo Publisher { get; set; }
 
+        [Parameter]
+        public EventCallback Onclick { get; set; }
+
         private PublisherInfoRequested InputData { get; set; }
 
         /// <summary>
@@ -27,6 +30,7 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private async Task UpdatePublisherConfigAsync() {
             Publisher.TryUpdateData(InputData);
             await RegistryHelper.UpdatePublisherAsync(Publisher);
+            await Onclick.InvokeAsync(null);
         }
     }
 }

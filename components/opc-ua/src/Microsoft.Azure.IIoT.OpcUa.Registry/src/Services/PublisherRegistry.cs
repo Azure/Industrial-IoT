@@ -140,8 +140,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                                         null : request.Configuration.JobOrchestratorUrl;
                         }
                         if (request.Configuration.HeartbeatInterval != null) {
-                            patched.Configuration.HeartbeatInterval =
-                                request.Configuration.HeartbeatInterval;
+                            patched.Configuration.HeartbeatInterval = 
+                                request.Configuration.HeartbeatInterval.Value.Ticks == 0 ?
+                                    null : request.Configuration.HeartbeatInterval;
                         }
                         if (request.Configuration.JobCheckInterval != null) {
                             patched.Configuration.JobCheckInterval =
