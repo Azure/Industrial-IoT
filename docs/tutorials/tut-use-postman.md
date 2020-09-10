@@ -90,7 +90,7 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
 ### Register the demo OPC UA server manually using its discovery URL
 
 1. Execute the `Registry: Get applications` request. The result should be empty.
-1. Locate the `Registry: Add application` request. Edit the request body to point to your hostname:
+2. Locate the `Registry: Add application` request. Edit the request body to point to your hostname:
 
    ```json
    {
@@ -98,17 +98,17 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
    }
    ```
 
-1. Execute the `Registry: Get applications` request a few times until you see the application discovered and registered.
+3. Execute the `Registry: Get applications` request a few times until you see the application discovered and registered.
 
    Note all the information about the application that the IoT Edge added during the registration, including public certificate, product URI and more. Copy the `applicationId` for the entry that has `productUri` set to `https://github.com/azure-samples/iot-edge-opc-plc`.
 
 ### Browse all root nodes of endpoint
 
-1. Execute the request `Registry: Browse endpoints` to see the application and its endpoints. Select one of the IDs under `endpoints` (`endpointId`). Before executing, make sure you update the `applicationId` copied above.
+1. Execute the request `Registry: Browse endpoints` to see the application and its endpoints. Select the `id` from one of the registration objects.
 
-2. Activate endpoint: run the request `Registry: Activate endpoint` and replace the endpointId in the URL with the `endpointId` from above.
+2. Select the request `Registry: Activate endpoint`, replace the endpoint GUID in the URL with the `id` from above and execute it.
 
-3. Run `Registry: Browse endpoints` again and you should see your endpoint as active, connected and ready. Since the request uses the device registry query, which caches state, switching to this view might take a couple of tries. A live view of the twin can be retrieved using `Registry: Get endpoint` with the `endpointId`.
+3. Run `Registry: Browse endpoints` again and you should see the endpoint as active, connected and ready. Since the request uses the device registry query, which caches state, switching to this view might take a couple of tries. A live view of the twin can be retrieved using `Registry: Get endpoint` with the endpoint's `id`.
 
    ``` json
      [ommitted]...
@@ -118,7 +118,7 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
       ...
    ```
 
-4. Execute the request `Twin: Browse endpoint for ID` and replace the `endpointId` to browse the root node of the endpoint.
+4. Select the request `Twin: Browse endpoint for ID`, replace the endpoint GUID in the URL with the `id` from above and execute it to browse the root node of the endpoint.
 
    > If you fail to browse a real OPC UA server, it is because the server does not trust the module client certificate. For now, please follow the server's manual to move the rejected certificate into the trust list and try again.
 
@@ -126,8 +126,8 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
 
 ### Browse nodes and read telemetry value
 
-1. Once you have an application and endpoints, execute `Registry: Get endpoints` to get your base endpoint ID for the OPC PLC. This will be one where the `endpointUrl` is on port 50000. Copy `id` (endpoint id).
-2. Execute the request `Twin: Browse endpoint for ID`, using the `id` copied in the URL.
+1. Once you have an application and endpoints, execute `Registry: Get endpoints` to get your base endpoint ID for the OPC PLC. This will be one where the `endpointUrl` is on port 50000. Copy the `id` (endpoint id).
+2. Execute the request `Twin: Browse endpoint for ID`, using the `id` in the URL.
 ![img](../media/ex3-twinbrowsebyid.png)
 3. Copy the `nodeId` of the objects (displayName: Objects) node. In our case this was `i=85`.
 4. Execute the request `Twin: Browse target node`, replace the ID in the URL with the `id` from above, and add the node ID to the query parameter. If the node id includes special characters such as a '/' or ':' then you should URL Encode the parameter by right-clicking the selection and choosing the Postman option 'EncodeUriComponent'.
@@ -152,7 +152,7 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
 
 ## Clean up
 
-Note the `applicationId` by executing the request `Registry: Get applications`. Execute the request `Registry: Remove application`, make sure to change the applicaitonId in the Uri.
+Note the `applicationId` by executing the request `Registry: Get applications`. Execute the request `Registry: Remove application`, make sure to change the applicaitonId in the URI.
 
 Note: This step does not remove the published nodes from the OPC Publisher.
 
