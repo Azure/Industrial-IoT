@@ -294,6 +294,6 @@ namespace Microsoft.Azure.IIoT {
             "PCS_LOGS_PATH";
         /// <summary> The maximum size of the (IoT D2C) message egress queue </summary>
         public const string PCS_MAX_EGRESS_MESSAGE_QUEUE =
-            "PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE";
+            "PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES";
     }
 }

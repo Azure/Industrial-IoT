@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int k) => this[LegacyCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
                     { "ms|iothubmessagesize=", "The maximum size of the (IoT D2C) message.",
                         (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
-                    { "em|maxegressmessagequeue=", "The maximum size of the (IoT D2C) message egress queue.",
+                    { "om|maxoutgressmessages=", "The maximum size of the (IoT D2C) message egress queue.",
                         (int i) => this[LegacyCliConfigKeys.MaxEgressMessageQueue] = i.ToString() },
 
                     // testing purposes
