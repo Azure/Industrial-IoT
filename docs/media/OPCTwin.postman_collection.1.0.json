@@ -219,46 +219,6 @@
 			"response": []
 		},
 		{
-			"name": "Twin: Browse endpoint for ID",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/browse/uat5bf736971027939a93e06a35c4a2d5957762409a",
-					"protocol": "https",
-					"host": [
-						"{{OPC-SERVICEURL}}"
-					],
-					"path": [
-						"twin",
-						"v2",
-						"browse",
-						"uat5bf736971027939a93e06a35c4a2d5957762409a"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Twin: Browse nodes",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true

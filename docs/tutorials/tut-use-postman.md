@@ -118,7 +118,7 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
       ...
    ```
 
-4. Select the request `Twin: Browse endpoint for ID`, replace the endpoint GUID in the URL with the `id` from above and execute it to browse the root node of the endpoint.
+4. Select the request `Twin: Browse nodes`, replace the endpoint GUID in the URL with the `id` from above and execute it to browse the root node of the endpoint.
 
    > If you fail to browse a real OPC UA server, it is because the server does not trust the module client certificate. For now, please follow the server's manual to move the rejected certificate into the trust list and try again.
 
@@ -127,7 +127,7 @@ Note: The Postman requests will use an Authorization Code flow to authenticate t
 ### Browse nodes and read telemetry value
 
 1. Once you have an application and endpoints, execute `Registry: Get endpoints` to get your base endpoint ID for the OPC PLC. This will be one where the `endpointUrl` is on port 50000. Copy the `id` (endpoint id).
-2. Execute the request `Twin: Browse endpoint for ID`, using the `id` in the URL.
+2. Execute the request `Twin: Browse nodes`, using the `id` in the URL.
 ![img](../media/ex3-twinbrowsebyid.png)
 3. Copy the `nodeId` of the objects (displayName: Objects) node. In our case this was `i=85`.
 4. Execute the request `Twin: Browse target node`, replace the ID in the URL with the `id` from above, and add the node ID to the query parameter. If the node id includes special characters such as a '/' or ':' then you should URL Encode the parameter by right-clicking the selection and choosing the Postman option 'EncodeUriComponent'.
