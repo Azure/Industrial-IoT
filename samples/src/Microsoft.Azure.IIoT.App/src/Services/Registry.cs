@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     IncludeNotSeenSince = true
                 };
 
-                if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (!getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     endpoints = await _registryService.QueryEndpointsAsync(query, null, _commonHelper.PageLength);
                 }
                 else {
@@ -155,7 +155,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 };
                 var applications = new ApplicationInfoListApiModel();
 
-                if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (!getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     applications = await _registryService.QueryApplicationsAsync(query, _commonHelper.PageLength);
                 }
                 else
@@ -280,7 +280,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var gatewayModel = new GatewayQueryApiModel();
                 var gateways = new GatewayListApiModel();
 
-                if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (!getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     gateways = await _registryService.QueryGatewaysAsync(gatewayModel, _commonHelper.PageLength);
                 }
                 else {
@@ -323,7 +323,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var publisherModel = new PublisherQueryApiModel();
                 var publishers = new PublisherListApiModel();
 
-                if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (!getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     publishers = await _registryService.QueryPublishersAsync(publisherModel, null, _commonHelper.PageLengthSmall);
                 }
                 else {
@@ -411,7 +411,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var model = new SupervisorQueryApiModel();
                 var supervisors = new SupervisorListApiModel();
 
-                if (getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                if (!getNextPage && string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     supervisors = await _registryService.QuerySupervisorsAsync(model, null, _commonHelper.PageLength);
                 }
                 else {
