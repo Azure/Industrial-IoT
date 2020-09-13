@@ -223,6 +223,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<CosmosDbServiceClient>()
                 .AsImplementedInterfaces();
+            // TODO check why duplicate?
             builder.RegisterType<DefaultJobService>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubJobConfigurationHandler>()
