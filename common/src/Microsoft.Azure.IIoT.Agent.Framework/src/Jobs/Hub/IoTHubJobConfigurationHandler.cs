@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         }
 
         /// <inheritdoc/>
-        public async Task OnJobScopingAsync(IJobService manager, JobInfoModel job, string workerId) {
+        public async Task OnJobAssignmentAsync(IJobService manager, JobInfoModel job, string workerId) {
             if (job.JobConfiguration?.IsObject != true) {
                 return;
             }
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                 _logger.Debug("Added connection string to job {id}", jobDeviceId);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Error while scoping the Job's IoT Device.");
+                _logger.Error(ex, "Error while assigning the Job's IoT Device.");
             }
         }
 

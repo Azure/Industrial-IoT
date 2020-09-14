@@ -85,28 +85,31 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     var response = await _httpClient.PutAsync(device, ct);
                     response.Validate();
                 }
-                catch (ConflictingResourceException) {
+                catch (ConflictingResourceException)
+                    when (!string.IsNullOrEmpty(twin.ModuleId) || force) {
+                    // Continue onward
                     // Update the deviceScope if the twin provided is for leaf iot device
                     //  (not iotedge device or iotedge module)
-                    if ((twin.Capabilities?.IotEdge).GetValueOrDefault(false) && 
+                    if (!(twin.Capabilities?.IotEdge).GetValueOrDefault(false) && 
                         string.IsNullOrEmpty(twin.ModuleId) && 
                         !string.IsNullOrEmpty(twin.DeviceScope)) {
-                        var update = NewRequest($"/devices/{twin.Id}");
-                        update.Headers.Add("If-Match",
-                            $"\"{(string.IsNullOrEmpty(twin.Etag) || force ? "*" : twin.Etag)}\"");
-                        _serializer.SerializeToRequest(update, new {
-                            deviceId = twin.Id,
-                            deviceScope = twin.DeviceScope
-                        });
-                        var response = await _httpClient.PutAsync(update, ct);
-                        // just throw if the update fails
-                        response.Validate();
+                        try {
+                            var update = NewRequest($"/devices/{twin.Id}");
+                            update.Headers.Add("If-Match",
+                                $"\"{(string.IsNullOrEmpty(twin.Etag) || force ? "*" : twin.Etag)}\"");
+                            _serializer.SerializeToRequest(update, new {
+                                deviceId = twin.Id,
+                                deviceScope = twin.DeviceScope
+                            });
+                            var response = await _httpClient.PutAsync(update, ct);
+                            // just throw if the update fails
+                            response.Validate();
+                        }
+                        catch (ConflictingResourceException)
+                            when (force) {
+                            // Continue onward
+                        }
                     }
-
-                    if (string.IsNullOrEmpty(twin.ModuleId) && !force) {
-                        throw;
-                    }
-                    // Continue onward
                 }
                 if (!string.IsNullOrEmpty(twin.ModuleId)) {
                     // Try create module
