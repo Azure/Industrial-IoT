@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             }
         }
 
-        private const string kApiVersion = "2020-03-01";
+        private const string kApiVersion = "2020-03-13";
         private const string kClientId = "AzureIIoT";
 
         /// <summary>Max retry count</summary>
