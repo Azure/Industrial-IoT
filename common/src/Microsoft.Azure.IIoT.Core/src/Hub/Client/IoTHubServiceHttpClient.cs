@@ -86,8 +86,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     response.Validate();
                 }
                 catch (ConflictingResourceException) {
-                    // Try updating the deviceScope if provided and the twin provided is for leaf iot device
-                    //  (not iotedge device nor iotedge module)
+                    // Update the deviceScope if the twin provided is for leaf iot device
+                    //  (not iotedge device or iotedge module)
                     if ((twin.Capabilities?.IotEdge).GetValueOrDefault(false) && 
                         string.IsNullOrEmpty(twin.ModuleId) && 
                         !string.IsNullOrEmpty(twin.DeviceScope)) {

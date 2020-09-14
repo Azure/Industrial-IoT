@@ -57,6 +57,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
             if (job.JobConfiguration?.IsObject != true) {
                 return;
             }
+            if (string.IsNullOrEmpty(workerId)) {
+                throw new ArgumentNullException("empty WorkerId provided");
+            }
             try {
                 var edgeDeviceTwin = await _ioTHubTwinServices.FindAsync(workerId.Split("_publisher")[0]);
                 if (edgeDeviceTwin == null) {
@@ -84,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                 _logger.Debug("Added connection string to job {id}", jobDeviceId);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Error while creating IoT Device.");
+                _logger.Error(ex, "Error while scoping the Job's IoT Device.");
             }
         }
 
