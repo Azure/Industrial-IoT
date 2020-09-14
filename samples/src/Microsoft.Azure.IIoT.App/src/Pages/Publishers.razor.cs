@@ -44,5 +44,12 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             IsOpen = true;
             Publisher = new PublisherInfo { PublisherModel = publisherModel };
         }
+
+        /// <summary>
+        /// ClickHandler
+        /// </summary>
+        private void ClickHandler() {
+            CloseDrawer();
+        }
     }
 }
