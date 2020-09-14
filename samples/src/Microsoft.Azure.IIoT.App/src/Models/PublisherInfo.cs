@@ -29,14 +29,14 @@ namespace Microsoft.Azure.IIoT.App.Models {
                     PublisherModel.Configuration.HeartbeatInterval = TimeSpan.FromSeconds(Convert.ToDouble(input.RequestedHeartbeatInterval));
                 }
                 else {
-                    PublisherModel.Configuration.HeartbeatInterval = TimeSpan.MinValue;
+                    PublisherModel.Configuration.HeartbeatInterval = null;
                 }
 
                 if (!string.IsNullOrEmpty(input.RequestedJobCheckInterval)) {
                     PublisherModel.Configuration.JobCheckInterval = TimeSpan.FromSeconds(Convert.ToDouble(input.RequestedJobCheckInterval));
                 }
                 else {
-                    PublisherModel.Configuration.JobCheckInterval = TimeSpan.MinValue;
+                    PublisherModel.Configuration.JobCheckInterval = null;
                 }
 
                 return true;
