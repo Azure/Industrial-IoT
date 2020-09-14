@@ -24,7 +24,9 @@ The Azure Industrial IoT deployment script will setup IoT Edge Layered Deploymen
 
 2. Open the Device Twin configuration JSON under IoT Edge -> [your IoT Edge device] -> Device Twin
 
-3. If your gateway uses Linux (with Linux Containers), set the "os" property to "Linux":
+3. Insert the following `tags`:
+
+- For Linux (with Linux Containers), set the "os" property to "Linux":
 
 ```json
 ...
@@ -38,7 +40,7 @@ The Azure Industrial IoT deployment script will setup IoT Edge Layered Deploymen
 ...
 ```
 
-4. If your gateway uses Windows (with Linux or Windows Containers), set the "os" property to "Windows":
+- For Windows (with Linux or Windows Containers), set the "os" property to "Windows":
 
 ```json
 ...
@@ -52,7 +54,7 @@ The Azure Industrial IoT deployment script will setup IoT Edge Layered Deploymen
 ...
 ```
 
-These tags can also be created as part of an Azure Device Provisioning (DPS) enrollment. An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
+The tags can also be created as part of an Azure Device Provisioning (DPS) enrollment. An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
 
 ### Unmanaged Industrial IoT Edge
 
