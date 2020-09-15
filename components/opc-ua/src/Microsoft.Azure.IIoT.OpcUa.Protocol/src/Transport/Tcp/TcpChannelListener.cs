@@ -155,7 +155,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                             _serverCertificate ?? _controller.Certificate,
                             _serverCertificateChain ?? _controller.CertificateChain,
                             GetEndpoints());
-                        channel.SetRequestReceivedCallback(OnRequestReceived);
+                        channel.SetRequestReceivedCallback(new TcpChannelRequestEventHandler(OnRequestReceived));
 
                         var channelId = (uint)Interlocked.Increment(ref _lastChannelId);
 #pragma warning disable IDE0068 // Use recommended dispose pattern

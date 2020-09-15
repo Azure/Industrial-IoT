@@ -118,7 +118,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                     channel = new SecureChannel(_listenerId, this,
                         _bufferManager, _quotas, _controller.Certificate,
                         _controller.CertificateChain, GetEndpoints());
-                    channel.SetRequestReceivedCallback(OnRequestReceived);
+                    channel.SetRequestReceivedCallback(new TcpChannelRequestEventHandler(OnRequestReceived));
 
                     // Wrap socket in channel to read and write.
 #pragma warning disable IDE0068 // Use recommended dispose pattern
@@ -214,8 +214,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                 }));
         }
 
-        /// <inheritdoc/>
-        public Task<bool> TransferListenerChannel(uint channelId, string serverUri, Uri endpointUrl) {
+        bool ITcpChannelListener.ReconnectToExistingChannel(IMessageSocket socket, uint requestId, uint sequenceNumber, uint channelId, X509Certificate2 clientCertificate, ChannelToken token, OpenSecureChannelRequest request) {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> ITcpChannelListener.TransferListenerChannel(uint channelId, string serverUri, Uri endpointUrl) {
+            throw new NotImplementedException();
+        }
+
+        void ITcpChannelListener.ChannelClosed(uint channelId) {
             throw new NotImplementedException();
         }
 

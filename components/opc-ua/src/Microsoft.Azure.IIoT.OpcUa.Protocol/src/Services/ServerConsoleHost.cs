@@ -117,7 +117,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             // check the application certificate.
             var hasAppCertificate =
                 await application.CheckApplicationInstanceCertificate(true,
-                    CertificateFactory.DefaultKeySize);
+                    CertificateFactory.DefaultKeySize,
+                    CertificateFactory.DefaultHashSize
+                    );
             if (!hasAppCertificate) {
                 _logger.Error("Failed validating own certificate!");
                 throw new Exception("Application instance certificate invalid!");
