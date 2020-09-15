@@ -81,6 +81,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                     return;
                 }
                 var messagesCount = 0;
+                var messageSequence = 0L;
                 foreach (var eventData in messages) {
                     messagesCount++;
                     if (_outer._config.SkipEventsOlderThan != null &&
@@ -104,10 +105,16 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                         await CheckpointAsync(context, eventData);
                         context.CancellationToken.ThrowIfCancellationRequested();
                     }
+                    // sequence number of the message in eventhub which is used to calculate lag
+                    messageSequence = eventData.SystemProperties.SequenceNumber;
                 }
+                var lastEnqueuedSequence = context.RuntimeInformation.LastSequenceNumber;
+                var sequenceDifference = lastEnqueuedSequence - messageSequence;
                 TotalMessagesCount += messagesCount;
                 kEventProcessorMessages.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
                     context.PartitionId).Set(TotalMessagesCount);
+                kEventProcessorLag.WithLabels(_processorId, context.EventHubPath, context.ConsumerGroupName,
+                    context.PartitionId).Set(sequenceDifference);
 
                 // Checkpoint if needed
                 if (_sw.ElapsedMilliseconds >= _interval) {
@@ -331,6 +338,11 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                     });
             private static readonly Gauge kEventProcessorMessages = Metrics
                 .CreateGauge("iiot_event_processor_events", "number of messages processed",
+                    new GaugeConfiguration {
+                        LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id" }
+                    });
+            private static readonly Gauge kEventProcessorLag = Metrics
+                .CreateGauge("iiot_event_processor_lag", "consumer lag per partition",
                     new GaugeConfiguration {
                         LabelNames = new[] { "id", "eventhub_name", "consumer_name", "partition_id" }
                     });
