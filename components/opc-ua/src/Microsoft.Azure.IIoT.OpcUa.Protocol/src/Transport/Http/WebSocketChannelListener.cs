@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using Autofac;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Enables websocket middleware to pass sockets on to listener
@@ -148,7 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         /// <param name="channel"></param>
         /// <param name="requestId"></param>
         /// <param name="request"></param>
-        private void OnRequestReceived(TcpServerChannel channel,
+        private void OnRequestReceived(TcpListenerChannel channel,
             uint requestId, IServiceRequest request) {
             try {
                 var result = _controller.Callback.BeginProcessRequest(
@@ -211,6 +212,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                         TransportProfileUri = kWssTransport
                     }
                 }));
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> TransferListenerChannel(uint channelId, string serverUri, Uri endpointUrl) {
+            throw new NotImplementedException();
         }
 
         private int _lastChannelId;

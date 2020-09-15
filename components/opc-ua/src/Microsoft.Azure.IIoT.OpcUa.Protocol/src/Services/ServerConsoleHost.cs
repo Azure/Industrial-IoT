@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _logger.Error(ex, "Starting server caused exception.");
                     _server?.Dispose();
                     _server = null;
-                    throw ex;
+                    throw ;
                 }
                 finally {
                     _lock.Release();
@@ -117,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             // check the application certificate.
             var hasAppCertificate =
                 await application.CheckApplicationInstanceCertificate(true,
-                    CertificateFactory.defaultKeySize);
+                    CertificateFactory.DefaultKeySize);
             if (!hasAppCertificate) {
                 _logger.Error("Failed validating own certificate!");
                 throw new Exception("Application instance certificate invalid!");
