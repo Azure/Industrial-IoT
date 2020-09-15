@@ -11,7 +11,7 @@
     <None Remove="Stack\Types\BuiltIn\BuiltInTypes.xml" />
     <None Remove="Stack\Types\BuiltIn\BuiltInTypes.xsd" />
     <None Remove="Stack\Types\BuiltIn\UA Core Services.xml" />
-  </ItemGroup>
+  </ItemGroup> 
   <ItemGroup>
     <EmbeddedResource Include="Stack\Design\BuiltIn\BuiltInTypes.xml" />
     <EmbeddedResource Include="Stack\Design\BuiltIn\StandardTypes.csv" />
