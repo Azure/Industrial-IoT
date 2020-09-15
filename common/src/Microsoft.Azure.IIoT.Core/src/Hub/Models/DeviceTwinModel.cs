@@ -99,5 +99,12 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         [DataMember(Name = "lastActivityTime",
             EmitDefaultValue = false)]
         public DateTimeOffset? LastActivityTime { get; set; }
+
+        /// <summary>
+        /// Device's Scope
+        /// </summary>
+        [DataMember(Name = "deviceScope",
+            EmitDefaultValue = false)]
+        public string DeviceScope { get; set; }
     }
 }

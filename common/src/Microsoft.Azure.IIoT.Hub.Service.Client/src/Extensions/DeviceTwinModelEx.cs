@@ -24,7 +24,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 return null;
             }
             return new Device(twin.Id) {
-                Capabilities = twin.Capabilities?.ToCapabilities()
+                Capabilities = twin.Capabilities?.ToCapabilities(),
+                Scope = twin.DeviceScope
             };
         }
 

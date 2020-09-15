@@ -24,13 +24,19 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         /// <param name="workerRepository"></param>
         /// <param name="demandMatcher"></param>
         /// <param name="jobOrchestratorConfig"></param>
+        /// <param name="jobEventHandler"></param>
+        /// <param name="jobService"></param>
         public DefaultJobOrchestrator(IJobRepository jobRepository,
             IWorkerRepository workerRepository, IDemandMatcher demandMatcher,
-            IJobOrchestratorConfig jobOrchestratorConfig) {
+            IJobOrchestratorConfig jobOrchestratorConfig,
+            IJobEventHandler jobEventHandler,
+            IJobService jobService) {
             _jobRepository = jobRepository;
             _demandMatcher = demandMatcher;
             _workerRepository = workerRepository;
             _jobOrchestratorConfig = jobOrchestratorConfig;
+            _jobEventHandler = jobEventHandler;
+            _jobService = jobService;
         }
 
         /// <inheritdoc/>
@@ -59,6 +65,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                             await _jobRepository.UpdateAsync(job.Id, existingJob => {
                                 // Try again on the current value in the database
                                 jobProcessInstruction = CalculateInstructions(existingJob, workerId);
+                                if (jobProcessInstruction != null) {
+                                    _jobEventHandler.OnJobAssignmentAsync(_jobService, jobProcessInstruction.Job, workerId).ConfigureAwait(false);
+                                }
                                 return Task.FromResult(jobProcessInstruction != null);
                             }, ct);
                             return jobProcessInstruction;
@@ -203,5 +212,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         private readonly IJobOrchestratorConfig _jobOrchestratorConfig;
         private readonly IWorkerRepository _workerRepository;
         private readonly IJobRepository _jobRepository;
+        private readonly IJobEventHandler _jobEventHandler;
+        private readonly IJobService _jobService;
     }
 }
