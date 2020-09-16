@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Collections.Concurrent;
+    using System.Linq;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -26,20 +27,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="publishedNodesJobConverter">The converter to read the job from the specified file.</param>
         /// <param name="legacyCliModelProvider">The provider that provides the legacy command line arguments.</param>
-        /// <param name="agentConfigPriovider">The provider that provides the agent configuration.</param>
+        /// <param name="agentConfigProvider">The provider that provides the agent configuration.</param>
         /// <param name="jobSerializer">The serializer to (de)serialize job information.</param>
         /// <param name="logger">Logger to write log messages.</param>
         /// <param name="identity">Module's identity provider.</param>
 
         public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter,
-            ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigPriovider,
+            ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigProvider,
             IJobSerializer jobSerializer, ILogger logger, IIdentity identity) {
             _publishedNodesJobConverter = publishedNodesJobConverter
                 ?? throw new ArgumentNullException(nameof(publishedNodesJobConverter));
             _legacyCliModel = legacyCliModelProvider.LegacyCliModel
                     ?? throw new ArgumentNullException(nameof(legacyCliModelProvider));
-            _agentConfig = agentConfigPriovider.Config
-                    ?? throw new ArgumentNullException(nameof(agentConfigPriovider));
+            _agentConfig = agentConfigProvider.Config
+                    ?? throw new ArgumentNullException(nameof(agentConfigProvider));
 
             _jobSerializer = jobSerializer ?? throw new ArgumentNullException(nameof(jobSerializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 directory = Environment.CurrentDirectory;
             }
 
-            _availableJobs = new Queue<JobProcessingInstructionModel>();
+            _availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
             _assignedJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
 
             var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
@@ -73,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (_assignedJobs.TryGetValue(workerId, out var job)) {
                 return Task.FromResult(job);
             }
-            if (_availableJobs.Count > 0 && (job = _availableJobs.Dequeue()) != null) {
+            if (_availableJobs.Count > 0 && _availableJobs.TryDequeue(out job)) {
                 _assignedJobs.AddOrUpdate(workerId, job);
                 if (_availableJobs.Count == 0) {
                     _updated = false;
@@ -136,7 +137,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             while (true) {
                 try {
                     var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);
-                    var availableJobs = new Queue<JobProcessingInstructionModel>();
+                    var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
                     if (currentFileHash != _lastKnownFileHash) {
                         _logger.Information("File {publishedNodesFile} has changed, reloading...", _legacyCliModel.PublishedNodesFile);
                         _lastKnownFileHash = currentFileHash;
@@ -149,7 +150,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     d.DataSet.ExtensionFields["PublisherId"] = jobId;
                                     d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterId;
                                 });
+                                var endpoints = string.Join(", ",job.WriterGroup.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url));
+                                _logger.Information($"Job {jobId} loaded. DataSetWriters endpoints: {endpoints}");
                                 var serializedJob = _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);
+
                                 availableJobs.Enqueue(
                                     new JobProcessingInstructionModel {
                                         Job = new JobInfoModel {
@@ -200,7 +204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ILogger _logger;
 
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
-        private Queue<JobProcessingInstructionModel> _availableJobs;
+        private ConcurrentQueue<JobProcessingInstructionModel> _availableJobs;
         private readonly ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private string _lastKnownFileHash;
         private bool _updated;
