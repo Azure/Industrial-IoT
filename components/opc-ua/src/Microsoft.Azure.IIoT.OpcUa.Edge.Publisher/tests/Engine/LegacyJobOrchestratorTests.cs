@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             for (var i = 0; i < 10; i++) {
                 tasks.Add(converter.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
             }
-
+            
             await Task.WhenAll(tasks);
 
             Assert.Equal(2, tasks.Count(t => t.Result != null));
