@@ -23,54 +23,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
     public sealed class PublisherJobService : IPublishServices<string> {
 
         /// <summary>
-        /// Read default batch trigger interval from environment.
-        /// </summary>
-        internal Lazy<TimeSpan> DefaultBatchTriggerInterval => new Lazy<TimeSpan>(() => {
-            var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL");
-            if (!string.IsNullOrEmpty(env)) {
-                if (int.TryParse(env, out var milliseconds) &&
-                    milliseconds >= 100 && milliseconds <= 3600000) {
-                    return TimeSpan.FromMilliseconds(milliseconds);
-                }
-            }
-            return TimeSpan.FromMilliseconds(500); // default
-        });
-
-        /// <summary>
-        /// Read default batch trigger size from environment.
-        /// </summary>
-        internal Lazy<int> DefaultBatchSize => new Lazy<int>(() => {
-            var env = Environment.GetEnvironmentVariable("PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE");
-            if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var size) &&
-                size > 1 && size <= 1000) {
-                return size;
-            }
-            return 50; // default
-        });
-
-        /// <summary>
-        /// Read default max egress message queue size from environment
-        /// </summary>
-        internal Lazy<int> DefaultMaxEgressMessageQueue => new Lazy<int>(() => {
-            var env = Environment.GetEnvironmentVariable(PcsVariable.PCS_MAX_EGRESS_MESSAGE_QUEUE);
-            if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var maxEgressMessageQueue) &&
-                maxEgressMessageQueue > 1 && maxEgressMessageQueue <= 25000) {
-                return maxEgressMessageQueue;
-            }
-            return 4096; // Default (4096 * 256 KB = 1 GB).
-        });
-
-        /// <summary>
         /// Create client
         /// </summary>
         /// <param name="endpoints"></param>
         /// <param name="jobs"></param>
         /// <param name="serializer"></param>
+        /// <param name="config"></param>
         public PublisherJobService(IEndpointRegistry endpoints, IJobScheduler jobs,
-            IJobSerializer serializer) {
+            IJobSerializer serializer, IPublishServicesConfig config) {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _endpoints = endpoints ?? throw new ArgumentNullException(nameof(endpoints));
             _jobs = jobs ?? throw new ArgumentNullException(nameof(jobs));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         /// <inheritdoc/>
@@ -270,26 +234,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
 
                     if (publishJob.Engine == null) {
                         publishJob.Engine = new EngineConfigurationModel {
-                            BatchSize = DefaultBatchSize.Value,
-                            BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
+                            BatchSize = _config.DefaultBatchSize,
+                            BatchTriggerInterval = _config.DefaultBatchTriggerInterval,
                             DiagnosticsInterval = TimeSpan.FromSeconds(60),
                             MaxMessageSize = 0,
-                            MaxEgressMessageQueue = DefaultMaxEgressMessageQueue.Value
+                            MaxEgressMessageQueue = _config.DefaultMaxEgressMessageQueue
                         };
                     }
                     else {
-                        publishJob.Engine.BatchTriggerInterval = DefaultBatchTriggerInterval.Value;
-                        publishJob.Engine.BatchSize = DefaultBatchSize.Value;
-                        publishJob.Engine.MaxEgressMessageQueue = DefaultMaxEgressMessageQueue.Value;
+                        publishJob.Engine.BatchTriggerInterval = _config.DefaultBatchTriggerInterval;
+                        publishJob.Engine.BatchSize = _config.DefaultBatchSize;
+                        publishJob.Engine.MaxEgressMessageQueue = _config.DefaultMaxEgressMessageQueue;
                     }
                     return publishJob;
                 }
             }
 
             return new WriterGroupJobModel {
-                MessagingMode = MessagingMode.Samples,
+                MessagingMode = _config.DefaultMessagingMode,
                 WriterGroup = new WriterGroupModel {
-                    MessageType = MessageEncoding.Json,
+                    MessageType = _config.DefaultMessageEncoding,
                     WriterGroupId = job.Id,
                     DataSetWriters = new List<DataSetWriterModel>(),
                     MessageSettings = new WriterGroupMessageSettingsModel() {
@@ -306,11 +270,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     },
                 },
                 Engine = new EngineConfigurationModel {
-                    BatchSize = DefaultBatchSize.Value,
-                    BatchTriggerInterval = DefaultBatchTriggerInterval.Value,
+                    BatchSize = _config.DefaultBatchSize,
+                    BatchTriggerInterval = _config.DefaultBatchTriggerInterval,
                     DiagnosticsInterval = TimeSpan.FromSeconds(60),
                     MaxMessageSize = 0,
-                    MaxEgressMessageQueue = DefaultMaxEgressMessageQueue.Value
+                    MaxEgressMessageQueue = _config.DefaultMaxEgressMessageQueue
                 },
                 ConnectionString = null
             };
@@ -476,8 +440,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         private readonly IEndpointRegistry _endpoints;
         private readonly IJobScheduler _jobs;
         private readonly IJobSerializer _serializer;
+        private readonly IPublishServicesConfig _config;
         private static readonly Counter kNodePublishStart = Metrics.CreateCounter("iiot_publisher_node_publish_start", "calls to nodePublishStartAsync");
         private static readonly Counter kNodePublishStop = Metrics.CreateCounter("iiot_publisher_node_publish_stop", "calls to nodePublishStopAsync");
-
     }
 }

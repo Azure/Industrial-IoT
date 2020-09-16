@@ -96,7 +96,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                             EventPosition.FromStart(),
                         MaxBatchSize = _config.ReceiveBatchSize,
                         ReceiveTimeout = _config.ReceiveTimeout,
-                        InvokeProcessorAfterReceiveTimeout = true
+                        InvokeProcessorAfterReceiveTimeout = true,
+                        EnableReceiverRuntimeMetric = true
                     });
                 _logger.Information("Event processor host started.");
             }

@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.App.Validation {
             }
 
             if (double.TryParse(value, out double result)) {
-                return result > 0;
+                return result >= 0;
             }
 
             return false;
