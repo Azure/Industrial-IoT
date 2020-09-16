@@ -27,20 +27,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="publishedNodesJobConverter">The converter to read the job from the specified file.</param>
         /// <param name="legacyCliModelProvider">The provider that provides the legacy command line arguments.</param>
-        /// <param name="agentConfigPriovider">The provider that provides the agent configuration.</param>
+        /// <param name="agentConfigProvider">The provider that provides the agent configuration.</param>
         /// <param name="jobSerializer">The serializer to (de)serialize job information.</param>
         /// <param name="logger">Logger to write log messages.</param>
         /// <param name="identity">Module's identity provider.</param>
 
         public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter,
-            ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigPriovider,
+            ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigProvider,
             IJobSerializer jobSerializer, ILogger logger, IIdentity identity) {
             _publishedNodesJobConverter = publishedNodesJobConverter
                 ?? throw new ArgumentNullException(nameof(publishedNodesJobConverter));
             _legacyCliModel = legacyCliModelProvider.LegacyCliModel
                     ?? throw new ArgumentNullException(nameof(legacyCliModelProvider));
-            _agentConfig = agentConfigPriovider.Config
-                    ?? throw new ArgumentNullException(nameof(agentConfigPriovider));
+            _agentConfig = agentConfigProvider.Config
+                    ?? throw new ArgumentNullException(nameof(agentConfigProvider));
 
             _jobSerializer = jobSerializer ?? throw new ArgumentNullException(nameof(jobSerializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
