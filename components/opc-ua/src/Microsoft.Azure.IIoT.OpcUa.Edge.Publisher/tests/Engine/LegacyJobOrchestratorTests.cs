@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = ".\\Engine\\publishednodes.json"};
+            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/publishednodes.json"};
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
