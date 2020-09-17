@@ -140,7 +140,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         ///// <summary>
         ///// Checks and warns about deprecated params and environment variables.
         ///// </summary>
-        ///// <param name="config"></param>
         ///// <param name="logger"></param>
         ///// <returns></returns>
         private void CheckDeprecatedParams(ILogger logger) {
