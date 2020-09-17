@@ -146,9 +146,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             // List with pairs of deprecated and new/replacement options.
             // If newOption is null, warning will not suggest using it instead.
             var deprecatedOptions = new List<(string deprecatedOption, string newOption)> {
+                // Deprecated on 2020-09-17.
                 (LegacyCliConfigKeys.MaxOutgressMessages,
                  LegacyCliConfigKeys.MaxEgressMessageQueue),
 
+                // Deprecated on 2020-09-17.
                 (PcsVariable.PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES,
                  PcsVariable.PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE),
             };
