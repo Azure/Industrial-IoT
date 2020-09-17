@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using Autofac;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Enables websocket middleware to pass sockets on to listener
@@ -117,7 +118,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                     channel = new SecureChannel(_listenerId, this,
                         _bufferManager, _quotas, _controller.Certificate,
                         _controller.CertificateChain, GetEndpoints());
-                    channel.SetRequestReceivedCallback(OnRequestReceived);
+                    channel.SetRequestReceivedCallback(new TcpChannelRequestEventHandler(OnRequestReceived));
 
                     // Wrap socket in channel to read and write.
 #pragma warning disable IDE0068 // Use recommended dispose pattern
@@ -148,7 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         /// <param name="channel"></param>
         /// <param name="requestId"></param>
         /// <param name="request"></param>
-        private void OnRequestReceived(TcpServerChannel channel,
+        private void OnRequestReceived(TcpListenerChannel channel,
             uint requestId, IServiceRequest request) {
             try {
                 var result = _controller.Callback.BeginProcessRequest(
@@ -211,6 +212,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                         TransportProfileUri = kWssTransport
                     }
                 }));
+        }
+
+        bool ITcpChannelListener.ReconnectToExistingChannel(IMessageSocket socket, uint requestId, uint sequenceNumber, uint channelId, X509Certificate2 clientCertificate, ChannelToken token, OpenSecureChannelRequest request) {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> ITcpChannelListener.TransferListenerChannel(uint channelId, string serverUri, Uri endpointUrl) {
+            throw new NotImplementedException();
+        }
+
+        void ITcpChannelListener.ChannelClosed(uint channelId) {
+            throw new NotImplementedException();
         }
 
         private int _lastChannelId;

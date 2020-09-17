@@ -1684,7 +1684,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
             // check the application certificate.
             var hasAppCertificate =
                 await application.CheckApplicationInstanceCertificate(true,
-                    CertificateFactory.defaultKeySize);
+                    CertificateFactory.DefaultKeySize, CertificateFactory.DefaultHashSize);
             if (!hasAppCertificate) {
                 throw new InvalidConfigurationException("OPC UA application certificate can not be validated");
             }
