@@ -104,7 +104,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Information("Starting module OpcPublisher version {version}.", version);
                         logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
-                        CheckDeprecatedParams(_config, logger);
+                        CheckDeprecatedParams(logger);
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this);
@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         ///// <param name="config"></param>
         ///// <param name="logger"></param>
         ///// <returns></returns>
-        private void CheckDeprecatedParams(IConfigurationRoot config, ILogger logger) {
+        private void CheckDeprecatedParams(ILogger logger) {
             // List with pairs of deprecated and new/replacement options.
             // If newOption is null, warning will not suggest using it instead.
             var deprecatedOptions = new List<(string deprecatedOption, string newOption)> {
@@ -155,7 +155,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             };
 
             // Concatenate all option keys into one list.
-            var configKeys = config.Providers.SelectMany(p => p.GetChildKeys(new List<string>(), null));
+            var configKeys = _config.Providers.SelectMany(p => p.GetChildKeys(new List<string>(), null));
 
             // Warn about depreacated option and optionally suggest using new one.
             foreach (var option in deprecatedOptions) {
