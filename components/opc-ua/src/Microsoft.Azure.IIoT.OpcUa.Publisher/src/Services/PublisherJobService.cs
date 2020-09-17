@@ -56,9 +56,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             if (string.IsNullOrEmpty(env)) {
                 // Deprecated, use PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE instead.
                 env = Environment.GetEnvironmentVariable(PcsVariable.PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES);
-                if (!string.IsNullOrEmpty(env)) {
-                    // Log deprecation.
-                }
             }
 
             if (!string.IsNullOrEmpty(env) && int.TryParse(env, out var maxEgressMessageQueue) &&
