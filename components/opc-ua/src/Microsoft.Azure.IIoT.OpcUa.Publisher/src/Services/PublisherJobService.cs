@@ -53,8 +53,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         /// </summary>
         internal Lazy<int> DefaultMaxEgressMessageQueue => new Lazy<int>(() => {
             var env = Environment.GetEnvironmentVariable(PcsVariable.PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE);
+
+            // Fallback to deprecated option,
+            // use PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE instead.
             if (string.IsNullOrEmpty(env)) {
-                // Deprecated, use PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE instead.
                 env = Environment.GetEnvironmentVariable(PcsVariable.PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES);
             }
 
