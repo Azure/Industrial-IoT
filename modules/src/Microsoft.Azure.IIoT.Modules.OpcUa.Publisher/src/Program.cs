@@ -33,8 +33,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .Build();
 
 #if DEBUG
-            if (args.Any(a => a.ToLowerInvariant().Contains("wfd") ||
-                    a.ToLowerInvariant().Contains("waitfordebugger"))) {
+            if (args.Any(a => a.Contains("wfd", StringComparison.InvariantCultureIgnoreCase) ||
+                    a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase))) {
                 Console.WriteLine("Waiting for debugger being attached...");
                 while (!Debugger.IsAttached) {
                     Thread.Sleep(1000);

@@ -551,7 +551,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
             private Task _statusLogger;
             private DateTime _lastEventTime;
             private CancellationTokenSource _cts;
-            private X509CertificateValidator _certificateValidator;
+            private ICertificateValidator _certificateValidator;
 
             private const string kServerNamespaceUri = "http://opcfoundation.org/UA/Sample/";
         }
