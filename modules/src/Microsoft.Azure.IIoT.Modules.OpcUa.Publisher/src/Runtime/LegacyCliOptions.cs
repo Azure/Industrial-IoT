@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// </summary>
     public class LegacyCliOptions : Dictionary<string, string>, IAgentConfigProvider,
         ISettingsController, IEngineConfiguration, ILegacyCliModelProvider {
+
         /// <summary>
         /// Creates a new instance of the the legacy CLI options based on existing configuration values.
         /// </summary>
@@ -144,7 +145,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int k) => this[LegacyCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
                     { "ms|iothubmessagesize=", "The maximum size of the (IoT D2C) message.",
                         (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
-                    { "om|maxoutgressmessages=", "The maximum size of the (IoT D2C) message egress queue.",
+
+                    { "om|maxoutgressmessages=", "The maximum size of the (IoT D2C) message egress queue (deprecated, use em|maxegressmessagequeue instead).",
+                        (int i) => this[LegacyCliConfigKeys.MaxOutgressMessages] = i.ToString() },
+                    { "em|maxegressmessagequeue=", "The maximum size of the (IoT D2C) message egress queue.",
                         (int i) => this[LegacyCliConfigKeys.MaxEgressMessageQueue] = i.ToString() },
 
                     // testing purposes
@@ -294,7 +298,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
                 MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.MaxMessageSize, 0),
                 ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1),
-                MaxEgressMessageQueue = GetValueOrDefault(LegacyCliConfigKeys.MaxEgressMessageQueue, 4096) // 4096 * 256 KB = 1 GB.
+                MaxEgressMessageQueue = ContainsKey(LegacyCliConfigKeys.MaxEgressMessageQueue)
+                    ? GetValueOrDefault(LegacyCliConfigKeys.MaxEgressMessageQueue, 4096) // 4096 * 256 KB = 1 GB.
+                    : GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, 4096), // Deprecated option.
             };
         }
 

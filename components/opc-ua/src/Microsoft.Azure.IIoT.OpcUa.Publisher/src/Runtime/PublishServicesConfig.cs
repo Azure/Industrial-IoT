@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
         public int DefaultMaxEgressMessageQueue {
             get {
                 var queueSize = GetIntOrDefault(kDefaultMaxEgressMessageQueue,
-                    () => GetIntOrDefault(PcsVariable.PCS_MAX_EGRESS_MESSAGE_QUEUE,
+                    () => GetIntOrDefault(PcsVariable.PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE,
                     () => _DefaultMaxEgressMessageQueue));
 
                 if (queueSize > 1 && queueSize <= 25000) {

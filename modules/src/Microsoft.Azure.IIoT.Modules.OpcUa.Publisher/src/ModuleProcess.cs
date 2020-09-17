@@ -30,6 +30,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Extensions.Configuration;
     using Serilog;
     using Prometheus;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Publisher module
@@ -102,6 +104,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Information("Starting module OpcPublisher version {version}.", version);
                         logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
+                        CheckDeprecatedParams(_config, logger);
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this);
@@ -130,6 +133,39 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Set(0);
                         server.StopWhenEnabled(moduleConfig, logger);
                     }
+                }
+            }
+        }
+
+        ///// <summary>
+        ///// Checks and warns about deprecated params and environment variables.
+        ///// </summary>
+        ///// <param name="config"></param>
+        ///// <param name="logger"></param>
+        ///// <returns></returns>
+        private void CheckDeprecatedParams(IConfigurationRoot config, ILogger logger) {
+            // List with pairs of deprecated and new/replacement options.
+            // If newOption is null, warning will not suggest using it instead.
+            var deprecatedOptions = new List<(string deprecatedOption, string newOption)> {
+                (LegacyCliConfigKeys.MaxOutgressMessages,
+                 LegacyCliConfigKeys.MaxEgressMessageQueue),
+
+                (PcsVariable.PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES,
+                 PcsVariable.PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE),
+            };
+
+            // Concatenate all option keys into one list.
+            var configKeys = config.Providers.SelectMany(p => p.GetChildKeys(new List<string>(), null));
+
+            // Warn about depreacated option and optionally suggest using new one.
+            foreach (var option in deprecatedOptions) {
+                if (configKeys.Contains(option.deprecatedOption, StringComparer.CurrentCultureIgnoreCase)) {
+                    string warning = @$"The parameter or environment variable '{option.deprecatedOption}' has been deprecated and will be removed in a future version. ";
+                    warning += !string.IsNullOrEmpty(option.newOption)
+                        ? @$"Please use '{option.newOption}' instead."
+                        : "";
+
+                    logger.Warning(warning);
                 }
             }
         }
