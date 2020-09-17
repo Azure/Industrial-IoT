@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         }
 
         /// <inheritdoc/>
-        public async Task<IServiceResponse> ProcessAsync(HttpContext context,
+        public Task<IServiceResponse> ProcessAsync(HttpContext context,
             IServiceRequest request) {
             if (request.RequestHeader == null) {
                 request.RequestHeader = new RequestHeader();
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
             }
             var ep = GetEndpointFromContext(context);
             // Forward to listener / server
-            return await Task.Factory.FromAsync(
+            return Task.Factory.FromAsync(
                 (callback, state) => _controller.Callback.BeginProcessRequest(
                     _listenerId, ep, request, callback, state),
                 _controller.Callback.EndProcessRequest,

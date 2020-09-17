@@ -11,7 +11,7 @@
     <None Remove="Stack\Types\BuiltIn\BuiltInTypes.xml" />
     <None Remove="Stack\Types\BuiltIn\BuiltInTypes.xsd" />
     <None Remove="Stack\Types\BuiltIn\UA Core Services.xml" />
-  </ItemGroup>
+  </ItemGroup> 
   <ItemGroup>
     <EmbeddedResource Include="Stack\Design\BuiltIn\BuiltInTypes.xml" />
     <EmbeddedResource Include="Stack\Design\BuiltIn\StandardTypes.csv" />
@@ -42,20 +42,14 @@
   <Choose>
     <When Condition="'$(Configuration)'=='Release'">
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Core" Version="1.4.360.41" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Configuration" Version="1.4.360.41" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Server" Version="1.4.360.41" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Client" Version="1.4.360.41" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Client.ComplexTypes" Version="1.4.360.41" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.363.49" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.363.49" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Core.Debug" Version="1.4.360.41" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Configuration.Debug" Version="1.4.360.41" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Server.Debug" Version="1.4.360.41" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Client.Debug" Version="1.4.360.41" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Client.ComplexTypes.Debug" Version="1.4.360.41" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.363.49" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes.Symbols" Version="1.4.363.49" />
       </ItemGroup>
     </Otherwise>
   </Choose>
