@@ -149,10 +149,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // Deprecated on 2020-09-17.
                 (LegacyCliConfigKeys.MaxOutgressMessages,
                  LegacyCliConfigKeys.MaxEgressMessageQueue),
-
-                // Deprecated on 2020-09-17.
-                (PcsVariable.PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES,
-                 PcsVariable.PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE),
             };
 
             // Concatenate all option keys into one list.
