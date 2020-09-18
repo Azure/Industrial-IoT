@@ -10,11 +10,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Configuration;
     using System;
+    using Serilog;
 
     /// <summary>
     /// Configuration of defaults for job definition generation logic for OPC Publisher module.
     /// </summary>
     public class PublishServicesConfig : ConfigBase, IPublishServicesConfig {
+
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Configuration keys
@@ -35,6 +38,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
         private readonly string _DefaultMessageEncoding = MessageEncoding.Json.ToString();
 
         /// <inheritdoc/>
+        public PublishServicesConfig(IConfiguration config, ILogger logger) : base(config) {
+            _logger = logger;
+        }
+
+        /// <inheritdoc/>
         public TimeSpan DefaultBatchTriggerInterval {
             get {
                 var batchInterval = GetDurationOrDefault(kDefaultBatchTriggerInterval,
@@ -42,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                     () => _defaultBatchTriggerInterval));
 
                 if (batchInterval.TotalMilliseconds >= 100 && batchInterval.TotalMilliseconds <= 3600000) {
-                    //ToDo: This behavior should be logged.
+                    _logger.Verbose($"DefaultBatchTriggerInterval set to {batchInterval}");
                     return batchInterval;
                 }
 
@@ -58,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                     () => _DefaultBatchSize));
 
                 if (batchSize > 1 && batchSize <= 1000) {
-                    //ToDo: This behavior should be logged.
+                    _logger.Verbose($"DefaultBatchSize set to {batchSize}");
                     return batchSize;
                 }
 
@@ -81,7 +89,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                 }
 
                 if (queueSize > 1 && queueSize <= 25000) {
-                    //ToDo: This behavior should be logged.
+                    _logger.Verbose($"DefaultMaxEgressMessageQueue set to {queueSize}");
                     return queueSize;
                 }
 
