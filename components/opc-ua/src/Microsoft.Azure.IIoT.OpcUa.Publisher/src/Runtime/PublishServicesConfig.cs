@@ -76,9 +76,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                 if (queueSize == -1) {
                     // Fallback to deprecated option,
                     // use PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE instead.
-                    queueSize = GetIntOrDefault(kDefaultMaxEgressMessageQueue,
-                        () => GetIntOrDefault(PcsVariable.PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES,
-                        () => _DefaultMaxEgressMessageQueue));
+                    queueSize = GetIntOrDefault(PcsVariable.PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES,
+                        () => _DefaultMaxEgressMessageQueue);
                 }
 
                 if (queueSize > 1 && queueSize <= 25000) {
