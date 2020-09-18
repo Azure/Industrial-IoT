@@ -419,13 +419,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 $"{applicationUrl}twin/swagger/oauth2-redirect.html",
                 $"{applicationUrl}history/swagger/oauth2-redirect.html",
                 $"{applicationUrl}vault/swagger/oauth2-redirect.html",
-                $"{applicationUrl}onboarding/swagger/oauth2-redirect.html",
                 $"{applicationUrl}publisher/swagger/oauth2-redirect.html",
-                $"{applicationUrl}jobs/swagger/oauth2-redirect.html",
-                $"{applicationUrl}configuration/swagger/oauth2-redirect.html",
-                $"{applicationUrl}edge/jobs/swagger/oauth2-redirect.html",
-                $"{applicationUrl}edge/manage/swagger/oauth2-redirect.html",
-                $"{applicationUrl}frontend/signin-oidc",
+                $"{applicationUrl}events/swagger/oauth2-redirect.html",
+                $"{applicationUrl}edge/publisher/swagger/oauth2-redirect.html",
+                $"{applicationUrl}frontend/signin-oidc"
             };
 
             _clientApplication = await _msGraphServiceClient

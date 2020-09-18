@@ -292,8 +292,20 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Log file path environment variable </summary>
         public const string PCS_LOGS_PATH =
             "PCS_LOGS_PATH";
+        /// <summary> Batch trigger interval for OPC Publisher module </summary>
+        public const string PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL =
+            "PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL";
+        /// <summary> Batch trigger size for OPC Publisher module </summary>
+        public const string PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE =
+            "PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE";
         /// <summary> The maximum size of the (IoT D2C) message egress queue </summary>
         public const string PCS_MAX_EGRESS_MESSAGE_QUEUE =
             "PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE";
+        /// <summary> Messaging mode for jobs of OPC Publisher module </summary>
+        public const string PCS_DEFAULT_PUBLISH_MESSAGING_MODE =
+            "PCS_DEFAULT_PUBLISH_MESSAGING_MODE";
+        /// <summary> Message encoding for jobs of OPC Publisher module </summary>
+        public const string PCS_DEFAULT_PUBLISH_MESSAGE_ENCODING =
+            "PCS_DEFAULT_PUBLISH_MESSAGE_ENCODING";
     }
 }

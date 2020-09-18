@@ -5,7 +5,7 @@
 
 @if (Result?.ContinuationToken != null && !IsLoading)
 {
-    <div class="text-center">
+    <div class="text-center border-bottom">
         <button class="btn btn-primary" @onclick="@(() => ButtonClicked())">Load more</button>
     </div>
 }

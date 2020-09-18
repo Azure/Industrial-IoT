@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Extensions.Configuration;
     using Moq;
     using Autofac.Extras.Moq;
     using System;
@@ -416,20 +418,204 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             }
         }
 
+        [Fact]
+        public async Task PublishServicesConfigTest1Async() {
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
+                    Item = new PublishedItemModel {
+                        NodeId = "i=2258",
+                        PublishingInterval = TimeSpan.FromSeconds(2),
+                        SamplingInterval = TimeSpan.FromSeconds(1)
+                    }
+                });
+
+                var jobRepository = mock.Container.Resolve<IJobRepository>();
+                var jobSerializer = mock.Container.Resolve<IJobSerializer>();
+                var jobInfoModel = await jobRepository.GetAsync("endpoint1");
+
+                var publishJob = (WriterGroupJobModel)jobSerializer
+                    .DeserializeJobConfiguration(
+                        jobInfoModel.JobConfiguration,
+                        jobInfoModel.JobConfigurationType
+                    );
+
+                // Check that defaults are set.
+                Assert.Equal(TimeSpan.FromMilliseconds(500), publishJob.Engine.BatchTriggerInterval);
+                Assert.Equal(50, publishJob.Engine.BatchSize);
+                Assert.Equal(4096, publishJob.Engine.MaxEgressMessageQueue);
+                Assert.Equal(MessagingMode.Samples, publishJob.MessagingMode);
+                Assert.Equal(MessageEncoding.Json, publishJob.WriterGroup.MessageType);
+                // hardcoded
+                Assert.Equal(TimeSpan.FromSeconds(60), publishJob.Engine.DiagnosticsInterval);
+                Assert.Equal(0, publishJob.Engine.MaxMessageSize);
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.Single(list.Items);
+                Assert.Null(list.ContinuationToken);
+                Assert.Equal("i=2258", list.Items.Single().NodeId);
+                Assert.Equal(TimeSpan.FromSeconds(2), list.Items.Single().PublishingInterval);
+                Assert.Equal(TimeSpan.FromSeconds(1), list.Items.Single().SamplingInterval);
+            }
+        }
+
+        [Fact]
+        public async Task PublishServicesConfigTest2Async() {
+
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection()
+                .Build();
+            configuration["PCS_DEFAULT_PUBLISH_JOB_BATCH_INTERVAL"] = "00:00:19";
+            configuration["PCS_DEFAULT_PUBLISH_JOB_BATCH_SIZE"] = "765";
+            configuration["PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE"] = "512";
+            configuration["PCS_DEFAULT_PUBLISH_MESSAGING_MODE"] = "PubSub";
+            configuration["PCS_DEFAULT_PUBLISH_MESSAGE_ENCODING"] = "Uadp";
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            }, configuration)) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
+                    Item = new PublishedItemModel {
+                        NodeId = "i=2258",
+                        PublishingInterval = TimeSpan.FromSeconds(2),
+                        SamplingInterval = TimeSpan.FromSeconds(1)
+                    }
+                });
+
+                var jobRepository = mock.Container.Resolve<IJobRepository>();
+                var jobSerializer = mock.Container.Resolve<IJobSerializer>();
+                var jobInfoModel = await jobRepository.GetAsync("endpoint1");
+
+                var publishJob = (WriterGroupJobModel)jobSerializer
+                    .DeserializeJobConfiguration(
+                        jobInfoModel.JobConfiguration,
+                        jobInfoModel.JobConfigurationType
+                    );
+
+                // Check that configured values are applied.
+                Assert.Equal(TimeSpan.FromSeconds(19), publishJob.Engine.BatchTriggerInterval);
+                Assert.Equal(765, publishJob.Engine.BatchSize);
+                Assert.Equal(512, publishJob.Engine.MaxEgressMessageQueue);
+                Assert.Equal(MessagingMode.PubSub, publishJob.MessagingMode);
+                Assert.Equal(MessageEncoding.Uadp, publishJob.WriterGroup.MessageType);
+                // hardcoded
+                Assert.Equal(TimeSpan.FromSeconds(60), publishJob.Engine.DiagnosticsInterval);
+                Assert.Equal(0, publishJob.Engine.MaxMessageSize);
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.Single(list.Items);
+                Assert.Null(list.ContinuationToken);
+                Assert.Equal("i=2258", list.Items.Single().NodeId);
+                Assert.Equal(TimeSpan.FromSeconds(2), list.Items.Single().PublishingInterval);
+                Assert.Equal(TimeSpan.FromSeconds(1), list.Items.Single().SamplingInterval);
+            }
+        }
+
+        [Fact]
+        public async Task PublishServicesConfigTest3Async() {
+
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection()
+                .Build();
+            configuration["Publisher:DefaultBatchTriggerInterval"] = "00:01:39";
+            configuration["Publisher:DefaultBatchSize"] = "777";
+            configuration["Publisher:DefaultMaxEgressMessageQueue"] = "20";
+            configuration["Publisher:DefaultMessagingMode"] = "Samples";
+            configuration["Publisher:DefaultMessageEncoding"] = "Json";
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            }, configuration)) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                // Run
+                var result = await service.NodePublishStartAsync("endpoint1", new PublishStartRequestModel {
+                    Item = new PublishedItemModel {
+                        NodeId = "i=2258",
+                        PublishingInterval = TimeSpan.FromSeconds(2),
+                        SamplingInterval = TimeSpan.FromSeconds(1)
+                    }
+                });
+
+                var jobRepository = mock.Container.Resolve<IJobRepository>();
+                var jobSerializer = mock.Container.Resolve<IJobSerializer>();
+                var jobInfoModel = await jobRepository.GetAsync("endpoint1");
+
+                var publishJob = (WriterGroupJobModel)jobSerializer
+                    .DeserializeJobConfiguration(
+                        jobInfoModel.JobConfiguration,
+                        jobInfoModel.JobConfigurationType
+                    );
+
+                // Check that configured values are applied.
+                Assert.Equal(TimeSpan.FromSeconds(99), publishJob.Engine.BatchTriggerInterval);
+                Assert.Equal(777, publishJob.Engine.BatchSize);
+                Assert.Equal(20, publishJob.Engine.MaxEgressMessageQueue);
+                Assert.Equal(MessagingMode.Samples, publishJob.MessagingMode);
+                Assert.Equal(MessageEncoding.Json, publishJob.WriterGroup.MessageType);
+                // hardcoded
+                Assert.Equal(TimeSpan.FromSeconds(60), publishJob.Engine.DiagnosticsInterval);
+                Assert.Equal(0, publishJob.Engine.MaxMessageSize);
+
+                var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Assert
+                Assert.NotNull(list);
+                Assert.NotNull(result);
+                Assert.Single(list.Items);
+                Assert.Null(list.ContinuationToken);
+                Assert.Equal("i=2258", list.Items.Single().NodeId);
+                Assert.Equal(TimeSpan.FromSeconds(2), list.Items.Single().PublishingInterval);
+                Assert.Equal(TimeSpan.FromSeconds(1), list.Items.Single().SamplingInterval);
+            }
+        }
+
         /// <summary>
         /// Setup mock
         /// </summary>
-        /// <param name="mock"></param>
         /// <param name="provider"></param>
+        /// <param name="configuration"></param>
         private static AutoMock Setup(Func<IEnumerable<IDocumentInfo<VariantValue>>,
-            string, IEnumerable<IDocumentInfo<VariantValue>>> provider) {
+            string, IEnumerable<IDocumentInfo<VariantValue>>> provider,
+            IConfiguration configuration = null) {
             var mock = AutoMock.GetLoose(builder => {
+                // Setup configuration
+                var conf = configuration ?? new ConfigurationBuilder()
+                    .AddInMemoryCollection()
+                    .Build();
+                builder.RegisterInstance(conf).As<IConfiguration>();
 
                 builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(new QueryEngineAdapter(provider)).As<IQueryEngine>();
                 builder.RegisterType<MemoryDatabase>().SingleInstance().As<IDatabaseServer>();
                 builder.RegisterType<MockConfig>().As<IJobDatabaseConfig>();
+                builder.RegisterType<PublishServicesConfig>().As<IPublishServicesConfig>();
                 builder.RegisterType<JobDatabase>().As<IJobRepository>();
                 builder.RegisterType<DefaultJobService>().As<IJobScheduler>();
                 builder.RegisterType<PublisherJobSerializer>().As<IJobSerializer>();
