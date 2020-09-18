@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
     /// Configuration of defaults for job definition generation logic for OPC Publisher module.
     /// </summary>
     public class PublishServicesConfig : ConfigBase, IPublishServicesConfig {
-
         private readonly ILogger _logger;
 
         /// <summary>
@@ -36,11 +35,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
         private readonly int _DefaultMaxEgressMessageQueue = 4096; // Default (4096 * 256 KB = 1 GB).
         private readonly string _DefaultMessagingMode = MessagingMode.Samples.ToString();
         private readonly string _DefaultMessageEncoding = MessageEncoding.Json.ToString();
-
-        /// <inheritdoc/>
-        public PublishServicesConfig(IConfiguration config, ILogger logger) : base(config) {
-            _logger = logger;
-        }
 
         /// <inheritdoc/>
         public TimeSpan DefaultBatchTriggerInterval {
@@ -125,8 +119,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
         /// Create PublishServicesConfig
         /// </summary>
         /// <param name="configuration"></param>
-        public PublishServicesConfig(IConfiguration configuration) :
-            base(configuration) {
+        /// <param name="logger"></param>
+        public PublishServicesConfig(IConfiguration configuration, ILogger logger) :
+            base(configuration, logger) {
+            _logger = logger;
+
+            CheckDeprecatedVariables();
         }
     }
 }

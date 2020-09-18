@@ -66,7 +66,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
+        /// <param name="logger"></param>
+        public Startup(IWebHostEnvironment env, IConfiguration configuration, ILogger logger) :
             this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
@@ -75,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
                 // Above configuration providers will provide connection
                 // details for KeyVault configuration provider.
                 .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
-                .Build())) {
+                .Build(), logger)) {
         }
 
         /// <summary>

@@ -154,7 +154,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             // Concatenate all option keys into one list.
             var configKeys = _config.Providers.SelectMany(p => p.GetChildKeys(new List<string>(), null));
 
-            // Warn about depreacated option and optionally suggest using new one.
+            // Warn about deprecated option and optionally suggest using new one.
             foreach (var option in deprecatedOptions) {
                 if (configKeys.Contains(option.deprecatedOption, StringComparer.CurrentCultureIgnoreCase)) {
                     string warning = @$"The parameter or environment variable '{option.deprecatedOption}' has been deprecated and will be removed in a future version. ";
