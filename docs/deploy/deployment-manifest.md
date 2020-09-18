@@ -49,7 +49,7 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
               "createOptions": "{\"Hostname\":\"discovery\",\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"]}}"
             }
           },
-          "opctwin": {
+          "twin": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -58,7 +58,7 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
               "image": "mcr.microsoft.com/iotedge/opc-twin:latest"
             }
           },
-          "opcpublisher": {
+          "publisher": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -74,9 +74,10 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
       "properties.desired": {
         "schemaVersion": "1.0",
         "routes": {
-          "opctwinToIoTHub": "FROM /messages/modules/opctwin/* INTO $upstream",
-          "discoveryToIoTHub": "FROM /messages/modules/discovery/* INTO $upstream",
-          "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/* INTO $upstream"
+          "twinToUpstream": "FROM /messages/modules/twin/* INTO $upstream",
+          "discoveryToUpstream": "FROM /messages/modules/discovery/* INTO $upstream",
+          "publisherToUpstream": "FROM /messages/modules/publisher/* INTO $upstream",
+          "leafToUpstream": "FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
@@ -132,7 +133,7 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
               "createOptions": "{\"Hostname\":\"discovery\",\"HostConfig\":{\"CapAdd\":[\"NET_ADMIN\"]}}"
             }
           },
-          "opctwin": {
+          "twin": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -141,7 +142,7 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
               "image": "mcr.microsoft.com/iotedge/opc-twin:latest"
             }
           },
-          "opcpublisher": {
+          "publisher": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -157,9 +158,10 @@ An example manifest for the released Industrial-IoT IoT Edge modules included in
       "properties.desired": {
         "schemaVersion": "1.0",
         "routes": {
-          "opctwinToIoTHub": "FROM /messages/modules/opctwin/* INTO $upstream",
-          "discoveryToIoTHub": "FROM /messages/modules/discovery/* INTO $upstream",
-          "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/* INTO $upstream"
+          "twinToUpstream": "FROM /messages/modules/twin/* INTO $upstream",
+          "discoveryToUpstream": "FROM /messages/modules/discovery/* INTO $upstream",
+          "publisherToUpstream": "FROM /messages/modules/publisher/* INTO $upstream",
+          "leafToUpstream": "FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
