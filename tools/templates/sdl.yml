@@ -40,7 +40,7 @@ jobs:
     inputs:
       solution: 'Industrial-IoT.sln'
       configuration: Release
-  - task: CredScan@2
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
     displayName: 'Credential Scanner'
     inputs:
       toolMajorVersion: V2
