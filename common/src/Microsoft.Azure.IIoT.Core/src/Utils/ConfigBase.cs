@@ -207,7 +207,7 @@ namespace Microsoft.Azure.IIoT.Utils {
                         ? @$"Please use '{option.newOption}' instead."
                         : "";
 
-                    _logger.Warning(warning);
+                    _logger?.Warning(warning);
                 }
             }
         }
