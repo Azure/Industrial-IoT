@@ -9,9 +9,9 @@
 
 try {
     # Try install tool
-    & dotnet @("tool", "install", "-g", "--framework", "netcoreapp3.1", "nbgv") 2>&1 # | Out-Null
+    & dotnet @("tool", "install", "--tool-path" "$($(Agent.BuildDirectory))/tools", "--framework", "netcoreapp3.1", "nbgv") 2>&1 # | Out-Null
 
-    $props = (& nbgv  @("get-version", "-f", "json")) | ConvertFrom-Json
+    $props = (& "$($(Agent.BuildDirectory)/tools/nbgv)"  @("get-version", "-f", "json")) | ConvertFrom-Json
     if ($LastExitCode -ne 0) {
         throw "Error: 'nbgv get-version -f json' failed with $($LastExitCode)."
     }
