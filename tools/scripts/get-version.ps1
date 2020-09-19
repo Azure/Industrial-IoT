@@ -9,7 +9,7 @@
 
 try {
     # Try install tool
-    & dotnet @("tool", "install", "-g", "nbgv") 2>&1 | Out-Null
+    & dotnet @("tool", "install", "-g", "nbgv", "--framework netcoreapp3.1") 2>&1 | Out-Null
 
     $props = (& nbgv  @("get-version", "-f", "json")) | ConvertFrom-Json
     if ($LastExitCode -ne 0) {
