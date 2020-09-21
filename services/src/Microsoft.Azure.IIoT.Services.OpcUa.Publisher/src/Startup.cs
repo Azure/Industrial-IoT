@@ -66,8 +66,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        /// <param name="logger"></param>
-        public Startup(IWebHostEnvironment env, IConfiguration configuration, ILogger logger) :
+        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
             this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddFromDotEnvFile()
@@ -76,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
                 // Above configuration providers will provide connection
                 // details for KeyVault configuration provider.
                 .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
-                .Build(), logger)) {
+                .Build())) {
         }
 
         /// <summary>
@@ -131,9 +130,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
+        /// <param name="logger"></param>
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime, ILogger logger) {
+            Config.CheckDeprecatedVariables(logger);
+
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-            var log = applicationContainer.Resolve<ILogger>();
 
             app.UsePathBase();
             app.UseHeaderForwarding();
@@ -159,7 +160,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}",
+            logger.Information("{service} web service started with id {id}",
                 ServiceInfo.Name, ServiceInfo.Id);
         }
 

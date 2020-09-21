@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                     return batchInterval;
                 }
                 else {
-                    _logger.Warning($"DefaultBatchTriggerInterval: Provided value {batchInterval} should be >= 100 and <= 3600000. Defaulting to {_defaultBatchTriggerInterval.TotalMilliseconds}.");
+                    _logger?.Warning($"DefaultBatchTriggerInterval: Provided value {batchInterval} should be >= 100 and <= 3600000. Defaulting to {_defaultBatchTriggerInterval.TotalMilliseconds}.");
                 }
 
                 return _defaultBatchTriggerInterval;
@@ -60,11 +60,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                     () => _DefaultBatchSize));
 
                 if (batchSize > 1 && batchSize <= 1000) {
-                    _logger.Verbose($"DefaultBatchSize set to {batchSize}");
                     return batchSize;
                 }
                 else {
-                    _logger.Warning($"DefaultBatchSize: Provided value {batchSize} should be > 1 and <= 1000. Defaulting to {_DefaultBatchSize}.");
+                    _logger?.Warning($"DefaultBatchSize: Provided value {batchSize} should be > 1 and <= 1000. Defaulting to {_DefaultBatchSize}.");
                 }
 
                 return _DefaultBatchSize;
@@ -89,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                     return queueSize;
                 }
                 else {
-                    _logger.Warning($"DefaultMaxEgressMessageQueue: Provided value {queueSize} should be > 1 and <= 25000. Defaulting to {_DefaultMaxEgressMessageQueue}.");
+                    _logger?.Warning($"DefaultMaxEgressMessageQueue: Provided value {queueSize} should be > 1 and <= 25000. Defaulting to {_DefaultMaxEgressMessageQueue}.");
                 }
 
                 return _DefaultMaxEgressMessageQueue;
@@ -124,11 +123,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
         /// Create PublishServicesConfig
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="logger"></param>
-        public PublishServicesConfig(IConfiguration configuration, ILogger logger) :
-            base(configuration, logger) {
-
-            CheckDeprecatedVariables();
+        public PublishServicesConfig(IConfiguration configuration) :
+            base(configuration) {
         }
     }
 }

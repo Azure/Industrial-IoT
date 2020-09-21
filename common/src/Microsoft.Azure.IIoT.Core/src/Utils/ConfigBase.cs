@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Logger
         /// </summary>
-        protected readonly ILogger _logger;
+        protected ILogger _logger;
 
         /// <summary>
         /// Configuration
@@ -29,25 +29,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="configuration"></param>
         protected ConfigBase(IConfiguration configuration) {
-            if (configuration == null) {
-                configuration = new ConfigurationBuilder()
-                    .Build();
-            }
-            Configuration = configuration;
-        }
+            configuration ??= new ConfigurationBuilder().Build();
 
-        /// <summary>
-        /// Configuration constructor
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="logger"></param>
-        protected ConfigBase(IConfiguration configuration, ILogger logger) {
-            if (configuration == null) {
-                configuration = new ConfigurationBuilder()
-                    .Build();
-            }
             Configuration = configuration;
-            _logger = logger;
         }
 
         /// <summary>
@@ -191,7 +175,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// Checks and warns about deprecated environment variables.
         /// </summary>
         /// <returns></returns>
-        protected void CheckDeprecatedVariables() {
+        public void CheckDeprecatedVariables(ILogger logger) {
+            _logger = logger;
+
             // List with pairs of deprecated and new/replacement options.
             // If newOption is null, warning will not suggest using it instead.
             var deprecatedOptions = new List<(string deprecatedOption, string newOption)> {

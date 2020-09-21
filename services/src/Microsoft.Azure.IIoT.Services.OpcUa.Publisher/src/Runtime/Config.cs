@@ -29,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Extensions.Configuration;
     using System;
-    using Serilog;
 
     /// <summary>
     /// Common web service configuration aggregation
@@ -119,8 +118,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="logger"></param>
-        public Config(IConfiguration configuration, ILogger logger) :
+        public Config(IConfiguration configuration) :
             base(configuration) {
 
             _openApi = new OpenApiConfig(configuration);
@@ -131,7 +129,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
             _cosmos = new CosmosDbConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _cr = new ContainerRegistryConfig(configuration);
-            _ps = new PublishServicesConfig(configuration, logger);
+            _ps = new PublishServicesConfig(configuration);
         }
 
         private readonly ContainerRegistryConfig _cr;
