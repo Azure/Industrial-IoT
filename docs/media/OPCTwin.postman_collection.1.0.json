@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "Registry - Get Applications",
+			"name": "Registry: Get applications",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -26,7 +26,7 @@
 			"response": []
 		},
 		{
-			"name": "Registry - Add Application",
+			"name": "Registry: Add application",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -84,7 +84,7 @@
 			"response": []
 		},
 		{
-			"name": "Registry: discover applications",
+			"name": "Registry: Discover applications",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -121,7 +121,7 @@
 			"response": []
 		},
 		{
-			"name": "Registry: browse endpoints",
+			"name": "Registry: Browse endpoints",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -162,12 +162,29 @@
 			"response": []
 		},
 		{
-			"name": "Twin: browse endpoint for ID x",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
+			"name": "Registry: Get discoverers",
 			"request": {
 				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/discovery",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"discovery"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Registry: Unregister application",
+			"request": {
+				"method": "DELETE",
 				"header": [
 					{
 						"key": "Content-Type",
@@ -186,23 +203,23 @@
 					}
 				},
 				"url": {
-					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/browse/uat5bf736971027939a93e06a35c4a2d5957762409a",
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/applications/uas1c8e48c668911e7eeb831e69555a426b5053d0f7",
 					"protocol": "https",
 					"host": [
 						"{{OPC-SERVICEURL}}"
 					],
 					"path": [
-						"twin",
+						"registry",
 						"v2",
-						"browse",
-						"uat5bf736971027939a93e06a35c4a2d5957762409a"
+						"applications",
+						"uas1c8e48c668911e7eeb831e69555a426b5053d0f7"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Twin: browse node Objects",
+			"name": "Twin: Browse nodes",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -242,7 +259,7 @@
 			"response": []
 		},
 		{
-			"name": "Twin: browse target node",
+			"name": "Twin: Browse target node",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -288,7 +305,7 @@
 			"response": []
 		},
 		{
-			"name": "Twin: read value",
+			"name": "Twin: Read value",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -334,7 +351,7 @@
 			"response": []
 		},
 		{
-			"name": "Twin: Get currently published nodes",
+			"name": "Twin: Get published nodes",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -371,7 +388,7 @@
 			"response": []
 		},
 		{
-			"name": "Twin: Start publishing node",
+			"name": "Twin: Publish node",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -403,63 +420,6 @@
 						"publish",
 						"uat89dfa72f7e9679b3e217411261b57ea7e082349f",
 						"start"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Registry - Unregister application",
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/applications/uas1c8e48c668911e7eeb831e69555a426b5053d0f7",
-					"protocol": "https",
-					"host": [
-						"{{OPC-SERVICEURL}}"
-					],
-					"path": [
-						"registry",
-						"v2",
-						"applications",
-						"uas1c8e48c668911e7eeb831e69555a426b5053d0f7"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Registry - Get Discoverers",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/discovery",
-					"protocol": "https",
-					"host": [
-						"{{OPC-SERVICEURL}}"
-					],
-					"path": [
-						"registry",
-						"v2",
-						"discovery"
 					]
 				}
 			},

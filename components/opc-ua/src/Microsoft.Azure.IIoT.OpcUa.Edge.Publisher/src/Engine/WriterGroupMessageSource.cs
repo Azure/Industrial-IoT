@@ -31,10 +31,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             Subscription?.NumberOfConnectionRetries ?? 0;
 
         /// <inheritdoc/>
-        public int ValueChangesCount { get; private set; } = 0;
+        public ulong ValueChangesCount { get; private set; } = 0;
 
         /// <inheritdoc/>
-        public int DataChangesCount { get; private set; } = 0;
+        public ulong DataChangesCount { get; private set; } = 0;
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
@@ -286,7 +286,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             _outer.ValueChangesCount = 0;
                         }
 
-                        _outer.ValueChangesCount += message.Notifications.Count();
+                        _outer.ValueChangesCount += (ulong)message.Notifications.Count();
                         _outer.DataChangesCount++;
                         _outer.OnMessage?.Invoke(sender, message);
                     }
@@ -312,6 +312,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly List<DataSetWriterSubscription> _subscriptions;
         private readonly WriterGroupModel _writerGroup;
         private readonly ISubscriptionManager _subscriptionManager;
-        private const int kNumberOfInvokedMessagesResetThreshold = int.MaxValue - 10000;
+        private const ulong kNumberOfInvokedMessagesResetThreshold = ulong.MaxValue - 10000;
     }
 }

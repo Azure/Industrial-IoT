@@ -2,7 +2,7 @@
 
 [Home](readme.md)
 
-Azure Industrial IoT platform is instrumented with Application Insights logs and metrics.
+Azure Industrial IoT Platform is instrumented with Application Insights logs and metrics.
 
 To learn more about how to use Application Insights metrics in the code, please refer [here](../dev-guides/howto-use-applicationinsights-metrics.md).
 

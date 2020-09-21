@@ -73,9 +73,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Error(e, message);
                 pageResult.Error = message;
             }
-            pageResult.PageSize = _commonHelper.PageLength;
-            pageResult.RowCount = pageResult.Results.Count;
-            pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / pageResult.PageSize);
             return pageResult;
         }
 

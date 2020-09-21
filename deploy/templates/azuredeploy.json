@@ -164,14 +164,14 @@
             }
         },
         "edgeUserName": {
-            "type": "secureString",
+            "type": "securestring",
             "defaultValue": "",
             "metadata": {
                 "description": "A name for the simulation vm administrator user."
             }
         },
         "edgePassword": {
-            "type": "secureString",
+            "type": "securestring",
             "defaultValue": "",
             "metadata": {
                 "description": "The supplied password must be between 8-75 characters long and must satisfy at least 3 of password complexity requirements: 1) Contains an uppercase character 2) Contains a lowercase character 3) Contains a numeric digit 4) Contains a special character. Control characters are not allowed"
@@ -192,7 +192,7 @@
             }
         },
         "dockerPassword": {
-            "type": "secureString",
+            "type": "securestring",
             "defaultValue": "",
             "metadata": {
                 "description": "Specifies the password to use for a private Container Registry."
@@ -210,6 +210,13 @@
             "defaultValue": "latest",
             "metadata": {
                 "description": "Specifies the image version tag to use for all container images."
+            }
+        },
+        "authTenantId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription."
             }
         },
         "tags": {
@@ -466,6 +473,9 @@
                     },
                     "imagesTag": {
                         "value": "[parameters('imagesTag')]"
+                    },
+                    "authTenantId": {
+                        "value": "[parameters('authTenantId')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"

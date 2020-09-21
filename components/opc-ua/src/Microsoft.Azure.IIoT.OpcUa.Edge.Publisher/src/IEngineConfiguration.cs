@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         TimeSpan? BatchTriggerInterval { get; }
 
         /// <summary>
-        /// Maximum mesage size for the encoded messages 
+        /// Maximum mesage size for the encoded messages
         /// typically the IoT Hub's mas D2C message size
         /// </summary>
         int? MaxMessageSize { get; }
@@ -31,5 +31,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         /// Diagnostics interval
         /// </summary>
         TimeSpan? DiagnosticsInterval { get; }
+
+        /// <summary>
+        /// Maximum size of egress message queue
+        /// </summary>
+        int? MaxEgressMessageQueue { get; }
     }
 }

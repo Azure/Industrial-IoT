@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
     using System.Threading;
     using Serilog;
     using Autofac;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Manages the raw tcp connections for a UA TCP server.
@@ -154,7 +155,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                             _serverCertificate ?? _controller.Certificate,
                             _serverCertificateChain ?? _controller.CertificateChain,
                             GetEndpoints());
-                        channel.SetRequestReceivedCallback(OnRequestReceived);
+                        channel.SetRequestReceivedCallback(new TcpChannelRequestEventHandler(OnRequestReceived));
 
                         var channelId = (uint)Interlocked.Increment(ref _lastChannelId);
 #pragma warning disable IDE0068 // Use recommended dispose pattern
@@ -198,7 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         /// <param name="channel"></param>
         /// <param name="requestId"></param>
         /// <param name="request"></param>
-        private void OnRequestReceived(TcpServerChannel channel,
+        private void OnRequestReceived(TcpListenerChannel channel,
             uint requestId, IServiceRequest request) {
             try {
                 var result = _controller.Callback.BeginProcessRequest(
@@ -258,6 +259,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
                     TransportProfileUri = Profiles.UaTcpTransport
                 }
             };
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> TransferListenerChannel(uint channelId, string serverUri, Uri endpointUrl) {
+            throw new NotImplementedException();
         }
 
         private int _lastChannelId;

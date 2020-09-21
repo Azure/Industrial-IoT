@@ -16,12 +16,12 @@ namespace Opc.Ua.Extensions {
         /// <summary>
         /// Constant for OpcUa JSON encoded DateTime.MinValue.
         /// </summary>
-        public static string OpcUaDateTimeMinValue = "0001-01-01T00:00:00Z";
+        private const string kOpcUaDateTimeMinValue = "0001-01-01T00:00:00Z";
 
         /// <summary>
         /// Constant for OpcUa JSON encoded DateTime.MaxValue.
         /// </summary>
-        public static string OpcUaDateTimeMaxValue = "9999-12-31T23:59:59Z";
+        private const string kOpcUaDateTimeMaxValue = "9999-12-31T23:59:59Z";
 
         /// <summary>
         /// DateTime value of: “9999-12-31T23:59:59Z”
@@ -33,10 +33,10 @@ namespace Opc.Ua.Extensions {
         /// </summary>
         public static string ToOpcUaJsonEncodedTime(this DateTime dateTime) {
             if (dateTime <= DateTime.MinValue) {
-                return OpcUaDateTimeMinValue;
+                return kOpcUaDateTimeMinValue;
             }
             else if (dateTime >= kDateTimeMaxJsonValue) {
-                return OpcUaDateTimeMaxValue;
+                return kOpcUaDateTimeMaxValue;
             }
             else {
                 return dateTime.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", 

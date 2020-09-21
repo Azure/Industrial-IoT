@@ -13,8 +13,6 @@ namespace Microsoft.Azure.IIoT.App.Pages {
     using Microsoft.Azure.IIoT.App.Models;
 
     public partial class Endpoints {
-        [Parameter]
-        public string Page { get; set; } = "1";
 
         [Parameter]
         public string DiscovererId { get; set; } = string.Empty;
@@ -25,67 +23,21 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         [Parameter]
         public string SupervisorId { get; set; } = string.Empty;
 
-        public string Status { get; set; }
-        private PagedResult<EndpointInfo> EndpointList { get; set; } =
-            new PagedResult<EndpointInfo>();
-        private PagedResult<EndpointInfo> PagedendpointList { get; set; } =
-            new PagedResult<EndpointInfo>();
-        private string _tableView = "visible";
-        private string _tableEmpty = "displayNone";
-        private IAsyncDisposable _endpointEvents;
+        public EndpointInfo EndpointData { get; set; }
 
-        /// <summary>
-        /// Notify page change
-        /// </summary>
-        /// <param name="page"></param>
-        public async Task PagerPageChangedAsync(int page) {
-            CommonHelper.Spinner = "loader-big";
-            StateHasChanged();
-            if (!string.IsNullOrEmpty(EndpointList.ContinuationToken) && page > PagedendpointList.PageCount) {
-                EndpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId, EndpointList);
-            }
-            PagedendpointList = EndpointList.GetPaged(page, CommonHelper.PageLength, null);
-            NavigationManager.NavigateTo(NavigationManager.BaseUri + "endpoints/" + page + "/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId);
-            CommonHelper.Spinner = string.Empty;
-            StateHasChanged();
+        protected override async Task GetItems(bool getNextPage) {
+            Items = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId, Items, getNextPage);
         }
 
-        /// <summary>
-        /// OnInitialized
-        /// </summary>
-        protected override void OnInitialized() {
-            CommonHelper.Spinner = "loader-big";
-        }
-
-        /// <summary>
-        /// OnAfterRenderAsync
-        /// </summary>
-        /// <param name="firstRender"></param>
-        protected override async Task OnAfterRenderAsync(bool firstRender) {
-            if (firstRender) {
-                EndpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
-                Page = "1";
-                PagedendpointList = EndpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, EndpointList.Error);
-                CommonHelper.Spinner = string.Empty;
-                CommonHelper.CheckErrorOrEmpty(PagedendpointList, ref _tableView, ref _tableEmpty);
-                StateHasChanged();
-
-                _endpointEvents = await RegistryServiceEvents.SubscribeEndpointEventsAsync(
+        protected override async Task SubscribeEvents() {
+            _events = await RegistryServiceEvents.SubscribeEndpointEventsAsync(
                     ev => InvokeAsync(() => EndpointEvent(ev)));
-            }
         }
 
         private Task EndpointEvent(EndpointEventApiModel ev) {
-            EndpointList.Results.Update(ev);
-            PagedendpointList = EndpointList.GetPaged(int.Parse(Page), CommonHelper.PageLength, EndpointList.Error);
+            Items.Results.Update(ev);
             StateHasChanged();
             return Task.CompletedTask;
-        }
-
-        public async void Dispose() {
-            if (_endpointEvents != null) {
-                await _endpointEvents.DisposeAsync();
-            }
         }
 
         private bool IsEndpointSeen(EndpointInfo endpoint) {
@@ -153,6 +105,15 @@ namespace Microsoft.Azure.IIoT.App.Pages {
                     Status = e.Message;
                 }
             }
+        }
+
+        // <summary>
+        /// Open then Drawer
+        /// </summary>
+        /// <param name="OpenDrawer"></param>
+        private void OpenDrawer(EndpointInfo endpoint) {
+            IsOpen = true;
+            EndpointData = endpoint;
         }
     }
 }

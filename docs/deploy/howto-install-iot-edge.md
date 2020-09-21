@@ -18,11 +18,15 @@ You can also manually [create an IoT Edge instance for an IoT Hub](https://docs.
 
 ### Install the Industrial Modules
 
-The Azure Industrial IoT deployment script will setup IoT Edge Layered Deployments for each Industrial Module. These Layered Deployments will be automatically applied to any IoT Edge instance with the following Device Twin JSON tags. To enable this for your IoT Edge gateway, add these tags through the [Azure Portal page](http://portal.azure.com) of the IoT Hub your gateway should communicate with:
+The Azure Industrial IoT deployment script will setup IoT Edge Layered Deployments for each Industrial Module. These Layered Deployments will be automatically applied to any IoT Edge instance that contains the following Device Twin JSON tags.
 
-The Device Twin configuration JSON can be found in the Azure Portal under IoT Hub -> IoT Edge -> [your IoT Edge device] -> Device Twin.
+1. Go to the [Azure Portal page](http://portal.azure.com) and select your IoT Hub
 
-If your gateway uses Linux as an OS (with Linux Containers), set the "os" property to "Linux":
+2. Open the Device Twin configuration JSON under IoT Edge -> [your IoT Edge device] -> Device Twin
+
+3. Insert the following `tags`:
+
+- For Linux (with Linux Containers), set the "os" property to "Linux":
 
 ```json
 ...
@@ -31,12 +35,12 @@ If your gateway uses Linux as an OS (with Linux Containers), set the "os" proper
 "tags": {
     "__type__": "iiotedge",
     "os": "Linux"
-}
+},
 "properties":
 ...
 ```
 
-If your gateway uses Windows as an OS (with Linux or Windows Containers), set the "os" property to "Windows":
+- For Windows (with Linux or Windows Containers), set the "os" property to "Windows":
 
 ```json
 ...
@@ -45,18 +49,18 @@ If your gateway uses Windows as an OS (with Linux or Windows Containers), set th
 "tags": {
     "__type__": "iiotedge",
     "os": "Windows"
-}
+},
 "properties":
 ...
 ```
 
-These tags can also be created as part of an Azure Device Provisioning (DPS) enrollment.  An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
+The tags can also be created as part of an Azure Device Provisioning (DPS) enrollment. An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
 
 ### Unmanaged Industrial IoT Edge
 
-Layered deployments will make sure that your edge devices will always contain the modules that work with your platform deployment.  This includes keeping module versions aligned with the platform version.
+Layered deployments will make sure that your edge devices will always contain the modules that work with your platform deployment. This includes keeping module versions aligned with the platform version.
 
-However, sometimes it is desirable to not have layered deployments manage your Gateway fleet.  Instead you might want to manage the content of the edge gateway yourself.  To prevent the platform from creating layered deployments on your IoT Edge Gateway, but still have the Gateway participate in the Platform, you can define a `unmanaged` tag in addition to the tags above, like so:
+However, sometimes it is desirable to not have layered deployments manage your Gateway fleet. Instead you might want to manage the content of the edge gateway yourself. To prevent the platform from creating layered deployments on your IoT Edge Gateway, but still have the Gateway participate in the Platform, you can define a `unmanaged` tag in addition to the tags above, like so:
 
 ```json
 ...

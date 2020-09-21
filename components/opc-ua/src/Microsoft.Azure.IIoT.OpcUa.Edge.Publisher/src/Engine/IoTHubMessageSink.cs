@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Collections.Generic;
     using System.Diagnostics;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Module;
     using System.Globalization;
 
     /// <summary>
@@ -24,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     public class IoTHubMessageSink : IMessageSink, IDisposable {
 
         /// <inheritdoc/>
-        public long SentMessagesCount { get; private set; }
+        public ulong SentMessagesCount { get; private set; }
 
         /// <summary>
         /// Create IoT hub message sink
@@ -59,7 +58,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Debug("Message counter has been reset to prevent overflow. " +
                         "So far, {SentMessagesCount} messages has been sent to IoT Hub.",
                         SentMessagesCount);
-                    kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
+                    kMessagesSent.WithLabels(IotHubMessageSinkGuid,
+                        IotHubMessageSinkStartTime).Set(SentMessagesCount);
                     SentMessagesCount = 0;
                 }
                 using (kSendingDuration.NewTimer()) {
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     sw.Stop();
                     _logger.Verbose("Sent {count} messages in {time} to IoTHub.", messagesCount, sw.Elapsed);
                 }
-                SentMessagesCount += messagesCount;
+                SentMessagesCount += (ulong)messagesCount;
                 kMessagesSent.WithLabels(IotHubMessageSinkGuid, IotHubMessageSinkStartTime).Set(SentMessagesCount);
             }
             catch (Exception ex) {
@@ -122,7 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             return msg;
         }
 
-        private const long kMessageCounterResetThreshold = long.MaxValue - 10000;
+        private const ulong kMessageCounterResetThreshold = ulong.MaxValue - 10000;
         private readonly ILogger _logger;
         private readonly IClientAccessor _clientAccessor;
         private readonly string IotHubMessageSinkGuid = Guid.NewGuid().ToString();

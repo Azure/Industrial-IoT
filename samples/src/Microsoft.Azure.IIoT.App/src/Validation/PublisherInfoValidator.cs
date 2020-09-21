@@ -14,15 +14,15 @@ namespace Microsoft.Azure.IIoT.App.Validation {
         public PublisherInfoValidator() {
             RuleFor(p => p.RequestedMaxWorkers)
                 .Must(BePositiveInteger)
-                .WithMessage("Max workers value cannot be less than 1.");
+                .WithMessage("Max workers must be an integer greater or equal to 1.");
 
             RuleFor(p => p.RequestedHeartbeatInterval)
                 .Must(BeAValidIntervalSec)
-                .WithMessage("Heartbeat interval cannot be less than 0 seconds.");
+                .WithMessage("Heartbeat interval must be a number greater than 0 seconds.");
 
             RuleFor(p => p.RequestedJobCheckInterval)
                 .Must(BeAValidIntervalSec)
-                .WithMessage("Job check interval cannot be less than 0 seconds.");
+                .WithMessage("Job check interval must be a number greater than 0 seconds.");
         }
 
         private bool BePositiveInteger(string value) {

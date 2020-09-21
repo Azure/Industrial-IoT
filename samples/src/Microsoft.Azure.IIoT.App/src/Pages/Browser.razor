@@ -3,12 +3,13 @@
   Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 ------------------------------------------------------------*@
 
-@page "/browser/{page}/{applicationId}/{endpointId}"
-@page "/browser/{page}/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
+@page "/browser/{applicationId}/{endpointId}"
+@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
 
 @using Microsoft.Azure.IIoT.App.Services;
-@using Microsoft.Azure.IIoT.App.Components.Pager;
+@using Microsoft.Azure.IIoT.App.Components.Buttons;
 @using Microsoft.Azure.IIoT.App.Components.Drawer;
+@using Microsoft.Azure.IIoT.App.Components.Loader;
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage;
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
@@ -28,11 +29,12 @@
 @inject SecureData secureData
 @inject IRegistryServiceApi registryService
 
-@implements IDisposable
+@inherits IIoTItemsCollection<ListNode>
 
 <h1>Endpoint Control</h1>
 
-@if (EndpointModel != null) {
+@if (EndpointModel != null)
+{
     <div class="subtitle">
         Url: @EndpointModel.Registration.EndpointUrl
         Discoverer: @EndpointModel.Registration.DiscovererId
@@ -44,25 +46,32 @@
 }
 
 <div>
-    @if (DiscovererId != string.Empty && DiscovererId != RegistryHelper.PathAll) {
-        <a href="/discoverers/1">/ @DiscovererId</a>
+    @if (DiscovererId != string.Empty && DiscovererId != RegistryHelper.PathAll)
+    {
+        <a href="/discoverers">/ @DiscovererId</a>
     }
-    @if (ApplicationId != string.Empty && ApplicationId != RegistryHelper.PathAll) {
-        <a href="/applications/1">/ @CommonHelper.ApplicationUri[ApplicationId]</a>
+    @if (ApplicationId != string.Empty && ApplicationId != RegistryHelper.PathAll)
+    {
+        <a href="/applications">/ @CommonHelper.ApplicationUri[ApplicationId]</a>
     }
-    @if (SupervisorId != string.Empty && SupervisorId != RegistryHelper.PathAll) {
-        <a href="/supervisors/1">/ @SupervisorId</a>
+    @if (SupervisorId != string.Empty && SupervisorId != RegistryHelper.PathAll)
+    {
+        <a href="/supervisors">/ @SupervisorId</a>
     }
 
-    @if (BrowseManager.Path != null) {
+    @if (BrowseManager.Path != null)
+    {
         var index = 0;
-        foreach (var item in BrowseManager.Path) {
+        foreach (var item in BrowseManager.Path)
+        {
             int i = ++index;
-            if (item.Equals(BrowseManager.Path.Last())) {
+            if (item.Equals(BrowseManager.Path.Last()))
+            {
                 <span>/ @item.ToString()</span>
             }
-            else {
-                <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(PagedNodeList.Results[0].NextParentId, PagedNodeList.Results[0].ParentIdList, i))">
+            else
+            {
+                <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(Items.Results[0].NextParentId, Items.Results[0].ParentIdList, i))">
                     / @item.ToString()
                 </a>
             }
@@ -81,16 +90,21 @@
             <th class="width-small">Publishing Config</th>
             <th class="width-small">Status</th>
             <th class="width-xsmall">
-                @if (PagedNodeList.Results.Count > 0) {
-                    if (PagedNodeList.Results[0].ParentName != "Root") {
-                        <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(PagedNodeList.Results[0].NextParentId, PagedNodeList.Results[0].ParentIdList, PagedNodeList.Results[0].ParentIdList.Count - 1))">
+                @if (Items.Results.Count > 0)
+                {
+                    if (Items.Results[0].ParentName != "Root")
+                    {
+                        <a aria-label="back" href="javascript: void(0)"
+                           @onclick="@(() => GetTreeBackAsync(Items.Results[0].NextParentId, Items.Results[0].ParentIdList, Items.Results[0].ParentIdList.Count - 1))">
                             <span class="oi oi-arrow-left"></span>
                         </a>
                     }
-                    else {
-                        if (PagedNodeList.Results[0].DiscovererId != null) {
-                            var link = @NavigationManager.BaseUri + "endpoints/1/" + @PagedNodeList.Results[0].DiscovererId + "/" + @ApplicationId + "/" + @SupervisorId;
-                            <a href="@link">
+                    else
+                    {
+                        if (Items.Results[0].DiscovererId != null)
+                        {
+                            var link = @NavigationManager.BaseUri + "endpoints/" + Items.Results[0].DiscovererId + "/" + @ApplicationId + "/" + @SupervisorId;
+                            <a aria-label="back" href="@link">
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
@@ -100,7 +114,8 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var node in PagedNodeList.Results) {
+        @foreach (var node in Items.Results)
+        {
             <tr>
                 <td class="hover-text width-medium">
                     <div>
@@ -112,7 +127,8 @@
                         @node.Id
                     </div>
                 </td>
-                @if (node.Children && (node.NodeClass != NodeClass.Method)) {
+                @if (node.Children && (node.NodeClass != NodeClass.Method))
+                {
                     <td class="hover-text width-small">
                         <div>
                             <a href="javascript: void(0)" @onclick="@(() => GetTreeAsync(node.Id, node.ParentIdList))">
@@ -121,7 +137,8 @@
                         </div>
                     </td>
                 }
-                else if (node.NodeClass == NodeClass.Method) {
+                else if (node.NodeClass == NodeClass.Method)
+                {
                     <td class="hover-text width-small">
                         <div>
                             <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Action))">
@@ -130,7 +147,8 @@
                         </div>
                     </td>
                 }
-                else {
+                else
+                {
                     <td class="hover-text width-small">
                         <div>
                             @node.NodeClass
@@ -138,7 +156,8 @@
                     </td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && node.AccessLevel.HasFlag(NodeAccessLevel.CurrentRead) ||
-                  node.AccessLevel.HasFlag(NodeAccessLevel.CurrentWrite)) {
+               node.AccessLevel.HasFlag(NodeAccessLevel.CurrentWrite))
+                {
                     <td class="width-medium-large">
                         <div class="value-scroll">
                             <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, Drawer.Action))">
@@ -150,7 +169,8 @@
                         </div>
                     </td>
                 }
-                else {
+                else
+                {
                     <td class="hover-text width-small">
                         <div>
                             N/A
@@ -158,7 +178,8 @@
                     </td>
                 }
 
-                @if (node.NodeClass == NodeClass.Variable) {
+                @if (node.NodeClass == NodeClass.Variable)
+                {
                     <td class="width-small">
                         @{string pubStatus = (node.Publishing == true) ? "Turn off" : "Turn on";}
                         <button class="btn btn-primary btn-table-cell" @onclick="@(() => SetPublishingAsync(EndpointId, node))">@pubStatus</button>
@@ -176,7 +197,8 @@
                         </a>
                     </td>
                 }
-                else {
+                else
+                {
                     <td class="hover-text width-small">
                         <div>
                             N/A
@@ -188,14 +210,16 @@
                         </div>
                     </td>
                 }
-                @if (node.ErrorMessage != null) {
+                @if (node.ErrorMessage != null)
+                {
                     <td class="hover-text width-small">
                         <div>
                             @node.ErrorMessage
                         </div>
                     </td>
                 }
-                else {
+                else
+                {
                     <td class="hover-text width-small">
                         <div>
                             OK
@@ -208,17 +232,19 @@
 </table>
 <div class="@_tableEmpty center">No Nodes found.</div>
 
-<ErrorMessage PageError="@PagedNodeList.Error" Status="@null"></ErrorMessage>
+<ErrorMessage PageError="@Items.Error" Status="@null"></ErrorMessage>
 
 <Drawer HeaderText="Select Action" ObjectData="@NodeData" IsOpen="@IsOpen" CloseDrawer="@(() => CloseDrawer())">
-    @if (DrawerType == Drawer.Action) {
-        <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" PagedNodeList="@PagedNodeList" Credential="@Credential"></_DrawerActionContent>
+    @if (DrawerType == Drawer.Action)
+    {
+        <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" PagedNodeList="@Items" Credential="@Credential"></_DrawerActionContent>
     }
-    else {
+    else
+    {
         <_DrawerPublisherContent NodeData="@NodeData" Onclick="((NodeData) => ClickHandlerAsync((ListNode)NodeData))"></_DrawerPublisherContent>
     }
 </Drawer>
 
-<Pager Result=@NodeList PageChanged=@(async(Page) => await PagerPageChangedAsync(Page)) />
+<LoadMore Result=@Items IsLoading=@IsLoading LoadMoreItems=@(async() => await LoadMoreItems()) />
 
-<div class="loader-pos @CommonHelper.Spinner"></div>
+<Spinner IsLoading=@IsLoading></Spinner>

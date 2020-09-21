@@ -1,14 +1,14 @@
-# Azure Industrial IoT Cloud Platform
+# Azure Industrial IoT Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=master)
 
 ## Welcome!
 
-The Azure Industrial IoT Cloud Platform is a Microsoft product that has fully embraced openness. We use Azure's managed Platform as a Service (PaaS) services, open-source software leveraging the MIT license throughout, open international standards for communication (OPC UA, MQTT) and interfaces (Open API) and open industrial data models (OPC UA) on the edge and in the cloud.
+The Azure Industrial IoT Platform is a Microsoft product that has fully embraced openness. We use Azure's managed Platform as a Service (PaaS) services, open-source software leveraging the MIT license throughout, open international standards for communication (OPC UA, MQTT) and interfaces (Open API) and open industrial data models (OPC UA) on the edge and in the cloud.
 
 ## Discover, register and manage your industrial assets with Azure
 
-The Azure Industrial IoT Cloud Platform allows you to discover industrial assets on-site and automatically registers them in the cloud for easy access there. It leverages managed Azure PaaS services. On top of the Azure PaaS services, we have built a number of edge and cloud micro-services that must be used together, leveraging OPC UA as the data model. This is also the first cloud platform to leverage the OPC UA PubSub telemetry format (both JSON and binary, on top of MQTT). If your assets don't support OPC UA as an interface, we have worked with our large partner network to support all types of industrial interfaces through the use of adapters, fully integrated with our platform. Please check out the [Azure IoT Edge Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/category/internet-of-things?page=1&subcategories=iot-edge-modules). So far, we support modules from Softing and CopaData.
+The Azure Industrial IoT Platform allows you to discover industrial assets on-site and automatically registers them in the cloud for easy access there. It leverages managed Azure PaaS services. On top of the Azure PaaS services, we have built a number of edge and cloud micro-services that must be used together, leveraging OPC UA as the data model. This is also the first cloud platform to leverage the OPC UA PubSub telemetry format (both JSON and binary, on top of MQTT). If your assets don't support OPC UA as an interface, we have worked with our large partner network to support all types of industrial interfaces through the use of adapters, fully integrated with our platform. Please check out the [Azure IoT Edge Marketplace](https://azuremarketplace.microsoft.com/marketplace/apps/category/internet-of-things?page=1&subcategories=iot-edge-modules). So far, we support modules from Softing and CopaData.
 
 An overview architecture is depicted below:
 
@@ -20,12 +20,33 @@ We have also built an application running on Azure that lets you access the serv
 
 ## Getting started
 
-- [Read the documentation](https://azure.github.io/Industrial-IoT/).
-- Releases of the platform can be found [here](https://github.com/Azure/Industrial-IoT/releases).
-- [Deploy the pre-built services, the configuration application and edge gateways](docs/deploy/readme.md).
+Clone the repository:
+  ```bash
+  git clone https://github.com/Azure/Industrial-IoT
+  cd Industrial-IoT
+  ```
+
+Start the deployment
+
+On Windows:
+  ```pwsh
+  .\deploy
+  ```
+
+On Linux:
+  ```bash
+  ./deploy.sh
+  ```
+
+For more information, see the [detailed instructions](docs/deploy/howto-deploy-all-in-one.md) and [additional deployment options](docs/deploy/readme.md).
+
+## Learn more
+
+- [Documentation and tutorials](https://azure.github.io/Industrial-IoT/).
+- [Releases of the platform](https://github.com/Azure/Industrial-IoT/releases).
 - Explore other Azure Industrial IoT products using this platform.
-  - [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which can be deployed from [here](https://www.azureiotsolutions.com/Accelerators).
-  - Also check out our [OPC Vault Application](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app).
+  - [Deploy](https://www.azureiotsolutions.com/Accelerators) the [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator.
+  - Check out our [OPC Vault Application](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app).
 
 ## What you get when you deploy the platform
 
@@ -53,13 +74,13 @@ Alternatively, the full deployment script deploys the following additional manag
 
 ## Give feedback and report bugs
 
-Please report any security related issues by following our [security](security.md) process.
+Please report any security related issues by following our [security process](security.md).
 
-Please enter all other bugs, feature requests, documentation issues, or suggestions as GitHub issues [here](https://github.com/Azure/Industrial-IoT/issues).
+Please enter all other bugs, feature requests, documentation issues, or suggestions as [GitHub issues](https://github.com/Azure/Industrial-IoT/issues).
 
 ## Contribute
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct).  For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/) (Contribution License Agreement) and follow the project 's [code submission guidelines](contributing.md). A friendly bot will remind you about it when you submit a pull-request.
 

@@ -19,6 +19,8 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         private string DiscoveryUrl { get; set; }
         private string Status { get; set; }
         private string ButtonLabel { get; set; }
+        private string IdleTimeView { get; set; }
+        private bool UrlListVisible { get; set; }
 
         /// <summary>
         /// OnInitialized
@@ -26,11 +28,14 @@ namespace Microsoft.Azure.IIoT.App.Pages {
         protected override void OnInitialized() {
             if (DiscovererData.isAdHocDiscovery) {
                 ButtonLabel = "Apply & Scan";
+                IdleTimeView = "displayNone";
+
             }
             else {
                 ButtonLabel = "Apply";
+                IdleTimeView = "displayBlock";
             }
-            InputData = new DiscovererInfoRequested();
+            InputData = DiscovererData.ToDiscovererInfoRequested();
         }
 
         /// <summary>
@@ -42,6 +47,15 @@ namespace Microsoft.Azure.IIoT.App.Pages {
             if (!DiscovererData.isAdHocDiscovery) {
                 Status = await RegistryHelper.UpdateDiscovererAsync(DiscovererData);
             }
+        }
+
+        private void UrlListButtonClick() {
+            UrlListVisible = !UrlListVisible;
+        }
+
+        private void DiscoveryAddUrlButtonClick() {
+            InputData.AddDiscoveryUrl(DiscoveryUrl);
+            DiscoveryUrl = string.Empty;
         }
     }
 }

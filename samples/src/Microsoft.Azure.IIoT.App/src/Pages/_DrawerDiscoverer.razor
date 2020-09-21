@@ -43,31 +43,46 @@
                 <label>Port Probe Timeout</label>
                 <input @bind="@InputData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortProbeTimeout ?? "")" />
             </div>
-            <div class="form-group">
+            <div class="form-group @IdleTimeView">
                 <label>Idle Time Between Scans</label>
                 <input @bind="@InputData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveIdleTimeBetweenScans ?? "")" />
             </div>
             <label>Discovery Urls</label>
             <div class="flex">
                 <input @bind="@DiscoveryUrl" aria-label="DiscoveryUrls" id="DiscoveryUrls" type="text" class="form-control" />
-                <button @onclick="@(() => InputData.AddDiscoveryUrl(DiscoveryUrl))" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
-                <button @onclick="@(() => InputData.ClearDiscoveryUrlList(InputData.RequestedDiscoveryUrls))" type="button" class="btn btn-primary shadow-none">Clear</button>
+                <button @onclick="@DiscoveryAddUrlButtonClick" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
+                <button @onclick="@(() => InputData.ClearDiscoveryUrlList())" type="button" class="btn btn-primary shadow-none">Clear</button>
             </div>
             <div class="form-group margin-top">
-                <select class="form-control">
-                    @if (InputData.RequestedDiscoveryUrls == null || InputData.RequestedDiscoveryUrls.Count == 0)
-                    {
-                        <option>(None)</option>
-                    }
-                    else
-                    {
-                        foreach (var discoveryUrl in InputData.RequestedDiscoveryUrls)
-                        {
-                            <option value="@discoveryUrl">@discoveryUrl</option>
-                        }
-                    }
-                </select>
-            </div>
+                @if (UrlListVisible) {
+                    <button @onclick="@UrlListButtonClick" aria-label="Hide Discovery URL list" type="button" class="btn btn-primary shadow-none section-toggle-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="16" height="16">
+                            <path d="m 6,3 5,5 5,-5 z" fill="#797979" transform="rotate(180, 10, 4)" />
+                        </svg>
+                        <span style="margin-left:8px;">Discovery Url list</span>
+                    </button>
+                    <div>
+                        <ul class="list-unstyled">
+                            @if (InputData.RequestedDiscoveryUrls == null || InputData.RequestedDiscoveryUrls.Count == 0) {
+                                <li>(None)</li>
+                            }
+                            else {
+                                foreach (var discoveryUrl in InputData.RequestedDiscoveryUrls) {
+                                    <li>@discoveryUrl</li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                } 
+                else {
+                    <button @onclick="@UrlListButtonClick" aria-label="Show Discovery URL list" type="button" class="btn btn-primary shadow-none section-toggle-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="16" height="16">
+                            <path d="m 6,3 5,5 5,-5 z" fill="#797979" />
+                        </svg>
+                        <span style="margin-left:8px;">Discovery Url list</span>
+                    </button>
+                }
+                </div>
             <hr />
             <ValidationSummary />
             <div>

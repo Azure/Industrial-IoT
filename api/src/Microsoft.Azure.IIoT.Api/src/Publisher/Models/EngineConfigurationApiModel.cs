@@ -42,5 +42,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public int? MaxMessageSize { get; set; }
 
+        /// <summary>
+        /// Max IoT D2C egress message queue
+        /// </summary>
+        [DataMember(Name = "maxEgressMessageQueue", Order = 4,
+            EmitDefaultValue = false)]
+        public int? MaxEgressMessageQueue { get; set; }
     }
 }

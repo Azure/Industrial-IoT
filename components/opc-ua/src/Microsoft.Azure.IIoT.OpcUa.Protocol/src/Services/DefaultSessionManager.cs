@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ReportedStatus = StatusCodes.Good,
                         IdleCount = 0
                     };
-                    _sessions.Add(id, wrapper);
+                    _sessions.AddOrUpdate(id, wrapper);
                     TriggerKeepAlive();
                 }
                 switch (wrapper.State) {
@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Session = null,
                         IdleCount = 0
                     };
-                    _sessions.Add(id, wrapper);
+                    _sessions.AddOrUpdate(id, wrapper);
                 }
                 wrapper._subscriptions.AddOrUpdate(subscription.Id, subscription);
                 _logger.Information("Subscription '{subscriptionId}' registered/updated in session '{id}' in state {state}",
@@ -214,7 +214,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
-        /// Session manager's conmnection management runner task
+        /// Session manager's connection management runner task
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -232,32 +232,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         switch (wrapper.State) {
                             case SessionState.Refresh:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct));
+                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct), ct);
                                 }
                                 break;
                             case SessionState.Running:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct));
+                                    wrapper.Processing = Task.Run(() => HandleRefreshAsync(id, wrapper, ct), ct);
                                 }
                                 break;
                             case SessionState.Retry:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleRetryAsync(id, wrapper, ct));
+                                    wrapper.Processing = Task.Run(() => HandleRetryAsync(id, wrapper, ct), ct);
                                 }
                                 break;
                             case SessionState.Init:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleInitAsync(id, wrapper, ct));
+                                    wrapper.Processing = Task.Run(() => HandleInitAsync(id, wrapper, ct), ct);
                                 }
                                 break;
                             case SessionState.Failed:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleFailedAsync(id, wrapper, ct));
+                                    wrapper.Processing = Task.Run(() => HandleFailedAsync(id, wrapper, ct), ct);
                                 }
                                 break;
                             case SessionState.Disconnect:
                                 if (wrapper.Processing == null || wrapper.Processing.IsCompleted) {
-                                    wrapper.Processing = Task.Run(() => HandleDisconnectAsync(id, wrapper));
+                                    wrapper.Processing = Task.Run(() => HandleDisconnectAsync(id, wrapper), ct);
                                 }
                                 break;
                             default:
@@ -312,7 +312,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     wrapper.State = SessionState.Running;
                     wrapper.MissedKeepAlives = 0;
 
-                    // reactivate all subscriptons
+                    // reactivate all subscriptions
                     foreach (var subscription in wrapper._subscriptions.Values) {
                         if (!ct.IsCancellationRequested) {
                             await subscription.ActivateAsync(wrapper.Session).ConfigureAwait(false);
@@ -351,7 +351,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     Try.Op(() => subscription.DeleteItems());
                     Try.Op(() => subscription.Delete(true));
                 }
-                Try.Op(() => wrapper.Session.RemoveSubscriptions(wrapper.Session.Subscriptions));
+                Try.Op(() => wrapper.Session.RemoveSubscriptions(wrapper.Session.Subscriptions.ToList()));
             }
             Try.Op(wrapper.Session.Close);
             Try.Op(wrapper.Session.Dispose);
@@ -373,7 +373,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private async Task HandleFailedAsync(ConnectionIdentifier id,
             SessionWrapper wrapper, CancellationToken ct) {
             try {
-                // check if session requires clenup
+                // check if session requires cleanup
                 if (!wrapper._subscriptions.Any()) {
                     if (wrapper.IdleCount < wrapper.MaxKeepAlives) {
                         wrapper.IdleCount++;
@@ -513,7 +513,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _logger.Debug("Removing session '{id}'", id);
             await _lock.WaitAsync().ConfigureAwait(false);
             try {
-                _sessions.Remove(id);
+                _sessions.Remove(id, out _);
             }
             finally {
                 _lock.Release();
@@ -554,7 +554,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 // Validate thumbprint
                 if (e.Certificate.RawData != null && !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint)) {
-                    
                     if (_sessions.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
                         e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate)) {
                         e.Accept = true;
@@ -941,8 +940,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ILogger _logger;
         private readonly IClientServicesConfig _clientConfig;
         private readonly IIdentity _identity;
-        private readonly Dictionary<ConnectionIdentifier, SessionWrapper> _sessions =
-            new Dictionary<ConnectionIdentifier, SessionWrapper>();
+        private readonly ConcurrentDictionary<ConnectionIdentifier, SessionWrapper> _sessions =
+            new ConcurrentDictionary<ConnectionIdentifier, SessionWrapper>();
         private readonly SemaphoreSlim _lock;
         private const int kDefaultOperationTimeout = 15000;
 

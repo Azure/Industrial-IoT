@@ -257,6 +257,11 @@ th {
     width: 60%;
 }
 
+.loader-discovery {
+    float: right;
+    margin-right: 40px;
+}
+
 .label {
     font-weight: bold;
 }
@@ -360,7 +365,7 @@ a.adhocmargin {
 }
 
 .subtitle {
-    color: gray;
+    color: #6D6C6C;
     font-weight: bold;
     white-space: pre-wrap;
     margin-bottom: 15px;
@@ -375,6 +380,21 @@ a.adhocmargin {
     position: fixed;
     width: 100%;
     z-index: 1000;
+}
+
+.section-toggle-button {
+    text-align: left;
+    display: block;
+    width: 100%;
+    color: black;
+    flex: auto;
+    background: none;
+    border: 0;
+    padding: 2px;
+}
+
+.border-bottom {
+    margin-bottom: 50px;
 }
 
 @media (max-width: 767.98px) {

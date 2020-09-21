@@ -31,7 +31,7 @@ echo AzureAD installed.
 set test=
 pushd %current-path%\deploy\scripts
 
-echo %*|find " -version" >nul
+echo %*|findstr /r /c:"^-version " /c:" -version ">nul
 if errorlevel 1 (
     echo Using preview version.
     %PWSH% -ExecutionPolicy Unrestricted ./deploy.ps1 %* -version preview

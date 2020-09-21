@@ -30,5 +30,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Diagnostics setting
         /// </summary>
         public TimeSpan? DiagnosticsInterval { get; set; }
+
+        /// <summary>
+        /// Maximum size of egress message queue
+        /// </summary>
+        public int? MaxEgressMessageQueue { get; set; }
     }
 }

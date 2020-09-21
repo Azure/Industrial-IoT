@@ -1,0 +1,83 @@
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
+
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+@using Microsoft.Azure.IIoT.App.Common;
+@using Microsoft.Azure.IIoT.App.Components.Loader; 
+
+@inject UICommon CommonHelper
+@inject IRegistryServiceApi RegistryService
+
+<div class="drawer-content list-group">
+    <div class="list-group-item text-left">
+        @if (Application != null) {
+            <div class="label">
+                Asset Uri:
+                <div class="body">
+                    @(string.IsNullOrEmpty(Application.Application.ApplicationUri)
+                    ? CommonHelper.None
+                    : Application.Application.ApplicationUri)
+                </div>
+            </div>
+
+            <div class="label">
+                Site Id:
+                <div class="body">
+                    @(string.IsNullOrEmpty(EndpointData.EndpointModel.Registration.SiteId)
+                        ? CommonHelper.None
+                        : EndpointData.EndpointModel.Registration.SiteId)
+                </div>
+            </div>
+            <div class="label">
+                Supervisor Id:
+                <div class="body">
+                    @(string.IsNullOrEmpty(EndpointData.EndpointModel.Registration.SupervisorId)
+                        ? CommonHelper.None
+                        : EndpointData.EndpointModel.Registration.SupervisorId)
+                </div>
+            </div>
+            <div class="label">
+                Endpoint Id:
+                <div class="body">
+                    @(string.IsNullOrEmpty(EndpointData.EndpointModel.Registration.Id)
+                        ? CommonHelper.None
+                        : EndpointData.EndpointModel.Registration.Id)
+                </div>
+            </div>
+            <div class="label">
+                Not Seen Since:
+                <div class="body">
+                    @(string.IsNullOrEmpty(EndpointData.EndpointModel.NotSeenSince.ToString())
+                        ? CommonHelper.None
+                        : EndpointData.EndpointModel.NotSeenSince.ToString())
+                </div>
+            </div>
+            <div class="label">
+                Out Of Sync:
+                <div class="body">
+                    @(string.IsNullOrEmpty(EndpointData.EndpointModel.OutOfSync?.ToString())
+                        ? CommonHelper.None
+                        : EndpointData.EndpointModel.OutOfSync.ToString())
+                </div>
+            </div>
+            <div class="label">
+                Supported Authentication Methods:
+                <div class="body">
+                    @{
+                        if (EndpointData.EndpointModel.Registration.AuthenticationMethods != null) {
+                            foreach (var authenticationMethod in EndpointData.EndpointModel.Registration.AuthenticationMethods) {
+                                <div class="body">@authenticationMethod.CredentialType.ToString()</div>
+                            }
+                        }
+                        else {
+                            <div class="body">@CommonHelper.None</div>
+                        }
+                    }
+                </div>
+            </div>
+        }
+        <Spinner IsLoading=@IsLoading></Spinner>
+    </div>
+</div>
