@@ -44,8 +44,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                     () => _defaultBatchTriggerInterval));
 
                 if (batchInterval.TotalMilliseconds >= 100 && batchInterval.TotalMilliseconds <= 3600000) {
-                    _logger.Verbose($"DefaultBatchTriggerInterval set to {batchInterval}");
                     return batchInterval;
+                }
+                else {
+                    _logger.Warning($"DefaultBatchTriggerInterval: Provided value {batchInterval} should be >= 100 and <= 3600000. Defaulting to {_defaultBatchTriggerInterval.TotalMilliseconds}.");
                 }
 
                 return _defaultBatchTriggerInterval;
@@ -62,6 +64,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                 if (batchSize > 1 && batchSize <= 1000) {
                     _logger.Verbose($"DefaultBatchSize set to {batchSize}");
                     return batchSize;
+                }
+                else {
+                    _logger.Warning($"DefaultBatchSize: Provided value {batchSize} should be > 1 and <= 1000. Defaulting to {_DefaultBatchSize}.");
                 }
 
                 return _DefaultBatchSize;
@@ -83,8 +88,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                 }
 
                 if (queueSize > 1 && queueSize <= 25000) {
-                    _logger.Verbose($"DefaultMaxEgressMessageQueue set to {queueSize}");
                     return queueSize;
+                }
+                else {
+                    _logger.Warning($"DefaultMaxEgressMessageQueue: Provided value {queueSize} should be > 1 and <= 25000. Defaulting to {_DefaultMaxEgressMessageQueue}.");
                 }
 
                 return _DefaultMaxEgressMessageQueue;
