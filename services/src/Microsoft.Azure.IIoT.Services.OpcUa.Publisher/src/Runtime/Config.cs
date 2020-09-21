@@ -16,6 +16,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
@@ -25,6 +28,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Extensions.Configuration;
+    using System;
 
     /// <summary>
     /// Common web service configuration aggregation
@@ -32,7 +36,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
         ICorsConfig, IOpenApiConfig, IRoleConfig,
         ICosmosDbConfig, IJobDatabaseConfig, IRegistryConfig, ITwinConfig,
-        IForwardedHeadersConfig, IContainerRegistryConfig, IWorkerDatabaseConfig {
+        IForwardedHeadersConfig, IContainerRegistryConfig, IWorkerDatabaseConfig,
+        IPublishServicesConfig {
 
         /// <inheritdoc/>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
@@ -98,6 +103,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         public int AspNetCoreForwardedHeadersForwardLimit =>
             _fh.AspNetCoreForwardedHeadersForwardLimit;
 
+        /// <inheritdoc/>
+        public TimeSpan DefaultBatchTriggerInterval => _ps.DefaultBatchTriggerInterval;
+        /// <inheritdoc/>
+        public int DefaultBatchSize => _ps.DefaultBatchSize;
+        /// <inheritdoc/>
+        public int DefaultMaxEgressMessageQueue => _ps.DefaultMaxEgressMessageQueue;
+        /// <inheritdoc/>
+        public MessagingMode DefaultMessagingMode => _ps.DefaultMessagingMode;
+        /// <inheritdoc/>
+        public MessageEncoding DefaultMessageEncoding => _ps.DefaultMessageEncoding;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -113,6 +129,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
             _cosmos = new CosmosDbConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _cr = new ContainerRegistryConfig(configuration);
+            _ps = new PublishServicesConfig(configuration);
         }
 
         private readonly ContainerRegistryConfig _cr;
@@ -123,5 +140,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         private readonly CosmosDbConfig _cosmos;
         private readonly IoTHubConfig _hub;
         private readonly ForwardedHeadersConfig _fh;
+        private readonly IPublishServicesConfig _ps;
     }
 }
