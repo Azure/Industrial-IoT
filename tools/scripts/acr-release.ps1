@@ -60,15 +60,9 @@ $platforms = @{
     "windows/amd64:10.0.17763.1457" = @{
         platformTag = "nanoserver-amd64-1809"
     }
-    #"windows/amd64:10.0.18362.1082" = @{
-    #    platformTag = "nanoserver-amd64-1903"
-    #}
     "windows/amd64:10.0.18363.1082" = @{
         platformTag = "nanoserver-amd64-1909"
     }
-    #"windows/amd64:10.0.19041.508" = @{
-    #    platformTag = "nanoserver-amd64-2004"
-    #}
 }
 
 # Get manifest tool
