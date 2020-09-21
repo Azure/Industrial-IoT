@@ -14,7 +14,10 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// Configuration base helper class
     /// </summary>
     public abstract class ConfigBase {
-        private readonly ILogger _logger;
+        /// <summary>
+        /// Logger
+        /// </summary>
+        protected readonly ILogger _logger;
 
         /// <summary>
         /// Configuration

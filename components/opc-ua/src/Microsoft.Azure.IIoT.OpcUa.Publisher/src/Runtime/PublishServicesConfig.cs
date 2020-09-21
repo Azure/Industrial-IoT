@@ -16,8 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
     /// Configuration of defaults for job definition generation logic for OPC Publisher module.
     /// </summary>
     public class PublishServicesConfig : ConfigBase, IPublishServicesConfig {
-        private readonly ILogger _logger;
-
         /// <summary>
         /// Configuration keys
         /// </summary>
@@ -129,7 +127,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
         /// <param name="logger"></param>
         public PublishServicesConfig(IConfiguration configuration, ILogger logger) :
             base(configuration, logger) {
-            _logger = logger;
 
             CheckDeprecatedVariables();
         }
