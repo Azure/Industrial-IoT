@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
+namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Hub;

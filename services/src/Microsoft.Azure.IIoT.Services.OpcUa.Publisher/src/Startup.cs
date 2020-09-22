@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Services;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
