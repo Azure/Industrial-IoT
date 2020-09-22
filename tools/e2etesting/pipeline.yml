@@ -68,6 +68,16 @@ jobs:
       filePath: $(BasePath)\ParseEnvFile.ps1
 
   - task: AzurePowerShell@5
+    displayName: 'Set KeyVaultName-Variable'
+    inputs:
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+      scriptArguments: >
+        -ResourceGroupName "$(ResourceGroupName)"
+
+  - task: AzurePowerShell@5
     displayName: "Add permissions to KeyVault"
     name: keyvaultpermissions
     inputs:
@@ -76,9 +86,22 @@ jobs:
       scriptType: filePath
       scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
       scriptArguments: >
-        -KeyVaultUrl "$(PCS_KEYVAULT_URL)"
+        -KeyVaultName "$(KeyVaultName)"
         -ResourceGroupName "$(ResourceGroupName)"
         -ObjectId "$(MSIObjectId)"
+
+  - task: AzurePowerShell@5
+    displayName: "Deploy IIoT edge and sim VMs"
+    name: deployedgevm
+    inputs:
+      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DeployEdgeVM.ps1'
+      scriptArguments: >
+        -keyVaultName "$(KeyVaultName)"
+        -resourceGroupName "$(ResourceGroupName)"
+        -branchName "$(Build.SourceBranch)"
 
 - job: prepnewman
   displayName: "Prepare Postman-Tests"
@@ -141,4 +164,4 @@ jobs:
       scriptType: 'InlineScript'
       inline: |
         Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
-        Get-AzResourceGroup -Name "$(ResourceGroupName)" | Delete-AzResourceGroup -Force
+        Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force
