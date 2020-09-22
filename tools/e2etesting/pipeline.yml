@@ -97,7 +97,7 @@ jobs:
       azureSubscription: 'IOT-OPC-WALLS-MSI'
       azurePowerShellVersion: 'latestVersion'
       scriptType: filePath
-      scriptPath: '$(BasePath)\DeployEdgeVM.ps1'
+      scriptPath: '$(BasePath)\DeploySimulation.ps1'
       scriptArguments: >
         -keyVaultName "$(KeyVaultName)"
         -resourceGroupName "$(ResourceGroupName)"
