@@ -10,7 +10,7 @@
 $version = & (Join-Path $PSScriptRoot "get-version.ps1")
 
 # Call versioning for build
-& nbgv  @("cloud", "-c", "-a")
+& ./tools/nbgv  @("cloud", "-c", "-a")
 if ($LastExitCode -ne 0) {
    Write-Warning "Error: 'nbgv cloud -c -a' failed with $($LastExitCode)."
 }
