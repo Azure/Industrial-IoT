@@ -47,9 +47,11 @@ if ([string]::IsNullOrEmpty($platform)) {
 }
 if ($platform -eq "windows/amd64") {
     $osVerToPlatform = @{
-        "10.0.17134" = "windows/amd64:10.0.17134.885" 
-        "10.0.17763" = "windows/amd64:10.0.17763.615" 
-        "10.0.18362" = "windows/amd64:10.0.17134.885"
+        "10.0.17134" = "windows/amd64:10.0.17134.1305" 
+        "10.0.17763" = "windows/amd64:10.0.17763.1457" 
+        "10.0.18362" = "windows/amd64:10.0.18362.1082"
+        "10.0.18363" = "windows/amd64:10.0.18363.1082"
+        "10.0.19041" = "windows/amd64:10.0.19041.508"
     }
     $osver = (Get-WmiObject Win32_OperatingSystem).Version
     $platform = $osVerToPlatform.Item($osver)
