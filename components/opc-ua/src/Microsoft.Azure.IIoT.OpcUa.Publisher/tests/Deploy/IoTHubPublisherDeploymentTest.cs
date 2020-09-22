@@ -43,6 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Tests.Deploy {
                 Assert.Equal(2, configurationModelList.Count);
 
                 {
+                    // Check routes of layered deployment for Linux
                     var configurationModel = configurationModelList[0];
                     Assert.Equal("__default-opcpublisher", configurationModel.Id);
                     Assert.Equal(2, configurationModel.Content.ModulesContent.Count);
@@ -52,6 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Tests.Deploy {
                         configurationModel.Content.ModulesContent["$edgeHub"]["properties.desired.routes.leafToUpstream"]);
                 }
                 {
+                    // Check routes of layered deployment for Windows
                     var configurationModel = configurationModelList[1];
                     Assert.Equal("__default-opcpublisher-windows", configurationModel.Id);
                     Assert.Equal(2, configurationModel.Content.ModulesContent.Count);
@@ -59,6 +61,68 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Tests.Deploy {
                         configurationModel.Content.ModulesContent["$edgeHub"]["properties.desired.routes.publisherToUpstream"]);
                     Assert.Equal("FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream",
                         configurationModel.Content.ModulesContent["$edgeHub"]["properties.desired.routes.leafToUpstream"]);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task ContainerRegistryConfigTestAsync() {
+
+            IList<ConfigurationModel> configurationModelList = new List<ConfigurationModel>();
+
+            var ioTHubConfigurationServicesMock = new Mock<IIoTHubConfigurationServices>();
+            ioTHubConfigurationServicesMock
+                .Setup(e => e.CreateOrUpdateConfigurationAsync(It.IsAny<ConfigurationModel>(), true, CancellationToken.None))
+                .Callback<ConfigurationModel, bool, CancellationToken>(
+                    (confModel, forceUpdate, ct) => configurationModelList.Add(confModel))
+                .Returns((ConfigurationModel configuration, bool forceUpdate, CancellationToken ct) => Task.FromResult(configuration));
+
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection()
+                .Build();
+            configuration["Docker:Server"] = "custom.azurecr.io";
+            configuration["Docker:User"] = "dUser";
+            configuration["Docker:Password"] = "dPassword";
+            configuration["Docker:ImagesNamespace"] = "customNamespace";
+            configuration["Docker:ImagesTag"] = "4.5.6.7";
+
+            using (var mock = Setup(ioTHubConfigurationServicesMock, configuration)) {
+                var publisherDeploymentService = mock.Create<IoTHubPublisherDeployment>();
+                var jsonserializer = mock.Container.Resolve<IJsonSerializer>();
+
+                await publisherDeploymentService.StartAsync();
+
+                Assert.Equal(2, configurationModelList.Count);
+
+                {
+                    // Check details of docker image in layered deployment for Linux
+                    var configurationModel = configurationModelList[0];
+                    Assert.Equal("__default-opcpublisher", configurationModel.Id);
+                    Assert.Equal(2, configurationModel.Content.ModulesContent.Count);
+
+                    var registryCredentials = (Newtonsoft.Json.Linq.JObject) configurationModel.Content.ModulesContent["$edgeAgent"]["properties.desired.runtime.settings.registryCredentials.custom"];
+                    Assert.Equal("custom.azurecr.io", registryCredentials.Value<string>("address"));
+                    Assert.Equal("dPassword", registryCredentials.Value<string>("password"));
+                    Assert.Equal("dUser", registryCredentials.Value<string>("username"));
+
+                    var module = (Newtonsoft.Json.Linq.JObject)configurationModel.Content.ModulesContent["$edgeAgent"]["properties.desired.modules.publisher"];
+                    Assert.Equal("custom.azurecr.io/customNamespace/iotedge/opc-publisher:4.5.6.7",
+                        module["settings"].Value<string>("image"));
+                }
+                {
+                    // Check details of docker image in layered deployment for Windows
+                    var configurationModel = configurationModelList[1];
+                    Assert.Equal("__default-opcpublisher-windows", configurationModel.Id);
+                    Assert.Equal(2, configurationModel.Content.ModulesContent.Count);
+
+                    var registryCredentials = (Newtonsoft.Json.Linq.JObject)configurationModel.Content.ModulesContent["$edgeAgent"]["properties.desired.runtime.settings.registryCredentials.custom"];
+                    Assert.Equal("custom.azurecr.io", registryCredentials.Value<string>("address"));
+                    Assert.Equal("dPassword", registryCredentials.Value<string>("password"));
+                    Assert.Equal("dUser", registryCredentials.Value<string>("username"));
+
+                    var module = (Newtonsoft.Json.Linq.JObject)configurationModel.Content.ModulesContent["$edgeAgent"]["properties.desired.modules.publisher"];
+                    Assert.Equal("custom.azurecr.io/customNamespace/iotedge/opc-publisher:4.5.6.7",
+                        module["settings"].Value<string>("image"));
                 }
             }
         }
