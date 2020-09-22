@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             var content = @"
             {
                 ""$edgeAgent"": {
-                    ""properties.desired.modules.metricscollector"": {
+                    ""properties.desired.modules." + kModuleName + @""": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""
@@ -129,13 +129,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                     }
                 },
                 ""$edgeHub"": {
-                    ""properties.desired.routes.upstream"": ""FROM /messages/* INTO $upstream""
+                    ""properties.desired.routes." + kModuleName + @"ToUpstream"": ""FROM /messages/modules/" + kModuleName + @"/* INTO $upstream""
                 }
             }";
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(content);
         }
 
         private const string kDefaultSchemaVersion = "1.0";
+        private const string kModuleName = "metricscollector";
         private readonly IIoTHubConfigurationServices _service;
         private readonly ILogWorkspaceConfig _config;
         private readonly IJsonSerializer _serializer;

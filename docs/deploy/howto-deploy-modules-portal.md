@@ -36,7 +36,7 @@ To deploy all required modules to the Gateway using the Azure Portal...
 
 7. Select **Save** and repeat step **5**.  
 
-8. In the **IoT Edge Custom Module** dialog use `opctwin` as name for the module, then specify the container *image URI* as
+8. In the **IoT Edge Custom Module** dialog use `twin` as name for the module, then specify the container *image URI* as
 
    ```bash
    mcr.microsoft.com/iotedge/opc-twin:latest
@@ -46,7 +46,7 @@ To deploy all required modules to the Gateway using the Azure Portal...
 
 9. Select **Save** and repeat step **5**.  
 
-10. In the IoT Edge Custom Module dialog, use `opcpublisher` as name for the module and the container *image URI* as
+10. In the IoT Edge Custom Module dialog, use `publisher` as name for the module and the container *image URI* as
 
     ```bash
     mcr.microsoft.com/iotedge/opc-publisher:latest
@@ -61,9 +61,10 @@ To deploy all required modules to the Gateway using the Azure Portal...
     ```json
     {
       "routes": {
-        "opctwinToIoTHub": "FROM /messages/modules/opctwin/* INTO $upstream",
-        "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/* INTO $upstream",
-        "discoveryToIoTHub": "FROM /messages/modules/discovery/* INTO $upstream"
+        "twinToUpstream": "FROM /messages/modules/twin/* INTO $upstream",
+        "discoveryToUpstream": "FROM /messages/modules/discovery/* INTO $upstream",
+        "publisherToUpstream": "FROM /messages/modules/publisher/* INTO $upstream",
+        "leafToUpstream": "FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream"
       }
     }
     ```
