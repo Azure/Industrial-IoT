@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                                 // Try again on the current value in the database
                                 jobProcessInstruction = CalculateInstructions(existingJob, workerId);
                                 if (jobProcessInstruction != null) {
-                                    _jobEventHandler.OnJobAssignmentAsync(_jobService, jobProcessInstruction.Job, workerId).ConfigureAwait(false);
+                                    _jobEventHandler.OnJobAssignmentAsync(_jobService, jobProcessInstruction.Job, workerId).Wait();
                                 }
                                 return Task.FromResult(jobProcessInstruction != null);
                             }, ct);
