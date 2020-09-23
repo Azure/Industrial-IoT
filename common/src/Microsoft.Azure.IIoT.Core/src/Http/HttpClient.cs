@@ -109,7 +109,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct)) {
                     try {
                         wrapper.Request.Method = httpMethod;
-                        using (var response = await client.SendAsync(wrapper.Request, ct)) {
+                        using (var response = await client.SendAsync(wrapper.Request, linkedCts.Token)) {
                             var result = new HttpResponse {
                                 ResourceId = httpRequest.ResourceId,
                                 StatusCode = response.StatusCode,
@@ -142,8 +142,10 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     }
                     catch (OperationCanceledException e) {
                         if (ct.IsCancellationRequested) {
-                            // Cancel was called, propagate exception.
-                            throw;
+                            // Cancel was called. We will call ct.ThrowIfCancellationRequested() because the
+                            // token that is passed to the exception is the linked token. This way,
+                            // information about usage of linked tokens will not be leaked to the caller.
+                            ct.ThrowIfCancellationRequested();
                         }
 
                         // Operation timed out.
