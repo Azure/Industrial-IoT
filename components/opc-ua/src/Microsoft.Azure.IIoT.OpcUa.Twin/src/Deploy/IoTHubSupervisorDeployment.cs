@@ -133,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
             {
                 ""$edgeAgent"": {
                     " + registryCredentials + @"
-                    ""properties.desired.modules.twin"": {
+                    ""properties.desired.modules." + kModuleName + @""": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""
@@ -145,13 +145,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     }
                 },
                 ""$edgeHub"": {
-                    ""properties.desired.routes.upstream"": ""FROM /messages/* INTO $upstream""
+                    ""properties.desired.routes." + kModuleName + @"ToUpstream"": ""FROM /messages/modules/" + kModuleName + @"/* INTO $upstream""
                 }
             }";
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(content);
         }
 
         private const string kDefaultSchemaVersion = "1.0";
+        private const string kModuleName = "twin";
         private readonly IIoTHubConfigurationServices _service;
         private readonly IContainerRegistryConfig _config;
         private readonly IJsonSerializer _serializer;
