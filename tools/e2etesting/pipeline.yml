@@ -1,6 +1,7 @@
 name: $(Date:yyyyMMdd)$(Rev:rr)
 
 trigger: none
+pr: none
 
 variables:
 - name: 'BasePath'
