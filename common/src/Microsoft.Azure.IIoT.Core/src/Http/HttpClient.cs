@@ -105,38 +105,58 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 var sw = Stopwatch.StartNew();
                 _logger.Verbose("Sending {method} request to {uri}...", httpMethod,
                     httpRequest.Uri);
-                try {
-                    wrapper.Request.Method = httpMethod;
-                    using (var response = await client.SendAsync(wrapper.Request, ct)) {
-                        var result = new HttpResponse {
-                            ResourceId = httpRequest.ResourceId,
-                            StatusCode = response.StatusCode,
-                            Headers = response.Headers,
-                            ContentHeaders = response.Content.Headers,
-                            Content = await response.Content.ReadAsByteArrayAsync()
-                        };
-                        if (result.IsError()) {
-                            _logger.Warning("{method} to {uri} returned {code} (took {elapsed}).",
-                                httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
-                                 result.GetContentAsString(Encoding.UTF8));
+
+                using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct)) {
+                    try {
+                        wrapper.Request.Method = httpMethod;
+                        using (var response = await client.SendAsync(wrapper.Request, ct)) {
+                            var result = new HttpResponse {
+                                ResourceId = httpRequest.ResourceId,
+                                StatusCode = response.StatusCode,
+                                Headers = response.Headers,
+                                ContentHeaders = response.Content.Headers,
+                                Content = await response.Content.ReadAsByteArrayAsync()
+                            };
+                            if (result.IsError()) {
+                                _logger.Warning("{method} to {uri} returned {code} (took {elapsed}).",
+                                    httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
+                                     result.GetContentAsString(Encoding.UTF8));
+                            }
+                            else {
+                                _logger.Verbose("{method} to {uri} returned {code} (took {elapsed}).",
+                                    httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
+                            }
+                            return result;
                         }
-                        else {
-                            _logger.Verbose("{method} to {uri} returned {code} (took {elapsed}).",
-                                httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
+                    }
+                    catch (HttpRequestException e) {
+                        var errorMessage = e.Message;
+                        if (e.InnerException != null) {
+                            errorMessage += " - " + e.InnerException.Message;
                         }
-                        return result;
+                        _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                            httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
+                        _logger.Verbose(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
+                            httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
+                        throw new HttpRequestException(errorMessage, e);
                     }
-                }
-                catch (HttpRequestException e) {
-                    var errorMessage = e.Message;
-                    if (e.InnerException != null) {
-                        errorMessage += " - " + e.InnerException.Message;
+                    catch (OperationCanceledException e) {
+                        if (ct.IsCancellationRequested) {
+                            // Cancel was called, propagate exception.
+                            throw;
+                        }
+
+                        // Operation timed out.
+                        var errorMessage = e.Message;
+                        if (e.InnerException != null) {
+                            errorMessage += " - " + e.InnerException.Message;
+                        }
+                        _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                            httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
+                        _logger.Verbose(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
+                            httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
+                        throw new HttpRequestException(errorMessage, e);
                     }
-                    _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
-                        httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
-                    _logger.Verbose(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
-                        httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
-                    throw new HttpRequestException(errorMessage, e);
                 }
             }
         }
