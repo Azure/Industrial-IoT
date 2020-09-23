@@ -109,9 +109,6 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
     ""$edgeHub"": {
         ""properties.desired"": {
             ""schemaVersion"": """ + kDefaultSchemaVersion + @""",
-            ""routes"": {
-                ""upstream"": ""FROM /messages/* INTO $upstream""
-            },
             ""storeAndForwardConfiguration"": {
                 ""timeToLiveSecs"": 7200
             }
