@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Deploy {
                 {
                     var configurationModel = configurationModelList[0];
                     Assert.Equal("__default-metricscollector-linux", configurationModel.Id);
-                    Assert.Equal(2, configurationModel.Content.ModulesContent.Count);
+                    Assert.Equal(3, configurationModel.Content.ModulesContent.Count);
 
                     // Check routes of layered deployment for Linux
                     Assert.Equal("FROM /messages/modules/metricscollector/* INTO $upstream",
@@ -59,19 +59,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Deploy {
 
                     // Check docker image
                     var module = (Newtonsoft.Json.Linq.JObject)configurationModel.Content.ModulesContent["$edgeAgent"]["properties.desired.modules.metricscollector"];
-                    Assert.Equal("azureiotedge/azureiotedge-metrics-collector-sample:0.1",
+                    Assert.Equal("veyalla/metricscollector:0.0.4-amd64",
                         module["settings"].Value<string>("image"));
 
                     // Check environment variables
                     Assert.Equal("WorkspaceId",
-                        module["env"]["LogAnalyticsWorkspaceId"].Value<string>("value"));
+                        module["env"]["AzMonWorkspaceId"].Value<string>("value"));
                     Assert.Equal("WorkspaceKey",
-                        module["env"]["LogAnalyticsSharedKey"].Value<string>("value"));
+                        module["env"]["AzMonWorkspaceKey"].Value<string>("value"));
                 }
                 {
                     var configurationModel = configurationModelList[1];
                     Assert.Equal("__default-metricscollector-windows", configurationModel.Id);
-                    Assert.Equal(2, configurationModel.Content.ModulesContent.Count);
+                    Assert.Equal(3, configurationModel.Content.ModulesContent.Count);
 
                     // Check routes of layered deployment for Windows
                     Assert.Equal("FROM /messages/modules/metricscollector/* INTO $upstream",
@@ -79,14 +79,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Deploy {
 
                     // Check docker image
                     var module = (Newtonsoft.Json.Linq.JObject)configurationModel.Content.ModulesContent["$edgeAgent"]["properties.desired.modules.metricscollector"];
-                    Assert.Equal("azureiotedge/azureiotedge-metrics-collector-sample:0.1",
+                    Assert.Equal("veyalla/metricscollector:0.0.5-windows-amd64",
                         module["settings"].Value<string>("image"));
 
                     // Check environment variables
                     Assert.Equal("WorkspaceId",
-                        module["env"]["LogAnalyticsWorkspaceId"].Value<string>("value"));
+                        module["env"]["AzMonWorkspaceId"].Value<string>("value"));
                     Assert.Equal("WorkspaceKey",
-                        module["env"]["LogAnalyticsSharedKey"].Value<string>("value"));
+                        module["env"]["AzMonWorkspaceKey"].Value<string>("value"));
                 }
             }
         }
