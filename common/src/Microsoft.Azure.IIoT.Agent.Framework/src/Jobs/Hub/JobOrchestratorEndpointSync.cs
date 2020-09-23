@@ -68,11 +68,16 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                 await UpdateOrchestratorUrlAsync(_cts.Token);
                 _logger.Information("Orchestrator Url update finished.");
             }
-            catch (OperationCanceledException) {
-                // Cancel was called - dispose cancellation token
-                _cts.Dispose();
-                _cts = null;
-                return;
+            catch (OperationCanceledException ex) {
+                if (_cts.IsCancellationRequested) {
+                    // Cancel was called - dispose cancellation token
+                    _cts.Dispose();
+                    _cts = null;
+                    return;
+                }
+
+                // Some operation timed out.
+                _logger.Error(ex, "Failed to update orchestrator urls.");
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to update orchestrator urls.");

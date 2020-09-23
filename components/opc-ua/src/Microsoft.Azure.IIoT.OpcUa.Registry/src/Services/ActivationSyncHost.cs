@@ -67,11 +67,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 await _activation.SynchronizeActivationAsync(_cts.Token);
                 _logger.Information("Endpoint synchronization finished.");
             }
-            catch (OperationCanceledException) {
-                // Cancel was called - dispose cancellation token
-                _cts.Dispose();
-                _cts = null;
-                return;
+            catch (OperationCanceledException ex) {
+                if (_cts.IsCancellationRequested) {
+                    // Cancel was called - dispose cancellation token
+                    _cts.Dispose();
+                    _cts = null;
+                    return;
+                }
+
+                // Some operation timed out.
+                _logger.Error(ex, "Failed to run endpoint synchronization.");
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to run endpoint synchronization.");

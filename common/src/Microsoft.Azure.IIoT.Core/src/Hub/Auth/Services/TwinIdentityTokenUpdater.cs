@@ -74,11 +74,16 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
                 await UpdateIdentityTokensAsync(false, _cts.Token);
                 _logger.Information("Identity Token update finished.");
             }
-            catch (OperationCanceledException) {
-                // Cancel was called - dispose cancellation token
-                _cts.Dispose();
-                _cts = null;
-                return;
+            catch (OperationCanceledException ex) {
+                if (_cts.IsCancellationRequested) {
+                    // Cancel was called - dispose cancellation token
+                    _cts.Dispose();
+                    _cts = null;
+                    return;
+                }
+
+                // Some operation timed out.
+                _logger.Error(ex, "Failed to update identity tokens.");
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to update identity tokens.");
