@@ -36,7 +36,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         /// <inheritdoc/>
         public void Dispose() {
             Try.Async(StopAsync).Wait();
-            _updateTimer.Dispose();
+
+            if (!(_updateTimer is null)) {
+                _updateTimer.Dispose();
+                _updateTimer = null;
+            }
         }
 
         /// <inheritdoc/>
@@ -84,7 +88,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to update orchestrator urls.");
             }
-            _updateTimer.Change(_config.JobOrchestratorUrlSyncInterval, Timeout.InfiniteTimeSpan);
+            _updateTimer?.Change(_config.JobOrchestratorUrlSyncInterval, Timeout.InfiniteTimeSpan);
         }
 
         /// <summary>
@@ -126,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         private readonly IJsonSerializer _serializer;
         private readonly IIoTHubTwinServices _twins;
         private readonly ILogger _logger;
-        private readonly Timer _updateTimer;
+        private Timer _updateTimer;
 #pragma warning disable IDE0069 // Disposable fields should be disposed
         private CancellationTokenSource _cts;
 #pragma warning restore IDE0069 // Disposable fields should be disposed
