@@ -54,7 +54,7 @@ Write-Host "Key vault configured to be used in ARM deployments"
 # Deploy edge and simulation virtual machines
 $templateParameters = @{
     "keyVaultName" = $keyVaultName
-	"managedIdentityResourceId" = $msiDeployment.Outputs.managedIdentityResourceId.Value
+    "managedIdentityResourceId" = $msiDeployment.Outputs.managedIdentityResourceId.Value
     "numberOfLinuxGateways" = 1
     "edgePassword" = [System.Web.Security.Membership]::GeneratePassword(15, 5)
     "branchName" = $branchName

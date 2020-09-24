@@ -8,6 +8,8 @@ variables:
   value: '$(System.DefaultWorkingDirectory)\tools\e2etesting'
 - name: 'ClientCredentialsKeyVaultName'
   value: "automatedtesting"
+- name: 'AzureSubscription'
+  value: 'IOT-OPC-WALLS-MSI'
 
 jobs:
 - job: deploy
@@ -36,14 +38,14 @@ jobs:
   - task: AzureKeyVault@1
     displayName: 'Retrieve KeyVault secrets'
     inputs:
-      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azureSubscription: '$(AzureSubscription)'
       KeyVaultName: '$(ClientCredentialsKeyVaultName)'
       SecretsFilter: '*'
 
   - task: AzurePowerShell@5
     displayName: "Replace parameters in appSettings.json (for IAI)"
     inputs:
-      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
       scriptType: filePath
       scriptPath: '$(BasePath)\ReplaceVariablesInAppSettings.ps1'
@@ -71,7 +73,7 @@ jobs:
   - task: AzurePowerShell@5
     displayName: 'Set KeyVaultName-Variable'
     inputs:
-      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
       scriptType: filePath
       scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
@@ -82,7 +84,7 @@ jobs:
     displayName: "Add permissions to KeyVault"
     name: keyvaultpermissions
     inputs:
-      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
       scriptType: filePath
       scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
@@ -95,7 +97,7 @@ jobs:
     displayName: "Deploy IIoT edge and sim VMs"
     name: deployedgevm
     inputs:
-      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
       scriptType: filePath
       scriptPath: '$(BasePath)\DeploySimulation.ps1'
@@ -131,7 +133,7 @@ jobs:
   - task: AzurePowerShell@5
     displayName: 'Set KeyVaultName-Variable'
     inputs:
-      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
       scriptType: filePath
       scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
@@ -141,7 +143,7 @@ jobs:
   - task: AzureKeyVault@1
     displayName: 'Retrieve KeyVault secrets from existing deployment'
     inputs:
-      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azureSubscription: '$(AzureSubscription)'
       KeyVaultName: '$(KeyVaultName)'
       SecretsFilter: '*'
 
@@ -160,7 +162,7 @@ jobs:
   - task: AzurePowerShell@5
     displayName: "Delete Resource Group"
     inputs:
-      azureSubscription: 'IOT-OPC-WALLS-MSI'
+      azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
       scriptType: 'InlineScript'
       inline: |
