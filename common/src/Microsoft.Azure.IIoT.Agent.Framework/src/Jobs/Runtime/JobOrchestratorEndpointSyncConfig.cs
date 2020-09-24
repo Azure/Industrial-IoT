@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
         /// Property keys
         /// </summary>
         private const string kJobOrchestratorUrlKey = "JobOrchestratorUrl";
-        private const string kJobOrchestratorUrlSyncIntervalKey = "JobOrchestratorUrlSyncIntervalKey";
+        private const string kJobOrchestratorUrlSyncIntervalKey = "JobOrchestratorUrlSyncInterval";
 
         /// <inheritdoc/>
         public string JobOrchestratorUrl => GetStringOrDefault(kJobOrchestratorUrlKey,
