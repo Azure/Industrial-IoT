@@ -155,7 +155,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 return; // Done
             }
             catch (Exception ex) {
-                _logger.Debug(ex, "Could not send worker heartbeat.");
+                _logger.Information(ex, "Could not send worker heartbeat.");
                 kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace, "Could not send worker hearbeat").Inc();
             }
             Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
