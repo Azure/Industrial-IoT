@@ -6,29 +6,36 @@
 namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using System;
     using System.Net;
     using System.Net.Sockets;
 
     /// <summary>
     /// Default endpoint configuration
     /// </summary>
-    public class JobOrchestratorApiConfig : ConfigBase, IJobOrchestratorEndpoint {
+    public class JobOrchestratorEndpointSyncConfig : ConfigBase, IJobOrchestratorEndpointSyncConfig {
 
         /// <summary>
         /// Property keys
         /// </summary>
         private const string kJobOrchestratorUrlKey = "JobOrchestratorUrl";
+        private const string kJobOrchestratorUrlSyncIntervalKey = "JobOrchestratorUrlSyncIntervalKey";
 
         /// <inheritdoc/>
         public string JobOrchestratorUrl => GetStringOrDefault(kJobOrchestratorUrlKey,
             () => GetStringOrDefault(PcsVariable.PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL,
                 () => GetDefaultUrl("9051", "edge/publisher")));
 
+        /// <inheritdoc/>
+        public TimeSpan JobOrchestratorUrlSyncInterval =>
+            GetDurationOrDefault(kJobOrchestratorUrlSyncIntervalKey,
+                () => TimeSpan.FromMinutes(1));
+
         /// <summary>
         /// Create endpoint config
         /// </summary>
         /// <param name="configuration"></param>
-        public JobOrchestratorApiConfig(IConfiguration configuration) :
+        public JobOrchestratorEndpointSyncConfig(IConfiguration configuration) :
             base(configuration) {
         }
 
