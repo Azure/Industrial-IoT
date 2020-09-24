@@ -112,12 +112,7 @@ namespace Microsoft.Azure.IIoT.Utils {
                     return await work();
                 }
                 catch (Exception ex) {
-                    if (ex is IotHubQuotaExceededException) {
-                        logger.Error(ex.Message);
-                    } 
-                    else {
-                        await DelayOrThrow(logger, cont, policy, maxRetry, k, ex, ct);
-                    }
+                    await DelayOrThrow(logger, cont, policy, maxRetry, k, ex, ct);
                 }
             }
         }
