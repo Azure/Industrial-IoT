@@ -117,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             {
                 ""$edgeAgent"": {
                     " + registryCredentials + @"
-                    ""properties.desired.modules.publisher"": {
+                    ""properties.desired.modules." + kModuleName + @""": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""
@@ -129,13 +129,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                     }
                 },
                 ""$edgeHub"": {
-                    ""properties.desired.routes.upstream"": ""FROM /messages/* INTO $upstream""
+                    ""properties.desired.routes." + kModuleName + @"ToUpstream"": ""FROM /messages/modules/" + kModuleName + @"/* INTO $upstream"",
+                    ""properties.desired.routes.leafToUpstream"": ""FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream""
                 }
             }";
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(content);
         }
 
         private const string kDefaultSchemaVersion = "1.0";
+        private const string kModuleName = "publisher";
         private readonly IJsonSerializer _serializer;
         private readonly IIoTHubConfigurationServices _service;
         private readonly IContainerRegistryConfig _config;
