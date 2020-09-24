@@ -57,10 +57,10 @@ $platforms = @{
     "linux/amd64" = @{
         platformTag = "linux-amd64"
     }
-    "windows/amd64:10.0.17763.973" = @{
+    "windows/amd64:10.0.17763.1457" = @{
         platformTag = "nanoserver-amd64-1809"
     }
-    "windows/amd64:10.0.18363.720" = @{
+    "windows/amd64:10.0.18363.1082" = @{
         platformTag = "nanoserver-amd64-1909"
     }
 }
