@@ -69,6 +69,8 @@ jobs:
       targetType: 'filePath'
       pwsh: true
       filePath: $(BasePath)\ParseEnvFile.ps1
+      arguments: >
+        -SettingsToSave "PCS_SERVICE_URL,PCS_AUTH_TENANT,PCS_AUTH_CLIENT_APPID,PCS_AUTH_CLIENT_SECRET"
 
   - task: AzurePowerShell@5
     displayName: 'Set KeyVaultName-Variable'
