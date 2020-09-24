@@ -40,7 +40,7 @@ jobs:
     inputs:
       azureSubscription: '$(AzureSubscription)'
       KeyVaultName: '$(ClientCredentialsKeyVaultName)'
-      SecretsFilter: '*'
+      SecretsFilter: 'IAIClientId,IAIClientSecret'
 
   - task: AzurePowerShell@5
     displayName: "Replace parameters in appSettings.json (for IAI)"
