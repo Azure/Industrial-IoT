@@ -445,7 +445,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     }
                 }
                 catch (Exception ex) {
-                    _logger.Information(ex, "Could not send worker heartbeat.");
+                    _logger.Error(ex, "Could not send worker heartbeat.");
                 }
             }
 
