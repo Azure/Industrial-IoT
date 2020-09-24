@@ -34,7 +34,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <inheritdoc/>
         public void Dispose() {
             Try.Async(StopAsync).Wait();
-            _updateTimer.Dispose();
+
+            if (!(_updateTimer is null)) {
+                _updateTimer.Dispose();
+                _updateTimer = null;
+            }
         }
 
         /// <inheritdoc/>
@@ -83,11 +87,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to run endpoint synchronization.");
             }
-            _updateTimer.Change(_config.SyncInterval, Timeout.InfiniteTimeSpan);
+            _updateTimer?.Change(_config.SyncInterval, Timeout.InfiniteTimeSpan);
         }
 
         private readonly ILogger _logger;
-        private readonly Timer _updateTimer;
+        private Timer _updateTimer;
 #pragma warning disable IDE0069 // Disposable fields should be disposed
         private CancellationTokenSource _cts;
 #pragma warning restore IDE0069 // Disposable fields should be disposed
