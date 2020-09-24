@@ -44,7 +44,7 @@ Write-Host "Created MSI $($msiDeployment.Parameters.managedIdentityName.Value) w
 # Configure the keyvault
 # Allow the MSI to access keyvault
 # https://github.com/Azure/azure-powershell/issues/10029 for why -BypassObjectIdValidation is needed
-Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $msiDeployment.Outputs.managedIdentityPrincipalId.Value -PermissionsToSecrets get,list,set,delete -PermissionsToKeys get,list,sign,unwrapKey,wrapKey,create -PermissionsToCertificates get,list,update,create,import -BypassObjectIdValidation
+Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $msiDeployment.Outputs.managedIdentityPrincipalId.Value -PermissionsToSecrets get,list -BypassObjectIdValidation
 Write-Host "Key vault set to allow MSI full access"
 
 # Allow the keyvault to be used in ARM deployments
