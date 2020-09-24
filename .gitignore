@@ -17,6 +17,7 @@
 /**/*.vc.db
 /.vscode/**
 /build/**
+*.sarif
 *.dll
 *.so
 *.pdb
