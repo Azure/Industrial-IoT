@@ -21,6 +21,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Jobs.Hub {
     using System.Threading.Tasks;
     using Xunit;
 
+    /// <summary>
+    /// Test to check execution logic of JobOrchestratorEndpointSync service.
+    /// </summary>
     public class JobOrchestratorEndpointSyncTests {
 
         [Fact]
@@ -58,7 +61,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Jobs.Hub {
                         cts.Cancel();
                     }
 
-                    var ex = (Exception) Activator.CreateInstance(exceptionType);
+                    var ex = (Exception)Activator.CreateInstance(exceptionType);
                     throw ex;
                 });
 
@@ -191,8 +194,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Jobs.Hub {
                     .As<IConfiguration>()
                     .SingleInstance();
 
-                var containerRegistryConfig = new JobOrchestratorEndpointSyncConfig(conf);
-                builder.RegisterInstance(containerRegistryConfig)
+                var syncConfig = new JobOrchestratorEndpointSyncConfig(conf);
+                builder.RegisterInstance(syncConfig)
                     .AsImplementedInterfaces()
                     .SingleInstance();
 

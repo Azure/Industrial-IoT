@@ -51,6 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public Task StopAsync() {
             if (_cts != null) {
                 _cts.Cancel();
+
+                // Disabling future invocation of timer callback.
                 _updateTimer.Change(Timeout.Infinite, Timeout.Infinite);
             }
             return Task.CompletedTask;
