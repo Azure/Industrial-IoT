@@ -10,13 +10,22 @@ variables:
   value: "automatedtesting"
 - name: 'AzureSubscription'
   value: 'IOT-OPC-WALLS-MSI'
+- name: 'AgentPool'
+  value: 'Azure-IoT-Manufacturing'
 
 jobs:
+- job: 'build'
+  displayName: 'Build solution'
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - template: ./tools/templates/build-solution.yml
+
 - job: deploy
   condition: ne(variables['UseExisting'], true)
   displayName: 'Prepare and run IAI'
   pool:
-    name: 'Azure-IoT-Manufacturing'
+    name: '$(AgentPool)'
   variables:
   - name: 'IAIStorageAccountName'
     value: 'azureiiot'
@@ -104,7 +113,7 @@ jobs:
   dependsOn: deploy
   condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
   pool:
-    name: 'Azure-IoT-Manufacturing'
+    name: '$(AgentPool)'
   steps:
   - task: PowerShell@2
     name: postmanJobGeneration
@@ -119,7 +128,7 @@ jobs:
   dependsOn: prepnewman
   condition: eq(dependencies.prepnewman.result, 'Succeeded')
   pool:
-    name: 'Azure-IoT-Manufacturing'
+    name: '$(AgentPool)'
   strategy:
     matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
   steps:
@@ -150,7 +159,7 @@ jobs:
   dependsOn: runnewman
   condition: and(always(), eq(variables['Cleanup'], true))
   pool:
-    name: 'Azure-IoT-Manufacturing'
+    name: '$(AgentPool)'
   steps:
   - task: AzurePowerShell@5
     displayName: "Delete Resource Group"
