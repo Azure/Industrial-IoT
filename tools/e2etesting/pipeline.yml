@@ -63,15 +63,6 @@ jobs:
       script: '$(IAILocalFilename)'
       workingDirectory: '$(BasePath)'
 
-  - task: PowerShell@2
-    displayName: "Parse .env file"
-    inputs:
-      targetType: 'filePath'
-      pwsh: true
-      filePath: $(BasePath)\ParseEnvFile.ps1
-      arguments: >
-        -SettingsToSave "PCS_SERVICE_URL,PCS_AUTH_TENANT,PCS_AUTH_CLIENT_APPID,PCS_AUTH_CLIENT_SECRET"
-
   - task: AzurePowerShell@5
     displayName: 'Set KeyVaultName-Variable'
     inputs:
@@ -147,7 +138,7 @@ jobs:
     inputs:
       azureSubscription: '$(AzureSubscription)'
       KeyVaultName: '$(KeyVaultName)'
-      SecretsFilter: '*'
+      SecretsFilter: 'PCS_SERVICE_URL,PCS_AUTH_TENANT,PCS_AUTH_CLIENT_APPID,PCS_AUTH_CLIENT_SECRET'
 
   - task: CmdLine@2
     displayName: 'Run Newman for $(collectionFile)'
