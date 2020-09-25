@@ -138,7 +138,7 @@ jobs:
     inputs:
       azureSubscription: '$(AzureSubscription)'
       KeyVaultName: '$(KeyVaultName)'
-      SecretsFilter: 'PCS_SERVICE_URL,PCS_AUTH_TENANT,PCS_AUTH_CLIENT_APPID,PCS_AUTH_CLIENT_SECRET'
+      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
   - task: CmdLine@2
     displayName: 'Run Newman for $(collectionFile)'
