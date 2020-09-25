@@ -238,7 +238,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cli", "cli", "{77FE1A6E-074
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.Processor.Onboarding", "services\src\Microsoft.Azure.IIoT.Services.Processor.Onboarding\src\Microsoft.Azure.IIoT.Services.Processor.Onboarding.csproj", "{422C4B02-BC9F-4494-893F-7214F8FB17E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Azure.IIoT.OpcUa.Twin.Test", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Twin\tests\Microsoft.Azure.IIoT.OpcUa.Twin.Tests.csproj", "{6F5D5CE2-57A3-4116-8A82-72120C9461C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Twin.Tests", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Twin\tests\Microsoft.Azure.IIoT.OpcUa.Twin.Tests.csproj", "{6F5D5CE2-57A3-4116-8A82-72120C9461C6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Agent.Framework.Tests", "common\src\Microsoft.Azure.IIoT.Agent.Framework\tests\Microsoft.Azure.IIoT.Agent.Framework.Tests.csproj", "{63F1C41D-6D07-4F0D-967C-CBF3752139A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -992,6 +994,14 @@ Global
 		{6F5D5CE2-57A3-4116-8A82-72120C9461C6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6F5D5CE2-57A3-4116-8A82-72120C9461C6}.Release|x64.ActiveCfg = Release|Any CPU
 		{6F5D5CE2-57A3-4116-8A82-72120C9461C6}.Release|x64.Build.0 = Release|Any CPU
+		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Debug|x64.Build.0 = Debug|Any CPU
+		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Release|x64.ActiveCfg = Release|Any CPU
+		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1108,6 +1118,7 @@ Global
 		{77FE1A6E-0741-4B3E-AC22-89164498E8AA} = {30938473-53C1-4981-BFAB-B6309147FF24}
 		{422C4B02-BC9F-4494-893F-7214F8FB17E1} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
 		{6F5D5CE2-57A3-4116-8A82-72120C9461C6} = {1266F300-8BD2-4F1E-BA88-911F5F3AC36C}
+		{63F1C41D-6D07-4F0D-967C-CBF3752139A0} = {BBEE26AC-8733-469B-B816-0A54EA99FC59}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}

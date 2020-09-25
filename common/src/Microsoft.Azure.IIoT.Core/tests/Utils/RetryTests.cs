@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Core.Tests.Utils {
     public class RetryTests {
 
         [Fact]
-        public async void TestWithExponentialBackoffAsync() {
+        public async Task TestWithExponentialBackoffAsync() {
             var loggerMock = new Mock<ILogger>();
             var logger = loggerMock.Object;
 
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Core.Tests.Utils {
         }
 
         [Fact]
-        public async void TestWithExponentialBackoffCTAsync() {
+        public async Task TestWithExponentialBackoffCTAsync() {
             var loggerMock = new Mock<ILogger>();
             var logger = loggerMock.Object;
 
