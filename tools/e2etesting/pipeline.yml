@@ -14,15 +14,10 @@ variables:
   value: 'Azure-IoT-Manufacturing'
 
 jobs:
-- job: 'build'
-  displayName: 'Build solution'
-  pool:
-    name: '$(AgentPool)'
-  steps:
-  - template: '../templates/build-solution.yml'
-
+- template: '../templates/ci.yml'
 - job: deploy
   condition: ne(variables['UseExisting'], true)
+  dependsOn: build
   displayName: 'Prepare and run IAI'
   pool:
     name: '$(AgentPool)'
