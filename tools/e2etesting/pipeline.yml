@@ -19,7 +19,7 @@ jobs:
   pool:
     name: '$(AgentPool)'
   steps:
-  - template: ./tools/templates/build-solution.yml
+  - template: '$(System.DefaultWorkingDirectory)/tools/templates/build-solution.yml'
 
 - job: deploy
   condition: ne(variables['UseExisting'], true)
