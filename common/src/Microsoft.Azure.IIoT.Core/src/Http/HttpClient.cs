@@ -105,29 +105,9 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 var sw = Stopwatch.StartNew();
                 _logger.Verbose("Sending {method} request to {uri}...", httpMethod,
                     httpRequest.Uri);
-                try {
-                    wrapper.Request.Method = httpMethod;
-                    using (var response = await client.SendAsync(wrapper.Request, ct)) {
-                        var result = new HttpResponse {
-                            ResourceId = httpRequest.ResourceId,
-                            StatusCode = response.StatusCode,
-                            Headers = response.Headers,
-                            ContentHeaders = response.Content.Headers,
-                            Content = await response.Content.ReadAsByteArrayAsync()
-                        };
-                        if (result.IsError()) {
-                            _logger.Warning("{method} to {uri} returned {code} (took {elapsed}).",
-                                httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
-                                 result.GetContentAsString(Encoding.UTF8));
-                        }
-                        else {
-                            _logger.Verbose("{method} to {uri} returned {code} (took {elapsed}).",
-                                httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
-                        }
-                        return result;
-                    }
-                }
-                catch (HttpRequestException e) {
+
+                // We will use this local function for Exception formatting
+                HttpRequestException generateHttpRequestException(Exception e) {
                     var errorMessage = e.Message;
                     if (e.InnerException != null) {
                         errorMessage += " - " + e.InnerException.Message;
@@ -136,7 +116,48 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                         httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
                     _logger.Verbose(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
                         httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
-                    throw new HttpRequestException(errorMessage, e);
+                    return new HttpRequestException(errorMessage, e);
+                }
+
+                using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct)) {
+                    try {
+                        wrapper.Request.Method = httpMethod;
+                        using (var response = await client.SendAsync(wrapper.Request, linkedCts.Token)) {
+                            var result = new HttpResponse {
+                                ResourceId = httpRequest.ResourceId,
+                                StatusCode = response.StatusCode,
+                                Headers = response.Headers,
+                                ContentHeaders = response.Content.Headers,
+                                Content = await response.Content.ReadAsByteArrayAsync()
+                            };
+                            if (result.IsError()) {
+                                _logger.Warning("{method} to {uri} returned {code} (took {elapsed}).",
+                                    httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
+                                     result.GetContentAsString(Encoding.UTF8));
+                            }
+                            else {
+                                _logger.Verbose("{method} to {uri} returned {code} (took {elapsed}).",
+                                    httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed);
+                            }
+                            return result;
+                        }
+                    }
+                    catch (HttpRequestException e) {
+                        var requestEx = generateHttpRequestException(e);
+                        throw requestEx;
+                    }
+                    catch (OperationCanceledException e) {
+                        if (ct.IsCancellationRequested) {
+                            // Cancel was called. We will call ct.ThrowIfCancellationRequested() because the
+                            // token that is passed to the exception is the linked token. This way,
+                            // information about usage of linked tokens will not be leaked to the caller.
+                            ct.ThrowIfCancellationRequested();
+                        }
+
+                        // Operation timed out.
+                        var requestEx = generateHttpRequestException(e);
+                        throw requestEx;
+                    }
                 }
             }
         }
