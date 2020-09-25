@@ -106,6 +106,19 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                 _logger.Verbose("Sending {method} request to {uri}...", httpMethod,
                     httpRequest.Uri);
 
+                // We will use this local function for Exception formatting
+                HttpRequestException generateHttpRequestException(Exception e) {
+                    var errorMessage = e.Message;
+                    if (e.InnerException != null) {
+                        errorMessage += " - " + e.InnerException.Message;
+                    }
+                    _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                        httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
+                    _logger.Verbose(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
+                        httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
+                    return new HttpRequestException(errorMessage, e);
+                }
+
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct)) {
                     try {
                         wrapper.Request.Method = httpMethod;
@@ -130,15 +143,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                         }
                     }
                     catch (HttpRequestException e) {
-                        var errorMessage = e.Message;
-                        if (e.InnerException != null) {
-                            errorMessage += " - " + e.InnerException.Message;
-                        }
-                        _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
-                            httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
-                        _logger.Verbose(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
-                            httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
-                        throw new HttpRequestException(errorMessage, e);
+                        var requestEx = generateHttpRequestException(e);
+                        throw requestEx;
                     }
                     catch (OperationCanceledException e) {
                         if (ct.IsCancellationRequested) {
@@ -149,15 +155,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                         }
 
                         // Operation timed out.
-                        var errorMessage = e.Message;
-                        if (e.InnerException != null) {
-                            errorMessage += " - " + e.InnerException.Message;
-                        }
-                        _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
-                            httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
-                        _logger.Verbose(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
-                            httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
-                        throw new HttpRequestException(errorMessage, e);
+                        var requestEx = generateHttpRequestException(e);
+                        throw requestEx;
                     }
                 }
             }

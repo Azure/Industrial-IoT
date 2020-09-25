@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public JobOrchestratorEndpointSync(IIoTHubTwinServices twins,
-            IJobOrchestratorEndpointSyncConfig config, IJsonSerializer serializer, ILogger logger) {
+            IJobOrchestratorEndpointConfig config, IJsonSerializer serializer, ILogger logger) {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _twins = twins ?? throw new ArgumentNullException(nameof(twins));
@@ -132,7 +132,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
             _logger.Information("Job orchestrator url updated to {url} on all twins.", url);
         }
 
-        private readonly IJobOrchestratorEndpointSyncConfig _config;
+        private readonly IJobOrchestratorEndpointConfig _config;
         private readonly IJsonSerializer _serializer;
         private readonly IIoTHubTwinServices _twins;
         private readonly ILogger _logger;

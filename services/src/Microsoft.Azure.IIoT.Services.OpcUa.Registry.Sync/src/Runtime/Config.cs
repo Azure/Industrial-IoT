@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime {
     /// Alerting agent configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IIoTHubConfig, IServiceBusConfig,
-        IIdentityTokenUpdaterConfig, IActivationSyncConfig, IJobOrchestratorEndpointSyncConfig,
+        IIdentityTokenUpdaterConfig, IActivationSyncConfig, IJobOrchestratorEndpointConfig,
         IMetricServerConfig {
 
         /// <inheritdoc/>
@@ -57,13 +57,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime {
             _hub = new IoTHubConfig(configuration);
             _id = new IdentityTokenUpdaterConfig(configuration);
             _sync = new ActivationSyncConfig(configuration);
-            _edge = new JobOrchestratorEndpointSyncConfig(configuration);
+            _edge = new JobOrchestratorEndpointConfig(configuration);
         }
 
         private readonly IServiceBusConfig _sb;
         private readonly IIoTHubConfig _hub;
         private readonly IdentityTokenUpdaterConfig _id;
-        private readonly JobOrchestratorEndpointSyncConfig _edge;
+        private readonly JobOrchestratorEndpointConfig _edge;
         private readonly ActivationSyncConfig _sync;
     }
 }

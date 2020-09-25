@@ -194,7 +194,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Jobs.Hub {
                     .As<IConfiguration>()
                     .SingleInstance();
 
-                var syncConfig = new JobOrchestratorEndpointSyncConfig(conf);
+                var syncConfig = new JobOrchestratorEndpointConfig(conf);
                 builder.RegisterInstance(syncConfig)
                     .AsImplementedInterfaces()
                     .SingleInstance();

@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
     /// <summary>
     /// Default endpoint configuration
     /// </summary>
-    public class JobOrchestratorEndpointSyncConfig : ConfigBase, IJobOrchestratorEndpointSyncConfig {
+    public class JobOrchestratorEndpointConfig : ConfigBase, IJobOrchestratorEndpointConfig {
 
         /// <summary>
         /// Property keys
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
         /// Create endpoint config
         /// </summary>
         /// <param name="configuration"></param>
-        public JobOrchestratorEndpointSyncConfig(IConfiguration configuration) :
+        public JobOrchestratorEndpointConfig(IConfiguration configuration) :
             base(configuration) {
         }
 

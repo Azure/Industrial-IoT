@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
     /// <summary>
     /// Configuration of job orchestrator api endpoint
     /// </summary>
-    public interface IJobOrchestratorEndpointSyncConfig {
+    public interface IJobOrchestratorEndpointConfig {
 
         /// <summary>
         /// Returns job orchestrator url
