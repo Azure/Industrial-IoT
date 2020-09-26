@@ -1,3 +1,9 @@
+parameters:
+- name: buildRelease
+  default: true
+- name: buildDebug
+  default: true
+
 jobs:
 - job: buildprep
   displayName: Prepare Build Jobs
@@ -37,12 +43,14 @@ jobs:
       filePath: ./tools/scripts/set-version.ps1
   - task: DotNetCoreCLI@2
     displayName: Release Build
+    condition: eq(variables['buildRelease'], true)
     inputs:
       command: build
       projects: '$(file)'
       arguments: '--configuration Release'
   - task: DotNetCoreCLI@2
     displayName: Debug Build
+    condition: eq(variables['buildDebug'], true)
     inputs:
       command: build
       projects: '$(file)'

@@ -1,3 +1,4 @@
+# ResourceGroupName param was deployment$(Build.BuildNumber)
 name: $(Date:yyyyMMdd)$(Rev:rr)
 
 trigger: none
@@ -15,6 +16,9 @@ variables:
 
 jobs:
 - template: '../templates/build-all.yml'
+  parameters:
+    buildDebug: false
+
 - job: deploy
   condition: ne(variables['UseExisting'], true)
   dependsOn: buildall
