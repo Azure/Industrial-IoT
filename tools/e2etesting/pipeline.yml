@@ -12,172 +12,172 @@ variables:
   ResourceGroupName: $(ApplicationName)
 
 jobs:
-- job: testvars
+# - job: testvars
+#   pool:
+#     name: '$(AgentPool)'
+#   displayName: 'Test variables'
+#   variables:
+#     runCodesignValidationInjection: false
+#   steps:
+#   - task: PowerShell@2
+#     inputs:
+#       targetType: 'inline'
+#       script: |
+#         Write-Host "Application name $(ApplicationName)"
+#         Write-Host "Resource group $(ResourceGroupName)"
+#   - powershell: echo $(ApplicationName)
+  
+- template: '../templates/build-all.yml'
+  parameters:
+    buildDebug: false
+
+- job: deploy
+  condition: ne(variables['UseExisting'], true)
+  dependsOn: buildall
+  displayName: 'Prepare and run IAI'
   pool:
     name: '$(AgentPool)'
-  displayName: 'Test variables'
   variables:
-    runCodesignValidationInjection: false
+  - name: 'IAIStorageAccountName'
+    value: 'azureiiot'
+  - name: 'IAIStorageAccountContainerName'
+    value: 'binaries'
   steps:
   - task: PowerShell@2
+    displayName: "Download IAI binaries"
     inputs:
-      targetType: 'inline'
-      script: |
-        Write-Host "Application name $(ApplicationName)"
-        Write-Host "Resource group $(ResourceGroupName)"
-  - powershell: echo $(ApplicationName)
-  
-# - template: '../templates/build-all.yml'
-#   parameters:
-#     buildDebug: false
+      targetType: 'filePath'
+      pwsh: true
+      filePath: $(BasePath)\DownloadIAIBinaries.ps1
+      workingDirectory: 
+      arguments: >
+        -IAIStorageAccountName "$(IAIStorageAccountName)"
+        -IAIStorageAccountContainerName "$(IAIStorageAccountContainerName)"
+        -IAIVersion "$(IAIVersion)"
 
-# - job: deploy
-#   condition: ne(variables['UseExisting'], true)
-#   dependsOn: buildall
-#   displayName: 'Prepare and run IAI'
-#   pool:
-#     name: '$(AgentPool)'
-#   variables:
-#   - name: 'IAIStorageAccountName'
-#     value: 'azureiiot'
-#   - name: 'IAIStorageAccountContainerName'
-#     value: 'binaries'
-#   steps:
-#   - task: PowerShell@2
-#     displayName: "Download IAI binaries"
-#     inputs:
-#       targetType: 'filePath'
-#       pwsh: true
-#       filePath: $(BasePath)\DownloadIAIBinaries.ps1
-#       workingDirectory: 
-#       arguments: >
-#         -IAIStorageAccountName "$(IAIStorageAccountName)"
-#         -IAIStorageAccountContainerName "$(IAIStorageAccountContainerName)"
-#         -IAIVersion "$(IAIVersion)"
+  - task: AzureKeyVault@1
+    displayName: 'Retrieve KeyVault secrets'
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      KeyVaultName: '$(ClientCredentialsKeyVaultName)'
+      SecretsFilter: 'IAIClientId,IAIClientSecret'
 
-#   - task: AzureKeyVault@1
-#     displayName: 'Retrieve KeyVault secrets'
-#     inputs:
-#       azureSubscription: '$(AzureSubscription)'
-#       KeyVaultName: '$(ClientCredentialsKeyVaultName)'
-#       SecretsFilter: 'IAIClientId,IAIClientSecret'
+  - task: AzurePowerShell@5
+    displayName: "Replace parameters in appSettings.json (for IAI)"
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\ReplaceVariablesInAppSettings.ps1'
+      scriptArguments: >
+        -ClientId "$(IAIClientId)"
+        -ClientSecret "$(IAIClientSecret)"
+        -ApplicationName "$(ApplicationName)"
+        -AppSettingsFilename "$(BasePath)\appsettings.json"
+        -ResourceGroupName "$(ResourceGroupName)"
+        -Region "$(Region)"
 
-#   - task: AzurePowerShell@5
-#     displayName: "Replace parameters in appSettings.json (for IAI)"
-#     inputs:
-#       azureSubscription: '$(AzureSubscription)'
-#       azurePowerShellVersion: 'latestVersion'
-#       scriptType: filePath
-#       scriptPath: '$(BasePath)\ReplaceVariablesInAppSettings.ps1'
-#       scriptArguments: >
-#         -ClientId "$(IAIClientId)"
-#         -ClientSecret "$(IAIClientSecret)"
-#         -ApplicationName "$(ApplicationName)"
-#         -AppSettingsFilename "$(BasePath)\appsettings.json"
-#         -ResourceGroupName "$(ResourceGroupName)"
-#         -Region "$(Region)"
+  - task: CmdLine@2
+    displayName: 'Run deployment with IAI'
+    inputs:
+      script: '$(IAILocalFilename)'
+      workingDirectory: '$(BasePath)'
 
-#   - task: CmdLine@2
-#     displayName: 'Run deployment with IAI'
-#     inputs:
-#       script: '$(IAILocalFilename)'
-#       workingDirectory: '$(BasePath)'
+  - task: AzurePowerShell@5
+    displayName: 'Set KeyVaultName-Variable'
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+      scriptArguments: >
+        -ResourceGroupName "$(ResourceGroupName)"
 
-#   - task: AzurePowerShell@5
-#     displayName: 'Set KeyVaultName-Variable'
-#     inputs:
-#       azureSubscription: '$(AzureSubscription)'
-#       azurePowerShellVersion: 'latestVersion'
-#       scriptType: filePath
-#       scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
-#       scriptArguments: >
-#         -ResourceGroupName "$(ResourceGroupName)"
+  - task: AzurePowerShell@5
+    displayName: "Add permissions to KeyVault"
+    name: keyvaultpermissions
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+      scriptArguments: >
+        -KeyVaultName "$(KeyVaultName)"
+        -ResourceGroupName "$(ResourceGroupName)"
+        -ObjectId "$(MSIObjectId)"
 
-#   - task: AzurePowerShell@5
-#     displayName: "Add permissions to KeyVault"
-#     name: keyvaultpermissions
-#     inputs:
-#       azureSubscription: '$(AzureSubscription)'
-#       azurePowerShellVersion: 'latestVersion'
-#       scriptType: filePath
-#       scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
-#       scriptArguments: >
-#         -KeyVaultName "$(KeyVaultName)"
-#         -ResourceGroupName "$(ResourceGroupName)"
-#         -ObjectId "$(MSIObjectId)"
+  - task: AzurePowerShell@5
+    displayName: "Deploy IIoT edge and sim VMs"
+    name: deployedgevm
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DeploySimulation.ps1'
+      scriptArguments: >
+        -keyVaultName "$(KeyVaultName)"
+        -resourceGroupName "$(ResourceGroupName)"
+        -branchName "$(Build.SourceBranch)"
 
-#   - task: AzurePowerShell@5
-#     displayName: "Deploy IIoT edge and sim VMs"
-#     name: deployedgevm
-#     inputs:
-#       azureSubscription: '$(AzureSubscription)'
-#       azurePowerShellVersion: 'latestVersion'
-#       scriptType: filePath
-#       scriptPath: '$(BasePath)\DeploySimulation.ps1'
-#       scriptArguments: >
-#         -keyVaultName "$(KeyVaultName)"
-#         -resourceGroupName "$(ResourceGroupName)"
-#         -branchName "$(Build.SourceBranch)"
+- job: prepnewman
+  displayName: "Prepare Postman-Tests"
+  dependsOn: deploy
+  condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - task: PowerShell@2
+    name: postmanJobGeneration
+    displayName: "Generate Postman-Jobs"
+    inputs:
+      targetType: 'filePath'
+      pwsh: true
+      filePath: $(BasePath)\GenerateNewmanMatrix.ps1
 
-# - job: prepnewman
-#   displayName: "Prepare Postman-Tests"
-#   dependsOn: deploy
-#   condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
-#   pool:
-#     name: '$(AgentPool)'
-#   steps:
-#   - task: PowerShell@2
-#     name: postmanJobGeneration
-#     displayName: "Generate Postman-Jobs"
-#     inputs:
-#       targetType: 'filePath'
-#       pwsh: true
-#       filePath: $(BasePath)\GenerateNewmanMatrix.ps1
+- job: runnewman
+  displayName: Run Newman
+  dependsOn: prepnewman
+  condition: eq(dependencies.prepnewman.result, 'Succeeded')
+  pool:
+    name: '$(AgentPool)'
+  strategy:
+    matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
+  steps:
+  - task: AzurePowerShell@5
+    displayName: 'Set KeyVaultName-Variable'
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+      scriptArguments: >
+        -ResourceGroupName "$(ResourceGroupName)"
 
-# - job: runnewman
-#   displayName: Run Newman
-#   dependsOn: prepnewman
-#   condition: eq(dependencies.prepnewman.result, 'Succeeded')
-#   pool:
-#     name: '$(AgentPool)'
-#   strategy:
-#     matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
-#   steps:
-#   - task: AzurePowerShell@5
-#     displayName: 'Set KeyVaultName-Variable'
-#     inputs:
-#       azureSubscription: '$(AzureSubscription)'
-#       azurePowerShellVersion: 'latestVersion'
-#       scriptType: filePath
-#       scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
-#       scriptArguments: >
-#         -ResourceGroupName "$(ResourceGroupName)"
+  - task: AzureKeyVault@1
+    displayName: 'Retrieve KeyVault secrets from existing deployment'
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      KeyVaultName: '$(KeyVaultName)'
+      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
-#   - task: AzureKeyVault@1
-#     displayName: 'Retrieve KeyVault secrets from existing deployment'
-#     inputs:
-#       azureSubscription: '$(AzureSubscription)'
-#       KeyVaultName: '$(KeyVaultName)'
-#       SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
+  - task: CmdLine@2
+    displayName: 'Run Newman for $(collectionFile)'
+    inputs:
+      script: newman run "$(collectionFile)" --env-var ServiceUrl="$(pcs-service-url)" --env-var TenantId="$(pcs-auth-tenant)" --env-var ClientId="$(pcs-auth-client-appid)" --env-var ClientSecret="$(pcs-auth-client-secret)" --env-var ApplicationName="$(ApplicationName)"
 
-#   - task: CmdLine@2
-#     displayName: 'Run Newman for $(collectionFile)'
-#     inputs:
-#       script: newman run "$(collectionFile)" --env-var ServiceUrl="$(pcs-service-url)" --env-var TenantId="$(pcs-auth-tenant)" --env-var ClientId="$(pcs-auth-client-appid)" --env-var ClientSecret="$(pcs-auth-client-secret)" --env-var ApplicationName="$(ApplicationName)"
-
-# - job: cleanup
-#   displayName: Cleanup
-#   dependsOn: runnewman
-#   condition: and(always(), eq(variables['Cleanup'], true))
-#   pool:
-#     name: '$(AgentPool)'
-#   steps:
-#   - task: AzurePowerShell@5
-#     displayName: "Delete Resource Group"
-#     inputs:
-#       azureSubscription: '$(AzureSubscription)'
-#       azurePowerShellVersion: 'latestVersion'
-#       scriptType: 'InlineScript'
-#       inline: |
-#         Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
-#         Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force
+- job: cleanup
+  displayName: Cleanup
+  dependsOn: runnewman
+  condition: and(always(), eq(variables['Cleanup'], true))
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - task: AzurePowerShell@5
+    displayName: "Delete Resource Group"
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'InlineScript'
+      inline: |
+        Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
+        Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force
