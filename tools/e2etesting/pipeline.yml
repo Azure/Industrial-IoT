@@ -1,6 +1,3 @@
-# ResourceGroupName param was deployment$(Build.BuildNumber)
-# deployment$(Build.BuildID)-$(Date:yyyyMMdd)
-# application name = deployment2.8.85+03f7892bf3
 name: $(Date:yyyyMMdd)$(Rev:rr)
 
 trigger: none
@@ -16,24 +13,11 @@ variables:
 - name: 'AgentPool'
   value: 'Azure-IoT-Manufacturing'
 - name: 'ApplicationName'
-  value: 'dansiltestciapp'
+  value: 'testdeployment$[counter(format('{0:yyyyMMdd}', pipeline.startTime), 100)]'
 - name: 'ResourceGroupName'
-  value: 'dansiltestcirg'
+  value: '$(ApplicationName)'
 
 jobs:
-# - job: setpipelinevars
-#   displayName: 'Set pipeline variables'
-#   pool:
-#     name: '$(AgentPool)'
-#   steps:
-#   - task: PowerShell@2
-#     displayName: "Set variables app name and resource group"
-#     inputs:
-#       targetType: 'inline'
-#       inline: |
-#         Write-Host "##vso[task.setvariable variable=ApplicationName]dansiltestapp"
-#         Write-Host "##vso[task.setvariable variable=ResourceGroupName]dansiltestappresourcegroup"
-
 - template: '../templates/build-all.yml'
   parameters:
     buildDebug: false
