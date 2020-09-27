@@ -15,12 +15,21 @@ variables:
   value: 'IOT-OPC-WALLS-MSI'
 - name: 'AgentPool'
   value: 'Azure-IoT-Manufacturing'
-- name: 'ApplicationName'
-  value: 'deployment$(Date:yyyyMMdd)$(Rev:rr)'
-- name: 'ResourceGroupName'
-  value: 'deployment$(Date:yyyyMMdd)$(Rev:rr)'
 
 jobs:
+- job: deploy
+  displayName: 'Set pipeline variables'
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - task: PowerShell@2
+    displayName: "Set variables app name and resource group"
+    inputs:
+      targetType: 'inline'
+      inline: |
+        Write-Host "##vso[task.setvariable variable=ApplicationName]dansiltestapp"
+        Write-Host "##vso[task.setvariable variable=ResourceGroupName]dansiltestappresourcegroup"
+
 - template: '../templates/build-all.yml'
   parameters:
     buildDebug: false
