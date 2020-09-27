@@ -8,7 +8,7 @@ variables:
   ClientCredentialsKeyVaultName: automatedtesting
   AzureSubscription: IOT-OPC-WALLS-MSI
   AgentPool: Azure-IoT-Manufacturing
-  ApplicationName: $['deployment'+counter(format('{0:yyyyMMdd}', pipeline.startTime), 100)]
+  ApplicationName: $[counter(format('deployment{0:yyyyMMdd}', pipeline.startTime), 100)]
   ResourceGroupName: $(ApplicationName)
 
 jobs:
