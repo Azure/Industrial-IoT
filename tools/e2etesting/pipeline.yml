@@ -19,6 +19,11 @@ jobs:
   variables:
     runCodesignValidationInjection: false
   steps:
+  - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          Write-Host "Application name $(ApplicationName)"
   - powershell: echo $(ApplicationName)    
   - script: echo ${{variables.ApplicationName}}
   - script: echo $(variables.ApplicationName)
