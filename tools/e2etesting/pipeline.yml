@@ -19,7 +19,7 @@ jobs:
   variables:
     runCodesignValidationInjection: false
   steps:
-  - bash: echo $(ApplicationName)
+  - powershell: echo $(ApplicationName)    
   - script: echo ${{variables.ApplicationName}}
   - script: echo $(variables.ApplicationName)
   
