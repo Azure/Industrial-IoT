@@ -43,14 +43,14 @@ jobs:
       filePath: ./tools/scripts/set-version.ps1
   - task: DotNetCoreCLI@2
     displayName: Release Build
-    condition: eq(parameters.buildRelease, true)
+    condition: eq(${{parameters.buildRelease}}, true)
     inputs:
       command: build
       projects: '$(file)'
       arguments: '--configuration Release'
   - task: DotNetCoreCLI@2
     displayName: Debug Build
-    condition: eq(parameters.buildDebug, true)
+    condition: eq(${{parameters.buildDebug}}, true)
     inputs:
       command: build
       projects: '$(file)'
