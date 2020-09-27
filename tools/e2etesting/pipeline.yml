@@ -1,4 +1,6 @@
 # ResourceGroupName param was deployment$(Build.BuildNumber)
+# deployment$(Build.BuildID)-$(Date:yyyyMMdd)
+# application name = deployment2.8.85+03f7892bf3
 name: $(Date:yyyyMMdd)$(Rev:rr)
 
 trigger: none
@@ -13,6 +15,10 @@ variables:
   value: 'IOT-OPC-WALLS-MSI'
 - name: 'AgentPool'
   value: 'Azure-IoT-Manufacturing'
+- name: 'ApplicationName'
+  value: 'deployment$(Date:yyyyMMdd)$(Rev:rr)'
+- name: 'ResourceGroupName'
+  value: 'deployment$(Date:yyyyMMdd)$(Rev:rr)'
 
 jobs:
 - template: '../templates/build-all.yml'
