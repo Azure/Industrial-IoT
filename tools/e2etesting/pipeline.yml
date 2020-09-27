@@ -8,7 +8,7 @@ variables:
   ClientCredentialsKeyVaultName: automatedtesting
   AzureSubscription: IOT-OPC-WALLS-MSI
   AgentPool: Azure-IoT-Manufacturing
-  ApplicationName: deployment$[counter(format('{0:yyyyMMdd}', pipeline.startTime), 100)]
+  ApplicationName: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 100)]
   ResourceGroupName: $(ApplicationName)
 
 jobs:
@@ -16,7 +16,10 @@ jobs:
   pool:
     name: '$(AgentPool)'
   displayName: 'Test variables'
+  variables:
+    runCodesignValidationInjection: false
   steps:
+  - bash: echo $(ApplicationName)
   - script: echo ${{variables.ApplicationName}}
   - script: echo $(variables.ApplicationName)
   
