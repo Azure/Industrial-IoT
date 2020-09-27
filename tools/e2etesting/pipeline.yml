@@ -4,18 +4,12 @@ trigger: none
 pr: none
 
 variables:
-- name: 'BasePath'
-  value: '$(System.DefaultWorkingDirectory)\tools\e2etesting'
-- name: 'ClientCredentialsKeyVaultName'
-  value: "automatedtesting"
-- name: 'AzureSubscription'
-  value: 'IOT-OPC-WALLS-MSI'
-- name: 'AgentPool'
-  value: 'Azure-IoT-Manufacturing'
-- name: 'ApplicationName'
-  value: 'testdeployment$[counter(format('{0:yyyyMMdd}', pipeline.startTime), 100)]'
-- name: 'ResourceGroupName'
-  value: '$(ApplicationName)'
+  BasePath: $(System.DefaultWorkingDirectory)\tools\e2etesting
+  ClientCredentialsKeyVaultName: automatedtesting
+  AzureSubscription: IOT-OPC-WALLS-MSI
+  AgentPool: Azure-IoT-Manufacturing
+  ApplicationName: testdeployment$[counter(format('{0:yyyyMMdd}', pipeline.startTime), 100)]
+  ResourceGroupName: $(ApplicationName)
 
 jobs:
 - template: '../templates/build-all.yml'
