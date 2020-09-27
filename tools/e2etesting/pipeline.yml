@@ -17,7 +17,7 @@ variables:
   value: 'Azure-IoT-Manufacturing'
 
 jobs:
-- job: deploy
+- job: setpipelinevars
   displayName: 'Set pipeline variables'
   pool:
     name: '$(AgentPool)'
@@ -31,6 +31,7 @@ jobs:
         Write-Host "##vso[task.setvariable variable=ResourceGroupName]dansiltestappresourcegroup"
 
 - template: '../templates/build-all.yml'
+  dependsOn: setpipelinevars
   parameters:
     buildDebug: false
 
