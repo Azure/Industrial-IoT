@@ -3,7 +3,6 @@
 #
 parameters:
   sign: 'False'
-  copyToBlobStorage: 'True'
   runtime: win-x64
   poolName: 'Hosted Windows 2019 with VS2019'
 
@@ -97,7 +96,7 @@ jobs:
       artifact: iiot_deployment_release_$(setVersionInfo.Version_Prefix)_${{ parameters.runtime }}
   - task: AzureCLI@2
     displayName: 'Copy to Blob'
-    condition: and(eq(parameters.copyToBlobStorage, 'True'), succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/'))
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/'))
     inputs:
       azureSubscription: azureiiot-storage
       scriptType: pscore
