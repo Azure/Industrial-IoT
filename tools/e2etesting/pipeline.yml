@@ -15,6 +15,7 @@ jobs:
 - template: '../templates/build-all.yml'
   parameters:
     buildDebug: false
+    publishBinariesAsArtifacts: true
 
 - job: deploy
   condition: ne(variables['UseExisting'], true)

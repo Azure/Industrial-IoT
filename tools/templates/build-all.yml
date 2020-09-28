@@ -3,6 +3,8 @@ parameters:
   default: true
 - name: buildDebug
   default: true
+- name: publishBinariesAsArtifacts
+  default: false
 
 jobs:
 - job: buildprep
@@ -55,3 +57,18 @@ jobs:
       command: build
       projects: '$(file)'
       arguments: '--configuration Debug'
+  - task: PowerShell@2
+    displayName: TESTING 
+    inputs:
+      targetType: 'inline'
+      script: |
+        Write-Host "1: $(file)"
+        dir $(file)
+        Write-Host "2: $(System.DefaultWorkingDirectory)"
+        dir $(System.DefaultWorkingDirectory)
+
+  # - task: PublishPipelineArtifact@1
+  #   condition: eq(${{parameters.publishBinariesAsArtifacts}}, true)
+  #   inputs:
+  #     targetPath: $(System.DefaultWorkingDirectory)/deploy/src/Microsoft.Azure.IIoT.Deployment/bin/Debug/netcoreapp3.1
+  #     artifactName: WebApp
