@@ -12,10 +12,9 @@ variables:
   ResourceGroupName: $(ApplicationName)
 
 jobs:
-- template: '../templates/build-all.yml'
+- template: '../templates/iiot_deployment_win.yml'
   parameters:
-    buildDebug: false
-    publishBinariesAsArtifacts: true
+    copyToBlobStorage: 'False'
 
 # - job: deploy
 #   condition: ne(variables['UseExisting'], true)
