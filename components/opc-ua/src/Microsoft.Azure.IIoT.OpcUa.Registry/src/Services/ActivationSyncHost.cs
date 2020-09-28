@@ -34,7 +34,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <inheritdoc/>
         public void Dispose() {
             Try.Async(StopAsync).Wait();
+
             _updateTimer.Dispose();
+
+            // _cts might be null if StartAsync() was never called.
+            if (!(_cts is null)) {
+                _cts.Dispose();
+            }
         }
 
         /// <inheritdoc/>
@@ -51,8 +57,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public Task StopAsync() {
             if (_cts != null) {
                 _cts.Cancel();
+            }
+
+            lock (_timerLock) {
+                // Disabling future invocation of timer callback.
                 _updateTimer.Change(Timeout.Infinite, Timeout.Infinite);
             }
+
             return Task.CompletedTask;
         }
 
@@ -60,31 +71,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Timer operation
         /// </summary>
         /// <param name="sender"></param>
-        private async void OnUpdateTimerFiredAsync(object sender) {
-            try {
-                _cts.Token.ThrowIfCancellationRequested();
-                _logger.Information("Running endpoint synchronization...");
-                await _activation.SynchronizeActivationAsync(_cts.Token);
-                _logger.Information("Endpoint synchronization finished.");
+        private void OnUpdateTimerFiredAsync(object sender) {
+            lock (_timerLock) {
+                try {
+                    _cts.Token.ThrowIfCancellationRequested();
+                    _logger.Information("Running endpoint synchronization...");
+                    _activation.SynchronizeActivationAsync(_cts.Token).Wait();
+                    _logger.Information("Endpoint synchronization finished.");
+                }
+                catch (OperationCanceledException ex) {
+                    if (_cts.IsCancellationRequested) {
+                        // Cancel was called.
+                        return;
+                    }
+
+                    // Some operation timed out.
+                    _logger.Error(ex, "Failed to run endpoint synchronization.");
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Failed to run endpoint synchronization.");
+                }
+                _updateTimer.Change(_config.SyncInterval, Timeout.InfiniteTimeSpan);
             }
-            catch (OperationCanceledException) {
-                // Cancel was called - dispose cancellation token
-                _cts.Dispose();
-                _cts = null;
-                return;
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Failed to run endpoint synchronization.");
-            }
-            _updateTimer.Change(_config.SyncInterval, Timeout.InfiniteTimeSpan);
         }
 
-        private readonly ILogger _logger;
-        private readonly Timer _updateTimer;
-#pragma warning disable IDE0069 // Disposable fields should be disposed
-        private CancellationTokenSource _cts;
-#pragma warning restore IDE0069 // Disposable fields should be disposed
         private readonly IEndpointActivation _activation;
         private readonly IActivationSyncConfig _config;
+        private readonly ILogger _logger;
+        private readonly Timer _updateTimer;
+        private CancellationTokenSource _cts;
+        private readonly object _timerLock = new object();
     }
 }
