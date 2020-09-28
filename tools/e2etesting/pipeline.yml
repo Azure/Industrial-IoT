@@ -40,7 +40,7 @@ jobs:
     inputs:
       azureSubscription: '$(AzureSubscription)'
       KeyVaultName: '$(ClientCredentialsKeyVaultName)'
-      SecretsFilter: '*'
+      SecretsFilter: 'IAIClientId,IAIClientSecret'
 
   - task: AzurePowerShell@5
     displayName: "Replace parameters in appSettings.json (for IAI)"
@@ -62,13 +62,6 @@ jobs:
     inputs:
       script: '$(IAILocalFilename)'
       workingDirectory: '$(BasePath)'
-
-  - task: PowerShell@2
-    displayName: "Parse .env file"
-    inputs:
-      targetType: 'filePath'
-      pwsh: true
-      filePath: $(BasePath)\ParseEnvFile.ps1
 
   - task: AzurePowerShell@5
     displayName: 'Set KeyVaultName-Variable'
@@ -145,7 +138,7 @@ jobs:
     inputs:
       azureSubscription: '$(AzureSubscription)'
       KeyVaultName: '$(KeyVaultName)'
-      SecretsFilter: '*'
+      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
   - task: CmdLine@2
     displayName: 'Run Newman for $(collectionFile)'
