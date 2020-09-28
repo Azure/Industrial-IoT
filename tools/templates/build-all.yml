@@ -38,11 +38,13 @@ jobs:
       version: 3.1.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
+
   - task: PowerShell@2
     displayName: Versioning
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/set-version.ps1
+
   - task: DotNetCoreCLI@2
     displayName: Release Build
     condition: eq(${{parameters.buildRelease}}, true)
@@ -50,6 +52,7 @@ jobs:
       command: build
       projects: '$(file)'
       arguments: '--configuration Release'
+
   - task: DotNetCoreCLI@2
     displayName: Debug Build
     condition: eq(${{parameters.buildDebug}}, true)
@@ -57,18 +60,9 @@ jobs:
       command: build
       projects: '$(file)'
       arguments: '--configuration Debug'
-  # - task: PowerShell@2
-  #   displayName: TESTING 
-  #   inputs:
-  #     targetType: 'inline'
-  #     script: |
-  #       Write-Host "1: $(file)"
-  #       dir $(file)
-  #       Write-Host "2: $(System.DefaultWorkingDirectory)"
-  #       dir $(System.DefaultWorkingDirectory)
 
   - task: PublishPipelineArtifact@1
     condition: eq(${{parameters.publishBinariesAsArtifacts}}, true)
     inputs:
-      targetPath: $(System.DefaultWorkingDirectory)/deploy/src/Microsoft.Azure.IIoT.Deployment/bin/Debug/netcoreapp3.1
+      targetPath: $(System.DefaultWorkingDirectory)/deploy/src/Microsoft.Azure.IIoT.Deployment/bin/Release/netcoreapp3.1
       artifactName: $(poolImage) IAI
