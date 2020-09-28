@@ -39,7 +39,14 @@ jobs:
     - task: DownloadPipelineArtifact@2
       inputs:
         artifact: 'iiot_deployment'
-        path: $(System.DefaultWorkingDirectory)\iiot_deployment
+        patterns: '**/*.exe'
+        path: $(BasePath)
+    - task: Powershell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          ls $(BasePath)
+
   # - task: PowerShell@2
   #   displayName: "Download IAI binaries"
   #   inputs:
