@@ -12,13 +12,16 @@ variables:
   ResourceGroupName: $(ApplicationName)
 
 jobs:
-- template: '../templates/iiot_deployment_win.yml'
-  parameters:
-    copyToBlobStorage: 'False'
+- job: buildiai
+  displayName: 'Build IAI'
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - template: ../templates/build_iiot_deployment.yml
 
 # - job: deploy
 #   condition: ne(variables['UseExisting'], true)
-#   dependsOn: buildall
+#   dependsOn: buildiai
 #   displayName: 'Prepare and run IAI'
 #   pool:
 #     name: '$(AgentPool)'
