@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             catch (UnauthorizedAccessException) {
                 pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
-            catch (ResourceInvalidStateException) {
+            catch (IotHubQuotaExceededException) {
                 pageResult.Error = "IotHubQuotaExceeded. Send and Receive operations are blocked for this hub until the next UTC day.";
             }
             catch (Exception e) {
