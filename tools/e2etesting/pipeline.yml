@@ -39,8 +39,13 @@ jobs:
     - task: DownloadPipelineArtifact@2
       inputs:
         artifact: 'iiot_deployment'
-        patterns: '**/*.exe'
-        path: $(BasePath)
+        # patterns: '**/*.exe'
+        path: $(BasePath)\iiot_deployment
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: $(BasePath)\iiot_deployment
+        targetFolder: $(BasePath)
+        flattenFolders: true
     - task: Powershell@2
       inputs:
         targetType: 'inline'
