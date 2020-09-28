@@ -8,25 +8,10 @@ variables:
   ClientCredentialsKeyVaultName: automatedtesting
   AzureSubscription: IOT-OPC-WALLS-MSI
   AgentPool: Azure-IoT-Manufacturing
-  ApplicationName: $[format('deployment{0:yyyyMMdd}', pipeline.startTime)]
+  ApplicationName: $[format('deployment{0:yyyyMMdd}{1}', pipeline.startTime, counter(variables.AgentPool, 1))]
   ResourceGroupName: $(ApplicationName)
 
 jobs:
-# - job: testvars
-#   pool:
-#     name: '$(AgentPool)'
-#   displayName: 'Test variables'
-#   variables:
-#     runCodesignValidationInjection: false
-#   steps:
-#   - task: PowerShell@2
-#     inputs:
-#       targetType: 'inline'
-#       script: |
-#         Write-Host "Application name $(ApplicationName)"
-#         Write-Host "Resource group $(ResourceGroupName)"
-#   - powershell: echo $(ApplicationName)
-  
 - template: '../templates/build-all.yml'
   parameters:
     buildDebug: false
