@@ -18,12 +18,12 @@ jobs:
   pool:
     name: '$(AgentPool)'
   steps:
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inlinle'
-        script: |
-          Write-Host "application name: $(ApplicationName)"
-          Write-Host "resource group name: $(ResourceGroupName)"
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inlinle'
+      script: |
+        Write-Host "application name: $(ApplicationName)"
+        Write-Host "resource group name: $(ResourceGroupName)"
           
 
 # jobs:
