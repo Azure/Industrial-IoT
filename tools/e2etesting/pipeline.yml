@@ -168,18 +168,18 @@ jobs:
 #       script: newman run "$(collectionFile)" --env-var ServiceUrl="$(pcs-service-url)" --env-var TenantId="$(pcs-auth-tenant)" --env-var ClientId="$(pcs-auth-client-appid)" --env-var ClientSecret="$(pcs-auth-client-secret)" --env-var ApplicationName="$(ApplicationName)"
 
 # - job: cleanup
-  displayName: Cleanup
-  dependsOn: runnewman
-  condition: and(always(), eq(variables['Cleanup'], true))
-  pool:
-    name: '$(AgentPool)'
-  steps:
-  - task: AzurePowerShell@5
-    displayName: "Delete Resource Group"
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: 'InlineScript'
-      inline: |
-        Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
-        Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force
+# displayName: Cleanup
+# dependsOn: runnewman
+# condition: and(always(), eq(variables['Cleanup'], true))
+# pool:
+#   name: '$(AgentPool)'
+# steps:
+# - task: AzurePowerShell@5
+#   displayName: "Delete Resource Group"
+#   inputs:
+#     azureSubscription: '$(AzureSubscription)'
+#     azurePowerShellVersion: 'latestVersion'
+#     scriptType: 'InlineScript'
+#     inline: |
+#       Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
+#       Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force
