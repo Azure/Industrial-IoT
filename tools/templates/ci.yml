@@ -49,7 +49,8 @@ jobs:
     inputs:
       command: build
       projects: '$(file)'
-      arguments: '--configuration Debug'- job: testprep
+      arguments: '--configuration Debug'
+- job: testprep
   displayName: Prepare Test Jobs
   pool:
     vmImage: 'windows-2019'
