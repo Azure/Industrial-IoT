@@ -99,14 +99,14 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
-        "windows/amd64:10.0.17134.885" = @{
+        "windows/amd64:10.0.17134.1305" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1803"
             platformTag = "nanoserver-amd64-1803"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
-        "windows/amd64:10.0.17763.615" = @{
+        "windows/amd64:10.0.17763.1457" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1809"
             platformTag = "nanoserver-amd64-1809"
@@ -120,10 +120,17 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
-        "windows/amd64:10.0.18362.239" = @{
+        "windows/amd64:10.0.18362.1082" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1903"
             platformTag = "nanoserver-amd64-1903"
+            debugger = $null
+            entryPoint = "[`"$($assemblyName).exe`"]"
+        }
+        "windows/amd64:10.0.18363.1082" = @{
+            runtimeId = "win-x64"
+            image = "mcr.microsoft.com/windows/nanoserver:1909"
+            platformTag = "nanoserver-amd64-1909"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
