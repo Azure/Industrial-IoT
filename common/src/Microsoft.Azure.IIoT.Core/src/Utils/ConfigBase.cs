@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Logger
         /// </summary>
-        protected ILogger _logger;
+        protected static ILogger _logger;
 
         /// <summary>
         /// Configuration
