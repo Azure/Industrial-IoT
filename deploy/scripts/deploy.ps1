@@ -1028,10 +1028,17 @@ Function New-Deployment() {
             #
             Write-EnvironmentVariables -deployment $deployment
 
-            if (![string]::IsNullOrEmpty($website)) {
-                # Try open application
-                Start-Process $website -ErrorAction SilentlyContinue | Out-Null
+            # Try to open $website in a web browser.
+            try {
+                if (![string]::IsNullOrEmpty($website)) {
+                    # Try open application
+                    Start-Process $website -ErrorAction SilentlyContinue | Out-Null
+                }
             }
+            catch {
+                # Ignore if there is no web browser available.
+            }
+
             return
         }
         catch {
