@@ -270,7 +270,7 @@
         "iothubTelemetryConsumerGroup": "telemetry",
         "iothubOnboardingConsumerGroup": "onboarding",
         "iothubEventsConsumerGroup": "events",
-        "iothubTunnelConsumerGroup": "tunnel",
+        "iothubTestConsumerGroup": "test",
         "identityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('managedIdentityName'))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]",
@@ -489,9 +489,9 @@
             ]
         },
         {
-            "comments": "Http Tunnel Consumer Group in IoT Hub",
+            "comments": "Test Consumer Group in IoT Hub",
             "apiVersion": "2019-03-22",
-            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubTunnelConsumerGroup'))]",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubTestConsumerGroup'))]",
             "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
             "tags": "[parameters('tags')]",
             "dependsOn": [
@@ -643,7 +643,7 @@
                             },
                             {
                                 "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP3",
-                                "value": "[variables('iothubTunnelConsumerGroup')]"
+                                "value": "[variables('iothubTestConsumerGroup')]"
                             },
                             {
                                 "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP4",
