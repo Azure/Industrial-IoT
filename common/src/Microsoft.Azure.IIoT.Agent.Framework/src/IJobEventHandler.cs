@@ -43,5 +43,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="job"></param>
         /// <returns></returns>
         Task OnJobDeletedAsync(IJobService manager, JobInfoModel job);
+
+        /// <summary>
+        /// Assign a job to an edge device scope
+        /// </summary>
+        /// <param name="manager"></param>
+        /// <param name="job"></param>
+        /// <param name="deviceScope"></param>
+        /// <returns></returns>
+        Task OnJobAssignmentAsync(IJobService manager, JobInfoModel job, string deviceScope);
     }
 }

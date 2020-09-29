@@ -220,6 +220,9 @@ Options:
             catch (ConflictingResourceException) {
                 logger.Information("Gateway {deviceId} exists.", deviceId);
             }
+            catch (IotHubQuotaExceededException ex) {
+                logger.Error(ex.Message);
+            }
             try {
                 await registry.CreateOrUpdateAsync(new DeviceTwinModel {
                     Id = deviceId,
@@ -228,6 +231,9 @@ Options:
             }
             catch (ConflictingResourceException) {
                 logger.Information("Module {moduleId} exists...", moduleId);
+            }
+            catch (IotHubQuotaExceededException ex) {
+                logger.Error(ex.Message);
             }
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
             return cs;

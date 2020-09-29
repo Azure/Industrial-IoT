@@ -41,7 +41,13 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
         /// <inheritdoc/>
         public void Dispose() {
             Try.Async(StopAsync).Wait();
+
             _updateTimer.Dispose();
+
+            // _cts might be null if StartAsync() was never called.
+            if (!(_cts is null)) {
+                _cts.Dispose();
+            }
         }
 
         /// <inheritdoc/>
@@ -57,8 +63,13 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
         public Task StopAsync() {
             if (_cts != null) {
                 _cts.Cancel();
+            }
+
+            lock (_timerLock) {
+                // Disabling future invocation of timer callback.
                 _updateTimer.Change(Timeout.Infinite, Timeout.Infinite);
             }
+
             return Task.CompletedTask;
         }
 
@@ -66,25 +77,30 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
         /// Timer operation
         /// </summary>
         /// <param name="sender"></param>
-        private async void OnUpdateTimerFiredAsync(object sender) {
-            try {
-                _cts.Token.ThrowIfCancellationRequested();
-                _logger.Information("Updating identity tokens...");
-                await UpdateIdentityTokensAsync(true, _cts.Token);
-                await UpdateIdentityTokensAsync(false, _cts.Token);
-                _logger.Information("Identity Token update finished.");
+        private void OnUpdateTimerFiredAsync(object sender) {
+            lock (_timerLock) {
+                try {
+                    _cts.Token.ThrowIfCancellationRequested();
+                    _logger.Information("Updating identity tokens...");
+                    UpdateIdentityTokensAsync(true, _cts.Token).Wait();
+                    UpdateIdentityTokensAsync(false, _cts.Token).Wait();
+                    _logger.Information("Identity Token update finished.");
+                }
+                catch (OperationCanceledException ex) {
+                    if (_cts.IsCancellationRequested) {
+                        // Cancel was called.
+                        return;
+                    }
+
+                    // Some operation timed out.
+                    _logger.Error(ex, "Failed to update identity tokens.");
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Failed to update identity tokens.");
+                }
+
+                _updateTimer.Change(_config.UpdateInterval, Timeout.InfiniteTimeSpan);
             }
-            catch (OperationCanceledException) {
-                // Cancel was called - dispose cancellation token
-                _cts.Dispose();
-                _cts = null;
-                return;
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Failed to update identity tokens.");
-            }
-            _updateTimer.Change(_config.UpdateInterval,
-                Timeout.InfiniteTimeSpan);
         }
 
         /// <summary>
@@ -155,8 +171,7 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
         private readonly ILogger _logger;
         private readonly IPasswordGenerator _passwordGenerator;
         private readonly Timer _updateTimer;
-#pragma warning disable IDE0069 // Disposable fields should be disposed
         private CancellationTokenSource _cts;
-#pragma warning restore IDE0069 // Disposable fields should be disposed
+        private readonly object _timerLock = new object();
     }
 }
