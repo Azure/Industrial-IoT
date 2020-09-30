@@ -91,6 +91,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             if (isLinux) {
                 // Linux
                 createOptions = _serializer.SerializeToString(new {
+                    Hostname = "discovery",
+                    Cmd = new[] {
+                        "PkiRootPath=/mount/pki"
+                    },
                     NetworkingConfig = new {
                         EndpointsConfig = new {
                             host = new {
@@ -99,16 +103,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                     },
                     HostConfig = new {
                         NetworkMode = "host",
-                        CapAdd = new[] { "NET_ADMIN" }
-                    },
-                    Hostname = "discovery"
+                        CapAdd = new[] { "NET_ADMIN" },
+                        Binds = new[] {
+                            "/mount:/mount"
+                        }
+                    }
                 });
             }
             else {
                 // Windows
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator",
-                    Hostname = "discovery"
+                    Hostname = "discovery",
+                    Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                    },
+                    HostConfig = new {
+                        Mounts = new[] {
+                            new {
+                                Type = "bind",
+                                Source = "C:\\\\ProgramData\\\\iotedge",
+                                Target = "C:\\\\mount"
+                            }
+                        }
+                    }
                 });
             }
             createOptions = createOptions.Replace("\"", "\\\"");

@@ -66,7 +66,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 StatusUpdatedTime = model.StatusUpdatedTime,
                 Tags = model.Tags?
                     .ToDictionary(kv => kv.Key, kv => kv.Value?.Copy()),
-                Version = model.Version
+                Version = model.Version,
+                DeviceScope = model.DeviceScope
             };
         }
 

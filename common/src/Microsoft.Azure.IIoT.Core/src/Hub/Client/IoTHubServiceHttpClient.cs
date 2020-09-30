@@ -69,16 +69,47 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 // First try create device
                 try {
                     var device = NewRequest($"/devices/{twin.Id}");
-                    _serializer.SerializeToRequest(device, new {
-                        deviceId = twin.Id,
-                        capabilities = twin.Capabilities
-                    });
+                    if (string.IsNullOrEmpty(twin.ModuleId) && !string.IsNullOrEmpty(twin.DeviceScope)) {
+                        _serializer.SerializeToRequest(device, new {
+                            deviceId = twin.Id,
+                            capabilities = twin.Capabilities,
+                            deviceScope = twin.DeviceScope
+                        });
+                    }
+                    else {
+                        _serializer.SerializeToRequest(device, new {
+                            deviceId = twin.Id,
+                            capabilities = twin.Capabilities
+                        });
+                    }
                     var response = await _httpClient.PutAsync(device, ct);
                     response.Validate();
                 }
                 catch (ConflictingResourceException)
                     when (!string.IsNullOrEmpty(twin.ModuleId) || force) {
                     // Continue onward
+                    // Update the deviceScope if the twin provided is for leaf iot device
+                    //  (not iotedge device or iotedge module)
+                    if (!(twin.Capabilities?.IotEdge).GetValueOrDefault(false) && 
+                        string.IsNullOrEmpty(twin.ModuleId) && 
+                        !string.IsNullOrEmpty(twin.DeviceScope)) {
+                        try {
+                            var update = NewRequest($"/devices/{twin.Id}");
+                            update.Headers.Add("If-Match",
+                                $"\"{(string.IsNullOrEmpty(twin.Etag) || force ? "*" : twin.Etag)}\"");
+                            _serializer.SerializeToRequest(update, new {
+                                deviceId = twin.Id,
+                                deviceScope = twin.DeviceScope
+                            });
+                            var response = await _httpClient.PutAsync(update, ct);
+                            // just throw if the update fails
+                            response.Validate();
+                        }
+                        catch (ConflictingResourceException)
+                            when (force) {
+                            // Continue onward
+                        }
+                    }
                 }
                 if (!string.IsNullOrEmpty(twin.ModuleId)) {
                     // Try create module
@@ -114,7 +145,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 var patch = NewRequest(
                     $"/twins/{ToResourceId(twin.Id, twin.ModuleId)}");
                 patch.Headers.Add("If-Match",
-                     $"\"{(string.IsNullOrEmpty(twin.Etag) || force ? "*" : twin.Etag)}\"");
+                    $"\"{(string.IsNullOrEmpty(twin.Etag) || force ? "*" : twin.Etag)}\"");
                 if (!string.IsNullOrEmpty(twin.ModuleId)) {
 
                     // Patch module
