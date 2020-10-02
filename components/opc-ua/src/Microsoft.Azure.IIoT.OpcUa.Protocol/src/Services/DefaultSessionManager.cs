@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Net;
 
     /// <summary>
     /// Session manager
@@ -610,6 +611,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (endpointDescription == null) {
                 throw new EndpointNotAvailableException(endpointUrl,
                     id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy);
+            }
+
+            if (wrapper.NumberOfConnectRetries > 0) {
+                var uri = new Uri(endpointDescription.EndpointUrl);
+                if (!IPAddress.TryParse(uri.Host, out var ip)) {
+                    var newUri = new Uri(endpointUrl);
+                    endpointDescription.EndpointUrl = endpointDescription.EndpointUrl.Replace(uri.Host, newUri.Host);
+                }
             }
 
             if (id.Connection.Endpoint.SecurityMode.HasValue &&

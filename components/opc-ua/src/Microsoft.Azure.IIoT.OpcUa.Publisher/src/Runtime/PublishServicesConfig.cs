@@ -10,12 +10,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Configuration;
     using System;
+    using Serilog;
 
     /// <summary>
     /// Configuration of defaults for job definition generation logic for OPC Publisher module.
     /// </summary>
     public class PublishServicesConfig : ConfigBase, IPublishServicesConfig {
-
         /// <summary>
         /// Configuration keys
         /// </summary>
@@ -42,8 +42,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                     () => _defaultBatchTriggerInterval));
 
                 if (batchInterval.TotalMilliseconds >= 100 && batchInterval.TotalMilliseconds <= 3600000) {
-                    //ToDo: This behavior should be logged.
                     return batchInterval;
+                }
+                else {
+                    _logger?.Warning($"DefaultBatchTriggerInterval: Provided value {batchInterval} should be >= 100 and <= 3600000. Defaulting to {_defaultBatchTriggerInterval.TotalMilliseconds}.");
                 }
 
                 return _defaultBatchTriggerInterval;
@@ -58,8 +60,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
                     () => _DefaultBatchSize));
 
                 if (batchSize > 1 && batchSize <= 1000) {
-                    //ToDo: This behavior should be logged.
                     return batchSize;
+                }
+                else {
+                    _logger?.Warning($"DefaultBatchSize: Provided value {batchSize} should be > 1 and <= 1000. Defaulting to {_DefaultBatchSize}.");
                 }
 
                 return _DefaultBatchSize;
@@ -70,12 +74,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
         public int DefaultMaxEgressMessageQueue {
             get {
                 var queueSize = GetIntOrDefault(kDefaultMaxEgressMessageQueue,
-                    () => GetIntOrDefault(PcsVariable.PCS_MAX_EGRESS_MESSAGE_QUEUE,
-                    () => _DefaultMaxEgressMessageQueue));
+                    () => GetIntOrDefault(PcsVariable.PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE,
+                    () => -1));
+
+                if (queueSize == -1) {
+                    // Fallback to deprecated option,
+                    // use PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE instead.
+                    queueSize = GetIntOrDefault(PcsVariable.PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES,
+                        () => _DefaultMaxEgressMessageQueue);
+                }
 
                 if (queueSize > 1 && queueSize <= 25000) {
-                    //ToDo: This behavior should be logged.
                     return queueSize;
+                }
+                else {
+                    _logger?.Warning($"DefaultMaxEgressMessageQueue: Provided value {queueSize} should be > 1 and <= 25000. Defaulting to {_DefaultMaxEgressMessageQueue}.");
                 }
 
                 return _DefaultMaxEgressMessageQueue;
