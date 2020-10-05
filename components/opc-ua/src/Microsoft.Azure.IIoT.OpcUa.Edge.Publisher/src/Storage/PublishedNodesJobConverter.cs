@@ -78,6 +78,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     // Group by connection
                     .GroupBy(item => new ConnectionModel {
                         OperationTimeout = legacyCliModel.OperationTimeout,
+                        Id = item.DataSetWriterId,
+                        Group = item.DataSetWriterGroup,
                         Endpoint = new EndpointModel {
                             Url = item.EndpointUrl.OriginalString,
                             SecurityMode = item.UseSecurity == false &&
@@ -97,7 +99,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         .Flatten()
                         .GroupBy(n => n.OpcPublishingInterval)
                         .SelectMany(n => n
-                            .Distinct((a, b) => a.Id == b.Id && a.DisplayName == b.DisplayName &&
+                            .Distinct((a, b) => a.Id == b.Id && a.DisplayName == b.DisplayName && a.DataSetFieldId == b.DataSetFieldId &&
                                         a.OpcSamplingInterval == b.OpcSamplingInterval)
                             .Batch(1000))
                         .Select(opcNodes => new PublishedDataSetSourceModel {
@@ -110,11 +112,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 PublishedData = opcNodes
                                     .Select(node => new PublishedDataSetVariableModel {
                                         // this is the monitored item id, not the nodeId!
-                                        // Use the display name if any otherwisw the nodeId
-                                        Id = string.IsNullOrEmpty(node.DisplayName)
-                                            ? node.Id : node.DisplayName,
+                                        // Use the display name if any otherwise the nodeId
+                                        Id = string.IsNullOrEmpty(node.DataSetFieldId)
+                                            ? node.Id : node.DataSetFieldId,
                                         PublishedVariableNodeId = node.Id,
-                                        PublishedVariableDisplayName = node.DisplayName,
+                                        PublishedVariableDisplayName = node.DataSetFieldId,
                                         SamplingInterval = node.OpcSamplingIntervalTimespan ??
                                             legacyCliModel.DefaultSamplingInterval,
                                         HeartbeatInterval = node.HeartbeatInterval.HasValue ?
@@ -137,11 +139,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         },
                         WriterGroup = new WriterGroupModel {
                             MessageType = legacyCliModel.MessageEncoding,
-                            WriterGroupId = $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
-                                $"{new ConnectionIdentifier(dataSetSourceBatches.First().Connection)}",
+                            WriterGroupId = !string.IsNullOrEmpty(dataSetSourceBatches.First().Connection.Group)
+                                ? $"{dataSetSourceBatches.First().Connection.Group}"
+                                : $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
+                                    $"{new ConnectionIdentifier(dataSetSourceBatches.First().Connection)}",
                             DataSetWriters = dataSetSourceBatches.Select(dataSetSource => new DataSetWriterModel {
-                                DataSetWriterId = $"{dataSetSource.Connection.Endpoint.Url}_" +
-                                    $"{dataSetSource.GetHashSafe()}",
+                                DataSetWriterId = !string.IsNullOrEmpty(dataSetSource.Connection.Id)
+                                    ? $"{dataSetSource.Connection.Id}"
+                                    : $"{dataSetSource.Connection.Endpoint.Url}_" +
+                                        $"{dataSetSource.GetHashSafe()}",
                                 DataSet = new PublishedDataSetModel {
                                     DataSetSource = dataSetSource.Clone(),
                                 },
@@ -208,11 +214,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 Id = node.Id,
                                 DisplayName = string.IsNullOrEmpty(node.DisplayName) ?
                                     $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
+                                DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
                                 HeartbeatInterval = node.HeartbeatInterval,
                                 HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
-                                OpcPublishingInterval = node.OpcPublishingInterval,
-                                OpcPublishingIntervalTimespan = node.OpcPublishingIntervalTimespan,
+                                OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval,
+                                OpcPublishingIntervalTimespan = item.DataSetPublishingInterval.HasValue ? 
+                                        TimeSpan.FromMilliseconds(item.DataSetPublishingInterval.Value)
+                                        : node.OpcPublishingIntervalTimespan,
                                 OpcSamplingInterval = node.OpcSamplingInterval,
                                 OpcSamplingIntervalTimespan = node.OpcSamplingIntervalTimespan,
                                 SkipFirst = node.SkipFirst
@@ -315,6 +324,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     (int)value.Value.TotalMilliseconds : (int?)null;
             }
 
+            /// <summary> DataSetFieldId </summary>
+            [DataMember(EmitDefaultValue = false)]
+            public string DataSetFieldId { get; set; }
+
             /// <summary> Display name </summary>
             [DataMember(EmitDefaultValue = false)]
             public string DisplayName { get; set; }
@@ -354,6 +367,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// </summary>
         [DataContract]
         public class PublishedNodesEntryModel {
+
+            /// <summary> Id Identifier of the DataFlow - DataSetWriterId. </summary>
+            [DataMember(IsRequired = false)]
+            public string DataSetWriterId { get; set; }
+
+            /// <summary> The Group the stream belongs to - DataSetWriterGroup. </summary>
+            [DataMember(IsRequired = false)]
+            public string DataSetWriterGroup { get; set; }
+
+            /// <summary> The Publishing interval for a dataset writer </summary>
+            [DataMember(IsRequired = false)]
+            public int? DataSetPublishingInterval { get; set; }
 
             /// <summary> The endpoint URL of the OPC UA server. </summary>
             [DataMember(IsRequired = true)]
