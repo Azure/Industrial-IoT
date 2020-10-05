@@ -48,7 +48,7 @@ deployment and must be passed to the `deploy.ps1` script in the same folder usin
 Use the following command to deploy Azure Industrial IoT platform with pre-created App Registrations:
 
 ```pwsh
-./deploy.ps1 -aadConfig aad.json
+./deploy.ps1 -aadConfig aad.json -applicationName <application-name>
 ```
 
 ## `Microsoft.Azure.IIoT.Deployment`
