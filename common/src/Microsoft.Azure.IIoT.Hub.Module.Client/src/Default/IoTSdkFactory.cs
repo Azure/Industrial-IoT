@@ -77,6 +77,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     if (string.IsNullOrWhiteSpace(_cs.GatewayHostName) && !string.IsNullOrWhiteSpace(ehubHost)) {
                         _cs = IotHubConnectionStringBuilder.Create(
                             config.EdgeHubConnectionString + ";GatewayHostName=" + ehubHost);
+
+                        _logger.Information($"Details of gateway host are added to IoT Hub connection string: " +
+                            $"GatewayHostName={ehubHost}");
                     }
 
                 }
@@ -111,7 +114,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
             }
             if (!string.IsNullOrEmpty(ehubHost)) {
-                // Running in edge mode 
+                // Running in edge mode
                 // the configured transport (if provided) will be forced to it's OverTcp
                 // variant as follows: AmqpOverTcp when Amqp, AmqpOverWebsocket or AmqpOverTcp specified
                 // and MqttOverTcp otherwise. Default is MqttOverTcp
