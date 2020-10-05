@@ -269,7 +269,8 @@ namespace OpcPublisher
         {
             if (disposing)
             {
-                OpcSessionsListSemaphore.Wait();
+                // avoid get semaphore here, otherwise there will be deadlock during OpcSession disposing
+                // OpcSessionsListSemaphore.Wait(); 
                 foreach (var opcSession in OpcSessions)
                 {
                     opcSession.Dispose();
