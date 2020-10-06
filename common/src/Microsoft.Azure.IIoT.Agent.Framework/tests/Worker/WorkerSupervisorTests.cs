@@ -131,7 +131,7 @@
         }
 
         [Fact]
-        public async Task Test_004_NegativeMaxWorker_Expect_Exception() {
+        public async Task Test_004_NegativeMaxWorker_Expect_UseDefaultValue() {
 
             using var container = GetAutofacTestConfiguration();
             var agentConfig = new TestAgentConfigProvider();
@@ -155,6 +155,35 @@
             await Task.Delay(kDefaultDelay); 
             Assert.Equal(kDefaultMaxWorker, sut.NumberOfWorker);
             loggerMock.Verify();
+
+            // clean up
+            await sut.StopAsync();
+        }
+
+        [Fact]
+        public async Task Test_005_IncreaseAndDecreaseMaxWorker_Expect_Exception() {
+
+            using var container = GetAutofacTestConfiguration();
+            var agentConfig = new TestAgentConfigProvider();
+            var loggerMock = new Mock<ILogger>();
+
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object);
+
+            // start host process
+            var sut = workerSupervisor as IWorkerSupervisor;
+            Assert.NotNull(sut);
+            await sut.StartAsync();
+
+            // Test
+            int numberOfWorker = 8; //Increase
+            agentConfig.SetMaxWorker(numberOfWorker);
+            await Task.Delay(kDefaultDelay);
+            Assert.Equal(numberOfWorker, sut.NumberOfWorker);
+
+            numberOfWorker = 6; //Decrease
+            agentConfig.SetMaxWorker(numberOfWorker);
+            await Task.Delay(kDefaultDelay);
+            Assert.Equal(numberOfWorker, sut.NumberOfWorker);
 
             // clean up
             await sut.StopAsync();

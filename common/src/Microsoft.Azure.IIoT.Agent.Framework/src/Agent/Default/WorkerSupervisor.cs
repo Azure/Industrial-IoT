@@ -83,7 +83,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         private async Task StopWorker() {
             // sort worker, so that worker in state stopped, stoping or WaitingForJob will terminate first 
             var worker = _instances.OrderBy(kvp => kvp.Key.Status).First();
-
+            var workerId = worker.Key.WorkerId;
+            _logger.Information("Stopping worker with id {WorkerId}", workerId);
+            
             await worker.Key.StopAsync();
             worker.Value.Dispose();
             _instances.Remove(worker.Key);
