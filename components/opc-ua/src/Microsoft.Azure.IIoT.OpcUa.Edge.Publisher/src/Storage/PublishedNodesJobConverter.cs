@@ -124,8 +124,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         PublishedVariableDisplayName = node.DisplayName,
                                         SamplingInterval = node.OpcSamplingIntervalTimespan ??
                                             legacyCliModel.DefaultSamplingInterval,
-                                        HeartbeatInterval = node.HeartbeatInterval.HasValue ?
-                                            TimeSpan.FromSeconds(node.HeartbeatInterval.Value) :
+                                        HeartbeatInterval = node.HeartbeatIntervalTimespan.HasValue ?
+                                            node.HeartbeatIntervalTimespan.Value :
                                             legacyCliModel.DefaultHeartbeatInterval,
                                         QueueSize = legacyCliModel.DefaultQueueSize,
                                         // TODO: skip first?
@@ -223,7 +223,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
                                 DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
-                                HeartbeatInterval = node.HeartbeatInterval,
                                 HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
                                 OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval,
                                 OpcSamplingInterval = node.OpcSamplingInterval,

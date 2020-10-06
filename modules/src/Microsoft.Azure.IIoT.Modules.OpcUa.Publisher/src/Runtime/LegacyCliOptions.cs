@@ -38,7 +38,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 this[item.Key] = item.Value;
             }
             Config = ToAgentConfigModel();
-            LegacyCliModel = ToLegacyCliModel();
         }
 
         // TODO: Figure out which are actually supported in the new publisher implementation
@@ -194,7 +193,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             options.Parse(args);
 
             Config = ToAgentConfigModel();
-            LegacyCliModel = ToLegacyCliModel();
         }
 
         /// <summary>
@@ -243,7 +241,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// The model of the CLI arguments.
         /// </summary>
-        public LegacyCliModel LegacyCliModel { get; }
+        public LegacyCliModel LegacyCliModel {
+            get {
+                if (_legacyCliModel == null) {
+                    _legacyCliModel = ToLegacyCliModel();
+                }
+
+                return _legacyCliModel;
+            }
+        }
 
         /// <summary>
         /// Gets the additiona loggerConfiguration that represents the command line arguments.
@@ -321,5 +327,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             var converter = TypeDescriptor.GetConverter(typeof(T));
             return (T)converter.ConvertFrom(this[key]);
         }
+
+        private LegacyCliModel _legacyCliModel = null;
     }
 }
