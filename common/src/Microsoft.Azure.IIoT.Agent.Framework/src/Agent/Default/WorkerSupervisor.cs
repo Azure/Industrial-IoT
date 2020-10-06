@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// Create worker
         /// </summary>
         /// <returns></returns>
-        public Task<IWorker> CreateWorker() {
+        private Task<IWorker> CreateWorker() {
             var maxWorkers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
             if (_instances.Count >= maxWorkers) {
                 throw new MaxWorkersReachedException(maxWorkers);
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// Stop worker
         /// </summary>
         /// <returns>awaitable task</returns>
-        public async Task StopWorker() {
+        private async Task StopWorker() {
             // sort worker, so that worker in state stopped, stoping or WaitingForJob will terminate first 
             var worker = _instances.OrderBy(kvp => kvp.Key.Status).First();
 
