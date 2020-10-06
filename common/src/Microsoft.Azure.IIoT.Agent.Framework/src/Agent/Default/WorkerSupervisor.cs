@@ -56,25 +56,33 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         }
 
         /// <inheritdoc/>
+        public int NumberOfWorker => _instances.Count;
+
+        /// <summary>
+        /// Create worker
+        /// </summary>
+        /// <returns></returns>
         public Task<IWorker> CreateWorker() {
             var maxWorkers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
             if (_instances.Count >= maxWorkers) {
                 throw new MaxWorkersReachedException(maxWorkers);
             }
-
+            
             var childScope = _lifetimeScope.BeginLifetimeScope();
             var worker = childScope.Resolve<IWorker>(new NamedParameter("workerInstance", _instances.Count));
             _instances[worker] = childScope;
+            _logger.Information("Creating new worker with id {WorkerId}", worker.WorkerId);
+
             return Task.FromResult(worker);
         }
 
-        /// <inheritdoc/>
-        public async Task StopWorker(string workerId) {
-            if (!_instances.Keys.Any(w => w.WorkerId == workerId)) {
-                throw new WorkerNotFoundException(workerId);
-            }
-
-            var worker = _instances.Where(w => w.Key.WorkerId == workerId).Single();
+        /// <summary>
+        /// Stop worker
+        /// </summary>
+        /// <returns>awaitable task</returns>
+        public async Task StopWorker() {
+            // sort worker, so that worker in state stopped, stoping or WaitingForJob will terminate first 
+            var worker = _instances.OrderBy(kvp => kvp.Key.Status).First();
 
             await worker.Key.StopAsync();
             worker.Value.Dispose();
@@ -107,26 +115,34 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// </summary>
         /// <returns></returns>
         private async Task EnsureWorkersAsync() {
-            var workerStartTasks = new List<Task>();
 
-            while (true) {
-                var workers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
-                while (_instances.Count < workers) {
-                    _logger.Information("Creating new worker...");
-                    var worker = await CreateWorker();
-                }
-
-                foreach (var stoppedWorker in _instances.Keys.Where(s => s.Status == WorkerStatus.Stopped)) {
-                    _logger.Information("Starting worker '{workerId}'...", stoppedWorker.WorkerId);
-                    workerStartTasks.Add(stoppedWorker.StartAsync());
-                }
-                await Task.WhenAll(workerStartTasks);
-                // the configuration might have been changed by workers execution
-                var newWorkers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
-                if (workers >= newWorkers) {
-                    break;
-                }
+            if (_agentConfigProvider.Config?.MaxWorkers <= 0) {
+                _logger.Error("MaxWorker can't be zero or negative! using default value {DefaultMaxWorkers}", kDefaultWorkers);
+                _agentConfigProvider.Config.MaxWorkers = kDefaultWorkers;
             }
+
+            var workers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
+            var delta = workers - _instances.Count;
+
+            // start new worker if necessary
+            while (delta > 0) {
+                var worker = await CreateWorker();
+                delta--;
+            }
+
+            // terminate running worker if necessary
+            while (delta < 0) {
+                await StopWorker();
+                delta++;
+            }
+
+            //restart stopped worker if necessary
+            var workerStartTasks = new List<Task>();
+            foreach (var stoppedWorker in _instances.Keys.Where(s => s.Status == WorkerStatus.Stopped)) {
+                _logger.Information("Starting worker '{workerId}'...", stoppedWorker.WorkerId);
+                workerStartTasks.Add(stoppedWorker.StartAsync());
+            }
+            await Task.WhenAll(workerStartTasks);
         }
 
         private const int kDefaultWorkers = 5; // TODO - single listener, dynamic workers.
