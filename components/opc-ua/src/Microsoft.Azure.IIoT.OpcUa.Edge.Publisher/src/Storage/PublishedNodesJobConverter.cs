@@ -121,8 +121,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         PublishedVariableDisplayName = node.DisplayName,
                                         SamplingInterval = node.OpcSamplingIntervalTimespan ??
                                             legacyCliModel.DefaultSamplingInterval,
-                                        HeartbeatInterval = node.HeartbeatInterval.HasValue ?
-                                            TimeSpan.FromSeconds(node.HeartbeatInterval.Value) :
+                                        HeartbeatInterval = node.HeartbeatIntervalTimespan.HasValue ?
+                                            node.HeartbeatIntervalTimespan.Value :
                                             legacyCliModel.DefaultHeartbeatInterval,
                                         QueueSize = legacyCliModel.DefaultQueueSize,
                                         // TODO: skip first?
@@ -213,7 +213,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 DisplayName = string.IsNullOrEmpty(node.DisplayName) ?
                                     $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
                                 ExpandedNodeId = node.ExpandedNodeId,
-                                HeartbeatInterval = node.HeartbeatInterval,
                                 HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
                                 OpcPublishingInterval = node.OpcPublishingInterval,
                                 OpcPublishingIntervalTimespan = node.OpcPublishingIntervalTimespan,
@@ -325,18 +324,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
 
             /// <summary> Heartbeat </summary>
             [DataMember(EmitDefaultValue = false)]
-            public int? HeartbeatInterval { get; set; }
+            public int? HeartbeatInterval {
+                get => HeartbeatIntervalTimespan.HasValue ? (int)HeartbeatIntervalTimespan.Value.TotalSeconds : default(int?);
+                set => HeartbeatIntervalTimespan = value.HasValue ? TimeSpan.FromSeconds(value.Value) : default(TimeSpan?);
+            }
 
             /// <summary>
             /// Heartbeat interval as TimeSpan.
             /// </summary>
-            [IgnoreDataMember]
-            public TimeSpan? HeartbeatIntervalTimespan {
-                get => HeartbeatInterval.HasValue ?
-                    TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
-                set => HeartbeatInterval = value != null ?
-                    (int)value.Value.TotalSeconds : (int?)null;
-            }
+            [DataMember(EmitDefaultValue = false)]
+            public TimeSpan? HeartbeatIntervalTimespan { get; set; }
 
             /// <summary> Skip first value </summary>
             [DataMember(EmitDefaultValue = false)]
