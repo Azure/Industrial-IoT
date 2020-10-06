@@ -8,6 +8,7 @@ jobs:
     name: Hosted Windows 2019 with VS2019
   variables:
     skipComponentGovernanceDetection: true
+    runCodesignValidationInjection: false
   steps:
   - task: PowerShell@2
     name: acrmatrix
@@ -51,4 +52,9 @@ jobs:
       azureSubscription: azureiiot
       scriptLocation: inlineScript
       inlineScript: powershell ./tools/scripts/acr-build.ps1 $(dockerFolder) -debug
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-codesignvalidation.CodeSign@1
+    name: codesignvalidation
+    displayName: Codesign Validation
+    inputs:
+      path: $(Build.SourcesDirectory)
 
