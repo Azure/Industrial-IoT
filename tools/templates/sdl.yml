@@ -68,7 +68,7 @@ jobs:
     displayName: PoliCheck
     inputs:
       targetType: F
-      SOMEnabled: false
+      SOMEnabled: true
       uploadToSOM: true
       workspaceid: f26cefbe-7e7b-436a-8aad-ded8bb5d03e1
     continueOnError: true
@@ -85,6 +85,7 @@ jobs:
     displayName: 'Post Analysis'
     inputs:
       BinSkim: true
+      PoliCheck: true
       CredScan: true
       RoslynAnalyzers: true
   - script: |
@@ -106,7 +107,7 @@ jobs:
       uploadFortifySCA: false
       uploadFxCop: false
       uploadModernCop: false
-      uploadPoliCheck: false
+      uploadPoliCheck: true
       uploadPREfast: false
       uploadRoslyn: true
       uploadTSLint: false
