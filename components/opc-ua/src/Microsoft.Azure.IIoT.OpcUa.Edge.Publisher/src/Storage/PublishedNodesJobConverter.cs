@@ -87,7 +87,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     SecurityMode.None : SecurityMode.Best
                         },
                         User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
-                                null : ToUserNamePasswordCredentialAsync(item).Result
+                                null : ToUserNamePasswordCredentialAsync(item).Result,
+                        
                     },
                         // Select and batch nodes into published data set sources
                         item => GetNodeModels(item, legacyCliModel.ScaleTestCount.GetValueOrDefault(1)),
@@ -206,6 +207,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         node.Id = node.ExpandedNodeId;
                     }
                     if (scaleTestCount == 1) {
+                        node.OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval;
+                        node.OpcPublishingIntervalTimespan = item.DataSetPublishingInterval.HasValue ?
+                                        TimeSpan.FromMilliseconds(item.DataSetPublishingInterval.Value)
+                                        : node.OpcPublishingIntervalTimespan;
                         yield return node;
                     }
                     else {
