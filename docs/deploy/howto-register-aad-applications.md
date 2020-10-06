@@ -6,7 +6,7 @@
 
 * [Introduction](#introduction)
 * [PowerShell scripts](#powershell-scripts)
-* [`Microsoft.Azure.IIoT.Deployment`](#microsoftazureiiotdeployment)
+* [Microsoft.Azure.IIoT.Deployment](#microsoftazureiiotdeployment)
 
 ## Introduction
 
@@ -44,7 +44,7 @@ Follow script commands and provide additional details where needed.
 
 ```bash
 cd deploy/scripts
-./aad-register.ps1 -Name <application-name> -ReplyUrl https://<application-name>.azurewebsites.net/ -Output aad.json -TenantId XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+./aad-register.ps1 -Name <application-name> -ReplyUrl https://<application-name>.azurewebsites.net/ -TenantId XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX -Output aad.json
 ```
 
 The output of the script is a JSON file containing the relevant information to be used as part of the
@@ -59,7 +59,7 @@ Follow script commands and provide additional details where needed.
 
 You can find all configuration options for `deploy.ps` [here](./howto-deploy-all-in-one.md#deployment-script-options).
 
-## `Microsoft.Azure.IIoT.Deployment`
+## Microsoft.Azure.IIoT.Deployment
 
 Find links for downloading executable `Microsoft.Azure.IIoT.Deployment` application [here](./howto-deploy-aks.md#download-microsoftazureiiotdeployment-binaries).
 
@@ -69,12 +69,12 @@ Find links for downloading executable `Microsoft.Azure.IIoT.Deployment` applicat
 * `<application-name>-client`: used for authentication of native and Web clients, such as CLI tool or Swagger
 * `<application-name>-aks`: used for providing identity for AKS cluster
 
-Use the following command to run `Microsoft.Azure.IIoT.Deployment` application for App Registration creation and setup only.
-Follow the commands and provide additional details where needed.
+Use the following command to run `Microsoft.Azure.IIoT.Deployment` application for App Registration creation
+and setup only. Follow the commands and provide additional details where needed.
 
 > Note: `ApplicationUrl` has the following format `<application-name>.<region>.cloudapp.azure.com`, as we are
-> using a DNS entry for a Public IP Address resource. So please make sure to use correct format for the region
-> that you deploy to.
+> using a DNS entry for a Public IP Address resource to provide a URL for the Ingress. So please make sure to
+> use correct format for the region that you want to deploy to.
 
 ```bash
 .\Microsoft.Azure.IIoT.Deployment.exe RunMode=ApplicationRegistration Auth:AzureEnvironment=AzureGlobalCloud ApplicationName=<application-name> ApplicationUrl=<application-name>.northeurope.cloudapp.azure.com
@@ -89,49 +89,50 @@ JSON object as value of `ApplicationRegistration` key as shown bellow.
 {
     "ApplicationRegistration": {
         "ServiceApplication": {
-          "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-          "DisplayName": "<application-name>-service",
-          "IdentifierUris": [
-            "https://<tenant-id>/<application-name>-service"
-          ],
-          "AppId": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+            "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+            "DisplayName": "<application-name>-service",
+            "IdentifierUris": [
+                "https://<tenant-id>/<application-name>-service"
+            ],
+            "AppId": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
         },
         "ServiceApplicationSP": {
-          "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-          "DisplayName": "<application-name>-service"
+            "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+            "DisplayName": "<application-name>-service"
         },
         "ServiceApplicationSecret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
         "ClientApplication": {
-          "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-          "DisplayName": "<application-name>-client",
-          "IdentifierUris": [
-            "https://<tenant-id>/<application-name>-client"
-          ],
-          "AppId": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+            "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+            "DisplayName": "<application-name>-client",
+            "IdentifierUris": [
+                "https://<tenant-id>/<application-name>-client"
+            ],
+            "AppId": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
         },
         "ClientApplicationSP": {
-          "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-          "DisplayName": "<application-name>-client"
+            "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+            "DisplayName": "<application-name>-client"
         },
         "ClientApplicationSecret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
         "AksApplication": {
-          "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-          "DisplayName": "<application-name>-aks",
-          "IdentifierUris": [
-            "https://<tenant-id>/<application-name>-aks"
-          ],
-          "AppId": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+            "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+            "DisplayName": "<application-name>-aks",
+            "IdentifierUris": [
+                "https://<tenant-id>/<application-name>-aks"
+            ],
+            "AppId": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
         },
         "AksApplicationSP": {
-          "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-          "DisplayName": "<application-name>-aks"
+            "Id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+            "DisplayName": "<application-name>-aks"
         },
         "AksApplicationSecret": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-      }
+    }
 }
 ```
 
-After that, use the following command to deploy Azure Industrial IoT platform with pre-created App Registrations.
+After that, use the following command to deploy Azure Industrial IoT platform with pre-created App
+Registrations. Follow the commands and provide additional details where needed.
 
 ```bash
 .\Microsoft.Azure.IIoT.Deployment.exe RunMode=ResourceDeployment Auth:AzureEnvironment=AzureGlobalCloud ApplicationName=<application-name> ResourceGroup:Region=EuropeNorth
