@@ -69,7 +69,7 @@
             var agentConfigMock = new Mock<IAgentConfigProvider>();
             var loggerMock = new Mock<ILogger>();
 
-            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfigMock.Object, loggerMock.Object);
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfigMock.Object, loggerMock.Object, kSupervisorDelay);
 
             // start host process
             var sut = workerSupervisor as IWorkerSupervisor;
@@ -90,7 +90,7 @@
             var agentConfig = new TestAgentConfigProvider();
             var loggerMock = new Mock<ILogger>();
 
-            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object);
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, kSupervisorDelay);
 
             // start host process
             var sut = workerSupervisor as IWorkerSupervisor;
@@ -113,7 +113,7 @@
             var agentConfig = new TestAgentConfigProvider();
             var loggerMock = new Mock<ILogger>();
 
-            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object);
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, kSupervisorDelay);
 
             // start host process
             var sut = workerSupervisor as IWorkerSupervisor;
@@ -141,7 +141,7 @@
                 It.Is<int>(i => i == kDefaultMaxWorker)))
                 .Verifiable();
 
-            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object);
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, kSupervisorDelay);
 
             // start host process
             var sut = workerSupervisor as IWorkerSupervisor;
@@ -167,7 +167,7 @@
             var agentConfig = new TestAgentConfigProvider();
             var loggerMock = new Mock<ILogger>();
 
-            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object);
+            var workerSupervisor = new WorkerSupervisor(container.BeginLifetimeScope(), agentConfig, loggerMock.Object, kSupervisorDelay);
 
             // start host process
             var sut = workerSupervisor as IWorkerSupervisor;
@@ -197,7 +197,8 @@
             return container;
         }
 
-        private const int kDefaultDelay = 15000; //Internal timer which creates the Worker run every 10 seconds
+        private const int kDefaultDelay = 2000; //Internal timer which creates the Worker run every 10 seconds
         private const int kDefaultMaxWorker = 5;
+        private const int kSupervisorDelay = 1;
     }
 }
