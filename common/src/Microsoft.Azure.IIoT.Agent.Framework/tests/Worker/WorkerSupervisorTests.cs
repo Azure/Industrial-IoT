@@ -164,7 +164,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
         }
 
         [Fact]
-        public async Task Test_005_IncreaseAndDecreaseMaxWorker_Expect_Exception() {
+        public async Task Test_005_IncreaseAndDecreaseMaxWorker_Expect_AdoptionOfWorker() {
 
             using var container = GetAutofacTestConfiguration();
             var agentConfig = new TestAgentConfigProvider();
