@@ -124,7 +124,7 @@ Start the deployment
 
 On **Windows**, the script uses Powershell, which comes with Windows. The deploy batch file uses it to install all required modules.
 
-In case you run into issues, e.g. because you want to use pscore, run following two commands in PowerShell as Administrator. See more information about [AzureAD and Az modules](https://docs.microsoft.com/powershell/azure/install-az-ps).
+In case you run into issues, e.g. because you want to use pscore, run the following two commands in PowerShell as Administrator. See more information about [AzureAD and Az modules](https://docs.microsoft.com/powershell/azure/install-az-ps).
 
    ```pwsh
    Install-Module -Name Az -AllowClobber
