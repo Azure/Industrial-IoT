@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
@@ -12,7 +13,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
-    using System.Runtime.Serialization;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -282,154 +282,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 Type = CredentialType.UserName,
                 Value = _serializer.FromObject(new { user, password })
             };
-        }
-
-        /// <summary>
-        /// Describing an entry in the node list
-        /// </summary>
-        [DataContract]
-        public class OpcNodeModel {
-
-            /// <summary> Node Identifier </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string Id { get; set; }
-
-            /// <summary> Also </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string ExpandedNodeId { get; set; }
-
-            /// <summary> Sampling interval </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public int? OpcSamplingInterval { get; set; }
-
-            /// <summary>
-            /// OpcSamplingInterval as TimeSpan.
-            /// </summary>
-            [IgnoreDataMember]
-            public TimeSpan? OpcSamplingIntervalTimespan {
-                get => OpcSamplingInterval.HasValue ?
-                    TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
-                set => OpcSamplingInterval = value != null ?
-                    (int)value.Value.TotalMilliseconds : (int?)null;
-            }
-
-            /// <summary> Publishing interval </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public int? OpcPublishingInterval { get; set; }
-
-            /// <summary>
-            /// OpcPublishingInterval as TimeSpan.
-            /// </summary>
-            [IgnoreDataMember]
-            public TimeSpan? OpcPublishingIntervalTimespan {
-                get => OpcPublishingInterval.HasValue ?
-                    TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
-                set => OpcPublishingInterval = value != null ?
-                    (int)value.Value.TotalMilliseconds : (int?)null;
-            }
-
-            /// <summary> DataSetFieldId </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string DataSetFieldId { get; set; }
-
-            /// <summary> Display name </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string DisplayName { get; set; }
-
-            /// <summary> Heartbeat </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public int? HeartbeatInterval {
-                get => HeartbeatIntervalTimespan.HasValue ? (int)HeartbeatIntervalTimespan.Value.TotalSeconds : default(int?);
-                set => HeartbeatIntervalTimespan = value.HasValue ? TimeSpan.FromSeconds(value.Value) : default(TimeSpan?);
-            }
-
-            /// <summary>
-            /// Heartbeat interval as TimeSpan.
-            /// </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public TimeSpan? HeartbeatIntervalTimespan { get; set; }
-
-            /// <summary> Skip first value </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public bool? SkipFirst { get; set; }
-        }
-
-        /// <summary>
-        /// Node id serialized as object
-        /// </summary>
-        [DataContract]
-        public class NodeIdModel {
-            /// <summary> Identifier </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string Identifier { get; set; }
-        }
-
-        /// <summary>
-        /// Contains the nodes which should be
-        /// </summary>
-        [DataContract]
-        public class PublishedNodesEntryModel {
-
-            /// <summary> Id Identifier of the DataFlow - DataSetWriterId. </summary>
-            [DataMember(IsRequired = false)]
-            public string DataSetWriterId { get; set; }
-
-            /// <summary> The Group the stream belongs to - DataSetWriterGroup. </summary>
-            [DataMember(IsRequired = false)]
-            public string DataSetWriterGroup { get; set; }
-
-            /// <summary> The Publishing interval for a dataset writer </summary>
-            [DataMember(IsRequired = false)]
-            public int? DataSetPublishingInterval { get; set; }
-
-            /// <summary> The endpoint URL of the OPC UA server. </summary>
-            [DataMember(IsRequired = true)]
-            public Uri EndpointUrl { get; set; }
-
-            /// <summary> Secure transport should be used to </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public bool? UseSecurity { get; set; }
-
-            /// <summary> The node to monitor in "ns=" syntax. </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public NodeIdModel NodeId { get; set; }
-
-            /// <summary> authentication mode </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
-
-            /// <summary> encrypted username </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string EncryptedAuthUsername { get; set; }
-
-            /// <summary> encrypted password </summary>
-            [DataMember]
-            public string EncryptedAuthPassword { get; set; }
-
-            /// <summary> plain username </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string OpcAuthenticationUsername { get; set; }
-
-            /// <summary> plain password </summary>
-            [DataMember]
-            public string OpcAuthenticationPassword { get; set; }
-
-            /// <summary> Nodes defined in the collection. </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public List<OpcNodeModel> OpcNodes { get; set; }
-        }
-
-        /// <summary>
-        /// Enum that defines the authentication method
-        /// </summary>
-        [DataContract]
-        public enum OpcAuthenticationMode {
-            /// <summary> Anonymous authentication </summary>
-            [EnumMember]
-            Anonymous,
-            /// <summary> Username/Password authentication </summary>
-            [EnumMember]
-            UsernamePassword
         }
 
         private readonly IEngineConfiguration _config;
