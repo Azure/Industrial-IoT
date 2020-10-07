@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         }
 
         /// <inheritdoc/>
-        public int NumberOfWorker => _instances.Count;
+        public int NumberOfWorkers => _instances.Count;
 
         /// <summary>
         /// Create worker
@@ -77,11 +77,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         }
 
         /// <summary>
-        /// Stop worker
+        /// Stop a single worker
         /// </summary>
         /// <returns>awaitable task</returns>
         private async Task StopWorker() {
-            // sort worker, so that worker in state stopped, stoping or WaitingForJob will terminate first 
+            // sort workers, so that a worker in state Stopped, Stopping or WaitingForJob will terminated first 
             var worker = _instances.OrderBy(kvp => kvp.Key.Status).First();
             var workerId = worker.Key.WorkerId;
             _logger.Information("Stopping worker with id {WorkerId}", workerId);

@@ -12,8 +12,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
     public interface IWorkerSupervisor : IHostProcess {
 
         /// <summary>
-        /// The amount of worker currently running
+        /// The amount of workers currently running
         /// </summary>
-        int NumberOfWorker { get; }
+        int NumberOfWorkers { get; }
     }
 }

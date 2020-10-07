@@ -77,7 +77,7 @@
             await sut.StartAsync();
 
             // Test
-            Assert.Equal(kDefaultMaxWorker, sut.NumberOfWorker);
+            Assert.Equal(kDefaultMaxWorker, sut.NumberOfWorkers);
 
             // clean up
             await sut.StopAsync();
@@ -101,7 +101,7 @@
             const int numberOfWorker = 9;
             agentConfig.SetMaxWorker(numberOfWorker);
             await Task.Delay(kDefaultDelay); //Internal timer which creates the Worker run every 10 seconds
-            Assert.Equal(numberOfWorker, sut.NumberOfWorker);
+            Assert.Equal(numberOfWorker, sut.NumberOfWorkers);
 
             // clean up
             await sut.StopAsync();
@@ -124,7 +124,7 @@
             const int numberOfWorker = 2;
             agentConfig.SetMaxWorker(numberOfWorker);
             await Task.Delay(kDefaultDelay); //Internal timer which creates the Worker run every 10 seconds
-            Assert.Equal(numberOfWorker, sut.NumberOfWorker);
+            Assert.Equal(numberOfWorker, sut.NumberOfWorkers);
 
             // clean up
             await sut.StopAsync();
@@ -153,7 +153,7 @@
             agentConfig.SetMaxWorker(numberOfWorker);
 
             await Task.Delay(kDefaultDelay); 
-            Assert.Equal(kDefaultMaxWorker, sut.NumberOfWorker);
+            Assert.Equal(kDefaultMaxWorker, sut.NumberOfWorkers);
             loggerMock.Verify();
 
             // clean up
@@ -178,12 +178,12 @@
             int numberOfWorker = 8; //Increase
             agentConfig.SetMaxWorker(numberOfWorker);
             await Task.Delay(kDefaultDelay);
-            Assert.Equal(numberOfWorker, sut.NumberOfWorker);
+            Assert.Equal(numberOfWorker, sut.NumberOfWorkers);
 
             numberOfWorker = 6; //Decrease
             agentConfig.SetMaxWorker(numberOfWorker);
             await Task.Delay(kDefaultDelay);
-            Assert.Equal(numberOfWorker, sut.NumberOfWorker);
+            Assert.Equal(numberOfWorker, sut.NumberOfWorkers);
 
             // clean up
             await sut.StopAsync();
