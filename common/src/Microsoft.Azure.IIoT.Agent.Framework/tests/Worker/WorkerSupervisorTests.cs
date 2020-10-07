@@ -197,7 +197,7 @@
             return container;
         }
 
-        private const int kDefaultDelay = 2000; //Internal timer which creates the Worker run every 10 seconds
+        private const int kDefaultDelay = 2000;
         private const int kDefaultMaxWorker = 5;
         private const int kSupervisorDelay = 1;
     }
