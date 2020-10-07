@@ -10,7 +10,7 @@
 
 ## Introduction
 
-Components of Azure Industrial IoT solution require several App Registrations in your Azure Active Directory
+Components of the Azure Industrial IoT platform require several App Registrations in your Azure Active Directory
 (AAD) to run. Those App Registrations are responsible for:
 
 * providing identity for back-end microservices to run
@@ -21,7 +21,7 @@ those App Registrations for you by default. But they both require user to have `
 for deployment to succeed. In cases when the user does not have the `Administrator` role, the process of
 deployment can be separated into 2 distinct states:
 
-* creation and setup of App Registrations in AAD tenant
+* creation and setup of the App Registrations in AAD tenant
 * creation of Azure resources and deployment of the Azure Industrial IoT platform components
 
 With this separation, the first step can be performed by an IT administrator. Deployments will output details
@@ -35,9 +35,9 @@ of App Registrations which can then be passed to a user for running the second s
 * `<application-name>-client`: used for authentication of native clients, such as CLI tool
 * `<application-name>-web`: used for authentication of Web clients, such as Swagger
 
-Use the following command to run `aad-register.ps1` script for creation of App Registrations.
-Specify desired application name instead of `<application-name>` and your tenant id.
-Follow script commands and provide additional details where needed.
+Use the following command to run `aad-register.ps1` script for creation of the App Registrations.
+Specify desired application name instead of the `<application-name>` and your tenant id.
+Follow the script commands and provide additional details where needed.
 
 > Note: `ReplyUrl` has the following format `https://<application-name>.azurewebsites.net/`, as we are using
 > an instance of App Service to host Engineering Tool.
@@ -50,8 +50,8 @@ cd deploy/scripts
 The output of the script is a JSON file containing the relevant information to be used as part of the
 deployment and must be passed to the `deploy.ps1` script in the same folder using `-aadConfig` argument.
 
-Use the following command to deploy Azure Industrial IoT platform with pre-created App Registrations.
-Follow script commands and provide additional details where needed.
+Use the following command to deploy the Azure Industrial IoT platform with pre-created App Registrations.
+Follow the script commands and provide additional details where needed.
 
 ```bash
 ./deploy.ps1 -aadConfig aad.json -applicationName <application-name>
@@ -61,7 +61,7 @@ You can find all configuration options for `deploy.ps` [here](./howto-deploy-all
 
 ## Microsoft.Azure.IIoT.Deployment
 
-Find links for downloading executable `Microsoft.Azure.IIoT.Deployment` application [here](./howto-deploy-aks.md#download-microsoftazureiiotdeployment-binaries).
+Find links for downloading executables of the `Microsoft.Azure.IIoT.Deployment` application [here](./howto-deploy-aks.md#download-microsoftazureiiotdeployment-binaries).
 
 `Microsoft.Azure.IIoT.Deployment` application creates the following App Registrations:
 
@@ -69,7 +69,7 @@ Find links for downloading executable `Microsoft.Azure.IIoT.Deployment` applicat
 * `<application-name>-client`: used for authentication of native and Web clients, such as CLI tool or Swagger
 * `<application-name>-aks`: used for providing identity for AKS cluster
 
-Use the following command to run `Microsoft.Azure.IIoT.Deployment` application for App Registration creation
+Use the following command to run the `Microsoft.Azure.IIoT.Deployment` application for App Registration creation
 and setup only. Follow the commands and provide additional details where needed.
 
 > Note: `ApplicationUrl` has the following format `<application-name>.<region>.cloudapp.azure.com`, as we are
@@ -82,8 +82,8 @@ and setup only. Follow the commands and provide additional details where needed.
 
 The command will output a JSON object that contains details and credentials of created App Registrations and
 associated Service Principals. Those should be used as an input for the next step. To do that, please create
-a `appsettings.json` file in the same directory as `Microsoft.Azure.IIoT.Deployment` application and use the
-JSON object as value of `ApplicationRegistration` key as shown bellow.
+a `appsettings.json` file in the same directory as the `Microsoft.Azure.IIoT.Deployment` application and use the
+JSON object as value of the `ApplicationRegistration` key as shown bellow.
 
 ```json
 {
@@ -131,11 +131,11 @@ JSON object as value of `ApplicationRegistration` key as shown bellow.
 }
 ```
 
-After that, use the following command to deploy Azure Industrial IoT platform with pre-created App
+After that, use the following command to deploy the Azure Industrial IoT platform with pre-created App
 Registrations. Follow the commands and provide additional details where needed.
 
 ```bash
 .\Microsoft.Azure.IIoT.Deployment.exe RunMode=ResourceDeployment Auth:AzureEnvironment=AzureGlobalCloud ApplicationName=<application-name> ResourceGroup:Region=EuropeNorth
 ```
 
-You can find all configuration options for `Microsoft.Azure.IIoT.Deployment` [here](./howto-deploy-aks.md#configuration).
+You can find all configuration options for the `Microsoft.Azure.IIoT.Deployment` application [here](./howto-deploy-aks.md#configuration).
