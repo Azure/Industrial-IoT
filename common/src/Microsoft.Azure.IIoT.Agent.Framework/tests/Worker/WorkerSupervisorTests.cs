@@ -1,8 +1,11 @@
-﻿namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
     using Microsoft.Azure.IIoT.Agent.Framework.Agent;
     using System;
-    using System.Collections.Generic;
-    using System.Text;
     using Xunit;
     using Moq;
     using Autofac;
