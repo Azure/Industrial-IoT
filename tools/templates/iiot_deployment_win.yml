@@ -20,27 +20,9 @@ jobs:
       version: 2.1.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
-  - task: UseDotNet@2
-    displayName: 'Install .NET Core SDK for building'
-    inputs:
-      packageType: sdk
-      version: 3.1.x
-      includePreviewVersions: false
-      installationPath: $(Agent.ToolsDirectory)/dotnet
-  - task: PowerShell@2
-    displayName: Versioning
-    name: setVersionInfo
-    inputs:
-      targetType: filePath
-      filePath: ./tools/scripts/set-version.ps1
-  - task: DotNetCoreCLI@2
-    displayName: Publish
-    inputs:
-      command: publish
-      publishWebProjects: false
-      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
-      arguments: '--runtime ${{ parameters.runtime }} --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/${{ parameters.runtime }}'
-      zipAfterPublish: false
+  - template: build_iiot_deployment.yml
+    parameters:
+      runtime: ${{ parameters.runtime }}
   - task: AntiMalware@3
     displayName: 'Run Virus scan'
     inputs:
