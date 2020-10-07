@@ -24,18 +24,20 @@ The platform and simulation can also be deployed using the deploy script.
 2. Start the guided deployment:
 
    - On Windows:
+
      ```pwsh
      .\deploy
      ```
 
    - On Linux or Mac:
+
      ```bash
      ./deploy.sh
      ```
 
    > See [additional supported parameters](#deployment-script-options).
 
-3. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription. It also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication, this requires the [Application Developer](https://docs.microsoft.com/en-us/azure/active-directory/users-groups-roles/directory-assign-admin-roles#application-developer) role.
+3. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription. It also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication, this requires the [Application Developer](https://docs.microsoft.com/azure/active-directory/users-groups-roles/directory-assign-admin-roles#application-developer) role.
    Deployment will take several minutes. An example of what you'd see once the solution is successfully deployed:
 
    ![Deployment Result](../media/deployment-succeeded.png)
@@ -87,7 +89,7 @@ It is possible that the name of the website is already in use. If you run into t
 
 ### Azure Active Directory registration
 
-The deployment script tries to register three AAD applications representing the web app, the client and the platform (service). This requires [Global Administrator, Application Administrator or Cloud Application Administrator](https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent) rights.
+The deployment script tries to register three AAD applications representing the web app, the client and the platform (service). This requires [Global Administrator, Application Administrator or Cloud Application Administrator](https://docs.microsoft.com/azure/active-directory/manage-apps/grant-admin-consent) rights.
 
 If the deployment fails or if you see the following error when trying to sign-in, see further below for options:
 
@@ -104,12 +106,13 @@ If the deployment fails or if you see the following error when trying to sign-in
    ./deploy.ps1 -aadConfig aad.json
    ```
 
-If you need additional reply URLs, you may add them manually as this does not require AAD admin rights. The script `aad-register.ps1` also supports the parameter `-tenandId`, which can be used to explicitly select an AAD tenant, and can be executed from the [Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview).
+If you need additional reply URLs, you may add them manually as this does not require AAD admin rights. The script `aad-register.ps1` also supports the parameter `-tenandId`, which can be used to explicitly select an AAD tenant, and can be executed from the [Cloud Shell](https://docs.microsoft.com/azure/cloud-shell/overview).
 
-**Option 3** (recommended as PoC): Create your [own AAD tenant](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-create-new-tenant), in which you are the admin
-  - Azure Portal: Create a resource -> Azure Active Directory
-  - After about 1 min, click the link to manage the directory, or click on your account profile at the top right of the Azure Portal -> Switch directory, then select it from *All Directories*
-  - Copy the Tenant ID
+**Option 3** (recommended as PoC): Create your [own AAD tenant](https://docs.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant), in which you are the admin
+
+- Azure Portal: Create a resource -> Azure Active Directory
+- After about 1 min, click the link to manage the directory, or click on your account profile at the top right of the Azure Portal -> Switch directory, then select it from *All Directories*
+- Copy the Tenant ID
 
 Start the deployment
 
@@ -121,7 +124,7 @@ Start the deployment
 
 On **Windows**, the script uses Powershell, which comes with Windows. The deploy batch file uses it to install all required modules.
 
-In case you run into issues, e.g. because you want to use pscore, run following two commands in PowerShell as Administrator. See more information about [AzureAD and Az modules](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps).
+In case you run into issues, e.g. because you want to use pscore, run the following two commands in PowerShell as Administrator. See more information about [AzureAD and Az modules](https://docs.microsoft.com/powershell/azure/install-az-ps).
 
    ```pwsh
    Install-Module -Name Az -AllowClobber
@@ -134,7 +137,7 @@ On non - **Ubuntu** Linux or in case you run into issues follow the guidance in 
 
 To install all necessary requirements on other Linux distributions, follow these steps:
 
-1. First [install PowerShell](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-linux?view=powershell-7). Follow the instructions for your Linux distribution.
+1. First [install PowerShell](https://docs.microsoft.com/powershell/scripting/install/installing-powershell-core-on-linux?view=powershell-7). Follow the instructions for your Linux distribution.
 
 2. Open PowerShell using `sudo pwsh`.
 
