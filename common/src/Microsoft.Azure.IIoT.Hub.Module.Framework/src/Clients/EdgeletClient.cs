@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
+    using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
@@ -29,10 +30,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="logger"></param>
         public EdgeletClient(IHttpClient client, IJsonSerializer serializer,
             ILogger logger) : this(client, serializer,
-            Environment.GetEnvironmentVariable("IOTEDGE_WORKLOADURI")?.TrimEnd('/'),
-            Environment.GetEnvironmentVariable("IOTEDGE_MODULEGENERATIONID"),
-            Environment.GetEnvironmentVariable("IOTEDGE_MODULEID"),
-            Environment.GetEnvironmentVariable("IOTEDGE_APIVERSION"),
+            Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_WORKLOADURI)?.TrimEnd('/'),
+            Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_MODULEGENERATIONID),
+            Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_MODULEID),
+            Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_APIVERSION),
             logger) {
         }
 
