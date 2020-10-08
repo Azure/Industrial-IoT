@@ -4,9 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Abstractions {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
 
     /// <summary>
     /// Common IoT Edge runtime environment variables.
