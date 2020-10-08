@@ -26,13 +26,18 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <param name="lifetimeScope"></param>
         /// <param name="agentConfigProvider"></param>
         /// <param name="logger"></param>
-        /// <param name="timerDelay">The time the supervisor is waiting before ensure worker</param>
+        /// <param name="timerDelayInSeconds">The time the supervisor is waiting before ensure worker</param>
         public WorkerSupervisor(ILifetimeScope lifetimeScope,
-            IAgentConfigProvider agentConfigProvider, ILogger logger, int timerDelay = 10) {
+            IAgentConfigProvider agentConfigProvider, ILogger logger, int timerDelayInSeconds = 10) {
+
+            if (timerDelayInSeconds <= 0) {
+                timerDelayInSeconds = 10;
+            }
+
             _lifetimeScope = lifetimeScope;
             _agentConfigProvider = agentConfigProvider;
             _logger = logger;
-            _ensureWorkerRunningTimer = new Timer(TimeSpan.FromSeconds(timerDelay).TotalMilliseconds);
+            _ensureWorkerRunningTimer = new Timer(TimeSpan.FromSeconds(timerDelayInSeconds).TotalMilliseconds);
             _ensureWorkerRunningTimer.Elapsed += EnsureWorkerRunningTimer_ElapsedAsync;
         }
 
