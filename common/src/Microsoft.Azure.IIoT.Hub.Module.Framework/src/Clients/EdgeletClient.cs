@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <param name="logger"></param>
         public EdgeletClient(IHttpClient client, IJsonSerializer serializer,
             ILogger logger) : this(client, serializer,
-            Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_WORKLOADURI)?.TrimEnd('/'),
+            Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_WORKLOADURI),
             Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_MODULEGENERATIONID),
             Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_MODULEID),
             Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_APIVERSION),
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _workloaduri = workloaduri;
+            _workloaduri = workloaduri?.TrimEnd('/');
             _moduleGenerationId = genId;
             _moduleId = moduleId;
             _apiVersion = apiVersion ?? "2019-01-30";

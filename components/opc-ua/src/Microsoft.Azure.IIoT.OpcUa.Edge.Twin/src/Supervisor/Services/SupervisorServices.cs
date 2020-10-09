@@ -404,7 +404,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                     var hostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_IOTHUBHOSTNAME);
                     if (string.IsNullOrEmpty(hostName)) {
                         throw new InvalidConfigurationException(
-                            "Missing IOTEDGE_IOTHUBHOSTNAME variable in environment");
+                            $"Missing {IoTEdgeVariables.IOTEDGE_IOTHUBHOSTNAME} variable in environment");
                     }
                     var edgeName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
                     if (string.IsNullOrEmpty(edgeName)) {
