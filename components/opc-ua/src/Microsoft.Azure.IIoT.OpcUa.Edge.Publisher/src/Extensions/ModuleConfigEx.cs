@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+    using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using System;
@@ -70,12 +71,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 var key = csUpdate.SharedAccessKey;
                 if (string.IsNullOrEmpty(cs)) {
                     // Retrieve information from environment
-                    var hostName = Environment.GetEnvironmentVariable("IOTEDGE_IOTHUBHOSTNAME");
+                    var hostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_IOTHUBHOSTNAME);
                     if (string.IsNullOrEmpty(hostName)) {
                         throw new InvalidConfigurationException(
-                            "Missing IOTEDGE_IOTHUBHOSTNAME variable in environment");
+                            $"Missing {IoTEdgeVariables.IOTEDGE_IOTHUBHOSTNAME} variable in environment");
                     }
-                    var edgeName = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
+                    var edgeName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
                     cs = $"HostName={hostName};DeviceId={deviceId};SharedAccessKey={key}";
                     if (string.IsNullOrEmpty(edgeName)) {
                         cs += $";GatewayHostName={edgeName}";
