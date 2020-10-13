@@ -114,10 +114,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     .Select(node => new PublishedDataSetVariableModel {
                                         // this is the monitored item id, not the nodeId!
                                         // Use the display name if any otherwise the nodeId
-                                        Id = string.IsNullOrEmpty(node.DataSetFieldId)
-                                            ? node.Id : node.DataSetFieldId,
+                                        Id = string.IsNullOrEmpty(node.DisplayName) ? 
+                                                string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
                                         PublishedVariableNodeId = node.Id,
-                                        PublishedVariableDisplayName = node.DataSetFieldId,
+                                        PublishedVariableDisplayName = string.IsNullOrEmpty(node.DisplayName) ? string.IsNullOrEmpty(node.DataSetFieldId) ? null : node.DataSetFieldId : node.DisplayName,
                                         SamplingInterval = node.OpcSamplingIntervalTimespan ??
                                             legacyCliModel.DefaultSamplingInterval,
                                         HeartbeatInterval = node.HeartbeatIntervalTimespan.HasValue ?

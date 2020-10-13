@@ -289,10 +289,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
             {
-                ""Id"": ""i=2258""
+                ""Id"": ""i=2258"",
+                ""OpcPublishingInterval"": 2000
             },
             {
-                ""Id"": ""i=2259""
+                ""Id"": ""i=2259"",
+                ""OpcPublishingInterval"": 3000
             }
         ]
     }
@@ -306,6 +308,214 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Equal(1000, jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds);
+        }
+
+        [Fact]
+        public void PnPlcPubSubDisplayName1Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingInterval"": ""1000"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DisplayName"": ""testdisplayname1""
+            },
+        ]
+    }
+]
+";
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal("testdisplayname1", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
+        }
+
+        [Fact]
+        public void PnPlcPubSubDisplayName2Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingInterval"": ""1000"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+            },
+        ]
+    }
+]
+";
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal("i=2258", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
+        }
+
+        [Fact]
+        public void PnPlcPubSubDisplayName3Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingInterval"": ""1000"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DisplayName"": ""testdisplayname1"",
+                ""DataSetFieldId"": ""testdatasetfieldid1"",
+            },
+        ]
+    }
+]
+";
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal("testdisplayname1", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
+        }
+
+        [Fact]
+        public void PnPlcPubSubDisplayName4Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingInterval"": ""1000"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DataSetFieldId"": ""testdatasetfieldid1"",
+            },
+        ]
+    }
+]
+";
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal("testdatasetfieldid1", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
+        }
+
+        [Fact]
+        public void PnPlcPubSubPublishedNodeDisplayName1Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingInterval"": ""1000"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DisplayName"": ""testdisplayname1""
+            },
+        ]
+    }
+]
+";
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal("testdisplayname1", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
+        }
+
+        [Fact]
+        public void PnPlcPubSubPublishedNodeDisplayName2Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingInterval"": ""1000"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+            },
+        ]
+    }
+]
+";
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Null(jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
+        }
+
+        [Fact]
+        public void PnPlcPubSubPublishedNodeDisplayName3Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingInterval"": ""1000"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DisplayName"": ""testdisplayname1"",
+                ""DataSetFieldId"": ""testdatasetfieldid1"",
+            },
+        ]
+    }
+]
+";
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal("testdisplayname1", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
+        }
+
+        [Fact]
+        public void PnPlcPubSubPublishedNodeDisplayName4Test() {
+            var pn = @"
+[
+    {
+        ""DataSetPublishingInterval"": ""1000"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""DataSetFieldId"": ""testdatasetfieldid1"",
+            },
+        ]
+    }
+]
+";
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal("testdatasetfieldid1", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
         }
 
         [Fact]
