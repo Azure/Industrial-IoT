@@ -57,7 +57,6 @@ The following factory setups are provided for reference. A slow node changes eve
         "publisher",
         "--pf=/appdata/pn.json",
         "--di=60",
-        "--to",
         "--aa",
         "--si=10",
         "--bs=100",
