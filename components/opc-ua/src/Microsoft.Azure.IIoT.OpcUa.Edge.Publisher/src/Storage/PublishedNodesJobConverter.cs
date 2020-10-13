@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 return Enumerable.Empty<WriterGroupJobModel>();
             }
             try {
-                return items
+                var result = items
                     // Group by connection
                     .GroupBy(item => new ConnectionModel {
                         OperationTimeout = legacyCliModel.OperationTimeout,
@@ -185,6 +185,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             }
                         }
                     }).ToList();
+                return result;
             }
             catch (Exception ex){
                 _logger.Error(ex, "failed to convert the published nodes.");
@@ -208,9 +209,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     }
                     if (scaleTestCount == 1) {
                         node.OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval;
-                        node.OpcPublishingIntervalTimespan = item.DataSetPublishingInterval.HasValue ?
-                                        TimeSpan.FromMilliseconds(item.DataSetPublishingInterval.Value)
-                                        : node.OpcPublishingIntervalTimespan;
                         yield return node;
                     }
                     else {
@@ -223,12 +221,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 ExpandedNodeId = node.ExpandedNodeId,
                                 HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
                                 OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval,
-                                OpcPublishingIntervalTimespan = item.DataSetPublishingInterval.HasValue ? 
-                                        TimeSpan.FromMilliseconds(item.DataSetPublishingInterval.Value)
-                                        : node.OpcPublishingIntervalTimespan,
                                 OpcSamplingInterval = node.OpcSamplingInterval,
-                                OpcSamplingIntervalTimespan = node.OpcSamplingIntervalTimespan,
-                                SkipFirst = node.SkipFirst
+                                SkipFirst = node.SkipFirst,
                             };
                         }
                     }
