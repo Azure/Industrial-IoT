@@ -107,7 +107,7 @@ jobs:
       uploadFortifySCA: false
       uploadFxCop: false
       uploadModernCop: false
-      uploadPoliCheck: true
+      uploadPoliCheck: false
       uploadPREfast: false
       uploadRoslyn: true
       uploadTSLint: false
