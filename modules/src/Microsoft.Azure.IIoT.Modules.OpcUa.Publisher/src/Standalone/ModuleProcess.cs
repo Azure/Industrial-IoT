@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Standalone {
         }
 
         /// <summary>
-        ///     Whethr the module is running
+        ///     Whether the module is running
         /// </summary>
         public event EventHandler<bool> OnRunning;
 

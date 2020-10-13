@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+    using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -53,9 +54,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             // The runtime injects this as an environment variable
-            var deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
-            var moduleId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
-            var ehubHost = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
+            var deviceId = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID);
+            var moduleId = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_MODULEID);
+            var ehubHost = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
 
             try {
                 if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
