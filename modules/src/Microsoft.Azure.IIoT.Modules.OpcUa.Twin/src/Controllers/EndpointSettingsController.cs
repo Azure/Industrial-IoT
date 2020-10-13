@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
     public class EndpointSettingsController : ISettingsController {
 
         /// <summary>
-        /// Endoint url for direct server access
+        /// Endpoint url for direct server access
         /// </summary>
         public string EndpointUrl {
             get => _endpointUrl;
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         }
 
         /// <summary>
-        /// Endoint url for direct server access
+        /// Endpoint url for direct server access
         /// </summary>
         public Dictionary<string, string> AlternativeUrls {
             get => _alternativeUrls;
