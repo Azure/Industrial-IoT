@@ -130,9 +130,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
+        /// <param name="logger"></param>
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime, ILogger logger) {
+            Config.CheckDeprecatedVariables(logger);
+
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-            var log = applicationContainer.Resolve<ILogger>();
 
             app.UsePathBase();
             app.UseHeaderForwarding();
@@ -158,7 +160,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}",
+            logger.Information("{service} web service started with id {id}",
                 ServiceInfo.Name, ServiceInfo.Id);
         }
 
@@ -223,8 +225,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<CosmosDbServiceClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<DefaultJobService>()
-                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubJobConfigurationHandler>()
                 .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceHttpClient>()

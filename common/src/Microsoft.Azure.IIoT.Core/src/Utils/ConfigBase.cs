@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Utils {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Extensions.Configuration;
+    using Serilog;
     using System;
     using System.Collections.Generic;
 
@@ -13,6 +14,10 @@ namespace Microsoft.Azure.IIoT.Utils {
     /// Configuration base helper class
     /// </summary>
     public abstract class ConfigBase {
+        /// <summary>
+        /// Logger
+        /// </summary>
+        protected static ILogger _logger;
 
         /// <summary>
         /// Configuration
@@ -24,10 +29,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="configuration"></param>
         protected ConfigBase(IConfiguration configuration) {
-            if (configuration == null) {
-                configuration = new ConfigurationBuilder()
-                    .Build();
-            }
+            configuration ??= new ConfigurationBuilder().Build();
+
             Configuration = configuration;
         }
 
@@ -166,6 +169,36 @@ namespace Microsoft.Azure.IIoT.Utils {
                 return defaultValue.Invoke();
             }
             return value;
+        }
+
+        /// <summary>
+        /// Checks and warns about deprecated environment variables.
+        /// </summary>
+        /// <returns></returns>
+        public void CheckDeprecatedVariables(ILogger logger) {
+            _logger = logger;
+
+            // List with pairs of deprecated and new/replacement options.
+            // If newOption is null, warning will not suggest using it instead.
+            var deprecatedOptions = new List<(string deprecatedOption, string newOption)> {
+                // Deprecated on 2020-09-17.
+                (PcsVariable.PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES,
+                 PcsVariable.PCS_DEFAULT_PUBLISH_MAX_EGRESS_MESSAGE_QUEUE),
+
+                // TODO: Add rest of deprecated PCS variables,
+            };
+
+            // Warn about deprecated option and optionally suggest using new one.
+            foreach (var option in deprecatedOptions) {
+                if (!string.IsNullOrEmpty(Configuration.GetValue<string>(option.deprecatedOption))) {
+                    string warning = @$"The parameter or environment variable '{option.deprecatedOption}' has been deprecated and will be removed in a future version. ";
+                    warning += !string.IsNullOrEmpty(option.newOption)
+                        ? @$"Please use '{option.newOption}' instead."
+                        : "";
+
+                    _logger?.Warning(warning);
+                }
+            }
         }
     }
 }

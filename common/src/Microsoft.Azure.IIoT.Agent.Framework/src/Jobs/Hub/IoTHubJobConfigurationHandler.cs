@@ -46,12 +46,48 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                     };
                     await _ioTHubTwinServices.CreateOrUpdateAsync(deviceTwin, true);
                 }
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Error while creating IoT Device.");
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task OnJobAssignmentAsync(IJobService manager, JobInfoModel job, string workerId) {
+            if (job.JobConfiguration?.IsObject != true) {
+                return;
+            }
+            if (string.IsNullOrEmpty(workerId)) {
+                throw new ArgumentNullException("empty WorkerId provided");
+            }
+            try {
+                var edgeDeviceTwin = await _ioTHubTwinServices.FindAsync(workerId.Split("_publisher")[0]);
+                if (edgeDeviceTwin == null) {
+                    _logger.Error("IoT Edge Device not found.");
+                    return;
+                }
+
+                var jobDeviceId = GetJobDeviceId(job);
+                var deviceTwin = await _ioTHubTwinServices.FindAsync(jobDeviceId);
+                if (deviceTwin == null) {
+                    deviceTwin = new DeviceTwinModel {
+                        Id = jobDeviceId,
+                        DeviceScope = edgeDeviceTwin.DeviceScope
+                    };
+                    await _ioTHubTwinServices.CreateOrUpdateAsync(deviceTwin, true);
+                }
+                else {
+                    if (deviceTwin.DeviceScope != edgeDeviceTwin.DeviceScope) {
+                        deviceTwin.DeviceScope = edgeDeviceTwin.DeviceScope;
+                        await _ioTHubTwinServices.CreateOrUpdateAsync(deviceTwin, true);
+                    }
+                }
                 var cs = await _ioTHubTwinServices.GetConnectionStringAsync(deviceTwin.Id);
                 job.JobConfiguration[TwinProperties.ConnectionString].AssignValue(cs.ToString());
                 _logger.Debug("Added connection string to job {id}", jobDeviceId);
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Error while creating IoT Device.");
+                _logger.Error(ex, "Error while assigning the Job's IoT Device.");
             }
         }
 

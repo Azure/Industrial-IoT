@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
 
     /// <summary>
-    /// Discovery model extensionis
+    /// Discovery model extensions
     /// </summary>
     public static class ModelExtensions {
 

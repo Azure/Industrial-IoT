@@ -242,7 +242,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         /// </summary>
         /// <param name="owner"></param>
         protected void InitializeDefaultTags(string owner = null) {
-            var valueIotSuiteType = 
+            var valueIotSuiteType =
                 $"{Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT}-" +
                 $"{Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT}-" +
                 $"{Resources.IIoTDeploymentTags.VALUE_IOT_SUITE_TYPE_SUF}";
@@ -822,7 +822,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 }
             }
 
-            Log.Information($"Kubernetest version {kubernetesVersion} will be used in AKS.");
+            Log.Information($"Kubernetes version {kubernetesVersion} will be used in AKS.");
 
             var clusterDefinition = _aksManagementClient.GetClusterDefinition(
                 kubernetesVersion,

@@ -383,8 +383,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             "iiot_edge_publisher_processed_messages",
             "publisher engine processed iot messages count", kGaugeConfig);
         private static readonly Gauge kNotificationsPerMessageAvg = Metrics.CreateGauge(
-            "iiot_edge_publisher_notifications_per_message_average",
-            "publisher engine opc notifications per iot message average", kGaugeConfig);
+            "iiot_edge_publisher_value_changes_per_message_average",
+            "publisher engine value changes per iot message average", kGaugeConfig);
         private static readonly Gauge kMessageSizeAvg = Metrics.CreateGauge(
             "iiot_edge_publisher_encoded_message_size_average",
             "publisher engine iot message encoded body size average", kGaugeConfig);
