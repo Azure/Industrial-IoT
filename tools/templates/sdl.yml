@@ -41,7 +41,7 @@ jobs:
     continueOnError: true
   - task: ComponentGovernanceComponentDetection@0
     displayName: 'Component Detection'
-  - task: notice@0
+  - task: 'msospo.ospo-extension.8d7f9abb-6896-461d-9e25-4f74ed65ddb2.notice@0'
     displayName: Generate 3rd Party Notices
     inputs:
       outputformat: 'text'
@@ -85,6 +85,7 @@ jobs:
     displayName: 'Post Analysis'
     inputs:
       BinSkim: true
+      PoliCheck: true
       CredScan: true
       RoslynAnalyzers: true
   - script: |

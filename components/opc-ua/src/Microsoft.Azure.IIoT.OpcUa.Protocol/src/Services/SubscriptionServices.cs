@@ -130,6 +130,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _logger.Debug("Subscription successfully removed {subscription}", Id);
                         }
                     }
+                    else {
+                        var sessionId = new ConnectionIdentifier(_subscription.Connection);
+                        _logger.Information("Closing session {sessionId} for subscription {subscription}", sessionId, Id);
+                        await _outer._sessionManager.RemoveSessionAsync(_subscription.Connection);
+                    }
                 }
                 catch (Exception e) {
                     _logger.Error(e, "Failed to close subscription {subscription}", Id);
