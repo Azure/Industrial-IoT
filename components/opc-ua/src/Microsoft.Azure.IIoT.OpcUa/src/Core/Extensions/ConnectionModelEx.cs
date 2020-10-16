@@ -22,13 +22,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             if (model == that) {
                 return true;
             }
+            if (model == null || that == null) {
+                return false;
+            }
             if (that.Id != model.Id) {
                 return false;
             }
             if (that.Group != model.Group) {
-                return false;
-            }
-            if (model == null || that == null) {
                 return false;
             }
             if (!that.Endpoint.IsSameAs(model.Endpoint)) {
