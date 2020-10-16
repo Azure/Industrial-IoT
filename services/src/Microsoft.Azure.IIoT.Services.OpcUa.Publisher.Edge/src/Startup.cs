@@ -193,6 +193,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<WorkerDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<DefaultJobService>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubJobConfigurationHandler>()
+                .AsImplementedInterfaces();
             builder.RegisterType<DefaultJobOrchestrator>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DefaultDemandMatcher>()

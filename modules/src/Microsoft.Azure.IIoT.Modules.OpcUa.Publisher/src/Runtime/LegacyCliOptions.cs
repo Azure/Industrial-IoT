@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// </summary>
     public class LegacyCliOptions : Dictionary<string, string>, IAgentConfigProvider,
         ISettingsController, IEngineConfiguration, ILegacyCliModelProvider {
+
         /// <summary>
         /// Creates a new instance of the the legacy CLI options based on existing configuration values.
         /// </summary>
@@ -38,7 +39,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 this[item.Key] = item.Value;
             }
             Config = ToAgentConfigModel();
-            LegacyCliModel = ToLegacyCliModel();
         }
 
         // TODO: Figure out which are actually supported in the new publisher implementation
@@ -144,6 +144,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int k) => this[LegacyCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
                     { "ms|iothubmessagesize=", "The maximum size of the (IoT D2C) message.",
                         (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
+
+                    { "om|maxoutgressmessages=", "The maximum size of the (IoT D2C) message egress queue (deprecated, use em|maxegressmessagequeue instead).",
+                        (int i) => this[LegacyCliConfigKeys.MaxOutgressMessages] = i.ToString() },
                     { "em|maxegressmessagequeue=", "The maximum size of the (IoT D2C) message egress queue.",
                         (int i) => this[LegacyCliConfigKeys.MaxEgressMessageQueue] = i.ToString() },
 
@@ -190,7 +193,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             options.Parse(args);
 
             Config = ToAgentConfigModel();
-            LegacyCliModel = ToLegacyCliModel();
         }
 
         /// <summary>
@@ -240,7 +242,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// The model of the CLI arguments.
         /// </summary>
-        public LegacyCliModel LegacyCliModel { get; }
+        public LegacyCliModel LegacyCliModel {
+            get {
+                if (_legacyCliModel == null) {
+                    _legacyCliModel = ToLegacyCliModel();
+                }
+
+                return _legacyCliModel;
+            }
+        }
 
         /// <summary>
         /// Gets the additiona loggerConfiguration that represents the command line arguments.
@@ -294,7 +304,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
                 MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.MaxMessageSize, 0),
                 ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1),
-                MaxEgressMessageQueue = GetValueOrDefault(LegacyCliConfigKeys.MaxEgressMessageQueue, 4096) // 4096 * 256 KB = 1 GB.
+                MaxEgressMessageQueue = ContainsKey(LegacyCliConfigKeys.MaxEgressMessageQueue)
+                    ? GetValueOrDefault(LegacyCliConfigKeys.MaxEgressMessageQueue, 4096) // 4096 * 256 KB = 1 GB.
+                    : GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, 4096), // Deprecated option.
             };
         }
 
@@ -316,5 +328,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             var converter = TypeDescriptor.GetConverter(typeof(T));
             return (T)converter.ConvertFrom(this[key]);
         }
+
+        private LegacyCliModel _legacyCliModel = null;
     }
 }
