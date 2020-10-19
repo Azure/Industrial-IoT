@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Accelist.FluentValidation.Blazor" Version="2.1.0" />
+    <PackageReference Include="Accelist.FluentValidation.Blazor" Version="3.0.0" />
     <PackageReference Include="Blazored.Modal" Version="4.1.0" />
     <PackageReference Include="Blazored.SessionStorage" Version="1.0.12" />
     <PackageReference Include="FluentValidation" Version="8.6.2" />
