@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="IdentityModel.OidcClient" Version="3.1.2" />
-    <PackageReference Include="IdentityModel" Version="4.3.0" />
+    <PackageReference Include="IdentityModel" Version="4.4.0" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.6.0" />
   </ItemGroup>
   <ItemGroup>
