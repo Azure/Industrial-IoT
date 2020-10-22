@@ -42,7 +42,7 @@
 
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
 
-    <PackageReference Include="KubernetesClient" Version="2.0.26" />
+    <PackageReference Include="KubernetesClient" Version="2.0.33" />
 
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
