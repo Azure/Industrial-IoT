@@ -107,8 +107,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
                 // Inform services, that this worker has stopped working, so orchestrator can reassign job
-                _jobProcess.Status = WorkerStatus.Stopped;
-                await SendHeartbeatWithoutResetTimer(); // need to be send before cancel the CancellationToken
+                if (_jobProcess != null) {
+                    _jobProcess.Status = WorkerStatus.Stopped;
+                    await SendHeartbeatWithoutResetTimer(); // need to be send before cancel the CancellationToken
+                }
 
                 // Stop worker
                 _cts.Cancel();
@@ -235,6 +237,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
                     // Check if the job is to be continued with new configuration settings
                     if (_jobProcess.JobContinuation == null) {
+                        _jobProcess.Status = WorkerStatus.Stopped;
+                        await SendHeartbeatWithoutResetTimer();
                         _jobProcess = null;
                         break;
                     }
@@ -243,6 +247,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     if (jobProcessInstruction?.Job?.JobConfiguration == null ||
                         jobProcessInstruction?.ProcessMode == null) {
                         _logger.Information("Job continuation invalid, continue listening...");
+                        if (_jobProcess != null) {
+                            _jobProcess.Status = WorkerStatus.Stopped;
+                            await SendHeartbeatWithoutResetTimer();
+                        }
+
                         _jobProcess = null;
                         break;
                     }
@@ -251,6 +260,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
             catch (OperationCanceledException) {
                 _logger.Information("Processing cancellation received ...");
+                if (_jobProcess != null) {
+                    _jobProcess.Status = WorkerStatus.Stopped;
+                    await SendHeartbeatWithoutResetTimer();
+                }
+
                 _jobProcess = null;
             }
             finally {
