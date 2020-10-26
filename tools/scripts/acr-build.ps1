@@ -98,7 +98,7 @@ if (![string]::IsNullOrEmpty($Registry) -and ($Registry -ne "industrialiot")) {
 # get and set build information from gitversion, git or version content
 $latestTag = "latest"
 $sourceTag = $env:Version_Prefix
-$prereleaseTag = $env:Version_Prerelese
+$prereleaseTag = $env:Version_Prerelease
 if ([string]::IsNullOrEmpty($prereleaseTag))
 {
     $prereleaseTag = "-alpha"
@@ -107,7 +107,7 @@ if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
         $version = & (Join-Path $PSScriptRoot "get-version.ps1")
         $sourceTag = $version.Prefix
-        $prereleaseTag = $version.Prerelese
+        $prereleaseTag = $version.Prerelease
     }
     catch {
         $sourceTag = $null
