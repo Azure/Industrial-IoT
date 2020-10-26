@@ -38,7 +38,7 @@
 
     <PackageReference Include="Azure.Storage.Blobs" Version="12.4.4" />
 
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.6.7" />
+    <PackageReference Include="Portable.BouncyCastle" Version="1.8.8" />
 
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
 
