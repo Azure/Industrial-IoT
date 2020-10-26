@@ -7,7 +7,7 @@
     <Description>Azure Industrial IoT Json Serializer</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="1.9.11" />
+    <PackageReference Include="MessagePack" Version="2.2.60" />
     <!-- <PackageReference Include="MessagePack" Version="2.1.90" />-->
   </ItemGroup>
   <ItemGroup>
