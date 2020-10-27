@@ -5,7 +5,7 @@
     <Description>Azure Industrial IoT Event processor abstractions</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.EventHubs.Processor" Version="4.2.0" />
+    <PackageReference Include="Microsoft.Azure.EventHubs.Processor" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
