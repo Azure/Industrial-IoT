@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     }
                     finally {
                         await workerSupervisor.StopAsync();
-                        await sessionManager?.StopAsync();
+                        await (sessionManager?.StopAsync() ?? Task.CompletedTask);
                         await module.StopAsync();
                         OnRunning?.Invoke(this, false);
                         kPublisherModuleStart.WithLabels(
