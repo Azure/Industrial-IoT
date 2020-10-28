@@ -513,7 +513,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal("testdatasetfieldid1", jobs
+            Assert.Null(jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
         }
