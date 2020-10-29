@@ -1,8 +1,8 @@
-# OPC Publisher Edge Module
+# Microsoft OPC Publisher
 
 [Home](readme.md)
 
-The OPC Publisher (along with its documentation) has moved to its dedicated GitHub repo [here](https://github.com/azure/iot-edge-opc-publisher).
+The OPC Publisher IoT Edge Module (along with its documentation) has moved to its dedicated GitHub repo [here](https://github.com/azure/iot-edge-opc-publisher).
 
 ## Next steps
 
