@@ -82,20 +82,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                 ";
             }
 
-
             // Configure create options per os specified
             string createOptions;
             if (isLinux) {
                 // Linux
                 createOptions = _serializer.SerializeToString(new {
-                    Hostname = "twin"
+                    Hostname = "twin",
+                    Cmd = new[] {
+                        "PkiRootPath=/mount/pki"
+                    },
+                    HostConfig = new {
+                        Binds = new[] {
+                            "/mount:/mount"
+                        }
+                    }
                 });
             }
             else {
                 // Windows
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator",
-                    Hostname = "twin"
+                    Hostname = "twin",
+                    Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                    },
+                    HostConfig = new {
+                        Mounts = new[] {
+                            new {
+                                Type = "bind",
+                                Source = "C:\\\\ProgramData\\\\iotedge",
+                                Target = "C:\\\\mount"
+                            }
+                        }
+                    }
                 });
             }
             createOptions = createOptions.Replace("\"", "\\\"");
@@ -114,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
             {
                 ""$edgeAgent"": {
                     " + registryCredentials + @"
-                    ""properties.desired.modules.twin"": {
+                    ""properties.desired.modules." + kModuleName + @""": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""
@@ -126,13 +145,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     }
                 },
                 ""$edgeHub"": {
-                    ""properties.desired.routes.upstream"": ""FROM /messages/* INTO $upstream""
+                    ""properties.desired.routes." + kModuleName + @"ToUpstream"": ""FROM /messages/modules/" + kModuleName + @"/* INTO $upstream""
                 }
             }";
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(content);
         }
 
         private const string kDefaultSchemaVersion = "1.0";
+        private const string kModuleName = "twin";
         private readonly IIoTHubConfigurationServices _service;
         private readonly IContainerRegistryConfig _config;
         private readonly IJsonSerializer _serializer;

@@ -31,6 +31,7 @@ To get started
 
 ## Learn more
 
+* The OPC Publisher IoT Edge Module (along with its documentation) has moved to its dedicated GitHub repo [here](https://github.com/azure/iot-edge-opc-publisher). 
 * Read up on the Azure Industrial IoT Platform [architecture](architecture.md) and [flow](architecture-flow.md)
 * Read about the [Industrial IoT cloud Microservices](services/readme.md)
   * [What is OPC Twin?](services/twin.md)

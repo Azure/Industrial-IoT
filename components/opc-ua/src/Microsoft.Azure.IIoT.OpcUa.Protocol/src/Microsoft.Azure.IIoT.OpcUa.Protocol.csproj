@@ -22,8 +22,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.5" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="3.1.9" />
     <PackageReference Include="System.Private.ServiceModel" Version="4.7.0" />
     <PackageReference Include="System.Security.Principal.Windows" Version="4.7.0" />
     <PackageReference Include="System.Net.Security" Version="4.3.2" />
@@ -42,14 +42,20 @@
   <Choose>
     <When Condition="'$(Configuration)'=='Release'">
       <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.363.49" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.363.49" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.4.363.107" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Configuration" Version="1.4.363.107" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.4.363.107" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.4.363.107" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.363.107" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.363.49" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes.Symbols" Version="1.4.363.49" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core.Debug" Version="1.4.363.107" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Configuration.Debug" Version="1.4.363.107" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server.Debug" Version="1.4.363.107" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.Debug" Version="1.4.363.107" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes.Debug" Version="1.4.363.107" />
       </ItemGroup>
     </Otherwise>
   </Choose>

@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// </summary>
         /// <param name="version"></param>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version = "1.0.9") {
+        private IDictionary<string, IDictionary<string, object>> GetEdgeBase(string version = "1.0.9.4") {
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(@"
 {
     ""$edgeAgent"": {
@@ -109,9 +109,6 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
     ""$edgeHub"": {
         ""properties.desired"": {
             ""schemaVersion"": """ + kDefaultSchemaVersion + @""",
-            ""routes"": {
-                ""upstream"": ""FROM /messages/* INTO $upstream""
-            },
             ""storeAndForwardConfiguration"": {
                 ""timeToLiveSecs"": 7200
             }

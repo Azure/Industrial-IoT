@@ -58,6 +58,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Created += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Renamed += _fileSystemWatcher_Changed;
             _fileSystemWatcher.EnableRaisingEvents = true;
             RefreshJobFromFile();
         }

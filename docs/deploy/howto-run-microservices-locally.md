@@ -26,7 +26,7 @@ cd Industrial-IoT
 3. Open the `Industrial-IoT.sln` solution file in Visual Studio or VS Code.
 4. Right-click on the solution in the solution viewer and select `Properties`.
 5. Set the startup project to be  `Microsoft.Azure.IIoT.Services.All`.
-6. Log into Azure using the Az CLI (az login) or Visual Studio using the credentials used to deploy the infrastructure. See [Authenticating to Key vault](#Authenticating-to-Keyvault) for more information and troubleshooting.
+6. Log into Azure using the Az CLI (az login) or Visual Studio using the credentials used to deploy the infrastructure. See [Authenticating to Key vault](#authenticating-to-key-vault) for more information and troubleshooting.
 7. Start debugging by pressing the "Start" button or hitting F5.
 8. [Ensure the Microservices are running](#ensure-the-microservices-are-running).
 
