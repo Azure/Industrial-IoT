@@ -194,9 +194,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// check if we're running in standalone mode - default publishednodes.json file accessible
         /// </summary>
-        public bool RunInLegacyMode => System.IO.File.Exists(
-            GetValueOrDefault(LegacyCliConfigKeys.PublisherNodeConfigurationFilename,
-                LegacyCliConfigKeys.DefaultPublishedNodesFilename));
+        public bool RunInLegacyMode => TryGetValue(LegacyCliConfigKeys.PublisherNodeConfigurationFilename, out _) ||
+             System.IO.File.Exists(LegacyCliConfigKeys.DefaultPublishedNodesFilename);
 
         /// <summary>
         /// The AgentConfigModel instance that is based on specified legacy command line arguments.
