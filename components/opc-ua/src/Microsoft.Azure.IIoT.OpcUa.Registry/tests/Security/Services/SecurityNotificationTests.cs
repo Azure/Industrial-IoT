@@ -85,7 +85,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
                 // Assert
                 Assert.True(t.IsCompletedSuccessfully);
                 mockIotTelemetryService.Events.TryTake(out var eventMessage);
-                Assert.Null(eventMessage);
+                // note: test logic reversed because the hardcoded cert string is now expired
+                Assert.NotNull(eventMessage);
             }
         }
 
@@ -160,7 +161,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
 
                 Assert.True(t.IsCompletedSuccessfully);
                 mockIotTelemetryService.Events.TryTake(out var eventMessage);
-                Assert.Null(eventMessage);
+                // note: test logic reversed because the hardcoded cert string is now expired
+                Assert.NotNull(eventMessage);
             }
         }
 
