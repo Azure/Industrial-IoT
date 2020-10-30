@@ -42,6 +42,7 @@ For more information, see the [detailed instructions](docs/deploy/howto-deploy-a
 
 ## Learn more
 
+- The OPC Publisher IoT Edge Module (along with its documentation) has moved to its dedicated GitHub repo [here](https://github.com/azure/iot-edge-opc-publisher).
 - [Documentation and tutorials](https://azure.github.io/Industrial-IoT/).
 - [Releases of the platform](https://github.com/Azure/Industrial-IoT/releases).
 - Explore other Azure Industrial IoT products using this platform.
