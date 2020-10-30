@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
@@ -12,7 +13,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
-    using System.Runtime.Serialization;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -78,10 +78,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 return Enumerable.Empty<WriterGroupJobModel>();
             }
             try {
-                return items
+                var result = items
                     // Group by connection
                     .GroupBy(item => new ConnectionModel {
                         OperationTimeout = legacyCliModel.OperationTimeout,
+                        Id = item.DataSetWriterId,
+                        Group = item.DataSetWriterGroup,
                         Endpoint = new EndpointModel {
                             Url = item.EndpointUrl.OriginalString,
                             SecurityMode = item.UseSecurity == false &&
@@ -102,7 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         .Flatten()
                         .GroupBy(n => n.OpcPublishingInterval)
                         .SelectMany(n => n
-                            .Distinct((a, b) => a.Id == b.Id && a.DisplayName == b.DisplayName &&
+                            .Distinct((a, b) => a.Id == b.Id && a.DisplayName == b.DisplayName && a.DataSetFieldId == b.DataSetFieldId &&
                                         a.OpcSamplingInterval == b.OpcSamplingInterval)
                             .Batch(1000))
                         .Select(opcNodes => new PublishedDataSetSourceModel {
@@ -142,11 +144,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         },
                         WriterGroup = new WriterGroupModel {
                             MessageType = legacyCliModel.MessageEncoding,
-                            WriterGroupId = $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
-                                $"{new ConnectionIdentifier(dataSetSourceBatches.First().Connection)}",
+                            WriterGroupId = !string.IsNullOrEmpty(dataSetSourceBatches.First().Connection.Group)
+                                ? $"{dataSetSourceBatches.First().Connection.Group}"
+                                : $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
+                                    $"{new ConnectionIdentifier(dataSetSourceBatches.First().Connection)}",
                             DataSetWriters = dataSetSourceBatches.Select(dataSetSource => new DataSetWriterModel {
-                                DataSetWriterId = $"{dataSetSource.Connection.Endpoint.Url}_" +
-                                    $"{dataSetSource.GetHashSafe()}",
+                                DataSetWriterId = !string.IsNullOrEmpty(dataSetSource.Connection.Id)
+                                    ? $"{dataSetSource.Connection.Id}"
+                                    : $"{dataSetSource.Connection.Endpoint.Url}_" +
+                                        $"{dataSetSource.GetHashSafe()}",
                                 DataSet = new PublishedDataSetModel {
                                     DataSetSource = dataSetSource.Clone(),
                                 },
@@ -183,6 +189,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             }
                         }
                     }).ToList();
+                return result;
             }
             catch (Exception ex){
                 _logger.Error(ex, "failed to convert the published nodes.");
@@ -205,6 +212,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         node.Id = node.ExpandedNodeId;
                     }
                     if (scaleTestCount == 1) {
+                        node.OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval;
                         yield return node;
                     }
                     else {
@@ -213,14 +221,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 Id = node.Id,
                                 DisplayName = string.IsNullOrEmpty(node.DisplayName) ?
                                     $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
+                                DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
                                 HeartbeatInterval = node.HeartbeatInterval,
                                 HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
-                                OpcPublishingInterval = node.OpcPublishingInterval,
-                                OpcPublishingIntervalTimespan = node.OpcPublishingIntervalTimespan,
+                                OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval,
                                 OpcSamplingInterval = node.OpcSamplingInterval,
-                                OpcSamplingIntervalTimespan = node.OpcSamplingIntervalTimespan,
-                                SkipFirst = node.SkipFirst
+                                SkipFirst = node.SkipFirst,
                             };
                         }
                     }
@@ -274,140 +281,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 Type = CredentialType.UserName,
                 Value = _serializer.FromObject(new { user, password })
             };
-        }
-
-        /// <summary>
-        /// Describing an entry in the node list
-        /// </summary>
-        [DataContract]
-        public class OpcNodeModel {
-
-            /// <summary> Node Identifier </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string Id { get; set; }
-
-            /// <summary> Also </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string ExpandedNodeId { get; set; }
-
-            /// <summary> Sampling interval </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public int? OpcSamplingInterval { get; set; }
-
-            /// <summary>
-            /// OpcSamplingInterval as TimeSpan.
-            /// </summary>
-            [IgnoreDataMember]
-            public TimeSpan? OpcSamplingIntervalTimespan {
-                get => OpcSamplingInterval.HasValue ?
-                    TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
-                set => OpcSamplingInterval = value != null ?
-                    (int)value.Value.TotalMilliseconds : (int?)null;
-            }
-
-            /// <summary> Publishing interval </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public int? OpcPublishingInterval { get; set; }
-
-            /// <summary>
-            /// OpcPublishingInterval as TimeSpan.
-            /// </summary>
-            [IgnoreDataMember]
-            public TimeSpan? OpcPublishingIntervalTimespan {
-                get => OpcPublishingInterval.HasValue ?
-                    TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
-                set => OpcPublishingInterval = value != null ?
-                    (int)value.Value.TotalMilliseconds : (int?)null;
-            }
-
-            /// <summary> Display name </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string DisplayName { get; set; }
-
-            /// <summary> Heartbeat </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public int? HeartbeatInterval { get; set; }
-
-            /// <summary>
-            /// Heartbeat interval as TimeSpan.
-            /// </summary>
-            [IgnoreDataMember]
-            public TimeSpan? HeartbeatIntervalTimespan {
-                get => HeartbeatInterval.HasValue ?
-                    TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
-                set => HeartbeatInterval = value != null ?
-                    (int)value.Value.TotalSeconds : (int?)null;
-            }
-
-            /// <summary> Skip first value </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public bool? SkipFirst { get; set; }
-        }
-
-        /// <summary>
-        /// Node id serialized as object
-        /// </summary>
-        [DataContract]
-        public class NodeIdModel {
-            /// <summary> Identifier </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string Identifier { get; set; }
-        }
-
-        /// <summary>
-        /// Contains the nodes which should be
-        /// </summary>
-        [DataContract]
-        public class PublishedNodesEntryModel {
-
-            /// <summary> The endpoint URL of the OPC UA server. </summary>
-            [DataMember(IsRequired = true)]
-            public Uri EndpointUrl { get; set; }
-
-            /// <summary> Secure transport should be used to </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public bool? UseSecurity { get; set; }
-
-            /// <summary> The node to monitor in "ns=" syntax. </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public NodeIdModel NodeId { get; set; }
-
-            /// <summary> authentication mode </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
-
-            /// <summary> encrypted username </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string EncryptedAuthUsername { get; set; }
-
-            /// <summary> encrypted password </summary>
-            [DataMember]
-            public string EncryptedAuthPassword { get; set; }
-
-            /// <summary> plain username </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public string OpcAuthenticationUsername { get; set; }
-
-            /// <summary> plain password </summary>
-            [DataMember]
-            public string OpcAuthenticationPassword { get; set; }
-
-            /// <summary> Nodes defined in the collection. </summary>
-            [DataMember(EmitDefaultValue = false)]
-            public List<OpcNodeModel> OpcNodes { get; set; }
-        }
-
-        /// <summary>
-        /// Enum that defines the authentication method
-        /// </summary>
-        [DataContract]
-        public enum OpcAuthenticationMode {
-            /// <summary> Anonymous authentication </summary>
-            [EnumMember]
-            Anonymous,
-            /// <summary> Username/Password authentication </summary>
-            [EnumMember]
-            UsernamePassword
         }
 
         private readonly IEngineConfiguration _config;
