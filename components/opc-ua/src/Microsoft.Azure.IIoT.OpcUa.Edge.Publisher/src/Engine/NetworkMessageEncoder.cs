@@ -351,6 +351,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         PublisherId = message.PublisherId,
                         DataSetClassId = message.Writer?.DataSet?
                             .DataSetMetaData?.DataSetClassId.ToString(),
+                        DataSetWriterGroup = message.WriterGroup.WriterGroupId,
                         MessageId = message.SequenceNumber.ToString()
                     };
                     var notificationQueues = message.Notifications.GroupBy(m => m.NodeId)
@@ -360,8 +361,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             .Select(q => q.Any() ? q.Dequeue() : null)
                                 .Where(s => s != null)
                                     .ToDictionary(
-                                        s => s.NodeId.ToExpandedNodeId(context.NamespaceUris)
-                                            .AsString(message.ServiceMessageContext),
+                                        s => !string.IsNullOrEmpty(s.Id)
+                                            ? s.Id
+                                            : s.NodeId.ToExpandedNodeId(context.NamespaceUris)
+                                                .AsString(message.ServiceMessageContext),
                                         s => s.Value);
                         var dataSetMessage = new DataSetMessage() {
                             DataSetWriterId = message.Writer.DataSetWriterId,
