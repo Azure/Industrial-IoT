@@ -236,9 +236,11 @@ $definitions | ForEach-Object {
         if ($osArchArr.Count -gt 2) {
             # Backcompat for when release version was used as windows variant
             $windowsVariantToOsVersionsTable = @{
-                "1803" = "10.0.17134.885"
-                "1809" = "10.0.17763.615"
-                "1903" = "10.0.18362.239"
+                "1803" = "10.0.17134.1305"
+                "1809" = "10.0.17763.1457"
+                "1903" = "10.0.18362.1082"
+                "1909" = "10.0.18363.1082"
+                "2004" = "10.0.19041.508"
             }
             if ($windowsVariantToOsVersionsTable.ContainsKey($osArchArr[2])) {
                 $osVersion = $windowsVariantToOsVersionsTable.Item($osArchArr[2])

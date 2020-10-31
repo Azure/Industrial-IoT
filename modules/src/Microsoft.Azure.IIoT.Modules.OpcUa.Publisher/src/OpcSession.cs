@@ -738,7 +738,8 @@ namespace OpcPublisher
                     if (haveUnmonitoredItems == true)
                     {
                         monitoredItemsCount = opcSubscription.OpcMonitoredItems.Count(i => (i.State == OpcMonitoredItemState.Monitored));
-                        Logger.Information($"Done processing unmonitored items on endpoint '{EndpointUrl}' took {stopWatch.ElapsedMilliseconds} msec. Now monitoring {monitoredItemsCount} items in subscription with id '{opcSubscription.OpcUaClientSubscription.Id}'.");
+                        uint id = opcSubscription.OpcUaClientSubscription?.Id ?? 0;
+                        Logger.Information($"Done processing unmonitored items on endpoint '{EndpointUrl}' took {stopWatch.ElapsedMilliseconds} msec. Now monitoring {monitoredItemsCount} items in subscription with id '{id}'.");
                     }
                 }
             }
