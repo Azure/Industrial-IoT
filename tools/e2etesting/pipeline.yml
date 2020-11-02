@@ -154,8 +154,8 @@ jobs:
 
 - job: e2etests
   displayName: 'Run End 2 End Tests'
-  dependsOn: deployedgevm
-  condition: eq(dependencies.deployedgevm.result, 'Succeeded')
+  dependsOn: deploy
+  condition: eq(dependencies.deploy.result, 'Succeeded')
   pool:
     name: '$(AgentPool)'
   # strategy:
