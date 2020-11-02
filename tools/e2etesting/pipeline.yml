@@ -185,11 +185,14 @@ jobs:
       azurePowerShellVersion: 'latestVersion'
       targetType: 'inline'
       script: |
-        [Environment]::SetEnvironmentVariable("PCS-SERVICE-URL", "$(pcs-service-url)", "User")
-        [Environment]::SetEnvironmentVariable("PCS-AUTH-TENANT", "$(pcs-auth-tenant)", "User")
-        [Environment]::SetEnvironmentVariable("PCS-AUTH-CLIENT-APPID", "$(pcs-auth-client-appid)", "User")
-        [Environment]::SetEnvironmentVariable("PCS-AUTH-CLIENT-SECRET", "$(pcs-auth-client-secret)", "User")
-        [Environment]::SetEnvironmentVariable("ApplicationName", "$(ApplicationName)", "User")
+        Write-Host "Making the PCS-SERVICE-URL available as an environment variable."
+        Write-Host "##vso[task.setvariable variable=PCS-SERVICE-URL;]$(pcs-service-url)"
+        Write-Host "Making the PCS-AUTH-TENANT available as an environment variable."
+        Write-Host "##vso[task.setvariable variable=PCS-AUTH-TENANT;]$(pcs-auth-tenant)"
+        Write-Host "Making the PCS-AUTH-CLIENT-APPID available as an environment variable."
+        Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-APPID;]$(pcs-auth-client-appid)"
+        Write-Host "Making the PCS-AUTH-CLIENT-SECRET available as an environment variable."
+        Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-SECRET;]$(pcs-auth-client-secret)"
 
   - task: DotNetCoreCLI@2
     displayName: 'Executing tests'
