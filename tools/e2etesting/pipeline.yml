@@ -183,7 +183,7 @@ jobs:
     inputs:
       azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
-      targetType: 'InlineScript'
+      scriptType: 'InlineScript'
       inline: |
         Write-Host "Making the PCS-SERVICE-URL available as an environment variable."
         Write-Host "##vso[task.setvariable variable=PCS-SERVICE-URL;]$(pcs-service-url)"
