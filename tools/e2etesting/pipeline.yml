@@ -105,29 +105,61 @@ jobs:
         -resourceGroupName "$(ResourceGroupName)"
         -branchName "$(Build.SourceBranch)"
 
-- job: prepnewman
-  displayName: "Prepare Postman-Tests"
-  dependsOn: deploy
-  condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
-  pool:
-    name: '$(AgentPool)'
-  steps:
-  - task: PowerShell@2
-    name: postmanJobGeneration
-    displayName: "Generate Postman-Jobs"
-    inputs:
-      targetType: 'filePath'
-      pwsh: true
-      filePath: $(BasePath)\GenerateNewmanMatrix.ps1
+# - job: prepnewman
+#   displayName: "Prepare Postman-Tests"
+#   dependsOn: deploy
+#   condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
+#   pool:
+#     name: '$(AgentPool)'
+#   steps:
+#   - task: PowerShell@2
+#     name: postmanJobGeneration
+#     displayName: "Generate Postman-Jobs"
+#     inputs:
+#       targetType: 'filePath'
+#       pwsh: true
+#       filePath: $(BasePath)\GenerateNewmanMatrix.ps1
 
-- job: runnewman
-  displayName: Run Newman
-  dependsOn: prepnewman
-  condition: eq(dependencies.prepnewman.result, 'Succeeded')
+# - job: runnewman
+#   displayName: Run Newman
+#   dependsOn: prepnewman
+#   condition: eq(dependencies.prepnewman.result, 'Succeeded')
+#   pool:
+#     name: '$(AgentPool)'
+#   strategy:
+#     matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
+#   steps:
+#   - task: AzurePowerShell@5
+#     displayName: 'Set KeyVaultName-Variable'
+#     inputs:
+#       azureSubscription: '$(AzureSubscription)'
+#       azurePowerShellVersion: 'latestVersion'
+#       scriptType: filePath
+#       scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+#       scriptArguments: >
+#         -ResourceGroupName "$(ResourceGroupName)"
+
+#   - task: AzureKeyVault@1
+#     displayName: 'Retrieve KeyVault secrets from existing deployment'
+#     inputs:
+#       azureSubscription: '$(AzureSubscription)'
+#       KeyVaultName: '$(KeyVaultName)'
+#       SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
+
+#   - task: CmdLine@2
+#     displayName: 'Run Newman for $(collectionFile)'
+#     inputs:
+#       script: newman run "$(collectionFile)" --env-var ServiceUrl="$(pcs-service-url)" --env-var TenantId="$(pcs-auth-tenant)" --env-var ClientId="$(pcs-auth-client-appid)" --env-var ClientSecret="$(pcs-auth-client-secret)" --env-var ApplicationName="$(ApplicationName)"
+
+
+- job: e2etests
+  displayName: 'Run End 2 End Tests'
+  dependsOn: deployedgevm
+  condition: eq(dependencies.deployedgevm.result, 'Succeeded')
   pool:
     name: '$(AgentPool)'
-  strategy:
-    matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
+  # strategy:
+  #   matrix: $[ dependencies.prepnewman.outputs['postmanJobGeneration.postmanJobsMatrix'] ]
   steps:
   - task: AzurePowerShell@5
     displayName: 'Set KeyVaultName-Variable'
@@ -146,14 +178,51 @@ jobs:
       KeyVaultName: '$(KeyVaultName)'
       SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
-  - task: CmdLine@2
-    displayName: 'Run Newman for $(collectionFile)'
+  - task: PowerShell@5
+    displayName: 'Set Secrets for tests execution as environment variables'
     inputs:
-      script: newman run "$(collectionFile)" --env-var ServiceUrl="$(pcs-service-url)" --env-var TenantId="$(pcs-auth-tenant)" --env-var ClientId="$(pcs-auth-client-appid)" --env-var ClientSecret="$(pcs-auth-client-secret)" --env-var ApplicationName="$(ApplicationName)"
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      targetType: 'inline'
+      script: |
+        [Environment]::SetEnvironmentVariable("PCS-SERVICE-URL", "$(pcs-service-url)", "User")
+        [Environment]::SetEnvironmentVariable("PCS-AUTH-TENANT", "$(pcs-auth-tenant)", "User")
+        [Environment]::SetEnvironmentVariable("PCS-AUTH-CLIENT-APPID", "$(pcs-auth-client-appid)", "User")
+        [Environment]::SetEnvironmentVariable("PCS-AUTH-CLIENT-SECRET", "$(pcs-auth-client-secret)", "User")
+        [Environment]::SetEnvironmentVariable("ApplicationName", "$(ApplicationName)", "User")
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Executing tests'
+    inputs:  
+      command: test  
+      projects: '**/e2etesting/*.csproj'  
+      arguments: '--configuration $(buildConfiguration)'  
+  
+  # - task: CmdLine@2
+  #   displayName: 'Run Newman for $(collectionFile)'
+  #   inputs:
+  #     script: newman run "$(collectionFile)" --env-var ServiceUrl="$(pcs-service-url)" --env-var TenantId="$(pcs-auth-tenant)" --env-var ClientId="$(pcs-auth-client-appid)" --env-var ClientSecret="$(pcs-auth-client-secret)" --env-var ApplicationName="$(ApplicationName)"
+
+# - job: cleanup
+#   displayName: Cleanup
+#   dependsOn: runnewman
+#   condition: and(always(), eq(variables['Cleanup'], true))
+#   pool:
+#     name: '$(AgentPool)'
+#   steps:
+#   - task: AzurePowerShell@5
+#     displayName: "Delete Resource Group"
+#     inputs:
+#       azureSubscription: '$(AzureSubscription)'
+#       azurePowerShellVersion: 'latestVersion'
+#       scriptType: 'InlineScript'
+#       inline: |
+#         Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
+#         Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force
 
 - job: cleanup
   displayName: Cleanup
-  dependsOn: runnewman
+  dependsOn: e2etests
   condition: and(always(), eq(variables['Cleanup'], true))
   pool:
     name: '$(AgentPool)'
