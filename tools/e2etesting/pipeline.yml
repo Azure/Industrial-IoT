@@ -193,6 +193,8 @@ jobs:
         Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-APPID;]$(pcs-auth-client-appid)"
         Write-Host "Making the PCS-AUTH-CLIENT-SECRET available as an environment variable."
         Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-SECRET;]$(pcs-auth-client-secret)"
+        Write-Host "Making the ApplicationName available as an environment variable."
+        Write-Host "##vso[task.setvariable variable=ApplicationName;]$(ApplicationName)"
 
   - task: DotNetCoreCLI@2
     displayName: 'Executing tests'
