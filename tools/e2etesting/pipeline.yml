@@ -178,7 +178,7 @@ jobs:
       KeyVaultName: '$(KeyVaultName)'
       SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
-  - task: PowerShell@5
+  - task: AzurePowerShell@5
     displayName: 'Set Secrets for tests execution as environment variables'
     inputs:
       azureSubscription: '$(AzureSubscription)'
