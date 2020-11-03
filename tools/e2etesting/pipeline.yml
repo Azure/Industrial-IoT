@@ -201,7 +201,7 @@ jobs:
     displayName: 'Executing tests'
     inputs:  
       command: test  
-      projects: '$(TestPath)\*.csproj'  
+      projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'  
       arguments: '--configuration $(buildConfiguration)'  
   
   # - task: CmdLine@2
