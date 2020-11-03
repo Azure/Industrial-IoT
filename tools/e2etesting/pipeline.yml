@@ -200,7 +200,7 @@ jobs:
     displayName: 'Executing tests'
     inputs:  
       command: test  
-      projects: '**/e2etesting/*.csproj'  
+      projects: '$(System.DefaultWorkingDirectory)/**/e2etesting/*.csproj'  
       arguments: '--configuration $(buildConfiguration)'  
   
   # - task: CmdLine@2
