@@ -1,8 +1,11 @@
 param($ResourceGroupName)
 
+$context = Get-AzContext
+Write-Host "Current context '$($context.Name)'"
+
 $keyVaultVariableName = "KeyVaultName"
 
-Write-Host "Looking for KeyVault in Resource group $($ResourceGroupName)"
+Write-Host "Looking for KeyVault in Resource group '$($ResourceGroupName)'"
 $resourceGroup = Get-AzResourceGroup -Name $ResourceGroupName
 
 if (!$resourceGroup) {
