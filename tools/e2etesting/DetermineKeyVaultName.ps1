@@ -2,6 +2,7 @@ param($ResourceGroupName)
 
 $keyVaultVariableName = "KeyVaultName"
 
+Write-Host "Looking for KeyVault in Resource group $($ResourceGroupName)"
 $resourceGroup = Get-AzResourceGroup -Name $ResourceGroupName
 
 if (!$resourceGroup) {
