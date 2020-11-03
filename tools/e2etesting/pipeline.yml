@@ -26,7 +26,7 @@ jobs:
       artifact: iiot_deployment
 
 - job: deploy
-  condition: or(eq(dependencies.buildiai.result, 'Skipped'), eq(dependencies.buildiai.result, 'Succeeded'))
+  condition: eq(dependencies.buildiai.result, 'Succeeded')
   dependsOn: buildiai
   displayName: 'Prepare and run IAI'
   pool:
