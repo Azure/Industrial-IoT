@@ -13,6 +13,7 @@ variables:
 
 jobs:
 - job: buildiai
+  condition: ne(variables['UseExisting'], true)
   displayName: 'Build IAI'
   pool:
     name: '$(AgentPool)'
@@ -25,7 +26,7 @@ jobs:
       artifact: iiot_deployment
 
 - job: deploy
-  condition: ne(variables['UseExisting'], true)
+  condition: or(eq(dependencies.buildiai.result, 'Skipped'), eq(dependencies.buildiai.result, 'Succeeded'))
   dependsOn: buildiai
   displayName: 'Prepare and run IAI'
   pool:
@@ -156,7 +157,7 @@ jobs:
 - job: e2etests
   displayName: 'Run End 2 End Tests'
   dependsOn: deploy
-  condition: eq(dependencies.deploy.result, 'Succeeded')
+  condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
   pool:
     name: '$(AgentPool)'
   # strategy:
