@@ -198,12 +198,21 @@ jobs:
         Write-Host "Making the ApplicationName available as an environment variable."
         Write-Host "##vso[task.setvariable variable=ApplicationName;]$ApplicationName"
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Executing tests'
-    inputs:  
-      command: test  
-      projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'  
-      arguments: '--configuration $(buildConfiguration)'  
+  - task: AzurePowerShell@5
+    displayName: 'Executing tests via powershell'
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'InlineScript'
+      inline: |
+        dotnet test $(TestPath)\IIoTPlatform-E2E-Tests.csproj --configuration $(BuildConfiguration) --collect "Code Coverage" --logger trx --results-directory $(Agent.TempDirectory)
+        
+  # - task: DotNetCoreCLI@2
+  #   displayName: 'Executing tests'
+  #   inputs:  
+  #     command: test  
+  #     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'  
+  #     arguments: '--configuration $(buildConfiguration) --environment'  
   
   # - task: CmdLine@2
   #   displayName: 'Run Newman for $(collectionFile)'
