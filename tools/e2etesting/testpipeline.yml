@@ -3,6 +3,9 @@ name: $(Date:yyyyMMdd)$(Rev:rr)
 trigger: none
 pr: none
 
+variables:
+  AgentPool: Azure-IoT-Manufacturing
+
 jobs:
 - job: job1
   displayName: 'Job 1'
