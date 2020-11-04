@@ -12,11 +12,11 @@ namespace IIoTPlatform_E2E_Tests {
     internal static class TestHelper {
 
         /// <summary>
-        /// Read the base URL of Industrial IoT Platform from environment varaibles
+        /// Read the base URL of Industrial IoT Platform from environment variables
         /// </summary>
         /// <returns></returns>
         public static string GetBaseUrl() {
-            var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.User);
+            var env = Environment.GetEnvironmentVariables();
             var baseUrl = env["PCS-SERVICE-URL"] as string;
             Assert.True(!string.IsNullOrWhiteSpace(baseUrl), "baseUrl is null");
             return baseUrl;
@@ -27,7 +27,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <returns>Return content of request token or empty string</returns>
         public static string GetToken() {
-            var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.User);
+            var env = Environment.GetEnvironmentVariables();
 
             return GetToken(
                 env["PCS-AUTH-TENANT"] as string,
