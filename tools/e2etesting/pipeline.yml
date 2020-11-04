@@ -171,7 +171,7 @@ jobs:
       scriptType: filePath
       scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
       scriptArguments: >
-        -ResourceGroupName variables['ResourceGroupName']
+        -ResourceGroupName '$(ResourceGroupName)'
 
   - task: AzureKeyVault@1
     displayName: 'Retrieve KeyVault secrets from existing deployment'
