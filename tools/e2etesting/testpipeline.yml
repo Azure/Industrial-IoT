@@ -1,0 +1,35 @@
+name: $(Date:yyyyMMdd)$(Rev:rr)
+
+trigger: none
+pr: none
+
+jobs:
+- job: job1
+  displayName: 'Job 1'
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: 'Write-Host myVar value: "$(myVar)"'
+
+- job: job2
+  displayName: 'Job 2'
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: 'Write-Host myVar value: "$(myVar)"'
+      
+- job: job3
+  displayName: 'Job 3'
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: 'Write-Host myVar value: "$(myVar)"'
