@@ -16,8 +16,10 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <returns></returns>
         public static string GetBaseUrl() {
-            var env = Environment.GetEnvironmentVariables();
-            return env["PCS-SERVICE-URL"] as string;
+            var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.User);
+            var baseUrl = env["PCS-SERVICE-URL"] as string;
+            Assert.True(!string.IsNullOrWhiteSpace(baseUrl), "baseUrl is null");
+            return baseUrl;
         }
 
         /// <summary>
@@ -25,7 +27,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <returns>Return content of request token or empty string</returns>
         public static string GetToken() {
-            var env = Environment.GetEnvironmentVariables();
+            var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.User);
 
             return GetToken(
                 env["PCS-AUTH-TENANT"] as string,
@@ -45,10 +47,10 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>Return content of request token or empty string</returns>
         public static string GetToken(string tenantId, string clientId, string clientSecret, string applicationName) {
             
-            Assert.NotEmpty(tenantId);
-            Assert.NotEmpty(clientId);
-            Assert.NotEmpty(clientSecret);
-            Assert.NotEmpty(applicationName);
+            Assert.True(!string.IsNullOrWhiteSpace(tenantId), "tenantId is null");
+            Assert.True(!string.IsNullOrWhiteSpace(clientId), "clientId is null");
+            Assert.True(!string.IsNullOrWhiteSpace(clientSecret), "clientSecret is null");
+            Assert.True(!string.IsNullOrWhiteSpace(applicationName), "applicationName is null");
 
             var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token") {
                 Timeout = 30, 
