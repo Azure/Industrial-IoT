@@ -1,4 +1,4 @@
-$ResourceGroupName = $env:ResourceGroupName
+param($ResourceGroupName)
 
 $context = Get-AzContext
 Write-Host "Current context '$($context.Name)'"
