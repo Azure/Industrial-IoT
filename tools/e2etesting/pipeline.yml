@@ -205,8 +205,8 @@ jobs:
       azurePowerShellVersion: 'latestVersion'
       scriptType: 'InlineScript'
       inline: |
-        dotnet test $(TestPath)\IIoTPlatform-E2E-Tests.csproj --configuration $(BuildConfiguration) --collect "Code Coverage" --logger trx --results-directory $(Agent.TempDirectory)
-        
+        dotnet test $(TestPath)\IIoTPlatform-E2E-Tests.csproj --configuration Release --collect "Code Coverage" --logger trx --results-directory $(Agent.TempDirectory) 
+
   # - task: DotNetCoreCLI@2
   #   displayName: 'Executing tests'
   #   inputs:  
