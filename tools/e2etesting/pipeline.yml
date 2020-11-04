@@ -188,15 +188,15 @@ jobs:
       scriptType: 'InlineScript'
       inline: |
         Write-Host "Making the PCS-SERVICE-URL available as an environment variable."
-        Write-Host "##vso[task.setvariable variable=PCS-SERVICE-URL;]$(pcs-service-url)"
+        Write-Host "##vso[task.setvariable variable=PCS-SERVICE-URL;]$pcs-service-url"
         Write-Host "Making the PCS-AUTH-TENANT available as an environment variable."
-        Write-Host "##vso[task.setvariable variable=PCS-AUTH-TENANT;]$(pcs-auth-tenant)"
+        Write-Host "##vso[task.setvariable variable=PCS-AUTH-TENANT;]$pcs-auth-tenant"
         Write-Host "Making the PCS-AUTH-CLIENT-APPID available as an environment variable."
-        Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-APPID;]$(pcs-auth-client-appid)"
+        Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-APPID;]$pcs-auth-client-appid"
         Write-Host "Making the PCS-AUTH-CLIENT-SECRET available as an environment variable."
-        Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-SECRET;]$(pcs-auth-client-secret)"
+        Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-SECRET;]$pcs-auth-client-secret"
         Write-Host "Making the ApplicationName available as an environment variable."
-        Write-Host "##vso[task.setvariable variable=ApplicationName;]$(ApplicationName)"
+        Write-Host "##vso[task.setvariable variable=ApplicationName;]$ApplicationName"
 
   - task: DotNetCoreCLI@2
     displayName: 'Executing tests'
