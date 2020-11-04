@@ -9,7 +9,7 @@ variables:
   AzureSubscription: IOT-OPC-WALLS-MSI
   AgentPool: Azure-IoT-Manufacturing
   IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
-  TestPath: \e2e-tests\IIoTPlatform-E2E-Tests
+  TestPath: $(System.DefaultWorkingDirectory)\e2e-tests\IIoTPlatform-E2E-Tests
 
 jobs:
 - job: buildiai
