@@ -198,19 +198,32 @@ jobs:
   #       Write-Host "Making the ApplicationName available as an environment variable."
   #       Write-Host "##vso[task.setvariable variable=ApplicationName;]$ApplicationName"
 
-  - task: AzurePowerShell@5
-    displayName: 'Executing tests via powershell'
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: 'InlineScript'
-      inline: |
-        Write-Host "Environment Variables of Agent"
-        Get-ChildItem -Path Env:
+  # - task: AzurePowerShell@5
+  #   displayName: 'Executing tests via powershell'
+  #   inputs:
+  #     azureSubscription: '$(AzureSubscription)'
+  #     azurePowerShellVersion: 'latestVersion'
+  #     scriptType: 'InlineScript'
+  #     inline: |
+  #       Write-Host "Environment Variables of Agent"
+  #       Get-ChildItem -Path Env:
         
-        Write-Host "Run all e2e tests"
-        dotnet test $(TestPath)\IIoTPlatform-E2E-Tests.csproj --configuration Release --collect "Code Coverage" --logger trx --results-directory $(Agent.TempDirectory) 
-        Write-Host "Run all e2e tests finished"
+  #       Write-Host "Run all e2e tests"
+  #       dotnet test $(TestPath)\IIoTPlatform-E2E-Tests.csproj --configuration Release --collect "Code Coverage" --logger trx --results-directory $(Agent.TempDirectory) 
+  #       Write-Host "Run all e2e tests finished"
+  #   env:
+  #     PCS_SERVICE_URL: $(pcs-service-url)
+  #     PCS_AUTH_TENANT: $(pcs-auth-tenant)
+  #     PCS_AUTH_CLIENT_APPID: $(pcs-auth-client-appid)
+  #     PCS_AUTH_CLIENT_SECRET: $(pcs-auth-client-secret)
+  #     ApplicationName: $(ApplicationName)
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Executing tests'
+    inputs:  
+      command: test  
+      projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'  
+      arguments: '--configuration Release --collect "Code Coverage" --logger trx --results-directory $(Agent.TempDirectory)'  
     env:
       PCS_SERVICE_URL: $(pcs-service-url)
       PCS_AUTH_TENANT: $(pcs-auth-tenant)
@@ -218,13 +231,6 @@ jobs:
       PCS_AUTH_CLIENT_SECRET: $(pcs-auth-client-secret)
       ApplicationName: $(ApplicationName)
 
-  # - task: DotNetCoreCLI@2
-  #   displayName: 'Executing tests'
-  #   inputs:  
-  #     command: test  
-  #     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'  
-  #     arguments: '--configuration $(buildConfiguration) --environment'  
-  
   # - task: CmdLine@2
   #   displayName: 'Run Newman for $(collectionFile)'
   #   inputs:
