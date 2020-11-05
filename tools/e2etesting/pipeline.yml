@@ -180,23 +180,23 @@ jobs:
       KeyVaultName: '$(KeyVaultName)'
       SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
-  - task: AzurePowerShell@5
-    displayName: 'Set Secrets for tests execution as environment variables'
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: 'InlineScript'
-      inline: |
-        Write-Host "Making the PCS-SERVICE-URL available as an environment variable."
-        Write-Host "##vso[task.setvariable variable=PCS-SERVICE-URL;]$pcs-service-url"
-        Write-Host "Making the PCS-AUTH-TENANT available as an environment variable."
-        Write-Host "##vso[task.setvariable variable=PCS-AUTH-TENANT;]$pcs-auth-tenant"
-        Write-Host "Making the PCS-AUTH-CLIENT-APPID available as an environment variable."
-        Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-APPID;]$pcs-auth-client-appid"
-        Write-Host "Making the PCS-AUTH-CLIENT-SECRET available as an environment variable."
-        Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-SECRET;]$pcs-auth-client-secret"
-        Write-Host "Making the ApplicationName available as an environment variable."
-        Write-Host "##vso[task.setvariable variable=ApplicationName;]$ApplicationName"
+  # - task: AzurePowerShell@5
+  #   displayName: 'Set Secrets for tests execution as environment variables'
+  #   inputs:
+  #     azureSubscription: '$(AzureSubscription)'
+  #     azurePowerShellVersion: 'latestVersion'
+  #     scriptType: 'InlineScript'
+  #     inline: |
+  #       Write-Host "Making the PCS-SERVICE-URL available as an environment variable."
+  #       Write-Host "##vso[task.setvariable variable=PCS-SERVICE-URL;]$pcs-service-url"
+  #       Write-Host "Making the PCS-AUTH-TENANT available as an environment variable."
+  #       Write-Host "##vso[task.setvariable variable=PCS-AUTH-TENANT;]$pcs-auth-tenant"
+  #       Write-Host "Making the PCS-AUTH-CLIENT-APPID available as an environment variable."
+  #       Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-APPID;]$pcs-auth-client-appid"
+  #       Write-Host "Making the PCS-AUTH-CLIENT-SECRET available as an environment variable."
+  #       Write-Host "##vso[task.setvariable variable=PCS-AUTH-CLIENT-SECRET;]$pcs-auth-client-secret"
+  #       Write-Host "Making the ApplicationName available as an environment variable."
+  #       Write-Host "##vso[task.setvariable variable=ApplicationName;]$ApplicationName"
 
   - task: AzurePowerShell@5
     displayName: 'Executing tests via powershell'
@@ -206,12 +206,15 @@ jobs:
       scriptType: 'InlineScript'
       inline: |
         Write-Host "Set required environment variable to run tests"
-        $env:PCS-SERVICE-URL = $(PCS-SERVICE-URL)
-        $env:PCS-AUTH-TENANT = $(PCS-AUTH-TENANT)        
-        Write-Host "PCS-AUTH-TENANT: $($PCS-AUTH-TENANT) $env:PCS-AUTH-TENANT"
-        $env:PCS-AUTH-CLIENT-APPID = $(PCS-AUTH-CLIENT-APPID)
-        $env:PCS-AUTH-CLIENT-SECRET = $(PCS-AUTH-CLIENT-SECRET)
-        $env:ApplicationName = $(ApplicationName)
+        $env:PCS_SERVICE_URL = $pcs-service-url
+        $env:PCS_AUTH_TENANT = $pcs-auth-tenant       
+        $env:PCS_AUTH_CLIENT_APPID = $pcs-auth-client-appid
+        $env:PCS_AUTH_CLIENT_SECRET = $pcs-auth-client-secret
+        $env:ApplicationName = $ApplicationName
+        
+        Write-Host "Environment Variables of Agent"
+        Get-ChildItem -Path Env:
+        
         Write-Host "Run all e2e tests"
         dotnet test $(TestPath)\IIoTPlatform-E2E-Tests.csproj --configuration Release --collect "Code Coverage" --logger trx --results-directory $(Agent.TempDirectory) 
         Write-Host "Run all e2e tests finished"
