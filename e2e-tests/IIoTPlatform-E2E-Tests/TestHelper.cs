@@ -16,8 +16,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <returns></returns>
         public static string GetBaseUrl() {
-            var env = Environment.GetEnvironmentVariables();
-            var baseUrl = env["PCS-SERVICE-URL"] as string;
+            var baseUrl = Environment.GetEnvironmentVariable("PCS-SERVICE-URL");
             Assert.True(!string.IsNullOrWhiteSpace(baseUrl), "baseUrl is null");
             return baseUrl;
         }
@@ -27,13 +26,11 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <returns>Return content of request token or empty string</returns>
         public static string GetToken() {
-            var env = Environment.GetEnvironmentVariables();
-
             return GetToken(
-                env["PCS-AUTH-TENANT"] as string,
-                env["PCS-AUTH-CLIENT-APPID"] as string,
-                env["PCS-AUTH-CLIENT-SECRET"] as string,
-                env["ApplicationName"] as string
+                Environment.GetEnvironmentVariable("PCS-AUTH-TENANT"),
+                Environment.GetEnvironmentVariable("PCS-AUTH-CLIENT-APPID"),
+                Environment.GetEnvironmentVariable("PCS-AUTH-CLIENT-SECRET"),
+                Environment.GetEnvironmentVariable("ApplicationName")
             );
         }
 
@@ -64,7 +61,7 @@ namespace IIoTPlatform_E2E_Tests {
             
             var response = client.Execute(request);
             Assert.True(response.IsSuccessful);
-            return response?.Content ?? string.Empty;
+            return response.Content;
         }
     }
 }
