@@ -205,7 +205,15 @@ jobs:
       azurePowerShellVersion: 'latestVersion'
       scriptType: 'InlineScript'
       inline: |
+        Write-Host "Set required environment variable to run tests"
+        $env:PCS-SERVICE-URL = $PCS-SERVICE-URL
+        $env:PCS-AUTH-TENANT = $PCS-AUTH-TENANT        
+        $env:PCS-AUTH-CLIENT-APPID = $PCS-AUTH-CLIENT-APPID
+        $env:PCS-AUTH-CLIENT-SECRET = $PCS-AUTH-CLIENT-SECRET
+        $env:ApplicationName = $ApplicationName
+        Write-Host "Run all e2e tests"
         dotnet test $(TestPath)\IIoTPlatform-E2E-Tests.csproj --configuration Release --collect "Code Coverage" --logger trx --results-directory $(Agent.TempDirectory) 
+        Write-Host "Run all e2e tests finished"
 
   # - task: DotNetCoreCLI@2
   #   displayName: 'Executing tests'
