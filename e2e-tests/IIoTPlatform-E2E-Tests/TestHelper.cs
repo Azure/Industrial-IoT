@@ -5,6 +5,7 @@
 
 namespace IIoTPlatform_E2E_Tests {
     using System;
+    using Newtonsoft.Json;
     using RestSharp;
     using RestSharp.Authenticators;
     using Xunit;
@@ -50,7 +51,7 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.True(!string.IsNullOrWhiteSpace(applicationName), "applicationName is null");
 
             var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token") {
-                Timeout = 30, 
+                Timeout = 30000, 
                 Authenticator = new HttpBasicAuthenticator(clientId, clientSecret)
             };
 
@@ -60,8 +61,9 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddParameter("scope", $"https://{tenantId}/{applicationName}-service/.default");
             
             var response = client.Execute(request);
-            Assert.True(response.IsSuccessful);
-            return response.Content;
+            Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
+            dynamic json = JsonConvert.DeserializeObject(response.Content);
+            return $"{json.token_type} {json.access_token}";
         }
     }
 }

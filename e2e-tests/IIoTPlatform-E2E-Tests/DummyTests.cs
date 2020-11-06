@@ -7,7 +7,7 @@ namespace IIoTPlatform_E2E_Tests
 {
     using System;
     using Xunit;
-    using System.Collections;
+    using Newtonsoft.Json;
     using RestSharp;
     using Xunit.Abstractions;
 
@@ -30,19 +30,26 @@ namespace IIoTPlatform_E2E_Tests
 
             var accessToken = TestHelper.GetToken();
 
-            var client = new RestClient(TestHelper.GetBaseUrl()) {Timeout = 30};
+            var client = new RestClient(TestHelper.GetBaseUrl()) {Timeout = 30000};
 
             var request = new RestRequest(Method.GET);
-            request.AddHeader("Authorization", $"Bearer {accessToken}");
+            request.AddHeader("Authorization", accessToken);
             request.Resource = TestConstants.APIRoutes.RegistryApplications;
 
             var response = client.Execute(request);
             Assert.NotNull(response);
-            Assert.True(response.IsSuccessful);
+            Assert.True(response.IsSuccessful, "Get /registry/v2/application failed!");
+
             if (!response.IsSuccessful) {
-                _output.WriteLine(response.ErrorMessage);
+                _output.WriteLine($"StatusCode: {response.StatusCode}");
+                _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
             }
-            Assert.Empty(response.Content);
+            
+            Assert.NotEmpty(response.Content);
+            dynamic json = JsonConvert.DeserializeObject(response.Content);
+
+            var numberOfItems = (int)json.items.Count;
+            Assert.Equal(0, numberOfItems);
         }
     }
 }
