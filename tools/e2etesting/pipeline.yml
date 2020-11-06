@@ -223,7 +223,7 @@ jobs:
     inputs:  
       command: test  
       projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'  
-      arguments: '--configuration Release --collect "Code Coverage" --logger trx --results-directory $(Agent.TempDirectory)'  
+      arguments: '--configuration Release'  
     env:
       PCS_SERVICE_URL: $(pcs-service-url)
       PCS_AUTH_TENANT: $(pcs-auth-tenant)
