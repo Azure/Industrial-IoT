@@ -1,4 +1,0 @@
-{
-    "name": "iot/opc-gateway-service",
-    "exposes": [9040, 51111]
-}

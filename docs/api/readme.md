@@ -4,7 +4,6 @@
 
 ## REST API
 
-- [OPC Vault REST API](vault/readme.md)
 - [OPC Registry REST API](registry/readme.md)
 - [OPC Twin REST API](twin/readme.md)
 - [OPC Publisher REST API](publisher/readme.md)

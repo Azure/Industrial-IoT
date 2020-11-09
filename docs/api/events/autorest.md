@@ -1,4 +1,4 @@
-# Azure Industrial IoT OPC Vault Client
+# Azure Industrial IoT OPC Events Client
 ``` yaml
 title: AzureOpcEventsClient
 ```

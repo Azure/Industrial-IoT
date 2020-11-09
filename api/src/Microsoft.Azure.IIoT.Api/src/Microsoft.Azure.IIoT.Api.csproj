@@ -12,7 +12,6 @@
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.History\src\Microsoft.Azure.IIoT.OpcUa.Api.History.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Registry\src\Microsoft.Azure.IIoT.OpcUa.Api.Registry.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Twin\src\Microsoft.Azure.IIoT.OpcUa.Api.Twin.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Vault\src\Microsoft.Azure.IIoT.OpcUa.Api.Vault.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Publisher\src\Microsoft.Azure.IIoT.OpcUa.Api.Publisher.csproj" />
   </ItemGroup>
   <ItemGroup>

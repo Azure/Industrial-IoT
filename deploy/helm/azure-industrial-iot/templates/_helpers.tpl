@@ -57,14 +57,6 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "history" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.gateway.fullname" -}}
-{{- printf "%s-%s" .Release.Name "gateway" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.vault.fullname" -}}
-{{- printf "%s-%s" .Release.Name "vault" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{- define "azure-industrial-iot.onboarding.fullname" -}}
 {{- printf "%s-%s" .Release.Name "onboarding" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
@@ -101,10 +93,6 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "telemetry-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.tunnelProcessor.fullname" -}}
-{{- printf "%s-%s" .Release.Name "tunnel-processor" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{/*
 app.kubernetes.io/component labels of Industrial-IoT microservices.
 
@@ -120,14 +108,6 @@ Those are used in Service selectors so they have to be unique for each microserv
 
 {{- define "azure-industrial-iot.history.component" -}}
 {{- "opc-history-service" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.gateway.component" -}}
-{{- "opc-gateway-service" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.vault.component" -}}
-{{- "opc-vault-service" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "azure-industrial-iot.onboarding.component" -}}
@@ -164,10 +144,6 @@ Those are used in Service selectors so they have to be unique for each microserv
 
 {{- define "azure-industrial-iot.telemetry-processor.component" -}}
 {{- "industrial-iot-telemetry-processor" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.tunnelProcessor.component" -}}
-{{- "industrial-iot-tunnel-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*

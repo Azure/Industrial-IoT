@@ -12,8 +12,6 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Events.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Events;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -24,16 +22,13 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
     /// Complete api configuration
     /// </summary>
     public class ApiConfig : DiagnosticsConfig, ITwinConfig, IRegistryConfig,
-        IVaultConfig, IHistoryConfig, IPublisherConfig, IEventsConfig, ISignalRClientConfig {
+        IHistoryConfig, IPublisherConfig, IEventsConfig, ISignalRClientConfig {
 
         /// <inheritdoc/>
         public string OpcUaTwinServiceUrl => _twin.OpcUaTwinServiceUrl;
 
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _registry.OpcUaRegistryServiceUrl;
-
-        /// <inheritdoc/>
-        public string OpcUaVaultServiceUrl => _vault.OpcUaVaultServiceUrl;
 
         /// <inheritdoc/>
         public string OpcUaHistoryServiceUrl => _history.OpcUaHistoryServiceUrl;
@@ -52,7 +47,6 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
             base(configuration) {
             _twin = new TwinConfig(configuration);
             _registry = new RegistryConfig(configuration);
-            _vault = new VaultConfig(configuration);
             _history = new HistoryConfig(configuration);
             _publisher = new PublisherConfig(configuration);
             _events = new EventsConfig(configuration);
@@ -60,7 +54,6 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
 
         private readonly TwinConfig _twin;
         private readonly RegistryConfig _registry;
-        private readonly VaultConfig _vault;
         private readonly HistoryConfig _history;
         private readonly PublisherConfig _publisher;
         private readonly EventsConfig _events;

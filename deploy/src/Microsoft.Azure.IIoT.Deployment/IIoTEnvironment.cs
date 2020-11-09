@@ -25,7 +25,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_IOTHUB_EVENTHUBENDPOINT;
         public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS;
         public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY;
-        public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL;
         public readonly string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING;
 
         // Cosmos DB
@@ -74,7 +73,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_TWIN_REGISTRY_URL;
         public readonly string PCS_TWIN_SERVICE_URL;
         public readonly string PCS_HISTORY_SERVICE_URL;
-        public readonly string PCS_VAULT_SERVICE_URL;
         public readonly string PCS_PUBLISHER_SERVICE_URL;
         public readonly string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL;
         public readonly string PCS_EVENTS_SERVICE_URL;
@@ -102,8 +100,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_TWIN_REGISTRY_SERVICE_PATH_BASE;
         public readonly string PCS_TWIN_SERVICE_PATH_BASE;
         public readonly string PCS_HISTORY_SERVICE_PATH_BASE;
-        public readonly string PCS_GATEWAY_SERVICE_PATH_BASE;
-        public readonly string PCS_VAULT_SERVICE_PATH_BASE;
         public readonly string PCS_PUBLISHER_SERVICE_PATH_BASE;
         public readonly string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE;
         public readonly string PCS_EVENTS_SERVICE_PATH_BASE;
@@ -127,7 +123,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             string iotHubEventHubEventsEndpointName,
             EventHubConsumerGroupInfo iotHubEventHubConsumerGroupEvents,
             EventHubConsumerGroupInfo iotHubEventHubConsumerGroupTelemetry,
-            EventHubConsumerGroupInfo iotHubEventHubConsumerGroupTunnel,
             EventHubConsumerGroupInfo iotHubEventHubConsumerGroupOnboarding,
             // Cosmos DB
             string cosmosDBAccountConnectionString,
@@ -173,7 +168,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_IOTHUB_EVENTHUBENDPOINT = iotHub.Properties.EventHubEndpoints[iotHubEventHubEventsEndpointName].Endpoint;
             PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS = iotHubEventHubConsumerGroupEvents.Name;
             PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY = iotHubEventHubConsumerGroupTelemetry.Name;
-            PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL = iotHubEventHubConsumerGroupTunnel.Name;
             PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING = iotHubEventHubConsumerGroupOnboarding.Name;
 
             // Cosmos DB
@@ -222,7 +216,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_TWIN_REGISTRY_URL = $"{serviceURL}/registry/";
             PCS_TWIN_SERVICE_URL = $"{serviceURL}/twin/";
             PCS_HISTORY_SERVICE_URL = $"{serviceURL}/history/";
-            PCS_VAULT_SERVICE_URL = $"{serviceURL}/vault/";
             PCS_PUBLISHER_SERVICE_URL = $"{serviceURL}/publisher/";
             PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL = $"{serviceURL}/edge/publisher/";
             PCS_EVENTS_SERVICE_URL = $"{serviceURL}/events/";
@@ -252,8 +245,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_TWIN_REGISTRY_SERVICE_PATH_BASE = "/registry";
             PCS_TWIN_SERVICE_PATH_BASE = "/twin";
             PCS_HISTORY_SERVICE_PATH_BASE = "/history";
-            PCS_GATEWAY_SERVICE_PATH_BASE = "/ua";
-            PCS_VAULT_SERVICE_PATH_BASE = "/vault";
             PCS_PUBLISHER_SERVICE_PATH_BASE = "/publisher";
             PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE = "/edge/publisher";
             PCS_EVENTS_SERVICE_PATH_BASE = "/events";
@@ -272,7 +263,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_IOTHUB_EVENTHUBENDPOINT)}", PCS_IOTHUB_EVENTHUBENDPOINT },
                 { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS },
                 { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY },
-                { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL },
                 { $"{nameof(PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING)}", PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING },
 
                 // Cosmos DB
@@ -319,7 +309,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_TWIN_REGISTRY_URL)}", PCS_TWIN_REGISTRY_URL },
                 { $"{nameof(PCS_TWIN_SERVICE_URL)}", PCS_TWIN_SERVICE_URL },
                 { $"{nameof(PCS_HISTORY_SERVICE_URL)}", PCS_HISTORY_SERVICE_URL },
-                { $"{nameof(PCS_VAULT_SERVICE_URL)}", PCS_VAULT_SERVICE_URL },
                 { $"{nameof(PCS_PUBLISHER_SERVICE_URL)}", PCS_PUBLISHER_SERVICE_URL },
                 { $"{nameof(PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL)}", PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL },
                 { $"{nameof(PCS_EVENTS_SERVICE_URL)}", PCS_EVENTS_SERVICE_URL },
@@ -347,8 +336,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_TWIN_REGISTRY_SERVICE_PATH_BASE)}", PCS_TWIN_REGISTRY_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_TWIN_SERVICE_PATH_BASE)}", PCS_TWIN_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_HISTORY_SERVICE_PATH_BASE)}", PCS_HISTORY_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_GATEWAY_SERVICE_PATH_BASE)}", PCS_GATEWAY_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_VAULT_SERVICE_PATH_BASE)}", PCS_VAULT_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_PUBLISHER_SERVICE_PATH_BASE)}", PCS_PUBLISHER_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE)}", PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_EVENTS_SERVICE_PATH_BASE)}", PCS_EVENTS_SERVICE_PATH_BASE },
