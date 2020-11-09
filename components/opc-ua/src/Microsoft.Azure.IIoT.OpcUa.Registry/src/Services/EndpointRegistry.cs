@@ -893,7 +893,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private async Task<string> GetSupervisorDeviceScopeAsync(string supervisorId,
             CancellationToken ct = default) {
             if (string.IsNullOrEmpty(supervisorId)) {
-                throw new ArgumentNullException(nameof(supervisorId));
+                return null; // No scope
             }
             var edgeDeviceId = SupervisorModelEx.ParseDeviceId(supervisorId, out _);
             var edgeDeviceTwin = await _iothub.FindAsync(edgeDeviceId, ct: ct);
