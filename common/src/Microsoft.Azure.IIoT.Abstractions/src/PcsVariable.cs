@@ -34,9 +34,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Iot hub event hub Onboarder Consumer Group </summary>
         public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING =
             "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_ONBOARDING";
-        /// <summary> Iot hub event hub Tunnel Consumer Group </summary>
-        public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL =
-            "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL";
         /// <summary> CosmosDB connection string </summary>
         public const string PCS_COSMOSDB_CONNSTRING =
             "PCS_COSMOSDB_CONNSTRING";
