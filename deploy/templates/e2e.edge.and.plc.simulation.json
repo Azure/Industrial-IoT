@@ -419,6 +419,10 @@
         "vmUsername": {
             "type": "string",
             "value": "[parameters('vmUsername')]"
+        },
+        "plcPrefix": {
+            "type": "string",
+            "value": "[variables('aciPlc')]"
         }
     }
 }

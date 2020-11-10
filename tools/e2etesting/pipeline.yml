@@ -94,6 +94,18 @@ jobs:
         -ResourceGroupName "$(ResourceGroupName)"
         -ObjectId "$(MSIObjectId)"
 
+- task: AzureCLI@2
+  displayName: 'Azure CLI - Promote Service Principal'
+  inputs:
+    azureSubscription: 'My Sub'
+    scriptType: ps
+    scriptLocation: inlineScript
+    inlineScript: | 
+     Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID;isSecret=true]$($env:servicePrincipalId)"
+     Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isSecret=true]$($env:servicePrincipalKey)"
+     Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID;isSecret=true]$($env:tenantId)"
+    addSpnToEnvironment: true
+
   - task: AzurePowerShell@5
     displayName: "Deploy IIoT edge and sim VMs"
     name: deployedgevm
@@ -106,6 +118,10 @@ jobs:
         -keyVaultName "$(KeyVaultName)"
         -resourceGroupName "$(ResourceGroupName)"
         -branchName "$(Build.SourceBranch)"
+        -region "$(Region)"
+        -username "$(ARM_CLIENT_ID)"
+        -password "$(ARM_CLIENT_SECRET)"
+        -tenantId "$(ARM_TENANT_ID)"
 
 - job: e2etests
   displayName: 'Run End 2 End Tests'
@@ -129,7 +145,7 @@ jobs:
     inputs:
       azureSubscription: '$(AzureSubscription)'
       KeyVaultName: '$(KeyVaultName)'
-      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
+      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET,PLC-SIMULATION-URLS,PCS-SIMULATION-USER,PCS-SIMULATION-PASSWORD,IOT-EDGE-DEVICE-ID'
 
   - task: DotNetCoreCLI@2
     displayName: 'Executing tests'
@@ -143,6 +159,10 @@ jobs:
       PCS_AUTH_CLIENT_APPID: $(pcs-auth-client-appid)
       PCS_AUTH_CLIENT_SECRET: $(pcs-auth-client-secret)
       ApplicationName: $(ApplicationName)
+      PLC_SIMULATION_URLS: $(plc-simulation-urls)
+      IOT_EDGE_DEVICE_ID: $(iot-edge-device-id)
+      PCS_SIMULATION_USER: $(pcs-simulation-user)
+      PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
 
   - task: PublishTestResults@2
     displayName: 'Upload testing results'
