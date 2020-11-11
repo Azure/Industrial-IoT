@@ -101,6 +101,7 @@ jobs:
       azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
       scriptLocation: 'InlineScript'
+      scriptType: 'pscore'
       addSpnToEnvironment: true
       inline: |
         Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$($env:servicePrincipalId)"
