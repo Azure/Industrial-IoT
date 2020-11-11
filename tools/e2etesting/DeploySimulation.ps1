@@ -8,17 +8,17 @@ Param(
     [string]
     $region,
     [string]
-    $username,
-    [securestring]
-    $password,
+    $client_id,
+    [string]
+    $client_secret,
     [string]
     $tenantId
 )
 
 # Powershell-Az module (which is automatically authorized by Powershell) 
 # don't support IoT Hub Device Identity methods, we ned to use az cli
-if(-Not ([string]::IsNullOrEmpty($username) -or [string]::IsNullOrEmpty($password) -or [string]::IsNullOrEmpty($tenantId))) {
-    az login --service-principal --username  $username --password (ConvertFrom-SecureString -SecureString $password) --tenant $tenantId
+if(-Not ([string]::IsNullOrEmpty($client_id) -or [string]::IsNullOrEmpty($client_secret) -or [string]::IsNullOrEmpty($tenantId))) {
+    az login --service-principal --username  $client_id --password $client_secret --tenant $tenantId
 } else {
     Write-Warning "username or password or tenantId for az login are not provided - skipped"
 }

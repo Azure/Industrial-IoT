@@ -6,7 +6,7 @@ pr: none
 variables:
   BasePath: $(System.DefaultWorkingDirectory)\tools\e2etesting
   ClientCredentialsKeyVaultName: automatedtesting
-  AzureSubscription: IOT-OPC-WALLS-MSI
+  AzureSubscription: IOT-OPC-WALLS-SP
   AgentPool: Azure-IoT-Manufacturing
   IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
   TestPath: $(System.DefaultWorkingDirectory)\e2e-tests\IIoTPlatform-E2E-Tests
@@ -32,6 +32,20 @@ jobs:
   pool:
     name: '$(AgentPool)'
   steps:
+  - task: AzureCLI@2
+    displayName: 'Set Service Principal Environment Variables'
+    name: promoteserviceprincipal
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptLocation: 'InlineScript'
+      scriptType: 'ps'
+      addSpnToEnvironment: true
+      inlineScript: |
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$($env:servicePrincipalKey)"
+        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
+
   - task: DownloadPipelineArtifact@2
     inputs:
       artifact: 'iiot_deployment'
@@ -43,13 +57,6 @@ jobs:
       targetFolder: $(BasePath)
       flattenFolders: true
 
-  - task: AzureKeyVault@1
-    displayName: 'Retrieve KeyVault secrets'
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      KeyVaultName: '$(ClientCredentialsKeyVaultName)'
-      SecretsFilter: 'IAIClientId,IAIClientSecret'
-
   - task: AzurePowerShell@5
     displayName: "Replace parameters in appSettings.json (for IAI)"
     inputs:
@@ -58,8 +65,8 @@ jobs:
       scriptType: filePath
       scriptPath: '$(BasePath)\ReplaceVariablesInAppSettings.ps1'
       scriptArguments: >
-        -ClientId "$(IAIClientId)"
-        -ClientSecret "$(IAIClientSecret)"
+        -ClientId "$(ARM_CLIENT_ID)"
+        -ClientSecret "$(ARM_CLIENT_SECRET)"
         -ApplicationName "$(ApplicationName)"
         -AppSettingsFilename "$(BasePath)\appsettings.json"
         -ResourceGroupName "$(ResourceGroupName)"
@@ -93,20 +100,6 @@ jobs:
         -KeyVaultName "$(KeyVaultName)"
         -ResourceGroupName "$(ResourceGroupName)"
         -ObjectId "$(MSIObjectId)"
-
-  - task: AzureCLI@2
-    displayName: 'Azure CLI - Promote Service Principal'
-    name: promoteserviceprincipal
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptLocation: 'InlineScript'
-      scriptType: 'pscore'
-      addSpnToEnvironment: true
-      inlineScript: |
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$($env:servicePrincipalId)"
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$(ConvertTo-SecureString $env:servicePrincipalKey -AsPlainText -Force)"
-        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID;issecret=true]$($env:tenantId)"
 
   - task: AzurePowerShell@5
     displayName: "Deploy IIoT edge and sim VMs"
