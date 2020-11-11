@@ -96,14 +96,15 @@ jobs:
 
   - task: AzurePowerShell@5
     displayName: 'Azure CLI - Promote Service Principal'
+    name: promoteserviceprincipal
     inputs:
       azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
-      scriptLocation: 'InlineScript'
-      inline: | 
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID;isSecret=true]$($servicePrincipalId)"
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isSecret=true]$($servicePrincipalKey)"
-        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID;isSecret=true]$($tenantId)"
+      scriptType: 'InlineScript'
+      inline: |
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$($env:servicePrincipalId)"
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$($env:servicePrincipalKey)"
+        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID;issecret=true]$($env:tenantId)"
 
   - task: AzurePowerShell@5
     displayName: "Deploy IIoT edge and sim VMs"
