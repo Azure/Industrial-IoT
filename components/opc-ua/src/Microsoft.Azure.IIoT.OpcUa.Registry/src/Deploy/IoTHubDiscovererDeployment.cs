@@ -95,15 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                     Cmd = new[] {
                         "PkiRootPath=/mount/pki"
                     },
-                    NetworkingConfig = new {
-                        EndpointsConfig = new {
-                            host = new {
-                            }
-                        }
-                    },
                     HostConfig = new {
-                        NetworkMode = "host",
-                        CapAdd = new[] { "NET_ADMIN" },
                         Binds = new[] {
                             "/mount:/mount"
                         }
