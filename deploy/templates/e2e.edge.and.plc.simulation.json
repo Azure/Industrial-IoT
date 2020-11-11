@@ -170,6 +170,9 @@
         "vmEdge": "[concat('vm-', variables('nameInfix'), '-edge')]",
         "aciPlc": "[concat('aci-', variables('nameInfix'), '-plc')]",
 
+        "vmEdgePubIp": "[concat(variables('vmEdge'),'-public-ip')]",
+        "vmEdgePubIpDnsName": "[concat(variables('vmEdge'),'-public-dns')]",
+
         "nicPrefix": "[concat('nic-', variables('nameInfix'))]",
         "nicEdge": "[concat(variables('nicPrefix'), '-edge')]",
         "nicEdgeId": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces', variables('nicEdge'))]",
@@ -317,22 +320,26 @@
             "name": "[variables('nicEdge')]",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2019-09-01",
-             "location": "[resourceGroup().location]",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
                         "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
                             "subnet": {
                                 "id": "[concat(variables('vnetId'), '/subnets/', 'subnet-vm')]"
                             },
-                            "privateIPAllocationMethod": "Dynamic"
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('vmEdgePubIp'))]"
+                            }
                         }
                     }
                 ]
             },
             "dependsOn": [
-                "[variables('vnetId')]"
+                "[variables('vnetId')]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('vmEdgePubIp'))]"
             ]
         },
         {
@@ -368,6 +375,19 @@
             "dependsOn": [
                 "[variables('nicEdgeId')]"
             ]
+        },
+        {
+          "name": "[variables('vmEdgePubIp')]",
+          "type": "Microsoft.Network/publicIPAddresses",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2016-03-30",
+          "dependsOn": [ ],
+          "properties": {
+            "publicIPAllocationMethod": "Dynamic",
+            "dnsSettings": {
+              "domainNameLabel": "[variables('vmEdgePubIpDnsName')]"
+            }
+          }
         },
         {
             "comments": "One time script execution to to enroll IoT Edge VM with IoT Hub and create pn.json for OPC Publisher",
@@ -416,13 +436,13 @@
         }
     ],
     "outputs": {
-        "vmUsername": {
-            "type": "string",
-            "value": "[parameters('vmUsername')]"
-        },
         "plcPrefix": {
             "type": "string",
             "value": "[variables('aciPlc')]"
+        },
+        "edgeDns": {
+            "type": "string",
+            "value": "[variables('vmEdgePubIpDnsName')]"
         }
     }
 }

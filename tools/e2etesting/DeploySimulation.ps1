@@ -18,7 +18,9 @@ Param(
 # Powershell-Az module (which is automatically authorized by Powershell) 
 # don't support IoT Hub Device Identity methods, we ned to use az cli
 if(-Not ([string]::IsNullOrEmpty($username) -or [string]::IsNullOrEmpty($password) -or [string]::IsNullOrEmpty($tenantId))) {
-    az login --service-principal --username  $username --password $password --tenant $tenantId
+    az login --service-principal --username  $username --password (ConvertFrom-SecureString -SecureString $password) --tenant $tenantId
+} else {
+    Write-Warning "username or password or tenantId for az login are not provided - skipped"
 }
 
 $branchName = $branchName.Replace('refs/heads/', '')
@@ -95,6 +97,7 @@ $templateParameters = @{
 
 Write-Host "Preparing to deploy e2e.edge.and.plc.simulation.json"
 
+# Execute deployment using ARM template
 $template = [System.IO.Path]::Combine($templateDir, "e2e.edge.and.plc.simulation.json")
 $simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $template -TemplateParameterObject $templateParameters
 if ($simulationDeployment.ProvisioningState -ne "Succeeded") {
@@ -114,5 +117,15 @@ if (-Not $secret.Enabled) {
     Write-Error "Couldn't store URLs to access PLC simulation in KeyVault" -ErrorAction Stop
 }
 Write-Host "Stored URLs to access PLC simulation in KeyVault"
+
+# Store DNS to IoT Edge device in KeyVault
+$dns = "$($simulationDeployment.Outputs.edgeDns.Value).$($region).cloudapp.azure.com"
+Write-Host $dns
+$secretvalue = ConvertTo-SecureString $dns -AsPlainText -Force
+$secret = Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'iot-edge-device-dns-name' -SecretValue $secretvalue
+if (-Not $secret.Enabled) {
+    Write-Error "Couldn't store DNS of IoT Edge device in KeyVault" -ErrorAction Stop
+}
+Write-Host "Stored DNS to access IoT Edge device in KeyVault"
 
 Write-Host "Deployed simulation"

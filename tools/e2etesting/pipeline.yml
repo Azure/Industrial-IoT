@@ -94,16 +94,17 @@ jobs:
         -ResourceGroupName "$(ResourceGroupName)"
         -ObjectId "$(MSIObjectId)"
 
-  - task: AzurePowerShell@5
+  - task: AzureCLI@2
     displayName: 'Azure CLI - Promote Service Principal'
     name: promoteserviceprincipal
     inputs:
       azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
       scriptType: 'InlineScript'
+      addSpnToEnvironment: true
       inline: |
         Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$($env:servicePrincipalId)"
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$($env:servicePrincipalKey)"
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$(ConvertTo-SecureString $env:servicePrincipalKey -AsPlainText -Force)"
         Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID;issecret=true]$($env:tenantId)"
 
   - task: AzurePowerShell@5
@@ -145,7 +146,7 @@ jobs:
     inputs:
       azureSubscription: '$(AzureSubscription)'
       KeyVaultName: '$(KeyVaultName)'
-      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET,PLC-SIMULATION-URLS,PCS-SIMULATION-USER,PCS-SIMULATION-PASSWORD,IOT-EDGE-DEVICE-ID'
+      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET,PLC-SIMULATION-URLS,PCS-SIMULATION-USER,PCS-SIMULATION-PASSWORD,IOT-EDGE-DEVICE-ID,IOT-EDGE-DEVICE-DNS-NAME'
 
   - task: DotNetCoreCLI@2
     displayName: 'Executing tests'
@@ -161,6 +162,7 @@ jobs:
       ApplicationName: $(ApplicationName)
       PLC_SIMULATION_URLS: $(plc-simulation-urls)
       IOT_EDGE_DEVICE_ID: $(iot-edge-device-id)
+      IOT_EDGE_DEVICE_DNS_NAME: $(iot-edge-device-dns-name)
       PCS_SIMULATION_USER: $(pcs-simulation-user)
       PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
 
