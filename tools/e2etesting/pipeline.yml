@@ -103,7 +103,7 @@ jobs:
       scriptLocation: 'InlineScript'
       scriptType: 'pscore'
       addSpnToEnvironment: true
-      inline: |
+      inlineScript: |
         Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$($env:servicePrincipalId)"
         Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$(ConvertTo-SecureString $env:servicePrincipalKey -AsPlainText -Force)"
         Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID;issecret=true]$($env:tenantId)"
