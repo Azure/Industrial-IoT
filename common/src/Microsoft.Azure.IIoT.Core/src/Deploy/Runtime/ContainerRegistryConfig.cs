@@ -33,10 +33,11 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
         /// <inheritdoc/>
         public string ImagesNamespace => GetStringOrDefault(kImagesNamespace,
             () => GetStringOrDefault(PcsVariable.PCS_IMAGES_NAMESPACE));
+
         /// <inheritdoc/>
         public string ImagesTag => GetStringOrDefault(kImagesTag,
             () => GetStringOrDefault(PcsVariable.PCS_IMAGES_TAG,
-                () => Assembly.GetExecutingAssembly().GetReleaseVersion().ToString(3)));
+                () => Assembly.GetExecutingAssembly().GetSemanticVersion()));
 
         /// <summary>
         /// Configuration constructor
