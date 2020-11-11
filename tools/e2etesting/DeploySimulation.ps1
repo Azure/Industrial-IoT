@@ -17,7 +17,7 @@ Param(
 
 # Powershell-Az module (which is automatically authorized by Powershell) 
 # don't support IoT Hub Device Identity methods, we ned to use az cli
-if(-Not ([string]::IsNullOrEmpty($username) && [string]::IsNullOrEmpty($password) && [string]::IsNullOrEmpty($tenantId))) {
+if(-Not ([string]::IsNullOrEmpty($username) -or [string]::IsNullOrEmpty($password) -or [string]::IsNullOrEmpty($tenantId))) {
     az login --service-principal --username  $username --password $password --tenant $tenantId
 }
 
