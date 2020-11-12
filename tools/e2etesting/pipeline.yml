@@ -102,7 +102,7 @@ jobs:
       scriptArguments: >
         -KeyVaultName "$(KeyVaultName)"
         -ResourceGroupName "$(ResourceGroupName)"
-        -ObjectId "$(MSIObjectId)"
+        -ServicePrincipalName "$(ARM_CLIENT_ID)"
 
   - task: AzurePowerShell@5
     displayName: "Deploy IIoT edge and sim VMs"
