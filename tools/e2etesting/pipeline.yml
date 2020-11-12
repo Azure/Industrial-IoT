@@ -6,7 +6,7 @@ pr: none
 variables:
   BasePath: $(System.DefaultWorkingDirectory)\tools\e2etesting
   ClientCredentialsKeyVaultName: automatedtesting
-  AzureSubscription: IOT-OPC-WALLS-SP
+  AzureSubscription: IOT-OPC-WALLS-SP # Use Services-Connection with Service-Principal-Authentication as subscription 
   AgentPool: Azure-IoT-Manufacturing
   IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
   TestPath: $(System.DefaultWorkingDirectory)\e2e-tests\IIoTPlatform-E2E-Tests
@@ -42,6 +42,10 @@ jobs:
       scriptType: 'ps'
       addSpnToEnvironment: true
       inlineScript: |
+        Write-Host "AAAA SERVICEPRINCIPALID-Env $($env:servicePrincipalId)"
+        Write-Host "BBBB TENANTID-Env $($env:tenantId)"
+        Write-Host "CCCC SERVICEPRINCIPALID $($servicePrincipalId)"
+        Write-Host "DDDD TENANTID $($tenantId)"
         Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
         Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$($env:servicePrincipalKey)"
         Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
