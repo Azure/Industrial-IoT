@@ -15,6 +15,8 @@ Param(
     $tenantId
 )
 
+az config set extension.use_dynamic_install=yes_without_prompt
+
 # Powershell-Az module (which is automatically authorized by Powershell) 
 # don't support IoT Hub Device Identity methods, we ned to use az cli
 if(-Not ([string]::IsNullOrEmpty($client_id) -or [string]::IsNullOrEmpty($client_secret) -or [string]::IsNullOrEmpty($tenantId))) {
