@@ -117,8 +117,8 @@ jobs:
         -resourceGroupName "$(ResourceGroupName)"
         -branchName "$(Build.SourceBranch)"
         -region "$(Region)"
-        -username "$(ARM_CLIENT_ID)"
-        -password "$(ARM_CLIENT_SECRET)"
+        -client_id "$(ARM_CLIENT_ID)"
+        -client_secret "$(ARM_CLIENT_SECRET)"
         -tenantId "$(ARM_TENANT_ID)"
 
 - job: e2etests
