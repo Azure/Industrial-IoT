@@ -73,7 +73,7 @@ namespace System {
         }
 
         /// <summary>
-        /// Get assembly info version
+        /// Get assembly informational version
         /// </summary>
         public static string GetInformationalVersion(this Assembly assembly) {
             if (assembly == null) {
@@ -81,6 +81,15 @@ namespace System {
             }
             return assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion ?? "";
+        }
+
+        /// <summary>
+        /// Get semantic assembly version
+        /// </summary>
+        public static string GetSemanticVersion(this Assembly assembly) {
+            var infoVersion = assembly.GetInformationalVersion();
+            var semVersion = infoVersion.Split('+').FirstOrDefault();
+            return semVersion ?? assembly.GetReleaseVersion().ToString(3);
         }
 
         /// <summary>
