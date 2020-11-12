@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public void Dispose() {
-            Try.Async(StopAsync).Wait();
+            StopAsync().Wait();
 
             _updateTimer.Dispose();
 
@@ -91,7 +91,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 catch (Exception ex) {
                     _logger.Error(ex, "Failed to run endpoint synchronization.");
                 }
-                _updateTimer.Change(_config.SyncInterval, Timeout.InfiniteTimeSpan);
+
+                if (!_cts.IsCancellationRequested) {
+                    _updateTimer.Change(_config.SyncInterval, Timeout.InfiniteTimeSpan);
+                }
             }
         }
 

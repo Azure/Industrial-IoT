@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
 
         /// <inheritdoc/>
         public void Dispose() {
-            Try.Async(StopAsync).Wait();
+            StopAsync().Wait();
 
             _updateTimer.Dispose();
 
@@ -99,7 +99,9 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
                     _logger.Error(ex, "Failed to update identity tokens.");
                 }
 
-                _updateTimer.Change(_config.UpdateInterval, Timeout.InfiniteTimeSpan);
+                if (!_cts.IsCancellationRequested) {
+                    _updateTimer.Change(_config.UpdateInterval, Timeout.InfiniteTimeSpan);
+                }
             }
         }
 

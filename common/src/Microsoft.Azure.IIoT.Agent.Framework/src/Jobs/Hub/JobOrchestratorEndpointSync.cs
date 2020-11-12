@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
         /// <inheritdoc/>
         public void Dispose() {
-            Try.Async(StopAsync).Wait();
+            StopAsync().Wait();
 
             _updateTimer.Dispose();
 
@@ -93,7 +93,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                     _logger.Error(ex, "Failed to update orchestrator urls.");
                 }
 
-                _updateTimer.Change(_config.JobOrchestratorUrlSyncInterval, Timeout.InfiniteTimeSpan);
+                if (!_cts.IsCancellationRequested) {
+                    _updateTimer.Change(_config.JobOrchestratorUrlSyncInterval, Timeout.InfiniteTimeSpan);
+                }
             }
         }
 
