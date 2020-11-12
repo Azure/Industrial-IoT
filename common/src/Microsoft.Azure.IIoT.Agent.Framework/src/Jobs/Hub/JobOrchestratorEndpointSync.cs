@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
