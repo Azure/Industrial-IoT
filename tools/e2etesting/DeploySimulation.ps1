@@ -105,9 +105,8 @@ if (-Not $secret.Enabled) {
 Write-Host "Stored URLs to access PLC simulation in KeyVault"
 
 # Store DNS to IoT Edge device in KeyVault
-$dns = "$($simulationDeployment.Outputs.edgeDns.Value).$($region).cloudapp.azure.com"
-Write-Host $dns
-$secretvalue = ConvertTo-SecureString $dns -AsPlainText -Force
+$dns = az network public-ip show --name $simulationDeployment.Outputs.publicIP.Value --resource-group $resourceGroupName | ConvertFrom-Json
+$secretvalue = ConvertTo-SecureString $dns.dnsSettings.fqdn -AsPlainText -Force
 $secret = Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'iot-edge-device-dns-name' -SecretValue $secretvalue
 if (-Not $secret.Enabled) {
     Write-Error "Couldn't store DNS of IoT Edge device in KeyVault" -ErrorAction Stop
