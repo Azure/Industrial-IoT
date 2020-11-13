@@ -22,6 +22,12 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
             $"(tags.__type__ = '{IdentityType.Gateway}' AND NOT IS_DEFINED(tags.unmanaged))";
 
         /// <summary>
+        /// Target condition for standalone publisher
+        /// </summary>
+        public static readonly string TargetConditionStandalone =
+            $"(tags.__type__ = '{IdentityType.Gateway}' AND tags.unmanage = 'true')";
+
+        /// <summary>
         /// Create edge base deployer
         /// </summary>
         /// <param name="service"></param>

@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = "__default-opcpublisher",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(true)
+                    ModulesContent = CreateLayeredDeployment(true, false)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
@@ -50,10 +50,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
                 Id = "__default-opcpublisher-windows",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(false)
+                    ModulesContent = CreateLayeredDeployment(false, false)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
                 TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
+                    " AND tags.os = 'Windows'",
+                Priority = 1
+            }, true);
+            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
+                Id = "__default-opcpublisher-standalone",
+                Content = new ConfigurationContentModel {
+                    ModulesContent = CreateLayeredDeployment(true, true)
+                },
+                SchemaVersion = kDefaultSchemaVersion,
+                TargetCondition = IoTHubEdgeBaseDeployment.TargetConditionStandalone +
+                    " AND tags.os = 'Linux'",
+                Priority = 1
+            }, true);
+            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
+                Id = "__default-opcpublisher-windows-standalone",
+                Content = new ConfigurationContentModel {
+                    ModulesContent = CreateLayeredDeployment(false, true)
+                },
+                SchemaVersion = kDefaultSchemaVersion,
+                TargetCondition = IoTHubEdgeBaseDeployment.TargetConditionStandalone +
                     " AND tags.os = 'Windows'",
                 Priority = 1
             }, true);
@@ -68,7 +88,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         /// Get base edge configuration
         /// </summary>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(bool isLinux) {
+        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(bool isLinux, bool isStandalone) {
 
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_config.DockerServer) &&
@@ -86,39 +106,78 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             // Configure create options per os specified
             string createOptions;
             if (isLinux) {
-                createOptions = _serializer.SerializeToString(new {
-                    Hostname = "publisher",
-                    Cmd = new[] {
+                if (isStandalone) {
+                    createOptions = _serializer.SerializeToString(new {
+                        Hostname = "publisher",
+                        Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                        "--aa",
+                        "--pf=/mount/published_nodes.json"
+                    },
+                        HostConfig = new {
+                            Binds = new[] {
+                            "/mount:/mount"
+                            }
+                        }
+                    }).Replace("\"", "\\\"");
+                }
+                else {
+                    createOptions = _serializer.SerializeToString(new {
+                        Hostname = "publisher",
+                        Cmd = new[] {
                         "PkiRootPath=/mount/pki",
                         "--aa"
                     },
-                    HostConfig = new {
-                        Binds = new [] {
+                        HostConfig = new {
+                            Binds = new[] {
                             "/mount:/mount"
+                            }
                         }
-                    }
-                }).Replace("\"", "\\\"");
+                    }).Replace("\"", "\\\"");
+                }
             }
             else {
-                createOptions = _serializer.SerializeToString(new {
-                    User = "ContainerAdministrator",
-                    Hostname = "publisher",
-                    Cmd = new[] {
+                if (isStandalone) {
+                    createOptions = _serializer.SerializeToString(new {
+                        User = "ContainerAdministrator",
+                        Hostname = "publisher",
+                        Cmd = new[] {
                         "PkiRootPath=/mount/pki",
-                        "--aa"
+                        "--aa",
+                        "--pf=C:\\\\mount\\\\published_nodes.json"
                     },
-                    HostConfig = new {
-                        Mounts = new[] {
+                        HostConfig = new {
+                            Mounts = new[] {
                             new {
                                 Type = "bind",
                                 Source = "C:\\\\ProgramData\\\\iotedge",
                                 Target = "C:\\\\mount"
                             }
                         }
-                    }
-                }).Replace("\"", "\\\"");
-            }
-
+                        }
+                    }).Replace("\"", "\\\"");
+                }
+                else {
+                    createOptions = _serializer.SerializeToString(new {
+                        User = "ContainerAdministrator",
+                        Hostname = "publisher",
+                        Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                        "--aa"
+                    },
+                        HostConfig = new {
+                            Mounts = new[] {
+                            new {
+                                Type = "bind",
+                                Source = "C:\\\\ProgramData\\\\iotedge",
+                                Target = "C:\\\\mount"
+                            }
+                        }
+                        }
+                    }).Replace("\"", "\\\"");
+                }
+            } 
+            
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
             var ns = string.IsNullOrEmpty(_config.ImagesNamespace) ? "" :
