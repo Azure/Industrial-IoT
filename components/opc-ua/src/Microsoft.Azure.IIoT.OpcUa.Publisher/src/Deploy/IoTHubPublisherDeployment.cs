@@ -152,8 +152,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                                 Type = "bind",
                                 Source = "C:\\\\ProgramData\\\\iotedge",
                                 Target = "C:\\\\mount"
+                                }
                             }
-                        }
                         }
                     }).Replace("\"", "\\\"");
                 }
@@ -171,8 +171,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                                 Type = "bind",
                                 Source = "C:\\\\ProgramData\\\\iotedge",
                                 Target = "C:\\\\mount"
+                                }
                             }
-                        }
                         }
                     }).Replace("\"", "\\\"");
                 }
