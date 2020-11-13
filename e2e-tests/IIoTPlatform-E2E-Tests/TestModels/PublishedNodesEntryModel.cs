@@ -23,7 +23,7 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
         /// <summary>
         /// Nodes defined in the collection.
         /// </summary>
-        public List<OpcUaNodesModel> Nodes { get; set; }
+        public OpcUaNodesModel[] Nodes { get; set; }
         
         /// <summary>
         /// plain username
