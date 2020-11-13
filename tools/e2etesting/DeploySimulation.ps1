@@ -31,23 +31,6 @@ $templateDir = [System.IO.Path]::Combine($PSScriptRoot, "../../deploy/templates"
 # Get IoT Hub
 $iotHub = Get-AzIotHub -ResourceGroupName $resourceGroupName
 
-# # Create MSI for edge
-# Write-Host "Creating MSI for edge VM identity"
-
-# $template = [System.IO.Path]::Combine($templateDir, "azuredeploy.managedidentity.json")
-# $msiDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $template
-# if ($msiDeployment.ProvisioningState -ne "Succeeded") {
-#     Write-Error "Deployment $($msiDeployment.ProvisioningState)." -ErrorAction Stop
-# }
-
-# Write-Host "Created MSI $($msiDeployment.Parameters.managedIdentityName.Value) with resource id $($msiDeployment.Outputs.managedIdentityResourceId.Value)"
-
-# # Configure the keyvault
-# # Allow the MSI to access keyvault
-# # https://github.com/Azure/azure-powershell/issues/10029 for why -BypassObjectIdValidation is needed
-# Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $msiDeployment.Outputs.managedIdentityPrincipalId.Value -PermissionsToSecrets get,list -BypassObjectIdValidation
-# Write-Host "Key vault set to allow MSI full access"
-
 # Allow the keyvault to be used in ARM deployments
 Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -EnabledForTemplateDeployment
 Write-Host "Key vault configured to be used in ARM deployments"
@@ -109,7 +92,8 @@ if ($simulationDeployment.ProvisioningState -ne "Succeeded") {
 # Generate URLs to access published_nodes.json via HTTP endpoint of plc-simulation.
 $plcSimNames = ""
 for ($i=1; $i -le $numberOfSimulations; $i++) {
-    $plcSimNames += "http://$($simulationDeployment.Outputs.plcPrefix.Value)$($i).$($region).azurecontainer.io/pn.json;"
+    $aci = az container show --resource-group $resourceGroupName --name "$($simulationDeployment.Outputs.plcPrefix.Value)$($i)" | ConvertFrom-Json
+    $plcSimNames += "$($aci.ipAddress.fqdn)/pn.json;"
 }
 
 # Store Url to PLC simulations in KeyVault

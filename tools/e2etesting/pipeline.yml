@@ -42,9 +42,6 @@ jobs:
       scriptType: 'ps'
       addSpnToEnvironment: true
       inlineScript: |
-        Write-Host "AAAA SERVICEPRINCIPALID-Env $($env:servicePrincipalId)"
-        Write-Host "BBBB SERVICEPRINCIPALKEY-Env $($env:servicePrincipalKey)"
-        Write-Host "CCCC TENANTID-Env $($env:tenantId)"
         Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
         Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
         Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
