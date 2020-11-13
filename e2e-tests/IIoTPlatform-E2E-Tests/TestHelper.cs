@@ -5,9 +5,17 @@
 
 namespace IIoTPlatform_E2E_Tests {
     using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
+    using System.Net.Http;
+    using System.Text;
+    using System.Threading.Tasks;
     using Newtonsoft.Json;
     using RestSharp;
     using RestSharp.Authenticators;
+    using TestModels;
     using Xunit;
 
     internal static class TestHelper {
@@ -17,7 +25,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <returns></returns>
         public static string GetBaseUrl() {
-            var baseUrl = Environment.GetEnvironmentVariable("PCS_SERVICE_URL");
+            var baseUrl = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL);
             Assert.True(!string.IsNullOrWhiteSpace(baseUrl), "baseUrl is null");
             return baseUrl;
         }
@@ -28,10 +36,10 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>Return content of request token or empty string</returns>
         public static string GetToken() {
             return GetToken(
-                Environment.GetEnvironmentVariable("PCS_AUTH_TENANT"),
-                Environment.GetEnvironmentVariable("PCS_AUTH_CLIENT_APPID"),
-                Environment.GetEnvironmentVariable("PCS_AUTH_CLIENT_SECRET"),
-                Environment.GetEnvironmentVariable("ApplicationName")
+                Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT),
+                Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID),
+                Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET),
+                Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.ApplicationName)
             );
         }
 
@@ -64,6 +72,33 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             return $"{json.token_type} {json.access_token}";
+        }
+
+        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedOpcUaNodes() {
+            var result = new Dictionary<string, PublishedNodesEntryModel>();
+
+            var plcUrls = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS);
+            Assert.NotNull(plcUrls);
+            
+            var listOfUrls = plcUrls.Split(';');
+            
+            foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
+                using (var client = new HttpClient()) {
+                    client.BaseAddress = new Uri(url);
+
+                    using (var response = await client.GetAsync("pn.json")) {
+                        Assert.NotNull(response);
+                        var json = await response.Content.ReadAsStringAsync();
+                        Assert.NotEmpty(json);
+                        var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
+                        Assert.NotNull(entryModels);
+                        Assert.NotEmpty(entryModels);
+                        result.Add(url, entryModels[0]);
+                    }
+                }
+            }
+            
+            return result;
         }
     }
 }

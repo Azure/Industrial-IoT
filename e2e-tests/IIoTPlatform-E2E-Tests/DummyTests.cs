@@ -6,6 +6,8 @@
 namespace IIoTPlatform_E2E_Tests
 {
     using System;
+    using System.Linq;
+    using System.Net.Http.Headers;
     using Xunit;
     using Newtonsoft.Json;
     using RestSharp;
@@ -33,7 +35,7 @@ namespace IIoTPlatform_E2E_Tests
             var client = new RestClient(TestHelper.GetBaseUrl()) {Timeout = 30000};
 
             var request = new RestRequest(Method.GET);
-            request.AddHeader("Authorization", accessToken);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
             request.Resource = TestConstants.APIRoutes.RegistryApplications;
 
             var response = client.Execute(request);
@@ -50,6 +52,38 @@ namespace IIoTPlatform_E2E_Tests
 
             var numberOfItems = (int)json.items.Count;
             Assert.Equal(0, numberOfItems);
+        }
+
+        [Fact]
+        public async void Test_RegisterOPCServer_Expect_ServerEndpointsCanBeRetrieved() {
+            var accessToken = TestHelper.GetToken();
+            var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodes();
+
+            var client = new RestClient(TestHelper.GetBaseUrl()) {Timeout = 30000};
+
+            var request = new RestRequest(Method.POST);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            request.Resource = TestConstants.APIRoutes.RegistryApplications;
+
+            var body = new {
+                discoveryUrl = $"opc.tcp://{simulatedOpcServer.Keys.First()}:{TestConstants.OpcSimulation.Port}"
+            };
+
+            request.AddJsonBody(JsonConvert.SerializeObject(body));
+
+            var response = client.Execute(request);
+            Assert.NotNull(response);
+            Assert.True(response.IsSuccessful, "POST /registry/v2/application failed!");
+
+            if (!response.IsSuccessful) {
+                _output.WriteLine($"StatusCode: {response.StatusCode}");
+                _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+            }
+
+            Assert.NotEmpty(response.Content);
+            dynamic json = JsonConvert.DeserializeObject(response.Content);
+
+            // check retriving endpoints 
         }
     }
 }
