@@ -17,6 +17,7 @@ namespace IIoTPlatform_E2E_Tests {
     using Microsoft.Azure.Devices;
     using System.IO;
     using Renci.SshNet;
+    using IIoTPlatform_E2E_Tests.TestExtensions;
 
     internal static class TestHelper {
 
@@ -108,18 +109,13 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 }
             }
-            
             return result;
         }
 
         /// <summary>
         /// Switch to publisher standalone mode
         /// </summary>
-        public static void SwitchToStandaloneMode() {
-            var connectionString = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING);
-            Assert.True(!string.IsNullOrWhiteSpace(connectionString), "connection string is null");
-
-            _registryManager = RegistryManager.CreateFromConnectionString(connectionString);
+        public static void SwitchToStandaloneMode(IIoTPlatformTestContext context) {
             var patch =
                 @"{
                     tags: {
@@ -127,18 +123,14 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 }";
 
-            UpdateTagAsync(patch).Wait();
+            UpdateTagAsync(patch, context).Wait();
         }
 
         /// <summary>
         /// Switch to publisher orchestrated mode
         /// </summary>
         /// /// <param name="destinationFilePath">Path of the PublishedNodesFile.json file to be deleted</param>
-        public static void SwitchToOrchestratedMode(string destinationFilePath) {
-            var connectionString = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING);
-            Assert.True(!string.IsNullOrWhiteSpace(connectionString), "connection string is null");
-
-            _registryManager = RegistryManager.CreateFromConnectionString(connectionString);
+        public static void SwitchToOrchestratedMode(string destinationFilePath, IIoTPlatformTestContext context) {
             var patch =
                @"{
                     tags: {
@@ -147,7 +139,7 @@ namespace IIoTPlatform_E2E_Tests {
                 }";
 
             DeletePublishedNodesFile(destinationFilePath);
-            UpdateTagAsync(patch).Wait();
+            UpdateTagAsync(patch, context).Wait();
         }
 
         /// <summary>
@@ -155,30 +147,25 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>       
         /// <param name="deviceId">Password for HTTP basic authentication</param>
         /// <param name="patch">Name of deployed Industrial IoT</param
-        private static async Task UpdateTagAsync(string patch) {
+        private static async Task UpdateTagAsync(string patch, IIoTPlatformTestContext context) {
+            var registryManager = context.registryManager;
             var deviceId = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_ID);
-
             Assert.True(!string.IsNullOrWhiteSpace(deviceId), "deviceId string is null");
 
-            var twin = await _registryManager.GetTwinAsync(deviceId);
-            await _registryManager.UpdateTwinAsync(twin.DeviceId, patch, twin.ETag);
+            var twin = await registryManager.GetTwinAsync(deviceId);
+            await registryManager.UpdateTwinAsync(twin.DeviceId, patch, twin.ETag);
         }
 
         /// <summary>
         /// transfer the content of published_nodes.json file into the OPC Publisher edge module
-        /// </summary>       
+        /// </summary>
         /// <param name="sourceFilePath">Source file path</param>
         /// <param name="destinationFilePath">Destination file path</param
         public static void LoadPublishedNodesFile(string sourceFilePath, string destinationFilePath) {
-            var username = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_SIMULATION_USER);
-            var password = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_SIMULATION_PASSWORD);
-            var host = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_DNS_NAME);
+            SshHelper.Validate();
+            Assert.True(File.Exists(sourceFilePath), "source file does not exist");
 
-            Assert.True(!string.IsNullOrWhiteSpace(username), "username string is null");
-            Assert.True(!string.IsNullOrWhiteSpace(password), "password string is null");
-            Assert.True(!string.IsNullOrWhiteSpace(host), "host string is null");
-
-            using (ScpClient client = new ScpClient(host, username, password)) {
+            using (ScpClient client = new ScpClient(SshHelper.Host, SshHelper.Username, SshHelper.Password)) {
                 client.Connect();
 
                 if (string.IsNullOrEmpty(sourceFilePath)) {
@@ -193,20 +180,14 @@ namespace IIoTPlatform_E2E_Tests {
 
         /// <summary>
         /// Delete published_nodes.json file into the OPC Publisher edge module
-        /// </summary>       
-        /// <param name="sourceFilePath">Source file path</param>
+        /// </summary>
         /// <param name="destinationFilePath">Destination file path</param
-        public static bool DeletePublishedNodesFile(string destinationFilePath) {
-            var username = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_SIMULATION_USER);
-            var password = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_SIMULATION_PASSWORD);
-            var host = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.  IOT_EDGE_DEVICE_DNS_NAME);
-
-            Assert.True(!string.IsNullOrWhiteSpace(username), "username string is null");
-            Assert.True(!string.IsNullOrWhiteSpace(password), "password string is null");
-            Assert.True(!string.IsNullOrWhiteSpace(host), "host string is null");
+        public static void DeletePublishedNodesFile(string destinationFilePath) {
+            SshHelper.Validate();
+            Assert.True(File.Exists(destinationFilePath), "file does not exist");
 
             var isSuccessful = false;
-            using (SshClient client = new SshClient(host, username, password)) {
+            using (SshClient client = new SshClient(SshHelper.Host, SshHelper.Username, SshHelper.Password)) {
                 client.Connect();
                 var terminal = client.RunCommand("rm " + destinationFilePath);
                 if (string.IsNullOrEmpty(terminal.Error)) {
@@ -214,9 +195,18 @@ namespace IIoTPlatform_E2E_Tests {
                 }
                 client.Disconnect();
             }
-            return isSuccessful;
+            Assert.True(isSuccessful, "Delete file was not successfull");
         }
 
-        private static RegistryManager _registryManager;
+        /// <summary>
+        /// Create IoT Hub Registry ManagerContext
+        /// </summary>       
+        /// <param name="registry manager">the RegistryManager object created from connection string</param>
+        public static RegistryManager CreateRegistryManagerContext() {
+            var connectionString = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING);
+            Assert.True(!string.IsNullOrWhiteSpace(connectionString), "connection string is null");
+
+            return RegistryManager.CreateFromConnectionString(connectionString);
+        }
     }
 }

@@ -1,23 +1,23 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
+namespace IIoTPlatform_E2E_Tests.TestExtensions {
+    using Microsoft.Azure.IIoT;
     using Microsoft.Azure.IIoT.Deploy;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    /// <summary>
-    /// Deploys publisher module
-    /// </summary>
-    public sealed class IoTHubPublisherDeployment : IHostProcess {
+    public class IoTHubPublisherDeploymentTest : IHostProcess {
+
+        public static readonly string TargetConditionStandalone =
+            $"(tags.__type__ = '{IdentityType.Gateway}' AND tags.unmanage = 'true')";
 
         /// <summary>
         /// Create deployer
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         /// <param name="config"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public IoTHubPublisherDeployment(IIoTHubConfigurationServices service,
+        public IoTHubPublisherDeploymentTest(IIoTHubConfigurationServices service,
             IContainerRegistryConfig config, IJsonSerializer serializer, ILogger logger) {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _service = service ?? throw new ArgumentNullException(nameof(service));
@@ -36,25 +36,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
 
         /// <inheritdoc/>
         public async Task StartAsync() {
-
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-opcpublisher",
+                Id = "__default-opcpublisher-standalone",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(true)
+                    ModulesContent = CreateLayeredDeployment(true, true)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
+                TargetCondition = TargetConditionStandalone +
                     " AND tags.os = 'Linux'",
-                Priority = 1
-            }, true);
-            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-opcpublisher-windows",
-                Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(false)
-                },
-                SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = IoTHubEdgeBaseDeployment.TargetCondition +
-                    " AND tags.os = 'Windows'",
                 Priority = 1
             }, true);
         }
@@ -68,7 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         /// Get base edge configuration
         /// </summary>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(bool isLinux) {
+        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(bool isLinux, bool isStandalone) {
 
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_config.DockerServer) &&
@@ -86,39 +75,78 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             // Configure create options per os specified
             string createOptions;
             if (isLinux) {
-                createOptions = _serializer.SerializeToString(new {
-                    Hostname = "publisher",
-                    Cmd = new[] {
-                    "PkiRootPath=/mount/pki",
-                    "--aa"
-                },
-                    HostConfig = new {
-                        Binds = new[] {
-                        "/mount:/mount"
-                        }
-                    }
-                }).Replace("\"", "\\\"");
-            }
-            else {
-                createOptions = _serializer.SerializeToString(new {
-                    User = "ContainerAdministrator",
-                    Hostname = "publisher",
-                    Cmd = new[] {
-                    "PkiRootPath=/mount/pki",
-                    "--aa"
-                },
-                    HostConfig = new {
-                        Mounts = new[] {
-                        new {
-                            Type = "bind",
-                            Source = "C:\\\\ProgramData\\\\iotedge",
-                            Target = "C:\\\\mount"
+                if (isStandalone) {
+                    createOptions = _serializer.SerializeToString(new {
+                        Hostname = "publisher",
+                        Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                        "--aa",
+                        "--pf=/mount/published_nodes.json"
+                    },
+                        HostConfig = new {
+                            Binds = new[] {
+                            "/mount:/mount"
                             }
                         }
-                    }
-                }).Replace("\"", "\\\"");
-            } 
-            
+                    }).Replace("\"", "\\\"");
+                }
+                else {
+                    createOptions = _serializer.SerializeToString(new {
+                        Hostname = "publisher",
+                        Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                        "--aa"
+                    },
+                        HostConfig = new {
+                            Binds = new[] {
+                            "/mount:/mount"
+                            }
+                        }
+                    }).Replace("\"", "\\\"");
+                }
+            }
+            else {
+                if (isStandalone) {
+                    createOptions = _serializer.SerializeToString(new {
+                        User = "ContainerAdministrator",
+                        Hostname = "publisher",
+                        Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                        "--aa",
+                        "--pf=C:\\\\mount\\\\published_nodes.json"
+                    },
+                        HostConfig = new {
+                            Mounts = new[] {
+                            new {
+                                Type = "bind",
+                                Source = "C:\\\\ProgramData\\\\iotedge",
+                                Target = "C:\\\\mount"
+                                }
+                            }
+                        }
+                    }).Replace("\"", "\\\"");
+                }
+                else {
+                    createOptions = _serializer.SerializeToString(new {
+                        User = "ContainerAdministrator",
+                        Hostname = "publisher",
+                        Cmd = new[] {
+                        "PkiRootPath=/mount/pki",
+                        "--aa"
+                    },
+                        HostConfig = new {
+                            Mounts = new[] {
+                            new {
+                                Type = "bind",
+                                Source = "C:\\\\ProgramData\\\\iotedge",
+                                Target = "C:\\\\mount"
+                                }
+                            }
+                        }
+                    }).Replace("\"", "\\\"");
+                }
+            }
+
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
             var ns = string.IsNullOrEmpty(_config.ImagesNamespace) ? "" :

@@ -25,6 +25,8 @@ namespace IIoTPlatform_E2E_Tests
         public DummyTests(IIoTPlatformTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
+
+            _context.registryManager = TestHelper.CreateRegistryManagerContext();
         }
 
         [Fact, PriorityOrder(1)]
