@@ -443,6 +443,10 @@
         "edgeDns": {
             "type": "string",
             "value": "[variables('vmEdgePubIpDnsName')]"
-        }
+        },
+        "publicIP": {
+            "type": "string",
+            "value": "[variables('vmEdgePubIp')]"
+        } 
     }
 }
