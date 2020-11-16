@@ -13,6 +13,8 @@ namespace IIoTPlatform_E2E_Tests
     using RestSharp;
     using TestExtensions;
     using Xunit.Abstractions;
+    using IIoTPlatform_E2E_Tests.Runtime;
+    using System.Threading;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -30,13 +32,13 @@ namespace IIoTPlatform_E2E_Tests
         }
 
         [Fact, PriorityOrder(1)]
-        public async void Test_CollectOAuthToken() {
+        public async Task Test_CollectOAuthToken() {
             var token = await TestHelper.GetTokenAsync();
             Assert.NotEmpty(token);
         }
 
         [Fact, PriorityOrder(2)]
-        public async void Test_ReadSimulatedOpcUaNodes() {
+        public async Task Test_ReadSimulatedOpcUaNodes() {
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync();
             Assert.NotNull(simulatedOpcServer);
             Assert.NotEmpty(simulatedOpcServer.Keys);
@@ -44,7 +46,7 @@ namespace IIoTPlatform_E2E_Tests
         }
 
         [Fact, PriorityOrder(3)]
-        public async void Test_RegisterOPCServer_Expect_Success() {
+        public async Task Test_RegisterOPCServer_Expect_Success() {
             var accessToken = await TestHelper.GetTokenAsync();
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync();
 
@@ -71,7 +73,7 @@ namespace IIoTPlatform_E2E_Tests
         }
 
         [Fact, PriorityOrder(4)]
-        public async void Test_GetApplicationsFromRegistry_ExpectOneRegisteredApplication() {
+        public async Task Test_GetApplicationsFromRegistry_ExpectOneRegisteredApplication() {
 
             var accessToken = await TestHelper.GetTokenAsync();
             var client = new RestClient(TestHelper.GetBaseUrl()) { Timeout = 30000 };
@@ -137,7 +139,7 @@ namespace IIoTPlatform_E2E_Tests
         }
 
         [Fact, PriorityOrder(6)]
-        public async void Test_ActivateEndpoint_Expect_Success() {
+        public async Task Test_ActivateEndpoint_Expect_Success() {
 
             // used if running test cases separately (during development)
             if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId)) {
@@ -165,7 +167,7 @@ namespace IIoTPlatform_E2E_Tests
         }
 
         [Fact, PriorityOrder(7)]
-        public async void Test_CheckIfEndpointWasActivated_Expect_ActivatedAndConnected() {
+        public async Task Test_CheckIfEndpointWasActivated_Expect_ActivatedAndConnected() {
             var accessToken = await TestHelper.GetTokenAsync();
             var client = new RestClient(TestHelper.GetBaseUrl()) { Timeout = 30000 };
 
@@ -192,7 +194,7 @@ namespace IIoTPlatform_E2E_Tests
         }
 
         [Fact, PriorityOrder(8)]
-        public async void Test_PublishNodeWithDefaults_Expect_DataAvailableAtIoTHub() {
+        public async Task Test_PublishNodeWithDefaults_Expect_DataAvailableAtIoTHub() {
 
             // used if running test cases separately (during development)
             if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId)) {
@@ -229,6 +231,19 @@ namespace IIoTPlatform_E2E_Tests
 
         }
 
-        
+        [Fact, PriorityOrder(9)]
+        public async Task Test_WaitForModules_Expect_Success() {
+            var configuration = TestHelper.GetConfiguration();
+
+            var iotHubConfig = new IoTHubConfig(configuration);
+            var iotDeviceConfig = new DeviceConfig(configuration);
+
+            var registryHelper = new RegistryHelper(iotHubConfig);
+
+            var millisecondsDelay = 60 * 1000;
+            var cts = new CancellationTokenSource(millisecondsDelay);
+
+            await registryHelper.WaitForIIoTModulesConnectedAsync(iotDeviceConfig.DeviceId, ct: cts.Token);
+        }
     }
 }
