@@ -93,7 +93,7 @@ if ($simulationDeployment.ProvisioningState -ne "Succeeded") {
 $plcSimNames = ""
 for ($i=1; $i -le $numberOfSimulations; $i++) {
     $aci = az container show --resource-group $resourceGroupName --name "$($simulationDeployment.Outputs.plcPrefix.Value)$($i)" | ConvertFrom-Json
-    $plcSimNames += "http://$($aci.ipAddress.fqdn);"
+    $plcSimNames += "$($aci.ipAddress.fqdn);"
 }
 
 # Store Url to PLC simulations in KeyVault

@@ -5,12 +5,9 @@
 
 namespace IIoTPlatform_E2E_Tests {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Net.Http;
-    using System.Text;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using RestSharp;
@@ -74,25 +71,36 @@ namespace IIoTPlatform_E2E_Tests {
             return $"{json.token_type} {json.access_token}";
         }
 
+        /// <summary>
+        /// Read PublishedNodes json from OPC-PLC and provide the data to the tests
+        /// </summary>
+        /// <returns>Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</returns>
         public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedOpcUaNodes() {
             var result = new Dictionary<string, PublishedNodesEntryModel>();
 
             var plcUrls = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS);
             Assert.NotNull(plcUrls);
             
-            var listOfUrls = plcUrls.Split(';');
+            var listOfUrls = plcUrls.Split(TestConstants.SimulationUrlsSeparator);
             
             foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
                 using (var client = new HttpClient()) {
-                    client.BaseAddress = new Uri(url);
+                    var ub = new UriBuilder {Host = url};
+                    var baseAddress = ub.Uri;
 
-                    using (var response = await client.GetAsync("pn.json")) {
+                    client.BaseAddress = baseAddress;
+
+                    using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile)) {
                         Assert.NotNull(response);
                         var json = await response.Content.ReadAsStringAsync();
                         Assert.NotEmpty(json);
                         var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
+                        
                         Assert.NotNull(entryModels);
                         Assert.NotEmpty(entryModels);
+                        Assert.NotNull(entryModels[0].OpcNodes);
+                        Assert.NotEmpty(entryModels[0].OpcNodes);
+                        
                         result.Add(url, entryModels[0]);
                     }
                 }
