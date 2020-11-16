@@ -18,7 +18,7 @@ namespace Microsoft.Extensions.Configuration {
         Highest,
 
         /// <summary>
-        /// Configuratoin provider should be added at the beginning of providers list,
+        /// Configuration provider should be added at the beginning of providers list,
         /// thus having lowest priority with all values being potentially overridden.
         /// </summary>
         Lowest
