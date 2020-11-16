@@ -288,7 +288,7 @@ namespace Opc.Ua.Extensions {
 
                 var idStart = value.IndexOf('#');
 
-                nsUri =idStart>=0?value.Substring(0, idStart):uri.NoQueryAndFragment().AbsoluteUri;
+                nsUri = idStart >= 0 ? value.Substring(0, idStart) : uri.NoQueryAndFragment().AbsoluteUri;
                 value = uri.Fragment.TrimStart('#');
             }
 
