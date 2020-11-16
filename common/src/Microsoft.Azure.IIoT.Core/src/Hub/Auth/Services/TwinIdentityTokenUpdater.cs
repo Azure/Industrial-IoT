@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Auth.Models;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
@@ -40,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
 
         /// <inheritdoc/>
         public void Dispose() {
-            Try.Async(StopAsync).Wait();
+            StopAsync().Wait();
 
             _updateTimer.Dispose();
 
@@ -99,7 +98,9 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
                     _logger.Error(ex, "Failed to update identity tokens.");
                 }
 
-                _updateTimer.Change(_config.UpdateInterval, Timeout.InfiniteTimeSpan);
+                if (!_cts.IsCancellationRequested) {
+                    _updateTimer.Change(_config.UpdateInterval, Timeout.InfiniteTimeSpan);
+                }
             }
         }
 

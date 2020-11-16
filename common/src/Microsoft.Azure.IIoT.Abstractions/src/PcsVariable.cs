@@ -37,9 +37,12 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Iot hub event hub Tunnel Consumer Group </summary>
         public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL =
             "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL";
-        /// <summary> Cosmos db connection string </summary>
+        /// <summary> CosmosDB connection string </summary>
         public const string PCS_COSMOSDB_CONNSTRING =
             "PCS_COSMOSDB_CONNSTRING";
+        /// <summary> CosmosDB throughput RUs </summary>
+        public const string PCS_COSMOSDB_THROUGHPUT =
+            "PCS_COSMOSDB_THROUGHPUT";
         /// <summary> Dps connection string </summary>
         public const string PCS_DPS_CONNSTRING =
             "PCS_DPS_CONNSTRING";
