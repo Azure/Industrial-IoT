@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
+    using System;
 
     /// <summary>
     /// Contains constants using for End 2 End testing
@@ -23,11 +24,20 @@ namespace IIoTPlatform_E2E_Tests {
         /// Contains constants for all routes to Industrial IoT Platform
         /// </summary>
         internal static class APIRoutes {
-            
+            /// <summary>
+            /// Route to enable an OPC UA endpoint
+            /// </summary>
+            public static string RegistryActivateEndpoints = "/registry/v2/endpoints/{0}/activate";
+
             /// <summary>
             /// Route to applications within registry 
             /// </summary>
             public const string RegistryApplications = "/registry/v2/applications";
+
+            /// <summary>
+            /// Route to endpoints within registry
+            /// </summary>
+            public const string RegistryEndpoints = "/registry/v2/endpoints";
         }
 
         /// <summary>
