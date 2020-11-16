@@ -285,7 +285,10 @@ namespace Opc.Ua.Extensions {
                 if (string.IsNullOrEmpty(uri.Fragment)) {
                     throw new FormatException($"Bad fragment - should contain identifier.");
                 }
-                nsUri = uri.NoQueryAndFragment().AbsoluteUri;
+
+                var idStart = value.IndexOf('#');
+
+                nsUri = idStart >= 0 ? value.Substring(0, idStart) : uri.NoQueryAndFragment().AbsoluteUri;
                 value = uri.Fragment.TrimStart('#');
             }
 
