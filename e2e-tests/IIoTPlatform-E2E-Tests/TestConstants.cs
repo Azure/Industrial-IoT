@@ -12,7 +12,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Character that need to be used when split value of "PLC_SIMULATION_URLS"
         /// </summary>
-        public static char SimulationUrlsSeparator  = ';';
+        public static char SimulationUrlsSeparator = ';';
+
+        /// <summary>
+        /// Name of the test assembly
+        /// </summary>
+        public const string TestAssemblyName = "IIoTPlatform-E2E-Tests";
 
         /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
