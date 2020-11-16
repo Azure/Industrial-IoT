@@ -30,6 +30,11 @@ namespace IIoTPlatform_E2E_Tests {
             public static string RegistryActivateEndpoints = "/registry/v2/endpoints/{0}/activate";
 
             /// <summary>
+            /// Route to publish single OPC UA node from OPC Publisher
+            /// </summary>
+            public static string PublisherStart = "/publisher/v2/publish/{0}/start";
+
+            /// <summary>
             /// Route to applications within registry 
             /// </summary>
             public const string RegistryApplications = "/registry/v2/applications";
