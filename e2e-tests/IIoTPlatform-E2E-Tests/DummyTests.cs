@@ -151,5 +151,32 @@ namespace IIoTPlatform_E2E_Tests
 
             Assert.Empty(response.Content);
         }
+
+        [Fact, PriorityOrder(6)]
+        public void Test_CheckIfEndpointWasActivated_Expect_ActivatedAndConnected() {
+            var accessToken = TestHelper.GetToken();
+            var client = new RestClient(TestHelper.GetBaseUrl()) { Timeout = 30000 };
+
+            var request = new RestRequest(Method.GET);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
+
+            var response = client.Execute(request);
+            Assert.NotNull(response);
+            Assert.True(response.IsSuccessful, "Get /registry/v2/endpoints failed!");
+
+            if (!response.IsSuccessful) {
+                _output.WriteLine($"StatusCode: {response.StatusCode}");
+                _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+            }
+
+            Assert.NotEmpty(response.Content);
+            dynamic json = JsonConvert.DeserializeObject(response.Content);
+
+            var activationState = (string)json.items[0].activationState;
+            Assert.Equal("ActivatedAndConnected", activationState);
+            var endpointState = (string)json.items[0].endpointState;
+            Assert.Equal("Ready", endpointState);
+        }
     }
 }
