@@ -109,6 +109,13 @@ namespace IIoTPlatform_E2E_Tests {
             /// Password of vm that hosting edge device
             /// </summary>
             public const string PCS_SIMULATION_PASSWORD = "PCS_SIMULATION_PASSWORD";
+
+            /// <summary>
+            /// IoT Hub connection string
+            /// </summary>
+            public const string PCS_IOTHUB_CONNSTRING = "PCS_IOTHUB_CONNSTRING";
+
+
         }
     }
 }
