@@ -27,12 +27,22 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// Route to enable an OPC UA endpoint
             /// </summary>
-            public static string RegistryActivateEndpoints = "/registry/v2/endpoints/{0}/activate";
+            public static string RegistryActivateEndpointsFormat = "/registry/v2/endpoints/{0}/activate";
 
             /// <summary>
             /// Route to publish single OPC UA node from OPC Publisher
             /// </summary>
-            public static string PublisherStart = "/publisher/v2/publish/{0}/start";
+            public static string PublisherStartFormat = "/publisher/v2/publish/{0}/start";
+
+            /// <summary>
+            /// Route to read all publishing jobs
+            /// </summary>
+            public static string PublisherJobs = "/publisher/v2/jobs";
+
+            /// <summary>
+            /// Route to read single publishing jobs
+            /// </summary>
+            public static string PublisherJobsFormat = "/publisher/v2/jobs/{0}";
 
             /// <summary>
             /// Route to applications within registry 
