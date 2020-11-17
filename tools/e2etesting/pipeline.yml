@@ -169,17 +169,21 @@ jobs:
   #     failTaskOnFailedTests: true
   #     searchFolder: $(Agent.TempDirectory)
   
-  - task: CmdLine@2
-    displayName: 'Install coverage ReportorGenerator tool'
-    condition: always()
-    inputs:
-      script: 'dotnet tool install --global dotnet-reportgenerator-globaltool'
+  # - task: CmdLine@2
+  #   displayName: 'Install coverage ReportorGenerator tool'
+  #   condition: always()
+  #   inputs:
+  #     script: 'dotnet tool install --global dotnet-reportgenerator-globaltool'
   
-  - task: CmdLine@2
+  - task: AzurePowerShell@5
     displayName: 'Generate Code Coverage Report'
     condition: always()
     inputs:
-      script: 'reportgenerator -reports:$(Agent.TempDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/coverlet/reports -reporttypes:"Cobertura"'
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'InlineScript'
+      inline: | 
+        reportgenerator -reports:$(Agent.TempDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/coverlet/reports -reporttypes:"Cobertura"
 
   - task: PublishCodeCoverageResults@1  
     displayName: 'Publish code coverage'
