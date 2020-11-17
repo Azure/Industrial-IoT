@@ -89,12 +89,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                 createOptions = _serializer.SerializeToString(new {
                     Hostname = "publisher",
                     Cmd = new[] {
-                    "PkiRootPath=/mount/pki",
-                    "--aa"
-                },
+                        "PkiRootPath=/mount/pki",
+                        "--aa"
+                    },
                     HostConfig = new {
                         Binds = new[] {
-                        "/mount:/mount"
+                            "/mount:/mount"
                         }
                     }
                 }).Replace("\"", "\\\"");
@@ -104,21 +104,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                     User = "ContainerAdministrator",
                     Hostname = "publisher",
                     Cmd = new[] {
-                    "PkiRootPath=/mount/pki",
-                    "--aa"
-                },
+                        "PkiRootPath=/mount/pki",
+                        "--aa"
+                    },
                     HostConfig = new {
                         Mounts = new[] {
-                        new {
-                            Type = "bind",
-                            Source = "C:\\\\ProgramData\\\\iotedge",
-                            Target = "C:\\\\mount"
+                            new {
+                                Type = "bind",
+                                Source = "C:\\\\ProgramData\\\\iotedge",
+                                Target = "C:\\\\mount"
                             }
                         }
                     }
                 }).Replace("\"", "\\\"");
-            } 
-            
+            }
+
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
             var ns = string.IsNullOrEmpty(_config.ImagesNamespace) ? "" :
