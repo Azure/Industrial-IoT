@@ -183,6 +183,7 @@ jobs:
     displayName: 'Publish code coverage'  
     inputs:  
       codeCoverageTool: Cobertura  
+      reportDirectory: '$(Build.SourcesDirectory)/coverlet/reports/'
       summaryFileLocation: '$(Build.SourcesDirectory)/coverlet/reports/Cobertura.xml' 
 
 - job: cleanup
