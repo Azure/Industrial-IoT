@@ -6,7 +6,6 @@
 namespace IIoTPlatform_E2E_Tests.Runtime {
 
     using IIoTPlatform_E2E_Tests.Config;
-    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
 

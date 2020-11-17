@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
+    using Extensions;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using RestSharp;
@@ -112,15 +113,16 @@ namespace IIoTPlatform_E2E_Tests {
 
         /// <summary>
         /// Get configuration that reads from:
-        ///     - .env file
         ///     - environment variables
+        ///     - environment variables from user target
+        ///     - environment variables from launchSettings.json
         /// </summary>
         /// <returns></returns>
         public static IConfigurationRoot GetConfiguration() {
             var configuration = new ConfigurationBuilder()
-                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddAllEnvVarsFromLaunchSettings()
                 .Build();
 
             return configuration;
