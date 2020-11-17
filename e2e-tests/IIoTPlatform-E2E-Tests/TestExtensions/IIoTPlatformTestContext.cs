@@ -3,6 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+#nullable enable
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using Microsoft.Azure.Devices;
 
@@ -14,7 +15,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <summary>
         /// Save the identifier of OPC server endpoints
         /// </summary>
-        public string OpcUaEndpointId { get; set; }
+        public string? OpcUaEndpointId { get; set; }
 
         /// <summary>
         /// IoT Hub registry manager

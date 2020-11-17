@@ -35,8 +35,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// Request OAuth token using Http basic authentication from environment variables
         /// </summary>
         /// <returns>Return content of request token or empty string</returns>
-        public static string GetToken() {
-            return GetToken(
+        public static async Task<string> GetTokenAsync() {
+            return await GetTokenAsync(
                 Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT),
                 Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID),
                 Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET),
@@ -52,7 +52,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="clientSecret">Password for HTTP basic authentication</param>
         /// <param name="applicationName">Name of deployed Industrial IoT</param>
         /// <returns>Return content of request token or empty string</returns>
-        public static string GetToken(string tenantId, string clientId, string clientSecret, string applicationName) {
+        public static async Task<string> GetTokenAsync(string tenantId, string clientId, string clientSecret, string applicationName) {
             
             Assert.True(!string.IsNullOrWhiteSpace(tenantId), "tenantId is null");
             Assert.True(!string.IsNullOrWhiteSpace(clientId), "clientId is null");
@@ -69,7 +69,7 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddParameter("grant_type", "client_credentials");
             request.AddParameter("scope", $"https://{tenantId}/{applicationName}-service/.default");
             
-            var response = client.Execute(request);
+            var response = await client.ExecuteAsync(request);
             Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             return $"{json.token_type} {json.access_token}";
@@ -79,7 +79,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// Read PublishedNodes json from OPC-PLC and provide the data to the tests
         /// </summary>
         /// <returns>Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</returns>
-        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedOpcUaNodes() {
+        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedOpcUaNodesAsync() {
             var result = new Dictionary<string, PublishedNodesEntryModel>();
 
             var plcUrls = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS);

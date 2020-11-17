@@ -147,7 +147,7 @@ jobs:
     inputs:  
       command: test  
       projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'  
-      arguments: '--configuration Release'  
+      arguments: '--configuration Release --collect:"XPlat Code Coverage"'
     env:
       PCS_SERVICE_URL: $(pcs-service-url)
       PCS_AUTH_TENANT: $(pcs-auth-tenant)
@@ -161,13 +161,33 @@ jobs:
       PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
       PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring) 
 
-  - task: PublishTestResults@2
-    displayName: 'Upload testing results'
+  # - task: PublishTestResults@2
+  #   displayName: 'Upload testing results'
+  #   inputs:
+  #     testResultsFormat: xUnit
+  #     testResultsFiles: '**/*.trx'
+  #     failTaskOnFailedTests: true
+  #     searchFolder: $(Agent.TempDirectory)
+  
+  - task: CmdLine@2
+    displayName: 'Install coverage ReportorGenerator tool'
+    condition: always()
     inputs:
-      testResultsFormat: xUnit
-      testResultsFiles: '**/*.trx'
-      failTaskOnFailedTests: true
-      searchFolder: $(Agent.TempDirectory)
+      script: 'dotnet tool install --global dotnet-reportgenerator-globaltool'
+  
+  - task: CmdLine@2
+    displayName: 'Generate Code Coverage Report'
+    condition: always()
+    inputs:
+      script: 'reportgenerator -reports:$(Agent.TempDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/coverlet/reports -reporttypes:"Cobertura"'
+
+  - task: PublishCodeCoverageResults@1  
+    displayName: 'Publish code coverage'
+    condition: always()
+    inputs:  
+      codeCoverageTool: Cobertura  
+      reportDirectory: '$(Build.SourcesDirectory)/coverlet/reports/'
+      summaryFileLocation: '$(Build.SourcesDirectory)/coverlet/reports/Cobertura.xml' 
 
 - job: cleanup
   displayName: Cleanup
