@@ -45,7 +45,7 @@ namespace IIoTPlatform_E2E_Tests {
             public static string PublisherJobsFormat = "/publisher/v2/jobs/{0}";
 
             /// <summary>
-            /// Route to applications within registry 
+            /// Route to applications within registry
             /// </summary>
             public const string RegistryApplications = "/registry/v2/applications";
 
@@ -94,7 +94,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// Tenant name used for authentication of Industrial IoT Platform
             /// </summary>
             public const string PCS_AUTH_TENANT = "PCS_AUTH_TENANT";
-            
+
             /// <summary>
             /// Client App ID used for authentication of Industrial IoT Platform
             /// </summary>
@@ -139,8 +139,6 @@ namespace IIoTPlatform_E2E_Tests {
             /// IoT Hub connection string
             /// </summary>
             public const string PCS_IOTHUB_CONNSTRING = "PCS_IOTHUB_CONNSTRING";
-
-
         }
     }
 }

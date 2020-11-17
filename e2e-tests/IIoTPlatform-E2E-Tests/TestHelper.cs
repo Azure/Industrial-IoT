@@ -4,14 +4,16 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
+    using Extensions;
+    using Microsoft.Extensions.Configuration;
+    using Newtonsoft.Json;
+    using RestSharp;
+    using RestSharp.Authenticators;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
-    using RestSharp;
-    using RestSharp.Authenticators;
     using TestModels;
     using Xunit;
     using Microsoft.Azure.Devices;
@@ -21,7 +23,7 @@ namespace IIoTPlatform_E2E_Tests {
 
     internal static class TestHelper {
 
-      
+        /// <summary>
         /// Read the base URL of Industrial IoT Platform from environment variables
         /// </summary>
         /// <returns></returns>
@@ -53,14 +55,14 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="applicationName">Name of deployed Industrial IoT</param>
         /// <returns>Return content of request token or empty string</returns>
         public static async Task<string> GetTokenAsync(string tenantId, string clientId, string clientSecret, string applicationName) {
-            
+
             Assert.True(!string.IsNullOrWhiteSpace(tenantId), "tenantId is null");
             Assert.True(!string.IsNullOrWhiteSpace(clientId), "clientId is null");
             Assert.True(!string.IsNullOrWhiteSpace(clientSecret), "clientSecret is null");
             Assert.True(!string.IsNullOrWhiteSpace(applicationName), "applicationName is null");
 
             var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token") {
-                Timeout = 30000, 
+                Timeout = 30000,
                 Authenticator = new HttpBasicAuthenticator(clientId, clientSecret)
             };
 
@@ -68,7 +70,7 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
             request.AddParameter("grant_type", "client_credentials");
             request.AddParameter("scope", $"https://{tenantId}/{applicationName}-service/.default");
-            
+
             var response = await client.ExecuteAsync(request);
             Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
             dynamic json = JsonConvert.DeserializeObject(response.Content);
@@ -84,9 +86,9 @@ namespace IIoTPlatform_E2E_Tests {
 
             var plcUrls = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS);
             Assert.NotNull(plcUrls);
-            
+
             var listOfUrls = plcUrls.Split(TestConstants.SimulationUrlsSeparator);
-            
+
             foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
                 using (var client = new HttpClient()) {
                     var ub = new UriBuilder {Host = url};
@@ -99,12 +101,12 @@ namespace IIoTPlatform_E2E_Tests {
                         var json = await response.Content.ReadAsStringAsync();
                         Assert.NotEmpty(json);
                         var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
-                        
+
                         Assert.NotNull(entryModels);
                         Assert.NotEmpty(entryModels);
                         Assert.NotNull(entryModels[0].OpcNodes);
                         Assert.NotEmpty(entryModels[0].OpcNodes);
-                        
+
                         result.Add(url, entryModels[0]);
                     }
                 }
@@ -207,6 +209,23 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.True(!string.IsNullOrWhiteSpace(connectionString), "connection string is null");
 
             return RegistryManager.CreateFromConnectionString(connectionString);
+        }
+
+        /// <summary>
+        /// Get configuration that reads from:
+        ///     - environment variables
+        ///     - environment variables from user target
+        ///     - environment variables from launchSettings.json
+        /// </summary>
+        /// <returns></returns>
+        public static IConfigurationRoot GetConfiguration() {
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddAllEnvVarsFromLaunchSettings()
+                .Build();
+
+            return configuration;
         }
     }
 }
