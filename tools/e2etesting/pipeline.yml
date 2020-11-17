@@ -74,6 +74,7 @@ jobs:
 
   - task: CmdLine@2
     displayName: 'Run deployment with IAI'
+    timeoutInMinutes: 90
     inputs:
       script: '$(IAILocalFilename)'
       workingDirectory: '$(BasePath)'
@@ -161,37 +162,31 @@ jobs:
       PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
       PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring) 
 
-  # - task: PublishTestResults@2
-  #   displayName: 'Upload testing results'
-  #   inputs:
-  #     testResultsFormat: xUnit
-  #     testResultsFiles: '**/*.trx'
-  #     failTaskOnFailedTests: true
-  #     searchFolder: $(Agent.TempDirectory)
+   - task: DotNetCoreCLI@2
+     displayName: 'Install coverage ReportorGenerator tool'
+     condition: always()
+     inputs:
+      command: custom
+      custom: tool
+      arguments: 'install --tool-path tools dotnet-reportgenerator-globaltool'
   
-  # - task: CmdLine@2
-  #   displayName: 'Install coverage ReportorGenerator tool'
-  #   condition: always()
-  #   inputs:
-  #     script: 'dotnet tool install --global dotnet-reportgenerator-globaltool'
-  
-  - task: AzurePowerShell@5
-    displayName: 'Generate Code Coverage Report'
+  - task: CmdLine@2
+    displayName: 'Create Code Coverage Report'
     condition: always()
+    continueOnError: true
     inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: 'InlineScript'
-      inline: | 
-        reportgenerator -reports:$(Agent.TempDirectory)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/coverlet/reports -reporttypes:"Cobertura"
+      script: | 
+        tools/reportgenerator -reports:$(Build.SourcesDirectory)/**/coverage.*.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage "-reporttypes:Cobertura;HtmlSummary" "-title:UA .Net Standard Test Coverage" "-assemblyfilters:-*.Tests"
+        mv $(Build.SourcesDirectory)/CodeCoverage/summary.htm $(Build.SourcesDirectory)/CodeCoverage/index.htm
 
   - task: PublishCodeCoverageResults@1  
     displayName: 'Publish code coverage'
     condition: always()
+    continueOnError: true
     inputs:  
       codeCoverageTool: Cobertura  
-      reportDirectory: '$(Build.SourcesDirectory)/coverlet/reports/'
-      summaryFileLocation: '$(Build.SourcesDirectory)/coverlet/reports/Cobertura.xml' 
+      reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
+      summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml' 
 
 - job: cleanup
   displayName: Cleanup
