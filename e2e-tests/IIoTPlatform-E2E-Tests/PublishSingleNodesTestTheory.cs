@@ -58,7 +58,7 @@ namespace IIoTPlatform_E2E_Tests
             var millisecondsDelay = 60 * 1000;
             var cts = new CancellationTokenSource(millisecondsDelay);
 
-            await registryHelper.WaitForIIoTModulesConnectedAsync(iotDeviceConfig.DeviceId, ct: cts.Token);
+            await registryHelper.WaitForIIoTModulesConnectedAsync(iotDeviceConfig.DeviceId, cts.Token);
 
             var accessToken = await TestHelper.GetTokenAsync();
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync();

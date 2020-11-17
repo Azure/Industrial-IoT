@@ -29,13 +29,13 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="deviceId"></param>
         /// <param name="deviceId"> IoT Edge device id </param>
-        /// <param name="moduleNames"> List of modules to wait for, defaults to ModuleNamesDefault if not specified </param>
         /// <param name="ct"> Cancellation token </param>
+        /// <param name="moduleNames"> List of modules to wait for, defaults to ModuleNamesDefault if not specified </param>
         /// <returns></returns>
         public async Task WaitForIIoTModulesConnectedAsync(
             string deviceId,
-            IEnumerable<string> moduleNames = null,
-            CancellationToken ct = default
+            CancellationToken ct,
+            IEnumerable<string> moduleNames = null
         ) {
             moduleNames ??= ModuleNamesDefault;
 
