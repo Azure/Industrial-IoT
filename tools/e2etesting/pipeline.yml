@@ -176,8 +176,9 @@ jobs:
     continueOnError: true
     inputs:
       script: | 
-        tools/reportgenerator -reports:$(Build.SourcesDirectory)/**/coverage.*.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage "-reporttypes:Cobertura;HtmlSummary" "-title:UA .Net Standard Test Coverage" "-assemblyfilters:-*.Tests"
-        mv $(Build.SourcesDirectory)/CodeCoverage/summary.htm $(Build.SourcesDirectory)/CodeCoverage/index.htm
+        cd tools
+        reportgenerator -reports:$(Build.SourcesDirectory)/**/coverage.*.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage "-reporttypes:Cobertura;HtmlSummary" "-title:UA .Net Standard Test Coverage" "-assemblyfilters:-*Tests"
+        move $(Build.SourcesDirectory)/CodeCoverage/summary.htm $(Build.SourcesDirectory)/CodeCoverage/index.htm
 
   - task: PublishCodeCoverageResults@1  
     displayName: 'Publish code coverage'
