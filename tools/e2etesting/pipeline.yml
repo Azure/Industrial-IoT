@@ -162,10 +162,10 @@ jobs:
       PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
       PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring) 
 
-   - task: DotNetCoreCLI@2
-     displayName: 'Install coverage ReportorGenerator tool'
-     condition: always()
-     inputs:
+  - task: DotNetCoreCLI@2
+    displayName: 'Install coverage ReportorGenerator tool'
+    condition: always()
+    inputs:
       command: custom
       custom: tool
       arguments: 'install --tool-path tools dotnet-reportgenerator-globaltool'
