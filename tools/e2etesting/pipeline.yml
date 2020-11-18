@@ -137,7 +137,7 @@ jobs:
     displayName: Build and Package TestEventprocessor
     inputs:
       command: build
-      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
+      projects: 'tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj'
       arguments: '/nologo /p:PublishProfile=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /maxcpucount:1 /p:platform="Any CPU" /p:configuration="Release" /p:DesktopBuildPackageLocation="$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"'
   - task: AzurePowerShell@5
     displayName: "Deploy TestEventProcessor"
