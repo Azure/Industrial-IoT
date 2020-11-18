@@ -34,6 +34,7 @@ jobs:
       projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
       arguments: '--runtime $(Runtime) --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/$(Runtime)'
       zipAfterPublish: false
+      versioningScheme: 'off'
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifacts'
     inputs:
