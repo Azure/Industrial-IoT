@@ -160,34 +160,7 @@ jobs:
       IOT_EDGE_DEVICE_DNS_NAME: $(iot-edge-device-dns-name)
       PCS_SIMULATION_USER: $(pcs-simulation-user)
       PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
-      PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring) 
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Install coverage ReportorGenerator tool'
-    condition: always()
-    inputs:
-      command: custom
-      custom: tool
-      arguments: 'install --tool-path tools dotnet-reportgenerator-globaltool'
-  
-  - task: CmdLine@2
-    displayName: 'Create Code Coverage Report'
-    condition: always()
-    continueOnError: true
-    inputs:
-      script: | 
-        cd tools
-        reportgenerator -reports:$(Build.SourcesDirectory)/**/coverage.*.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage "-reporttypes:Cobertura;HtmlSummary" "-title:UA .Net Standard Test Coverage" "-assemblyfilters:-*Tests"
-        move $(Build.SourcesDirectory)/CodeCoverage/summary.htm $(Build.SourcesDirectory)/CodeCoverage/index.htm
-
-  - task: PublishCodeCoverageResults@1  
-    displayName: 'Publish code coverage'
-    condition: always()
-    continueOnError: true
-    inputs:  
-      codeCoverageTool: Cobertura  
-      reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
-      summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml' 
+      PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
 
 - job: cleanup
   displayName: Cleanup
