@@ -28,6 +28,8 @@
     <None Update="Properties\launchSettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+
+    <Folder Include="Standalone\" />
   </ItemGroup>
 
 </Project>
