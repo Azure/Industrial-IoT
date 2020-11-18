@@ -9,6 +9,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using Config;
     using Extensions;
     using Microsoft.Extensions.Configuration;
+    using Xunit.Abstractions;
 
     /// <summary>
     /// Context to pass data between test cases
@@ -24,11 +25,18 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             Configuration = GetConfiguration();
 
             RegistryHelper = new RegistryHelper(IoTHubConfig);
+            OutputHelper = null;
         }
+        
         /// <summary>
         /// Save the identifier of OPC server endpoints
         /// </summary>
         public string? OpcUaEndpointId { get; set; }
+
+        /// <summary>
+        /// Helper to write output, need to be set from constructor of test class
+        /// </summary>
+        public ITestOutputHelper OutputHelper { get; set; }
 
         /// <summary>
         /// IoT Device Configuration

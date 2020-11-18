@@ -74,9 +74,12 @@ namespace IIoTPlatform_E2E_Tests {
         public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedOpcUaNodesAsync(IIoTPlatformTestContext context) {
             var result = new Dictionary<string, PublishedNodesEntryModel>();
 
-            var listOfUrls = context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator);
+            var opcPlcUrls = context.OpcPlcConfig.Urls;
+            context.OutputHelper?.WriteLine($"SimulatedOpcPlcUrls {opcPlcUrls}");
+            var listOfUrls = opcPlcUrls.Split(TestConstants.SimulationUrlsSeparator);
 
             foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
+                context.OutputHelper?.WriteLine($"Load pn.json from {url}");
                 using (var client = new HttpClient()) {
                     var ub = new UriBuilder {Host = url};
                     var baseAddress = ub.Uri;
@@ -85,6 +88,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                     using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile)) {
                         Assert.NotNull(response);
+                        Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
                         var json = await response.Content.ReadAsStringAsync();
                         Assert.NotEmpty(json);
                         var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
