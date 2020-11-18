@@ -119,6 +119,37 @@ jobs:
         -client_secret "$(ARM_CLIENT_SECRET)"
         -tenantId "$(ARM_TENANT_ID)"
 
+- job: deploytesteventprocessor
+  dependsOn: buildiai
+  condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
+  displayName: "Build and deploy TestEventProcessor"
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for building'
+    inputs:
+      packageType: sdk
+      version: 3.1.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: DotNetCoreCLI@2
+    displayName: Build and Package TestEventprocessor
+    inputs:
+      command: build
+      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
+      arguments: '/nologo /p:PublishProfile=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /maxcpucount:1 /p:platform="Any CPU" /p:configuration="Release" /p:DesktopBuildPackageLocation="$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"'
+  - task: AzurePowerShell@5
+    displayName: "Deploy TestEventProcessor"
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
+      scriptArguments: >
+        -ResourceGroupName "$(ResourceGroupName)"
+        -ArchivePath "$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"
+
 - job: e2etests
   displayName: 'Run End 2 End Tests'
   dependsOn: deploy
