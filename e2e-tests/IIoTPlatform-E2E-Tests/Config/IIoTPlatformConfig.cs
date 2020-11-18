@@ -7,7 +7,7 @@ namespace IIoTPlatform_E2E_Tests.Config {
 
     public interface IIIoTPlatformConfig {
         /// <summary>
-        /// Base URL of Industrial IoT Platform 
+        /// Base URL of Industrial IoT Platform
         /// </summary>
         string BaseUrl { get; }
 
@@ -15,17 +15,17 @@ namespace IIoTPlatform_E2E_Tests.Config {
         /// Tenant id for HTTP basic authentication
         /// </summary>
         string AuthTenant { get; }
-        
+
         /// <summary>
         /// User name for HTTP basic authentication for Industrial IoT Platform
         /// </summary>
         string AuthClientId { get; }
-        
+
         /// <summary>
         /// Password for HTTP basic authentication for Industrial IoT Platform
         /// </summary>
         string AuthClientSecret { get; }
-        
+
         /// <summary>
         /// Name of deployed Industrial IoT
         /// </summary>

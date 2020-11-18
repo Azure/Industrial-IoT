@@ -27,7 +27,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             RegistryHelper = new RegistryHelper(IoTHubConfig);
             OutputHelper = null;
         }
-        
+
         /// <summary>
         /// Save the identifier of OPC server endpoints
         /// </summary>
@@ -113,10 +113,10 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
             () => throw new Exception("BaseUrl of Industrial IoT Platform is not provided."));
-        
+
         string IIIoTPlatformConfig.AuthTenant => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
             () => throw new Exception("Authentication Tenant of Industrial IoT Platform is not provided."));
-        
+
         string IIIoTPlatformConfig.AuthClientId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID,
             () => throw new Exception("Authentication client id of Industrial IoT Platform is not provided."));
 
