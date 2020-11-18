@@ -171,6 +171,20 @@ jobs:
   pool:
     name: '$(AgentPool)'
   steps:
+  - task: AzureCLI@2
+    displayName: 'Set Service Principal Environment Variables'
+    name: promoteserviceprincipal
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptLocation: 'InlineScript'
+      scriptType: 'ps'
+      addSpnToEnvironment: true
+      inlineScript: |
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
+        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
+
   - task: AzurePowerShell@5
     displayName: 'Set KeyVaultName-Variable'
     inputs:
@@ -192,6 +206,7 @@ jobs:
       scriptArguments: >
         -KeyVaultName "$(KeyVaultName)"
         -ResourceGroupName "$(ResourceGroupName)"
+        -ServicePrincipalName "$(ARM_CLIENT_ID)"
 
   - task: AzureKeyVault@1
     displayName: 'Retrieve KeyVault secrets from existing deployment'
