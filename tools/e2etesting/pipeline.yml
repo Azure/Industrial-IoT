@@ -18,21 +18,21 @@ jobs:
   pool:
     name: '$(AgentPool)'
   steps:
-- task: UseDotNet@2
-  displayName: 'Install .NET Core SDK for building'
-  inputs:
-    packageType: sdk
-    version: 3.1.x
-    includePreviewVersions: false
-    installationPath: $(Agent.ToolsDirectory)/dotnet
-- task: DotNetCoreCLI@2
-  displayName: Publish
-  inputs:
-    command: publish
-    publishWebProjects: false
-    projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
-    arguments: '--runtime ${{ parameters.runtime }} --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/${{ parameters.runtime }}'
-    zipAfterPublish: false
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for building'
+    inputs:
+      packageType: sdk
+      version: 3.1.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: DotNetCoreCLI@2
+    displayName: Publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
+      arguments: '--runtime ${{ parameters.runtime }} --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/${{ parameters.runtime }}'
+      zipAfterPublish: false
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifacts'
     inputs:
