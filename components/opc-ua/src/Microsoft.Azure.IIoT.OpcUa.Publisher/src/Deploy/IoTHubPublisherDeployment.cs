@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                         "--aa"
                     },
                     HostConfig = new {
-                        Binds = new [] {
+                        Binds = new[] {
                             "/mount:/mount"
                         }
                     }
