@@ -3,6 +3,9 @@ name: $(Date:yyyyMMdd)$(Rev:rr)
 trigger: none
 pr: none
 
+parameters:
+  runtime: 'win-x64'
+
 variables:
   BasePath: $(System.DefaultWorkingDirectory)\tools\e2etesting
   ClientCredentialsKeyVaultName: automatedtesting
