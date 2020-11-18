@@ -103,13 +103,12 @@ $creds = @{
     AuthPassword = $Password;
 }
 
-Set-AzWebApp -ResourceGroupName $ResourceGroupName -Name $WebAppName -AppSettings $creds
+$webApp = Set-AzWebApp -ResourceGroupName $ResourceGroupName -Name $WebAppName -AppSettings $creds
 
 Write-Host "Restarting WebApp..."
-Restart-AzWebApp -ResourceGroupName $ResourceGroupName -Name $WebAppName
+$webApp = Restart-AzWebApp -ResourceGroupName $ResourceGroupName -Name $WebAppName
 
 $baseUrl = "https://" + $webApp.DefaultHostName
-
 
 Write-Host "Setting output variable 'TestEventProcessorBaseUrl' to '$($baseUrl)'."
 Write-Host "##vso[task.setvariable variable=TestEventProcessorBaseUrl;isOutput=true]$($baseUrl)"
