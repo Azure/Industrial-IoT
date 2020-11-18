@@ -120,7 +120,7 @@ jobs:
         -tenantId "$(ARM_TENANT_ID)"
 
 - job: deploytesteventprocessor
-  dependsOn: buildiai
+  dependsOn: deploy
   condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
   displayName: "Build and deploy TestEventProcessor"
   pool:
@@ -167,6 +167,18 @@ jobs:
       scriptArguments: >
         -ResourceGroupName '$(ResourceGroupName)'
 
+  - task: AzurePowerShell@5
+    displayName: "Add permissions to KeyVault"
+    name: keyvaultpermissions
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+      scriptArguments: >
+        -KeyVaultName "$(KeyVaultName)"
+        -ResourceGroupName "$(ResourceGroupName)"
+
   - task: AzureKeyVault@1
     displayName: 'Retrieve KeyVault secrets from existing deployment'
     inputs:
@@ -196,7 +208,7 @@ jobs:
 - job: cleanup
   displayName: Cleanup
   dependsOn: e2etests
-  condition: and(always(), eq(variables['Cleanup'], true))
+  condition: and(not(canceled()), eq(variables['Cleanup'], true))
   pool:
     name: '$(AgentPool)'
   steps:
