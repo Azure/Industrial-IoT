@@ -5,6 +5,7 @@
 
 #nullable enable
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
+    using Microsoft.Azure.Devices;
 
     /// <summary>
     /// Context to pass data between test cases
@@ -15,5 +16,10 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Save the identifier of OPC server endpoints
         /// </summary>
         public string? OpcUaEndpointId { get; set; }
+
+        /// <summary>
+        /// IoT Hub registry manager
+        /// </summary>
+        public RegistryManager registryManager { get; set; }
     }
 }
