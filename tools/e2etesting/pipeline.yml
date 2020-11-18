@@ -3,9 +3,6 @@ name: $(Date:yyyyMMdd)$(Rev:rr)
 trigger: none
 pr: none
 
-parameters:
-  runtime: 'win-x64'
-
 variables:
   BasePath: $(System.DefaultWorkingDirectory)\tools\e2etesting
   ClientCredentialsKeyVaultName: automatedtesting
@@ -13,6 +10,7 @@ variables:
   AgentPool: Azure-IoT-Manufacturing
   IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
   TestPath: $(System.DefaultWorkingDirectory)\e2e-tests\IIoTPlatform-E2E-Tests
+  Runtime: 'win-x64'
 
 jobs:
 - job: buildiai
@@ -34,7 +32,7 @@ jobs:
       command: publish
       publishWebProjects: false
       projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
-      arguments: '--runtime ${{ parameters.runtime }} --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/${{ parameters.runtime }}'
+      arguments: '--runtime $(Runtime) --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/$(Runtime)'
       zipAfterPublish: false
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifacts'
