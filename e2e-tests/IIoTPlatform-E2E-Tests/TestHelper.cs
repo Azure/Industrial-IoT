@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
-    using Extensions;
-    using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using RestSharp;
     using RestSharp.Authenticators;
@@ -16,33 +14,22 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Threading.Tasks;
     using TestModels;
     using Xunit;
-    using Microsoft.Azure.Devices;
     using System.IO;
     using Renci.SshNet;
-    using IIoTPlatform_E2E_Tests.TestExtensions;
+    using TestExtensions;
 
     internal static class TestHelper {
-
-        /// <summary>
-        /// Read the base URL of Industrial IoT Platform from environment variables
-        /// </summary>
-        /// <returns></returns>
-        public static string GetBaseUrl() {
-            var baseUrl = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL);
-            Assert.True(!string.IsNullOrWhiteSpace(baseUrl), "baseUrl is null");
-            return baseUrl;
-        }
 
         /// <summary>
         /// Request OAuth token using Http basic authentication from environment variables
         /// </summary>
         /// <returns>Return content of request token or empty string</returns>
-        public static async Task<string> GetTokenAsync() {
+        public static async Task<string> GetTokenAsync(IIoTPlatformTestContext context) {
             return await GetTokenAsync(
-                Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT),
-                Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID),
-                Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET),
-                Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.ApplicationName)
+                context.IIoTPlatformConfigHubConfig.AuthTenant,
+                context.IIoTPlatformConfigHubConfig.AuthClientId,
+                context.IIoTPlatformConfigHubConfig.AuthClientSecret,
+                context.IIoTPlatformConfigHubConfig.ApplicationName
             );
         }
 
@@ -74,20 +61,20 @@ namespace IIoTPlatform_E2E_Tests {
             var response = await client.ExecuteAsync(request);
             Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
             dynamic json = JsonConvert.DeserializeObject(response.Content);
+            Assert.NotNull(json);
+            Assert.NotEmpty(json);
             return $"{json.token_type} {json.access_token}";
         }
 
         /// <summary>
         /// Read PublishedNodes json from OPC-PLC and provide the data to the tests
         /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns>Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</returns>
-        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedOpcUaNodesAsync() {
+        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedOpcUaNodesAsync(IIoTPlatformTestContext context) {
             var result = new Dictionary<string, PublishedNodesEntryModel>();
 
-            var plcUrls = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS);
-            Assert.NotNull(plcUrls);
-
-            var listOfUrls = plcUrls.Split(TestConstants.SimulationUrlsSeparator);
+            var listOfUrls = context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator);
 
             foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
                 using (var client = new HttpClient()) {
@@ -131,7 +118,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Switch to publisher orchestrated mode
         /// </summary>
-        /// /// <param name="destinationFilePath">Path of the PublishedNodesFile.json file to be deleted</param>
+        /// <param name="destinationFilePath">Path of the PublishedNodesFile.json file to be deleted</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static void SwitchToOrchestratedMode(string destinationFilePath, IIoTPlatformTestContext context) {
             var patch =
                @"{
@@ -140,17 +128,17 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 }";
 
-            DeletePublishedNodesFile(destinationFilePath);
+            DeletePublishedNodesFile(destinationFilePath, context);
             UpdateTagAsync(patch, context).Wait();
         }
 
         /// <summary>
         /// Switch to publisher orchestrated mode
         /// </summary>       
-        /// <param name="deviceId">Password for HTTP basic authentication</param>
-        /// <param name="patch">Name of deployed Industrial IoT</param
+        /// <param name="patch">Name of deployed Industrial IoT</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         private static async Task UpdateTagAsync(string patch, IIoTPlatformTestContext context) {
-            var registryManager = context.registryManager;
+            var registryManager = context.RegistryHelper.RegistryManager;
             var deviceId = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_ID);
             Assert.True(!string.IsNullOrWhiteSpace(deviceId), "deviceId string is null");
 
@@ -162,16 +150,19 @@ namespace IIoTPlatform_E2E_Tests {
         /// transfer the content of published_nodes.json file into the OPC Publisher edge module
         /// </summary>
         /// <param name="sourceFilePath">Source file path</param>
-        /// <param name="destinationFilePath">Destination file path</param
-        public static void LoadPublishedNodesFile(string sourceFilePath, string destinationFilePath) {
-            SshHelper.Validate();
+        /// <param name="destinationFilePath">Destination file path</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        public static void LoadPublishedNodesFile(string sourceFilePath, string destinationFilePath, IIoTPlatformTestContext context) {
             Assert.True(File.Exists(sourceFilePath), "source file does not exist");
 
-            using (ScpClient client = new ScpClient(SshHelper.Host, SshHelper.Username, SshHelper.Password)) {
+            using (var client = new ScpClient(
+                context.SshConfig.Host,
+                context.SshConfig.Username,
+                context.SshConfig.Password)) {
                 client.Connect();
 
                 if (string.IsNullOrEmpty(sourceFilePath)) {
-                    DeletePublishedNodesFile(destinationFilePath);
+                    DeletePublishedNodesFile(destinationFilePath, context);
                 }
                 using (Stream localFile = File.OpenRead(sourceFilePath)) {
                     client.Upload(localFile, destinationFilePath);
@@ -183,14 +174,19 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Delete published_nodes.json file into the OPC Publisher edge module
         /// </summary>
-        /// <param name="destinationFilePath">Destination file path</param
-        public static void DeletePublishedNodesFile(string destinationFilePath) {
-            SshHelper.Validate();
+        /// <param name="destinationFilePath">Destination file path</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        public static void DeletePublishedNodesFile(string destinationFilePath, IIoTPlatformTestContext context) {
+            
             Assert.True(File.Exists(destinationFilePath), "file does not exist");
 
             var isSuccessful = false;
-            using (SshClient client = new SshClient(SshHelper.Host, SshHelper.Username, SshHelper.Password)) {
+            using (SshClient client = new SshClient(
+                context.SshConfig.Host,
+                context.SshConfig.Username,
+                context.SshConfig.Password)) {
                 client.Connect();
+
                 var terminal = client.RunCommand("rm " + destinationFilePath);
                 if (string.IsNullOrEmpty(terminal.Error)) {
                     isSuccessful = true;
@@ -198,34 +194,6 @@ namespace IIoTPlatform_E2E_Tests {
                 client.Disconnect();
             }
             Assert.True(isSuccessful, "Delete file was not successfull");
-        }
-
-        /// <summary>
-        /// Create IoT Hub Registry ManagerContext
-        /// </summary>       
-        /// <param name="registry manager">the RegistryManager object created from connection string</param>
-        public static RegistryManager CreateRegistryManagerContext() {
-            var connectionString = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING);
-            Assert.True(!string.IsNullOrWhiteSpace(connectionString), "connection string is null");
-
-            return RegistryManager.CreateFromConnectionString(connectionString);
-        }
-
-        /// <summary>
-        /// Get configuration that reads from:
-        ///     - environment variables
-        ///     - environment variables from user target
-        ///     - environment variables from launchSettings.json
-        /// </summary>
-        /// <returns></returns>
-        public static IConfigurationRoot GetConfiguration() {
-            var configuration = new ConfigurationBuilder()
-                .AddEnvironmentVariables()
-                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
-                .AddAllEnvVarsFromLaunchSettings()
-                .Build();
-
-            return configuration;
         }
     }
 }

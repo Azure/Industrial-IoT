@@ -8,7 +8,7 @@ namespace IIoTPlatform_E2E_Tests.Config {
     /// <summary>
     /// IoT Edge device configuration
     /// </summary>
-    interface IDeviceConfig {
+    public interface IDeviceConfig {
 
         /// <summary>
         /// IoT Edge device id

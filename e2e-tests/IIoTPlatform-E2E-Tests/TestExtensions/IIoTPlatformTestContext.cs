@@ -5,21 +5,129 @@
 
 #nullable enable
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
-    using Microsoft.Azure.Devices;
+    using System;
+    using Config;
+    using Extensions;
+    using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Context to pass data between test cases
     /// </summary>
-    public class IIoTPlatformTestContext {
+    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig {
 
+        /// <summary>
+        /// Configuration
+        /// </summary>
+        private IConfiguration Configuration { get; }
+
+        public IIoTPlatformTestContext() {
+            Configuration = GetConfiguration();
+
+            RegistryHelper = new RegistryHelper(IoTHubConfig);
+        }
         /// <summary>
         /// Save the identifier of OPC server endpoints
         /// </summary>
         public string? OpcUaEndpointId { get; set; }
 
         /// <summary>
-        /// IoT Hub registry manager
+        /// IoT Device Configuration
         /// </summary>
-        public RegistryManager registryManager { get; set; }
+        public IDeviceConfig DeviceConfig { get { return this; } }
+
+        /// <summary>
+        /// IoT Hub Configuration
+        /// </summary>
+        public IIoTHubConfig IoTHubConfig { get { return this; } }
+
+        /// <summary>
+        /// IoT Hub Configuration
+        /// </summary>
+        public IIIoTPlatformConfig IIoTPlatformConfigHubConfig { get { return this; } }
+
+        /// <summary>
+        /// SSH Configuration
+        /// </summary>
+        public ISshConfig SshConfig { get { return this; } }
+
+        /// <summary>
+        /// SSH Configuration
+        /// </summary>
+        public IOpcPlcConfig OpcPlcConfig { get { return this; } }
+
+        /// <summary>
+        /// Helper to work with Azure.Devices.RegistryManager
+        /// </summary>
+        public RegistryHelper RegistryHelper { get; }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            RegistryHelper.RegistryManager.Dispose();
+        }
+
+        /// <summary>
+        /// Read configuration variable
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="defaultValue"></param>
+        /// <returns></returns>
+        private string GetStringOrDefault(string key, Func<string> defaultValue) {
+            var value = Configuration.GetValue<string>(key);
+            if (string.IsNullOrEmpty(value)) {
+                return defaultValue?.Invoke() ?? string.Empty;
+            }
+            return value.Trim();
+        }
+
+        /// <summary>
+        /// Get configuration that reads from:
+        ///     - environment variables
+        ///     - environment variables from user target
+        ///     - environment variables from launchSettings.json
+        /// </summary>
+        /// <returns></returns>
+        private static IConfigurationRoot GetConfiguration() {
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddAllEnvVarsFromLaunchSettings()
+                .Build();
+
+            return configuration;
+        }
+
+        string IDeviceConfig.DeviceId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_ID,
+            () => throw new Exception("IoT Edge device id is not provided."));
+
+        string IIoTHubConfig.IoTHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING,
+            () => throw new Exception("IoT Hub connection string is not provided."));
+
+        string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
+            () => throw new Exception("BaseUrl of Industrial IoT Platform is not provided."));
+        
+        string IIIoTPlatformConfig.AuthTenant => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
+            () => throw new Exception("Authentication Tenant of Industrial IoT Platform is not provided."));
+        
+        string IIIoTPlatformConfig.AuthClientId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID,
+            () => throw new Exception("Authentication client id of Industrial IoT Platform is not provided."));
+
+        string IIIoTPlatformConfig.AuthClientSecret => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET,
+            () => throw new Exception("Authentication client secret of Industrial IoT Platform is not provided."));
+
+        string IIIoTPlatformConfig.ApplicationName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.ApplicationName,
+            () => throw new Exception("ApplicationName of Industrial IoT Platform is not provided."));
+
+        string ISshConfig.Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SIMULATION_USER,
+            () => throw new Exception("Username of iot edge device is not provided."));
+
+        string ISshConfig.Password => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SIMULATION_PASSWORD,
+            () => throw new Exception("Password of iot edge device is not provided."));
+
+        string ISshConfig.Host => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_DNS_NAME,
+            () => throw new Exception("DNS name of iot edge device is not provided."));
+
+        string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
+            () => throw new Exception("Semicolon separated list of URLs of OPC-PLCs is not provided."));
     }
 }

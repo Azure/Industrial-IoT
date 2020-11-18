@@ -5,14 +5,11 @@
 
 namespace IIoTPlatform_E2E_Tests.Config {
 
-    /// <summary>
-    /// IoT Hub configuration
-    /// </summary>
-    public interface IIoTHubConfig {
-
+    public interface IOpcPlcConfig {
+        
         /// <summary>
-        /// IoT Hub connection string
+        /// Semicolon separated URLs to load published_nodes.json from OPC-PLCs
         /// </summary>
-        string IoTHubConnectionString { get; }
+        string Urls { get; }
     }
 }

@@ -5,14 +5,21 @@
 
 namespace IIoTPlatform_E2E_Tests.Config {
 
-    /// <summary>
-    /// IoT Hub configuration
-    /// </summary>
-    public interface IIoTHubConfig {
+    public interface ISshConfig {
 
         /// <summary>
-        /// IoT Hub connection string
+        /// Username used for ssh authentication
         /// </summary>
-        string IoTHubConnectionString { get; }
+        string Username { get; }
+
+        /// <summary>
+        /// Password used for ssh authentication
+        /// </summary>
+        string Password { get; }
+
+        /// <summary>
+        /// DNS Host name of machine to ssh into
+        /// </summary>
+        string Host { get; }
     }
 }

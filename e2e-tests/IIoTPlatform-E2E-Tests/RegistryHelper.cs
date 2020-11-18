@@ -16,7 +16,7 @@ namespace IIoTPlatform_E2E_Tests {
     /// <summary>
     /// Helper for managing IoT Hub device registry.
     /// </summary>
-    class RegistryHelper {
+    public class RegistryHelper {
 
         public RegistryHelper(IIoTHubConfig ioTHubConfig) {
             _ioTHubConfig = ioTHubConfig ?? throw new ArgumentNullException(nameof(ioTHubConfig));
@@ -27,7 +27,6 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Wait until IIoT modules are in Connected state.
         /// </summary>
-        /// <param name="deviceId"></param>
         /// <param name="deviceId"> IoT Edge device id </param>
         /// <param name="ct"> Cancellation token </param>
         /// <param name="moduleNames"> List of modules to wait for, defaults to ModuleNamesDefault if not specified </param>
@@ -54,6 +53,11 @@ namespace IIoTPlatform_E2E_Tests {
                 await Task.Delay(millisecondsDelay, ct);
             }
         }
+
+        /// <summary>
+        /// Access To Registry Manager
+        /// </summary>
+        public RegistryManager RegistryManager => _registryManager;
 
         /// <summary>
         /// Default value fo IIoT module names.
