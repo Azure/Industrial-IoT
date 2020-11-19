@@ -53,7 +53,7 @@ Write-Host "Resource Group: $($ResourceGroupName)"
 Write-Host "Storage Account: $($StorageAccountName)"
 Write-Host "AppService Plan Name: $($AppServicePlanName)"
 Write-Host "WebApp Name: $($WebAppName)"
-Write-Host "Archive Path: $($ArchivePath)"
+Write-Host "PackageDirectory: $($PackageDirectory)"
 Write-Host
 
 ## Ensure Resource Group ##
@@ -106,7 +106,7 @@ Compress-Archive -Path ($PackageDirectory.TrimEnd("\\") + "\\*") -DestinationPat
 Write-Host "Publishing Archive from '$($packageFilename)'to WebApp '$($WebAppName)'..."
 $webApp = Publish-AzWebApp -ResourceGroupName $resourceGroup.ResourceGroupName -Name $WebAppName -ArchivePath $packageFilename -Force
 
-Get-Item $temp.FullName | Remove-Item -Force
+Get-Item $temp.FullName | Remove-Item -Force -Recurse
 
 ## Set AppSettings ##
 
