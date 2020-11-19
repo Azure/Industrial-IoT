@@ -148,15 +148,17 @@ jobs:
       version: 3.1.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
-  - task: DotNetCoreCLI@2
-    displayName: Build and Package TestEventprocessor
+
+  - task: CmdLine@2
+    displayName: 'Run dotnet publish'
+    timeoutInMinutes: 90
     inputs:
-      command: build
-      projects: 'tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj'
-      arguments: '/nologo /p:PublishProfile=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /maxcpucount:1 /p:platform="Any CPU" /p:configuration="Release" /p:DesktopBuildPackageLocation="$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"'
+      script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessorPublish"'
+      workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
+
   - task: AzurePowerShell@5
-      name: rundeployment
-    displayName: "Deploy TestEventProcessor"
+    name: rundeployment
+    displayName: "Prepare infrastructure for TestEventProcessor"
     inputs:
       azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
@@ -164,11 +166,12 @@ jobs:
       scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
       scriptArguments: >
         -ResourceGroupName "$(ResourceGroupName)"
-        -ArchivePath "$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"
+        -PackageDirectory "$(Build.ArtifactStagingDirectory)\TestEventProcessorPublish"
 
 - job: e2etests
   displayName: 'Run End 2 End Tests'
   dependsOn: deploytesteventprocessor
+  condition: eq(dependencies.deploytesteventprocessor.result, 'Succeeded')
   variables:
     TestEventProcessorBaseUrl: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorBaseUrl'] ]
     CheckpointStorageAccountConnectionString: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.CheckpointStorageAccountConnectionString'] ]
