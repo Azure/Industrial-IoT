@@ -155,6 +155,7 @@ jobs:
       projects: 'tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj'
       arguments: '/nologo /p:PublishProfile=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /maxcpucount:1 /p:platform="Any CPU" /p:configuration="Release" /p:DesktopBuildPackageLocation="$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"'
   - task: AzurePowerShell@5
+      name: rundeployment
     displayName: "Deploy TestEventProcessor"
     inputs:
       azureSubscription: '$(AzureSubscription)'
@@ -168,6 +169,11 @@ jobs:
 - job: e2etests
   displayName: 'Run End 2 End Tests'
   dependsOn: deploytesteventprocessor
+  variables:
+    TestEventProcessorBaseUrl: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorBaseUrl'] ]
+    CheckpointStorageAccountConnectionString: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.CheckpointStorageAccountConnectionString'] ]
+    TestEventProcessorUsername: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorUsername'] ]
+    TestEventProcessorPassword: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorPassword'] ]
   pool:
     name: '$(AgentPool)'
   steps:
@@ -233,6 +239,10 @@ jobs:
       PCS_SIMULATION_USER: $(pcs-simulation-user)
       PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
       PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
+      STORAGE_CONNECTIONSTRING: $(CheckpointStorageAccountConnectionString)
+      TESTEVENTPROCESSOR_BASEURL: $(TestEventProcessorBaseUrl)
+      TESTEVENTPROCESSOR_USERNAME: $(TestEventProcessorUsername)
+      TESTEVENTPROCESSOR_PASSWORD: $(TestEventProcessorPassword)
 
 - job: cleanup
   displayName: Cleanup
