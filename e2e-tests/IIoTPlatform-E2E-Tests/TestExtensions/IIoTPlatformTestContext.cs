@@ -36,7 +36,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <summary>
         /// Helper to write output, need to be set from constructor of test class
         /// </summary>
-        public ITestOutputHelper OutputHelper { get; set; }
+        public ITestOutputHelper? OutputHelper { get; set; }
 
         /// <summary>
         /// IoT Device Configuration

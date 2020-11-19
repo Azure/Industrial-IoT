@@ -80,26 +80,33 @@ namespace IIoTPlatform_E2E_Tests {
 
             foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
                 context.OutputHelper?.WriteLine($"Load pn.json from {url}");
-                using (var client = new HttpClient()) {
-                    var ub = new UriBuilder {Host = url};
-                    var baseAddress = ub.Uri;
+                try {
+                    using (var client = new HttpClient()) {
+                        var ub = new UriBuilder { Host = url };
+                        var baseAddress = ub.Uri;
 
-                    client.BaseAddress = baseAddress;
+                        client.BaseAddress = baseAddress;
+                        client.Timeout = TimeSpan.FromSeconds(60);
 
-                    using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile)) {
-                        Assert.NotNull(response);
-                        Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
-                        var json = await response.Content.ReadAsStringAsync();
-                        Assert.NotEmpty(json);
-                        var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
+                        using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile)) {
+                            Assert.NotNull(response);
+                            Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
+                            var json = await response.Content.ReadAsStringAsync();
+                            Assert.NotEmpty(json);
+                            var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
 
-                        Assert.NotNull(entryModels);
-                        Assert.NotEmpty(entryModels);
-                        Assert.NotNull(entryModels[0].OpcNodes);
-                        Assert.NotEmpty(entryModels[0].OpcNodes);
+                            Assert.NotNull(entryModels);
+                            Assert.NotEmpty(entryModels);
+                            Assert.NotNull(entryModels[0].OpcNodes);
+                            Assert.NotEmpty(entryModels[0].OpcNodes);
 
-                        result.Add(url, entryModels[0]);
+                            result.Add(url, entryModels[0]);
+                        }
                     }
+                }
+                catch (Exception e) {
+                    context.OutputHelper?.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, url);
+                    continue;
                 }
             }
             return result;
