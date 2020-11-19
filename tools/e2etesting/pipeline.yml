@@ -155,7 +155,7 @@ jobs:
       projects: 'tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj'
       arguments: '/nologo /p:PublishProfile=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /maxcpucount:1 /p:platform="Any CPU" /p:configuration="Release" /p:DesktopBuildPackageLocation="$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"'
   - task: AzurePowerShell@5
-      name: rundeployment
+    name: rundeployment
     displayName: "Deploy TestEventProcessor"
     inputs:
       azureSubscription: '$(AzureSubscription)'
