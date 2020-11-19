@@ -149,12 +149,12 @@ jobs:
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
 
-  - task: DotNetCoreCLI@2
-    displayName: Build and Package TestEventprocessor
+  - task: CmdLine@2
+    displayName: 'Run dotnet publish'
+    timeoutInMinutes: 90
     inputs:
-      command: publish
-      projects: '$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj'
-      arguments: '--configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessorPublish"'
+      script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessorPublish"'
+      workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
 
   - task: AzurePowerShell@5
     name: rundeployment
