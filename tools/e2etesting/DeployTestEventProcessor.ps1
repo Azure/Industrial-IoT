@@ -119,8 +119,8 @@ Write-Host "##vso[task.setvariable variable=CheckpointStorageAccountConnectionSt
 Write-Host "Setting output variable 'TestEventProcessorUsername' to '$($Username)'."
 Write-Host "##vso[task.setvariable variable=TestEventProcessorUsername;isOutput=true]$($Username)"
 
-Write-Host "Setting output variable 'TestEventProcessorUsername' to '***'."
-Write-Host "##vso[task.setvariable variable=TestEventProcessorUsername;isOutput=true]$($Password)"
+Write-Host "Setting output variable 'TestEventProcessorPassword' to '***'."
+Write-Host "##vso[task.setvariable variable=TestEventProcessorPassword;isOutput=true]$($Password)"
 
 
 
