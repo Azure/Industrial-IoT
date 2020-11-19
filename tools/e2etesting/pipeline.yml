@@ -166,6 +166,15 @@ jobs:
         -ResourceGroupName "$(ResourceGroupName)"
         -ArchivePath "$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"
 
+  - task: AzureWebApp@1
+    displayName: 'Deploy to Azure App Service'
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      appName: '$(WebAppName)'
+      package: $(Build.ArtifactStagingDirectory)/**/*.zip
+      enableCustomDeployment: true
+      deploymentMethod: runFromPackage
+
 - job: e2etests
   displayName: 'Run End 2 End Tests'
   dependsOn: deploytesteventprocessor
@@ -251,7 +260,7 @@ jobs:
       testResultsFormat: 'XUnit'
       testResultsFiles: '**/TEST-*.xml'
       mergeTestResults: true
-      
+
 - job: cleanup
   displayName: Cleanup
   dependsOn: e2etests

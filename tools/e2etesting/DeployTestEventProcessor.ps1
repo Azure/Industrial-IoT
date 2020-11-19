@@ -120,6 +120,9 @@ $webApp = Restart-AzWebApp -ResourceGroupName $ResourceGroupName -Name $WebAppNa
 
 $baseUrl = "https://" + $webApp.DefaultHostName
 
+Write-Host "Setting variable 'WebAppName' to '$($WebAppName)'."
+Write-Host "##vso[task.setvariable variable=WebAppName]$($WebAppName)"
+
 Write-Host "Setting output variable 'TestEventProcessorBaseUrl' to '$($baseUrl)'."
 Write-Host "##vso[task.setvariable variable=TestEventProcessorBaseUrl;isOutput=true]$($baseUrl)"
 
