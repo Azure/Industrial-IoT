@@ -259,8 +259,8 @@ jobs:
       scriptType: 'InlineScript'
       inline: |
         Write-Host "Deleting AD App Registration: '$(ApplicationName)-aks' ..."
-        Remove-AzADApplication -DisplayName "$(ApplicationName)-aks"
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-aks" -Force
         Write-Host "Deleting AD App Registration: '$(ApplicationName)-client' ..."
-        Remove-AzADApplication -DisplayName "$(ApplicationName)-client"
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-client" -Force
         Write-Host "Deleting AD App Registration: '$(ApplicationName)-service' ..."
-        Remove-AzADApplication -DisplayName "$(ApplicationName)-service"
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-service" -Force
