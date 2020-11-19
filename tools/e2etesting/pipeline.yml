@@ -169,6 +169,7 @@ jobs:
 - job: e2etests
   displayName: 'Run End 2 End Tests'
   dependsOn: deploytesteventprocessor
+  condition: eq(dependencies.deploytesteventprocessor.result, 'Succeeded')
   variables:
     TestEventProcessorBaseUrl: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorBaseUrl'] ]
     CheckpointStorageAccountConnectionString: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.CheckpointStorageAccountConnectionString'] ]
