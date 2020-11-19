@@ -151,12 +151,13 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: Build and Package TestEventprocessor
     inputs:
-      command: build
+      command: publish
       projects: 'tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj'
-      arguments: '/nologo /p:PublishProfile=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /maxcpucount:1 /p:platform="Any CPU" /p:configuration="Release" /p:DesktopBuildPackageLocation="$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"'
+      arguments: '--configuration Release -o "$(Build.ArtifactStagingDirectory)\TestEventProcessorPublish"'
+
   - task: AzurePowerShell@5
     name: rundeployment
-    displayName: "Deploy TestEventProcessor"
+    displayName: "Prepare infrastructure for TestEventProcessor"
     inputs:
       azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
@@ -164,16 +165,7 @@ jobs:
       scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
       scriptArguments: >
         -ResourceGroupName "$(ResourceGroupName)"
-        -ArchivePath "$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"
-
-  - task: AzureWebApp@1
-    displayName: 'Deploy to Azure App Service'
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      appName: '$(WebAppName)'
-      package: $(Build.ArtifactStagingDirectory)/**/*.zip
-      enableCustomDeployment: true
-      deploymentMethod: runFromPackage
+        -PackageDirectory "$(Build.ArtifactStagingDirectory)\TestEventProcessorPublish"
 
 - job: e2etests
   displayName: 'Run End 2 End Tests'

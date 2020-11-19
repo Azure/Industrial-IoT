@@ -2,11 +2,17 @@ Param(
     $ResourceGroupName,
     $AppServicePlanName,
     $WebAppName,
-    $ArchivePath,
+    $PackageDirectory,
     $StorageAccountName
 )
 
 $suffix = (Get-Random -Minimum 10000 -Maximum 99999)
+
+$ResourceGroupName = "e2etesting20201118105"
+$AppServicePlanName = "appserviceplan-98568"
+$WebAppName = "TestEventProcessor-98568"
+$PackageDirectory = "D:\Temp\Publish"
+$StorageAccountName = "checkpointstorage98568"
 
 ## Pre-Checks ##
 
@@ -23,13 +29,13 @@ if (!$WebAppName) {
     $WebAppName = "TestEventProcessor-" + $suffix
 }
 
-if (!$ArchivePath) {
-    Write-Error "ArchivePath not set."
+if (!$PackageDirectory) {
+    Write-Error "PackageDirectory not set."
     return
 }
 
-if (!(Test-Path $ArchivePath -ErrorAction SilentlyContinue)) {
-    Write-Error "Could not locate specified archive '$($ArchivePath)'."
+if (!(Test-Path $PackageDirectory -ErrorAction SilentlyContinue)) {
+    Write-Error "Could not locate specified directory '$($PackageDirectory)'."
     return
 }
 
@@ -98,8 +104,15 @@ if (!$webApp) {
 
 ## Publish Archive ##
 
-Write-Host "Publishing Archive from '$($ArchivePath)'to WebApp '$($WebAppName)'..."
-$webApp = Publish-AzWebApp -ResourceGroupName $resourceGroup.ResourceGroupName -Name $WebAppName -ArchivePath $ArchivePath -Force
+$temp = [System.IO.Path]::GetTempPath()
+$temp = New-Item -ItemType Directory -Path (Join-Path $temp ([Guid]::NewGuid()))
+$packageFilename = Join-Path $temp.FullName "package.zip"
+Compress-Archive -Path ($PackageDirectory.TrimEnd("\\") + "\\*") -DestinationPath $packageFilename
+
+Write-Host "Publishing Archive from '$($packageFilename)'to WebApp '$($WebAppName)'..."
+$webApp = Publish-AzWebApp -ResourceGroupName $resourceGroup.ResourceGroupName -Name $WebAppName -ArchivePath $packageFilename -Force
+
+Get-Item $temp.FullName | Remove-Item -Force
 
 ## Set AppSettings ##
 
