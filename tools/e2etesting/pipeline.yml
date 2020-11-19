@@ -245,6 +245,13 @@ jobs:
       TESTEVENTPROCESSOR_USERNAME: $(TestEventProcessorUsername)
       TESTEVENTPROCESSOR_PASSWORD: $(TestEventProcessorPassword)
 
+  - task: PublishTestResults@2
+    displayName: Publish test results
+    inputs:
+      testResultsFormat: 'XUnit'
+      testResultsFiles: '**/TEST-*.xml'
+      mergeTestResults: true
+      
 - job: cleanup
   displayName: Cleanup
   dependsOn: e2etests
