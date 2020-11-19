@@ -8,6 +8,8 @@ Param(
 
 $suffix = (Get-Random -Minimum 10000 -Maximum 99999)
 
+## Pre-Checks ##
+
 if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName is empty."
     return
@@ -26,6 +28,11 @@ if (!$ArchivePath) {
     return
 }
 
+if (!(Test-Path $ArchivePath -ErrorAction SilentlyContinue)) {
+    Write-Error "Could not locate specified archive '$($ArchivePath)'."
+    return
+}
+
 if (!$StorageAccountName) {
     $StorageAccountName = "checkpointstorage" + $suffix
 }
@@ -41,10 +48,13 @@ if (!$context) {
 Write-Host "Subscription Id: $($context.Subscription.Id)"
 Write-Host "Subscription Name: $($context.Subscription.Name)"
 Write-Host "Tenant Id: $($context.Tenant.Id)"
+Write-Host
 Write-Host "Resource Group: $($ResourceGroupName)"
 Write-Host "Storage Account: $($StorageAccountName)"
 Write-Host "AppService Plan Name: $($AppServicePlanName)"
 Write-Host "WebApp Name: $($WebAppName)"
+Write-Host "Archive Path: $($ArchivePath)"
+Write-Host
 
 ## Ensure Resource Group ##
 
@@ -60,7 +70,7 @@ if (!$resourceGroup) {
 $storageAccount = Get-AzStorageAccount -ResourceGroupName $resourceGroup.ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
 
 if (!$storageAccount) {
-    Write-Host "Creating storage account '$($storageAccountName)'..."
+    Write-Host "Storage Account '$($storageAccountName)' does not exist, creating..."
     $storageAccount = New-AzStorageAccount -ResourceGroupName $resourceGroup.ResourceGroupName -Name $StorageAccountName -SkuName Standard_LRS -Location $resourceGroup.Location
 }
 
@@ -88,7 +98,7 @@ if (!$webApp) {
 
 ## Publish Archive ##
 
-Write-Host "Publishing Archive from '$($ArchivePath)'..."
+Write-Host "Publishing Archive from '$($ArchivePath)'to WebApp '$($WebAppName)'..."
 $webApp = Publish-AzWebApp -ResourceGroupName $resourceGroup.ResourceGroupName -Name $WebAppName -ArchivePath $ArchivePath -Force
 
 ## Set AppSettings ##
@@ -96,7 +106,7 @@ $webApp = Publish-AzWebApp -ResourceGroupName $resourceGroup.ResourceGroupName -
 $Username = "ApiUser"
 $Password = (-join ((65..90) + (97..122) + (33..38) + (40..47) + (48..57)| Get-Random -Count 20 | % {[char]$_}))
 
-Write-Host "Setting credentials for Basic Auth..."
+Write-Host "Applying authentication settings to WebApp for Basic Auth..."
 
 $creds = @{
     AuthUsername = $Username;
@@ -120,7 +130,7 @@ Write-Host "Setting output variable 'TestEventProcessorUsername' to '$($Username
 Write-Host "##vso[task.setvariable variable=TestEventProcessorUsername;isOutput=true]$($Username)"
 
 Write-Host "Setting output variable 'TestEventProcessorPassword' to '***'."
-Write-Host "##vso[task.setvariable variable=TestEventProcessorPassword;isOutput=true]$($Password)"
+Write-Host "##vso[task.setvariable variable=TestEventProcessorPassword;isSecret=true;isOutput=true]$($Password)"
 
 
 
