@@ -6,21 +6,11 @@ Param(
     $StorageAccountName
 )
 
-$suffix = (Get-Random -Minimum 10000 -Maximum 99999)
-
 ## Pre-Checks ##
 
 if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName is empty."
     return
-}
-
-if (!$AppServicePlanName) {
-    $AppServicePlanName = "appserviceplan-" + $suffix
-}
-
-if (!$WebAppName) {
-    $WebAppName = "TestEventProcessor-" + $suffix
 }
 
 if (!$PackageDirectory) {
@@ -33,16 +23,46 @@ if (!(Test-Path $PackageDirectory -ErrorAction SilentlyContinue)) {
     return
 }
 
-if (!$StorageAccountName) {
-    $StorageAccountName = "checkpointstorage" + $suffix
-}
-
 $context = Get-AzContext
 
 if (!$context) {
     Write-Host "Logging in..."
     Login-AzAccount -Tenant "6e660ce4-d51a-4585-80c6-58035e212354"
     $context = Get-AzContext
+}
+
+## Ensure Resource Group ##
+
+$resourceGroup = Get-AzResourceGroup -Name $ResourceGroupName
+
+if (!$resourceGroup) {
+    Write-Host "ResourceGroup $($ResourceGroupName) does not exist, creating..."
+    $resourceGroup = New-AzResourceGroup -Name $ResourceGroupName
+}
+
+$suffix = $resourceGroup.Tags["TestingResourcesSuffix"]
+
+if ([String]::IsNullOrWhiteSpace($suffix)) {
+    $suffix = (Get-Random -Minimum 10000 -Maximum 99999)
+
+    $tags = $resourceGroup.Tags
+    $tags+= @{"TestingResourcesSuffix"=$suffix}
+    Set-AzResourceGroup -Name $resourceGroup.ResourceGroupName -Tag $tags | Out-Null
+    $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
+}
+
+Write-Host "Using suffix $($suffix) for test-related resources."
+
+if (!$AppServicePlanName) {
+    $AppServicePlanName = "appserviceplan-" + $suffix
+}
+
+if (!$WebAppName) {
+    $WebAppName = "TestEventProcessor-" + $suffix
+}
+
+if (!$StorageAccountName) {
+    $StorageAccountName = "checkpointstorage" + $suffix
 }
 
 Write-Host "Subscription Id: $($context.Subscription.Id)"
@@ -55,15 +75,6 @@ Write-Host "AppService Plan Name: $($AppServicePlanName)"
 Write-Host "WebApp Name: $($WebAppName)"
 Write-Host "PackageDirectory: $($PackageDirectory)"
 Write-Host
-
-## Ensure Resource Group ##
-
-$resourceGroup = Get-AzResourceGroup -Name $ResourceGroupName
-
-if (!$resourceGroup) {
-    Write-Host "ResourceGroup $($ResourceGroupName) does not exist, creating..."
-    $resourceGroup = New-AzResourceGroup -Name $ResourceGroupName
-}
 
 ## Ensure Storage Account (for Checkpoint Storage) ##
 
