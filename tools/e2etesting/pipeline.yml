@@ -148,14 +148,17 @@ jobs:
       version: 3.1.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
-  - task: DotNetCoreCLI@2
-    displayName: Build and Package TestEventprocessor
+
+  - task: CmdLine@2
+    displayName: 'Run dotnet publish'
+    timeoutInMinutes: 90
     inputs:
-      command: build
-      projects: 'tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj'
-      arguments: '/nologo /p:PublishProfile=Release /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /maxcpucount:1 /p:platform="Any CPU" /p:configuration="Release" /p:DesktopBuildPackageLocation="$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"'
+      script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessorPublish"'
+      workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
+
   - task: AzurePowerShell@5
-    displayName: "Deploy TestEventProcessor"
+    name: rundeployment
+    displayName: "Prepare infrastructure for TestEventProcessor"
     inputs:
       azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
@@ -163,14 +166,34 @@ jobs:
       scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
       scriptArguments: >
         -ResourceGroupName "$(ResourceGroupName)"
-        -ArchivePath "$(Build.ArtifactStagingDirectory)/TestEventProcessor.zip"
+        -PackageDirectory "$(Build.ArtifactStagingDirectory)\TestEventProcessorPublish"
 
 - job: e2etests
   displayName: 'Run End 2 End Tests'
   dependsOn: deploytesteventprocessor
+  condition: eq(dependencies.deploytesteventprocessor.result, 'Succeeded')
+  variables:
+    TestEventProcessorBaseUrl: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorBaseUrl'] ]
+    CheckpointStorageAccountConnectionString: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.CheckpointStorageAccountConnectionString'] ]
+    TestEventProcessorUsername: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorUsername'] ]
+    TestEventProcessorPassword: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorPassword'] ]
   pool:
     name: '$(AgentPool)'
   steps:
+  - task: AzureCLI@2
+    displayName: 'Set Service Principal Environment Variables'
+    name: promoteserviceprincipal
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptLocation: 'InlineScript'
+      scriptType: 'ps'
+      addSpnToEnvironment: true
+      inlineScript: |
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
+        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
+
   - task: AzurePowerShell@5
     displayName: 'Set KeyVaultName-Variable'
     inputs:
@@ -192,6 +215,7 @@ jobs:
       scriptArguments: >
         -KeyVaultName "$(KeyVaultName)"
         -ResourceGroupName "$(ResourceGroupName)"
+        -ServicePrincipalName "$(ARM_CLIENT_ID)"
 
   - task: AzureKeyVault@1
     displayName: 'Retrieve KeyVault secrets from existing deployment'
@@ -218,6 +242,10 @@ jobs:
       PCS_SIMULATION_USER: $(pcs-simulation-user)
       PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
       PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
+      STORAGE_CONNECTIONSTRING: $(CheckpointStorageAccountConnectionString)
+      TESTEVENTPROCESSOR_BASEURL: $(TestEventProcessorBaseUrl)
+      TESTEVENTPROCESSOR_USERNAME: $(TestEventProcessorUsername)
+      TESTEVENTPROCESSOR_PASSWORD: $(TestEventProcessorPassword)
 
 - job: cleanup
   displayName: Cleanup
@@ -235,3 +263,17 @@ jobs:
       inline: |
         Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
         Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force
+
+  - task: AzurePowerShell@5
+    displayName: "Delete AD App Registrations"
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'InlineScript'
+      inline: |
+        Write-Host "Deleting AD App Registration: '$(ApplicationName)-aks' ..."
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-aks" -Force
+        Write-Host "Deleting AD App Registration: '$(ApplicationName)-client' ..."
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-client" -Force
+        Write-Host "Deleting AD App Registration: '$(ApplicationName)-service' ..."
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-service" -Force
