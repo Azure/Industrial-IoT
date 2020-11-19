@@ -152,7 +152,7 @@ jobs:
     displayName: Build and Package TestEventprocessor
     inputs:
       command: publish
-      projects: 'tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj'
+      projects: '$(Build.SourcesDirectory)\tools\e2etesting\TestEventProcessor\TestEventProcessor.Service\TestEventProcessor.Service.csproj'
       arguments: '--configuration Release -o "$(Build.ArtifactStagingDirectory)\TestEventProcessorPublish"'
 
   - task: AzurePowerShell@5
