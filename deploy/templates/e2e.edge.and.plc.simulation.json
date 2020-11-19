@@ -264,7 +264,7 @@
                                             "command": [
                                                 "/bin/sh",
                                                 "-c",
-                                                "[concat('./opcplc --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=', parameters('numberOfSlowNodes'), ' --sr=', parameters('slowNodeRate'), ' --st=', parameters('slowNodeType'), ' --fn=', parameters('numberOfFastNodes'), ' --fr=', parameters('fastNodeRate'), ' --ft=', parameters('fastNodeType'), ' --ph=', variables('aciPlc'), add(copyIndex(), 1), '.', resourceGroup().location, '.azurecontainer.io')]"
+                                                "[concat('./opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=', parameters('numberOfSlowNodes'), ' --sr=', parameters('slowNodeRate'), ' --st=', parameters('slowNodeType'), ' --fn=', parameters('numberOfFastNodes'), ' --fr=', parameters('fastNodeRate'), ' --ft=', parameters('fastNodeType'), ' --ph=', variables('aciPlc'), add(copyIndex(), 1), '.', resourceGroup().location, '.azurecontainer.io')]"
                                             ],
                                             "ports": [
                                                 {
