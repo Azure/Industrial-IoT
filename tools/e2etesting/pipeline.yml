@@ -10,6 +10,7 @@ variables:
   AgentPool: Azure-IoT-Manufacturing
   IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
   TestPath: $(System.DefaultWorkingDirectory)\e2e-tests\IIoTPlatform-E2E-Tests
+  Runtime: 'win-x64'
 
 jobs:
 - job: buildiai
@@ -18,7 +19,21 @@ jobs:
   pool:
     name: '$(AgentPool)'
   steps:
-  - template: ../templates/build_iiot_deployment.yml
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for building'
+    inputs:
+      packageType: sdk
+      version: 3.1.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: DotNetCoreCLI@2
+    displayName: Publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
+      arguments: '--runtime $(Runtime) --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/$(Runtime)'
+      zipAfterPublish: false
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifacts'
     inputs:
@@ -119,13 +134,66 @@ jobs:
         -client_secret "$(ARM_CLIENT_SECRET)"
         -tenantId "$(ARM_TENANT_ID)"
 
-- job: e2etests
-  displayName: 'Run End 2 End Tests'
+- job: deploytesteventprocessor
   dependsOn: deploy
   condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
+  displayName: "Build and deploy TestEventProcessor"
   pool:
     name: '$(AgentPool)'
   steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for building'
+    inputs:
+      packageType: sdk
+      version: 3.1.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+
+  - task: CmdLine@2
+    displayName: 'Run dotnet publish'
+    timeoutInMinutes: 90
+    inputs:
+      script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessorPublish"'
+      workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
+
+  - task: AzurePowerShell@5
+    name: rundeployment
+    displayName: "Prepare infrastructure for TestEventProcessor"
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
+      scriptArguments: >
+        -ResourceGroupName "$(ResourceGroupName)"
+        -PackageDirectory "$(Build.ArtifactStagingDirectory)\TestEventProcessorPublish"
+
+- job: e2etests
+  displayName: 'Run End 2 End Tests'
+  dependsOn: deploytesteventprocessor
+  condition: eq(dependencies.deploytesteventprocessor.result, 'Succeeded')
+  variables:
+    TestEventProcessorBaseUrl: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorBaseUrl'] ]
+    CheckpointStorageAccountConnectionString: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.CheckpointStorageAccountConnectionString'] ]
+    TestEventProcessorUsername: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorUsername'] ]
+    TestEventProcessorPassword: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorPassword'] ]
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - task: AzureCLI@2
+    displayName: 'Set Service Principal Environment Variables'
+    name: promoteserviceprincipal
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptLocation: 'InlineScript'
+      scriptType: 'ps'
+      addSpnToEnvironment: true
+      inlineScript: |
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
+        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
+
   - task: AzurePowerShell@5
     displayName: 'Set KeyVaultName-Variable'
     inputs:
@@ -135,6 +203,19 @@ jobs:
       scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
       scriptArguments: >
         -ResourceGroupName '$(ResourceGroupName)'
+
+  - task: AzurePowerShell@5
+    displayName: "Add permissions to KeyVault"
+    name: keyvaultpermissions
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+      scriptArguments: >
+        -KeyVaultName "$(KeyVaultName)"
+        -ResourceGroupName "$(ResourceGroupName)"
+        -ServicePrincipalName "$(ARM_CLIENT_ID)"
 
   - task: AzureKeyVault@1
     displayName: 'Retrieve KeyVault secrets from existing deployment'
@@ -161,11 +242,15 @@ jobs:
       PCS_SIMULATION_USER: $(pcs-simulation-user)
       PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
       PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
+      STORAGE_CONNECTIONSTRING: $(CheckpointStorageAccountConnectionString)
+      TESTEVENTPROCESSOR_BASEURL: $(TestEventProcessorBaseUrl)
+      TESTEVENTPROCESSOR_USERNAME: $(TestEventProcessorUsername)
+      TESTEVENTPROCESSOR_PASSWORD: $(TestEventProcessorPassword)
 
 - job: cleanup
   displayName: Cleanup
   dependsOn: e2etests
-  condition: and(always(), eq(variables['Cleanup'], true))
+  condition: and(not(canceled()), eq(variables['Cleanup'], true))
   pool:
     name: '$(AgentPool)'
   steps:
@@ -178,3 +263,17 @@ jobs:
       inline: |
         Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
         Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force
+
+  - task: AzurePowerShell@5
+    displayName: "Delete AD App Registrations"
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'InlineScript'
+      inline: |
+        Write-Host "Deleting AD App Registration: '$(ApplicationName)-aks' ..."
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-aks" -Force
+        Write-Host "Deleting AD App Registration: '$(ApplicationName)-client' ..."
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-client" -Force
+        Write-Host "Deleting AD App Registration: '$(ApplicationName)-service' ..."
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-service" -Force

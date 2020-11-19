@@ -37,7 +37,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         }
 
         private TValue GetOrCreate<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key) where TValue : new() {
-            
+
             if (dictionary.TryGetValue(key, out var result)) {
                 return result;
             }

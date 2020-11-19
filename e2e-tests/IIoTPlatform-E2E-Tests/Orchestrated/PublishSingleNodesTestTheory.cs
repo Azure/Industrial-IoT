@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Orchestrated 
+namespace IIoTPlatform_E2E_Tests.Orchestrated
 {
     using System;
     using System.Linq;
@@ -28,6 +28,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         public PublishSingleNodesTestTheory(IIoTPlatformTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _context.OutputHelper = _output;
         }
 
         [Fact, PriorityOrder(1)]

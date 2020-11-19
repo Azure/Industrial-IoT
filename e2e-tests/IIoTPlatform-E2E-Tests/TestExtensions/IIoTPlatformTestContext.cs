@@ -10,6 +10,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using Config;
     using Extensions;
     using Microsoft.Extensions.Configuration;
+    using Xunit.Abstractions;
 
     /// <summary>
     /// Context to pass data between test cases
@@ -25,11 +26,18 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             Configuration = GetConfiguration();
 
             RegistryHelper = new RegistryHelper(IoTHubConfig);
+            OutputHelper = null;
         }
+
         /// <summary>
         /// Save the identifier of OPC server endpoints
         /// </summary>
         public string? OpcUaEndpointId { get; set; }
+
+        /// <summary>
+        /// Helper to write output, need to be set from constructor of test class
+        /// </summary>
+        public ITestOutputHelper OutputHelper { get; set; }
 
         /// <summary>
         /// IoT Device Configuration
@@ -111,10 +119,10 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
        
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
             () => throw new Exception("BaseUrl of Industrial IoT Platform is not provided."));
-        
+
         string IIIoTPlatformConfig.AuthTenant => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
             () => throw new Exception("Authentication Tenant of Industrial IoT Platform is not provided."));
-        
+
         string IIIoTPlatformConfig.AuthClientId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID,
             () => throw new Exception("Authentication client id of Industrial IoT Platform is not provided."));
 

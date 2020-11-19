@@ -6,7 +6,7 @@
 namespace IIoTPlatform_E2E_Tests.Config {
 
     public interface IOpcPlcConfig {
-        
+
         /// <summary>
         /// Semicolon separated URLs to load published_nodes.json from OPC-PLCs
         /// </summary>
