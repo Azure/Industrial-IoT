@@ -49,7 +49,7 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.True(!string.IsNullOrWhiteSpace(applicationName), "applicationName is null");
 
             var client = new RestClient($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token") {
-                Timeout = 30000,
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
                 Authenticator = new HttpBasicAuthenticator(clientId, clientSecret)
             };
 
@@ -86,7 +86,7 @@ namespace IIoTPlatform_E2E_Tests {
                         var baseAddress = ub.Uri;
 
                         client.BaseAddress = baseAddress;
-                        client.Timeout = TimeSpan.FromSeconds(60);
+                        client.Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds);
 
                         using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile)) {
                             Assert.NotNull(response);

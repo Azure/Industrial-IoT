@@ -21,6 +21,16 @@ namespace IIoTPlatform_E2E_Tests {
         public const string TestAssemblyName = "IIoTPlatform-E2E-Tests";
 
         /// <summary>
+        /// Default timeout of web calls
+        /// </summary>
+        public const int DefaultTimeoutInMilliseconds = 90000;
+
+        /// <summary>
+        /// Default timeout of loading edge modules
+        /// </summary>
+        public const int MaxDelayToEdgeModulesToBeLoadedInMilliseconds = 10 * 60 * 1000;
+
+        /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
         /// </summary>
         internal static class APIRoutes {

@@ -48,15 +48,14 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         [Fact, PriorityOrder(3)]
         public async Task Test_RegisterOPCServer_Expect_Success() {
 
-            var millisecondsDelay = 60 * 1000;
-            var cts = new CancellationTokenSource(millisecondsDelay);
+            var cts = new CancellationTokenSource(TestConstants.MaxDelayToEdgeModulesToBeLoadedInMilliseconds);
 
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token);
 
             var accessToken = await TestHelper.GetTokenAsync(_context);
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
 
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) {Timeout = 30000};
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) {Timeout = TestConstants.DefaultTimeoutInMilliseconds};
 
             var request = new RestRequest(Method.POST);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
@@ -82,7 +81,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         public async Task Test_GetApplicationsFromRegistry_ExpectOneRegisteredApplication() {
 
             var accessToken = await TestHelper.GetTokenAsync(_context);
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = 30000 };
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             var request = new RestRequest(Method.GET);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
@@ -109,7 +108,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         public async Task Test_GetEndpoints_Expect_OneWithMultipleAuthentication() {
 
             var accessToken = await TestHelper.GetTokenAsync(_context);
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = 30000 };
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             var request = new RestRequest(Method.GET);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
@@ -154,7 +153,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             }
 
             var accessToken = await TestHelper.GetTokenAsync(_context);
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = 30000 };
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             var request = new RestRequest(Method.POST);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
@@ -175,7 +174,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         [Fact, PriorityOrder(7)]
         public async Task Test_CheckIfEndpointWasActivated_Expect_ActivatedAndConnected() {
             var accessToken = await TestHelper.GetTokenAsync(_context);
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = 30000 };
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             var request = new RestRequest(Method.GET);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
@@ -210,7 +209,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var accessToken = await TestHelper.GetTokenAsync(_context);
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = 30000 };
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             var request = new RestRequest(Method.POST);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
@@ -248,7 +247,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var accessToken = await TestHelper.GetTokenAsync(_context);
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = 30000 };
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             var request = new RestRequest(Method.GET);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
@@ -299,7 +298,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             }
             var accessToken = await TestHelper.GetTokenAsync(_context);
 
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = 30000 };
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             var request = new RestRequest(Method.DELETE);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
