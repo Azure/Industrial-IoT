@@ -263,3 +263,17 @@ jobs:
       inline: |
         Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
         Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force
+
+  - task: AzurePowerShell@5
+    displayName: "Delete AD App Registrations"
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: 'InlineScript'
+      inline: |
+        Write-Host "Deleting AD App Registration: '$(ApplicationName)-aks' ..."
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-aks" -Force
+        Write-Host "Deleting AD App Registration: '$(ApplicationName)-client' ..."
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-client" -Force
+        Write-Host "Deleting AD App Registration: '$(ApplicationName)-service' ..."
+        Remove-AzADApplication -DisplayName "$(ApplicationName)-service" -Force
