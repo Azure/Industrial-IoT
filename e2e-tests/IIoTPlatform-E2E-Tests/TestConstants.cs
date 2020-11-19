@@ -139,6 +139,31 @@ namespace IIoTPlatform_E2E_Tests {
             /// IoT Hub connection string
             /// </summary>
             public const string PCS_IOTHUB_CONNSTRING = "PCS_IOTHUB_CONNSTRING";
+
+            /// <summary>
+            /// Docker server
+            /// </summary>
+            public const string PCS_DOCKER_SERVER = "PCS_DOCKER_SERVER";
+
+            /// <summary>
+            /// Docker user name
+            /// </summary>
+            public const string PCS_DOCKER_USER = "PCS_DOCKER_USER";
+
+            /// <summary>
+            /// Docker password 
+            /// </summary>
+            public const string PCS_DOCKER_PASSWORD = "PCS_DOCKER_PASSWORD";
+
+            /// <summary>
+            ///Images namespace
+            /// </summary>
+            public const string PCS_IMAGES_NAMESPACE = "PCS_IMAGES_NAMESPACE";
+
+            /// <summary>
+            /// Images tag
+            /// </summary>
+            public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG";
         }
     }
 }
