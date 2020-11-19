@@ -148,12 +148,13 @@ jobs:
       version: 3.1.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
+
   - task: DotNetCoreCLI@2
     displayName: Build and Package TestEventprocessor
     inputs:
       command: publish
-      projects: '$(Build.SourcesDirectory)\tools\e2etesting\TestEventProcessor\TestEventProcessor.Service\TestEventProcessor.Service.csproj'
-      arguments: '--configuration Release -o "$(Build.ArtifactStagingDirectory)\TestEventProcessorPublish"'
+      projects: '$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj'
+      arguments: '--configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessorPublish"'
 
   - task: AzurePowerShell@5
     name: rundeployment

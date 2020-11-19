@@ -8,12 +8,6 @@ Param(
 
 $suffix = (Get-Random -Minimum 10000 -Maximum 99999)
 
-$ResourceGroupName = "e2etesting20201118105"
-$AppServicePlanName = "appserviceplan-98568"
-$WebAppName = "TestEventProcessor-98568"
-$PackageDirectory = "D:\Temp\Publish"
-$StorageAccountName = "checkpointstorage98568"
-
 ## Pre-Checks ##
 
 if (!$ResourceGroupName) {
