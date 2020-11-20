@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
-    using IIoTPlatform_E2E_Tests.deploy;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
+    using Microsoft.Azure.Devices;
 
     public class IoTHubPublisherDeployment {
 
@@ -29,12 +29,8 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Create a new layered deployment or update an existing one
         /// </summary>
         public async Task CreateOrUpdateLayeredDeploymentAsync() {
-            await CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-opcpublisher-standalone",
-                Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(true, true)
-                },
-                SchemaVersion = kDefaultSchemaVersion,
+            await CreateOrUpdateConfigurationAsync(new Configuration("__default-opcpublisher-standalone") {
+                Content = new ConfigurationContent { ModulesContent = CreateLayeredDeployment() },
                 TargetCondition = TargetConditionStandalone +
                     " AND tags.os = 'Linux'",
                 Priority = 1
@@ -45,97 +41,37 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Get base edge configuration
         /// </summary>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(bool isLinux, bool isStandalone) {
+        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment() {
             var registryCredentials = "";
-            if (!string.IsNullOrEmpty(_context.ContainerRegistryConfig.DockerServer) &&
-                _context.ContainerRegistryConfig.DockerServer != "mcr.microsoft.com") {
-                var registryId = _context.ContainerRegistryConfig.DockerServer.Split('.')[0];
+            if (!string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) &&
+                _context.ContainerRegistryConfig.ContainerRegistryServer != "mcr.microsoft.com") {
+                var registryId = _context.ContainerRegistryConfig.ContainerRegistryServer.Split('.')[0];
                 registryCredentials = @"
                     ""properties.desired.runtime.settings.registryCredentials." + registryId + @""": {
-                        ""address"": """ + _context.ContainerRegistryConfig.DockerServer + @""",
-                        ""password"": """ + _context.ContainerRegistryConfig.DockerPassword + @""",
-                        ""username"": """ + _context.ContainerRegistryConfig.DockerUser + @"""
+                        ""address"": """ + _context.ContainerRegistryConfig.ContainerRegistryServer + @""",
+                        ""password"": """ + _context.ContainerRegistryConfig.ContainerRegistryPassword + @""",
+                        ""username"": """ + _context.ContainerRegistryConfig.ContainerRegistryUser + @"""
                     },
                 ";
             }
 
             // Configure create options per os specified
-            string createOptions;
-            if (isLinux) {
-                if (isStandalone) {
-                    createOptions = JsonConvert.SerializeObject(new {
-                        Hostname = "publisher_standalone",
-                        Cmd = new[] {
-                        "PkiRootPath=/mount/pki",
-                        "--aa",
-                        "--pf=/mount/published_nodes.json"
-                    },
-                        HostConfig = new {
-                            Binds = new[] {
-                            "/mount:/mount"
-                            }
-                        }
-                    }).Replace("\"", "\\\"");
+            var createOptions = JsonConvert.SerializeObject(new {
+                Hostname = kModuleName,
+                Cmd = new[] {
+                "PkiRootPath=/mount/pki",
+                "--aa",
+                "--pf=/mount/published_nodes.json"
+            },
+                HostConfig = new {
+                    Binds = new[] {
+                    "/mount:/mount"
+                    }
                 }
-                else {
-                    createOptions = JsonConvert.SerializeObject(new {
-                        Hostname = "publisher",
-                        Cmd = new[] {
-                        "PkiRootPath=/mount/pki",
-                        "--aa"
-                    },
-                        HostConfig = new {
-                            Binds = new[] {
-                            "/mount:/mount"
-                            }
-                        }
-                    }).Replace("\"", "\\\"");
-                }
-            }
-            else {
-                if (isStandalone) {
-                    createOptions = JsonConvert.SerializeObject(new {
-                        User = "ContainerAdministrator",
-                        Hostname = "publisher_standalone",
-                        Cmd = new[] {
-                        "PkiRootPath=/mount/pki",
-                        "--aa",
-                        "--pf=C:\\\\mount\\\\published_nodes.json"
-                    },
-                        HostConfig = new {
-                            Mounts = new[] {
-                            new {
-                                Type = "bind",
-                                Source = "C:\\\\ProgramData\\\\iotedge",
-                                Target = "C:\\\\mount"
-                                }
-                            }
-                        }
-                    }).Replace("\"", "\\\"");
-                }
-                else {
-                    createOptions = JsonConvert.SerializeObject(new {
-                        User = "ContainerAdministrator",
-                        Hostname = "publisher",
-                        Cmd = new[] {
-                        "PkiRootPath=/mount/pki",
-                        "--aa"
-                    },
-                        HostConfig = new {
-                            Mounts = new[] {
-                            new {
-                                Type = "bind",
-                                Source = "C:\\\\ProgramData\\\\iotedge",
-                                Target = "C:\\\\mount"
-                                }
-                            }
-                        }
-                    }).Replace("\"", "\\\"");
-                }
-            }
+            }).Replace("\"", "\\\"");
 
-            var server = string.IsNullOrEmpty(_context.ContainerRegistryConfig.DockerServer) ?
-                "mcr.microsoft.com" : _context.ContainerRegistryConfig.DockerServer;
+            var server = string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) ?
+                "mcr.microsoft.com" : _context.ContainerRegistryConfig.ContainerRegistryServer;
             var ns = string.IsNullOrEmpty(_context.ContainerRegistryConfig.ImagesNamespace) ? "" :
                 _context.ContainerRegistryConfig.ImagesNamespace.TrimEnd('/') + "/";
             var version = _context.ContainerRegistryConfig.ImagesTag ?? "latest";
@@ -165,15 +101,15 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(content);
         }
 
-        public async Task<ConfigurationModel> CreateOrUpdateConfigurationAsync(
-            ConfigurationModel configuration, bool forceUpdate, CancellationToken ct) {
+        public async Task<Configuration> CreateOrUpdateConfigurationAsync(
+            Configuration configuration, bool forceUpdate, CancellationToken ct) {
             try {
-                if (string.IsNullOrEmpty(configuration.Etag)) {
+                if (string.IsNullOrEmpty(configuration.ETag)) {
                     // First try create configuration
                     try {
                         var added = await _context.RegistryHelper.RegistryManager.AddConfigurationAsync(
-                            configuration.ToConfiguration(), ct);
-                        return added.ToModel();
+                            configuration, ct);
+                        return added;
                     }
                     catch (DeviceAlreadyExistsException) when (forceUpdate) {
                         //
@@ -183,22 +119,21 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
                         //
                         await _context.RegistryHelper.RegistryManager.RemoveConfigurationAsync(configuration.Id, ct);
                         var added = await _context.RegistryHelper.RegistryManager.AddConfigurationAsync(
-                            configuration.ToConfiguration(), ct);
-                        return added.ToModel();
+                            configuration, ct);
+                        return added;
                     }
                 }
 
                 // Try update existing configuration
                 var result = await _context.RegistryHelper.RegistryManager.UpdateConfigurationAsync(
-                    configuration.ToConfiguration(), forceUpdate, ct);
-                return result.ToModel();
+                    configuration, forceUpdate, ct);
+                return result;
             }
             catch (Exception e) {
                 throw e;
             }
         }
 
-        private const string kDefaultSchemaVersion = "1.0";
         private const string kModuleName = "publisher_standalone";
         private readonly IIoTPlatformTestContext _context;
     }

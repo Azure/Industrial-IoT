@@ -13,7 +13,7 @@ namespace IIoTPlatform_E2E_Tests.Config {
         /// <summary>
         /// Server url
         /// </summary>
-        string DockerServer { get; }
+        string ContainerRegistryServer { get; }
 
         /// <summary>
         /// Namespace
@@ -23,12 +23,12 @@ namespace IIoTPlatform_E2E_Tests.Config {
         /// <summary>
         /// User
         /// </summary>
-        string DockerUser { get; }
+        string ContainerRegistryUser { get; }
 
         /// <summary>
         /// Password
         /// </summary>
-        string DockerPassword { get; }
+        string ContainerRegistryPassword { get; }
 
         /// <summary>
         /// Version

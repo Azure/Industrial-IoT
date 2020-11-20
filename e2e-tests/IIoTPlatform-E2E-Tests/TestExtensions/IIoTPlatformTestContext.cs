@@ -6,7 +6,6 @@
 #nullable enable
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using System;
-    using System.Reflection;
     using Config;
     using Extensions;
     using Microsoft.Extensions.Configuration;
@@ -68,7 +67,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// ContainerRegistry Configuration
         /// </summary>
         public IContainerRegistryConfig ContainerRegistryConfig { get { return this; } }
-        
+
         /// <summary>
         /// Helper to work with Azure.Devices.RegistryManager
         /// </summary>
@@ -113,10 +112,10 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         string IDeviceConfig.DeviceId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_ID,
             () => throw new Exception("IoT Edge device id is not provided."));
-      
+
         string IIoTHubConfig.IoTHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING,
             () => throw new Exception("IoT Hub connection string is not provided."));
-       
+
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
             () => throw new Exception("BaseUrl of Industrial IoT Platform is not provided."));
 
@@ -144,19 +143,19 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new Exception("Semicolon separated list of URLs of OPC-PLCs is not provided."));
 
-        string IContainerRegistryConfig.DockerServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_SERVER,
-            () => throw new Exception("Server name is not provided"));
+        string IContainerRegistryConfig.ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_SERVER,
+            () => string.Empty);
 
-        string IContainerRegistryConfig.DockerUser => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_USER,
-            () => throw new Exception("Username is not provided"));
+        string IContainerRegistryConfig.ContainerRegistryUser => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_USER,
+            () => string.Empty);
 
-        string IContainerRegistryConfig.DockerPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_DOCKER_PASSWORD,
-            () => throw new Exception("Password is not provided"));
+        string IContainerRegistryConfig.ContainerRegistryPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_PASSWORD,
+            () => string.Empty);
 
         string IContainerRegistryConfig.ImagesNamespace => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_NAMESPACE,
-            () => throw new Exception("Namespace is not provided"));
+            () => string.Empty);
 
         string IContainerRegistryConfig.ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
-            () => Assembly.GetExecutingAssembly().GetReleaseVersion().ToString(3));
+            () => throw new Exception("Images tag not provided"));
     }
 }
