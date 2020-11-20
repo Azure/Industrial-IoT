@@ -26,13 +26,13 @@ The platform and simulation can also be deployed using the deploy script.
    - On Windows:
 
      ```pwsh
-     .\deploy
+     .\deploy -version <version>
      ```
 
    - On Linux or Mac:
 
      ```bash
-     ./deploy.sh
+     ./deploy.sh -version <version>
      ```
 
    > See [additional supported parameters](#deployment-script-options).

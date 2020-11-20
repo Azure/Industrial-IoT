@@ -30,12 +30,12 @@ Start the deployment
 
 On Windows:
   ```pwsh
-  .\deploy
+  .\deploy -version <version>
   ```
 
 On Linux:
   ```bash
-  ./deploy.sh
+  ./deploy.sh -version <version>
   ```
 
 For more information, see the [detailed instructions](docs/deploy/howto-deploy-all-in-one.md) and [additional deployment options](docs/deploy/readme.md).
