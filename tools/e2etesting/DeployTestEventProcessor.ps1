@@ -196,8 +196,8 @@ Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "TestEventProcessorUsername"
 Write-Host "Setting KeyVault Secret 'TestEventProcessorPassword' to '***'."
 Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "TestEventProcessorPassword" -SecretValue (ConvertTo-SecureString -String $Password -AsPlainText -Force)
 
-Write-Host "Setting KeyVault Secret 'IoTHubEventHubCompatibleEndpointConnectionString' to '***'."
-Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "IoTHubEventHubCompatibleEndpointConnectionString" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force)
+Write-Host "Setting KeyVault Secret 'IoTHubEventHubConnectionString' to '***'."
+Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "IoTHubEventHubConnectionString" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force)
 
 
 
