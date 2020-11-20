@@ -41,6 +41,13 @@ jobs:
       script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessor"'
       workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
 
+  - task: CopyFiles@2
+    displayName: 'Copy appSettings.json-template to output'
+    inputs:
+      sourceFolder: "$(Build.SourcesDirectory)/tools/e2etesting/appSettings.json"
+      targetFolder: "$(Build.ArtifactStagingDirectory)/IAI"
+      flattenFolders: true
+
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifacts'
     inputs:
