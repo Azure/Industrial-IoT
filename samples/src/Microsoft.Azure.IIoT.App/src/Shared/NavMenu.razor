@@ -14,7 +14,7 @@
 @inject NavigationManager NavigationManager
 
 <nav class="top-row pl-3 navbar navbar-dark ">
-    @{ var releaseVersion = this.GetType().Assembly.GetReleaseVersion().ToString(3); }
+    @{ var releaseVersion = this.GetType().Assembly.GetSemanticVersion(); }
     <a class="navbar-brand" href="">
         Azure IIoT Platform @releaseVersion
     </a>

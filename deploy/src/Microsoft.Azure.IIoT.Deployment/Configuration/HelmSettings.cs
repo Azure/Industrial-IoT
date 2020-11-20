@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         // Defaults
         public static string _defaultRepoUrl = "https://microsoft.github.io/charts/repo";
         public static string _defaultChartVersion = "0.3.1";
-        public static string _defaultImageTag = "2.7.170";
+        public static string _defaultImageTag = "2.7.199";
 
         /// <summary> Helm repository URL </summary>
         public string RepoUrl { get; set; }

@@ -206,5 +206,73 @@ namespace IIoTPlatform_E2E_Tests {
             }
             Assert.True(isSuccessful, "Delete file was not successfull");
         }
+
+        /// <summary>
+        /// Starts monitoring the incoming messages of the IoT Hub and checks for missing values.
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="expectedValuesChangesPerTimestamp">The expected number of value changes per timestamp</param>
+        /// <param name="expectedIntervalOfValueChanges">The expected time difference between values changes in milliseconds</param>
+        /// <param name="expectedMaximalDuration">The time difference between OPC UA Server fires event until Changes Received in IoT Hub in milliseconds </param>
+        /// <returns></returns>
+        public static async Task StartMonitoringIncomingMessages(IIoTPlatformTestContext context,
+            int expectedValuesChangesPerTimestamp, int expectedIntervalOfValueChanges, int expectedMaximalDuration) {
+            var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
+
+            var client = new RestClient(runtimeUrl) {
+                Timeout = 30000,
+                Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
+                    context.TestEventProcessorConfig.TestEventProcessorPassword)
+            };
+
+            var body = new {
+                CommandType = 0,
+                Configuration = new {
+                    IoTHubEventHubEndpointConnectionString = context.IoTHubConfig.IoTHubEventHubConnectionString,
+                    StorageConnectionString = context.IoTHubConfig.CheckpointStorageConnectionString,
+                    ExpectedValueChangesPerTimestamp = expectedValuesChangesPerTimestamp,
+                    ExpectedIntervalOfValueChanges = expectedIntervalOfValueChanges,
+                    ExpectedMaximalDuration = expectedMaximalDuration
+                }
+            };
+
+            var request = new RestRequest(Method.PUT);
+            request.AddJsonBody(body);
+
+            var response = await client.ExecuteAsync(request);
+            dynamic json = JsonConvert.DeserializeObject(response.Content);
+            Assert.NotNull(json);
+        }
+
+        /// <summary>
+        /// Stops the monitoring of incoming event to an IoT Hub and returns success/failure.
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <returns></returns>
+        public static async Task StopMonitoringIncomingMessages(IIoTPlatformTestContext context) {
+            // TODO Merge with Start-Method to avoid code duplication
+            var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
+
+            var client = new RestClient(runtimeUrl) {
+                Timeout = 30000,
+                Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
+                    context.TestEventProcessorConfig.TestEventProcessorPassword)
+            };
+
+            var body = new {
+                CommandType = 1,
+            };
+
+            var request = new RestRequest(Method.PUT);
+            request.AddJsonBody(body);
+
+            var response = await client.ExecuteAsync(request);
+
+            dynamic json = JsonConvert.DeserializeObject(response.Content);
+            Assert.NotNull(json);
+            Assert.NotEmpty(json);
+            bool isSuccess = json.isSuccess;
+            Assert.True(isSuccess);
+        }
     }
 }
