@@ -224,6 +224,7 @@ jobs:
       PCS_SIMULATION_USER: $(pcs-simulation-user)
       PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
       PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
+      IOTHUBEVENTHUBCOMPATIBLEENDPOINTCONNECTIONSTRING: $(IoTHubEventHubCompatibleEndpointConnectionString)
       STORAGE_CONNECTIONSTRING: $(CheckpointStorageAccountConnectionString)
       TESTEVENTPROCESSOR_BASEURL: $(TestEventProcessorBaseUrl)
       TESTEVENTPROCESSOR_USERNAME: $(TestEventProcessorUsername)
