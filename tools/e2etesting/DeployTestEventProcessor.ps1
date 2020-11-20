@@ -3,7 +3,9 @@ Param(
     $AppServicePlanName,
     $WebAppName,
     $PackageDirectory,
-    $StorageAccountName
+    $StorageAccountName,
+    $IoTHubName,
+    $KeyVaultName
 )
 
 ## Pre-Checks ##
@@ -20,6 +22,11 @@ if (!$PackageDirectory) {
 
 if (!(Test-Path $PackageDirectory -ErrorAction SilentlyContinue)) {
     Write-Error "Could not locate specified directory '$($PackageDirectory)'."
+    return
+}
+
+if (!$KeyVaultName) {
+    Write-Error "KeyVaultName is empty."
     return
 }
 
@@ -54,16 +61,44 @@ if ([String]::IsNullOrWhiteSpace($suffix)) {
 Write-Host "Using suffix $($suffix) for test-related resources."
 
 if (!$AppServicePlanName) {
-    $AppServicePlanName = "appserviceplan-" + $suffix
+    $AppServicePlanName = "e2etesting-appserviceplan-" + $suffix
 }
 
 if (!$WebAppName) {
-    $WebAppName = "TestEventProcessor-" + $suffix
+    $WebAppName = "e2etesting-TestEventProcessor-" + $suffix
 }
 
 if (!$StorageAccountName) {
-    $StorageAccountName = "checkpointstorage" + $suffix
+    $StorageAccountName = "e2etestingstorage" + $suffix
 }
+
+## Checkexistence of Resources ##
+
+if (!$IoTHubName) {
+    $iothub = Get-AzIotHub -ResourceGroupName $ResourceGroupName
+    if ($iotHub.Count -eq 1) {
+        $IoTHubName = $iotHub.Name
+    } else {
+        Write-Error "More then 1 IoT Hub instances found in resource group $($ResourceGroupName). Please specify IoTHubName argument of this script."
+        return
+    }
+} else {
+    $iotHub = Get-AzIotHub -ResourceGroupName $ResourceGroupName -Name $IoTHubName -ErrorAction SilentlyContinue
+}
+
+if (!$iotHub) {
+    Write-Error "Could not retrieve IoTHub '$($IoTHubName)' in Resource Group '$($ResourceGroupName)'. Please make sure that it exists."
+    return
+}
+
+$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $KeyVaultName -ErrorAction SilentlyContinue
+
+if (!$keyVault) {
+    Write-Error "Could not retrieve KeyVault '$($keyVault)' in Resource Group '$($ResourceGroupName)'. Please make sure that it exists."
+    return
+}
+
+## Log parameters ##
 
 Write-Host "Subscription Id: $($context.Subscription.Id)"
 Write-Host "Subscription Name: $($context.Subscription.Name)"
@@ -75,6 +110,8 @@ Write-Host "AppService Plan Name: $($AppServicePlanName)"
 Write-Host "WebApp Name: $($WebAppName)"
 Write-Host "PackageDirectory: $($PackageDirectory)"
 Write-Host
+Write-Host "KeyVault: $($KeyVaultName)"
+Write-Host "IoTHub: $($IoTHubName)"
 
 ## Ensure Storage Account (for Checkpoint Storage) ##
 
@@ -138,20 +175,29 @@ $webApp = Restart-AzWebApp -ResourceGroupName $ResourceGroupName -Name $WebAppNa
 
 $baseUrl = "https://" + $webApp.DefaultHostName
 
-Write-Host "Setting variable 'WebAppName' to '$($WebAppName)'."
-Write-Host "##vso[task.setvariable variable=WebAppName]$($WebAppName)"
+## Get IoT Hub EventHub-compatible Endpoint ##
 
-Write-Host "Setting output variable 'TestEventProcessorBaseUrl' to '$($baseUrl)'."
-Write-Host "##vso[task.setvariable variable=TestEventProcessorBaseUrl;isOutput=true]$($baseUrl)"
+$iotHub = Get-AzIotHub -ResourceGroupName $ResourceGroupName -Name $IoTHubName
+$iotHubkey = Get-AzIotHubKey -ResourceGroupName $ResourceGroupName -Name $IoTHubName -KeyName "iothubowner"
+$ehEndpoint = $iotHub.Properties.EventHubEndpoints["events"].Endpoint
 
-Write-Host "Setting output variable 'CheckpointStorageAccountConnectionString' to '***'."
-Write-Host "##vso[task.setvariable variable=CheckpointStorageAccountConnectionString;isSecret=true;isOutput=true]$($storageAccountConnectionString)"
+$ehConnectionString =  "Endpoint={0};SharedAccessKeyName={1};SharedAccessKey={2};EntityPath={3}" -f $ehEndpoint,$iotHubkey.KeyName,$iotHubkey.PrimaryKey,$iotHub.Name
 
-Write-Host "Setting output variable 'TestEventProcessorUsername' to '$($Username)'."
-Write-Host "##vso[task.setvariable variable=TestEventProcessorUsername;isOutput=true]$($Username)"
+## Set Secrets to KeyVault ##
+Write-Host "Setting KeyVault Secret 'TestEventProcessorBaseUrl' to '$($baseUrl)'."
+Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "TestEventProcessorBaseUrl" -SecretValue (ConvertTo-SecureString -String $baseUrl -AsPlainText -Force)
 
-Write-Host "Setting output variable 'TestEventProcessorPassword' to '***'."
-Write-Host "##vso[task.setvariable variable=TestEventProcessorPassword;isSecret=true;isOutput=true]$($Password)"
+Write-Host "Setting KeyVault Secret 'CheckpointStorageAccountConnectionString' to '***'."
+Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "CheckpointStorageAccountConnectionString" -SecretValue (ConvertTo-SecureString -String $storageAccountConnectionString -AsPlainText -Force)
+
+Write-Host "SettingKeyVault Secret 'TestEventProcessorUsername' to '$($Username)'."
+Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "TestEventProcessorUsername" -SecretValue (ConvertTo-SecureString -String $Username -AsPlainText -Force)
+
+Write-Host "Setting KeyVault Secret 'TestEventProcessorPassword' to '***'."
+Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "TestEventProcessorPassword" -SecretValue (ConvertTo-SecureString -String $Password -AsPlainText -Force)
+
+Write-Host "Setting KeyVault Secret 'IoTHubEventHubCompatibleEndpointConnectionString' to '***'."
+Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "IoTHubEventHubCompatibleEndpointConnectionString" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force)
 
 
 
