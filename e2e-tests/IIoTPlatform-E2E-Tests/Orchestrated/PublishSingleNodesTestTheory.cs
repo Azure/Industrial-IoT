@@ -193,6 +193,10 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             dynamic json = JsonConvert.DeserializeObject(response.Content);
 
             var activationState = (string)json.items[0].activationState;
+            // wait the endpoint to be connected
+            if (activationState == "Activated") {
+                await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
+            }
             Assert.Equal("ActivatedAndConnected", activationState);
             var endpointState = (string)json.items[0].endpointState;
             Assert.Equal("Ready", endpointState);
