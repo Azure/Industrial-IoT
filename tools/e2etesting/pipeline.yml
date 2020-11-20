@@ -32,14 +32,14 @@ jobs:
       command: publish
       publishWebProjects: false
       projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
-      arguments: '--runtime $(Runtime) --configuration Release -p:PublishSingleFile=true --self-contained --output "$(Build.ArtifactStagingDirectory)/IAI"
+      arguments: '--runtime $(Runtime) --configuration Release -p:PublishSingleFile=true --self-contained --output "$(Build.ArtifactStagingDirectory)/IAI"'
       zipAfterPublish: false
-    - task: CmdLine@2
-      displayName: 'Run dotnet publish for TestEventProcessor'
-      timeoutInMinutes: 90
-      inputs:
-        script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessor"'
-        workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
+  - task: CmdLine@2
+    displayName: 'Run dotnet publish for TestEventProcessor'
+    timeoutInMinutes: 90
+    inputs:
+      script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessor"'
+      workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
 
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifacts'
