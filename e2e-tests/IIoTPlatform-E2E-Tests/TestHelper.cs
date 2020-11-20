@@ -4,19 +4,21 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
+    using IIoTPlatform_E2E_Tests.Config;
     using Newtonsoft.Json;
+    using Renci.SshNet;
     using RestSharp;
     using RestSharp.Authenticators;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
+    using TestExtensions;
     using TestModels;
     using Xunit;
-    using System.IO;
-    using Renci.SshNet;
-    using TestExtensions;
 
     internal static class TestHelper {
 
@@ -145,7 +147,7 @@ namespace IIoTPlatform_E2E_Tests {
 
         /// <summary>
         /// Switch to publisher orchestrated mode
-        /// </summary>       
+        /// </summary>
         /// <param name="patch">Name of deployed Industrial IoT</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         private static async Task UpdateTagAsync(string patch, IIoTPlatformTestContext context) {
@@ -188,7 +190,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="destinationFilePath">Destination file path</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static void DeletePublishedNodesFile(string destinationFilePath, IIoTPlatformTestContext context) {
-            
+
             Assert.True(File.Exists(destinationFilePath), "file does not exist");
 
             var isSuccessful = false;
@@ -273,6 +275,60 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.NotEmpty(json);
             bool isSuccess = json.isSuccess;
             Assert.True(isSuccess);
+        }
+
+        /// Wait for all API microservices of IIoT platform to be healthy.
+        /// </summary>
+        /// <param name="config"> IIoT platform configuration </param>
+        /// <param name="ct"> Cancellation token </param>
+        /// <returns></returns>
+        public static async Task WaitForServicesAsync(
+            IIIoTPlatformConfig config,
+            CancellationToken ct
+        ) {
+            const string healthyState = "Healthy";
+
+            var healthRoutes = new string[] {
+                TestConstants.APIRoutes.RegistryHealth,
+                TestConstants.APIRoutes.PublisherHealth,
+                TestConstants.APIRoutes.TwinHealth,
+                TestConstants.APIRoutes.HistoryHealth,
+                TestConstants.APIRoutes.GatewayHealth,
+                TestConstants.APIRoutes.VaultHealth,
+                TestConstants.APIRoutes.EventsHealth,
+                TestConstants.APIRoutes.JobOrchestratorHealth
+            };
+
+            var client = new RestClient(config.BaseUrl) {
+                Timeout = 60 * 1000
+            };
+
+            while(true) {
+                ct.ThrowIfCancellationRequested();
+
+                var tasks = new List<Task<IRestResponse>>();
+
+                foreach(var healthRoute in healthRoutes) {
+                    var request = new RestRequest(Method.GET) {
+                        Resource = healthRoute
+                    };
+
+                    tasks.Add(client.ExecuteAsync(request, ct));
+                }
+
+                Task.WaitAll(tasks.ToArray());
+
+                var healthyServices = tasks
+                    .Where(task => task.Result.StatusCode == System.Net.HttpStatusCode.OK)
+                    .Where(task => task.Result.Content == healthyState)
+                    .Count();
+
+                if (healthyServices == healthRoutes.Length) {
+                    return;
+                }
+
+                await Task.Delay(5 * 1000, ct);
+            }
         }
     }
 }

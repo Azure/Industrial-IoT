@@ -35,6 +35,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         public async Task Test_CollectOAuthToken() {
             var token = await TestHelper.GetTokenAsync(_context);
             Assert.NotEmpty(token);
+
+            // We will wait for microservices of IIoT platform to be healthy.
+            var millisecondsDelay = 600 * 1000;
+            var cts = new CancellationTokenSource(millisecondsDelay);
+            await TestHelper.WaitForServicesAsync(_context.IIoTPlatformConfigHubConfig, cts.Token);
         }
 
         [Fact, PriorityOrder(2)]

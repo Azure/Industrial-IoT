@@ -40,6 +40,21 @@ namespace IIoTPlatform_E2E_Tests {
             public static string RegistryActivateEndpointsFormat = "/registry/v2/endpoints/{0}/activate";
 
             /// <summary>
+            /// Route to applications within registry
+            /// </summary>
+            public const string RegistryApplications = "/registry/v2/applications";
+
+            /// <summary>
+            /// Route to endpoints within registry
+            /// </summary>
+            public const string RegistryEndpoints = "/registry/v2/endpoints";
+
+            /// <summary>
+            /// Route to registry health endpoint
+            /// </summary>
+            public const string RegistryHealth = "/registry/healthz";
+
+            /// <summary>
             /// Route to publish single OPC UA node from OPC Publisher
             /// </summary>
             public static string PublisherStartFormat = "/publisher/v2/publish/{0}/start";
@@ -55,14 +70,39 @@ namespace IIoTPlatform_E2E_Tests {
             public static string PublisherJobsFormat = "/publisher/v2/jobs/{0}";
 
             /// <summary>
-            /// Route to applications within registry
+            /// Route to publisher health endpoint
             /// </summary>
-            public const string RegistryApplications = "/registry/v2/applications";
+            public const string PublisherHealth = "/publisher/healthz";
 
             /// <summary>
-            /// Route to endpoints within registry
+            /// Route to twin health endpoint
             /// </summary>
-            public const string RegistryEndpoints = "/registry/v2/endpoints";
+            public const string TwinHealth = "/twin/healthz";
+
+            /// <summary>
+            /// Route to history health endpoint
+            /// </summary>
+            public const string HistoryHealth = "/history/healthz";
+
+            /// <summary>
+            /// Route to gateway health endpoint
+            /// </summary>
+            public const string GatewayHealth = "/ua/healthz";
+
+            /// <summary>
+            /// Route to vault health endpoint
+            /// </summary>
+            public const string VaultHealth = "/vault/healthz";
+
+            /// <summary>
+            /// Route to events health endpoint
+            /// </summary>
+            public const string EventsHealth = "/events/healthz";
+
+            /// <summary>
+            /// Route to job orchestrator health endpoint
+            /// </summary>
+            public const string JobOrchestratorHealth = "/edge/publisher/healthz";
         }
 
         /// <summary>
