@@ -159,7 +159,7 @@ jobs:
       scriptArguments: >
         -ResourceGroupName "$(ResourceGroupName)"
         -PackageDirectory "$(Build.ArtifactStagingDirectory)\TestEventProcessorPublish"
-        -KeyVaultName "(KeyVaultName)"
+        -KeyVaultName "$(KeyVaultName)"
 
 - job: e2etests
   displayName: 'Run End 2 End Tests'
