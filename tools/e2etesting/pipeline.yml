@@ -44,7 +44,7 @@ jobs:
   - task: CopyFiles@2
     displayName: 'Copy appSettings.json-template to output'
     inputs:
-      sourceFolder: "$(Build.SourcesDirectory)/tools/e2etesting/appSettings.json"
+      contents: "$(Build.SourcesDirectory)/tools/e2etesting/appSettings.json"
       targetFolder: "$(Build.ArtifactStagingDirectory)/IAI"
       flattenFolders: true
 
