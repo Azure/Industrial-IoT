@@ -154,17 +154,17 @@ namespace IIoTPlatform_E2E_Tests {
             /// The connection string of the event-hub compatible endpoint of IoT Hub.
             /// </summary>
             public const string IOTHUB_EVENTHUB_CONNECTIONSTRING = "IOTHUB_EVENTHUB_CONNECTIONSTRING";
-            
+
             /// <summary>
             /// The connection string of the storage account that will be used for checkpointing (when monitoring IoT Hub)
             /// </summary>
             public const string STORAGE_CONNECTIONSTRING = "STORAGE_CONNECTIONSTRING";
-            
+
             /// <summary>
             /// The service base url of the TestEventProcessor
             /// </summary>
             public const string TESTEVENTPROCESSOR_BASEURL = "TESTEVENTPROCESSOR_BASEURL";
-            
+
             /// <summary>
             /// The username to authenticate against the TestEventProcessor (Basic Auth)
             /// </summary>
