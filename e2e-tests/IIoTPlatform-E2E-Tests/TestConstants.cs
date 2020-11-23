@@ -23,12 +23,17 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Default timeout of web calls
         /// </summary>
-        public const int DefaultTimeoutInMilliseconds = 90000;
+        public const int DefaultTimeoutInMilliseconds = 90 * 1000;
+
+        /// <summary>
+        /// Default delay interval in milliseconds
+        /// </summary>
+        public const int DefaultDelayMilliseconds = 5 * 1000;
 
         /// <summary>
         /// Default timeout of loading edge modules
         /// </summary>
-        public const int MaxDelayToEdgeModulesToBeLoadedInMilliseconds = 10 * 60 * 1000;
+        public const int MaxDelayDeploymentToBeLoadedInMilliseconds = 10 * 60 * 1000;
 
         /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
@@ -78,26 +83,6 @@ namespace IIoTPlatform_E2E_Tests {
             /// Route to twin health endpoint
             /// </summary>
             public const string TwinHealth = "/twin/healthz";
-
-            /// <summary>
-            /// Route to history health endpoint
-            /// </summary>
-            public const string HistoryHealth = "/history/healthz";
-
-            /// <summary>
-            /// Route to gateway health endpoint
-            /// </summary>
-            public const string GatewayHealth = "/ua/healthz";
-
-            /// <summary>
-            /// Route to vault health endpoint
-            /// </summary>
-            public const string VaultHealth = "/vault/healthz";
-
-            /// <summary>
-            /// Route to events health endpoint
-            /// </summary>
-            public const string EventsHealth = "/events/healthz";
 
             /// <summary>
             /// Route to job orchestrator health endpoint
@@ -194,17 +179,17 @@ namespace IIoTPlatform_E2E_Tests {
             /// The connection string of the event-hub compatible endpoint of IoT Hub.
             /// </summary>
             public const string IOTHUB_EVENTHUB_CONNECTIONSTRING = "IOTHUB_EVENTHUB_CONNECTIONSTRING";
-            
+
             /// <summary>
             /// The connection string of the storage account that will be used for checkpointing (when monitoring IoT Hub)
             /// </summary>
             public const string STORAGE_CONNECTIONSTRING = "STORAGE_CONNECTIONSTRING";
-            
+
             /// <summary>
             /// The service base url of the TestEventProcessor
             /// </summary>
             public const string TESTEVENTPROCESSOR_BASEURL = "TESTEVENTPROCESSOR_BASEURL";
-            
+
             /// <summary>
             /// The username to authenticate against the TestEventProcessor (Basic Auth)
             /// </summary>

@@ -49,8 +49,7 @@ namespace IIoTPlatform_E2E_Tests {
                     return;
                 }
 
-                var millisecondsDelay = 1000;
-                await Task.Delay(millisecondsDelay, ct);
+                await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
             }
         }
 

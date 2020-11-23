@@ -279,11 +279,11 @@ namespace IIoTPlatform_E2E_Tests {
 
         /// Wait for all API microservices of IIoT platform to be healthy.
         /// </summary>
-        /// <param name="config"> IIoT platform configuration </param>
+        /// <param name="context"> Shared Context for E2E testing Industrial IoT Platform </param>
         /// <param name="ct"> Cancellation token </param>
         /// <returns></returns>
         public static async Task WaitForServicesAsync(
-            IIIoTPlatformConfig config,
+            IIoTPlatformTestContext context,
             CancellationToken ct
         ) {
             const string healthyState = "Healthy";
@@ -292,15 +292,11 @@ namespace IIoTPlatform_E2E_Tests {
                 TestConstants.APIRoutes.RegistryHealth,
                 TestConstants.APIRoutes.PublisherHealth,
                 TestConstants.APIRoutes.TwinHealth,
-                TestConstants.APIRoutes.HistoryHealth,
-                TestConstants.APIRoutes.GatewayHealth,
-                TestConstants.APIRoutes.VaultHealth,
-                TestConstants.APIRoutes.EventsHealth,
                 TestConstants.APIRoutes.JobOrchestratorHealth
             };
 
-            var client = new RestClient(config.BaseUrl) {
-                Timeout = 60 * 1000
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds
             };
 
             while(true) {
@@ -324,10 +320,12 @@ namespace IIoTPlatform_E2E_Tests {
                     .Count();
 
                 if (healthyServices == healthRoutes.Length) {
+                    context.OutputHelper?.WriteLine("All API microservices of IIoT platform " +
+                        "are running and in healthy state.");
                     return;
                 }
 
-                await Task.Delay(5 * 1000, ct);
+                await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
             }
         }
     }
