@@ -175,31 +175,10 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
         [Fact, PriorityOrder(7)]
         public async Task Test_CheckIfEndpointWasActivated_Expect_ActivatedAndConnected() {
-            var accessToken = await TestHelper.GetTokenAsync(_context);
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
-            var request = new RestRequest(Method.GET);
-            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-            request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
+            var ct = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
+            dynamic json = await TestHelper.WaitForEndpointToBeActivatedAsync(_context, ct.Token);
 
-            var response = await client.ExecuteAsync(request);
-            Assert.NotNull(response);
-            Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
-
-            if (!response.IsSuccessful) {
-                _output.WriteLine($"StatusCode: {response.StatusCode}");
-                _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-            }
-
-            Assert.NotEmpty(response.Content);
-            dynamic json = JsonConvert.DeserializeObject(response.Content);
-
-            var activationState = (string)json.items[0].activationState;
-            // wait the endpoint to be connected
-            if (activationState == "Activated") {
-                await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
-            }
-            Assert.Equal("ActivatedAndConnected", activationState);
             var endpointState = (string)json.items[0].endpointState;
             Assert.Equal("Ready", endpointState);
         }

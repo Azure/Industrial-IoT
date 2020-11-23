@@ -277,7 +277,8 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.True(isSuccess);
         }
 
-        /// Wait for all API microservices of IIoT platform to be healthy.
+        /// <summary>
+        /// Wait for all API services of IIoT platform to be healthy.
         /// </summary>
         /// <param name="context"> Shared Context for E2E testing Industrial IoT Platform </param>
         /// <param name="ct"> Cancellation token </param>
@@ -332,6 +333,55 @@ namespace IIoTPlatform_E2E_Tests {
             catch (Exception) {
                 context.OutputHelper?.WriteLine("Error: not all API microservices of IIoT " +
                     "platform are in healthy state.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Wait for first OPC UA endpoint to be activated
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>content of GET /registry/v2/endpoints content</returns>
+        public static async Task<dynamic> WaitForEndpointToBeActivatedAsync(
+            IIoTPlatformTestContext context,
+            CancellationToken ct) {
+
+            var accessToken = await TestHelper.GetTokenAsync(context);
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+            ct.ThrowIfCancellationRequested();
+            try {
+                dynamic json;
+                string activationState;
+                do {
+                    var request = new RestRequest(Method.GET);
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                    request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
+
+                    var response = await client.ExecuteAsync(request);
+                    Assert.NotNull(response);
+                    Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
+
+                    if (!response.IsSuccessful) {
+                        context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                        context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                    }
+
+                    Assert.NotEmpty(response.Content);
+                    json = JsonConvert.DeserializeObject(response.Content);
+
+                    activationState = (string)json.items[0].activationState;
+                    // wait the endpoint to be connected
+                    if (activationState == "Activated") {
+                        await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
+                    }
+                } while (activationState != "ActivatedAndConnected");
+
+                return json;
+            }
+            catch (Exception) {
+                context.OutputHelper?.WriteLine("OPC UA endpoint couldn't be activated");
                 throw;
             }
         }
