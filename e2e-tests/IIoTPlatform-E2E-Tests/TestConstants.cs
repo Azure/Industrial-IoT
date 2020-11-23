@@ -141,17 +141,42 @@ namespace IIoTPlatform_E2E_Tests {
             public const string PCS_IOTHUB_CONNSTRING = "PCS_IOTHUB_CONNSTRING";
 
             /// <summary>
-            /// Docker server
+            /// The connection string of the event-hub compatible endpoint of IoT Hub.
+            /// </summary>
+            public const string IOTHUB_EVENTHUB_CONNECTIONSTRING = "IOTHUB_EVENTHUB_CONNECTIONSTRING";
+            
+            /// <summary>
+            /// The connection string of the storage account that will be used for checkpointing (when monitoring IoT Hub)
+            /// </summary>
+            public const string STORAGE_CONNECTIONSTRING = "STORAGE_CONNECTIONSTRING";
+            
+            /// <summary>
+            /// The service base url of the TestEventProcessor
+            /// </summary>
+            public const string TESTEVENTPROCESSOR_BASEURL = "TESTEVENTPROCESSOR_BASEURL";
+            
+            /// <summary>
+            /// The username to authenticate against the TestEventProcessor (Basic Auth)
+            /// </summary>
+            public const string TESTEVENTPROCESSOR_USERNAME = "TESTEVENTPROCESSOR_USERNAME";
+
+            /// <summary>
+            /// The password to authenticate against the TestEventProcessor (Basic Auth)
+            /// </summary>
+            public const string TESTEVENTPROCESSOR_PASSWORD = "TESTEVENTPROCESSOR_PASSWORD";
+
+            /// <summary>
+            /// Container Registry server
             /// </summary>
             public const string PCS_CONTAINER_REGISTRY_SERVER = "PCS_CONTAINER_REGISTRY_SERVER";
 
             /// <summary>
-            /// Docker user name
+            /// Container Registry user name
             /// </summary>
             public const string PCS_CONTAINER_REGISTRY_USER = "PCS_CONTAINER_REGISTRY_USER";
 
             /// <summary>
-            /// Docker password
+            /// Container Registry password
             /// </summary>
             public const string PCS_CONTAINER_REGISTRY_PASSWORD = "PCS_CONTAINER_REGISTRY_PASSWORD";
 

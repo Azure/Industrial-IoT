@@ -38,11 +38,7 @@
 
     <PackageReference Include="Azure.Storage.Blobs" Version="12.4.4" />
 
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.6.7" />
-
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
-
-    <PackageReference Include="KubernetesClient" Version="2.0.34" />
 
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>

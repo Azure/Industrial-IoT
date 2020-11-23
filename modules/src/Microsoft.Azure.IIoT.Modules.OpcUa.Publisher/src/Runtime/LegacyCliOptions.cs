@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "si|iothubsendinterval=", "The trigger batching interval in seconds.",
                         (int k) => this[LegacyCliConfigKeys.BatchTriggerInterval] = TimeSpan.FromSeconds(k).ToString() },
                     { "ms|iothubmessagesize=", "The maximum size of the (IoT D2C) message.",
-                        (int i) => this[LegacyCliConfigKeys.MaxMessageSize] = i.ToString() },
+                        (int i) => this[LegacyCliConfigKeys.IoTHubMaxMessageSize] = i.ToString() },
 
                     { "om|maxoutgressmessages=", "The maximum size of the (IoT D2C) message egress queue (deprecated, use em|maxegressmessagequeue instead).",
                         (int i) => this[LegacyCliConfigKeys.MaxOutgressMessages] = i.ToString() },
@@ -301,7 +301,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 TrustedIssuerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcIssuerCertStorePath, "pki/issuer"),
                 BatchSize = GetValueOrDefault(LegacyCliConfigKeys.BatchSize, 50),
                 BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
-                MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.MaxMessageSize, 0),
+                MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.IoTHubMaxMessageSize, 0),
                 ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1),
                 MaxEgressMessageQueue = ContainsKey(LegacyCliConfigKeys.MaxEgressMessageQueue)
                     ? GetValueOrDefault(LegacyCliConfigKeys.MaxEgressMessageQueue, 4096) // 4096 * 256 KB = 1 GB.

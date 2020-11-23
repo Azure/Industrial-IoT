@@ -80,26 +80,33 @@ namespace IIoTPlatform_E2E_Tests {
 
             foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
                 context.OutputHelper?.WriteLine($"Load pn.json from {url}");
-                using (var client = new HttpClient()) {
-                    var ub = new UriBuilder {Host = url};
-                    var baseAddress = ub.Uri;
+                try {
+                    using (var client = new HttpClient()) {
+                        var ub = new UriBuilder { Host = url };
+                        var baseAddress = ub.Uri;
 
-                    client.BaseAddress = baseAddress;
+                        client.BaseAddress = baseAddress;
+                        client.Timeout = TimeSpan.FromSeconds(60);
 
-                    using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile)) {
-                        Assert.NotNull(response);
-                        Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
-                        var json = await response.Content.ReadAsStringAsync();
-                        Assert.NotEmpty(json);
-                        var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
+                        using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile)) {
+                            Assert.NotNull(response);
+                            Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
+                            var json = await response.Content.ReadAsStringAsync();
+                            Assert.NotEmpty(json);
+                            var entryModels = JsonConvert.DeserializeObject<PublishedNodesEntryModel[]>(json);
 
-                        Assert.NotNull(entryModels);
-                        Assert.NotEmpty(entryModels);
-                        Assert.NotNull(entryModels[0].OpcNodes);
-                        Assert.NotEmpty(entryModels[0].OpcNodes);
+                            Assert.NotNull(entryModels);
+                            Assert.NotEmpty(entryModels);
+                            Assert.NotNull(entryModels[0].OpcNodes);
+                            Assert.NotEmpty(entryModels[0].OpcNodes);
 
-                        result.Add(url, entryModels[0]);
+                            result.Add(url, entryModels[0]);
+                        }
                     }
+                }
+                catch (Exception e) {
+                    context.OutputHelper?.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, url);
+                    continue;
                 }
             }
             return result;
@@ -198,6 +205,74 @@ namespace IIoTPlatform_E2E_Tests {
                 client.Disconnect();
             }
             Assert.True(isSuccessful, "Delete file was not successfull");
+        }
+
+        /// <summary>
+        /// Starts monitoring the incoming messages of the IoT Hub and checks for missing values.
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="expectedValuesChangesPerTimestamp">The expected number of value changes per timestamp</param>
+        /// <param name="expectedIntervalOfValueChanges">The expected time difference between values changes in milliseconds</param>
+        /// <param name="expectedMaximalDuration">The time difference between OPC UA Server fires event until Changes Received in IoT Hub in milliseconds </param>
+        /// <returns></returns>
+        public static async Task StartMonitoringIncomingMessages(IIoTPlatformTestContext context,
+            int expectedValuesChangesPerTimestamp, int expectedIntervalOfValueChanges, int expectedMaximalDuration) {
+            var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
+
+            var client = new RestClient(runtimeUrl) {
+                Timeout = 30000,
+                Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
+                    context.TestEventProcessorConfig.TestEventProcessorPassword)
+            };
+
+            var body = new {
+                CommandType = 0,
+                Configuration = new {
+                    IoTHubEventHubEndpointConnectionString = context.IoTHubConfig.IoTHubEventHubConnectionString,
+                    StorageConnectionString = context.IoTHubConfig.CheckpointStorageConnectionString,
+                    ExpectedValueChangesPerTimestamp = expectedValuesChangesPerTimestamp,
+                    ExpectedIntervalOfValueChanges = expectedIntervalOfValueChanges,
+                    ExpectedMaximalDuration = expectedMaximalDuration
+                }
+            };
+
+            var request = new RestRequest(Method.PUT);
+            request.AddJsonBody(body);
+
+            var response = await client.ExecuteAsync(request);
+            dynamic json = JsonConvert.DeserializeObject(response.Content);
+            Assert.NotNull(json);
+        }
+
+        /// <summary>
+        /// Stops the monitoring of incoming event to an IoT Hub and returns success/failure.
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <returns></returns>
+        public static async Task StopMonitoringIncomingMessages(IIoTPlatformTestContext context) {
+            // TODO Merge with Start-Method to avoid code duplication
+            var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
+
+            var client = new RestClient(runtimeUrl) {
+                Timeout = 30000,
+                Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
+                    context.TestEventProcessorConfig.TestEventProcessorPassword)
+            };
+
+            var body = new {
+                CommandType = 1,
+            };
+
+            var request = new RestRequest(Method.PUT);
+            request.AddJsonBody(body);
+
+            var response = await client.ExecuteAsync(request);
+
+            dynamic json = JsonConvert.DeserializeObject(response.Content);
+            Assert.NotNull(json);
+            Assert.NotEmpty(json);
+            bool isSuccess = json.isSuccess;
+            Assert.True(isSuccess);
         }
     }
 }

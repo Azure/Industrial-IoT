@@ -14,7 +14,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     /// <summary>
     /// Context to pass data between test cases
     /// </summary>
-    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, IContainerRegistryConfig {
+    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig {
 
         /// <summary>
         /// Configuration
@@ -36,7 +36,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <summary>
         /// Helper to write output, need to be set from constructor of test class
         /// </summary>
-        public ITestOutputHelper OutputHelper { get; set; }
+        public ITestOutputHelper? OutputHelper { get; set; }
 
         /// <summary>
         /// IoT Device Configuration
@@ -62,6 +62,11 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// OpcPlc Configuration
         /// </summary>
         public IOpcPlcConfig OpcPlcConfig { get { return this; } }
+
+        /// <summary>
+        /// TestEventProcessor configuration
+        /// </summary>
+        public ITestEventProcessorConfig TestEventProcessorConfig { get { return this; } }
 
         /// <summary>
         /// ContainerRegistry Configuration
@@ -116,6 +121,12 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IIoTHubConfig.IoTHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING,
             () => throw new Exception("IoT Hub connection string is not provided."));
 
+        string IIoTHubConfig.IoTHubEventHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING,
+            () => throw new Exception("IoT Hub EventHub connection string is not provided."));
+
+        string IIoTHubConfig.CheckpointStorageConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.STORAGE_CONNECTIONSTRING,
+            () => throw new Exception("IoT Hub Checkpoint Storage connection string is not provided."));
+
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
             () => throw new Exception("BaseUrl of Industrial IoT Platform is not provided."));
 
@@ -142,6 +153,15 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new Exception("Semicolon separated list of URLs of OPC-PLCs is not provided."));
+
+        string ITestEventProcessorConfig.TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
+            () => throw new Exception("Test Event Processor BaseUrl is not provided."));
+
+        string ITestEventProcessorConfig.TestEventProcessorUsername => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_USERNAME,
+            () => throw new Exception("Test Event Processor Username is not provided."));
+
+        string ITestEventProcessorConfig.TestEventProcessorPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_PASSWORD,
+            () => throw new Exception("Test Event Processor Password is not provided."));
 
         string IContainerRegistryConfig.ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_SERVER,
             () => string.Empty);

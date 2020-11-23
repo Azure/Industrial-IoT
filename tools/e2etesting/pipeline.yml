@@ -13,9 +13,9 @@ variables:
   Runtime: 'win-x64'
 
 jobs:
-- job: buildiai
+- job: build
   condition: ne(variables['UseExisting'], true)
-  displayName: 'Build IAI'
+  displayName: 'Build IAI and TestEventProcessor'
   pool:
     name: '$(AgentPool)'
   steps:
@@ -26,14 +26,28 @@ jobs:
       version: 3.1.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
-  - task: DotNetCoreCLI@2
-    displayName: Publish
+
+  - task: CmdLine@2
+    displayName: 'Run dotnet publish for IAI'
+    timeoutInMinutes: 90
     inputs:
-      command: publish
-      publishWebProjects: false
-      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
-      arguments: '--runtime $(Runtime) --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/$(Runtime)'
-      zipAfterPublish: false
+      script: 'dotnet publish "$(Build.SourcesDirectory)/deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj" --runtime $(Runtime) --configuration Release -p:PublishSingleFile=true --self-contained --output "$(Build.ArtifactStagingDirectory)/IAI"'
+      workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
+
+  - task: CmdLine@2
+    displayName: 'Run dotnet publish for TestEventProcessor'
+    timeoutInMinutes: 90
+    inputs:
+      script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessor"'
+      workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
+
+  - task: CopyFiles@2
+    displayName: 'Copy appSettings.json-template to output'
+    inputs:
+      contents: "$(Build.SourcesDirectory)/tools/e2etesting/appSettings.json"
+      targetFolder: "$(Build.ArtifactStagingDirectory)/IAI"
+      flattenFolders: true
+
   - task: PublishPipelineArtifact@1
     displayName: 'Publish Artifacts'
     inputs:
@@ -41,9 +55,9 @@ jobs:
       artifact: iiot_deployment
 
 - job: deploy
-  condition: eq(dependencies.buildiai.result, 'Succeeded')
-  dependsOn: buildiai
-  displayName: 'Prepare and run IAI'
+  condition: eq(dependencies.build.result, 'Succeeded')
+  dependsOn: build
+  displayName: 'Deploy Platform, Simulation and TestEventProcessor'
   pool:
     name: '$(AgentPool)'
   steps:
@@ -64,13 +78,7 @@ jobs:
   - task: DownloadPipelineArtifact@2
     inputs:
       artifact: 'iiot_deployment'
-      path: $(BasePath)\iiot_deployment
-
-  - task: CopyFiles@2
-    inputs:
-      sourceFolder: $(BasePath)\iiot_deployment
-      targetFolder: $(BasePath)
-      flattenFolders: true
+      path: $(BasePath)
 
   - task: AzurePowerShell@5
     displayName: "Replace parameters in appSettings.json (for IAI)"
@@ -83,7 +91,7 @@ jobs:
         -ClientId "$(ARM_CLIENT_ID)"
         -ClientSecret "$(ARM_CLIENT_SECRET)"
         -ApplicationName "$(ApplicationName)"
-        -AppSettingsFilename "$(BasePath)\appsettings.json"
+        -AppSettingsFilename "$(BasePath)\IAI\appsettings.json"
         -ResourceGroupName "$(ResourceGroupName)"
         -Region "$(Region)"
 
@@ -92,7 +100,7 @@ jobs:
     timeoutInMinutes: 90
     inputs:
       script: '$(IAILocalFilename)'
-      workingDirectory: '$(BasePath)'
+      workingDirectory: '$(BasePath)\IAI'
 
   - task: AzurePowerShell@5
     displayName: 'Set KeyVaultName-Variable'
@@ -134,31 +142,9 @@ jobs:
         -client_secret "$(ARM_CLIENT_SECRET)"
         -tenantId "$(ARM_TENANT_ID)"
 
-- job: deploytesteventprocessor
-  dependsOn: deploy
-  condition: or(eq(dependencies.deploy.result, 'Skipped'), eq(dependencies.deploy.result, 'Succeeded'))
-  displayName: "Build and deploy TestEventProcessor"
-  pool:
-    name: '$(AgentPool)'
-  steps:
-  - task: UseDotNet@2
-    displayName: 'Install .NET Core SDK for building'
-    inputs:
-      packageType: sdk
-      version: 3.1.x
-      includePreviewVersions: false
-      installationPath: $(Agent.ToolsDirectory)/dotnet
-
-  - task: CmdLine@2
-    displayName: 'Run dotnet publish'
-    timeoutInMinutes: 90
-    inputs:
-      script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessorPublish"'
-      workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
-
   - task: AzurePowerShell@5
     name: rundeployment
-    displayName: "Prepare infrastructure for TestEventProcessor"
+    displayName: "Prepare infrastructure and deploy TestEventProcessor"
     inputs:
       azureSubscription: '$(AzureSubscription)'
       azurePowerShellVersion: 'latestVersion'
@@ -166,17 +152,13 @@ jobs:
       scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
       scriptArguments: >
         -ResourceGroupName "$(ResourceGroupName)"
-        -PackageDirectory "$(Build.ArtifactStagingDirectory)\TestEventProcessorPublish"
+        -PackageDirectory "$(BasePath)\TestEventProcessor"
+        -KeyVaultName "$(KeyVaultName)"
 
 - job: e2etests
   displayName: 'Run End 2 End Tests'
-  dependsOn: deploytesteventprocessor
-  condition: eq(dependencies.deploytesteventprocessor.result, 'Succeeded')
-  variables:
-    TestEventProcessorBaseUrl: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorBaseUrl'] ]
-    CheckpointStorageAccountConnectionString: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.CheckpointStorageAccountConnectionString'] ]
-    TestEventProcessorUsername: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorUsername'] ]
-    TestEventProcessorPassword: $[ dependencies.deploytesteventprocessor.outputs['rundeployment.TestEventProcessorPassword'] ]
+  dependsOn: deploy
+  condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
   pool:
     name: '$(AgentPool)'
   steps:
@@ -222,7 +204,7 @@ jobs:
     inputs:
       azureSubscription: '$(AzureSubscription)'
       KeyVaultName: '$(KeyVaultName)'
-      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET,PLC-SIMULATION-URLS,PCS-SIMULATION-USER,PCS-SIMULATION-PASSWORD,IOT-EDGE-DEVICE-ID,IOT-EDGE-DEVICE-DNS-NAME,PCS-IOTHUB-CONNSTRING'
+      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET,PLC-SIMULATION-URLS,PCS-SIMULATION-USER,PCS-SIMULATION-PASSWORD,IOT-EDGE-DEVICE-ID,IOT-EDGE-DEVICE-DNS-NAME,PCS-IOTHUB-CONNSTRING,TestEventProcessorBaseUrl,CheckpointStorageAccountConnectionString,TestEventProcessorUsername,TestEventProcessorPassword,IoTHubEventHubConnectionString'
 
   - task: DotNetCoreCLI@2
     displayName: 'Executing tests'
@@ -242,6 +224,7 @@ jobs:
       PCS_SIMULATION_USER: $(pcs-simulation-user)
       PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
       PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
+      IOTHUB_EVENTHUB_CONNECTIONSTRING: $(IoTHubEventHubConnectionString)
       STORAGE_CONNECTIONSTRING: $(CheckpointStorageAccountConnectionString)
       TESTEVENTPROCESSOR_BASEURL: $(TestEventProcessorBaseUrl)
       TESTEVENTPROCESSOR_USERNAME: $(TestEventProcessorUsername)

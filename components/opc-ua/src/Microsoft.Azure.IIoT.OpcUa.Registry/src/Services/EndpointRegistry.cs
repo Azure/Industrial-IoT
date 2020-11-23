@@ -636,6 +636,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var endpoint = registration.ToServiceModel();
                 // Get endpoint twin secret
                 var secret = await _iothub.GetPrimaryKeyAsync(registration.DeviceId, null, ct);
+                // Ensure device scope
+                await EnsureDeviceScopeForRegistrationAsync(registration, ct);
 
                 // Try activate endpoint - if possible...
                 await _activator.ActivateEndpointAsync(endpoint.Registration, secret, ct);
@@ -726,6 +728,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Update supervisor settings
             var secret = await _iothub.GetPrimaryKeyAsync(registration.DeviceId, null, ct);
+
+            // Ensure device scope for the registration
+            await EnsureDeviceScopeForRegistrationAsync(registration, ct);
+
             var endpoint = registration.ToServiceModel();
             try {
                 // Call down to supervisor to activate - this can fail
@@ -858,6 +864,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             await _iothub.UpdatePropertyAsync(deviceId, moduleId, twinId, secret, ct);
             _logger.Information("Twin {twinId} activated on {supervisorId}.",
                 twinId, supervisorId);
+        }
+
+        /// <summary>
+        /// Ensure device scope for registration
+        /// </summary>
+        /// <param name="registration"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task EnsureDeviceScopeForRegistrationAsync(
+            EndpointRegistration registration, CancellationToken ct = default) {
+
+            // Ensure device scope is set to the owning edge gateway before activation
+            var edgeScope = await GetSupervisorDeviceScopeAsync(registration.SupervisorId, ct);
+            var deviceTwin = await _iothub.GetAsync(registration.DeviceId, ct: ct);
+            if (!string.IsNullOrEmpty(edgeScope) && deviceTwin.DeviceScope != edgeScope) {
+                deviceTwin.DeviceScope = edgeScope;
+                await _iothub.CreateOrUpdateAsync(deviceTwin, true, ct: ct);
+            }
+        }
+
+        /// <summary>
+        /// Get device scope of the supervisor
+        /// </summary>
+        /// <param name="supervisorId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task<string> GetSupervisorDeviceScopeAsync(string supervisorId,
+            CancellationToken ct = default) {
+            if (string.IsNullOrEmpty(supervisorId)) {
+                return null; // No scope
+            }
+            var edgeDeviceId = SupervisorModelEx.ParseDeviceId(supervisorId, out _);
+            var edgeDeviceTwin = await _iothub.FindAsync(edgeDeviceId, ct: ct);
+            return edgeDeviceTwin?.DeviceScope;
         }
 
         /// <summary>

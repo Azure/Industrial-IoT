@@ -34,12 +34,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
             try {
                 // Bind legacy configuration
-                var config = new ServicesConfig();
-                configuration?.Bind("OpcVault", config);
+                _config = new ServicesConfig();
+                configuration?.Bind("OpcVault", _config);
 
-                var database = db.OpenAsync(config.CosmosDBDatabase).Result;
+                _database = db.OpenAsync(_config.CosmosDBDatabase).Result;
 
-                _source = database.OpenContainerAsync(config.CosmosDBCollection)
+                _source = _database.OpenContainerAsync(_config.CosmosDBCollection)
                     .Result
                     .AsDocuments();
             }
@@ -82,6 +82,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
                     await _source.DeleteAsync(document.Id);
                 }
             }
+
+            // Removing the container after migration is complete.
+            await _database.DeleteContainerAsync(_config.CosmosDBCollection);
         }
 
 
@@ -239,6 +242,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
         }
 
         private readonly ILogger _logger;
+        private readonly ServicesConfig _config;
+        private readonly IDatabase _database;
         private readonly IDocuments _source;
         private readonly IApplicationRepository _repo;
     }
