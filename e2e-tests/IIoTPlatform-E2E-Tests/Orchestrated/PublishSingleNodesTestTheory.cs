@@ -82,27 +82,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         [Fact, PriorityOrder(4)]
         public async Task Test_GetApplicationsFromRegistry_ExpectOneRegisteredApplication() {
 
-            var accessToken = await TestHelper.GetTokenAsync(_context);
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
-
-            var request = new RestRequest(Method.GET);
-            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-            request.Resource = TestConstants.APIRoutes.RegistryApplications;
-
-            var response = await client.ExecuteAsync(request);
-            Assert.NotNull(response);
-            Assert.True(response.IsSuccessful, "GET /registry/v2/application failed!");
-
-            if (!response.IsSuccessful) {
-                _output.WriteLine($"StatusCode: {response.StatusCode}");
-                _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-            }
-
-            Assert.NotEmpty(response.Content);
-            dynamic json = JsonConvert.DeserializeObject(response.Content);
+            var ct = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
+            dynamic json = await TestHelper.WaitForDiscoveryToBeCompletedAsync(_context, ct.Token);
 
             var numberOfItems = (int)json.items.Count;
-            Assert.True(numberOfItems > 0, $"number of applications registered need to be higher than 0 but was {numberOfItems}");
+            Assert.True(numberOfItems == 1, $"number of applications registered need to be higher than 0 but was {numberOfItems}");
         }
 
 
