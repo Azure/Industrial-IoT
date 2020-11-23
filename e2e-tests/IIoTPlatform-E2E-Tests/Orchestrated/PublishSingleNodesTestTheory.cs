@@ -48,8 +48,10 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         [Fact, PriorityOrder(3)]
         public async Task Test_RegisterOPCServer_Expect_Success() {
 
-            var cts = new CancellationTokenSource(TestConstants.MaxDelayToEdgeModulesToBeLoadedInMilliseconds);
+            var cts = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
 
+            // We will wait for microservices of IIoT platform to be healthy and modules to be deployed.
+            await TestHelper.WaitForServicesAsync(_context, cts.Token);
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token);
 
             var accessToken = await TestHelper.GetTokenAsync(_context);
