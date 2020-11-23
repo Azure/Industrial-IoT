@@ -58,67 +58,67 @@ done
 
 if [[ -z "$RESOURCE_GROUP" ]]; then
     echo "Parameter is empty or missing: resource_group"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AKS_CLUSTER" ]]; then
     echo "Parameter is empty or missing: aks_cluster"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$ROLE" ]]; then
     echo "Parameter is empty or missing: role"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$LOAD_BALANCER_IP" ]]; then
     echo "Parameter is empty or missing: load_balancer_ip"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$PUBLIC_IP_DNS_LABEL" ]]; then
     echo "Parameter is empty or missing: public_ip_dns_label"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$HELM_REPO_URL" ]]; then
     echo "Parameter is empty or missing: helm_repo_url"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$HELM_CHART_VERSION" ]]; then
     echo "Parameter is empty or missing: helm_chart_version"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_IMAGE_TAG" ]]; then
     echo "Parameter is empty or missing: aiiot_image_tag"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_TENANT_ID" ]]; then
     echo "Parameter is empty or missing: aiiot_tenant_id"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_KEY_VAULT_URI" ]]; then
     echo "Parameter is empty or missing: aiiot_key_vault_uri"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_SERVICES_APP_ID" ]]; then
     echo "Parameter is empty or missing: aiiot_services_app_id"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_SERVICES_APP_SECRET" ]]; then
     echo "Parameter is empty or missing: aiiot_services_app_secret"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_SERVICES_HOSTNAME" ]]; then
     echo "Parameter is empty or missing: aiiot_services_hostname"
-    exit 1 
+    exit 1
 fi
 
 # Go to home.
@@ -194,7 +194,7 @@ fi
 az aks install-cli
 
 # Install Helm
-az acr helm install-cli --client-version "3.1.2" -y
+az acr helm install-cli --client-version "3.3.4" -y
 
 ################################################################################
 # Login to az using manaed identity
@@ -207,7 +207,7 @@ else
     az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER
 fi
 
-# Configure omsagent 
+# Configure omsagent
 kubectl apply -f "$CWD/04_oms_agent_configmap.yaml"
 
 # Add Helm repos
