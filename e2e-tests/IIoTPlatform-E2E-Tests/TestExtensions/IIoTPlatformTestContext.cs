@@ -14,7 +14,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     /// <summary>
     /// Context to pass data between test cases
     /// </summary>
-    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig {
+    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig {
 
         /// <summary>
         /// Configuration
@@ -59,7 +59,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public ISshConfig SshConfig { get { return this; } }
 
         /// <summary>
-        /// SSH Configuration
+        /// OpcPlc Configuration
         /// </summary>
         public IOpcPlcConfig OpcPlcConfig { get { return this; } }
 
@@ -67,6 +67,11 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// TestEventProcessor configuration
         /// </summary>
         public ITestEventProcessorConfig TestEventProcessorConfig { get { return this; } }
+
+        /// <summary>
+        /// ContainerRegistry Configuration
+        /// </summary>
+        public IContainerRegistryConfig ContainerRegistryConfig { get { return this; } }
 
         /// <summary>
         /// Helper to work with Azure.Devices.RegistryManager
@@ -157,5 +162,20 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         string ITestEventProcessorConfig.TestEventProcessorPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_PASSWORD,
             () => throw new Exception("Test Event Processor Password is not provided."));
+
+        string IContainerRegistryConfig.ContainerRegistryServer => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_SERVER,
+            () => string.Empty);
+
+        string IContainerRegistryConfig.ContainerRegistryUser => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_USER,
+            () => string.Empty);
+
+        string IContainerRegistryConfig.ContainerRegistryPassword => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_CONTAINER_REGISTRY_PASSWORD,
+            () => string.Empty);
+
+        string IContainerRegistryConfig.ImagesNamespace => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_NAMESPACE,
+            () => string.Empty);
+
+        string IContainerRegistryConfig.ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
+            () => throw new Exception("Images tag not provided"));
     }
 }

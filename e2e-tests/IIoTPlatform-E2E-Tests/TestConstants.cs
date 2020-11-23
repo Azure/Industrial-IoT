@@ -174,6 +174,31 @@ namespace IIoTPlatform_E2E_Tests {
             /// The password to authenticate against the TestEventProcessor (Basic Auth)
             /// </summary>
             public const string TESTEVENTPROCESSOR_PASSWORD = "TESTEVENTPROCESSOR_PASSWORD";
+
+            /// <summary>
+            /// Container Registry server
+            /// </summary>
+            public const string PCS_CONTAINER_REGISTRY_SERVER = "PCS_CONTAINER_REGISTRY_SERVER";
+
+            /// <summary>
+            /// Container Registry user name
+            /// </summary>
+            public const string PCS_CONTAINER_REGISTRY_USER = "PCS_CONTAINER_REGISTRY_USER";
+
+            /// <summary>
+            /// Container Registry password
+            /// </summary>
+            public const string PCS_CONTAINER_REGISTRY_PASSWORD = "PCS_CONTAINER_REGISTRY_PASSWORD";
+
+            /// <summary>
+            ///Images namespace
+            /// </summary>
+            public const string PCS_IMAGES_NAMESPACE = "PCS_IMAGES_NAMESPACE";
+
+            /// <summary>
+            /// Images tag
+            /// </summary>
+            public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG";
         }
     }
 }
