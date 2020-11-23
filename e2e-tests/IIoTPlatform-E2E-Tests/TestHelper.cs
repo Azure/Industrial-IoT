@@ -295,37 +295,44 @@ namespace IIoTPlatform_E2E_Tests {
                 TestConstants.APIRoutes.JobOrchestratorHealth
             };
 
-            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
-            };
+            try {
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                };
 
-            while(true) {
-                ct.ThrowIfCancellationRequested();
+                while(true) {
+                    ct.ThrowIfCancellationRequested();
 
-                var tasks = new List<Task<IRestResponse>>();
+                    var tasks = new List<Task<IRestResponse>>();
 
-                foreach(var healthRoute in healthRoutes) {
-                    var request = new RestRequest(Method.GET) {
-                        Resource = healthRoute
-                    };
+                    foreach(var healthRoute in healthRoutes) {
+                        var request = new RestRequest(Method.GET) {
+                            Resource = healthRoute
+                        };
 
-                    tasks.Add(client.ExecuteAsync(request, ct));
+                        tasks.Add(client.ExecuteAsync(request, ct));
+                    }
+
+                    Task.WaitAll(tasks.ToArray());
+
+                    var healthyServices = tasks
+                        .Where(task => task.Result.StatusCode == System.Net.HttpStatusCode.OK)
+                        .Where(task => task.Result.Content == healthyState)
+                        .Count();
+
+                    if (healthyServices == healthRoutes.Length) {
+                        context.OutputHelper?.WriteLine("All API microservices of IIoT platform " +
+                            "are running and in healthy state.");
+                        return;
+                    }
+
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
                 }
-
-                Task.WaitAll(tasks.ToArray());
-
-                var healthyServices = tasks
-                    .Where(task => task.Result.StatusCode == System.Net.HttpStatusCode.OK)
-                    .Where(task => task.Result.Content == healthyState)
-                    .Count();
-
-                if (healthyServices == healthRoutes.Length) {
-                    context.OutputHelper?.WriteLine("All API microservices of IIoT platform " +
-                        "are running and in healthy state.");
-                    return;
-                }
-
-                await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
+            }
+            catch (Exception) {
+                context.OutputHelper?.WriteLine("Error: not all API microservices of IIoT " +
+                    "platform are in healthy state.");
+                throw;
             }
         }
     }
