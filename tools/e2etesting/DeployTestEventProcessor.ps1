@@ -5,7 +5,8 @@ Param(
     $PackageDirectory,
     $StorageAccountName,
     $IoTHubName,
-    $KeyVaultName
+    $KeyVaultName,
+    $TenantId
 )
 
 ## Pre-Checks ##
@@ -34,7 +35,7 @@ $context = Get-AzContext
 
 if (!$context) {
     Write-Host "Logging in..."
-    Login-AzAccount -Tenant "6e660ce4-d51a-4585-80c6-58035e212354"
+    Login-AzAccount -Tenant $TenantId
     $context = Get-AzContext
 }
 
