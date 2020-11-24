@@ -136,13 +136,7 @@ jobs:
       scriptType: filePath
       scriptPath: '$(BasePath)\DeploySimulation.ps1'
       scriptArguments: >
-        -keyVaultName "$(KeyVaultName)"
-        -resourceGroupName "$(ResourceGroupName)"
-        -branchName "$(Build.SourceBranch)"
-        -region "$(Region)"
-        -client_id "$(ARM_CLIENT_ID)"
-        -client_secret "$(ARM_CLIENT_SECRET)"
-        -tenantId "$(ARM_TENANT_ID)"
+        -ResourceGroupName "$(ResourceGroupName)"
 
   - task: AzurePowerShell@5
     name: rundeployment

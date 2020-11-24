@@ -2,11 +2,11 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "factoryName": {
+        "resourcesSuffix": {
             "type": "string",
-            "defaultValue": "contoso",
+            "defaultValue": "[uniqueString(resourceGroup().id)]",
             "metadata": {
-                "description": "Name of the factory"
+                "description": "The suffix that is appended to the ACI resource names"
             }
         },
         "numberOfSimulations": {
@@ -112,12 +112,9 @@
         }
     },
     "variables": {
-        "instanceId": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('factoryName')), 7)]",
-        "factoryCode": "[parameters('factoryName')]",
-        "nameInfix": "[tolower(concat(variables('factoryCode'), '-', variables('instanceId')))]",
-        "aciPlc": "[concat('aci-', variables('nameInfix'), '-plc')]",
-        "vnetName": "[concat('vnet-', variables('nameInfix'))]",
-        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+        "aciPlcName": "[concat('e2etesting-aci-plc-', parameters('resourcesSuffix'), '-')]",
+        "vnetName": "[concat('e2etesting-vnet-', parameters('resourcesSuffix'))]",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetName'))]"
     },
     "resources": [
         {
@@ -147,7 +144,7 @@
             "comments": "PLC ACIs",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2017-05-10",
-            "name": "[concat(variables('aciPlc'), add(copyIndex(), 1))]",
+            "name": "[concat(variables('aciPlcName'), add(copyIndex(), 1))]",
             "condition": "[not(equals(parameters('numberOfSimulations'), 0))]",
             "copy": {
                 "name": "plcCopies",
@@ -164,18 +161,18 @@
                         {
                             "type": "Microsoft.ContainerInstance/containerGroups",
                             "apiVersion": "2018-10-01",
-                            "name": "[concat(variables('aciPlc'), add(copyIndex(), 1))]",
+                            "name": "[concat(variables('aciPlcName'), add(copyIndex(), 1))]",
                             "location": "[resourceGroup().location]",
                             "properties": {
                                 "containers": [
                                     {
-                                        "name": "[concat(variables('aciPlc'), add(copyIndex(), 1))]",
+                                        "name": "[concat(variables('aciPlcName'), add(copyIndex(), 1))]",
                                         "properties": {
                                             "image": "[concat(parameters('containerServer'), '/', parameters('containerImage'))]",
                                             "command": [
                                                 "/bin/sh",
                                                 "-c",
-                                                "[concat('./opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=', parameters('numberOfSlowNodes'), ' --sr=', parameters('slowNodeRate'), ' --st=', parameters('slowNodeType'), ' --fn=', parameters('numberOfFastNodes'), ' --fr=', parameters('fastNodeRate'), ' --ft=', parameters('fastNodeType'), ' --ph=', variables('aciPlc'), add(copyIndex(), 1), '.', resourceGroup().location, '.azurecontainer.io')]"
+                                                "[concat('./opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=', parameters('numberOfSlowNodes'), ' --sr=', parameters('slowNodeRate'), ' --st=', parameters('slowNodeType'), ' --fn=', parameters('numberOfFastNodes'), ' --fr=', parameters('fastNodeRate'), ' --ft=', parameters('fastNodeType'), ' --ph=', variables('aciPlcName'), add(copyIndex(), 1), '.', resourceGroup().location, '.azurecontainer.io')]"
                                             ],
                                             "ports": [
                                                 {
@@ -210,7 +207,7 @@
                                         }
                                     ],
                                     "type": "Public",
-                                    "dnsNameLabel": "[concat(variables('aciPlc'), add(copyIndex(), 1))]"
+                                    "dnsNameLabel": "[concat(variables('aciPlcName'), add(copyIndex(), 1))]"
                                 },
                                 "osType": "Linux",
                                 "imageRegistryCredentials": [
