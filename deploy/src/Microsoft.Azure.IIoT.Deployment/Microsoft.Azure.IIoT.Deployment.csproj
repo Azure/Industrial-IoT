@@ -15,28 +15,28 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.34.0" />
+    <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.35.0" />
     <PackageReference Include="Microsoft.Azure.Management.IotHub" Version="2.10.0-preview" />
     <PackageReference Include="Microsoft.Azure.Management.OperationalInsights" Version="0.21.0-preview" />
     <PackageReference Include="Microsoft.Azure.Management.ApplicationInsights" Version="0.3.0-preview" />
-    <PackageReference Include="Microsoft.Azure.Management.Authorization" Version="2.11.0-preview" />
+    <PackageReference Include="Microsoft.Azure.Management.Authorization" Version="2.12.0-preview" />
     <PackageReference Include="Microsoft.Azure.Management.SignalR" Version="1.1.0" />
 
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.0" />
 
     <!--<PackageReference Include="Microsoft.Graph" Version="1.21.0" />-->
-    <PackageReference Include="Microsoft.Graph.Beta" Version="0.19.0-preview" />
+    <PackageReference Include="Microsoft.Graph.Beta" Version="0.33.0-preview" />
     <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.5" />
 
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.21.1" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.23.0" />
 
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.9" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.9" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.9" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.9" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.10" />
 
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.4.4" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.7.0" />
 
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
 
