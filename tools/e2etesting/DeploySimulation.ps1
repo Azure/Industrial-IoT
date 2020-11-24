@@ -1,74 +1,93 @@
 Param(
     [string]
-    $keyVaultName,
-    [string]
-    $resourceGroupName,
-    [string]
-    $branchName,
-    [string]
-    $region,
-    [string]
-    $client_id,
-    [string]
-    $client_secret,
-    [string]
-    $tenantId
+    $ResourceGroupName,
+    [int]
+    $NumberOfSimulations = 18,
+    [Guid]
+    $TenantId
 )
 
-az config set extension.use_dynamic_install=yes_without_prompt
-
-# Powershell-Az module (which is automatically authorized by Powershell) 
-# don't support IoT Hub Device Identity methods, we ned to use az cli
-if(-Not ([string]::IsNullOrEmpty($client_id) -or [string]::IsNullOrEmpty($client_secret) -or [string]::IsNullOrEmpty($tenantId))) {
-    az login --service-principal --username  $client_id --password $client_secret --tenant $tenantId
-} else {
-    Write-Warning "username or password or tenantId for az login are not provided - skipped"
+if (!$ResourceGroupName) {
+    Write-Error "ResourceGroupName not set."
+    return
 }
 
-$branchName = $branchName.Replace('refs/heads/', '')
 $templateDir = [System.IO.Path]::Combine($PSScriptRoot, "../../deploy/templates") 
+$edgeVmUsername = "sandboxuser"
+$edgeVmPassword = -join ((65..90) + (97..122) + (33..38) + (40..47) + (48..57)| Get-Random -Count 20 | % {[char]$_})
+
+$context = Get-AzContext
+
+if (!$context) {
+    Write-Host "Logging in..."
+    Login-AzAccount -Tenant $TenantId
+    $context = Get-AzContext
+}
+
+$resourceGroup = Get-AzResourceGroup -Name $resourceGroupName
+
+if (!$resourceGroup) {
+    Write-Error "Could not find Resource Group '$($ResourceGroupName)'."
+    return
+}
+
+$testSuffix = $resourceGroup.Tags["TestingResourcesSuffix"]
+
+if (!$testSuffix) {
+    $testSuffix = Get-Random -Minimum 10000 -Maximum 99999
+
+    $tags = $resourceGroup.Tags
+    $tags+= @{"TestingResourcesSuffix" = $testSuffix}
+    Set-AzResourceGroup -Name $resourceGroup.ResourceGroupName -Tag $tags | Out-Null
+    $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
+}
+
+Write-Host "Using suffix for testing resources: $($testSuffix)"
 
 # Get IoT Hub
-$iotHub = Get-AzIotHub -ResourceGroupName $resourceGroupName
+$iotHub = Get-AzIotHub -ResourceGroupName $ResourceGroupName
 
-# Allow the keyvault to be used in ARM deployments
-Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -EnabledForTemplateDeployment
-Write-Host "Key vault configured to be used in ARM deployments"
-
-# Register IoT Edge device at IoT Hub
-$testEdgeDevice = "myTestDevice_$(Get-Random)"
-$edgeIdentity = az iot hub device-identity create --device-id $testEdgeDevice --edge-enabled --hub-name $iotHub.Name | ConvertFrom-Json
-Write-Host "Created edge device identity $($edgeIdentity.deviceId)"
-
-# Store Device Id within KeyVault to be useable by rerun without deployment (USeExisting=true)
-$secretvalue = ConvertTo-SecureString $edgeIdentity.deviceId -AsPlainText -Force
-$secret = Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'iot-edge-device-id' -SecretValue $secretvalue
-if (-Not $secret.Enabled) {
-    Write-Error "Couldn't store device identity in KeyVault" -ErrorAction Stop
+if ($iotHub.Count -ne 1) {
+    Write-Error "IotHub could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
+    return
 }
 
-# Read Device Connection String for TestDevice
-$edgeDeviceConnectionString = az iot hub device-identity connection-string show --device-id $edgeIdentity.deviceId --hub-name $iotHub.Name | ConvertFrom-Json
+Write-Host "IoT Hub Name: $($iotHub.Name)"
 
-# Update Device Twin of IoT Edge device
-$deviceTwin = az iot hub device-twin show --device-id $edgeIdentity.deviceId --hub-name $iotHub.Name | ConvertFrom-Json
-$tags = "" | Select os,__type__
-$tags.os = "Linux"
-$tags.__type__ = "iiotedge"
-$deviceTwin | Add-Member -MemberType NoteProperty -Value $tags -Name "tags"
-$configFileName = New-TemporaryFile
-($deviceTwin | ConvertTo-Json -Depth 10) | Out-File -FilePath $configFileName -Encoding UTF8
-$out = az iot hub device-twin replace --device-id $edgeIdentity.deviceId --hub-name $iotHub.Name --json $configFileName
-Write-Host "Added Industrial IoT tags to Device Twin of edge device"
+$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
 
-$vmpassword = -join ((65..90) + (97..122) + (33..38) + (40..47) + (48..57)| Get-Random -Count 20 | % {[char]$_})
-$numberOfSimulations = 18
+if ($keyVault.Count -ne 1) {
+    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
+    return
+} 
+
+Write-Host "Key Vault Name: $($keyVault.VaultName)"
+
+$deviceName = "e2etestdevice_$($testSuffix)"
+
+Write-Host "Iot Hub Device Identity: $($deviceName)"
+
+$edgeIdentity = Get-AzIotHubDevice -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $deviceName -ErrorAction SilentlyContinue
+
+if (!$edgeIdentity) {
+    Write-Host "Creating edge-enabled device identity $($deviceName) in Iot Hub $($iotHub.Name)"
+    $edgeIdentity = Add-AzIotHubDevice -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $deviceName -EdgeEnabled
+}
+
+if (!$edgeIdentity.Capabilities.IotEdge) {
+    Write-Error "Device '$($edgeIdentity.Id)' Iot Hub: '$($iotHub.Name)') is not edge-enabled."
+    return
+}
+
+Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-id' with value '$($edgeIdentity.Id)'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-id' -SecretValue (ConvertTo-SecureString $edgeIdentity.Id -AsPlainText -Force) | Out-Null
+
+Write-Host "Updating 'os' and '__type__'-Tags in Device Twin..."
+Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"} | Out-Null
+
 # Deploy edge and simulation virtual machines
-$templateParameters = @{
+$plcTemplateParameters = @{
     "factoryName" = "contoso"
-    "vmUsername" = "sandboxuser"
-    "vmPassword" = $vmpassword
-    "edgeVmSize" = "Standard_D2s_v3"
     "numberOfSimulations" = $numberOfSimulations
     "numberOfSlowNodes" = 1000
     "slowNodeRate" = 10
@@ -76,41 +95,66 @@ $templateParameters = @{
     "numberOfFastNodes" = 1000
     "fastNodeRate" = 1
     "fastNodeType" = "uint"
-    "iotEdgeConnString" = $edgeDeviceConnectionString.connectionString
-    "keyVaultName" = $keyVaultName
 }
 
-Write-Host "Preparing to deploy e2e.edge.and.plc.simulation.json"
+Write-Host "Preparing to deploy e2e.plc.simulation.json"
 
-# Execute deployment using ARM template
-$template = [System.IO.Path]::Combine($templateDir, "e2e.edge.and.plc.simulation.json")
-$simulationDeployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile $template -TemplateParameterObject $templateParameters
-if ($simulationDeployment.ProvisioningState -ne "Succeeded") {
-    Write-Error "Deployment $($simulationDeployment.ProvisioningState)." -ErrorAction Stop
+$plcTemplate = [System.IO.Path]::Combine($TemplateDir, "e2e.plc.simulation.json")
+$plcDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $plcTemplate -TemplateParameterObject $plcTemplateParameters
+
+if ($plcDeployment.ProvisioningState -ne "Succeeded") {
+    Write-Error "Deployment $($plcDeployment.ProvisioningState)." -ErrorAction Stop
 }
 
-# Generate URLs to access published_nodes.json via HTTP endpoint of plc-simulation.
+Write-Host "Getting IPs of ACIs for simulated PLCs..."
+
+$containerInstances = Get-AzContainerGroup -ResourceGroupName $ResourceGroupName
+
 $plcSimNames = ""
-for ($i=1; $i -le $numberOfSimulations; $i++) {
-    $aci = az container show --resource-group $resourceGroupName --name "$($simulationDeployment.Outputs.plcPrefix.Value)$($i)" | ConvertFrom-Json
-    $plcSimNames += "$($aci.ipAddress.fqdn);"
+foreach ($ci in $containerInstances) {
+    $plcSimNames += $ci.Fqdn + ";"
 }
 
-# Store Url to PLC simulations in KeyVault
-$secretvalue = ConvertTo-SecureString $plcSimNames -AsPlainText -Force
-$secret = Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'plc-simulation-urls' -SecretValue $secretvalue
-if (-Not $secret.Enabled) {
-    Write-Error "Couldn't store URLs to access PLC simulation in KeyVault" -ErrorAction Stop
-}
-Write-Host "Stored URLs to access PLC simulation in KeyVault"
+Write-Host "Adding/Updating KeVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'plc-simulation-urls' -SecretValue (ConvertTo-SecureString $plcSimNames -AsPlainText -Force) | Out-Null
 
-# Store DNS to IoT Edge device in KeyVault
-$dns = az network public-ip show --name $simulationDeployment.Outputs.publicIP.Value --resource-group $resourceGroupName | ConvertFrom-Json
-$secretvalue = ConvertTo-SecureString $dns.dnsSettings.fqdn -AsPlainText -Force
-$secret = Set-AzKeyVaultSecret -VaultName $keyVaultName -Name 'iot-edge-device-dns-name' -SecretValue $secretvalue
-if (-Not $secret.Enabled) {
-    Write-Error "Couldn't store DNS of IoT Edge device in KeyVault" -ErrorAction Stop
-}
-Write-Host "Stored DNS to access IoT Edge device in KeyVault"
+Write-Host "Getting Device Connection String for IoT Edge Deployment..."
+$edgeDeviceConnectionString = Get-AzIotHubDeviceConnectionString -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -KeyType primary
+$edgeDeviceConnectionString = $edgeDeviceConnectionString.ConnectionString
 
-Write-Host "Deployed simulation"
+$dnsPrefix = "e2etesting-edgevm-" + $testSuffix
+
+Write-Host "Using DNS prefix: $($dnsPrefix)"
+
+$edgeParameters = @{
+    "dnsLabelPrefix" = $dnsPrefix
+    "adminUsername" = $edgeVmUsername
+    "deviceConnectionString" = $edgeDeviceConnectionString
+    "authenticationType" = "password"
+    "adminPasswordOrKey" = $edgeVmPassword
+}
+
+$edgeTemplateUri = "https://aka.ms/iotedge-vm-deploy"
+
+Write-Host "Running IoT Edge VM Deployment..."
+
+$edgeDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateUri $edgeTemplateUri -TemplateParameterObject $edgeParameters
+
+if ($edgeDeployment.ProvisioningState -ne "Succeeded") {
+    Write-Error "Deployment $($edgeDeployment.ProvisioningState)." -ErrorAction Stop
+}
+
+Write-Host "Adding/Updating KeVault-Secret 'pcs-simulation-user' with value '$($edgeVmUsername)'..."
+Write-Host "Adding/Updating KeVault-Secret 'pcs-simulation-password' with value '***'..."
+
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'pcs-simulation-user' -SecretValue (ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'pcs-simulation-password' -SecretValue (ConvertTo-SecureString $edgeVmPassword -AsPlainText -Force) | Out-Null
+
+$sshUrl = $edgeDeployment.Outputs["public SSH"].Value
+$fqdn = $sshUrl.Split("@")[1]
+
+Write-Host "Adding/Updating KeVault-Secret 'iot-edge-device-dns-name' with value '$($fqdn)'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-dns-name' -SecretValue (ConvertTo-SecureString $fqdn -AsPlainText -Force) | Out-Null
+
+Write-Host "Deployment finished."
+

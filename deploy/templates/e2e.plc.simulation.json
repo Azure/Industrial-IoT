@@ -9,37 +9,6 @@
                 "description": "Name of the factory"
             }
         },
-        "vmUsername": {
-            "type": "string",
-            "defaultValue": "someadmin",
-            "metadata": {
-                "description": "Username for the IoT Edge VM"
-            }
-        },
-        "vmPassword": {
-            "type": "securestring",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Password for IoT Edge VM"
-            }
-        },
-        "edgeVmSize": {
-            "type": "string",
-            "defaultValue": "Standard_D2s_v3",
-            "allowedValues": [
-                "",
-                "Standard_B2ms",
-                "Standard_B4ms",
-                "Standard_B8ms",
-                "Standard_B12ms",
-                "Standard_B16ms",
-                "Standard_B20ms",
-                "Standard_D2s_v3"
-            ],
-            "metadata": {
-                "description": "Size of the IoT Edge VM"
-            }
-        },
         "numberOfSimulations": {
             "type": "int",
             "defaultValue": 1,
@@ -140,72 +109,15 @@
             "metadata": {
                 "description": "Password for Container Registry"
             }
-        },
-        "iotEdgeConnString": {
-            "type": "string",
-            "defaultValue": "HostName=;DeviceId=;SharedAccessKey=",
-            "metadata": {
-                "description": "IoT Edge connection string from IoT Hub (contains DeviceId)"
-            }
-        },
-        "keyVaultName": {
-            "type": "string",
-            "metadata": {
-                "description": "Keyvault containing service and client configuration."
-            }
-        },
-        "branchName": {
-            "type": "string",
-            "defaultValue": "master",
-            "metadata": {
-                "description": "The branch from which to deploy deploy services and application. Default to master."
-            }
         }
     },
     "variables": {
         "instanceId": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('factoryName')), 7)]",
         "factoryCode": "[parameters('factoryName')]",
         "nameInfix": "[tolower(concat(variables('factoryCode'), '-', variables('instanceId')))]",
-        
-        "vmEdge": "[concat('vm-', variables('nameInfix'), '-edge')]",
         "aciPlc": "[concat('aci-', variables('nameInfix'), '-plc')]",
-
-        "vmEdgePubIp": "[concat(variables('vmEdge'),'-public-ip')]",
-        "vmEdgePubIpDnsName": "[concat(variables('vmEdge'),'-public-dns')]",
-
-        "nicPrefix": "[concat('nic-', variables('nameInfix'))]",
-        "nicEdge": "[concat(variables('nicPrefix'), '-edge')]",
-        "nicEdgeId": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces', variables('nicEdge'))]",
-        
         "vnetName": "[concat('vnet-', variables('nameInfix'))]",
         "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetName'))]",
-
-        "edgeLinuxImage": {
-            "publisher": "microsoft_iot_edge",
-            "offer": "iot_edge_vm_ubuntu",
-            "sku": "ubuntu_1604_edgeruntimeonly",
-            "version": "latest"
-        },
-        "linuxOsProfile": {
-            "computerName": "[variables('vmEdge')]",
-            "adminUsername": "[parameters('vmUsername')]",
-            "adminPassword": "[if(not(empty(parameters('vmPassword'))), parameters('vmPassword'), json('null'))]"
-        },
-        "vmScriptExtension": {
-            "publisher": "Microsoft.Azure.Extensions",
-            "type": "CustomScript",
-            "typeHandlerVersion": "2.0",
-            "autoUpgradeMinorVersion": true,
-            "settings": {
-                "fileUris": [
-                ]
-            },
-            "protectedSettings": {
-                "commandToExecute": "[concat('bash -c \"cd /tmp; for i in {1..', parameters('numberOfSimulations'), '}; do echo \\\"http://', variables('aciPlc'), '\\$i.', resourceGroup().location, '.azurecontainer.io/pn.json\\\"; curl http://', variables('aciPlc'), '\\$i.', resourceGroup().location, '.azurecontainer.io/pn.json -m 2 -o ->> pn.json -s; done|tee pn.log|awk ''END { print \"Done\" }''; mkdir -p /var/iiotedge; sed ''s/\\]\\[/,/g'' pn.json > /var/iiotedge/pn.json; chmod -fR 777 /var/iiotedge; rm pn.json\"; bash /etc/iotedge/configedge.sh \"', parameters('iotEdgeConnString'), '\" && sudo systemctl restart iotedge')]"
-            }
-        },
-        "edgeVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_D2s_v3')]",
-        "templateBaseUrl": "[concat('https://raw.githubusercontent.com/Azure/Industrial-IoT', '/', parameters('branchName'), '/deploy/templates/')]"
     },
     "resources": [
         {
@@ -229,8 +141,7 @@
                     }
                 ]
             },
-            "dependsOn": [
-            ]
+            "dependsOn": []
         },
         {
             "comments": "PLC ACIs",
@@ -314,139 +225,6 @@
                     ]
                 }
             }
-        },
-        {
-            "comments": "Network interface for IoT Edge VM",
-            "name": "[variables('nicEdge')]",
-            "type": "Microsoft.Network/networkInterfaces",
-            "apiVersion": "2019-09-01",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "privateIPAllocationMethod": "Dynamic",
-                            "subnet": {
-                                "id": "[concat(variables('vnetId'), '/subnets/', 'subnet-vm')]"
-                            },
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('vmEdgePubIp'))]"
-                            }
-                        }
-                    }
-                ]
-            },
-            "dependsOn": [
-                "[variables('vnetId')]",
-                "[resourceId('Microsoft.Network/publicIPAddresses', variables('vmEdgePubIp'))]"
-            ]
-        },
-        {
-            "comments": "IoT Edge VM",
-            "name": "[variables('vmEdge')]",
-            "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2019-03-01",
-            "location": "[resourceGroup().location]",
-            "plan": {
-                "publisher": "microsoft_iot_edge",
-                "product": "iot_edge_vm_ubuntu",
-                "name": "ubuntu_1604_edgeruntimeonly"
-            },
-            "properties": {
-                "hardwareProfile": {
-                    "vmSize": "[variables('edgeVmSku')]"
-                },
-                "osProfile": "[variables('linuxOsProfile')]",
-                "storageProfile": {
-                    "imageReference": "[variables('edgeLinuxImage')]",
-                    "osDisk": {
-                        "createOption": "FromImage"
-                    }
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[variables('nicEdgeId')]"
-                        }
-                    ]
-                }
-            },
-            "dependsOn": [
-                "[variables('nicEdgeId')]"
-            ]
-        },
-        {
-          "name": "[variables('vmEdgePubIp')]",
-          "type": "Microsoft.Network/publicIPAddresses",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2016-03-30",
-          "dependsOn": [ ],
-          "properties": {
-            "publicIPAllocationMethod": "Dynamic",
-            "dnsSettings": {
-              "domainNameLabel": "[variables('vmEdgePubIpDnsName')]"
-            }
-          }
-        },
-        {
-            "comments": "One time script execution to to enroll IoT Edge VM with IoT Hub and create pn.json for OPC Publisher",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('vmEdge'), '/', 'scriptextensions')]",
-            "apiVersion": "2019-03-01",
-            "location": "[resourceGroup().location]",
-            "properties": "[variables('vmScriptExtension')]",
-            "dependsOn": [
-                "[variables('vmEdge')]",
-                "plcCopies"
-            ]
-        },
-        {
-            "comments": "Save edge simulation user and password.",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2019-08-01",
-            "name": "[concat(variables('vmEdge'), '-', 'KeyVault')]",
-            "condition": "[not(empty(parameters('keyVaultName')))]",
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[parameters('keyVaultName')]"
-                    },
-                    "configuration": {
-                        "value": [
-                            {
-                                "key": "PCS_SIMULATION_USER",
-                                "value": "[parameters('vmUsername')]"
-                            },
-                            {
-                                "key": "PCS_SIMULATION_PASSWORD",
-                                "value": "[parameters('vmPassword')]"
-                            }
-                        ]
-                    }
-                },
-                "templateLink": {
-                    "contentVersion": "1.0.0.0",
-                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.configuration.json')]"
-                }
-            },
-            "dependsOn": [
-            ]
         }
-    ],
-    "outputs": {
-        "plcPrefix": {
-            "type": "string",
-            "value": "[variables('aciPlc')]"
-        },
-        "edgeDns": {
-            "type": "string",
-            "value": "[variables('vmEdgePubIpDnsName')]"
-        },
-        "publicIP": {
-            "type": "string",
-            "value": "[variables('vmEdgePubIp')]"
-        } 
-    }
+    ]
 }
