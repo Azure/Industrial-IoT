@@ -6,7 +6,7 @@ pr: none
 variables:
   BasePath: $(System.DefaultWorkingDirectory)\tools\e2etesting
   ClientCredentialsKeyVaultName: automatedtesting
-  AzureSubscription: IOT-OPC-WALLS-SP # Use Services-Connection with Service-Principal-Authentication as subscription 
+  AzureSubscription: IOT-OPC-WALLS-SP # Use Services-Connection with Service-Principal-Authentication as subscription
   AgentPool: Azure-IoT-Manufacturing
   IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
   TestPath: $(System.DefaultWorkingDirectory)\e2e-tests\IIoTPlatform-E2E-Tests
@@ -94,6 +94,7 @@ jobs:
         -AppSettingsFilename "$(BasePath)\IAI\appsettings.json"
         -ResourceGroupName "$(ResourceGroupName)"
         -Region "$(Region)"
+        -ImageTag "$(PlatformVersion)"
 
   - task: CmdLine@2
     displayName: 'Run deployment with IAI'
@@ -210,9 +211,9 @@ jobs:
 
   - task: DotNetCoreCLI@2
     displayName: 'Executing tests'
-    inputs:  
-      command: test  
-      projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'  
+    inputs:
+      command: test
+      projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
       arguments: '--configuration Release'
     env:
       PCS_SERVICE_URL: $(pcs-service-url)
@@ -231,6 +232,7 @@ jobs:
       TESTEVENTPROCESSOR_BASEURL: $(TestEventProcessorBaseUrl)
       TESTEVENTPROCESSOR_USERNAME: $(TestEventProcessorUsername)
       TESTEVENTPROCESSOR_PASSWORD: $(TestEventProcessorPassword)
+      PCS_IMAGES_TAG: $(PlatformVersion)
 
 - job: cleanup
   displayName: Cleanup
