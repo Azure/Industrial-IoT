@@ -138,7 +138,7 @@ Write-Host "Running IoT Edge VM Deployment..."
 $edgeDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateUri $edgeTemplateUri -TemplateParameterObject $edgeParameters
 
 if ($edgeDeployment.ProvisioningState -ne "Succeeded") {
-    Write-Error "Deployment $($edgeDeployment.ProvisioningState)." -ErrorAction Stop
+    Write-Error "Deployment $($edgeDeployment.ProvisioningState)."
 }
 
 Write-Host "Adding/Updating KeVault-Secret 'pcs-simulation-user' with value '$($edgeVmUsername)'..."
