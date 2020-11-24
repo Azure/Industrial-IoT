@@ -7,9 +7,10 @@ Param(
     $TenantId
 )
 
+$ErrorActionPreference = "Stop"
+
 if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
-    return
 }
 
 $templateDir = [System.IO.Path]::Combine($PSScriptRoot, "../../deploy/templates") 
@@ -28,7 +29,6 @@ $resourceGroup = Get-AzResourceGroup -Name $resourceGroupName
 
 if (!$resourceGroup) {
     Write-Error "Could not find Resource Group '$($ResourceGroupName)'."
-    return
 }
 
 $testSuffix = $resourceGroup.Tags["TestingResourcesSuffix"]
@@ -49,7 +49,6 @@ $iotHub = Get-AzIotHub -ResourceGroupName $ResourceGroupName
 
 if ($iotHub.Count -ne 1) {
     Write-Error "IotHub could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
-    return
 }
 
 Write-Host "IoT Hub Name: $($iotHub.Name)"
@@ -58,7 +57,6 @@ $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
 
 if ($keyVault.Count -ne 1) {
     Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
-    return
 } 
 
 Write-Host "Key Vault Name: $($keyVault.VaultName)"
@@ -76,7 +74,6 @@ if (!$edgeIdentity) {
 
 if (!$edgeIdentity.Capabilities.IotEdge) {
     Write-Error "Device '$($edgeIdentity.Id)' Iot Hub: '$($iotHub.Name)') is not edge-enabled."
-    return
 }
 
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-id' with value '$($edgeIdentity.Id)'..."
