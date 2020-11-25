@@ -12,6 +12,7 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using TestExtensions;
 
     /// <summary>
     /// Helper for managing IoT Hub device registry.
@@ -29,27 +30,41 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="deviceId"> IoT Edge device id </param>
         /// <param name="ct"> Cancellation token </param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="moduleNames"> List of modules to wait for, defaults to ModuleNamesDefault if not specified </param>
         /// <returns></returns>
         public async Task WaitForIIoTModulesConnectedAsync(
             string deviceId,
             CancellationToken ct,
+            IIoTPlatformTestContext context,
             IEnumerable<string> moduleNames = null
         ) {
             moduleNames ??= ModuleNamesDefault;
 
-            while(true) {
-                var modules = await _registryManager.GetModulesOnDeviceAsync(deviceId, ct);
-                var connectedModulesCout = modules
-                    .Where(m => moduleNames.Contains(m.Id))
-                    .Where(m => m.ConnectionState == DeviceConnectionState.Connected)
-                    .Count();
+            try {
+                while (true) {
+                    var modules = await _registryManager.GetModulesOnDeviceAsync(deviceId, ct);
+                    var connectedModulesCout = modules
+                        .Where(m => moduleNames.Contains(m.Id))
+                        .Where(m => m.ConnectionState == DeviceConnectionState.Connected)
+                        .Count();
 
-                if (connectedModulesCout == moduleNames.Count()) {
-                    return;
+                    if (connectedModulesCout == moduleNames.Count()) {
+                        context.OutputHelper?.WriteLine("All required IoT Edge modules are loaded!");
+                        return;
+                    }
+
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
                 }
-
-                await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct);
+            }
+            catch (OperationCanceledException) {
+                context.OutputHelper?.WriteLine("Waiting for IoT Edge modules to be loaded timeout - please check iot edge device for details");
+                throw;
+            }
+            catch (Exception e) {
+                context.OutputHelper?.WriteLine("Error occurred while waiting for edge Modules");
+                context.OutputHelper?.WriteLine(e.Message);
+                throw;
             }
         }
 

@@ -52,7 +52,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             // We will wait for microservices of IIoT platform to be healthy and modules to be deployed.
             await TestHelper.WaitForServicesAsync(_context, cts.Token);
-            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token);
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, _context);
 
             var accessToken = await TestHelper.GetTokenAsync(_context);
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
