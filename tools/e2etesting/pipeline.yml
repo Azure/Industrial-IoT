@@ -54,10 +54,10 @@ jobs:
       path: $(Build.ArtifactStagingDirectory)/
       artifact: iiot_deployment
 
-- job: deploy
+- job: deployplatform
   condition: eq(dependencies.build.result, 'Succeeded')
   dependsOn: build
-  displayName: 'Deploy Platform, Simulation and TestEventProcessor'
+  displayName: 'Deploy Platform'
   pool:
     name: '$(AgentPool)'
   steps:
@@ -126,6 +126,18 @@ jobs:
         -ResourceGroupName "$(ResourceGroupName)"
         -ServicePrincipalName "$(ARM_CLIENT_ID)"
 
+- job: deploytestresources
+  condition: eq(dependencies.deployplatform.result, 'Succeeded')
+  dependsOn: deployplatform
+  displayName: 'Deploy Test Resources'
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      artifact: 'iiot_deployment'
+      path: $(BasePath)
+
   - task: AzurePowerShell@5
     displayName: "Deploy containers with simulated PLCs"
     timeoutInMinutes: 90
@@ -159,12 +171,11 @@ jobs:
       scriptArguments: >
         -ResourceGroupName "$(ResourceGroupName)"
         -PackageDirectory "$(BasePath)\TestEventProcessor"
-        -KeyVaultName "$(KeyVaultName)"
 
 - job: e2etests
   displayName: 'Run End 2 End Tests'
-  dependsOn: deploy
-  condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
+  dependsOn: deploytestresources
+  condition: or(eq(dependencies.deploytestresources.result, 'Succeeded'), eq(dependencies.deploytestresources.result, 'Skipped'))
   pool:
     name: '$(AgentPool)'
   steps:
