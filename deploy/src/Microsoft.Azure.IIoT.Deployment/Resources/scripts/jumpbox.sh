@@ -220,7 +220,7 @@ helm repo update
 kubectl create namespace nginx-ingress
 
 # Install stable/nginx-ingress Helm chart
-helm install --atomic nginx-ingress stable/nginx-ingress --namespace nginx-ingress --version 1.36.0 \
+helm install --atomic nginx-ingress stable/nginx-ingress --namespace nginx-ingress --version 1.36.0 --timeout 30m0s \
     --set controller.replicaCount=2 \
     --set controller.nodeSelector."beta\.kubernetes\.io\/os"=linux \
     --set controller.service.loadBalancerIP=$LOAD_BALANCER_IP \
@@ -240,7 +240,7 @@ kubectl create namespace cert-manager
 kubectl label namespace cert-manager cert-manager.io/disable-validation=true
 
 # Install jetstack/cert-manager Helm chart
-helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v0.13.0
+helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v0.13.0 --timeout 30m0s
 
 # Create Let's Encrypt ClusterIssuer
 n=0
@@ -263,7 +263,7 @@ fi
 kubectl create namespace azure-industrial-iot
 
 # Install aiiot/azure-industrial-iot Helm chart
-helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION \
+helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
     --set image.tag=$AIIOT_IMAGE_TAG \
     --set loadConfFromKeyVault=true \
     --set azure.tenantId=$AIIOT_TENANT_ID \
