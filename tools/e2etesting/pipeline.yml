@@ -175,7 +175,7 @@ jobs:
 - job: e2etests
   displayName: 'Run End 2 End Tests'
   dependsOn: deploytestresources
-  condition: or(eq(dependencies.deploytestresources.result, 'Succeeded'), eq(dependencies.deploytestresources.result, 'Skipped'))
+  condition: and(or(eq(dependencies.deploytestresources.result, 'Succeeded'), eq(dependencies.deploytestresources.result, 'Skipped')), or(eq(dependencies.deployplatform.result, 'Succeeded'), eq(dependencies.deployplatform.result, 'Skipped')))
   pool:
     name: '$(AgentPool)'
   steps:
