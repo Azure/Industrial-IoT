@@ -128,7 +128,6 @@ jobs:
 
   - task: AzurePowerShell@5
     displayName: "Deploy containers with simulated PLCs"
-    name: deployedgevm
     timeoutInMinutes: 90
     inputs:
       azureSubscription: '$(AzureSubscription)'
@@ -140,7 +139,6 @@ jobs:
 
   - task: AzurePowerShell@5
     displayName: "Deploy VM with IoT Edge Runtime"
-    name: deployedgevm
     timeoutInMinutes: 90
     inputs:
       azureSubscription: '$(AzureSubscription)'
