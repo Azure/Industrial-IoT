@@ -2,6 +2,13 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "resourcesPrefix": {
+            "type": "string",
+            "defaultValue": "e2etesting-simulation",
+            "metadata": {
+                "description": "The suffix that is appended to the ACI resource names"
+            }
+        },
         "resourcesSuffix": {
             "type": "string",
             "defaultValue": "[uniqueString(resourceGroup().id)]",
@@ -112,8 +119,8 @@
         }
     },
     "variables": {
-        "aciPlcName": "[concat('e2etesting-aci-plc-', parameters('resourcesSuffix'), '-')]",
-        "vnetName": "[concat('e2etesting-vnet-', parameters('resourcesSuffix'))]",
+        "aciPlcName": "[concat(parameters('resourcesPrefix'), '-aci-', parameters('resourcesSuffix'), '-')]",
+        "vnetName": "[concat(parameters('resourcesPrefix'), '-vnet-', parameters('resourcesSuffix'))]",
         "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetName'))]"
     },
     "resources": [

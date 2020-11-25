@@ -127,7 +127,7 @@ jobs:
         -ServicePrincipalName "$(ARM_CLIENT_ID)"
 
   - task: AzurePowerShell@5
-    displayName: "Deploy IIoT edge and sim VMs"
+    displayName: "Deploy containers with simulated PLCs"
     name: deployedgevm
     timeoutInMinutes: 90
     inputs:
@@ -139,8 +139,19 @@ jobs:
         -ResourceGroupName "$(ResourceGroupName)"
 
   - task: AzurePowerShell@5
-    name: rundeployment
-    displayName: "Prepare infrastructure and deploy TestEventProcessor"
+    displayName: "Deploy VM with IoT Edge Runtime"
+    name: deployedgevm
+    timeoutInMinutes: 90
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DeployEdge.ps1'
+      scriptArguments: >
+        -ResourceGroupName "$(ResourceGroupName)"
+
+  - task: AzurePowerShell@5
+    displayName: "Deploy TestEventProcessor"
     timeoutInMinutes: 90
     inputs:
       azureSubscription: '$(AzureSubscription)'
