@@ -128,19 +128,19 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             () => throw new Exception("IoT Hub Checkpoint Storage connection string is not provided."));
 
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
-            () => throw new Exception("BaseUrl of Industrial IoT Platform is not provided."));
+            null);
 
         string IIIoTPlatformConfig.AuthTenant => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
-            () => throw new Exception("Authentication Tenant of Industrial IoT Platform is not provided."));
+            null);
 
         string IIIoTPlatformConfig.AuthClientId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID,
-            () => throw new Exception("Authentication client id of Industrial IoT Platform is not provided."));
+            null);
 
         string IIIoTPlatformConfig.AuthClientSecret => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET,
-            () => throw new Exception("Authentication client secret of Industrial IoT Platform is not provided."));
+            null);
 
         string IIIoTPlatformConfig.ApplicationName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.ApplicationName,
-            () => throw new Exception("ApplicationName of Industrial IoT Platform is not provided."));
+            () => throw new Exception("ApplicationName is not provided."));
 
         string ISshConfig.Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SIMULATION_USER,
             () => throw new Exception("Username of iot edge device is not provided."));
