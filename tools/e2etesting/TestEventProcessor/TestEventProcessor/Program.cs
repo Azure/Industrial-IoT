@@ -3,9 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.Logging;
-using Serilog.Extensions.Logging;
-
 namespace TestEventProcessor
 {
     using Mono.Options;
@@ -14,6 +11,8 @@ namespace TestEventProcessor
     using System.Threading;
     using System.Threading.Tasks;
     using BusinessLogic;
+    using Microsoft.Extensions.Logging;
+    using Serilog.Extensions.Logging;
 
     class Program
     {
@@ -66,9 +65,9 @@ namespace TestEventProcessor
 
             var validator = new TelemetryValidator(melLogger);
             await validator.StartAsync(configuration);
-            
+
             var cts = new CancellationTokenSource();
-            
+
             Console.CancelKeyPress += (sender, cancelArgs) =>
             {
                 if (cancelArgs.SpecialKey == ConsoleSpecialKey.ControlC)
@@ -77,12 +76,12 @@ namespace TestEventProcessor
                     validator.StopAsync().Wait();
                 }
             };
-            
+
             Log.Information("TestEventProcessor stopped");
         }
 
         /// <summary>
-        /// Print the command line options 
+        /// Print the command line options
         /// </summary>
         /// <param name="optionSet">configured Options</param>
         private static void ShowHelp(OptionSet optionSet)

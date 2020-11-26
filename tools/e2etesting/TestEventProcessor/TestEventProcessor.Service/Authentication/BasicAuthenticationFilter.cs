@@ -1,14 +1,19 @@
-using System;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace TestEventProcessor.Service.Authentication
 {
+    using System;
+    using System.Net;
+    using System.Net.Http.Headers;
+    using System.Text;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Filters;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+
     /// <summary>
     /// AuthorizationFilter that checks the appSettings.json to read the credentials to validate against the basic header
     /// the request contains (if present).

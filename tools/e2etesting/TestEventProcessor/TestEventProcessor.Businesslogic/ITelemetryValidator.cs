@@ -1,8 +1,13 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace TestEventProcessor.BusinessLogic
 {
+    using System;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Interface to validate incoming message on an IoT Hub.
     /// </summary>

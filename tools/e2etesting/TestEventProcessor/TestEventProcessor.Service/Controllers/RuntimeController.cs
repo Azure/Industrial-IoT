@@ -1,17 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using TestEventProcessor.BusinessLogic;
-using TestEventProcessor.Service.Authentication;
-using TestEventProcessor.Service.Enums;
-using TestEventProcessor.Service.Models;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace TestEventProcessor.Service.Controllers
 {
+    using System;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
+    using BusinessLogic;
+    using Authentication;
+    using Enums;
+    using Models;
+
     /// <summary>
     /// Controller that provides access to the runtime of the validator to start and stop monitoring as well as requesting a status.
     /// </summary>
