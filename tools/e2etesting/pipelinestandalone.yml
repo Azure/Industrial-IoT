@@ -31,7 +31,7 @@ stages:
 
   - job: deploytestresources
     condition: eq(dependencies.deploystandalone.result, 'Succeeded')
-    dependsOn: deployplatform
+    dependsOn: deploystandalone
     displayName: 'Deploy Test Resources'
     pool:
       name: '$(AgentPool)'
