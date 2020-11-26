@@ -39,4 +39,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Standalone\" />
+  </ItemGroup>
+
 </Project>
