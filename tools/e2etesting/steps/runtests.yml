@@ -50,7 +50,7 @@ steps:
 
 - task: AzureKeyVault@1
   displayName: 'Retrieve KeyVault secrets for API tests'
-  condition: eq( '${{ parameters.RunApiTests }}'', true)
+  condition: eq( '${{ parameters.RunApiTests }}', true)
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
