@@ -52,6 +52,8 @@ stages:
     displayName: 'Run End 2 End Tests'
     steps:
     - template: steps/runtests.yml
+      parameters:
+        RunApiTests: true
 
 - stage: cleanup
   displayName: Cleanup resources
