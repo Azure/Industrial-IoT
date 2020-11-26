@@ -21,7 +21,7 @@ if (!$Region) {
 }
 
 if (!$ServicePrincipalId) {
-    Write-Error "ServicePrincipalId not set."
+    Write-Warning "ServicePrincipalId not set, cannot update permissions."
 }
 
 ## Login if required
@@ -87,13 +87,14 @@ if (!$keyVault) {
     $keyVault = New-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -Location $resourceGroup.Location
 }
 
-Write-Host "Setting Key Vault Permissions for Service Principal $($ServicePrincipalId)..."
-
-Set-AzKeyVaultAccessPolicy -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName -ServicePrincipalName $ServicePrincipalId -PermissionsToSecrets get,list,set | Out-Null
+if ($ServicePrincipalId) {
+    Write-Host "Setting Key Vault Permissions for Service Principal $($ServicePrincipalId)..."
+    Set-AzKeyVaultAccessPolicy -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName -ServicePrincipalName $ServicePrincipalId -PermissionsToSecrets get,list,set | Out-Null
+}
 
 $connectionString = Get-AzIotHubConnectionString $ResourceGroupName -Name $iothub.Name -KeyName "iothubowner"
 
 Write-Host "Adding/Updating KeyVault-Secret 'pcs-iothub-connstring' with value '***'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'pcs-iothub-connstring' -SecretValue (ConvertTo-SecureString $connectionString.PrimaryKey -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'pcs-iothub-connstring' -SecretValue (ConvertTo-SecureString $connectionString.PrimaryConnectionString -AsPlainText -Force) | Out-Null
 
 Write-Host "Deployment finished."
