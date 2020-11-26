@@ -1,0 +1,75 @@
+- job: e2etests
+  displayName: 'Run End 2 End Tests'
+  dependsOn: deploytestresources
+  condition: and(or(eq(dependencies.deploytestresources.result, 'Succeeded'), eq(dependencies.deploytestresources.result, 'Skipped')), or(eq(dependencies.deployplatform.result, 'Succeeded'), eq(dependencies.deployplatform.result, 'Skipped')))
+  pool:
+    name: '$(AgentPool)'
+  steps:
+  - task: AzureCLI@2
+    displayName: 'Set Service Principal Environment Variables'
+    name: promoteserviceprincipal
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptLocation: 'InlineScript'
+      scriptType: 'ps'
+      addSpnToEnvironment: true
+      inlineScript: |
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
+        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
+        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
+
+  - task: AzurePowerShell@5
+    displayName: 'Set KeyVaultName-Variable'
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+      scriptArguments: >
+        -ResourceGroupName '$(ResourceGroupName)'
+
+  - task: AzurePowerShell@5
+    displayName: "Add permissions to KeyVault"
+    name: keyvaultpermissions
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      azurePowerShellVersion: 'latestVersion'
+      scriptType: filePath
+      scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+      scriptArguments: >
+        -KeyVaultName "$(KeyVaultName)"
+        -ResourceGroupName "$(ResourceGroupName)"
+        -ServicePrincipalName "$(ARM_CLIENT_ID)"
+
+  - task: AzureKeyVault@1
+    displayName: 'Retrieve KeyVault secrets from existing deployment'
+    inputs:
+      azureSubscription: '$(AzureSubscription)'
+      KeyVaultName: '$(KeyVaultName)'
+      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET,PLC-SIMULATION-URLS,PCS-SIMULATION-USER,PCS-SIMULATION-PASSWORD,IOT-EDGE-DEVICE-ID,IOT-EDGE-DEVICE-DNS-NAME,PCS-IOTHUB-CONNSTRING,TestEventProcessorBaseUrl,CheckpointStorageAccountConnectionString,TestEventProcessorUsername,TestEventProcessorPassword,IoTHubEventHubConnectionString'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Executing tests'
+    inputs:
+      command: test
+      projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
+      arguments: '--configuration Release'
+    env:
+      PCS_SERVICE_URL: $(pcs-service-url)
+      PCS_AUTH_TENANT: $(pcs-auth-tenant)
+      PCS_AUTH_CLIENT_APPID: $(pcs-auth-client-appid)
+      PCS_AUTH_CLIENT_SECRET: $(pcs-auth-client-secret)
+      ApplicationName: $(ApplicationName)
+      PLC_SIMULATION_URLS: $(plc-simulation-urls)
+      IOT_EDGE_DEVICE_ID: $(iot-edge-device-id)
+      IOT_EDGE_DEVICE_DNS_NAME: $(iot-edge-device-dns-name)
+      PCS_SIMULATION_USER: $(pcs-simulation-user)
+      PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
+      PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
+      IOTHUB_EVENTHUB_CONNECTIONSTRING: $(IoTHubEventHubConnectionString)
+      STORAGE_CONNECTIONSTRING: $(CheckpointStorageAccountConnectionString)
+      TESTEVENTPROCESSOR_BASEURL: $(TestEventProcessorBaseUrl)
+      TESTEVENTPROCESSOR_USERNAME: $(TestEventProcessorUsername)
+      TESTEVENTPROCESSOR_PASSWORD: $(TestEventProcessorPassword)
+      PCS_IMAGES_TAG: $(PlatformVersion)

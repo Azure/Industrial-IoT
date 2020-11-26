@@ -4,13 +4,7 @@ trigger: none
 pr: none
 
 variables:
-  BasePath: $(System.DefaultWorkingDirectory)\tools\e2etesting
-  ClientCredentialsKeyVaultName: automatedtesting
-  AzureSubscription: IOT-OPC-WALLS-SP # Use Services-Connection with Service-Principal-Authentication as subscription
-  AgentPool: Azure-IoT-Manufacturing
-  IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
-  TestPath: $(System.DefaultWorkingDirectory)\e2e-tests\IIoTPlatform-E2E-Tests
-  Runtime: 'win-x64'
+- template: steps/variables.yml
 
 jobs:
 - job: build
@@ -19,41 +13,8 @@ jobs:
   pool:
     name: '$(AgentPool)'
   steps:
-  - task: UseDotNet@2
-    displayName: 'Install .NET Core SDK for building'
-    inputs:
-      packageType: sdk
-      version: 3.1.x
-      includePreviewVersions: false
-      installationPath: $(Agent.ToolsDirectory)/dotnet
-
-  - task: CmdLine@2
-    displayName: 'Run dotnet publish for IAI'
-    timeoutInMinutes: 90
-    inputs:
-      script: 'dotnet publish "$(Build.SourcesDirectory)/deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj" --runtime $(Runtime) --configuration Release -p:PublishSingleFile=true --self-contained --output "$(Build.ArtifactStagingDirectory)/IAI"'
-      workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
-
-  - task: CmdLine@2
-    displayName: 'Run dotnet publish for TestEventProcessor'
-    timeoutInMinutes: 90
-    inputs:
-      script: 'dotnet publish "$(Build.SourcesDirectory)/tools/e2etesting/TestEventProcessor/TestEventProcessor.Service/TestEventProcessor.Service.csproj" --configuration Release -o "$(Build.ArtifactStagingDirectory)/TestEventProcessor"'
-      workingDirectory: '$(Agent.ToolsDirectory)/dotnet'
-
-  - task: CopyFiles@2
-    displayName: 'Copy appSettings.json-template to output'
-    inputs:
-      contents: "$(Build.SourcesDirectory)/tools/e2etesting/appSettings.json"
-      targetFolder: "$(Build.ArtifactStagingDirectory)/IAI"
-      flattenFolders: true
-
-  - task: PublishPipelineArtifact@1
-    displayName: 'Publish Artifacts'
-    inputs:
-      path: $(Build.ArtifactStagingDirectory)/
-      artifact: iiot_deployment
-
+  - template: steps/build.yml
+    
 - job: deployplatform
   condition: eq(dependencies.build.result, 'Succeeded')
   dependsOn: build
@@ -61,70 +22,7 @@ jobs:
   pool:
     name: '$(AgentPool)'
   steps:
-  - task: AzureCLI@2
-    displayName: 'Set Service Principal Environment Variables'
-    name: promoteserviceprincipal
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptLocation: 'InlineScript'
-      scriptType: 'ps'
-      addSpnToEnvironment: true
-      inlineScript: |
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
-        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
-
-  - task: DownloadPipelineArtifact@2
-    inputs:
-      artifact: 'iiot_deployment'
-      path: $(BasePath)
-
-  - task: AzurePowerShell@5
-    displayName: "Replace parameters in appSettings.json (for IAI)"
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\ReplaceVariablesInAppSettings.ps1'
-      scriptArguments: >
-        -ClientId "$(ARM_CLIENT_ID)"
-        -ClientSecret "$(ARM_CLIENT_SECRET)"
-        -ApplicationName "$(ApplicationName)"
-        -AppSettingsFilename "$(BasePath)\IAI\appsettings.json"
-        -ResourceGroupName "$(ResourceGroupName)"
-        -Region "$(Region)"
-        -ImageTag "$(PlatformVersion)"
-
-  - task: CmdLine@2
-    displayName: 'Run deployment with IAI'
-    timeoutInMinutes: 90
-    inputs:
-      script: '$(IAILocalFilename)'
-      workingDirectory: '$(BasePath)\IAI'
-
-  - task: AzurePowerShell@5
-    displayName: 'Set KeyVaultName-Variable'
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
-      scriptArguments: >
-        -ResourceGroupName "$(ResourceGroupName)"
-
-  - task: AzurePowerShell@5
-    displayName: "Add permissions to KeyVault"
-    name: keyvaultpermissions
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
-      scriptArguments: >
-        -KeyVaultName "$(KeyVaultName)"
-        -ResourceGroupName "$(ResourceGroupName)"
-        -ServicePrincipalName "$(ARM_CLIENT_ID)"
+  - template: steps/deployplatform.yml
 
 - job: deploytestresources
   condition: eq(dependencies.deployplatform.result, 'Succeeded')
@@ -133,148 +31,23 @@ jobs:
   pool:
     name: '$(AgentPool)'
   steps:
-  - task: DownloadPipelineArtifact@2
-    inputs:
-      artifact: 'iiot_deployment'
-      path: $(BasePath)
+  - template: steps/deploytestresources.yml
 
-  - task: AzurePowerShell@5
-    displayName: "Deploy containers with simulated PLCs"
-    timeoutInMinutes: 90
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\DeploySimulation.ps1'
-      scriptArguments: >
-        -ResourceGroupName "$(ResourceGroupName)"
-
-  - task: AzurePowerShell@5
-    displayName: "Deploy VM with IoT Edge Runtime"
-    timeoutInMinutes: 90
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\DeployEdge.ps1'
-      scriptArguments: >
-        -ResourceGroupName "$(ResourceGroupName)"
-
-  - task: AzurePowerShell@5
-    displayName: "Deploy TestEventProcessor"
-    timeoutInMinutes: 90
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
-      scriptArguments: >
-        -ResourceGroupName "$(ResourceGroupName)"
-        -PackageDirectory "$(BasePath)\TestEventProcessor"
-
-- job: e2etests
+- job: runtests
   displayName: 'Run End 2 End Tests'
   dependsOn: deploytestresources
   condition: and(or(eq(dependencies.deploytestresources.result, 'Succeeded'), eq(dependencies.deploytestresources.result, 'Skipped')), or(eq(dependencies.deployplatform.result, 'Succeeded'), eq(dependencies.deployplatform.result, 'Skipped')))
   pool:
     name: '$(AgentPool)'
   steps:
-  - task: AzureCLI@2
-    displayName: 'Set Service Principal Environment Variables'
-    name: promoteserviceprincipal
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptLocation: 'InlineScript'
-      scriptType: 'ps'
-      addSpnToEnvironment: true
-      inlineScript: |
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
-        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
-
-  - task: AzurePowerShell@5
-    displayName: 'Set KeyVaultName-Variable'
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
-      scriptArguments: >
-        -ResourceGroupName '$(ResourceGroupName)'
-
-  - task: AzurePowerShell@5
-    displayName: "Add permissions to KeyVault"
-    name: keyvaultpermissions
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
-      scriptArguments: >
-        -KeyVaultName "$(KeyVaultName)"
-        -ResourceGroupName "$(ResourceGroupName)"
-        -ServicePrincipalName "$(ARM_CLIENT_ID)"
-
-  - task: AzureKeyVault@1
-    displayName: 'Retrieve KeyVault secrets from existing deployment'
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      KeyVaultName: '$(KeyVaultName)'
-      SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET,PLC-SIMULATION-URLS,PCS-SIMULATION-USER,PCS-SIMULATION-PASSWORD,IOT-EDGE-DEVICE-ID,IOT-EDGE-DEVICE-DNS-NAME,PCS-IOTHUB-CONNSTRING,TestEventProcessorBaseUrl,CheckpointStorageAccountConnectionString,TestEventProcessorUsername,TestEventProcessorPassword,IoTHubEventHubConnectionString'
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Executing tests'
-    inputs:
-      command: test
-      projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-      arguments: '--configuration Release'
-    env:
-      PCS_SERVICE_URL: $(pcs-service-url)
-      PCS_AUTH_TENANT: $(pcs-auth-tenant)
-      PCS_AUTH_CLIENT_APPID: $(pcs-auth-client-appid)
-      PCS_AUTH_CLIENT_SECRET: $(pcs-auth-client-secret)
-      ApplicationName: $(ApplicationName)
-      PLC_SIMULATION_URLS: $(plc-simulation-urls)
-      IOT_EDGE_DEVICE_ID: $(iot-edge-device-id)
-      IOT_EDGE_DEVICE_DNS_NAME: $(iot-edge-device-dns-name)
-      PCS_SIMULATION_USER: $(pcs-simulation-user)
-      PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
-      PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
-      IOTHUB_EVENTHUB_CONNECTIONSTRING: $(IoTHubEventHubConnectionString)
-      STORAGE_CONNECTIONSTRING: $(CheckpointStorageAccountConnectionString)
-      TESTEVENTPROCESSOR_BASEURL: $(TestEventProcessorBaseUrl)
-      TESTEVENTPROCESSOR_USERNAME: $(TestEventProcessorUsername)
-      TESTEVENTPROCESSOR_PASSWORD: $(TestEventProcessorPassword)
-      PCS_IMAGES_TAG: $(PlatformVersion)
+  - template: steps/runtests.yml
 
 - job: cleanup
   displayName: Cleanup
-  dependsOn: e2etests
+  dependsOn: runtests
   condition: and(not(canceled()), eq(variables['Cleanup'], true))
   pool:
     name: '$(AgentPool)'
   steps:
-  - task: AzurePowerShell@5
-    displayName: "Delete Resource Group"
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: 'InlineScript'
-      inline: |
-        Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
-        Get-AzResourceGroup -Name "$(ResourceGroupName)" | Remove-AzResourceGroup -Force
-
-  - task: AzurePowerShell@5
-    displayName: "Delete AD App Registrations"
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: 'InlineScript'
-      inline: |
-        Write-Host "Deleting AD App Registration: '$(ApplicationName)-aks' ..."
-        Remove-AzADApplication -DisplayName "$(ApplicationName)-aks" -Force
-        Write-Host "Deleting AD App Registration: '$(ApplicationName)-client' ..."
-        Remove-AzADApplication -DisplayName "$(ApplicationName)-client" -Force
-        Write-Host "Deleting AD App Registration: '$(ApplicationName)-service' ..."
-        Remove-AzADApplication -DisplayName "$(ApplicationName)-service" -Force
+  - template: steps/cleanup.yml
+  
