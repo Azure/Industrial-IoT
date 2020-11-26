@@ -5,7 +5,8 @@ Param(
     $PackageDirectory,
     $StorageAccountName,
     $IoTHubName,
-    $TenantId
+    $TenantId,
+    $StorageContainerName
 )
 
 ## Pre-Checks ##
@@ -67,6 +68,10 @@ if (!$StorageAccountName) {
     $StorageAccountName = "e2etestingstorage" + $suffix
 }
 
+if (!$StorageContainerName) {
+    $StorageContainerName = "checkpoint";
+}
+
 ## Check existence of Resources ##
 
 if (!$IoTHubName) {
@@ -121,6 +126,11 @@ if (!$storageAccount) {
 $key = Get-AzStorageAccountKey -ResourceGroupName $resourceGroup.ResourceGroupName -Name $storageAccount.StorageAccountName
 
 $storageAccountConnectionString = "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix=core.windows.net" -f $storageAccount.StorageAccountName, $key[0].Value
+
+## Creating container for Checkpoint storage ##
+
+$storageContext = $storageAccount.Context
+New-AzStorageContainer -Name $StorageContainerName -Context $storageContext -Permission Container
 
 ## Ensure AppServicePlan ##
 
