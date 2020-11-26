@@ -11,8 +11,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using RestSharp;
     using TestExtensions;
     using Xunit.Abstractions;
-    using System.Threading;
+    using System.Threading.Tasks;
     using System.IO;
+    using System.Threading;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -41,9 +42,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         public async Task SwitchToStandaloneMode() {
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
             TestHelper.SavePublishedNodesFile(simulatedOpcServer, simulatedOpcServer.Keys.First());
+            _output.WriteLine("Saved published_nodes.json file");
             var dir = Directory.GetCurrentDirectory() + "/" + TestConstants.PublisherPublishedNodesFile;
             TestHelper.SwitchToStandaloneMode(_context);
             TestHelper.LoadPublishedNodesFile(dir, "/mount/published_nodes.json", _context);
+            _output.WriteLine("Switched to standalone mode and loaded published_nodes.json file");
         }
 
         [Fact, PriorityOrder(3)]
@@ -52,6 +55,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.NotNull(deploy);
 
             var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
+            _output.WriteLine("Created new layered deployment and publisher_standalone");
+            Thread.Sleep(5000);
             Assert.True(result);
         }
     }
