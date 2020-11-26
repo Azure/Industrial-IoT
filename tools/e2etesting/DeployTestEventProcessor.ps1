@@ -5,7 +5,7 @@ Param(
     $PackageDirectory,
     $StorageAccountName,
     $IoTHubName,
-    $KeyVaultName
+    $TenantId
 )
 
 ## Pre-Checks ##
@@ -25,16 +25,11 @@ if (!(Test-Path $PackageDirectory -ErrorAction SilentlyContinue)) {
     return
 }
 
-if (!$KeyVaultName) {
-    Write-Error "KeyVaultName is empty."
-    return
-}
-
 $context = Get-AzContext
 
 if (!$context) {
     Write-Host "Logging in..."
-    Login-AzAccount -Tenant "6e660ce4-d51a-4585-80c6-58035e212354"
+    Login-AzAccount -Tenant $TenantId
     $context = Get-AzContext
 }
 
@@ -72,7 +67,7 @@ if (!$StorageAccountName) {
     $StorageAccountName = "e2etestingstorage" + $suffix
 }
 
-## Checkexistence of Resources ##
+## Check existence of Resources ##
 
 if (!$IoTHubName) {
     $iothub = Get-AzIotHub -ResourceGroupName $ResourceGroupName
@@ -91,12 +86,13 @@ if (!$iotHub) {
     return
 }
 
-$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $KeyVaultName -ErrorAction SilentlyContinue
+$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
 
-if (!$keyVault) {
-    Write-Error "Could not retrieve KeyVault '$($keyVault)' in Resource Group '$($ResourceGroupName)'. Please make sure that it exists."
-    return
-}
+if ($keyVault.Count -ne 1) {
+    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
+} 
+
+Write-Host "Key Vault Name: $($keyVault.VaultName)"
 
 ## Log parameters ##
 
@@ -110,7 +106,7 @@ Write-Host "AppService Plan Name: $($AppServicePlanName)"
 Write-Host "WebApp Name: $($WebAppName)"
 Write-Host "PackageDirectory: $($PackageDirectory)"
 Write-Host
-Write-Host "KeyVault: $($KeyVaultName)"
+Write-Host "KeyVault: $($keyVault.VaultName)"
 Write-Host "IoTHub: $($IoTHubName)"
 
 ## Ensure Storage Account (for Checkpoint Storage) ##
@@ -185,19 +181,19 @@ $ehConnectionString =  "Endpoint={0};SharedAccessKeyName={1};SharedAccessKey={2}
 
 ## Set Secrets to KeyVault ##
 Write-Host "Setting KeyVault Secret 'TestEventProcessorBaseUrl' to '$($baseUrl)'."
-Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "TestEventProcessorBaseUrl" -SecretValue (ConvertTo-SecureString -String $baseUrl -AsPlainText -Force)
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "TestEventProcessorBaseUrl" -SecretValue (ConvertTo-SecureString -String $baseUrl -AsPlainText -Force)
 
 Write-Host "Setting KeyVault Secret 'CheckpointStorageAccountConnectionString' to '***'."
-Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "CheckpointStorageAccountConnectionString" -SecretValue (ConvertTo-SecureString -String $storageAccountConnectionString -AsPlainText -Force)
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "CheckpointStorageAccountConnectionString" -SecretValue (ConvertTo-SecureString -String $storageAccountConnectionString -AsPlainText -Force)
 
 Write-Host "SettingKeyVault Secret 'TestEventProcessorUsername' to '$($Username)'."
-Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "TestEventProcessorUsername" -SecretValue (ConvertTo-SecureString -String $Username -AsPlainText -Force)
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "TestEventProcessorUsername" -SecretValue (ConvertTo-SecureString -String $Username -AsPlainText -Force)
 
 Write-Host "Setting KeyVault Secret 'TestEventProcessorPassword' to '***'."
-Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "TestEventProcessorPassword" -SecretValue (ConvertTo-SecureString -String $Password -AsPlainText -Force)
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "TestEventProcessorPassword" -SecretValue (ConvertTo-SecureString -String $Password -AsPlainText -Force)
 
 Write-Host "Setting KeyVault Secret 'IoTHubEventHubConnectionString' to '***'."
-Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "IoTHubEventHubConnectionString" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force)
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "IoTHubEventHubConnectionString" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force)
 
 
 
