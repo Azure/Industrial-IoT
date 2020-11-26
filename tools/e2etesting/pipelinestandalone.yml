@@ -30,7 +30,7 @@ stages:
     - template: steps/deploystandalone.yml
 
   - job: deploytestresources
-    condition: and(not(canceled)), eq(dependencies.deploystandalone.result, 'Succeeded'))
+    condition: and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded'))
     dependsOn: deploystandalone
     displayName: 'Deploy Test Resources'
     pool:
