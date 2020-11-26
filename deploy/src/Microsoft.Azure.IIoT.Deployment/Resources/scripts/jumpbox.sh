@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Change date: 26.11.2020 # This is used to trigger VS resx resource change.
+
 ################################################################################
 #
 # NOTE: Requires to be run as sudo
@@ -232,15 +234,12 @@ helm install --atomic nginx-ingress stable/nginx-ingress --namespace nginx-ingre
     --set controller.metrics.enabled=true \
     --set defaultBackend.nodeSelector."beta\.kubernetes\.io\/os"=linux
 
-# Install the CustomResourceDefinition resources separately
-kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.13/deploy/manifests/00-crds.yaml
-
-# Create cert-manager namespace and label it to disable resource validation
+# Create cert-manager namespace
 kubectl create namespace cert-manager
-kubectl label namespace cert-manager cert-manager.io/disable-validation=true
 
 # Install jetstack/cert-manager Helm chart
-helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v0.13.0 --timeout 30m0s
+helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v1.1.0 --timeout 30m0s \
+    --set installCRDs=true
 
 # Create Let's Encrypt ClusterIssuer
 n=0

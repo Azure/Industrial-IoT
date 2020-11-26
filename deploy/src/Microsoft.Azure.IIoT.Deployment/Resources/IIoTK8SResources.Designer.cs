@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to apiVersion: cert-manager.io/v1alpha2
+        ///   Looks up a localized string similar to apiVersion: cert-manager.io/v1
         ///kind: ClusterIssuer
         ///metadata:
         ///  name: letsencrypt-prod
