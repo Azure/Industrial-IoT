@@ -53,7 +53,7 @@ namespace TestEventProcessor.BusinessLogic
         /// <summary>
         /// Instance to write logs 
         /// </summary>
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// The current configuration the validator is using.
