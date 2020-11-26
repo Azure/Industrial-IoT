@@ -1,4 +1,5 @@
 ﻿namespace TestEventProcessor.Service.Controllers {
+    using Microsoft.AspNetCore.Diagnostics;
     using Microsoft.AspNetCore.Mvc;
 
     [ApiController]
@@ -6,7 +7,11 @@
 
         [Route("/error")]
         public IActionResult Error() {
-            return Problem();
+            var context = HttpContext.Features.Get<IExceptionHandlerFeature>();
+
+            return Problem(
+                detail: context.Error.StackTrace,
+                title: context.Error.Message);
         }
     }
 }

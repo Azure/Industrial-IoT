@@ -260,10 +260,14 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
         [Fact, PriorityOrder(10)]
         [Trait("IsApiTest", "true")]
-        public void Test_VerifyDataAvailableAtIoTHub() {
+        public async void Test_VerifyDataAvailableAtIoTHub() {
 
-            //todo use test event processor to verify data send to IoT Hub
-            Assert.True(true);
+            //use test event processor to verify data send to IoT Hub
+            await TestHelper.StartMonitoringIncomingMessages(_context, 1, 1000, 10000);
+            // wait some time to generate events to process
+            await Task.Delay(90 * 1000);
+            await TestHelper.StopMonitoringIncomingMessages(_context);
+
         }
 
         [Fact, PriorityOrder(11)]
