@@ -32,6 +32,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(1)]
+        [Trait("IsApiTest", "true")]
         public async Task Test_CollectOAuthToken() {
             var token = await TestHelper.GetTokenAsync(_context);
             Assert.NotEmpty(token);
@@ -46,6 +47,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(3)]
+        [Trait("IsApiTest", "true")]
         public async Task Test_RegisterOPCServer_Expect_Success() {
 
             var cts = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
@@ -80,6 +82,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(4)]
+        [Trait("IsApiTest", "true")]
         public async Task Test_GetApplicationsFromRegistry_ExpectOneRegisteredApplication() {
 
             var ct = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
@@ -91,6 +94,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
 
         [Fact, PriorityOrder(5)]
+        [Trait("IsApiTest", "true")]
         public async Task Test_GetEndpoints_Expect_OneWithMultipleAuthentication() {
 
             var accessToken = await TestHelper.GetTokenAsync(_context);
@@ -130,6 +134,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(6)]
+        [Trait("IsApiTest", "true")]
         public async Task Test_ActivateEndpoint_Expect_Success() {
 
             // used if running test cases separately (during development)
@@ -158,6 +163,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(7)]
+        [Trait("IsApiTest", "true")]
         public async Task Test_CheckIfEndpointWasActivated_Expect_ActivatedAndConnected() {
 
             var ct = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
@@ -168,6 +174,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(8)]
+        [Trait("IsApiTest", "true")]
         public async Task Test_PublishNodeWithDefaults_Expect_DataAvailableAtIoTHub() {
 
             // used if running test cases separately (during development)
@@ -206,6 +213,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(9)]
+        [Trait("IsApiTest", "true")]
         public async Task Test_GetListOfJobs_Expect_OneJobWithPublishingOneNode() {
 
             // used if running test cases separately (during development)
@@ -251,6 +259,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(10)]
+        [Trait("IsApiTest", "true")]
         public void Test_VerifyDataAvailableAtIoTHub() {
 
             //todo use test event processor to verify data send to IoT Hub
@@ -258,6 +267,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(11)]
+        [Trait("IsApiTest", "true")]
         public async Task RemoveJob_Expect_Success() {
 
             // used if running test cases separately (during development)

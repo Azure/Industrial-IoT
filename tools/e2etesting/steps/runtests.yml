@@ -57,7 +57,30 @@ steps:
     SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
 - task: DotNetCoreCLI@2
-  displayName: 'Executing tests'
+  displayName: 'Executing tests (without API Tests)'
+  condition: eq( '${{ parameters.RunApiTests }}', false)
+  inputs:
+    command: test
+    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
+    arguments: '--configuration Release --filter IsApiTest!=true'
+  env:
+    ApplicationName: $(ApplicationName)
+    PLC_SIMULATION_URLS: $(plc-simulation-urls)
+    IOT_EDGE_DEVICE_ID: $(iot-edge-device-id)
+    IOT_EDGE_DEVICE_DNS_NAME: $(iot-edge-device-dns-name)
+    PCS_SIMULATION_USER: $(pcs-simulation-user)
+    PCS_SIMULATION_PASSWORD: $(pcs-simulation-password)
+    PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
+    IOTHUB_EVENTHUB_CONNECTIONSTRING: $(IoTHubEventHubConnectionString)
+    STORAGE_CONNECTIONSTRING: $(CheckpointStorageAccountConnectionString)
+    TESTEVENTPROCESSOR_BASEURL: $(TestEventProcessorBaseUrl)
+    TESTEVENTPROCESSOR_USERNAME: $(TestEventProcessorUsername)
+    TESTEVENTPROCESSOR_PASSWORD: $(TestEventProcessorPassword)
+    PCS_IMAGES_TAG: $(PlatformVersion)
+
+- task: DotNetCoreCLI@2
+  displayName: 'Executing tests (with API Tests)'
+  condition: eq( '${{ parameters.RunApiTests }}', true)
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
