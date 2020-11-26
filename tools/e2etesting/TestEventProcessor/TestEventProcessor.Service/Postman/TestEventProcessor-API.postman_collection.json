@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "b05b5264-0374-488d-a405-ec58e1e3fc63",
+		"_postman_id": "4bc21fd7-504c-457b-8b60-552cab3820ed",
 		"name": "TestEventProcessor-API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -70,51 +70,6 @@
 				"body": {
 					"mode": "raw",
 					"raw": "{\r\n    \"CommandType\": 1\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{BaseUrl}}/Runtime/",
-					"host": [
-						"{{BaseUrl}}"
-					],
-					"path": [
-						"Runtime",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get Status",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "basic",
-					"basic": [
-						{
-							"key": "password",
-							"value": "{{Password}}",
-							"type": "string"
-						},
-						{
-							"key": "username",
-							"value": "{{Username}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
