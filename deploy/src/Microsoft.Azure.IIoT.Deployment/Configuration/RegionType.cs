@@ -14,6 +14,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         EuropeNorth,
         EuropeWest,
         AsiaSouthEast,
-        AustraliaEast
+        AustraliaEast,
+        EastUS,
+        EastUS2,
+        WestUS,
+        WestUS2,
+        CentralUS,
+        NorthEurope,
+        WestEurope,
+        SothEastAsia,
+        EastAustralia
     }
 }
