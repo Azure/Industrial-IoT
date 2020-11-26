@@ -4,7 +4,9 @@ Param(
     [Guid]
     $TenantId,
     [String]
-    $Location = "EastUS"
+    $Location = "EastUS",
+    [String]
+    $ServicePrincipalId
 )
 
 # Stop execution when an error occurs.
@@ -16,6 +18,10 @@ if (!$ResourceGroupName) {
 
 if (!$Location) {
     Write-Error "Location not set."
+}
+
+if (!$ServicePrincipalId) {
+    Write-Error "ServicePrincipalId not set."
 }
 
 ## Login if required
@@ -80,5 +86,9 @@ if (!$keyVault) {
     Write-Host "Creating Key Vault $($keyVaultName)"
     $keyVault = New-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -Location $resourceGroup.Location
 }
+
+Write-Host "Setting Key Vault Permissions for Service Principal $($ServicePrincipalId)..."
+
+Set-AzKeyVaultAccessPolicy -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName -ServicePrincipalName $ServicePrincipalId -PermissionsToSecrets get,list,set | Out-Null
 
 Write-Host "Deployment finished."

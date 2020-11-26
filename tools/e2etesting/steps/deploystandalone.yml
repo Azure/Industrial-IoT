@@ -1,4 +1,18 @@
 steps:
+- task: AzureCLI@2
+  displayName: 'Set Service Principal Environment Variables'
+  name: promoteserviceprincipal
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
+      Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
+
 - task: AzurePowerShell@5
   displayName: "Deploy standalone resources"
   inputs:
@@ -8,3 +22,5 @@ steps:
     scriptPath: '$(BasePath)\DeployStandalone.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
+      -Location "$(Location)"
+      -ServicePrincipalId "$(ARM_CLIENT_ID)"

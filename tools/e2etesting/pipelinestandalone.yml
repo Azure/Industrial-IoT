@@ -22,7 +22,7 @@ stages:
 - stage: deploy
   displayName: "Deploy Components"
   dependsOn: build
-  condition: eq(dependencies.build.result, 'Succeeded')
+  condition: and(not(canceled()), eq(dependencies.build.result, 'Succeeded'))
   jobs:  
   - job: deploystandalone
     displayName: 'Deploy Standalone Resources'
@@ -30,7 +30,7 @@ stages:
     - template: steps/deploystandalone.yml
 
   - job: deploytestresources
-    condition: eq(dependencies.deploystandalone.result, 'Succeeded')
+    condition: and(not(canceled)), eq(dependencies.deploystandalone.result, 'Succeeded'))
     dependsOn: deploystandalone
     displayName: 'Deploy Test Resources'
     pool:
@@ -41,7 +41,7 @@ stages:
 - stage: runtests
   displayName: "Execute tests"
   dependsOn: deploy
-  condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
+  condition: and(not(canceled()), or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped')))
   jobs:
   - job: runtests
     displayName: 'Run End 2 End Tests'
