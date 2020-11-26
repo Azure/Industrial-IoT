@@ -11,7 +11,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     scriptType: filePath
-    scriptPath: '$(BasePath)\DeploySimulation.ps1'
+    scriptPath: '$(BasePath)\DeployPLCs.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
 
