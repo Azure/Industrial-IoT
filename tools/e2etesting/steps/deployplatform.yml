@@ -1,71 +1,65 @@
-- job: deployplatform
-  condition: eq(dependencies.build.result, 'Succeeded')
-  dependsOn: build
-  displayName: 'Deploy Platform'
-  pool:
-    name: '$(AgentPool)'
-  steps:
-  - task: AzureCLI@2
-    displayName: 'Set Service Principal Environment Variables'
-    name: promoteserviceprincipal
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptLocation: 'InlineScript'
-      scriptType: 'ps'
-      addSpnToEnvironment: true
-      inlineScript: |
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
-        Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
-        Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
+steps:
+- task: AzureCLI@2
+  displayName: 'Set Service Principal Environment Variables'
+  name: promoteserviceprincipal
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
+      Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
 
-  - task: DownloadPipelineArtifact@2
-    inputs:
-      artifact: 'iiot_deployment'
-      path: $(BasePath)
+- task: DownloadPipelineArtifact@2
+  inputs:
+    artifact: 'iiot_deployment'
+    path: $(BasePath)
 
-  - task: AzurePowerShell@5
-    displayName: "Replace parameters in appSettings.json (for IAI)"
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\ReplaceVariablesInAppSettings.ps1'
-      scriptArguments: >
-        -ClientId "$(ARM_CLIENT_ID)"
-        -ClientSecret "$(ARM_CLIENT_SECRET)"
-        -ApplicationName "$(ApplicationName)"
-        -AppSettingsFilename "$(BasePath)\IAI\appsettings.json"
-        -ResourceGroupName "$(ResourceGroupName)"
-        -Region "$(Region)"
-        -ImageTag "$(PlatformVersion)"
+- task: AzurePowerShell@5
+  displayName: "Replace parameters in appSettings.json (for IAI)"
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\ReplaceVariablesInAppSettings.ps1'
+    scriptArguments: >
+      -ClientId "$(ARM_CLIENT_ID)"
+      -ClientSecret "$(ARM_CLIENT_SECRET)"
+      -ApplicationName "$(ApplicationName)"
+      -AppSettingsFilename "$(BasePath)\IAI\appsettings.json"
+      -ResourceGroupName "$(ResourceGroupName)"
+      -Region "$(Region)"
+      -ImageTag "$(PlatformVersion)"
 
-  - task: CmdLine@2
-    displayName: 'Run deployment with IAI'
-    timeoutInMinutes: 90
-    inputs:
-      script: '$(IAILocalFilename)'
-      workingDirectory: '$(BasePath)\IAI'
+- task: CmdLine@2
+  displayName: 'Run deployment with IAI'
+  timeoutInMinutes: 90
+  inputs:
+    script: '$(IAILocalFilename)'
+    workingDirectory: '$(BasePath)\IAI'
 
-  - task: AzurePowerShell@5
-    displayName: 'Set KeyVaultName-Variable'
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
-      scriptArguments: >
-        -ResourceGroupName "$(ResourceGroupName)"
+- task: AzurePowerShell@5
+  displayName: 'Set KeyVaultName-Variable'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
 
-  - task: AzurePowerShell@5
-    displayName: "Add permissions to KeyVault"
-    name: keyvaultpermissions
-    inputs:
-      azureSubscription: '$(AzureSubscription)'
-      azurePowerShellVersion: 'latestVersion'
-      scriptType: filePath
-      scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
-      scriptArguments: >
-        -KeyVaultName "$(KeyVaultName)"
-        -ResourceGroupName "$(ResourceGroupName)"
-        -ServicePrincipalName "$(ARM_CLIENT_ID)"
+- task: AzurePowerShell@5
+  displayName: "Add permissions to KeyVault"
+  name: keyvaultpermissions
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+    scriptArguments: >
+      -KeyVaultName "$(KeyVaultName)"
+      -ResourceGroupName "$(ResourceGroupName)"
+      -ServicePrincipalName "$(ARM_CLIENT_ID)"
