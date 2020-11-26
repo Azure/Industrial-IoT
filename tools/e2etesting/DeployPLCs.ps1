@@ -47,7 +47,7 @@ if (!$testSuffix) {
     $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
 }
 
-Write-Host "Using suffix for testing resources: $($testSuffix)"
+
 
 ## Check if KeyVault exists
 $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
@@ -56,7 +56,7 @@ if ($keyVault.Count -ne 1) {
     Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
 } 
 
-Write-Host "Key Vault Name: $($keyVault.VaultName)"
+
 
 ## Deploy simulated PLCs
 $prefix = "e2etesting-simulation"
@@ -73,9 +73,17 @@ $plcTemplateParameters = @{
     "resourcesSuffix" = $testSuffix
 }
 
-Write-Host "Running ARM-Deployment with e2e.plc.simulation.json"
-
 $plcTemplate = [System.IO.Path]::Combine($TemplateDir, "e2e.plc.simulation.json")
+
+Write-Host "Resource Group: $($ResourceGroupName)"
+Write-Host "Number of PLCs: $($NumberOfSimulations)"
+Write-Host "Resources prefix: $($prefix)"
+Write-Host "Resources suffix: $($testSuffix)"
+Write-Host "Key Vault Name: $($keyVault.VaultName)"
+Write-Host "ARM Template: $($plcTemplate)"
+Write-Host
+Write-Host "Running deployment with $($plcTemplate)..."
+
 $plcDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $plcTemplate -TemplateParameterObject $plcTemplateParameters
 
 if ($plcDeployment.ProvisioningState -ne "Succeeded") {

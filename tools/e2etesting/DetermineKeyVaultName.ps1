@@ -12,28 +12,31 @@ if (!$resourceGroup) {
     Write-Host "##vso[task.complete result=Failed]Could not get Resource Group with name '$($ResourceGroupName)', exiting...'"
 }
 
-$application = $resourceGroup.Tags["application"]
-
-if (!$application) {
-    Write-Host "##vso[task.complete result=Failed]Application-Tag on Resource Group does not exist or is empty. Please make sure that the Resource Group contains a valid IIoT Deployment."
-}
-
 $keyVaults = Get-AzKeyVault -ResourceGroupName $resourceGroup.ResourceGroupName
 
 if (!$keyVaults) {
     Write-Host "##vso[task.complete result=Failed]Could not find any KeyVault on Resource Group '$($ResourceGroupName)'."
 }
 
-$applicationKeyVault = $null
+if ($keyVaults.Count -eq 1) {
+    $applicationKeyVault = $keyVaults.VaultName
+}
+else {
+    $application = $resourceGroup.Tags["application"]
 
-foreach ($keyVault in $keyVaults) {
-    $kvApplication = $keyVault.Tags["application"]
+    if (!$application) {
+        Write-Host "##vso[task.complete result=Failed]Application-Tag on Resource Group does not exist or is empty. Please make sure that the Resource Group contains a valid IIoT Deployment."
+    }
 
-    if ($kvApplication -ne $application) {
-        continue
-    } else {
-        $applicationKeyVault = $keyVault.VaultName
-        break
+    foreach ($keyVault in $keyVaults) {
+        $kvApplication = $keyVault.Tags["application"]
+    
+        if ($kvApplication -ne $application) {
+            continue
+        } else {
+            $applicationKeyVault = $keyVault.VaultName
+            break
+        }
     }
 }
 
