@@ -15,7 +15,7 @@ steps:
 
 - task: DownloadPipelineArtifact@2
   inputs:
-    artifact: 'iiot_deployment'
+    artifact: 'iai'
     path: $(BasePath)
 
 - task: AzurePowerShell@5

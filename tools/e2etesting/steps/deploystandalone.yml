@@ -1,0 +1,10 @@
+steps:
+- task: AzurePowerShell@5
+  displayName: "Deploy standalone resources"
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DeployStandalone.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"

@@ -14,11 +14,6 @@ stages:
   displayName: "Build Resources"
   condition: ne(variables['UseExisting'], true)
   jobs:
-  - job: buildiai
-    displayName: 'Build IAI'
-    steps:
-    - template: steps/buildiai.yml
-
   - job: buildtestresources
     displayName: 'Build Test Resources'
     steps:
@@ -29,13 +24,13 @@ stages:
   dependsOn: build
   condition: eq(dependencies.build.result, 'Succeeded')
   jobs:  
-  - job: deployplatform
-    displayName: 'Deploy Platform'
+  - job: deploystandalone
+    displayName: 'Deploy Standalone Resources'
     steps:
-    - template: steps/deployplatform.yml
+    - template: steps/deploystandalone.yml
 
   - job: deploytestresources
-    condition: eq(dependencies.deployplatform.result, 'Succeeded')
+    condition: eq(dependencies.deploystandalone.result, 'Succeeded')
     dependsOn: deployplatform
     displayName: 'Deploy Test Resources'
     pool:
