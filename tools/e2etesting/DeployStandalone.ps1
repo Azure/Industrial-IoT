@@ -4,7 +4,7 @@ Param(
     [Guid]
     $TenantId,
     [String]
-    $Location = "EastUS",
+    $Region = "EastUS",
     [String]
     $ServicePrincipalId
 )
@@ -16,8 +16,8 @@ if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
 }
 
-if (!$Location) {
-    Write-Error "Location not set."
+if (!$Region) {
+    Write-Error "Region not set."
 }
 
 if (!$ServicePrincipalId) {
@@ -39,8 +39,8 @@ if (!$context) {
 $resourceGroup = Get-AzResourceGroup -Name $resourceGroupName -ErrorAction SilentlyContinue
 
 if (!$resourceGroup) {
-    Write-Host "Creating Resource Group $($ResourceGroupName) in $($Location)..."
-    $resourceGroup = New-AzResourceGroup -Name $ResourceGroupName -Location $Location
+    Write-Host "Creating Resource Group $($ResourceGroupName) in $($Region)..."
+    $resourceGroup = New-AzResourceGroup -Name $ResourceGroupName -Location $Region
 }
 
 Write-Host "Resource Group: $($resourceGroup.ResourceGroupName)"
@@ -90,5 +90,10 @@ if (!$keyVault) {
 Write-Host "Setting Key Vault Permissions for Service Principal $($ServicePrincipalId)..."
 
 Set-AzKeyVaultAccessPolicy -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName -ServicePrincipalName $ServicePrincipalId -PermissionsToSecrets get,list,set | Out-Null
+
+$connectionString = Get-AzIotHubConnectionString $ResourceGroupName -Name $iothub.Name -KeyName "iothubowner"
+
+Write-Host "Adding/Updating KeyVault-Secret 'pcs-iothub-connstring' with value '***'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'pcs-iothub-connstring' -SecretValue (ConvertTo-SecureString $connectionString.PrimaryKey -AsPlainText -Force) | Out-Null
 
 Write-Host "Deployment finished."

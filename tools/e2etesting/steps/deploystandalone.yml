@@ -22,5 +22,5 @@ steps:
     scriptPath: '$(BasePath)\DeployStandalone.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
-      -Location "$(Location)"
+      -Region "$(Region)"
       -ServicePrincipalId "$(ARM_CLIENT_ID)"
