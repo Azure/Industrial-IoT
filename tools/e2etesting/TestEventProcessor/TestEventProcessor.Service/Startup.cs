@@ -54,6 +54,9 @@ namespace TestEventProcessor.Service
             {
                 app.UseDeveloperExceptionPage();
             }
+            else {
+                app.UseExceptionHandler("/error");
+            }
 
             AutofacContainer = app.ApplicationServices.GetAutofacRoot();
 
