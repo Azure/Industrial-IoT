@@ -19,6 +19,7 @@ namespace TestEventProcessor.BusinessLogic
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using AsyncAwaitBestPractices;
     using Azure.Messaging.EventHubs;
     using Azure.Messaging.EventHubs.Consumer;
     using Azure.Messaging.EventHubs.Processor;
@@ -33,6 +34,9 @@ namespace TestEventProcessor.BusinessLogic
         private CancellationTokenSource _cancellationTokenSource;
         private EventProcessorClient _client = null;
         private TimeSpan opcDiffToNow = TimeSpan.Zero;
+        private DateTime _startTime = DateTime.MinValue;
+        private uint _totalValueChangesCount = 0;
+
         private bool _missedMessage = false;
 
         /// <summary>
@@ -40,6 +44,9 @@ namespace TestEventProcessor.BusinessLogic
         /// </summary>
         private ConcurrentDictionary<DateTime, int> _valueChangesPerTimestamp;
 
+        /// <summary>
+        /// Dictionary that contains the number of value changes (value) by Node Id (key)
+        /// </summary>
         private ConcurrentDictionary<string, int> _valueChangesPerNodeId;
 
         /// <summary>
@@ -127,6 +134,7 @@ namespace TestEventProcessor.BusinessLogic
             _valueChangesPerNodeId = new ConcurrentDictionary<string, int>(4, 500);
             _iotHubMessageEnqueuedTimes = new ConcurrentDictionary<DateTime, DateTime>(4, 500);
             _observedTimestamps = new ConcurrentQueue<DateTime>();
+            _totalValueChangesCount = 0;
 
             _cancellationTokenSource = new CancellationTokenSource();
             var token = _cancellationTokenSource.Token;
@@ -145,6 +153,9 @@ namespace TestEventProcessor.BusinessLogic
 
             _logger.LogInformation("Starting monitoring of events...");
             await _client.StartProcessingAsync(token);
+
+            _startTime = DateTime.UtcNow;
+
             CheckForMissingValueChangesAsync(token).Start();
             CheckForMissingTimestampsAsync(token).Start();
 
@@ -163,12 +174,20 @@ namespace TestEventProcessor.BusinessLogic
                 _cancellationTokenSource = null;
             }
 
-            // the stop procedure takes about a minute, so we fire and forget.
-            StopEventProcessorClientAsync();
+            var endTime = DateTime.UtcNow;
 
-            return Task.FromResult(new StopResult() {
-                ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(_valueChangesPerNodeId)
-            });
+            // the stop procedure takes about a minute, so we fire and forget.
+            StopEventProcessorClientAsync().SafeFireAndForget(e => _logger.LogError(e, "Error while stopping event monitoring."));
+
+            return Task.FromResult(
+                new StopResult() {
+                    ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(_valueChangesPerNodeId ?? new ConcurrentDictionary<string, int>()),
+                    TotalValueChangesCount = _totalValueChangesCount,
+                    StartTime = _startTime,
+                    EndTime = endTime,
+                    UnexpectedTimestamps = _missedMessage
+                }
+            );
         }
 
         /// <summary>
@@ -208,12 +227,12 @@ namespace TestEventProcessor.BusinessLogic
                     token.ThrowIfCancellationRequested();
                     while (!token.IsCancellationRequested)
                     {
+                        _logger.LogInformation("Currently, {total} value changes were received, currently waiting for {incompletedTimestamps} timestamp to be completed.", _totalValueChangesCount, _valueChangesPerTimestamp.Count);
+
                         var entriesToDelete = new List<DateTime>(50);
-                        foreach (var missingSequence in _valueChangesPerTimestamp)
-                        {
+                        foreach (var missingSequence in _valueChangesPerTimestamp) {
                             var numberOfValueChanges = missingSequence.Value;
-                            if (numberOfValueChanges >= _currentConfiguration.ExpectedValueChangesPerTimestamp)
-                            {
+                            if (numberOfValueChanges >= _currentConfiguration.ExpectedValueChangesPerTimestamp) {
                                 _logger.LogInformation(
                                     "Received {NumberOfValueChanges} value changes for timestamp {Timestamp}",
                                     numberOfValueChanges, missingSequence.Key);
@@ -229,14 +248,14 @@ namespace TestEventProcessor.BusinessLogic
                             var iotHubEnqueuedTime = _iotHubMessageEnqueuedTimes[missingSequence.Key];
                             var durationDifference = iotHubEnqueuedTime.Subtract(missingSequence.Key);
 
-                            if (durationDifference.TotalMilliseconds < 0)
+                            if (durationDifference.TotalMilliseconds < 0) 
                             {
                                 _logger.LogWarning("Total duration is negative number, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                                     missingSequence.Key.ToString(_dateTimeFormat, formatInfoProvider),
                                     iotHubEnqueuedTime.ToString(_dateTimeFormat, formatInfoProvider),
                                     durationDifference);
                             }
-                            if (Math.Round(durationDifference.TotalMilliseconds) > _currentConfiguration.ExpectedMaximalDuration)
+                            if (Math.Round(durationDifference.TotalMilliseconds) > _currentConfiguration.ExpectedMaximalDuration) 
                             {
                                 _logger.LogInformation("Total duration exceeded limit, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                                     missingSequence.Key.ToString(_dateTimeFormat, formatInfoProvider),
@@ -317,8 +336,8 @@ namespace TestEventProcessor.BusinessLogic
                             }
 
                             // compare on milliseconds isn't useful, instead try time window of 100 milliseconds
-                            var expectedTime =
-                                older.AddMilliseconds(_currentConfiguration.ExpectedIntervalOfValueChanges);
+                            var expectedTime = older.AddMilliseconds(_currentConfiguration.ExpectedIntervalOfValueChanges);
+
                             var expectedMin = expectedTime.AddMilliseconds(-_currentConfiguration.ThresholdValue);
                             var expectedMax = expectedTime.AddMilliseconds(_currentConfiguration.ThresholdValue);
 
@@ -395,10 +414,11 @@ namespace TestEventProcessor.BusinessLogic
                 }
 
                 var newOpcDiffToNow = DateTime.UtcNow - timestamp;
+                var diffFromLastTime = newOpcDiffToNow - opcDiffToNow;
 
-                if (newOpcDiffToNow != opcDiffToNow)
+                if (diffFromLastTime.TotalMilliseconds > _currentConfiguration.ThresholdValue)
                 {
-                    _logger.LogWarning("The different between UtcNow and Opc Source Timestamp has changed by {diff}", (newOpcDiffToNow - opcDiffToNow));
+                    _logger.LogWarning("The different between UtcNow and Opc Source Timestamp has changed by {diff}", diffFromLastTime);
                 }
 
                 opcDiffToNow = newOpcDiffToNow;
@@ -411,6 +431,7 @@ namespace TestEventProcessor.BusinessLogic
                 _valueChangesPerNodeId.AddOrUpdate(nodeId, 1, (k, v) => ++v);
 
                 valueChangesCount++;
+                _totalValueChangesCount++;
 
                 if (!_observedTimestamps.Contains(timestamp))
                 {

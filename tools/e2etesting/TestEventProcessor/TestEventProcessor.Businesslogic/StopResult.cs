@@ -5,6 +5,7 @@
 
 namespace TestEventProcessor.BusinessLogic
 {
+    using System;
     using System.Collections.ObjectModel;
 
     /// <summary>
@@ -15,7 +16,27 @@ namespace TestEventProcessor.BusinessLogic
         /// <summary>
         /// Flag whether the monitoring was successful (without errors) or not.
         /// </summary>
-        public bool IsSuccess { get; set; }
+        public bool? UnexpectedTimestamps { get; set; }
+
+        /// <summary>
+        /// The total number of value changes
+        /// </summary>
+        public uint TotalValueChangesCount { get; set; }
+
+        /// <summary>
+        /// The start time of the current monitoring cycle.
+        /// </summary>
+        public DateTime StartTime { get; set; }
+
+        /// <summary>
+        /// The end time of the current monitoring cycle.
+        /// </summary>
+        public DateTime EndTime { get; set; }
+
+        /// <summary>
+        /// The duration of the current monitoring cycle.
+        /// </summary>
+        public string Duration => (EndTime - StartTime).ToString();
 
         /// <summary>
         /// The number of value changes by Node Id.
