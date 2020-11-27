@@ -42,7 +42,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _output.WriteLine("Saved published_nodes.json file");
             var dir = Directory.GetCurrentDirectory() + "/" + TestConstants.PublisherPublishedNodesFile;
             TestHelper.SwitchToStandaloneMode(_context);
-            TestHelper.LoadPublishedNodesFile(dir, "/mount/published_nodes.json", _context);
+            TestHelper.LoadPublishedNodesFile(dir, TestConstants.PublishedNodesFolder + "/published_nodes.json", _context);
             _output.WriteLine("Switched to standalone mode and loaded published_nodes.json file");
         }
 

@@ -182,7 +182,7 @@ namespace IIoTPlatform_E2E_Tests {
         public static void LoadPublishedNodesFile(string sourceFilePath, string destinationFilePath, IIoTPlatformTestContext context) {
             Assert.True(File.Exists(sourceFilePath), "source file does not exist");
 
-            CreateFolder("/mount", context);
+            CreateFolder(TestConstants.PublishedNodesFolder, context);
 
             var client = new ScpClient(
                 context.SshConfig.Host,
