@@ -58,7 +58,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         private const string _dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffffZ";
         /// <summary>
-        /// Instance to write logs 
+        /// Instance to write logs
         /// </summary>
         private readonly ILogger _logger;
 
@@ -68,7 +68,7 @@ namespace TestEventProcessor.BusinessLogic {
         private ValidatorConfiguration _currentConfiguration;
 
         /// <summary>
-        /// Create instance of TelemetryValidator 
+        /// Create instance of TelemetryValidator
         /// </summary>
         /// <param name="logger">Instance to write logs</param>
         /// <param name="iotHubConnectionString">Connection string for integrated event hub endpoint of IoTHub</param>
@@ -203,14 +203,14 @@ namespace TestEventProcessor.BusinessLogic {
                 tempClient.ProcessEventAsync -= Client_ProcessEventAsync;
                 tempClient.ProcessErrorAsync -= Client_ProcessErrorAsync;
             }
-            
+
             _logger.LogInformation("Stopped monitoring of events.");
         }
 
 
 
         /// <summary>
-        /// Running a thread that analyze the value changes per timestamp 
+        /// Running a thread that analyze the value changes per timestamp
         /// </summary>
         /// <param name="token">Token to cancel the thread</param>
         /// <returns>Task that run until token is canceled</returns>
@@ -233,7 +233,7 @@ namespace TestEventProcessor.BusinessLogic {
                                     "Received {NumberOfValueChanges} value changes for timestamp {Timestamp}",
                                     numberOfValueChanges, missingSequence.Key);
 
-                                // don't check for gaps of sequence numbers because they reflect the for number of messages  
+                                // don't check for gaps of sequence numbers because they reflect the for number of messages
                                 // send from OPC server to OPC publisher, it should be internally handled in OPCF stack
 
                                 entriesToDelete.Add(missingSequence.Key);
@@ -244,14 +244,14 @@ namespace TestEventProcessor.BusinessLogic {
                             var iotHubEnqueuedTime = _iotHubMessageEnqueuedTimes[missingSequence.Key];
                             var durationDifference = iotHubEnqueuedTime.Subtract(missingSequence.Key);
 
-                            if (durationDifference.TotalMilliseconds < 0) 
+                            if (durationDifference.TotalMilliseconds < 0)
                             {
                                 _logger.LogWarning("Total duration is negative number, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                                     missingSequence.Key.ToString(_dateTimeFormat, formatInfoProvider),
                                     iotHubEnqueuedTime.ToString(_dateTimeFormat, formatInfoProvider),
                                     durationDifference);
                             }
-                            if (Math.Round(durationDifference.TotalMilliseconds) > _currentConfiguration.ExpectedMaximalDuration) 
+                            if (Math.Round(durationDifference.TotalMilliseconds) > _currentConfiguration.ExpectedMaximalDuration)
                             {
                                 _logger.LogInformation("Total duration exceeded limit, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                                     missingSequence.Key.ToString(_dateTimeFormat, formatInfoProvider),
@@ -293,7 +293,7 @@ namespace TestEventProcessor.BusinessLogic {
                                     _currentConfiguration.ExpectedValueChangesPerTimestamp - missingSequence.Value);
                             }
                         }
-                        
+
                         Task.Delay(10000, token).Wait(token);
                     }
                 }
@@ -375,6 +375,7 @@ namespace TestEventProcessor.BusinessLogic {
         {
             if (_cancellationTokenSource == null) //we already in stop process, so do not do anything new.
             {
+                _logger.LogWarning("Received Events but nothing to do, because already stopped");
                 return;
             }
 
@@ -394,12 +395,10 @@ namespace TestEventProcessor.BusinessLogic {
             foreach (dynamic entry in json)
             {
                 DateTime timestamp;
-                int sequence = int.MinValue;
                 string nodeId = null;
 
                 try
                 {
-                    sequence = (int)entry.SequenceNumber;
                     timestamp = (DateTime)entry.Value.SourceTimestamp;
                     nodeId = entry.NodeId;
                 }
@@ -433,7 +432,7 @@ namespace TestEventProcessor.BusinessLogic {
                 if (!_observedTimestamps.Contains(timestamp))
                 {
                     _observedTimestamps.Enqueue(timestamp);
-                    
+
                     _iotHubMessageEnqueuedTimes.AddOrUpdate(
                         timestamp,
                         (_) => arg.Data.EnqueuedTime.UtcDateTime,
@@ -441,8 +440,8 @@ namespace TestEventProcessor.BusinessLogic {
                 }
             }
 
-            _logger.LogDebug("Received {NumberOfValueChanges} from IoTHub, partition {PartitionId}, ", 
-                valueChangesCount, 
+            _logger.LogDebug("Received {NumberOfValueChanges} from IoTHub, partition {PartitionId}, ",
+                valueChangesCount,
                 arg.Partition.PartitionId);
         }
 
