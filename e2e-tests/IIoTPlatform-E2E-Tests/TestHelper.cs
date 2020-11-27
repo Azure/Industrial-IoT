@@ -160,7 +160,7 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
-        /// UpdateTagAsync
+        /// Update Device Twin tag
         /// </summary>
         /// <param name="patch">Name of deployed Industrial IoT</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
