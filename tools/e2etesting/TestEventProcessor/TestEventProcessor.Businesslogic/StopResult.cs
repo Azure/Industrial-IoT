@@ -16,7 +16,7 @@ namespace TestEventProcessor.BusinessLogic
         /// <summary>
         /// The total number of value changes
         /// </summary>
-        public uint TotalValueChangesCount { get; set; }
+        public int TotalValueChangesCount { get; set; }
 
         /// <summary>
         /// The start time of the current monitoring cycle.

@@ -32,7 +32,7 @@ namespace TestEventProcessor.BusinessLogic {
         private EventProcessorClient _client = null;
         private TimeSpan opcDiffToNow = TimeSpan.Zero;
         private DateTime _startTime = DateTime.MinValue;
-        private uint _totalValueChangesCount = 0;
+        private int _totalValueChangesCount = 0;
 
         private bool _missedMessage = false;
 
@@ -426,8 +426,9 @@ namespace TestEventProcessor.BusinessLogic {
 
                 _valueChangesPerNodeId.AddOrUpdate(nodeId, 1, (k, v) => ++v);
 
+                Interlocked.Increment(ref _totalValueChangesCount);
+
                 valueChangesCount++;
-                _totalValueChangesCount++;
 
                 if (!_observedTimestamps.Contains(timestamp))
                 {
