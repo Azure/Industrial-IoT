@@ -64,13 +64,13 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             var createOptions = JsonConvert.SerializeObject(new {
                 Hostname = kModuleName,
                 Cmd = new[] {
-                "PkiRootPath=/mount/pki",
+                "PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
                 "--aa",
-                "--pf=/mount/" + TestConstants.PublisherPublishedNodesFile
+                "--pf=" + TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile
             },
                 HostConfig = new {
                     Binds = new[] {
-                    "/mount:/mount"
+                    TestConstants.PublishedNodesFolder + "/:" + TestConstants.PublishedNodesFolder
                     }
                 }
             }).Replace("\"", "\\\"");

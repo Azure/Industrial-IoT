@@ -118,14 +118,14 @@ namespace IIoTPlatform_E2E_Tests {
         /// Save PublishedNodes json from OPC-PLC and provide the data to the tests
         /// </summary>
         /// <param name="simulatedOpcServer">Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</param>
-        /// <param name="endpointId">EndpointId</param>
-        public static void SavePublishedNodesFile(IDictionary<string, PublishedNodesEntryModel> simulatedOpcServer, string endpointId) {
-            Assert.True(!string.IsNullOrWhiteSpace(endpointId), "tenantId is null");
-            PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] { simulatedOpcServer[endpointId] };
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        public static void SavePublishedNodesFile(PublishedNodesEntryModel simulatedOpcServer, IIoTPlatformTestContext context) {
+            Assert.NotNull(simulatedOpcServer);
+            PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] {simulatedOpcServer};
             var json = JsonConvert.SerializeObject(model, Formatting.Indented);
 
-            var dir = Directory.GetCurrentDirectory() + "/published_nodes.json";
-            File.WriteAllText(dir, json);
+            context.PublishedNodesFileInternalFolder = Directory.GetCurrentDirectory() + "/published_nodes.json";
+            File.WriteAllText(context.PublishedNodesFileInternalFolder, json);
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace IIoTPlatform_E2E_Tests {
         public static void LoadPublishedNodesFile(string sourceFilePath, string destinationFilePath, IIoTPlatformTestContext context) {
             Assert.True(File.Exists(sourceFilePath), "source file does not exist");
 
-            CreateFolder(TestConstants.PublishedNodesFolder, context);
+            CreateFolderOnIoTEdge(TestConstants.PublishedNodesFolder, context);
 
             var client = new ScpClient(
                 context.SshConfig.Host,
@@ -221,11 +221,11 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
-        /// CreateFolder a folder to store published_nodes.json file
+        /// CreateFolder a folder on IoTEdge to store published_nodes.json file
         /// </summary>
         /// <param name="folderPath">Destination file path</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        private static void CreateFolder(string folderPath, IIoTPlatformTestContext context) {
+        private static void CreateFolderOnIoTEdge(string folderPath, IIoTPlatformTestContext context) {
             Assert.True(!string.IsNullOrWhiteSpace(folderPath), "folder does not exist");
 
             var isSuccessful = false;
