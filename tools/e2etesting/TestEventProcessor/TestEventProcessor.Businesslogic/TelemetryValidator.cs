@@ -185,7 +185,6 @@ namespace TestEventProcessor.BusinessLogic
                     TotalValueChangesCount = _totalValueChangesCount,
                     StartTime = _startTime,
                     EndTime = endTime,
-                    UnexpectedTimestamps = _missedMessage
                 }
             );
         }

@@ -14,11 +14,6 @@ namespace TestEventProcessor.BusinessLogic
     public class StopResult : IResult
     {
         /// <summary>
-        /// Flag whether the monitoring was successful (without errors) or not.
-        /// </summary>
-        public bool? UnexpectedTimestamps { get; set; }
-
-        /// <summary>
         /// The total number of value changes
         /// </summary>
         public uint TotalValueChangesCount { get; set; }
