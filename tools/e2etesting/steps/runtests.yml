@@ -59,6 +59,7 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: 'Executing tests (without API Tests)'
   condition: eq( '${{ parameters.RunApiTests }}', false)
+  timeoutInMinutes: 90
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
@@ -81,6 +82,7 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: 'Executing tests (with API Tests)'
   condition: eq( '${{ parameters.RunApiTests }}', true)
+  timeoutInMinutes: 90
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
