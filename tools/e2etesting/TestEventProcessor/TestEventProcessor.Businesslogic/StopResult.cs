@@ -5,14 +5,37 @@
 
 namespace TestEventProcessor.BusinessLogic
 {
+    using System;
+    using System.Collections.ObjectModel;
+
     /// <summary>
     /// Represents the result of the Stop-Command of the TelemetryValidator.
     /// </summary>
     public class StopResult : IResult
     {
         /// <summary>
-        /// Flag whether the monitoring was successful (without errors) or not.
+        /// The total number of value changes
         /// </summary>
-        public bool IsSuccess { get; set; }
+        public int TotalValueChangesCount { get; set; }
+
+        /// <summary>
+        /// The start time of the current monitoring cycle.
+        /// </summary>
+        public DateTime StartTime { get; set; }
+
+        /// <summary>
+        /// The end time of the current monitoring cycle.
+        /// </summary>
+        public DateTime EndTime { get; set; }
+
+        /// <summary>
+        /// The duration of the current monitoring cycle.
+        /// </summary>
+        public string Duration => (EndTime - StartTime).ToString();
+
+        /// <summary>
+        /// The number of value changes by Node Id.
+        /// </summary>
+        public ReadOnlyDictionary<string, int> ValueChangesByNodeId { get; set; }
     }
 }
