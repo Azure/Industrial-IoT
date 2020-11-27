@@ -5,6 +5,8 @@
 
 namespace TestEventProcessor.BusinessLogic
 {
+    using System.Collections.ObjectModel;
+
     /// <summary>
     /// Represents the result of the Stop-Command of the TelemetryValidator.
     /// </summary>
@@ -14,5 +16,10 @@ namespace TestEventProcessor.BusinessLogic
         /// Flag whether the monitoring was successful (without errors) or not.
         /// </summary>
         public bool IsSuccess { get; set; }
+
+        /// <summary>
+        /// The number of value changes by Node Id.
+        /// </summary>
+        public ReadOnlyDictionary<string, int> ValueChangesByNodeId { get; set; }
     }
 }
