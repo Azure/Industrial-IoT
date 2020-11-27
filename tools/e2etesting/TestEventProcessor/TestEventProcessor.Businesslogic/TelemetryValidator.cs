@@ -3,13 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
-namespace TestEventProcessor.BusinessLogic
-{
+
+namespace TestEventProcessor.BusinessLogic {
+    using AsyncAwaitBestPractices;
+    using Azure.Messaging.EventHubs;
+    using Azure.Messaging.EventHubs.Consumer;
+    using Azure.Messaging.EventHubs.Processor;
+    using Azure.Storage.Blobs;
+    using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -19,12 +22,6 @@ namespace TestEventProcessor.BusinessLogic
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using AsyncAwaitBestPractices;
-    using Azure.Messaging.EventHubs;
-    using Azure.Messaging.EventHubs.Consumer;
-    using Azure.Messaging.EventHubs.Processor;
-    using Azure.Storage.Blobs;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Validates the value changes within IoT Hub Methods
