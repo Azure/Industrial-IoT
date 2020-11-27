@@ -63,7 +63,7 @@ steps:
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-    arguments: '--configuration Release --filter IsApiTest!=true'
+    arguments: '--configuration Release --filter IsApiTest!=true --verbosity=detailed'
   env:
     ApplicationName: $(ApplicationName)
     PLC_SIMULATION_URLS: $(plc-simulation-urls)
@@ -86,7 +86,7 @@ steps:
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-    arguments: '--configuration Release'
+    arguments: '--configuration Release --verbosity=detailed'
   env:
     PCS_SERVICE_URL: $(pcs-service-url)
     PCS_AUTH_TENANT: $(pcs-auth-tenant)
