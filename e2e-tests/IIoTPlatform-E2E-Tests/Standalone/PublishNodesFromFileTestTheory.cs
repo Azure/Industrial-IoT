@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.Standalone {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
-    using Newtonsoft.Json;
-    using RestSharp;
     using TestExtensions;
     using Xunit.Abstractions;
-    using System.Threading.Tasks;
     using System.IO;
-    using System.Threading;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -53,10 +50,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         public async Task PublishFromPublishedNodesFile() {
             var deploy = new IoTHubPublisherDeployment(_context);
             Assert.NotNull(deploy);
-
             var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
             _output.WriteLine("Created new layered deployment and publisher_standalone");
-            Thread.Sleep(5000);
             Assert.True(result);
         }
     }
