@@ -62,18 +62,18 @@ if ($keyVault.Count -ne 1) {
 $prefix = "e2etesting-simulation"
 
 $plcTemplateParameters = @{
-    "numberOfSimulations" = $numberOfSimulations
+    "numberOfSimulations" = [int]$numberOfSimulations
     "numberOfSlowNodes" = 1000
     "slowNodeRate" = 10
     "slowNodeType" = "uint"
     "numberOfFastNodes" = 1000
     "fastNodeRate" = 1
     "fastNodeType" = "uint"
-    "resourcesPrefix" = $prefix
-    "resourcesSuffix" = $testSuffix
+    "resourcesPrefix" = "$($prefix)"
+    "resourcesSuffix" = "$($testSuffix)"
 }
 
-$plcTemplate = [System.IO.Path]::Combine($TemplateDir, "e2e.plc.simulation.json")
+$plcTemplate = [System.IO.Path]::Combine($TemplateDir, "e2e.plc.simulation.json").Replace("/", "\")
 
 Write-Host "Resource Group: $($ResourceGroupName)"
 Write-Host "Number of PLCs: $($NumberOfSimulations)"
