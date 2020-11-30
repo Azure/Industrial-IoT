@@ -131,7 +131,7 @@ namespace TestEventProcessor.BusinessLogic {
             _valueChangesPerNodeId = new ConcurrentDictionary<string, int>(4, 500);
             _iotHubMessageEnqueuedTimes = new ConcurrentDictionary<DateTime, DateTime>(4, 500);
             _observedTimestamps = new ConcurrentQueue<DateTime>();
-            _totalValueChangesCount = 0;
+            Interlocked.Exchange(ref _totalValueChangesCount, 0);
 
             _cancellationTokenSource = new CancellationTokenSource();
             var token = _cancellationTokenSource.Token;
@@ -176,9 +176,14 @@ namespace TestEventProcessor.BusinessLogic {
             // the stop procedure takes about a minute, so we fire and forget.
             StopEventProcessorClientAsync().SafeFireAndForget(e => _logger.LogError(e, "Error while stopping event monitoring."));
 
+            // TODO collect "expected" parameter as groups related to OPC UA nodes
+            bool allExpectedValueChanges = _valueChangesPerNodeId?.All(kvp =>
+                (kvp.Value / _totalValueChangesCount) == _currentConfiguration.ExpectedValueChangesPerTimestamp) ?? false;
+
             return Task.FromResult(
                 new StopResult() {
                     ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(_valueChangesPerNodeId ?? new ConcurrentDictionary<string, int>()),
+                    AllExpectedValueChanges = allExpectedValueChanges,
                     TotalValueChangesCount = _totalValueChangesCount,
                     StartTime = _startTime,
                     EndTime = endTime,

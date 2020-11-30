@@ -260,7 +260,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             await Task.Delay(90 * 1000);
             var json = await TestHelper.StopMonitoringIncomingMessages(_context);
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
-
+            Assert.True((bool)json.allExpectedValueChanges, "Unexpected number of messages received");
         }
 
         [Fact, PriorityOrder(11)]

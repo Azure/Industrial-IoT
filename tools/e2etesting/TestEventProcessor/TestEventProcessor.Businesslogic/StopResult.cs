@@ -29,6 +29,11 @@ namespace TestEventProcessor.BusinessLogic
         public DateTime EndTime { get; set; }
 
         /// <summary>
+        /// Indicates if all received timestamps received all required value changes
+        /// </summary>
+        public bool AllExpectedValueChanges { get; set; }
+
+        /// <summary>
         /// The duration of the current monitoring cycle.
         /// </summary>
         public string Duration => (EndTime - StartTime).ToString();
