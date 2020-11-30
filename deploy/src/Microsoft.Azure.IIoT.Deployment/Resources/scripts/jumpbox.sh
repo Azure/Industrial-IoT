@@ -232,6 +232,7 @@ helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingr
     --set controller.config.proxy-buffer-size='"32k"' \
     --set controller.config.client-header-buffer-size='"32k"' \
     --set controller.metrics.enabled=true \
+    --set defaultBackend.enabled=true \
     --set defaultBackend.nodeSelector."beta\.kubernetes\.io\/os"=linux
 
 # Create cert-manager namespace
