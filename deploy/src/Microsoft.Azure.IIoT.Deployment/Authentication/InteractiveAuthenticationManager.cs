@@ -14,6 +14,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
     using Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions;
 
+    /// <summary>
+    /// Authentication manager that will use interactive authentication flow for Windows.
+    /// </summary>
     class InteractiveAuthenticationManager : IAuthenticationManager {
 
         public static readonly string[] MicrosoftGraphIAIScopes = new string[] {
@@ -53,6 +56,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
                 .Build();
         }
 
+        /// <inheritdoc/>
         public async Task AuthenticateAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -76,18 +80,22 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             await AcquireKeyVaultAuthenticationResultAsync(cancellationToken);
         }
 
+        /// <inheritdoc/>
         public AzureEnvironment GetAzureEnvironment() {
             return _azureEnvironment;
         }
 
+        /// <inheritdoc/>
         public Guid GetTenantId() {
             return _tenantId;
         }
 
+        /// <inheritdoc/>
         public IAccount GetAccount() {
             return _account;
         }
 
+        /// <inheritdoc/>
         public async Task<AuthenticationResult> AcquireMicrosoftGraphAuthenticationResultAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -100,6 +108,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             return authenticationResult;
         }
 
+        /// <inheritdoc/>
         public async Task<AuthenticationResult> AcquireAzureManagementAuthenticationResultAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -112,6 +121,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             return authenticationResult;
         }
 
+        /// <inheritdoc/>
         public async Task<AuthenticationResult> AcquireKeyVaultAuthenticationResultAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -124,6 +134,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             return authenticationResult;
         }
 
+        /// <inheritdoc/>
         public bool IsUserAuthenticationFlow() {
             return true;
         }
