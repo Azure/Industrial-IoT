@@ -11,6 +11,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using TestExtensions;
     using Xunit.Abstractions;
     using System.IO;
+    using System.Threading;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -35,16 +36,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.NotEmpty(simulatedOpcServer.Values);
         }
 
-        [Fact, PriorityOrder(2)]
-        public async Task PublishFromPublishedNodesFile() {
-            var deploy = new IoTHubPublisherDeployment(_context);
-            Assert.NotNull(deploy);
-            var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
-            _output.WriteLine("Created new layered deployment and publisher_standalone");
-            Assert.True(result);
-        }
 
-        [Fact, PriorityOrder(3)]
+
+        [Fact, PriorityOrder(2)]
         public async Task SwitchToStandaloneMode() {
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
             TestHelper.SavePublishedNodesFile(simulatedOpcServer[simulatedOpcServer.Keys.First()], _context);
@@ -55,7 +49,24 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _output.WriteLine("Switched to standalone mode and loaded published_nodes.json file");
         }
 
+        [Fact, PriorityOrder(3)]
+        public async Task PublishFromPublishedNodesFile() {
+            var deploy = new IoTHubPublisherDeployment(_context);
+            Assert.NotNull(deploy);
+            var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
+            _output.WriteLine("Created new layered deployment and publisher_standalone");
+            Assert.True(result);
+        }
+
         [Fact, PriorityOrder(4)]
+        public async Task WaitForModuleDeployed() {
+            var cts = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
+
+            // We will wait for module to be deployed.
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, _context, new string[] { "publisher_standalone" });
+        }
+
+        [Fact, PriorityOrder(5)]
         public void SwitchToOrchestratedMode() {
             var dir = Directory.GetCurrentDirectory() + "/" + TestConstants.PublisherPublishedNodesFile;
             TestHelper.SwitchToOrchestratedMode(TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile, _context);
