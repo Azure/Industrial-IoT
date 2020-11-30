@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Change date: 26.11.2020 # This is used to trigger VS resx resource change.
+# Change date: 30.11.2020 # This is used to trigger VS resx resource change.
 
 ################################################################################
 #
@@ -10,7 +10,7 @@
 #   1. Install Azure CLI
 #   2. Install kubectl
 #   3. Install Helm
-#   4. Install stable/nginx-ingress Helm chart
+#   4. Install ingress-nginx/ingress-nginx Helm chart
 #   5. Install jetstack/cert-manager Helm chart
 #   6. Install <repo>/azure-industrial-iot Helm chart
 #
@@ -213,16 +213,16 @@ fi
 kubectl apply -f "$CWD/04_oms_agent_configmap.yaml"
 
 # Add Helm repos
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo add jetstack https://charts.jetstack.io
 helm repo add aiiot $HELM_REPO_URL
 helm repo update
 
-# Create nginx-ingress namespace
-kubectl create namespace nginx-ingress
+# Create ingress-nginx namespace
+kubectl create namespace ingress-nginx
 
-# Install stable/nginx-ingress Helm chart
-helm install --atomic nginx-ingress stable/nginx-ingress --namespace nginx-ingress --version 1.36.0 --timeout 30m0s \
+# Install ingress-nginx/ingress-nginx Helm chart
+helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 3.12.0 --timeout 30m0s \
     --set controller.replicaCount=2 \
     --set controller.nodeSelector."beta\.kubernetes\.io\/os"=linux \
     --set controller.service.loadBalancerIP=$LOAD_BALANCER_IP \
