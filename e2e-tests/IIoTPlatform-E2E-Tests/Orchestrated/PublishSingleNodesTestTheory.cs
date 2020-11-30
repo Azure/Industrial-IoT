@@ -261,6 +261,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var json = await TestHelper.StopMonitoringIncomingMessages(_context);
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
             Assert.True((bool)json.allExpectedValueChanges, "Unexpected number of messages received");
+            Assert.True((bool)json.allInExpectedInterval, "Messages send in unexpected interval");
         }
 
         [Fact, PriorityOrder(11)]

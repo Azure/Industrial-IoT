@@ -42,5 +42,10 @@ namespace TestEventProcessor.BusinessLogic
         /// The number of value changes by Node Id.
         /// </summary>
         public ReadOnlyDictionary<string, int> ValueChangesByNodeId { get; set; }
+
+        /// <summary>
+        /// Indicates if all timestamps received have expected interval between them
+        /// </summary>
+        public bool AllInExpectedInterval { get; set; }
     }
 }
