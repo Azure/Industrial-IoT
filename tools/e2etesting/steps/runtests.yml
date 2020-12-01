@@ -63,7 +63,6 @@ steps:
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
     arguments: '--configuration Release --filter IsApiTest!=true --verbosity=detailed'
   env:
-    ApplicationName: $(ApplicationName)
     PLC_SIMULATION_URLS: $(plc-simulation-urls)
     IOT_EDGE_DEVICE_ID: $(iot-edge-device-id)
     IOT_EDGE_DEVICE_DNSNAME: $(iot-edge-device-dnsname)
