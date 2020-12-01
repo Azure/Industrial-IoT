@@ -94,7 +94,7 @@ if ($ServicePrincipalId) {
 
 $connectionString = Get-AzIotHubConnectionString $ResourceGroupName -Name $iothub.Name -KeyName "iothubowner"
 
-Write-Host "Adding/Updating KeyVault-Secret 'pcs-iothub-connstring' with value '***'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'pcs-iothub-connstring' -SecretValue (ConvertTo-SecureString $connectionString.PrimaryConnectionString -AsPlainText -Force) | Out-Null
+Write-Host "Adding/Updating KeyVault-Secret 'PCS-IOTHUB-CONNSTRING' with value '***'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IOTHUB-CONNSTRING' -SecretValue (ConvertTo-SecureString $connectionString.PrimaryConnectionString -AsPlainText -Force) | Out-Null
 
 Write-Host "Deployment finished."
