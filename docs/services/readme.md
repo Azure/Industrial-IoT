@@ -29,6 +29,7 @@ The following Agents are part of the platform and handle event processing as wel
 * [Edge Telemetry Processor](processor-telemetry.md) (GA)
 * [Registry Onboarding Processor](processor-onboarding.md) (GA)
 * [Edge Event Processor](processor-events.md) (GA)
+* [Datalake and CDM Telemetry Exporter](processor-telemetry-cdm.md) (Preview)
 * [Registry Sync service](registry-sync.md) (GA)
 
 ## Other components
