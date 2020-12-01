@@ -179,8 +179,6 @@ namespace TestEventProcessor.BusinessLogic {
                 _cancellationTokenSource = null;
             }
 
-            var endTime = DateTime.UtcNow;
-
             // the stop procedure takes about a minute, so we fire and forget.
             StopEventProcessorClientAsync().SafeFireAndForget(e => _logger.LogError(e, "Error while stopping event monitoring."));
 
