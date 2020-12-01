@@ -58,11 +58,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>IIoTK8SResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="Resources\Scripts.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Scripts.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -78,10 +73,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>IIoTK8SResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Scripts.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Scripts.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\scripts\jumpbox.sh" />
   </ItemGroup>
 
   <ItemGroup>

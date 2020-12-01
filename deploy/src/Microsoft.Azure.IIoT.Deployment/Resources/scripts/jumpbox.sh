@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# Change date: 30.11.2020 # This is used to trigger VS resx resource change.
-
 ################################################################################
 #
 # NOTE: Requires to be run as sudo
