@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
                 var jumpboxResourceName = $"{typeof(Scripts).Namespace}.{jumpboxRelPath}";
 
                 if (!embeddedResourceNames.Contains(jumpboxResourceName)) {
-                    throw new Exception($"Assembly embedded resources does not contain '{jumpboxResourceName}'.");
+                    throw new Exception($"Assembly embedded resources do not contain '{jumpboxResourceName}'.");
                 }
 
                 using (var stream = assembly.GetManifestResourceStream(jumpboxResourceName))
