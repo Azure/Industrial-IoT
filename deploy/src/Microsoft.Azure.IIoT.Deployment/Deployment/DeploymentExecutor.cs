@@ -1197,7 +1197,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 storageAccountGen2ConectionString,
                 deploymentScriptsBlobContainer.Name,
                 jumpboxShBlobName,
-                Resources.Scripts.jumpbox,
+                Resources.Scripts.JumpboxSh,
                 cancellationToken
             );
 
