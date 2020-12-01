@@ -193,19 +193,19 @@ $ehEndpoint = $iotHub.Properties.EventHubEndpoints["events"].Endpoint
 $ehConnectionString =  "Endpoint={0};SharedAccessKeyName={1};SharedAccessKey={2};EntityPath={3}" -f $ehEndpoint,$iotHubkey.KeyName,$iotHubkey.PrimaryKey,$iotHub.Name
 
 ## Set Secrets to KeyVault ##
-Write-Host "Setting KeyVault Secret 'TestEventProcessorBaseUrl' to '$($baseUrl)'."
+Write-Host "Setting KeyVault Secret 'testeventprocessor-baseurl' to '$($baseUrl)'."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-baseurl" -SecretValue (ConvertTo-SecureString -String $baseUrl -AsPlainText -Force)
 
-Write-Host "Setting KeyVault Secret 'CheckpointStorageAccountConnectionString' to '***'."
+Write-Host "Setting KeyVault Secret 'storageaccount-iothubcheckpoint-connectionstring' to '***'."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "storageaccount-iothubcheckpoint-connectionstring" -SecretValue (ConvertTo-SecureString -String $storageAccountConnectionString -AsPlainText -Force)
 
-Write-Host "SettingKeyVault Secret 'TestEventProcessorUsername' to '$($Username)'."
+Write-Host "SettingKeyVault Secret 'testeventprocessor-username' to '$($Username)'."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-username" -SecretValue (ConvertTo-SecureString -String $Username -AsPlainText -Force)
 
-Write-Host "Setting KeyVault Secret 'TestEventProcessorPassword' to '***'."
+Write-Host "Setting KeyVault Secret 'testeventprocessor-password' to '***'."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-password" -SecretValue (ConvertTo-SecureString -String $Password -AsPlainText -Force)
 
-Write-Host "Setting KeyVault Secret 'IoTHubEventHubConnectionString' to '***'."
+Write-Host "Setting KeyVault Secret 'iothub-eventhub-connectionstring' to '***'."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "iothub-eventhub-connectionstring" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force)
 
 
