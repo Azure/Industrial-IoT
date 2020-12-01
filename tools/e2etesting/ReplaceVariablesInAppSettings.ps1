@@ -19,6 +19,9 @@ Param(
     [string] $ImageTag
 )
 
+# Stop execution when an error occurs.
+$ErrorActionPreference = "Stop"
+
 if (!$TenantId -or !$SubscriptionId) {
     Write-Host "Getting Azure Context..."
     $context = Get-AzContext
@@ -35,31 +38,31 @@ if (!$TenantId -or !$SubscriptionId) {
 }
 
 if (!$ClientId) {
-    Write-Host "##vso[task.complete result=Failed]ClientId not set, exiting."
+   Write-Error "ClientId not set."
 }
 
 if (!$ClientSecret) {
-    Write-Host "##vso[task.complete result=Failed]ClientSecret not set, exiting."
+   Write-Error "ClientSecret not set."
 }
 
 if (!$ApplicationName) {
-    Write-Host "##vso[task.complete result=Failed]ApplicationName not set, exiting."
+   Write-Error "ApplicationName not set."
 }
 
 if (!$AppSettingsFilename) {
-    Write-Host "##vso[task.complete result=Failed]AppSettingsFilename not set, exiting."
+   Write-Error "AppSettingsFilename not set."
 }
 
 if (!$ResourceGroupName) {
-    Write-Host "##vso[task.complete result=Failed]ResourceGroupName not set, exiting."
+   Write-Error "ResourceGroupName not set."
 }
 
 if (!$Region) {
-    Write-Host "##vso[task.complete result=Failed]Region not set, exiting."
+   Write-Error "Region not set."
 }
 
 if (!$ImageTag) {
-    Write-Host "##vso[task.complete result=Failed]ImageTag not set, exiting."
+   Write-Error "ImageTag not set."
 }
 
 Write-Host "##[group]Parameter values"

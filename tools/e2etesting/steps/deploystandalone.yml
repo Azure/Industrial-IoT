@@ -9,9 +9,7 @@ steps:
     scriptType: 'ps'
     addSpnToEnvironment: true
     inlineScript: |
-      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
-      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
-      Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
 
 - task: AzurePowerShell@5
   displayName: "Deploy standalone resources"
@@ -23,4 +21,4 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
-      -ServicePrincipalId "$(ARM_CLIENT_ID)"
+      -ServicePrincipalId "$(ServicePrincipalId)"

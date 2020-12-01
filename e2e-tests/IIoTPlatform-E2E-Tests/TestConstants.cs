@@ -168,17 +168,17 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// DNS name of edge device
             /// </summary>
-            public const string IOT_EDGE_DEVICE_DNS_NAME = "IOT_EDGE_DEVICE_DNS_NAME";
+            public const string IOT_EDGE_DEVICE_DNSNAME = "IOT_EDGE_DEVICE_DNSNAME";
 
             /// <summary>
             /// User name of vm that hosting edge device
             /// </summary>
-            public const string PCS_SIMULATION_USER = "PCS_SIMULATION_USER";
+            public const string IOT_EDGE_VM_USERNAME = "IOT_EDGE_VM_USERNAME";
 
             /// <summary>
             /// Password of vm that hosting edge device
             /// </summary>
-            public const string PCS_SIMULATION_PASSWORD = "PCS_SIMULATION_PASSWORD";
+            public const string IOT_EDGE_VM_PASSWORD = "IOT_EDGE_VM_PASSWORD";
 
             /// <summary>
             /// IoT Hub connection string
@@ -193,7 +193,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// The connection string of the storage account that will be used for checkpointing (when monitoring IoT Hub)
             /// </summary>
-            public const string STORAGE_CONNECTIONSTRING = "STORAGE_CONNECTIONSTRING";
+            public const string STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING = "STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING";
 
             /// <summary>
             /// The service base url of the TestEventProcessor
