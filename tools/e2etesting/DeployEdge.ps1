@@ -125,10 +125,10 @@ if ($edgeDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($edgeDeployment.ProvisioningState)."
 }
 
-Write-Host "Adding/Updating KeVault-Secret 'pcs-simulation-user' with value '$($edgeVmUsername)'..."
+Write-Host "Adding/Updating KeVault-Secret 'iot-edge-vm-username' with value '$($edgeVmUsername)'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-username' -SecretValue (ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force) | Out-Null
 
-Write-Host "Adding/Updating KeVault-Secret 'pcs-simulation-password' with value '***'..."
+Write-Host "Adding/Updating KeVault-Secret 'iot-edge-vm-password' with value '***'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-password' -SecretValue (ConvertTo-SecureString $edgeVmPassword -AsPlainText -Force) | Out-Null
 
 ## This needs to be refactored. However, currently the SSH-Command is the only output from the Edge deployment script. And that command includes the FQDN of the VM.
