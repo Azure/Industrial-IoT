@@ -9,6 +9,9 @@ Param(
     $StorageContainerName
 )
 
+# Stop execution when an error occurs.
+$ErrorActionPreference = "Stop"
+
 ## Pre-Checks ##
 
 if (!$ResourceGroupName) {
@@ -138,7 +141,7 @@ $appServicePlan = Get-AzAppServicePlan -ResourceGroupName $resourceGroup.Resourc
 
 if (!$appServicePlan) {
     Write-Host "AppServicePlan '$($AppServicePlanName)' does not exist, creating..."
-    $appServicePlan = New-AzAppServicePlan -ResourceGroupName $resourceGroup.ResourceGroupName -Name $AppServicePlanName -Location $resourceGroup.Location
+    $appServicePlan = New-AzAppServicePlan -ResourceGroupName $resourceGroup.ResourceGroupName -Name $AppServicePlanName -Location $resourceGroup.Location -Tier Basic
 }
 
 ## Ensure WebApp ##
@@ -174,7 +177,7 @@ $creds = @{
     AuthPassword = $Password;
 }
 
-$webApp = Set-AzWebApp -ResourceGroupName $ResourceGroupName -Name $WebAppName -AppSettings $creds
+$webApp = Set-AzWebApp -ResourceGroupName $ResourceGroupName -Name $WebAppName -AppSettings $creds -AlwaysOn $true
 
 Write-Host "Restarting WebApp..."
 $webApp = Restart-AzWebApp -ResourceGroupName $ResourceGroupName -Name $WebAppName
