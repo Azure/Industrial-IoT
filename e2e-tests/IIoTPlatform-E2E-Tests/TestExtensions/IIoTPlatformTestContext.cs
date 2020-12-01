@@ -34,6 +34,11 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public string? OpcUaEndpointId { get; set; }
 
         /// <summary>
+        /// Folder path where PublishedNodes file is saved during the test
+        /// </summary>
+        public string? PublishedNodesFileInternalFolder { get; set; }
+
+        /// <summary>
         /// Helper to write output, need to be set from constructor of test class
         /// </summary>
         public ITestOutputHelper? OutputHelper { get; set; }

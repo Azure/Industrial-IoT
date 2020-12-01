@@ -15,7 +15,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     public class IoTHubPublisherDeployment {
 
         public static readonly string TargetConditionStandalone =
-            $"(tags.__type__ = 'iiotedge' AND tags.unmanage = 'false')";
+            $"(tags.__type__ = 'iiotedge' AND tags.unmanaged = true)";
 
         /// <summary>
         /// Create deployer
@@ -28,13 +28,18 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <summary>
         /// Create a new layered deployment or update an existing one
         /// </summary>
-        public async Task CreateOrUpdateLayeredDeploymentAsync() {
-            await CreateOrUpdateConfigurationAsync(new Configuration("__default-opcpublisher-standalone") {
+        public async Task<bool> CreateOrUpdateLayeredDeploymentAsync() {
+            var isSuccessful = false;
+            var configuration = await CreateOrUpdateConfigurationAsync(new Configuration("__default-opcpublisher-standalone") {
                 Content = new ConfigurationContent { ModulesContent = CreateLayeredDeployment() },
                 TargetCondition = TargetConditionStandalone +
                     " AND tags.os = 'Linux'",
                 Priority = 1
             }, true, new CancellationToken());
+            if (configuration != null) {
+                isSuccessful = true;
+            }
+            return isSuccessful;
         }
 
         /// <summary>
@@ -59,13 +64,13 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             var createOptions = JsonConvert.SerializeObject(new {
                 Hostname = kModuleName,
                 Cmd = new[] {
-                "PkiRootPath=/mount/pki",
+                "PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
                 "--aa",
-                "--pf=/mount/published_nodes.json"
+                "--pf=" + TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile
             },
                 HostConfig = new {
                     Binds = new[] {
-                    "/mount:/mount"
+                    TestConstants.PublishedNodesFolder + "/:" + TestConstants.PublishedNodesFolder
                     }
                 }
             }).Replace("\"", "\\\"");
