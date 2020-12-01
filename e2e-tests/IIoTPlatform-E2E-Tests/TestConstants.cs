@@ -36,6 +36,16 @@ namespace IIoTPlatform_E2E_Tests {
         public const int MaxDelayDeploymentToBeLoadedInMilliseconds = 10 * 60 * 1000;
 
         /// <summary>
+        /// Name of Published Nodes Json used by publisher module
+        /// </summary>
+        public const string PublisherPublishedNodesFile = "published_nodes.json";
+
+        /// <summary>
+        /// Folder to store published_nodes.json file
+        /// </summary>
+        public const string PublishedNodesFolder = "/mount";
+
+        /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
         /// </summary>
         internal static class APIRoutes {

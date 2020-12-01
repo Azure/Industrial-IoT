@@ -115,13 +115,27 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
+        /// Save PublishedNodes json from OPC-PLC and provide the data to the tests
+        /// </summary>
+        /// <param name="simulatedOpcServer">Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        public static void SavePublishedNodesFile(PublishedNodesEntryModel simulatedOpcServer, IIoTPlatformTestContext context) {
+            Assert.NotNull(simulatedOpcServer);
+            PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] {simulatedOpcServer};
+            var json = JsonConvert.SerializeObject(model, Formatting.Indented);
+
+            context.PublishedNodesFileInternalFolder = Directory.GetCurrentDirectory() + "/published_nodes.json";
+            File.WriteAllText(context.PublishedNodesFileInternalFolder, json);
+        }
+
+        /// <summary>
         /// Switch to publisher standalone mode
         /// </summary>
         public static void SwitchToStandaloneMode(IIoTPlatformTestContext context) {
             var patch =
                 @"{
                     tags: {
-                        unmanaged: null
+                        unmanaged: true
                     }
                 }";
 
@@ -137,7 +151,7 @@ namespace IIoTPlatform_E2E_Tests {
             var patch =
                @"{
                     tags: {
-                        unmanaged: true
+                        unmanaged: null
                     }
                 }";
 
@@ -146,7 +160,7 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
-        /// Switch to publisher orchestrated mode
+        /// Update Device Twin tag
         /// </summary>
         /// <param name="patch">Name of deployed Industrial IoT</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
@@ -168,19 +182,19 @@ namespace IIoTPlatform_E2E_Tests {
         public static void LoadPublishedNodesFile(string sourceFilePath, string destinationFilePath, IIoTPlatformTestContext context) {
             Assert.True(File.Exists(sourceFilePath), "source file does not exist");
 
-            using (var client = new ScpClient(
+            CreateFolderOnIoTEdge(TestConstants.PublishedNodesFolder, context);
+
+            var client = new ScpClient(
                 context.SshConfig.Host,
                 context.SshConfig.Username,
-                context.SshConfig.Password)) {
-                client.Connect();
+                context.SshConfig.Password);
+            client.Connect();
 
-                if (string.IsNullOrEmpty(sourceFilePath)) {
-                    DeletePublishedNodesFile(destinationFilePath, context);
-                }
-                using (Stream localFile = File.OpenRead(sourceFilePath)) {
-                    client.Upload(localFile, destinationFilePath);
-                }
-                client.Disconnect();
+            if (string.IsNullOrEmpty(sourceFilePath)) {
+                DeletePublishedNodesFile(destinationFilePath, context);
+            }
+            using (Stream localFile = File.OpenRead(sourceFilePath)) {
+                client.Upload(localFile, destinationFilePath);
             }
         }
 
@@ -190,23 +204,43 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="destinationFilePath">Destination file path</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static void DeletePublishedNodesFile(string destinationFilePath, IIoTPlatformTestContext context) {
-
             Assert.True(File.Exists(destinationFilePath), "file does not exist");
 
             var isSuccessful = false;
-            using (SshClient client = new SshClient(
+            var client = new SshClient(
                 context.SshConfig.Host,
                 context.SshConfig.Username,
-                context.SshConfig.Password)) {
-                client.Connect();
+                context.SshConfig.Password);
+            client.Connect();
 
-                var terminal = client.RunCommand("rm " + destinationFilePath);
-                if (string.IsNullOrEmpty(terminal.Error)) {
-                    isSuccessful = true;
-                }
-                client.Disconnect();
+            var terminal = client.RunCommand("rm " + destinationFilePath);
+            if (string.IsNullOrEmpty(terminal.Error)) {
+                isSuccessful = true;
             }
             Assert.True(isSuccessful, "Delete file was not successfull");
+        }
+
+        /// <summary>
+        /// CreateFolder a folder on IoTEdge to store published_nodes.json file
+        /// </summary>
+        /// <param name="folderPath">Destination file path</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        private static void CreateFolderOnIoTEdge(string folderPath, IIoTPlatformTestContext context) {
+            Assert.True(!string.IsNullOrWhiteSpace(folderPath), "folder does not exist");
+
+            var isSuccessful = false;
+            var client = new SshClient(
+                context.SshConfig.Host,
+                context.SshConfig.Username,
+                context.SshConfig.Password);
+            client.Connect();
+
+            var terminal = client.RunCommand("sudo mkdir " + folderPath + ";" + "cd " + folderPath + "; " + "sudo chmod 777 " + folderPath);
+            if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.Contains("File exists")) {
+                isSuccessful = true;
+            }
+
+            Assert.True(isSuccessful, "Folder creation was not successfull");
         }
 
         /// <summary>
@@ -251,7 +285,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns></returns>
-        public static async Task StopMonitoringIncomingMessages(IIoTPlatformTestContext context) {
+        public static async Task<dynamic> StopMonitoringIncomingMessages(IIoTPlatformTestContext context) {
             // TODO Merge with Start-Method to avoid code duplication
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
 
@@ -273,8 +307,8 @@ namespace IIoTPlatform_E2E_Tests {
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
             Assert.NotEmpty(json);
-            bool isSuccess = json.isSuccess;
-            Assert.True(isSuccess);
+
+            return json;
         }
 
         /// <summary>
