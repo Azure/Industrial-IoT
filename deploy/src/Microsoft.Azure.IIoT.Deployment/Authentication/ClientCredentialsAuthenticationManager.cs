@@ -14,6 +14,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
     using Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions;
 
+    /// <summary>
+    /// Authentication manager that will use client credential authentication flow.
+    /// </summary>
     class ClientCredentialsAuthenticationManager : IAuthenticationManager {
 
         public static readonly string[] MicrosoftGraphIAIScopes = new string[] {
@@ -53,13 +56,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
                 .Build();
         }
 
+        /// <inheritdoc/>
         public async Task AuthenticateAsync(
             CancellationToken cancellationToken = default
         ) {
             // We will use client credential authentication flow.
             // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/Client-credential-flows
 
-            var microsoftGraphAuthenticationResult = 
+            var microsoftGraphAuthenticationResult =
                 await AcquireMicrosoftGraphAuthenticationResultAsync(cancellationToken);
 
             // Extract account from microsoftGraphAuthenticationResult
@@ -71,18 +75,22 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             await AcquireKeyVaultAuthenticationResultAsync(cancellationToken);
         }
 
+        /// <inheritdoc/>
         public AzureEnvironment GetAzureEnvironment() {
             return _azureEnvironment;
         }
 
+        /// <inheritdoc/>
         public Guid GetTenantId() {
             return _tenantId;
         }
 
+        /// <inheritdoc/>
         public IAccount GetAccount() {
             return _account;
         }
 
+        /// <inheritdoc/>
         public async Task<AuthenticationResult> AcquireMicrosoftGraphAuthenticationResultAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -93,6 +101,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             return authenticationResult;
         }
 
+        /// <inheritdoc/>
         public async Task<AuthenticationResult> AcquireAzureManagementAuthenticationResultAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -103,6 +112,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             return authenticationResult;
         }
 
+        /// <inheritdoc/>
         public async Task<AuthenticationResult> AcquireKeyVaultAuthenticationResultAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -113,6 +123,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
             return authenticationResult;
         }
 
+        /// <inheritdoc/>
         public bool IsUserAuthenticationFlow() {
             return false;
         }

@@ -13,8 +13,7 @@ a Helm chart on top of a platform deployed through either `deploy.cmd` or `deplo
   * [Create an AKS cluster](#create-an-aks-cluster)
   * [Create a Public IP address](#create-a-public-ip-address)
   * [Get credentials for kubectl](#get-credentials-for-kubectl)
-  * [Create ClusterRoleBinding for Kubernetes Dashboard](#create-clusterrolebinding-for-kubernetes-dashboard)
-  * [Deploy nginx-ingress Helm chart](#deploy-nginx-ingress-helm-chart)
+  * [Deploy ingress-nginx Helm chart](#deploy-ingress-nginx-helm-chart)
   * [Deploy cert-manager Helm chart](#deploy-cert-manager-helm-chart)
   * [Create ClusterIssuer resource](#create-clusterissuer-resource)
   * [Stop App Service resources](#stop-app-service-resources)
@@ -57,7 +56,7 @@ that application if you are starting from scratch:
   * `-service`, we will refer to this one as `service` App Registration
 
   If you first need to run deployment scripts, please use this documentation:
-  
+
   [Azure Industrial IoT Platform and Simulation demonstrator using the deployment script](howto-deploy-all-in-one.md)
 
 * Azure CLI: [Install the Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
@@ -134,28 +133,22 @@ Provide your resource group and AKS cluster names:
 az aks get-credentials --resource-group myResourceGroup --name myAksCluster
 ```
 
-### Create ClusterRoleBinding for Kubernetes Dashboard
+### Deploy ingress-nginx Helm chart
+
+Create `ingress-nginx` namespace:
 
 ```bash
-kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+kubectl create namespace ingress-nginx
 ```
 
-### Deploy nginx-ingress Helm chart
-
-Create `nginx-ingress` namespace:
+Add `ingress-nginx` Helm chart repository:
 
 ```bash
-kubectl create namespace nginx-ingress
-```
-
-Add `stable` Helm chart repository:
-
-```bash
-helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 ```
 
-Create `nginx-ingress.yaml` file that we will use for deploying the Helm chart based on the template below.
+Create `ingress-nginx.yaml` file that we will use for deploying the Helm chart based on the template below.
 
 Apply the following changes:
 
@@ -181,29 +174,25 @@ controller:
   metrics:
     enabled: true
 defaultBackend:
+  enabled: true
   nodeSelector:
     beta.kubernetes.io/os: linux
 ```
 
-Install `stable/nginx-ingress` Helm chart using `nginx-ingress.yaml` file created above.
+Install `ingress-nginx/ingress-nginx` Helm chart using `ingress-nginx.yaml` file created above.
 
 ```bash
-helm install nginx-ingress stable/nginx-ingress --namespace nginx-ingress --version 1.36.0 -f nginx-ingress.yaml
+helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 3.12.0 -f ingress-nginx.yaml
 ```
+
+Documentation for `ingress-nginx/ingress-nginx` Helm chart can be found [here](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx).
 
 ### Deploy cert-manager Helm chart
-
-Install the `CustomResourceDefinition` resources:
-
-```bash
-kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.13/deploy/manifests/00-crds.yaml
-```
 
 Create `cert-manager` namespace and label it to disable resource validation:
 
 ```bash
 kubectl create namespace cert-manager
-kubectl label namespace cert-manager cert-manager.io/disable-validation=true
 ```
 
 Add `jetstack` Helm chart repository:
@@ -216,8 +205,10 @@ helm repo update
 Install `jetstack/cert-manager` Helm chart:
 
 ```bash
-helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.13.0
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.1.0 --set installCRDs=true
 ```
+
+Documentation for `jetstack/cert-manager` Helm chart can be found [here](https://artifacthub.io/packages/helm/jetstack/cert-manager).
 
 ### Create ClusterIssuer resource
 
@@ -226,7 +217,7 @@ You can set your email address in `ClusterIssuer` so that letsencrypt informs yo
 the certificate that was issued to you. To do that uncomment `email:` line and set the value.
 
 ```yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
@@ -517,12 +508,10 @@ to Helm repositories.
 
 ### Check status of deployed resources
 
-To check status of deployed resources let's open Kubernetes Dashboard. Please provide your resource group
-and AKS cluster names:
-
-```bash
-az aks browse --resource-group myResourceGroup --name myAksCluster
-```
+To check status of deployed resources one can use Kubernetes Dashboard. Please follow the steps
+[here](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) to deploy and then access
+Kubernetes Dashboard. Alternatively, use `kubectl` command to get status of Kubernetes resources such as pods,
+deployments or services.
 
 ### Enable Prometheus metrics scraping
 

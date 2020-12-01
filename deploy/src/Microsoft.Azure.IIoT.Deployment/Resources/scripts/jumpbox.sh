@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Change date: 30.11.2020 # This is used to trigger VS resx resource change.
+
 ################################################################################
 #
 # NOTE: Requires to be run as sudo
@@ -8,7 +10,7 @@
 #   1. Install Azure CLI
 #   2. Install kubectl
 #   3. Install Helm
-#   4. Install stable/nginx-ingress Helm chart
+#   4. Install ingress-nginx/ingress-nginx Helm chart
 #   5. Install jetstack/cert-manager Helm chart
 #   6. Install <repo>/azure-industrial-iot Helm chart
 #
@@ -58,67 +60,67 @@ done
 
 if [[ -z "$RESOURCE_GROUP" ]]; then
     echo "Parameter is empty or missing: resource_group"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AKS_CLUSTER" ]]; then
     echo "Parameter is empty or missing: aks_cluster"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$ROLE" ]]; then
     echo "Parameter is empty or missing: role"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$LOAD_BALANCER_IP" ]]; then
     echo "Parameter is empty or missing: load_balancer_ip"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$PUBLIC_IP_DNS_LABEL" ]]; then
     echo "Parameter is empty or missing: public_ip_dns_label"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$HELM_REPO_URL" ]]; then
     echo "Parameter is empty or missing: helm_repo_url"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$HELM_CHART_VERSION" ]]; then
     echo "Parameter is empty or missing: helm_chart_version"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_IMAGE_TAG" ]]; then
     echo "Parameter is empty or missing: aiiot_image_tag"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_TENANT_ID" ]]; then
     echo "Parameter is empty or missing: aiiot_tenant_id"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_KEY_VAULT_URI" ]]; then
     echo "Parameter is empty or missing: aiiot_key_vault_uri"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_SERVICES_APP_ID" ]]; then
     echo "Parameter is empty or missing: aiiot_services_app_id"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_SERVICES_APP_SECRET" ]]; then
     echo "Parameter is empty or missing: aiiot_services_app_secret"
-    exit 1 
+    exit 1
 fi
 
 if [[ -z "$AIIOT_SERVICES_HOSTNAME" ]]; then
     echo "Parameter is empty or missing: aiiot_services_hostname"
-    exit 1 
+    exit 1
 fi
 
 # Go to home.
@@ -194,7 +196,7 @@ fi
 az aks install-cli
 
 # Install Helm
-az acr helm install-cli --client-version "3.1.2" -y
+az acr helm install-cli --client-version "3.3.4" -y
 
 ################################################################################
 # Login to az using manaed identity
@@ -207,20 +209,20 @@ else
     az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER
 fi
 
-# Configure omsagent 
+# Configure omsagent
 kubectl apply -f "$CWD/04_oms_agent_configmap.yaml"
 
 # Add Helm repos
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo add jetstack https://charts.jetstack.io
 helm repo add aiiot $HELM_REPO_URL
 helm repo update
 
-# Create nginx-ingress namespace
-kubectl create namespace nginx-ingress
+# Create ingress-nginx namespace
+kubectl create namespace ingress-nginx
 
-# Install stable/nginx-ingress Helm chart
-helm install --atomic nginx-ingress stable/nginx-ingress --namespace nginx-ingress --version 1.36.0 \
+# Install ingress-nginx/ingress-nginx Helm chart
+helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 3.12.0 --timeout 30m0s \
     --set controller.replicaCount=2 \
     --set controller.nodeSelector."beta\.kubernetes\.io\/os"=linux \
     --set controller.service.loadBalancerIP=$LOAD_BALANCER_IP \
@@ -230,17 +232,15 @@ helm install --atomic nginx-ingress stable/nginx-ingress --namespace nginx-ingre
     --set controller.config.proxy-buffer-size='"32k"' \
     --set controller.config.client-header-buffer-size='"32k"' \
     --set controller.metrics.enabled=true \
+    --set defaultBackend.enabled=true \
     --set defaultBackend.nodeSelector."beta\.kubernetes\.io\/os"=linux
 
-# Install the CustomResourceDefinition resources separately
-kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.13/deploy/manifests/00-crds.yaml
-
-# Create cert-manager namespace and label it to disable resource validation
+# Create cert-manager namespace
 kubectl create namespace cert-manager
-kubectl label namespace cert-manager cert-manager.io/disable-validation=true
 
 # Install jetstack/cert-manager Helm chart
-helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v0.13.0
+helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v1.1.0 --timeout 30m0s \
+    --set installCRDs=true
 
 # Create Let's Encrypt ClusterIssuer
 n=0
@@ -263,7 +263,7 @@ fi
 kubectl create namespace azure-industrial-iot
 
 # Install aiiot/azure-industrial-iot Helm chart
-helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION \
+helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
     --set image.tag=$AIIOT_IMAGE_TAG \
     --set loadConfFromKeyVault=true \
     --set azure.tenantId=$AIIOT_TENANT_ID \

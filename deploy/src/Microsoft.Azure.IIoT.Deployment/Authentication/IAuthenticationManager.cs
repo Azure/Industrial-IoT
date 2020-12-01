@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
         public AzureEnvironment GetAzureEnvironment();
 
         /// <summary>
-        /// Get TenantId that has been used. 
+        /// Get TenantId that has been used.
         /// </summary>
         /// <returns></returns>
         public Guid GetTenantId();
