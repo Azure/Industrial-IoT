@@ -30,12 +30,12 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// </summary>
         public async Task<bool> CreateOrUpdateLayeredDeploymentAsync() {
             var isSuccessful = false;
-            var configuration = await CreateOrUpdateConfigurationAsync(new Configuration("__default-opcpublisher-standalone") {
+            var configuration = await CreateOrUpdateConfigurationAsync(new Configuration(kDeploymentName) {
                 Content = new ConfigurationContent { ModulesContent = CreateLayeredDeployment() },
                 TargetCondition = TargetConditionStandalone +
                     " AND tags.os = 'Linux'",
                 Priority = 1
-            }, true, new CancellationToken());
+            }, true, kDeploymentName, new CancellationToken());
             if (configuration != null) {
                 isSuccessful = true;
             }
@@ -107,13 +107,14 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         }
 
         public async Task<Configuration> CreateOrUpdateConfigurationAsync(
-            Configuration configuration, bool forceUpdate, CancellationToken ct) {
+            Configuration configuration, bool forceUpdate, string deploymentId, CancellationToken ct) {
             try {
-                if (string.IsNullOrEmpty(configuration.ETag)) {
+                var getConfig = await _context.RegistryHelper.RegistryManager.GetConfigurationAsync(deploymentId, ct);
+                if (getConfig == null) {
                     // First try create configuration
                     try {
                         var added = await _context.RegistryHelper.RegistryManager.AddConfigurationAsync(
-                            configuration, ct);
+                        configuration, ct);
                         return added;
                     }
                     catch (DeviceAlreadyExistsException) when (forceUpdate) {
@@ -140,6 +141,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         }
 
         private const string kModuleName = "publisher_standalone";
+        private const string kDeploymentName = "__default-opcpublisher-standalone";
         private readonly IIoTPlatformTestContext _context;
     }
 }

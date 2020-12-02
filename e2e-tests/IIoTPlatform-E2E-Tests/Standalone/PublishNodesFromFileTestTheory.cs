@@ -10,7 +10,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using Xunit;
     using TestExtensions;
     using Xunit.Abstractions;
-    using System.IO;
     using System.Threading;
 
     /// <summary>
@@ -36,21 +35,21 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.NotEmpty(simulatedOpcServer.Values);
         }
 
-
-
         [Fact, PriorityOrder(2)]
-        public async Task SwitchToStandaloneMode() {
+        public async Task Test_SwitchToStandaloneMode() {
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
-            TestHelper.SavePublishedNodesFile(simulatedOpcServer[simulatedOpcServer.Keys.First()], _context);
+            var numberOfNodes = 1;
+            //Create and save a published_nodes.json file with numberOfNodes nodes
+            TestHelper.SavePublishedNodesFile(simulatedOpcServer[simulatedOpcServer.Keys.First()], numberOfNodes, _context);
             _output.WriteLine("Saved published_nodes.json file");
-            var dir = Directory.GetCurrentDirectory() + "/" + TestConstants.PublisherPublishedNodesFile;
+
             TestHelper.SwitchToStandaloneMode(_context);
             TestHelper.LoadPublishedNodesFile(_context.PublishedNodesFileInternalFolder, TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile, _context);
             _output.WriteLine("Switched to standalone mode and loaded published_nodes.json file");
         }
 
         [Fact, PriorityOrder(3)]
-        public async Task PublishFromPublishedNodesFile() {
+        public async Task Test_PublishFromPublishedNodesFile_Expect_Success() {
             var deploy = new IoTHubPublisherDeployment(_context);
             Assert.NotNull(deploy);
             var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
@@ -59,7 +58,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(4)]
-        public async Task WaitForModuleDeployed() {
+        public async Task Test_WaitForModuleDeployed() {
             var cts = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
 
             // We will wait for module to be deployed.
@@ -67,8 +66,17 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(5)]
+        public async void Test_VerifyDataAvailableAtIoTHub() {
+            //use test event processor to verify data send to IoT Hub
+            await TestHelper.StartMonitoringIncomingMessages(_context, 1, 1000, 10000);
+
+            // wait some time to generate events to process
+            await Task.Delay(90 * 1000);
+            await TestHelper.StopMonitoringIncomingMessages(_context);
+        }
+
+        [Fact, PriorityOrder(6)]
         public void SwitchToOrchestratedMode() {
-            var dir = Directory.GetCurrentDirectory() + "/" + TestConstants.PublisherPublishedNodesFile;
             TestHelper.SwitchToOrchestratedMode(TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile, _context);
             _output.WriteLine("Switched to orchestrated mode and deleted published_nodes.json file");
         }

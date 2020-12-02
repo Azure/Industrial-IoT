@@ -119,9 +119,13 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="simulatedOpcServer">Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static void SavePublishedNodesFile(PublishedNodesEntryModel simulatedOpcServer, IIoTPlatformTestContext context) {
+        public static void SavePublishedNodesFile(PublishedNodesEntryModel simulatedOpcServer, int numberOfNodes, IIoTPlatformTestContext context) {
             Assert.NotNull(simulatedOpcServer);
-            PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] {simulatedOpcServer};
+
+            var publishedNodes = simulatedOpcServer;
+            publishedNodes.OpcNodes = simulatedOpcServer.OpcNodes.Take(numberOfNodes).ToArray();
+
+            PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] { publishedNodes };
             var json = JsonConvert.SerializeObject(model, Formatting.Indented);
 
             context.PublishedNodesFileInternalFolder = Directory.GetCurrentDirectory() + "/published_nodes.json";
@@ -204,7 +208,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="destinationFilePath">Destination file path</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static void DeletePublishedNodesFile(string destinationFilePath, IIoTPlatformTestContext context) {
-            Assert.True(File.Exists(destinationFilePath), "file does not exist");
+            Assert.True(!string.IsNullOrWhiteSpace(destinationFilePath), "file does not exist");
 
             var isSuccessful = false;
             var client = new SshClient(
@@ -307,7 +311,7 @@ namespace IIoTPlatform_E2E_Tests {
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
             Assert.NotEmpty(json);
-            bool isSuccess = json.isSuccess;
+            bool isSuccess = (bool)json["isSuccess"];
             Assert.True(isSuccess);
         }
 
