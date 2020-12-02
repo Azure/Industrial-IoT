@@ -60,7 +60,7 @@ steps:
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-    arguments: '--configuration Release --filter PublisherMode=${{ PublisherMode }} --verbosity=detailed'
+    arguments: '--configuration Release --filter PublisherMode=${{ parameters.PublisherMode }} --verbosity=detailed'
   env:
     PCS_SERVICE_URL: $(pcs-service-url)
     PCS_AUTH_TENANT: $(pcs-auth-tenant)
