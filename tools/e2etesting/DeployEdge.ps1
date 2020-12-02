@@ -6,7 +6,9 @@ Param(
     [string]
     $EdgeVmSize = "Standard_D2s_v3",
     [string]
-    $EdgeVmLocation
+    $EdgeVmLocation,
+    [string]
+    $KeysPath
 )
 
 # Stop execution when an error occurs.
@@ -16,8 +18,15 @@ if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
 }
 
-$edgeVmUsername = "sandboxuser"
-$edgeVmPassword = -join ((65..90) + (97..122) + (33..38) + (40..47) + (48..57)| Get-Random -Count 20 | % {[char]$_})
+if (!$KeysPath) {
+    Write-Error "Path to store certifactes not set."
+}
+
+if (!(Test-Path -Path $KeysPath)) {
+    New-Item -ItemType Directory -Path $KeysPath | Out-Null
+}
+
+$edgeVmUsername = 'sandboxuser'
 
 ## Login if required
 
@@ -93,6 +102,18 @@ Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-id' -
 Write-Host "Updating 'os' and '__type__'-Tags in Device Twin..."
 Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"} | Out-Null
 
+## Generate SSH keys
+$privateKeyFilePath = [System.IO.Path]::Combine($KeysPath, "id_rsa_iotedge")
+$publicKeyFilePath = $privateKeyFilePath + ".pub"
+$keypassphrase = '""'
+Write-Output "y" | ssh-keygen -q -m PEM -b 4096 -t rsa -f $privateKeyFilePath -N $keypassphrase
+$sshPrivateKey = Get-Content $privateKeyFilePath -Raw 
+$sshPublicKey = Get-Content $publicKeyFilePath -Raw
+
+## Delete SSH keys from file system
+Remove-Item -Path $privateKeyFilePath | Out-Null
+Remove-Item -Path $publicKeyFilePath | Out-Null
+
 ## Deploy Edge VM
 Write-Host "Getting Device Connection String for IoT Edge Deployment..."
 $edgeDeviceConnectionString = Get-AzIotHubDeviceConnectionString -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -KeyType primary
@@ -103,16 +124,16 @@ $dnsPrefix = "e2etesting-edgevm-" + $testSuffix
 Write-Host "Using DNS prefix: $($dnsPrefix)"
 
 $edgeParameters = @{
-    "dnsLabelPrefix" = $dnsPrefix
-    "adminUsername" = $edgeVmUsername
-    "deviceConnectionString" = $edgeDeviceConnectionString
-    "authenticationType" = "password"
-    "adminPasswordOrKey" = $edgeVmPassword
-    "vmSize" = $EdgeVmSize
+    "dnsLabelPrefix" = [string]$dnsPrefix
+    "adminUsername" = [string]$edgeVmUsername
+    "deviceConnectionString" = [string]$edgeDeviceConnectionString
+    "authenticationType" = "sshPublicKey"
+    "adminPasswordOrKey" = [string]$sshPublicKey
+    "vmSize" = [string]$EdgeVmSize
 }
 
 if ($EdgeVmLocation) {
-    $edgeParameters["location"] = $EdgeVmLocation
+    $edgeParameters["location"] = [string]$EdgeVmLocation
 }
 
 $edgeTemplateUri = "https://aka.ms/iotedge-vm-deploy"
@@ -128,8 +149,11 @@ if ($edgeDeployment.ProvisioningState -ne "Succeeded") {
 Write-Host "Adding/Updating KeVault-Secret 'pcs-simulation-user' with value '$($edgeVmUsername)'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'pcs-simulation-user' -SecretValue (ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force) | Out-Null
 
-Write-Host "Adding/Updating KeVault-Secret 'pcs-simulation-password' with value '***'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'pcs-simulation-password' -SecretValue (ConvertTo-SecureString $edgeVmPassword -AsPlainText -Force) | Out-Null
+Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-ssh-private-key'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-ssh-private-key' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
+
+Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-ssh-pubic-key'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-ssh-pubic-key' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
 
 ## This needs to be refactored. However, currently the SSH-Command is the only output from the Edge deployment script. And that command includes the FQDN of the VM.
 $sshUrl = $edgeDeployment.Outputs["public SSH"].Value
