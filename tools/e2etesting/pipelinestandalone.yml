@@ -48,7 +48,7 @@ stages:
     steps:
     - template: steps/runtests.yml
       parameters:
-        RunApiTests: false
+        PublisherMode: 'standalone'
 
 - stage: cleanup
   displayName: Cleanup resources

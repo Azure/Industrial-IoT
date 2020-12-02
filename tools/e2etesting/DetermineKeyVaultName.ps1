@@ -1,7 +1,12 @@
 param($ResourceGroupName)
 
-$context = Get-AzContext
-Write-Host "Current context '$($context.Name)'"
+# Stop execution when an error occurs.
+$ErrorActionPreference = "Stop"
+
+if (!$ResourceGroupName) {
+    Write-Error "ResourceGroupName is empty."
+    return
+}
 
 $keyVaultVariableName = "KeyVaultName"
 

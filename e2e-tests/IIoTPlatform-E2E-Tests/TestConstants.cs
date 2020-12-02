@@ -36,6 +36,16 @@ namespace IIoTPlatform_E2E_Tests {
         public const int MaxDelayDeploymentToBeLoadedInMilliseconds = 10 * 60 * 1000;
 
         /// <summary>
+        /// Name of Published Nodes Json used by publisher module
+        /// </summary>
+        public const string PublisherPublishedNodesFile = "published_nodes.json";
+
+        /// <summary>
+        /// Folder to store published_nodes.json file
+        /// </summary>
+        public const string PublishedNodesFolder = "/mount";
+
+        /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
         /// </summary>
         internal static class APIRoutes {
@@ -158,17 +168,17 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// DNS name of edge device
             /// </summary>
-            public const string IOT_EDGE_DEVICE_DNS_NAME = "IOT_EDGE_DEVICE_DNS_NAME";
+            public const string IOT_EDGE_DEVICE_DNSNAME = "IOT_EDGE_DEVICE_DNSNAME";
 
             /// <summary>
             /// User name of vm that hosting edge device
             /// </summary>
-            public const string PCS_SIMULATION_USER = "PCS_SIMULATION_USER";
+            public const string IOT_EDGE_VM_USERNAME = "IOT_EDGE_VM_USERNAME";
 
             /// <summary>
             /// Password of vm that hosting edge device
             /// </summary>
-            public const string PCS_SIMULATION_PASSWORD = "PCS_SIMULATION_PASSWORD";
+            public const string IOT_EDGE_VM_PASSWORD = "IOT_EDGE_VM_PASSWORD";
 
             /// <summary>
             /// IoT Hub connection string
@@ -183,7 +193,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// The connection string of the storage account that will be used for checkpointing (when monitoring IoT Hub)
             /// </summary>
-            public const string STORAGE_CONNECTIONSTRING = "STORAGE_CONNECTIONSTRING";
+            public const string STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING = "STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING";
 
             /// <summary>
             /// The service base url of the TestEventProcessor
@@ -224,6 +234,26 @@ namespace IIoTPlatform_E2E_Tests {
             /// Images tag
             /// </summary>
             public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG";
+        }
+
+        /// <summary>
+        /// Constants related to xUnit traits
+        /// </summary>
+        internal static class TraitConstants {
+            /// <summary>
+            /// The trait name of the Publisher Mode
+            /// </summary>
+            public const string PublisherModeTraitName = "PublisherMode";
+
+            /// <summary>
+            /// The trait value for PublisherMode = orchestrated
+            /// </summary>
+            public const string PublisherModeOrchestratedTraitValue = "orchestrated";
+
+            /// <summary>
+            /// The trait value for PublisherMode = standalone
+            /// </summary>
+            public const string PublisherModeStandaloneTraitValue = "standalone";
         }
     }
 }

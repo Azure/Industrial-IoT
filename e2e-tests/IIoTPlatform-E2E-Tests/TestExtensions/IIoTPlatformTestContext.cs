@@ -34,6 +34,11 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public string? OpcUaEndpointId { get; set; }
 
         /// <summary>
+        /// Folder path where PublishedNodes file is saved during the test
+        /// </summary>
+        public string? PublishedNodesFileInternalFolder { get; set; }
+
+        /// <summary>
         /// Helper to write output, need to be set from constructor of test class
         /// </summary>
         public ITestOutputHelper? OutputHelper { get; set; }
@@ -124,7 +129,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IIoTHubConfig.IoTHubEventHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING,
             () => throw new Exception("IoT Hub EventHub connection string is not provided."));
 
-        string IIoTHubConfig.CheckpointStorageConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.STORAGE_CONNECTIONSTRING,
+        string IIoTHubConfig.CheckpointStorageConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING,
             () => throw new Exception("IoT Hub Checkpoint Storage connection string is not provided."));
 
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
@@ -142,13 +147,13 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string IIIoTPlatformConfig.ApplicationName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.ApplicationName,
             () => throw new Exception("ApplicationName is not provided."));
 
-        string ISshConfig.Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SIMULATION_USER,
+        string ISshConfig.Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_USERNAME,
             () => throw new Exception("Username of iot edge device is not provided."));
 
-        string ISshConfig.Password => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SIMULATION_PASSWORD,
+        string ISshConfig.Password => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_PASSWORD,
             () => throw new Exception("Password of iot edge device is not provided."));
 
-        string ISshConfig.Host => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_DNS_NAME,
+        string ISshConfig.Host => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_DNSNAME,
             () => throw new Exception("DNS name of iot edge device is not provided."));
 
         string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,

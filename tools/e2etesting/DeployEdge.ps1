@@ -146,8 +146,8 @@ if ($edgeDeployment.ProvisioningState -ne "Succeeded") {
     Write-Error "Deployment $($edgeDeployment.ProvisioningState)."
 }
 
-Write-Host "Adding/Updating KeVault-Secret 'pcs-simulation-user' with value '$($edgeVmUsername)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'pcs-simulation-user' -SecretValue (ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force) | Out-Null
+Write-Host "Adding/Updating KeVault-Secret 'iot-edge-vm-username' with value '$($edgeVmUsername)'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-username' -SecretValue (ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force) | Out-Null
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-ssh-private-key'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-ssh-private-key' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
@@ -159,8 +159,8 @@ Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-ssh-pubic-ke
 $sshUrl = $edgeDeployment.Outputs["public SSH"].Value
 $fqdn = $sshUrl.Split("@")[1]
 
-Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dns-name' with value '$($fqdn)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-dns-name' -SecretValue (ConvertTo-SecureString $fqdn -AsPlainText -Force) | Out-Null
+Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value '$($fqdn)'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-dnsname' -SecretValue (ConvertTo-SecureString $fqdn -AsPlainText -Force) | Out-Null
 
 Write-Host "Deployment finished."
 
