@@ -235,5 +235,25 @@ namespace IIoTPlatform_E2E_Tests {
             /// </summary>
             public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG";
         }
+
+        /// <summary>
+        /// Constants related to xUnit traits
+        /// </summary>
+        internal static class TraitConstants {
+            /// <summary>
+            /// The trait name of the Publisher Mode
+            /// </summary>
+            public const string PublisherModeTraitName = "PublisherMode";
+
+            /// <summary>
+            /// The trait value for PublisherMode = orchestrated
+            /// </summary>
+            public const string PublisherModeOrchestratedTraitValue = "orchestrated";
+
+            /// <summary>
+            /// The trait value for PublisherMode = standalone
+            /// </summary>
+            public const string PublisherModeStandaloneTraitValue = "standalone";
+        }
     }
 }
