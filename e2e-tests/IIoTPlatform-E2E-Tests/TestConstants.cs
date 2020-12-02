@@ -176,9 +176,14 @@ namespace IIoTPlatform_E2E_Tests {
             public const string IOT_EDGE_VM_USERNAME = "IOT_EDGE_VM_USERNAME";
 
             /// <summary>
-            /// Password of vm that hosting edge device
+            /// SSH public key of vm that hosting edge device
             /// </summary>
-            public const string IOT_EDGE_VM_PASSWORD = "IOT_EDGE_VM_PASSWORD";
+            public const string IOT_EDGE_VM_PUBLICKEY = "IOT_EDGE_VM_PUBLICKEY";
+
+            /// <summary>
+            /// SSH private key of vm that hosting edge device
+            /// </summary>
+            public const string IOT_EDGE_VM_PRIVATEKEY = "IOT_EDGE_VM_PRIVATEKEY";
 
             /// <summary>
             /// IoT Hub connection string

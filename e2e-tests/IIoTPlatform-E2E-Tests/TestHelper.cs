@@ -14,6 +14,7 @@ namespace IIoTPlatform_E2E_Tests {
     using System.IO;
     using System.Linq;
     using System.Net.Http;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using TestExtensions;
@@ -183,11 +184,11 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.True(File.Exists(sourceFilePath), "source file does not exist");
 
             CreateFolderOnIoTEdge(TestConstants.PublishedNodesFolder, context);
-
-            var client = new ScpClient(
+            using var keyFile = new PrivateKeyFile(GetPrivateSshKey(context));
+            using var client = new ScpClient(
                 context.SshConfig.Host,
                 context.SshConfig.Username,
-                context.SshConfig.Password);
+                keyFile);
             client.Connect();
 
             if (string.IsNullOrEmpty(sourceFilePath)) {
@@ -199,6 +200,42 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
+        /// Get Content of environment variable as memory stream
+        /// </summary>
+        /// <param name="sshConfig">SSH config</param>
+        /// <returns>Memory stream instance</returns>
+        private static Stream GetPrivateSshKey(ISshConfig sshConfig) {
+            var buffer = Encoding.Default.GetBytes(sshConfig.PrivateKey);
+            var stream = new MemoryStream(buffer);
+            return stream;
+        }
+
+        /// <summary>
+        /// Create a new SshClient based on SshConfig and directly connects to host
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <returns>Instance of SshClient, that need to be disposed</returns>
+        private static SshClient CreateSshClientAndConnect(IIoTPlatformTestContext context) {
+            context.OutputHelper?.WriteLine("Load private key from environment variable");
+            var privateKeyStream = GetPrivateSshKey(context.SshConfig);
+            var privateKeyFile = new PrivateKeyFile(privateKeyStream);
+
+            context.OutputHelper?.WriteLine("Create SSH Client");
+            var client = new SshClient(
+                context.SshConfig.Host,
+                context.SshConfig.Username,
+                privateKeyFile);
+
+            context.OutputHelper?.WriteLine("open ssh connection to host {0} with username {1}",
+                context.SshConfig.Host,
+                context.SshConfig.Username);
+            client.Connect();
+            context.OutputHelper?.WriteLine("ssh connection successful established");
+
+            return client;
+        }
+
+        /// <summary>
         /// Delete published_nodes.json file into the OPC Publisher edge module
         /// </summary>
         /// <param name="destinationFilePath">Destination file path</param>
@@ -207,17 +244,14 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.True(File.Exists(destinationFilePath), "file does not exist");
 
             var isSuccessful = false;
-            var client = new SshClient(
-                context.SshConfig.Host,
-                context.SshConfig.Username,
-                context.SshConfig.Password);
+            using var client = CreateSshClientAndConnect(context);
             client.Connect();
 
             var terminal = client.RunCommand("rm " + destinationFilePath);
             if (string.IsNullOrEmpty(terminal.Error)) {
                 isSuccessful = true;
             }
-            Assert.True(isSuccessful, "Delete file was not successfull");
+            Assert.True(isSuccessful, "Delete file was not successful");
         }
 
         /// <summary>
@@ -229,10 +263,7 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.True(!string.IsNullOrWhiteSpace(folderPath), "folder does not exist");
 
             var isSuccessful = false;
-            var client = new SshClient(
-                context.SshConfig.Host,
-                context.SshConfig.Username,
-                context.SshConfig.Password);
+            using var client = CreateSshClientAndConnect(context);
             client.Connect();
 
             var terminal = client.RunCommand("sudo mkdir " + folderPath + ";" + "cd " + folderPath + "; " + "sudo chmod 777 " + folderPath);
