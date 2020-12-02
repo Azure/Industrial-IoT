@@ -289,7 +289,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns></returns>
-        public static async Task StopMonitoringIncomingMessages(IIoTPlatformTestContext context) {
+        public static async Task<dynamic> StopMonitoringIncomingMessages(IIoTPlatformTestContext context) {
             // TODO Merge with Start-Method to avoid code duplication
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
 
@@ -311,8 +311,8 @@ namespace IIoTPlatform_E2E_Tests {
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
             Assert.NotEmpty(json);
-            bool isSuccess = (bool)json["isSuccess"];
-            Assert.True(isSuccess);
+
+            return json;
         }
 
         /// <summary>

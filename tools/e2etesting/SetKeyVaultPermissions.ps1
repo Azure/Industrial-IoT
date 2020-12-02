@@ -1,24 +1,34 @@
 Param(
     [string]
-    $KeyVaultName,
-    [string]
     $ResourceGroupName,
     [string]
     $ServicePrincipalName
 )
 
-$azContext = Get-AzContext
-Write-Host "AccountId: $($azContext.Account.Id)"
-Write-Host "Context:"
-$azContext
+# Stop execution when an error occurs.
+$ErrorActionPreference = "Stop"
+
+if (!$ResourceGroupName) {
+    Write-Error "ResourceGroupName not set."
+}
+
+$keyVaults = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
+
+if (!$keyVaults) {
+    Write-Error "Could not find any KeyVaults in Resource Group ($ResourceGroupName)"
+}
 
 if ($ServicePrincipalName) {
-    Write-Host "Adding List,Get-Permissions for secrets of vault '$($KeyVaultName)' for ServicePrincipalName '$($ServicePrincipalName)'"
-    Set-AzKeyVaultAccessPolicy -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName -ServicePrincipalName $ServicePrincipalName -PermissionsToSecrets get,list,set
+    $keyVaults | %{
+        Write-Host "Adding List,Get,Set-Permissions for secrets of vault '$($_.VaultName)' for ServicePrincipalName '$($ServicePrincipalName)'"
+        Set-AzKeyVaultAccessPolicy -VaultName $_.VaultName -ResourceGroupName $ResourceGroupName -ServicePrincipalName $ServicePrincipalName -PermissionsToSecrets get,list,set 
+    }
 } else {
     if ($azContext.Account.Id) {
-        Write-Host "Adding List,Get-Permissions for secrets of vault '$($KeyVaultName)' for UserPrincipalName '$($azContext.Account.Id)'"
-        Set-AzKeyVaultAccessPolicy -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName -UserPrincipalName $azContext.Account.Id -PermissionsToSecrets get,list,set
+        $keyVaults | %{
+            Write-Host "Adding List,Get,Set-Permissions for secrets of vault '$($_.VaultName)' for UserPrincipalName '$($azContext.Account.Id)'"
+            Set-AzKeyVaultAccessPolicy -VaultName $_.VaultName -ResourceGroupName $ResourceGroupName -UserPrincipalName $azContext.Account.Id -PermissionsToSecrets get,list,set
+        }
     } else {
         Write-Error "Not logged in" -ErrorAction Stop
     }

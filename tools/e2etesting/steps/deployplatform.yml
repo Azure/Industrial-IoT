@@ -9,9 +9,8 @@ steps:
     scriptType: 'ps'
     addSpnToEnvironment: true
     inlineScript: |
-      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$($env:servicePrincipalId)"
-      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$($env:servicePrincipalKey)"
-      Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$($env:tenantId)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
 
 - task: DownloadPipelineArtifact@2
   inputs:
@@ -26,8 +25,8 @@ steps:
     scriptType: filePath
     scriptPath: '$(BasePath)\ReplaceVariablesInAppSettings.ps1'
     scriptArguments: >
-      -ClientId "$(ARM_CLIENT_ID)"
-      -ClientSecret "$(ARM_CLIENT_SECRET)"
+      -ClientId "$(ServicePrincipalId)"
+      -ClientSecret "$(ServicePrincipalKey)"
       -ApplicationName "$(ApplicationName)"
       -AppSettingsFilename "$(BasePath)\IAI\appsettings.json"
       -ResourceGroupName "$(ResourceGroupName)"
@@ -42,16 +41,6 @@ steps:
     workingDirectory: '$(BasePath)\IAI'
 
 - task: AzurePowerShell@5
-  displayName: 'Set KeyVaultName-Variable'
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
-    scriptType: filePath
-    scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
-    scriptArguments: >
-      -ResourceGroupName "$(ResourceGroupName)"
-
-- task: AzurePowerShell@5
   displayName: "Add permissions to KeyVault"
   name: keyvaultpermissions
   inputs:
@@ -60,6 +49,5 @@ steps:
     scriptType: filePath
     scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
     scriptArguments: >
-      -KeyVaultName "$(KeyVaultName)"
       -ResourceGroupName "$(ResourceGroupName)"
-      -ServicePrincipalName "$(ARM_CLIENT_ID)"
+      -ServicePrincipalName "$(ServicePrincipalId)"

@@ -62,18 +62,18 @@ if ($keyVault.Count -ne 1) {
 $prefix = "e2etesting-simulation"
 
 $plcTemplateParameters = @{
-    "numberOfSimulations" = $numberOfSimulations
+    "numberOfSimulations" = [int]$numberOfSimulations
     "numberOfSlowNodes" = 1000
     "slowNodeRate" = 10
     "slowNodeType" = "uint"
     "numberOfFastNodes" = 1000
     "fastNodeRate" = 1
     "fastNodeType" = "uint"
-    "resourcesPrefix" = $prefix
-    "resourcesSuffix" = $testSuffix
+    "resourcesPrefix" = "$($prefix)"
+    "resourcesSuffix" = "$($testSuffix)"
 }
 
-$plcTemplate = [System.IO.Path]::Combine($TemplateDir, "e2e.plc.simulation.json")
+$plcTemplate = [System.IO.Path]::Combine($TemplateDir, "e2e.plc.simulation.json").Replace("/", "\")
 
 Write-Host "Resource Group: $($ResourceGroupName)"
 Write-Host "Number of PLCs: $($NumberOfSimulations)"
@@ -81,13 +81,28 @@ Write-Host "Resources prefix: $($prefix)"
 Write-Host "Resources suffix: $($testSuffix)"
 Write-Host "Key Vault Name: $($keyVault.VaultName)"
 Write-Host "ARM Template: $($plcTemplate)"
-Write-Host
-Write-Host "Running deployment with $($plcTemplate)..."
 
-$plcDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $plcTemplate -TemplateParameterObject $plcTemplateParameters
+$maxAttempts = 2;
+$attempt = 0;
+$success = $false
 
-if ($plcDeployment.ProvisioningState -ne "Succeeded") {
-    Write-Error "Deployment $($plcDeployment.ProvisioningState)." -ErrorAction Stop
+while (++$attempt -le $maxAttempts) {
+    Write-Host
+    Write-Host "Running deployment with $($plcTemplate) (Attempt #$($attempt)/$($maxAttempts))..."
+    $plcDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $plcTemplate -TemplateParameterObject $plcTemplateParameters
+
+    if ($plcDeployment.ProvisioningState -ne "Succeeded") {
+        Write-Warning "Deployment failed: $($plcDeployment.ProvisioningState)." -ErrorAction Stop
+    }
+    else {
+        Write-Host "Deployment successful."
+        $success = $true
+        break
+    }
+}
+
+if (!$success) {
+    Write-Error "Error while deploying simulated PLCs."    
 }
 
 Write-Host "Getting IPs of ACIs for simulated PLCs..."

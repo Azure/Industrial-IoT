@@ -63,6 +63,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         /// <summary>
         ///   Looks up a localized string similar to #!/usr/bin/env bash
         ///
+        ///# Change date: 30.11.2020 # This is used to trigger VS resx resource change.
+        ///
         ///################################################################################
         ///#
         ///# NOTE: Requires to be run as sudo
@@ -71,18 +73,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///#   1. Install Azure CLI
         ///#   2. Install kubectl
         ///#   3. Install Helm
-        ///#   4. Install stable/nginx-ingress Helm chart
+        ///#   4. Install ingress-nginx/ingress-nginx Helm chart
         ///#   5. Install jetstack/cert-manager Helm chart
         ///#   6. Install &lt;repo&gt;/azure-industrial-iot Helm chart
         ///#
-        ///################################################################################
-        ///
-        ///set -e
-        ///set -x
-        ///
-        ///CWD=$(pwd)
-        ///
-        ///RESOURCE_G [rest of string was truncated]&quot;;.
+        ///################################## [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string jumpbox {
             get {

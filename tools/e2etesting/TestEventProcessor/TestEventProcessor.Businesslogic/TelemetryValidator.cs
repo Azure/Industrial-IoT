@@ -3,26 +3,25 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
-namespace TestEventProcessor.BusinessLogic
-{
+
+namespace TestEventProcessor.BusinessLogic {
+    using AsyncAwaitBestPractices;
+    using Azure.Messaging.EventHubs;
+    using Azure.Messaging.EventHubs.Consumer;
+    using Azure.Messaging.EventHubs.Processor;
+    using Azure.Storage.Blobs;
+    using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Globalization;
     using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.Messaging.EventHubs;
-    using Azure.Messaging.EventHubs.Consumer;
-    using Azure.Messaging.EventHubs.Processor;
-    using Azure.Storage.Blobs;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Validates the value changes within IoT Hub Methods
@@ -31,27 +30,34 @@ namespace TestEventProcessor.BusinessLogic
     {
         private CancellationTokenSource _cancellationTokenSource;
         private EventProcessorClient _client = null;
-        private TimeSpan opcDiffToNow = TimeSpan.MinValue;
-        private bool _missedMessage = false;
+        private TimeSpan opcDiffToNow = TimeSpan.Zero;
+        private DateTime _startTime = DateTime.MinValue;
+        private int _totalValueChangesCount = 0;
+        private int _shuttingDown;
 
         /// <summary>
         /// Dictionary containing all sequence numbers related to a timestamp
         /// </summary>
-        private ConcurrentDictionary<string, int> _valueChangesPerTimestamp;
+        private ConcurrentDictionary<DateTime, int> _valueChangesPerTimestamp;
+
+        /// <summary>
+        /// Dictionary that contains the number of value changes (value) by Node Id (key)
+        /// </summary>
+        private ConcurrentDictionary<string, int> _valueChangesPerNodeId;
 
         /// <summary>
         /// Dictionary containing timestamps the were observed
         /// </summary>
-        private ConcurrentQueue<string> _observedTimestamps;
+        private ConcurrentQueue<DateTime> _observedTimestamps;
 
-        private ConcurrentDictionary<string, DateTime> _iotHubMessageEnqueuedTimes;
+        private ConcurrentDictionary<DateTime, DateTime> _iotHubMessageEnqueuedTimes;
 
         /// <summary>
         /// Format to be used for Timestamps
         /// </summary>
         private const string _dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffffZ";
         /// <summary>
-        /// Instance to write logs 
+        /// Instance to write logs
         /// </summary>
         private readonly ILogger _logger;
 
@@ -61,20 +67,7 @@ namespace TestEventProcessor.BusinessLogic
         private ValidatorConfiguration _currentConfiguration;
 
         /// <summary>
-        /// All expected value changes for timestamp are received
-        /// </summary>
-        public event EventHandler<TimestampCompletedEventArgs> TimestampCompleted;
-        /// <summary>
-        /// Missing timestamp is detected
-        /// </summary>
-        public event EventHandler<MissingTimestampEventArgs> MissingTimestamp;
-        /// <summary>
-        /// Total duration between sending from OPC UA Server until receiving at IoT Hub, was too long
-        /// </summary>
-        public event EventHandler<DurationExceededEventArgs> DurationExceeded;
-
-        /// <summary>
-        /// Create instance of TelemetryValidator 
+        /// Create instance of TelemetryValidator
         /// </summary>
         /// <param name="logger">Instance to write logs</param>
         /// <param name="iotHubConnectionString">Connection string for integrated event hub endpoint of IoTHub</param>
@@ -130,12 +123,14 @@ namespace TestEventProcessor.BusinessLogic
             if (string.IsNullOrWhiteSpace(configuration.BlobContainerName)) throw new ArgumentNullException(nameof(configuration.BlobContainerName));
             if (string.IsNullOrWhiteSpace(configuration.EventHubConsumerGroup)) throw new ArgumentNullException(nameof(configuration.EventHubConsumerGroup));
 
-            _missedMessage = false;
+            Interlocked.Exchange(ref _shuttingDown, 0);
             _currentConfiguration = configuration;
 
-            _valueChangesPerTimestamp = new ConcurrentDictionary<string, int>(4, 500);
-            _iotHubMessageEnqueuedTimes = new ConcurrentDictionary<string, DateTime>(4, 500);
-            _observedTimestamps = new ConcurrentQueue<string>();
+            _valueChangesPerTimestamp = new ConcurrentDictionary<DateTime, int>(4, 500);
+            _valueChangesPerNodeId = new ConcurrentDictionary<string, int>(4, 500);
+            _iotHubMessageEnqueuedTimes = new ConcurrentDictionary<DateTime, DateTime>(4, 500);
+            _observedTimestamps = new ConcurrentQueue<DateTime>();
+            Interlocked.Exchange(ref _totalValueChangesCount, 0);
 
             _cancellationTokenSource = new CancellationTokenSource();
             var token = _cancellationTokenSource.Token;
@@ -154,6 +149,9 @@ namespace TestEventProcessor.BusinessLogic
 
             _logger.LogInformation("Starting monitoring of events...");
             await _client.StartProcessingAsync(token);
+
+            _startTime = DateTime.UtcNow;
+
             CheckForMissingValueChangesAsync(token).Start();
             CheckForMissingTimestampsAsync(token).Start();
 
@@ -164,18 +162,39 @@ namespace TestEventProcessor.BusinessLogic
         /// Stop monitoring of events.
         /// </summary>
         /// <returns></returns>
-        public Task<StopResult> StopAsync()
+        public async Task<StopResult> StopAsync()
         {
-            if (_cancellationTokenSource != null)
-            {
+            Interlocked.Exchange(ref _shuttingDown, 1);
+
+            var endTime = DateTime.UtcNow;
+            // to finish up messages related to a timestamp, we collect some more time
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            // check one last time if all messages related for timestamp are received
+            CheckForMissingTimestamps();
+            bool allInExpectedInterval = _observedTimestamps.IsEmpty;
+            _logger.LogInformation("Number of incomplete timestamps while stopping: {IncompleteTimestamps}", _observedTimestamps.Count);
+
+            if (_cancellationTokenSource != null) {
                 _cancellationTokenSource.Cancel();
                 _cancellationTokenSource = null;
             }
 
             // the stop procedure takes about a minute, so we fire and forget.
-            StopEventProcessorClientAsync();
+            StopEventProcessorClientAsync().SafeFireAndForget(e => _logger.LogError(e, "Error while stopping event monitoring."));
 
-            return Task.FromResult(new StopResult() {IsSuccess = !_missedMessage});
+            // TODO collect "expected" parameter as groups related to OPC UA nodes
+            bool allExpectedValueChanges = _valueChangesPerNodeId?.All(kvp =>
+                (kvp.Value / _totalValueChangesCount) == _currentConfiguration.ExpectedValueChangesPerTimestamp) ?? false;
+            _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}", allExpectedValueChanges);
+
+            return new StopResult() {
+                    ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(_valueChangesPerNodeId ?? new ConcurrentDictionary<string, int>()),
+                    AllExpectedValueChanges = allExpectedValueChanges,
+                    TotalValueChangesCount = _totalValueChangesCount,
+                    AllInExpectedInterval = allInExpectedInterval,
+                    StartTime = _startTime,
+                    EndTime = endTime,
+                };
         }
 
         /// <summary>
@@ -195,14 +214,14 @@ namespace TestEventProcessor.BusinessLogic
                 tempClient.ProcessEventAsync -= Client_ProcessEventAsync;
                 tempClient.ProcessErrorAsync -= Client_ProcessErrorAsync;
             }
-            
+
             _logger.LogInformation("Stopped monitoring of events.");
         }
 
 
 
         /// <summary>
-        /// Running a thread that analyze the value changes per timestamp 
+        /// Running a thread that analyze the value changes per timestamp
         /// </summary>
         /// <param name="token">Token to cancel the thread</param>
         /// <returns>Task that run until token is canceled</returns>
@@ -215,49 +234,40 @@ namespace TestEventProcessor.BusinessLogic
                     token.ThrowIfCancellationRequested();
                     while (!token.IsCancellationRequested)
                     {
-                        var entriesToDelete = new List<string>(50);
-                        foreach (var missingSequence in _valueChangesPerTimestamp)
-                        {
+                        _logger.LogInformation("Currently, {total} value changes were received, currently waiting for {incompletedTimestamps} timestamp to be completed.", _totalValueChangesCount, _valueChangesPerTimestamp.Count);
+
+                        var entriesToDelete = new List<DateTime>(50);
+                        foreach (var missingSequence in _valueChangesPerTimestamp) {
                             var numberOfValueChanges = missingSequence.Value;
-                            if (numberOfValueChanges >= _currentConfiguration.ExpectedValueChangesPerTimestamp)
-                            {
+                            if (numberOfValueChanges >= _currentConfiguration.ExpectedValueChangesPerTimestamp) {
                                 _logger.LogInformation(
                                     "Received {NumberOfValueChanges} value changes for timestamp {Timestamp}",
                                     numberOfValueChanges, missingSequence.Key);
 
-                                TimestampCompleted?.Invoke(this, new TimestampCompletedEventArgs(missingSequence.Key, numberOfValueChanges));
-                                // don't check for gaps of sequence numbers because they reflect the for number of messages  
+                                // don't check for gaps of sequence numbers because they reflect the for number of messages
                                 // send from OPC server to OPC publisher, it should be internally handled in OPCF stack
 
                                 entriesToDelete.Add(missingSequence.Key);
                             }
 
                             // Check the total duration from OPC UA Server until IoT Hub
-                            bool success = DateTime.TryParseExact(missingSequence.Key, _dateTimeFormat,
-                                formatInfoProvider, DateTimeStyles.None, out var timeStamp);
-
-                            if (!success)
-                            {
-                                _logger.LogWarning("Can't recreate Timestamp from string");
-                            }
 
                             var iotHubEnqueuedTime = _iotHubMessageEnqueuedTimes[missingSequence.Key];
-                            var durationDifference = iotHubEnqueuedTime.Subtract(timeStamp);
+                            var durationDifference = iotHubEnqueuedTime.Subtract(missingSequence.Key);
+
                             if (durationDifference.TotalMilliseconds < 0)
                             {
                                 _logger.LogWarning("Total duration is negative number, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
-                                    timeStamp.ToString(_dateTimeFormat, formatInfoProvider),
+                                    missingSequence.Key.ToString(_dateTimeFormat, formatInfoProvider),
                                     iotHubEnqueuedTime.ToString(_dateTimeFormat, formatInfoProvider),
                                     durationDifference);
                             }
-                            if (Math.Round(durationDifference.TotalMilliseconds) > _currentConfiguration.ExpectedMaximalDuration)
+                            if (Math.Round(durationDifference.TotalMilliseconds) > _currentConfiguration.ExpectedMaximalDuration) 
                             {
                                 _logger.LogInformation("Total duration exceeded limit, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
-                                    timeStamp.ToString(_dateTimeFormat, formatInfoProvider),
+                                    missingSequence.Key.ToString(_dateTimeFormat, formatInfoProvider),
                                     iotHubEnqueuedTime.ToString(_dateTimeFormat, formatInfoProvider),
                                     durationDifference);
-
-                                DurationExceeded?.Invoke(this, new DurationExceededEventArgs(timeStamp, iotHubEnqueuedTime));
                             }
 
                             // don'T check for duration between enqueued in IoTHub until processed here
@@ -294,7 +304,7 @@ namespace TestEventProcessor.BusinessLogic
                                     _currentConfiguration.ExpectedValueChangesPerTimestamp - missingSequence.Value);
                             }
                         }
-                        
+
                         Task.Delay(10000, token).Wait(token);
                     }
                 }
@@ -320,45 +330,9 @@ namespace TestEventProcessor.BusinessLogic
                 try
                 {
                     var formatInfoProvider = new DateTimeFormatInfo();
-                    while (!token.IsCancellationRequested)
-                    {
-                        if (_observedTimestamps.Count >= 2)
-                        {
-                            bool success = _observedTimestamps.TryDequeue(out var olderTimestamp);
-                            success &= _observedTimestamps.TryDequeue(out var newTimestamp);
-                            success &= DateTime.TryParseExact(olderTimestamp, _dateTimeFormat,
-                                formatInfoProvider, DateTimeStyles.None, out var older);
-                            success &= DateTime.TryParseExact(newTimestamp, _dateTimeFormat,
-                                formatInfoProvider, DateTimeStyles.None, out var newer);
-                            if (!success)
-                            {
-                                _logger.LogError("Can't dequeue timestamps from internal storage");
-                            }
+                    while (!token.IsCancellationRequested) {
 
-                            // compare on milliseconds isn't useful, instead try time window of 100 milliseconds
-                            var expectedTime =
-                                older.AddMilliseconds(_currentConfiguration.ExpectedIntervalOfValueChanges);
-                            var expectedMin = expectedTime.AddMilliseconds(-_currentConfiguration.ThresholdValue);
-                            var expectedMax = expectedTime.AddMilliseconds(_currentConfiguration.ThresholdValue);
-
-                            if (newer < expectedMin || newer > expectedMax)
-                            {
-                                var expectedTS = expectedTime.ToString(_dateTimeFormat);
-                                var olderTS = older.ToString(_dateTimeFormat);
-                                var newerTS = newer.ToString(_dateTimeFormat);
-                                _logger.LogWarning(
-                                    "Missing timestamp, value changes for {ExpectedTs} not received, predecessor {Older} successor {Newer}",
-                                    expectedTS,
-                                    olderTS,
-                                    newerTS);
-
-                                _missedMessage = true;
-
-                                MissingTimestamp?.Invoke(this,
-                                    new MissingTimestampEventArgs(expectedTS, olderTS, newerTS));
-                            }
-                        }
-
+                        CheckForMissingTimestamps();
                         Task.Delay(20000, token).Wait(token);
                     }
                 }
@@ -373,6 +347,36 @@ namespace TestEventProcessor.BusinessLogic
             }, token);
         }
 
+        private void CheckForMissingTimestamps()
+        {
+            while (_observedTimestamps.Count >= 2)
+            {
+                bool success = _observedTimestamps.TryDequeue(out var older);
+                success &= _observedTimestamps.TryDequeue(out var newer);
+
+                if (!success) {
+                    _logger.LogError("Can't dequeue timestamps from internal storage");
+                }
+
+                // compare on milliseconds isn't useful, instead try time window of 100 milliseconds
+                var expectedTime = older.AddMilliseconds(_currentConfiguration.ExpectedIntervalOfValueChanges);
+
+                var expectedMin = expectedTime.AddMilliseconds(-_currentConfiguration.ThresholdValue);
+                var expectedMax = expectedTime.AddMilliseconds(_currentConfiguration.ThresholdValue);
+
+                if (newer < expectedMin || newer > expectedMax) {
+                    var expectedTS = expectedTime.ToString(_dateTimeFormat);
+                    var olderTS = older.ToString(_dateTimeFormat);
+                    var newerTS = newer.ToString(_dateTimeFormat);
+                    _logger.LogWarning(
+                        "Missing timestamp, value changes for {ExpectedTs} not received, predecessor {Older} successor {Newer}",
+                        expectedTS,
+                        olderTS,
+                        newerTS);
+                }
+            }
+        }
+
         /// <summary>
         /// Analyze payload of IoTHub message, adding timestamp and related sequence numbers into temporary
         /// </summary>
@@ -382,6 +386,7 @@ namespace TestEventProcessor.BusinessLogic
         {
             if (_cancellationTokenSource == null) //we already in stop process, so do not do anything new.
             {
+                _logger.LogWarning("Received Events but nothing to do, because already stopped");
                 return;
             }
 
@@ -400,25 +405,32 @@ namespace TestEventProcessor.BusinessLogic
 
             foreach (dynamic entry in json)
             {
-                string timestamp = null;
-                int sequence = int.MinValue;
+                DateTime timestamp;
+                string nodeId = null;
 
                 try
                 {
-                    sequence = (int)entry.SequenceNumber;
-                    timestamp = ((DateTime)entry.Value.SourceTimestamp).ToString(_dateTimeFormat);
+                    timestamp = (DateTime)entry.Value.SourceTimestamp;
+                    nodeId = entry.NodeId;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Could not read sequence number and/or timestamp from message. Please make sure that publisher is running with samples format and with --fm parameter set.");
+                    _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from message. Please make sure that publisher is running with samples format and with --fm parameter set.");
                     return;
                 }
 
-                var newOpcDiffToNow = DateTime.UtcNow - (DateTime)entry.Value.SourceTimestamp;
+                // don't process new timestamps when shutdown is triggered and even number of timestamps observed
+                if (_shuttingDown != 0 && _observedTimestamps.Count % 2 == 0 && !_observedTimestamps.Contains(timestamp)) {
+                    _logger.LogInformation("Ignore timestamp {TimeStamp} because Stop is already called", timestamp);
+                    continue;
+                }
 
-                if (newOpcDiffToNow != opcDiffToNow)
+                var newOpcDiffToNow = DateTime.UtcNow - timestamp;
+                var diffFromLastTime = newOpcDiffToNow - opcDiffToNow;
+
+                if (diffFromLastTime.TotalMilliseconds > _currentConfiguration.ThresholdValue)
                 {
-                    _logger.LogWarning("The different between UtcNow and Opc Source Timestamp has changed by {diff}", (newOpcDiffToNow - opcDiffToNow));
+                    _logger.LogWarning("The different between UtcNow and Opc Source Timestamp has changed by {diff}", diffFromLastTime);
                 }
 
                 opcDiffToNow = newOpcDiffToNow;
@@ -428,12 +440,16 @@ namespace TestEventProcessor.BusinessLogic
                     (ts) => 0,
                     (ts, value) => ++value);
 
+                _valueChangesPerNodeId.AddOrUpdate(nodeId, 1, (k, v) => ++v);
+
+                Interlocked.Increment(ref _totalValueChangesCount);
+
                 valueChangesCount++;
 
                 if (!_observedTimestamps.Contains(timestamp))
                 {
                     _observedTimestamps.Enqueue(timestamp);
-                    
+
                     _iotHubMessageEnqueuedTimes.AddOrUpdate(
                         timestamp,
                         (_) => arg.Data.EnqueuedTime.UtcDateTime,
@@ -441,8 +457,8 @@ namespace TestEventProcessor.BusinessLogic
                 }
             }
 
-            _logger.LogDebug("Received {NumberOfValueChanges} from IoTHub, partition {PartitionId}, ", 
-                valueChangesCount, 
+            _logger.LogDebug("Received {NumberOfValueChanges} from IoTHub, partition {PartitionId}, ",
+                valueChangesCount,
                 arg.Partition.PartitionId);
         }
 
