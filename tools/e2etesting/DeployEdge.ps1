@@ -149,11 +149,11 @@ if ($edgeDeployment.ProvisioningState -ne "Succeeded") {
 Write-Host "Adding/Updating KeVault-Secret 'iot-edge-vm-username' with value '$($edgeVmUsername)'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-username' -SecretValue (ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force) | Out-Null
 
-Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-private-key'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-private-key' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
+Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-privatekey'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-privatekey' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
 
-Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-pubic-key'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-public-key' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
+Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
 
 ## This needs to be refactored. However, currently the SSH-Command is the only output from the Edge deployment script. And that command includes the FQDN of the VM.
 $sshUrl = $edgeDeployment.Outputs["public SSH"].Value

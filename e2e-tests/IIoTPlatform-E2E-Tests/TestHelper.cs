@@ -167,7 +167,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         private static async Task UpdateTagAsync(string patch, IIoTPlatformTestContext context) {
             var registryManager = context.RegistryHelper.RegistryManager;
-            var deviceId = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_ID);
+            var deviceId = context.DeviceConfig.DeviceId;
             Assert.True(!string.IsNullOrWhiteSpace(deviceId), "deviceId string is null");
 
             var twin = await registryManager.GetTwinAsync(deviceId);
@@ -241,11 +241,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="destinationFilePath">Destination file path</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static void DeletePublishedNodesFile(string destinationFilePath, IIoTPlatformTestContext context) {
-            Assert.True(File.Exists(destinationFilePath), "file does not exist");
-
             var isSuccessful = false;
             using var client = CreateSshClientAndConnect(context);
-            client.Connect();
 
             var terminal = client.RunCommand("rm " + destinationFilePath);
             if (string.IsNullOrEmpty(terminal.Error)) {
@@ -264,14 +261,13 @@ namespace IIoTPlatform_E2E_Tests {
 
             var isSuccessful = false;
             using var client = CreateSshClientAndConnect(context);
-            client.Connect();
 
             var terminal = client.RunCommand("sudo mkdir " + folderPath + ";" + "cd " + folderPath + "; " + "sudo chmod 777 " + folderPath);
             if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.Contains("File exists")) {
                 isSuccessful = true;
             }
 
-            Assert.True(isSuccessful, "Folder creation was not successfull");
+            Assert.True(isSuccessful, "Folder creation was not successful");
         }
 
         /// <summary>
