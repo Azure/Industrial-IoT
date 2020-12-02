@@ -17,6 +17,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// </summary>
     [TestCaseOrderer("IIoTPlatform_E2E_Tests.TestExtensions.TestOrderer", TestConstants.TestAssemblyName)]
     [Collection("IIoT Platform Test Collection")]
+    [Trait("PublisherMode", "standalone")]
     public class PublishNodesFromFileTestTheory {
         private readonly ITestOutputHelper _output;
         private readonly IIoTPlatformTestContext _context;

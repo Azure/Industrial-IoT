@@ -53,7 +53,7 @@ stages:
     steps:
     - template: steps/runtests.yml
       parameters:
-        RunApiTests: true
+        PublisherMode: 'orchestrated'
 
 - stage: cleanup
   displayName: Cleanup resources
