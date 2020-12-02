@@ -294,7 +294,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         public async void Test_VerfiyNoDataIncomingAtIoTHub() {
             await Task.Delay(90 * 1000); //wait till the publishing has stopped
             //use test event processor to verify data send to IoT Hub
-            await TestHelper.StartMonitoringIncomingMessages(_context, 1, 1000, 10000);
+            await TestHelper.StartMonitoringIncomingMessages(_context, 0, 0, 0);
             // wait some time to generate events to process
             await Task.Delay(90 * 1000);
             var json = await TestHelper.StopMonitoringIncomingMessages(_context);
