@@ -61,11 +61,11 @@ steps:
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
     arguments: '--configuration Release --filter PublisherMode=${{ parameters.PublisherMode }} --verbosity=normal'
   env:
-    PCS_SERVICE_URL: $(pcs-service-url)
-    PCS_AUTH_TENANT: $(pcs-auth-tenant)
-    PCS_AUTH_CLIENT_APPID: $(pcs-auth-client-appid)
-    PCS_AUTH_CLIENT_SECRET: $(pcs-auth-client-secret)
-    ApplicationName: $(ApplicationName)
+    PCS_SERVICE_URL: '$(pcs-service-url)'
+    PCS_AUTH_TENANT: '$(pcs-auth-tenant)'
+    PCS_AUTH_CLIENT_APPID: '$(pcs-auth-client-appid)'
+    PCS_AUTH_CLIENT_SECRET: '$(pcs-auth-client-secret)'
+    ApplicationName: '$(ApplicationName)'
     PLC_SIMULATION_URLS: $(plc-simulation-urls)
     IOT_EDGE_DEVICE_ID: $(iot-edge-device-id)
     IOT_EDGE_DEVICE_DNSNAME: $(iot-edge-device-dnsname)
