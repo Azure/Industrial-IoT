@@ -54,13 +54,12 @@ steps:
     SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
 - task: DotNetCoreCLI@2
-  displayName: 'Executing tests (with API Tests)'
-  condition: eq( '${{ parameters.PublisherMode }}', 'orchestrated')
+  displayName: 'Executing xUnit tests (with PublisherMode=${{ parameters.PublisherMode }})'
   timeoutInMinutes: 90
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-    arguments: '--configuration Release --filter PublisherMode=${{ parameters.PublisherMode }} --verbosity=detailed'
+    arguments: '--configuration Release --filter PublisherMode=${{ parameters.PublisherMode }} --verbosity=normal'
   env:
     PCS_SERVICE_URL: $(pcs-service-url)
     PCS_AUTH_TENANT: $(pcs-auth-tenant)
