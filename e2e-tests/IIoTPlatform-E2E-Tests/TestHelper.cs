@@ -170,10 +170,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         private static async Task UpdateTagAsync(string patch, IIoTPlatformTestContext context) {
             var registryManager = context.RegistryHelper.RegistryManager;
-            var deviceId = Environment.GetEnvironmentVariable(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_ID);
-            Assert.True(!string.IsNullOrWhiteSpace(deviceId), "deviceId string is null");
 
-            var twin = await registryManager.GetTwinAsync(deviceId);
+            var twin = await registryManager.GetTwinAsync(context.DeviceConfig.DeviceId);
             await registryManager.UpdateTwinAsync(twin.DeviceId, patch, twin.ETag);
         }
 
