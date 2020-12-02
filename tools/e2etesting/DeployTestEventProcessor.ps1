@@ -130,10 +130,17 @@ $key = Get-AzStorageAccountKey -ResourceGroupName $resourceGroup.ResourceGroupNa
 
 $storageAccountConnectionString = "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix=core.windows.net" -f $storageAccount.StorageAccountName, $key[0].Value
 
-## Creating container for Checkpoint storage ##
+## Ensure container for Checkpoint storage ##
 
+Write-Host
 $storageContext = $storageAccount.Context
-New-AzStorageContainer -Name $StorageContainerName -Context $storageContext -Permission Container
+
+$storageContainer = Get-AzStorageContainer -Name $StorageContainerName -Context $storageContext -ErrorAction SilentlyContinue 
+
+if (!$storageContainer) {
+    Write-Host "Creating storage container '$($StorageContainerName)' in storage account '$($storageAccount.StorageAccountName)'..."
+    $storageContainer = New-AzStorageContainer -Name $StorageContainerName -Context $storageContext -Permission Container | Out-Null
+}
 
 ## Ensure AppServicePlan ##
 
