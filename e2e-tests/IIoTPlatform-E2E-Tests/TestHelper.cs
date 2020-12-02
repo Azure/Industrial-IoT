@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
-    using IIoTPlatform_E2E_Tests.Config;
     using Newtonsoft.Json;
     using Renci.SshNet;
     using RestSharp;

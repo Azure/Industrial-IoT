@@ -49,6 +49,15 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(3)]
+        public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
+            var deploy = new IoTHubEdgeBaseDeployment(_context);
+            Assert.NotNull(deploy);
+            var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
+            _output.WriteLine("Created new EdgeBase layered deployment and publisher_standalone");
+            Assert.True(result);
+        }
+
+        [Fact, PriorityOrder(4)]
         public async Task Test_PublishFromPublishedNodesFile_Expect_Success() {
             var deploy = new IoTHubPublisherDeployment(_context);
             Assert.NotNull(deploy);
@@ -57,7 +66,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(result);
         }
 
-        [Fact, PriorityOrder(4)]
+        [Fact, PriorityOrder(5)]
         public async Task Test_WaitForModuleDeployed() {
             var cts = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
 
@@ -65,7 +74,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, _context, new string[] { "publisher_standalone" });
         }
 
-        [Fact, PriorityOrder(5)]
+        [Fact, PriorityOrder(6)]
         public async void Test_VerifyDataAvailableAtIoTHub() {
             //use test event processor to verify data send to IoT Hub
             await TestHelper.StartMonitoringIncomingMessages(_context, 1, 1000, 10000);
@@ -78,7 +87,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True((bool)json.allInExpectedInterval, "Messages send in unexpected interval");
         }
 
-        [Fact, PriorityOrder(6)]
+        [Fact, PriorityOrder(7)]
         public void SwitchToOrchestratedMode() {
             TestHelper.SwitchToOrchestratedMode(TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile, _context);
             _output.WriteLine("Switched to orchestrated mode and deleted published_nodes.json file");

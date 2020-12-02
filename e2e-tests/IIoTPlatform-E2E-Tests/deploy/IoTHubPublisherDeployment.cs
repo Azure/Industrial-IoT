@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
-    using Microsoft.Azure.Devices.Common.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -12,16 +11,16 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using Newtonsoft.Json;
     using Microsoft.Azure.Devices;
 
-    public class IoTHubPublisherDeployment {
+    public class IoTHubPublisherDeployment : DeploymentConfiguration, IIotHubDeployment {
 
-        public static readonly string TargetConditionStandalone =
+        public readonly string TargetConditionStandalone =
             $"(tags.__type__ = 'iiotedge' AND tags.unmanaged = true)";
 
         /// <summary>
         /// Create deployer
         /// </summary>
         /// <param name="context"></param>
-        public IoTHubPublisherDeployment(IIoTPlatformTestContext context) {
+        public IoTHubPublisherDeployment(IIoTPlatformTestContext context) : base(context) {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
@@ -31,7 +30,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public async Task<bool> CreateOrUpdateLayeredDeploymentAsync() {
             var isSuccessful = false;
             var configuration = await CreateOrUpdateConfigurationAsync(new Configuration(kDeploymentName) {
-                Content = new ConfigurationContent { ModulesContent = CreateLayeredDeployment() },
+                Content = new ConfigurationContent { ModulesContent = CreateDeploymentModules() },
                 TargetCondition = TargetConditionStandalone +
                     " AND tags.os = 'Linux'",
                 Priority = 1
@@ -43,10 +42,10 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         }
 
         /// <summary>
-        /// Get base edge configuration
+        ///  Create a deployment modules object
         /// </summary>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment() {
+        public IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) &&
                 _context.ContainerRegistryConfig.ContainerRegistryServer != "mcr.microsoft.com") {
@@ -104,40 +103,6 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
                 }
             }";
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(content);
-        }
-
-        public async Task<Configuration> CreateOrUpdateConfigurationAsync(
-            Configuration configuration, bool forceUpdate, string deploymentId, CancellationToken ct) {
-            try {
-                var getConfig = await _context.RegistryHelper.RegistryManager.GetConfigurationAsync(deploymentId, ct);
-                if (getConfig == null) {
-                    // First try create configuration
-                    try {
-                        var added = await _context.RegistryHelper.RegistryManager.AddConfigurationAsync(
-                        configuration, ct);
-                        return added;
-                    }
-                    catch (DeviceAlreadyExistsException) when (forceUpdate) {
-                        //
-                        // Technically update below should now work but for
-                        // some reason it does not.
-                        // Remove and re-add in case we are forcing updates.
-                        //
-                        await _context.RegistryHelper.RegistryManager.RemoveConfigurationAsync(configuration.Id, ct);
-                        var added = await _context.RegistryHelper.RegistryManager.AddConfigurationAsync(
-                            configuration, ct);
-                        return added;
-                    }
-                }
-
-                // Try update existing configuration
-                var result = await _context.RegistryHelper.RegistryManager.UpdateConfigurationAsync(
-                    configuration, forceUpdate, ct);
-                return result;
-            }
-            catch (Exception e) {
-                throw e;
-            }
         }
 
         private const string kModuleName = "publisher_standalone";
