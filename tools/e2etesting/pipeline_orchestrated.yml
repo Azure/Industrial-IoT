@@ -14,6 +14,11 @@ stages:
   displayName: "Build Resources"
   condition: ne(variables['UseExisting'], true)
   jobs:
+  - job: buildiai
+    displayName: 'Build IAI'
+    steps:
+    - template: steps/buildiai.yml
+
   - job: buildtestresources
     displayName: 'Build Test Resources'
     steps:
@@ -22,16 +27,16 @@ stages:
 - stage: deploy
   displayName: "Deploy Components"
   dependsOn: build
-  condition: and(not(canceled()), eq(dependencies.build.result, 'Succeeded'))
+  condition: eq(dependencies.build.result, 'Succeeded')
   jobs:  
-  - job: deploystandalone
-    displayName: 'Deploy Standalone Resources'
+  - job: deployplatform
+    displayName: 'Deploy Platform'
     steps:
-    - template: steps/deploystandalone.yml
+    - template: steps/deployplatform.yml
 
   - job: deploytestresources
-    condition: and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded'))
-    dependsOn: deploystandalone
+    condition: eq(dependencies.deployplatform.result, 'Succeeded')
+    dependsOn: deployplatform
     displayName: 'Deploy Test Resources'
     pool:
       name: '$(AgentPool)'
@@ -41,14 +46,14 @@ stages:
 - stage: runtests
   displayName: "Execute tests"
   dependsOn: deploy
-  condition: and(not(canceled()), or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped')))
+  condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
   jobs:
   - job: runtests
     displayName: 'Run End 2 End Tests'
     steps:
     - template: steps/runtests.yml
       parameters:
-        RunApiTests: false
+        PublisherMode: 'orchestrated'
 
 - stage: cleanup
   displayName: Cleanup resources

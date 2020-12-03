@@ -1,7 +1,6 @@
 parameters:
-- name: RunApiTests # name of the parameter; required
-  type: boolean # data type of the parameter; required
-  default: false
+- name: PublisherMode
+  type: string
 
 steps:
 - task: AzureCLI@2
@@ -48,57 +47,34 @@ steps:
 
 - task: AzureKeyVault@1
   displayName: 'Retrieve KeyVault secrets for API tests'
-  condition: eq( '${{ parameters.RunApiTests }}', true)
+  condition: eq( '${{ parameters.PublisherMode }}', 'orchestrated')
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
     SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
 - task: DotNetCoreCLI@2
-  displayName: 'Executing tests (without API Tests)'
-  condition: eq( '${{ parameters.RunApiTests }}', false)
+  displayName: 'Executing xUnit tests (with PublisherMode=${{ parameters.PublisherMode }})'
   timeoutInMinutes: 90
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-    arguments: '--configuration Release --filter IsApiTest!=true --verbosity=detailed'
+    arguments: '--configuration Release --filter PublisherMode=${{ parameters.PublisherMode }} --verbosity=normal'
   env:
-    PLC_SIMULATION_URLS: $(plc-simulation-urls)
-    IOT_EDGE_DEVICE_ID: $(iot-edge-device-id)
-    IOT_EDGE_DEVICE_DNSNAME: $(iot-edge-device-dnsname)
-    IOT_EDGE_VM_USERNAME: $(iot-edge-vm-username)
-    IOT_EDGE_VM_PASSWORD: $(iot-edge-vm-password)
-    PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
-    IOTHUB_EVENTHUB_CONNECTIONSTRING: $(iothub-eventhub-connectionstring)
-    STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING: $(storageaccount-iothubcheckpoint-connectionstring)
-    TESTEVENTPROCESSOR_BASEURL: $(testeventprocessor-baseurl)
-    TESTEVENTPROCESSOR_USERNAME: $(testeventprocessor-username)
-    TESTEVENTPROCESSOR_PASSWORD: $(testeventprocessor-password)
-    PCS_IMAGES_TAG: $(PlatformVersion)
-
-- task: DotNetCoreCLI@2
-  displayName: 'Executing tests (with API Tests)'
-  condition: eq( '${{ parameters.RunApiTests }}', true)
-  timeoutInMinutes: 90
-  inputs:
-    command: test
-    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-    arguments: '--configuration Release --verbosity=detailed'
-  env:
-    PCS_SERVICE_URL: $(pcs-service-url)
-    PCS_AUTH_TENANT: $(pcs-auth-tenant)
-    PCS_AUTH_CLIENT_APPID: $(pcs-auth-client-appid)
-    PCS_AUTH_CLIENT_SECRET: $(pcs-auth-client-secret)
-    ApplicationName: $(ApplicationName)
-    PLC_SIMULATION_URLS: $(plc-simulation-urls)
-    IOT_EDGE_DEVICE_ID: $(iot-edge-device-id)
-    IOT_EDGE_DEVICE_DNSNAME: $(iot-edge-device-dnsname)
-    IOT_EDGE_VM_USERNAME: $(iot-edge-vm-username)
-    IOT_EDGE_VM_PASSWORD: $(iot-edge-vm-password)
-    PCS_IOTHUB_CONNSTRING: $(pcs-iothub-connstring)
-    IOTHUB_EVENTHUB_CONNECTIONSTRING: $(iothub-eventhub-connectionstring)
-    STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING: $(storageaccount-iothubcheckpoint-connectionstring)
-    TESTEVENTPROCESSOR_BASEURL: $(testeventprocessor-baseurl)
-    TESTEVENTPROCESSOR_USERNAME: $(testeventprocessor-username)
-    TESTEVENTPROCESSOR_PASSWORD: $(testeventprocessor-password)
-    PCS_IMAGES_TAG: $(PlatformVersion)
+    PCS_SERVICE_URL: '$(pcs-service-url)'
+    PCS_AUTH_TENANT: '$(pcs-auth-tenant)'
+    PCS_AUTH_CLIENT_APPID: '$(pcs-auth-client-appid)'
+    PCS_AUTH_CLIENT_SECRET: '$(pcs-auth-client-secret)'
+    ApplicationName: '$(ApplicationName)'
+    PLC_SIMULATION_URLS: '$(plc-simulation-urls)'
+    IOT_EDGE_DEVICE_ID: '$(iot-edge-device-id)'
+    IOT_EDGE_DEVICE_DNSNAME: '$(iot-edge-device-dnsname)'
+    IOT_EDGE_VM_USERNAME: '$(iot-edge-vm-username)'
+    IOT_EDGE_VM_PASSWORD: '$(iot-edge-vm-password)'
+    PCS_IOTHUB_CONNSTRING: '$(pcs-iothub-connstring)'
+    IOTHUB_EVENTHUB_CONNECTIONSTRING: '$(iothub-eventhub-connectionstring)'
+    STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING: '$(storageaccount-iothubcheckpoint-connectionstring)'
+    TESTEVENTPROCESSOR_BASEURL: '$(testeventprocessor-baseurl)'
+    TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
+    TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
+    PCS_IMAGES_TAG: '$(PlatformVersion)'
