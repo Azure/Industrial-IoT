@@ -2,7 +2,7 @@ Param(
     [string]
     $ResourceGroupName,
     [int]
-    $NumberOfSimulations = 10,
+    $NumberOfSimulations = 18,
     [Guid]
     $TenantId,
     [int]
