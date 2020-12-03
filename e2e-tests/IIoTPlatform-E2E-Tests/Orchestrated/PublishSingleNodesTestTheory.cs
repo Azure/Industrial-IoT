@@ -289,5 +289,16 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
                 _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
             }
         }
+
+        [Fact, PriorityOrder(12)]
+        public async void Test_VerfiyNoDataIncomingAtIoTHub() {
+            await Task.Delay(90 * 1000); //wait till the publishing has stopped
+            //use test event processor to verify data send to IoT Hub
+            await TestHelper.StartMonitoringIncomingMessages(_context, 0, 0, 0);
+            // wait some time to generate events to process
+            await Task.Delay(90 * 1000);
+            var json = await TestHelper.StopMonitoringIncomingMessages(_context);
+            Assert.True((int)json.totalValueChangesCount == 0, "Messages received at IoT Hub");
+        }
     }
 }
