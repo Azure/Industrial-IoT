@@ -25,6 +25,9 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             Configuration = GetConfiguration();
 
             RegistryHelper = new RegistryHelper(IoTHubConfig);
+            EdgeBaseDeployment = new IoTHubEdgeBaseDeployment(this);
+            PublisherDeployment = new IoTHubEdgeBaseDeployment(this);
+
             OutputHelper = null;
         }
 
@@ -84,6 +87,8 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public RegistryHelper RegistryHelper { get; }
 
         public IoTHubEdgeBaseDeployment EdgeBaseDeployment { get; }
+
+        public IoTHubEdgeBaseDeployment PublisherDeployment { get; }
 
         /// <inheritdoc />
         public void Dispose()

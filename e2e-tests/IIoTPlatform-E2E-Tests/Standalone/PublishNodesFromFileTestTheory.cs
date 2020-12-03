@@ -39,9 +39,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(2)]
         public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
-            //var deploy = new IoTHubEdgeBaseDeployment(_context);
-            //Assert.NotNull(deploy);
-            //var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
             var result = await _context.EdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync();
             _output.WriteLine("Created new EdgeBase layered deployment and publisher_standalone");
             Assert.True(result);
@@ -67,9 +64,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(4)]
         public async Task Test_PublishFromPublishedNodesFile_Expect_Success() {
-            var deploy = new IoTHubPublisherDeployment(_context);
-            Assert.NotNull(deploy);
-            var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
+            var result = await _context.PublisherDeployment.CreateOrUpdateLayeredDeploymentAsync();
             _output.WriteLine("Created new layered deployment and publisher_standalone");
             Assert.True(result);
         }
