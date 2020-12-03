@@ -64,6 +64,6 @@ stages:
     displayName: Cleanup
     steps:
     - template: steps/cleanup.yml
-    parameters:
-      CleanupAppRegistrations: true
+      parameters:
+        CleanupAppRegistrations: true
   
