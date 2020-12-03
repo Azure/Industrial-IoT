@@ -23,7 +23,7 @@ Param(
     $ResourcesPrefix = "e2etesting",
     [Double]
     $MemoryInGb = 0.5,
-    [uint]
+    [int]
     $CpuCount = 1
 )
 
@@ -95,13 +95,12 @@ $jobs = @()
 
 if ($aciNamesToCreate.Length -gt 0) {
     foreach ($aciNameToCreate in $aciNamesToCreate) {
+        Write-Host "Creating ACI $($Name)..."
+        
         $script = {
             Param($Name)
-
-            Write-Host "Creating ACI $($Name)..."
             $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
             $aci = New-AzContainerGroup -ResourceGroupName $using:ResourceGroupName -Name $Name -Image $using:PLCImage -OsType Linux -Command $aciCommand -Port @(50000,80) -Cpu $using:CpuCount -MemoryInGB $using:MemoryInGb -IpAddressType Public -DnsNameLabel $Name
-            Write-Host "Created ACI $($Name)."
         }
 
         $job = Start-Job -Scriptblock $script -ArgumentList $aciNameToCreate
