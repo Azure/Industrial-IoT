@@ -103,7 +103,7 @@ Write-Host "Updating 'os' and '__type__'-Tags in Device Twin..."
 Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"} | Out-Null
 
 ## Generate SSH keys
-$privateKeyFilePath = [System.IO.Path]::Combine($KeysPath, "id_rsa_iotedge")
+$privateKeyFilePath = Join-Path $KeysPath "id_rsa_iotedge"
 $publicKeyFilePath = $privateKeyFilePath + ".pub"
 $keypassphrase = '""'
 Write-Output "y" | ssh-keygen -q -m PEM -b 4096 -t rsa -f $privateKeyFilePath -N $keypassphrase

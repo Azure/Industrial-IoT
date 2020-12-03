@@ -25,7 +25,7 @@ steps:
     scriptPath: '$(BasePath)\DeployEdge.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
-      -KeysPath "$(KeysPath)"
+      -KeysPath "$(Agent.TempDirectory)"
 
 - task: AzurePowerShell@5
   displayName: "Deploy TestEventProcessor"
