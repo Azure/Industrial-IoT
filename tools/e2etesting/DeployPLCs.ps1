@@ -4,7 +4,27 @@ Param(
     [int]
     $NumberOfSimulations = 18,
     [Guid]
-    $TenantId
+    $TenantId,
+    [int]
+    $NumberOfSlowNodes = 250,
+    [int]
+    $SlowNodeRate = 10,
+    [string]
+    $SlowNodeType =  "uint",
+    [int]
+    $NumberOfFastNodes = 50,
+    [int]
+    $FastNodeRate = 1,
+    [string]
+    $FastNodeType = "uint",
+    [string]
+    $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:latest",
+    [string]
+    $ResourcesPrefix = "e2etesting",
+    [Double]
+    $MemoryInGb = 0.5,
+    [uint]
+    $CpuCount = 1
 )
 
 # Stop execution when an error occurs.
@@ -13,8 +33,6 @@ $ErrorActionPreference = "Stop"
 if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
 }
-
-$templateDir = [System.IO.Path]::Combine($PSScriptRoot, "../../deploy/templates") 
 
 ## Login if required
 
@@ -47,8 +65,6 @@ if (!$testSuffix) {
     $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
 }
 
-
-
 ## Check if KeyVault exists
 $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
 
@@ -56,65 +72,50 @@ if ($keyVault.Count -ne 1) {
     Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
 } 
 
+## Ensure Azure Container Instances ##
 
+$allAciNames = @()
 
-## Deploy simulated PLCs
-$prefix = "e2etesting-simulation"
-
-$plcTemplateParameters = @{
-    "numberOfSimulations" = [int]$numberOfSimulations
-    "numberOfSlowNodes" = 1000
-    "slowNodeRate" = 10
-    "slowNodeType" = "uint"
-    "numberOfFastNodes" = 1000
-    "fastNodeRate" = 1
-    "fastNodeType" = "uint"
-    "resourcesPrefix" = "$($prefix)"
-    "resourcesSuffix" = "$($testSuffix)"
+for ($i = 0; $i -lt $NumberOfSimulations; $i++) {
+    $name = "$($ResourcesPrefix)-simulation-aci-" + $i.ToString().PadLeft(3, "0") + "-" + $testSuffix
+    $allAciNames += $name
 }
 
-$plcTemplate = [System.IO.Path]::Combine($TemplateDir, "e2e.plc.simulation.json").Replace("/", "\")
+$existingACIs = Get-AzContainerGroup -ResourceGroupName $ResourceGroupName | select -ExpandProperty Name
 
-Write-Host "Resource Group: $($ResourceGroupName)"
-Write-Host "Number of PLCs: $($NumberOfSimulations)"
-Write-Host "Resources prefix: $($prefix)"
-Write-Host "Resources suffix: $($testSuffix)"
-Write-Host "Key Vault Name: $($keyVault.VaultName)"
-Write-Host "ARM Template: $($plcTemplate)"
+$aciNamesToCreate = @()
 
-$maxAttempts = 2;
-$attempt = 0;
-$success = $false
+$allAciNames | %{
+    if (!@($existingACIs).Contains($_)) {
+        $aciNamesToCreate += $_
+    }
+}
 
-while (++$attempt -le $maxAttempts) {
+if ($aciNamesToCreate.Length -gt 0) {
+    $script = {
+        Write-Host "Creating ACI $($_)..."
+        $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($_).$($using:resourceGroup.Location).azurecontainer.io'"
+        $aci = New-AzContainerGroup -ResourceGroupName $using:ResourceGroupName -Name $_ -Image $using:PLCImage -OsType Linux -Command $aciCommand -Port @(50000,80) -Cpu $using:CpuCount -MemoryInGB $using:MemoryInGb -IpAddressType Public -DnsNameLabel $_
+    }
+
     Write-Host
-    Write-Host "Running deployment with $($plcTemplate) (Attempt #$($attempt)/$($maxAttempts))..."
-    $plcDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $plcTemplate -TemplateParameterObject $plcTemplateParameters
-
-    if ($plcDeployment.ProvisioningState -ne "Succeeded") {
-        Write-Warning "Deployment failed: $($plcDeployment.ProvisioningState)." -ErrorAction Stop
-    }
-    else {
-        Write-Host "Deployment successful."
-        $success = $true
-        break
-    }
+    Write-Host "Creating Azure Container instances..."
+    $aciNamesToCreate | ForEach-Object -Parallel $script -ThrottleLimit 10
 }
 
-if (!$success) {
-    Write-Error "Error while deploying simulated PLCs."    
-}
+## Write ACI FQDNs to KeyVault ##
 
+Write-Host
 Write-Host "Getting IPs of ACIs for simulated PLCs..."
 
-$containerInstances = Get-AzContainerGroup -ResourceGroupName $ResourceGroupName | ?{ $_.Name.StartsWith($prefix) }
+$containerInstances = Get-AzContainerGroup -ResourceGroupName $ResourceGroupName | ?{ $_.Name.StartsWith($ResourcesPrefix) }
 
 $plcSimNames = ""
 foreach ($ci in $containerInstances) {
     $plcSimNames += $ci.Fqdn + ";"
 }
 
-Write-Host "Adding/Updating KeVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
+Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'plc-simulation-urls' -SecretValue (ConvertTo-SecureString $plcSimNames -AsPlainText -Force) | Out-Null
 
 Write-Host "Deployment finished."
