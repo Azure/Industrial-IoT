@@ -201,19 +201,19 @@ $ehConnectionString =  "Endpoint={0};SharedAccessKeyName={1};SharedAccessKey={2}
 
 ## Set Secrets to KeyVault ##
 Write-Host "Setting KeyVault Secret 'testeventprocessor-baseurl' to '$($baseUrl)'."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-baseurl" -SecretValue (ConvertTo-SecureString -String $baseUrl -AsPlainText -Force)
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-baseurl" -SecretValue (ConvertTo-SecureString -String $baseUrl -AsPlainText -Force) | Out-Null
 
 Write-Host "Setting KeyVault Secret 'storageaccount-iothubcheckpoint-connectionstring' to '***'."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "storageaccount-iothubcheckpoint-connectionstring" -SecretValue (ConvertTo-SecureString -String $storageAccountConnectionString -AsPlainText -Force)
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "storageaccount-iothubcheckpoint-connectionstring" -SecretValue (ConvertTo-SecureString -String $storageAccountConnectionString -AsPlainText -Force) | Out-Null
 
 Write-Host "SettingKeyVault Secret 'testeventprocessor-username' to '$($Username)'."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-username" -SecretValue (ConvertTo-SecureString -String $Username -AsPlainText -Force)
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-username" -SecretValue (ConvertTo-SecureString -String $Username -AsPlainText -Force) | Out-Null
 
 Write-Host "Setting KeyVault Secret 'testeventprocessor-password' to '***'."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-password" -SecretValue (ConvertTo-SecureString -String $Password -AsPlainText -Force)
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-password" -SecretValue (ConvertTo-SecureString -String $Password -AsPlainText -Force) | Out-Null
 
 Write-Host "Setting KeyVault Secret 'iothub-eventhub-connectionstring' to '***'."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "iothub-eventhub-connectionstring" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force)
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "iothub-eventhub-connectionstring" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force) | Out-Null
 
 
 

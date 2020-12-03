@@ -23,7 +23,7 @@ Param(
     $ResourcesPrefix = "e2etesting",
     [Double]
     $MemoryInGb = 0.5,
-    [uint]
+    [int]
     $CpuCount = 1
 )
 
@@ -52,6 +52,8 @@ if (!$resourceGroup) {
     Write-Error "Could not find Resource Group '$($ResourceGroupName)'."
 }
 
+Write-Host "Resource Group: $($ResourceGroupName)"
+
 ## Determine suffix for testing resources
 
 $testSuffix = $resourceGroup.Tags["TestingResourcesSuffix"]
@@ -72,6 +74,8 @@ if ($keyVault.Count -ne 1) {
     Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
 } 
 
+Write-Host "Key Vault: $($keyVault.VaultName)"
+
 ## Ensure Azure Container Instances ##
 
 $allAciNames = @()
@@ -91,16 +95,47 @@ $allAciNames | %{
     }
 }
 
+Write-Host
+
+$jobs = @()
+
 if ($aciNamesToCreate.Length -gt 0) {
-    $script = {
-        Write-Host "Creating ACI $($_)..."
-        $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($_).$($using:resourceGroup.Location).azurecontainer.io'"
-        $aci = New-AzContainerGroup -ResourceGroupName $using:ResourceGroupName -Name $_ -Image $using:PLCImage -OsType Linux -Command $aciCommand -Port @(50000,80) -Cpu $using:CpuCount -MemoryInGB $using:MemoryInGb -IpAddressType Public -DnsNameLabel $_
+    foreach ($aciNameToCreate in $aciNamesToCreate) {
+        Write-Host "Creating ACI $($aciNameToCreate)..."
+
+        $script = {
+            Param($Name)
+            $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
+            $aci = New-AzContainerGroup -ResourceGroupName $using:ResourceGroupName -Name $Name -Image $using:PLCImage -OsType Linux -Command $aciCommand -Port @(50000,80) -Cpu $using:CpuCount -MemoryInGB $using:MemoryInGb -IpAddressType Public -DnsNameLabel $Name
+        }
+
+        $job = Start-Job -Scriptblock $script -ArgumentList $aciNameToCreate
+        $jobs += $job
     }
 
-    Write-Host
-    Write-Host "Creating Azure Container instances..."
-    $aciNamesToCreate | ForEach-Object -Parallel $script -ThrottleLimit 10
+    Write-Host "Waiting for deployments to finish..."
+
+    $working = $true
+
+    while($working) {
+        $working = $false
+        foreach ($job in $jobs) {
+            if ($job.JobStateInfo.State -eq 'Running') {
+                $working = $true
+                break
+            }
+        }
+        Start-Sleep -Seconds 1
+    }
+
+    Write-Host "Deployment finished."
+
+    foreach ($job in $jobs) {
+        if ($job.JobStateInfo.State -ne 'Completed') {
+            Receive-Job -Job $job
+            Write-Error "Error while deploying ACI."
+        }
+    }
 }
 
 ## Write ACI FQDNs to KeyVault ##
