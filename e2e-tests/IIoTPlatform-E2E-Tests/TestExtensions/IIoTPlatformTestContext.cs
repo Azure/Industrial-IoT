@@ -191,6 +191,6 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             () => string.Empty);
 
         string IContainerRegistryConfig.ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
-            () => throw new Exception("Images tag not provided"));
+            () => "mcr.microsoft.com/iotedge/opc-publisher:latest" );
     }
 }
