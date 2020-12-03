@@ -20,7 +20,11 @@ Param(
     [string]
     $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:latest",
     [string]
-    $ResourcesPrefix = "e2etesting"
+    $ResourcesPrefix = "e2etesting",
+    [Double]
+    $MemoryInGb = 0.5,
+    [uint]
+    $CpuCount = 1
 )
 
 # Stop execution when an error occurs.
@@ -91,7 +95,7 @@ if ($aciNamesToCreate.Length -gt 0) {
     $script = {
         Write-Host "Creating ACI $($_)..."
         $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($_).$($using:resourceGroup.Location).azurecontainer.io'"
-        $aci = New-AzContainerGroup -ResourceGroupName $using:ResourceGroupName -Name $_ -Image $using:PLCImage -OsType Linux -Command $aciCommand -Port @(50000,80) -Cpu 1 -MemoryInGB 0.5 -IpAddressType Public -DnsNameLabel $_
+        $aci = New-AzContainerGroup -ResourceGroupName $using:ResourceGroupName -Name $_ -Image $using:PLCImage -OsType Linux -Command $aciCommand -Port @(50000,80) -Cpu $using:CpuCount -MemoryInGB $using:MemoryInGb -IpAddressType Public -DnsNameLabel $_
     }
 
     Write-Host
