@@ -26,7 +26,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
             RegistryHelper = new RegistryHelper(IoTHubConfig);
             EdgeBaseDeployment = new IoTHubEdgeBaseDeployment(this);
-            PublisherDeployment = new IoTHubEdgeBaseDeployment(this);
+            PublisherDeployment = new IoTHubPublisherDeployment(this);
 
             OutputHelper = null;
         }
@@ -88,7 +88,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         public IoTHubEdgeBaseDeployment EdgeBaseDeployment { get; }
 
-        public IoTHubEdgeBaseDeployment PublisherDeployment { get; }
+        public IoTHubPublisherDeployment PublisherDeployment { get; }
 
         /// <inheritdoc />
         public void Dispose()
@@ -191,6 +191,6 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             () => string.Empty);
 
         string IContainerRegistryConfig.ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
-            () => throw new Exception("Images tag not provided"));
+            () => "mcr.microsoft.com/iotedge/opc-publisher:latest" );
     }
 }
