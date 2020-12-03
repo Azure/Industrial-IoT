@@ -7,7 +7,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    interface IIoTHubDeployment {
+    public interface IIoTHubDeployment {
 
         /// <summary>
         /// Create a new layered deployment or update an existing one
