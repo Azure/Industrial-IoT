@@ -52,6 +52,8 @@ if (!$resourceGroup) {
     Write-Error "Could not find Resource Group '$($ResourceGroupName)'."
 }
 
+Write-Host "Resource Group: $($ResourceGroupName)"
+
 ## Determine suffix for testing resources
 
 $testSuffix = $resourceGroup.Tags["TestingResourcesSuffix"]
@@ -72,6 +74,8 @@ if ($keyVault.Count -ne 1) {
     Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
 } 
 
+Write-Host "Key Vault: $($keyVault.VaultName)"
+
 ## Ensure Azure Container Instances ##
 
 $allAciNames = @()
@@ -91,12 +95,14 @@ $allAciNames | %{
     }
 }
 
+Write-Host
+
 $jobs = @()
 
 if ($aciNamesToCreate.Length -gt 0) {
     foreach ($aciNameToCreate in $aciNamesToCreate) {
-        Write-Host "Creating ACI $($Name)..."
-        
+        Write-Host "Creating ACI $($aciNameToCreate)..."
+
         $script = {
             Param($Name)
             $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
