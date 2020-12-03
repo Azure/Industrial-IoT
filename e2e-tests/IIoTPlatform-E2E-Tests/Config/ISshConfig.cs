@@ -13,9 +13,14 @@ namespace IIoTPlatform_E2E_Tests.Config {
         string Username { get; }
 
         /// <summary>
-        /// Password used for ssh authentication
+        /// Public key used for ssh authentication
         /// </summary>
-        string Password { get; }
+        string PublicKey { get; }
+
+        /// <summary>
+        /// Private key used for ssh authentication
+        /// </summary>
+        string PrivateKey { get; }
 
         /// <summary>
         /// DNS Host name of machine to ssh into

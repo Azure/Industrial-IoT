@@ -50,7 +50,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
             TestHelper.SavePublishedNodesFile(simulatedOpcServer[simulatedOpcServer.Keys.First()], _context);
             _output.WriteLine("Saved published_nodes.json file");
-            var dir = Directory.GetCurrentDirectory() + "/" + TestConstants.PublisherPublishedNodesFile;
             TestHelper.SwitchToStandaloneMode(_context);
             TestHelper.LoadPublishedNodesFile(_context.PublishedNodesFileInternalFolder, TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile, _context);
             _output.WriteLine("Switched to standalone mode and loaded published_nodes.json file");
@@ -58,7 +57,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(4)]
         public void SwitchToOrchestratedMode() {
-            var dir = Directory.GetCurrentDirectory() + "/" + TestConstants.PublisherPublishedNodesFile;
             TestHelper.SwitchToOrchestratedMode(TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile, _context);
             _output.WriteLine("Switched to orchestrated mode and deleted published_nodes.json file");
         }
