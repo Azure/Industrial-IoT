@@ -164,6 +164,10 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns></returns>
         public async Task<StopResult> StopAsync()
         {
+            if (_observedTimestamps == null) {
+                return new StopResult();
+            }
+
             Interlocked.Exchange(ref _shuttingDown, 1);
 
             var endTime = DateTime.UtcNow;
