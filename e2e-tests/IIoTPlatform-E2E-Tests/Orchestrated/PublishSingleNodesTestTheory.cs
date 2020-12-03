@@ -20,7 +20,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     /// </summary>
     [TestCaseOrderer("IIoTPlatform_E2E_Tests.TestExtensions.TestOrderer", TestConstants.TestAssemblyName)]
     [Collection("IIoT Platform Test Collection")]
-    [Trait("IsApiTest", "true")]
+    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeOrchestratedTraitValue)]
     public class PublishSingleNodesTestTheory
     {
         private readonly ITestOutputHelper _output;

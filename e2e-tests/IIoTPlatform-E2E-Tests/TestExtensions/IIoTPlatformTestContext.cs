@@ -150,8 +150,11 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         string ISshConfig.Username => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_USERNAME,
             () => throw new Exception("Username of iot edge device is not provided."));
 
-        string ISshConfig.Password => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_PASSWORD,
-            () => throw new Exception("Password of iot edge device is not provided."));
+        string ISshConfig.PublicKey => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_PUBLICKEY,
+            () => throw new Exception("Public key of iot edge device is not provided."));
+
+        string ISshConfig.PrivateKey => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VM_PRIVATEKEY,
+            () => throw new Exception("Private key of iot edge device is not provided."));
 
         string ISshConfig.Host => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_DEVICE_DNSNAME,
             () => throw new Exception("DNS name of iot edge device is not provided."));
