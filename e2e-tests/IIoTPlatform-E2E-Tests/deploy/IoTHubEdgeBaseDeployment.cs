@@ -14,13 +14,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     /// <summary>
     /// Default edge base deployment configuration
     /// </summary>
-    public class IoTHubEdgeBaseDeployment : DeploymentConfiguration, IIotHubDeployment{
-
-        /// <summary>
-        /// Target condition for gateways
-        /// </summary>
-        public readonly string TargetCondition =
-            $"(tags.__type__ = 'iiotedge' AND tags.unmanaged = true)";
+    public class IoTHubEdgeBaseDeployment : DeploymentConfiguration, IIoTHubDeployment {
 
         /// <summary>
         /// Create edge base deployer
@@ -36,10 +30,8 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public async Task<bool> CreateOrUpdateLayeredDeploymentAsync() {
             var isSuccessful = false;
             var configuration = await CreateOrUpdateConfigurationAsync(new Configuration(kDeploymentName) {
-                //Id = IdentityType.Gateway,
                 Content = new ConfigurationContent { ModulesContent = CreateDeploymentModules() },
-                //SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = TargetCondition,
+                TargetCondition = TestConstants.TargetCondition,
                 Priority = 0
             }, true, kDeploymentName, new CancellationToken());
             if (configuration != null) {

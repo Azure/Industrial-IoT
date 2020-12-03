@@ -11,10 +11,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using Newtonsoft.Json;
     using Microsoft.Azure.Devices;
 
-    public class IoTHubPublisherDeployment : DeploymentConfiguration, IIotHubDeployment {
-
-        public readonly string TargetConditionStandalone =
-            $"(tags.__type__ = 'iiotedge' AND tags.unmanaged = true)";
+    public class IoTHubPublisherDeployment : DeploymentConfiguration, IIoTHubDeployment {
 
         /// <summary>
         /// Create deployer
@@ -31,7 +28,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             var isSuccessful = false;
             var configuration = await CreateOrUpdateConfigurationAsync(new Configuration(kDeploymentName) {
                 Content = new ConfigurationContent { ModulesContent = CreateDeploymentModules() },
-                TargetCondition = TargetConditionStandalone +
+                TargetCondition = TestConstants.TargetCondition +
                     " AND tags.os = 'Linux'",
                 Priority = 1
             }, true, kDeploymentName, new CancellationToken());

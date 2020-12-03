@@ -11,6 +11,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using TestExtensions;
     using Xunit.Abstractions;
     using System.Threading;
+    using IIoTPlatform_E2E_Tests.TestModels;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -37,25 +38,31 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(2)]
+        public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
+            //var deploy = new IoTHubEdgeBaseDeployment(_context);
+            //Assert.NotNull(deploy);
+            //var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
+            var result = await _context.EdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync();
+            _output.WriteLine("Created new EdgeBase layered deployment and publisher_standalone");
+            Assert.True(result);
+        }
+
+        [Fact, PriorityOrder(3)]
         public async Task Test_SwitchToStandaloneMode() {
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
-            var numberOfNodes = 1;
+
+            //Create a published_nodes file with one node
+            var opcPlcServerNodes = simulatedOpcServer[simulatedOpcServer.Keys.First()];
+            var publishedNodes = opcPlcServerNodes;
+            publishedNodes.OpcNodes = opcPlcServerNodes.OpcNodes.Take(1).ToArray();
+            //PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] { publishedNodes };
             //Create and save a published_nodes.json file with numberOfNodes nodes
-            TestHelper.SavePublishedNodesFile(simulatedOpcServer[simulatedOpcServer.Keys.First()], numberOfNodes, _context);
+            TestHelper.SavePublishedNodesFile(publishedNodes, _context);
             _output.WriteLine("Saved published_nodes.json file");
 
             TestHelper.SwitchToStandaloneMode(_context);
             TestHelper.LoadPublishedNodesFile(_context.PublishedNodesFileInternalFolder, TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile, _context);
             _output.WriteLine("Switched to standalone mode and loaded published_nodes.json file");
-        }
-
-        [Fact, PriorityOrder(3)]
-        public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
-            var deploy = new IoTHubEdgeBaseDeployment(_context);
-            Assert.NotNull(deploy);
-            var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
-            _output.WriteLine("Created new EdgeBase layered deployment and publisher_standalone");
-            Assert.True(result);
         }
 
         [Fact, PriorityOrder(4)]
@@ -72,7 +79,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var cts = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
 
             // We will wait for module to be deployed.
-            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, _context, new string[] { "publisher_standalone" });
+            var exception = await Record.ExceptionAsync(async () => await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, _context, new string[] { "publisher_standalone" }));
+            Assert.Null(exception);
         }
 
         [Fact, PriorityOrder(6)]

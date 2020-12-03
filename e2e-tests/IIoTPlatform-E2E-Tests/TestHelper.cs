@@ -120,15 +120,11 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="simulatedOpcServer">Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static void SavePublishedNodesFile(PublishedNodesEntryModel simulatedOpcServer, int numberOfNodes, IIoTPlatformTestContext context) {
+        public static void SavePublishedNodesFile(PublishedNodesEntryModel simulatedOpcServer, IIoTPlatformTestContext context) {
             Assert.NotNull(simulatedOpcServer);
 
-            var publishedNodes = simulatedOpcServer;
-            publishedNodes.OpcNodes = simulatedOpcServer.OpcNodes.Take(numberOfNodes).ToArray();
-
-            PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] { publishedNodes };
+            PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] {simulatedOpcServer};
             var json = JsonConvert.SerializeObject(model, Formatting.Indented);
-
             context.PublishedNodesFileInternalFolder = Directory.GetCurrentDirectory() + "/published_nodes.json";
             File.WriteAllText(context.PublishedNodesFileInternalFolder, json);
         }

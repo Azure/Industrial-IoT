@@ -83,6 +83,8 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// </summary>
         public RegistryHelper RegistryHelper { get; }
 
+        public IoTHubEdgeBaseDeployment EdgeBaseDeployment { get; }
+
         /// <inheritdoc />
         public void Dispose()
         {
