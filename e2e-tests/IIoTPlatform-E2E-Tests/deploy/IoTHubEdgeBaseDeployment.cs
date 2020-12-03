@@ -99,6 +99,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
                 },
                 ""$edgeHub"": {
                     ""properties.desired"": {
+                        ""routes"": { },
                         ""schemaVersion"": """ + kDefaultSchemaVersion + @""",
                         ""storeAndForwardConfiguration"": {
                             ""timeToLiveSecs"": 7200
