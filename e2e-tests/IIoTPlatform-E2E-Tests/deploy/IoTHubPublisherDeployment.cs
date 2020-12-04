@@ -17,7 +17,6 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         public IoTHubPublisherDeployment(IIoTPlatformTestContext context) : base(context) {
         }
 
-
         /// <inheritdoc />
         protected override int Priority => 1;
 

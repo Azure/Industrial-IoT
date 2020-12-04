@@ -37,6 +37,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
+
+            // Create deployments.
             _ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             _ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context);
         }
@@ -88,7 +90,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var cts = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
 
             // We will wait for module to be deployed.
-            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, _context, new string[] { "publisher_standalone" });
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, new string[] { "publisher_standalone" });
         }
 
         [Fact, PriorityOrder(6)]

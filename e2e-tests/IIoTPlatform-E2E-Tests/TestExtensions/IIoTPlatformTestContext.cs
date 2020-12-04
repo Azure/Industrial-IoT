@@ -85,7 +85,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <inheritdoc />
         public void Dispose()
         {
-            RegistryHelper.RegistryManager.Dispose();
+            RegistryHelper.Dispose();
         }
 
         /// <summary>
