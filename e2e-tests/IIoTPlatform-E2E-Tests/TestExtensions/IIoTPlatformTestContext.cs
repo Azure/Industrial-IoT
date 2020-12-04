@@ -1,15 +1,14 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 #nullable enable
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
-    using System;
     using Config;
-    using Deploy;
     using Extensions;
     using Microsoft.Extensions.Configuration;
+    using System;
     using Xunit.Abstractions;
 
     /// <summary>
@@ -24,11 +23,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         public IIoTPlatformTestContext() {
             Configuration = GetConfiguration();
-
             RegistryHelper = new RegistryHelper(IoTHubConfig);
-            EdgeBaseDeployment = new IoTHubEdgeBaseDeployment(this);
-            PublisherDeployment = new IoTHubPublisherDeployment(this);
-
             OutputHelper = null;
         }
 
@@ -86,16 +81,6 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Helper to work with Azure.Devices.RegistryManager
         /// </summary>
         public RegistryHelper RegistryHelper { get; }
-
-        /// <summary>
-        /// Deployment for edgeHub and edgeAgent so called "base deployment"
-        /// </summary>
-        public IIoTHubEdgeDeployment EdgeBaseDeployment { get; }
-
-        /// <summary>
-        /// Deployment for OPC Publisher as standalone
-        /// </summary>
-        public IIoTHubEdgeDeployment PublisherDeployment { get; }
 
         /// <inheritdoc />
         public void Dispose()

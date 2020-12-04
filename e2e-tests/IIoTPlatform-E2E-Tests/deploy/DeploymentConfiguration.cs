@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.Deploy {
+    using Microsoft.Azure.Devices;
+    using Microsoft.Azure.Devices.Common.Exceptions;
     using System;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Microsoft.Azure.Devices.Common.Exceptions;
     using System.Threading;
-    using Microsoft.Azure.Devices;
+    using System.Threading.Tasks;
     using TestExtensions;
 
     public abstract class DeploymentConfiguration : IIoTHubEdgeDeployment {
