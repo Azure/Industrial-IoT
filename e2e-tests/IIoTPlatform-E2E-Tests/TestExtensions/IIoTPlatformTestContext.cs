@@ -7,6 +7,7 @@
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using System;
     using Config;
+    using Deploy;
     using Extensions;
     using Microsoft.Extensions.Configuration;
     using Xunit.Abstractions;
@@ -86,9 +87,15 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// </summary>
         public RegistryHelper RegistryHelper { get; }
 
-        public IoTHubEdgeBaseDeployment EdgeBaseDeployment { get; }
+        /// <summary>
+        /// Deployment for edgeHub and edgeAgent so called "base deployment"
+        /// </summary>
+        public IIoTHubEdgeDeployment EdgeBaseDeployment { get; }
 
-        public IoTHubPublisherDeployment PublisherDeployment { get; }
+        /// <summary>
+        /// Deployment for OPC Publisher as standalone
+        /// </summary>
+        public IIoTHubEdgeDeployment PublisherDeployment { get; }
 
         /// <inheritdoc />
         public void Dispose()

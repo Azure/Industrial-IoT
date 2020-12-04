@@ -11,7 +11,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using TestExtensions;
     using Xunit.Abstractions;
     using System.Threading;
-    using IIoTPlatform_E2E_Tests.TestModels;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -39,7 +38,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(2)]
         public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
-            var result = await _context.EdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync();
+            var ct = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
+            var result = await _context.EdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(ct.Token);
             _output.WriteLine("Created new EdgeBase layered deployment and publisher_standalone");
             Assert.True(result);
         }
@@ -64,7 +64,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(4)]
         public async Task Test_PublishFromPublishedNodesFile_Expect_Success() {
-            var result = await _context.PublisherDeployment.CreateOrUpdateLayeredDeploymentAsync();
+            var ct = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
+            var result = await _context.PublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(ct.Token);
             _output.WriteLine("Created new layered deployment and publisher_standalone");
             Assert.True(result);
         }

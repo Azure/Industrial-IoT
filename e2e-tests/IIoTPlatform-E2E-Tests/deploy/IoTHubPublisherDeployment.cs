@@ -3,46 +3,29 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.TestExtensions {
-    using System;
+namespace IIoTPlatform_E2E_Tests.Deploy {
     using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Newtonsoft.Json;
-    using Microsoft.Azure.Devices;
+    using TestExtensions;
 
-    public class IoTHubPublisherDeployment : DeploymentConfiguration, IIoTHubDeployment {
+    public sealed class IoTHubPublisherDeployment : DeploymentConfiguration {
 
         /// <summary>
-        /// Create deployer
+        /// Create deployment
         /// </summary>
         /// <param name="context"></param>
         public IoTHubPublisherDeployment(IIoTPlatformTestContext context) : base(context) {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        /// <summary>
-        /// Create a new layered deployment or update an existing one
-        /// </summary>
-        public async Task<bool> CreateOrUpdateLayeredDeploymentAsync() {
-            var isSuccessful = false;
-            var configuration = await CreateOrUpdateConfigurationAsync(new Configuration(kDeploymentName) {
-                Content = new ConfigurationContent { ModulesContent = CreateDeploymentModules() },
-                TargetCondition = TestConstants.TargetCondition +
-                    " AND tags.os = 'Linux'",
-                Priority = 1
-            }, true, kDeploymentName, new CancellationToken());
-            if (configuration != null) {
-                isSuccessful = true;
-            }
-            return isSuccessful;
-        }
 
-        /// <summary>
-        ///  Create a deployment modules object
-        /// </summary>
-        /// <returns></returns>
-        public IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
+        /// <inheritdoc />
+        protected override int Priority => 1;
+
+        /// <inheritdoc />
+        protected override string DeploymentName => kDeploymentName;
+
+        /// <inheritdoc />
+        protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) &&
                 _context.ContainerRegistryConfig.ContainerRegistryServer != "mcr.microsoft.com") {
@@ -104,6 +87,5 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         private const string kModuleName = "publisher_standalone";
         private const string kDeploymentName = "__default-opcpublisher-standalone";
-        private readonly IIoTPlatformTestContext _context;
     }
 }

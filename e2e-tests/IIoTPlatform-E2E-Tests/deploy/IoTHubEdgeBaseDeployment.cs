@@ -3,49 +3,31 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.TestExtensions {
-    using System;
+namespace IIoTPlatform_E2E_Tests.Deploy {
     using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Newtonsoft.Json;
-    using Microsoft.Azure.Devices;
+    using TestExtensions;
 
     /// <summary>
     /// Default edge base deployment configuration
     /// </summary>
-    public class IoTHubEdgeBaseDeployment : DeploymentConfiguration, IIoTHubDeployment {
+    public sealed class IoTHubEdgeBaseDeployment : DeploymentConfiguration {
 
         /// <summary>
         /// Create edge base deployer
         /// </summary>
         /// <param name="context"></param>
         public IoTHubEdgeBaseDeployment(IIoTPlatformTestContext context) : base(context) {
-           _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        /// <summary>
-        /// Create a new layered deployment or update an existing one
-        /// </summary>
-        public async Task<bool> CreateOrUpdateLayeredDeploymentAsync() {
-            var isSuccessful = false;
-            var configuration = await CreateOrUpdateConfigurationAsync(new Configuration(kDeploymentName) {
-                Content = new ConfigurationContent { ModulesContent = CreateDeploymentModules() },
-                TargetCondition = TestConstants.TargetCondition,
-                Priority = 0
-            }, true, kDeploymentName, new CancellationToken());
-            if (configuration != null) {
-                isSuccessful = true;
-            }
-            return isSuccessful;
-        }
+        /// <inheritdoc />
+        protected override int Priority => 0;
 
-        /// <summary>
-        ///  Create a deployment modules object
-        /// </summary>
-        /// <param name="version"></param>
-        /// <returns></returns>
-        public IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
+        /// <inheritdoc />
+        protected override string DeploymentName => kDeploymentName;
+
+        /// <inheritdoc />
+        protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
             var version = "1.0.9.4";
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(@"
             {
@@ -112,6 +94,5 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         private const string kDefaultSchemaVersion = "1.0";
         private const string kDeploymentName = "iiotedge";
-        private readonly IIoTPlatformTestContext _context;
     }
 }

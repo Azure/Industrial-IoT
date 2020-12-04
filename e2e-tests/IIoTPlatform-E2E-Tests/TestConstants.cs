@@ -48,7 +48,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Target condition for standalone publisher
         /// </summary>
-        public static readonly string TargetCondition = $"(tags.__type__ = 'iiotedge' AND tags.unmanaged = true)";
+        public static readonly string TargetCondition = $"(tags.__type__ = 'iiotedge' AND tags.unmanaged = true) AND tags.os = 'Linux'";
 
         /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform

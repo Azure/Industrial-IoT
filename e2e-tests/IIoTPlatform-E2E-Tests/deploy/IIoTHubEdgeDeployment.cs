@@ -3,20 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.TestExtensions {
-    using System.Collections.Generic;
+namespace IIoTPlatform_E2E_Tests.Deploy {
+    using System.Threading;
     using System.Threading.Tasks;
 
-    public interface IIoTHubDeployment {
+    public interface IIoTHubEdgeDeployment {
 
         /// <summary>
         /// Create a new layered deployment or update an existing one
         /// </summary>
-        Task<bool> CreateOrUpdateLayeredDeploymentAsync();
-
-        /// <summary>
-        /// Create a deployment modules object
-        /// </summary>
-        IDictionary<string, IDictionary<string, object>> CreateDeploymentModules();
+        /// <param name="token">The token to cancel the async task</param>
+        /// <returns>true if create or update was successful otherwise false</returns>
+        Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token);
     }
 }
