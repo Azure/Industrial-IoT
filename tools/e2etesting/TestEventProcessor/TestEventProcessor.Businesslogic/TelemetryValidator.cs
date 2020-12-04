@@ -101,20 +101,16 @@ namespace TestEventProcessor.BusinessLogic {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
-            if (configuration.ExpectedValueChangesPerTimestamp == 0)
-            {
-                throw new ArgumentNullException("Invalid configuration detected, expected value changes per timestamp can't be zero");
+            if (configuration.ExpectedValueChangesPerTimestamp < 0) {
+                throw new ArgumentNullException("Invalid configuration detected, expected value changes per timestamp can't be lower than zero");
             }
-            if (configuration.ExpectedIntervalOfValueChanges == 0)
-            {
-                throw new ArgumentNullException("Invalid configuration detected, expected interval of value changes can't be zero");
+            if (configuration.ExpectedIntervalOfValueChanges < 0) {
+                throw new ArgumentNullException("Invalid configuration detected, expected interval of value changes can't be lower than zero");
             }
-            if (configuration.ExpectedMaximalDuration == 0)
-            {
-                throw new ArgumentNullException("Invalid configuration detected, maximal total duration can't be zero");
+            if (configuration.ExpectedMaximalDuration < 0) {
+                throw new ArgumentNullException("Invalid configuration detected, maximal total duration can't be lower than zero");
             }
-            if (configuration.ThresholdValue <= 0)
-            {
+            if (configuration.ThresholdValue <= 0) {
                 throw new ArgumentNullException("Invalid configuration detected, threshold can't be negative or zero");
             }
 
@@ -122,6 +118,10 @@ namespace TestEventProcessor.BusinessLogic {
             if (string.IsNullOrWhiteSpace(configuration.StorageConnectionString)) throw new ArgumentNullException(nameof(configuration.StorageConnectionString));
             if (string.IsNullOrWhiteSpace(configuration.BlobContainerName)) throw new ArgumentNullException(nameof(configuration.BlobContainerName));
             if (string.IsNullOrWhiteSpace(configuration.EventHubConsumerGroup)) throw new ArgumentNullException(nameof(configuration.EventHubConsumerGroup));
+
+            if (configuration.ExpectedMaximalDuration == 0) {
+                configuration.ExpectedMaximalDuration = uint.MaxValue;
+            }
 
             Interlocked.Exchange(ref _shuttingDown, 0);
             _currentConfiguration = configuration;
@@ -182,10 +182,18 @@ namespace TestEventProcessor.BusinessLogic {
             // the stop procedure takes about a minute, so we fire and forget.
             StopEventProcessorClientAsync().SafeFireAndForget(e => _logger.LogError(e, "Error while stopping event monitoring."));
 
-            // TODO collect "expected" parameter as groups related to OPC UA nodes
-            bool allExpectedValueChanges = _valueChangesPerNodeId?.All(kvp =>
-                (kvp.Value / _totalValueChangesCount) == _currentConfiguration.ExpectedValueChangesPerTimestamp) ?? false;
-            _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}", allExpectedValueChanges);
+            bool allExpectedValueChanges = true;
+
+            if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
+
+                // TODO collect "expected" parameter as groups related to OPC UA nodes
+                allExpectedValueChanges = _valueChangesPerNodeId?.All(kvp =>
+                                                   (kvp.Value / _totalValueChangesCount) == _currentConfiguration
+                                                       .ExpectedValueChangesPerTimestamp) ??
+                                               false;
+                _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}",
+                    allExpectedValueChanges);
+            }
 
             return new StopResult() {
                     ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(_valueChangesPerNodeId ?? new ConcurrentDictionary<string, int>()),
@@ -262,7 +270,7 @@ namespace TestEventProcessor.BusinessLogic {
                                     iotHubEnqueuedTime.ToString(_dateTimeFormat, formatInfoProvider),
                                     durationDifference);
                             }
-                            if (Math.Round(durationDifference.TotalMilliseconds) > _currentConfiguration.ExpectedMaximalDuration) 
+                            if (Math.Round(durationDifference.TotalMilliseconds) > _currentConfiguration.ExpectedMaximalDuration)
                             {
                                 _logger.LogInformation("Total duration exceeded limit, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
                                     missingSequence.Key.ToString(_dateTimeFormat, formatInfoProvider),
@@ -329,7 +337,6 @@ namespace TestEventProcessor.BusinessLogic {
             return new Task(() => {
                 try
                 {
-                    var formatInfoProvider = new DateTimeFormatInfo();
                     while (!token.IsCancellationRequested) {
 
                         CheckForMissingTimestamps();
@@ -435,10 +442,12 @@ namespace TestEventProcessor.BusinessLogic {
 
                 opcDiffToNow = newOpcDiffToNow;
 
-                _valueChangesPerTimestamp.AddOrUpdate(
-                    timestamp,
-                    (ts) => 0,
-                    (ts, value) => ++value);
+                if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
+                    _valueChangesPerTimestamp.AddOrUpdate(
+                        timestamp,
+                        (ts) => 0,
+                        (ts, value) => ++value);
+                }
 
                 _valueChangesPerNodeId.AddOrUpdate(nodeId, 1, (k, v) => ++v);
 
@@ -446,7 +455,7 @@ namespace TestEventProcessor.BusinessLogic {
 
                 valueChangesCount++;
 
-                if (!_observedTimestamps.Contains(timestamp))
+                if (_currentConfiguration.ExpectedIntervalOfValueChanges > 0 && !_observedTimestamps.Contains(timestamp))
                 {
                     _observedTimestamps.Enqueue(timestamp);
 
