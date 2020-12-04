@@ -122,9 +122,9 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static void SavePublishedNodesFile(PublishedNodesEntryModel simulatedOpcServer, IIoTPlatformTestContext context) {
             Assert.NotNull(simulatedOpcServer);
+
             PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] {simulatedOpcServer};
             var json = JsonConvert.SerializeObject(model, Formatting.Indented);
-
             context.PublishedNodesFileInternalFolder = Directory.GetCurrentDirectory() + "/published_nodes.json";
             File.WriteAllText(context.PublishedNodesFileInternalFolder, json);
         }
@@ -167,10 +167,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         private static async Task UpdateTagAsync(string patch, IIoTPlatformTestContext context) {
             var registryManager = context.RegistryHelper.RegistryManager;
-            var deviceId = context.DeviceConfig.DeviceId;
-            Assert.True(!string.IsNullOrWhiteSpace(deviceId), "deviceId string is null");
-
-            var twin = await registryManager.GetTwinAsync(deviceId);
+            var twin = await registryManager.GetTwinAsync(context.DeviceConfig.DeviceId);
             await registryManager.UpdateTwinAsync(twin.DeviceId, patch, twin.ETag);
         }
 

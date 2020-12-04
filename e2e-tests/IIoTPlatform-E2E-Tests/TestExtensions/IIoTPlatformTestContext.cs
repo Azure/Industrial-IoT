@@ -7,6 +7,7 @@
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using System;
     using Config;
+    using Deploy;
     using Extensions;
     using Microsoft.Extensions.Configuration;
     using Xunit.Abstractions;
@@ -25,6 +26,9 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             Configuration = GetConfiguration();
 
             RegistryHelper = new RegistryHelper(IoTHubConfig);
+            EdgeBaseDeployment = new IoTHubEdgeBaseDeployment(this);
+            PublisherDeployment = new IoTHubPublisherDeployment(this);
+
             OutputHelper = null;
         }
 
@@ -82,6 +86,16 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Helper to work with Azure.Devices.RegistryManager
         /// </summary>
         public RegistryHelper RegistryHelper { get; }
+
+        /// <summary>
+        /// Deployment for edgeHub and edgeAgent so called "base deployment"
+        /// </summary>
+        public IIoTHubEdgeDeployment EdgeBaseDeployment { get; }
+
+        /// <summary>
+        /// Deployment for OPC Publisher as standalone
+        /// </summary>
+        public IIoTHubEdgeDeployment PublisherDeployment { get; }
 
         /// <inheritdoc />
         public void Dispose()
@@ -184,6 +198,6 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             () => string.Empty);
 
         string IContainerRegistryConfig.ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
-            () => throw new Exception("Images tag not provided"));
+            () => "mcr.microsoft.com/iotedge/opc-publisher:latest" );
     }
 }

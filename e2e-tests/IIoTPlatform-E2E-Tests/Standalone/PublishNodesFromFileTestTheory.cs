@@ -10,7 +10,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using Xunit;
     using TestExtensions;
     using Xunit.Abstractions;
-    using System.IO;
+    using System.Threading;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -37,25 +37,62 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(2)]
-        public async Task PublishFromPublishedNodesFile() {
-            var deploy = new IoTHubPublisherDeployment(_context);
-            Assert.NotNull(deploy);
-            var result = await deploy.CreateOrUpdateLayeredDeploymentAsync();
-            _output.WriteLine("Created new layered deployment and publisher_standalone");
+        public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
+            var ct = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
+            var result = await _context.EdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(ct.Token);
+            _output.WriteLine("Created new EdgeBase layered deployment and publisher_standalone");
             Assert.True(result);
         }
 
         [Fact, PriorityOrder(3)]
-        public async Task SwitchToStandaloneMode() {
+        public async Task Test_SwitchToStandaloneMode() {
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
-            TestHelper.SavePublishedNodesFile(simulatedOpcServer[simulatedOpcServer.Keys.First()], _context);
+
+            //Create a published_nodes file with one node
+            var opcPlcServerNodes = simulatedOpcServer[simulatedOpcServer.Keys.First()];
+            var publishedNodes = opcPlcServerNodes;
+            publishedNodes.OpcNodes = opcPlcServerNodes.OpcNodes.Take(1).ToArray();
+            //PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] { publishedNodes };
+            //Create and save a published_nodes.json file with numberOfNodes nodes
+            TestHelper.SavePublishedNodesFile(publishedNodes, _context);
             _output.WriteLine("Saved published_nodes.json file");
+
             TestHelper.SwitchToStandaloneMode(_context);
             TestHelper.LoadPublishedNodesFile(_context.PublishedNodesFileInternalFolder, TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile, _context);
             _output.WriteLine("Switched to standalone mode and loaded published_nodes.json file");
         }
 
         [Fact, PriorityOrder(4)]
+        public async Task Test_PublishFromPublishedNodesFile_Expect_Success() {
+            var ct = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
+            var result = await _context.PublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(ct.Token);
+            _output.WriteLine("Created new layered deployment and publisher_standalone");
+            Assert.True(result);
+        }
+
+        [Fact, PriorityOrder(5)]
+        public async Task Test_WaitForModuleDeployed() {
+            var cts = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
+
+            // We will wait for module to be deployed.
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, _context, new string[] { "publisher_standalone" });
+        }
+
+        [Fact, PriorityOrder(6)]
+        public async void Test_VerifyDataAvailableAtIoTHub() {
+            //use test event processor to verify data send to IoT Hub
+            await TestHelper.StopMonitoringIncomingMessages(_context);
+            await TestHelper.StartMonitoringIncomingMessages(_context, 0, 0, 0);
+
+            // wait some time to generate events to process
+            await Task.Delay(90 * 1000);
+            var json = await TestHelper.StopMonitoringIncomingMessages(_context);
+            Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True((bool)json.allExpectedValueChanges, "Unexpected number of messages received");
+            Assert.True((bool)json.allInExpectedInterval, "Messages send in unexpected interval");
+        }
+
+        [Fact, PriorityOrder(7)]
         public void SwitchToOrchestratedMode() {
             TestHelper.SwitchToOrchestratedMode(TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile, _context);
             _output.WriteLine("Switched to orchestrated mode and deleted published_nodes.json file");
