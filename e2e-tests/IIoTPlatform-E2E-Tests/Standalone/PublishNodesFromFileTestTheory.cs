@@ -26,12 +26,12 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         /// <summary>
         /// Deployment for edgeHub and edgeAgent so called "base deployment"
         /// </summary>
-        private readonly IoTHubEdgeBaseDeployment _ioTHubEdgeBaseDeployment;
+        private readonly IIoTHubEdgeDeployment _ioTHubEdgeBaseDeployment;
 
         /// <summary>
         /// Deployment for OPC Publisher as standalone
         /// </summary>
-        private readonly IoTHubPublisherDeployment _ioTHubPublisherDeployment;
+        private readonly IIoTHubEdgeDeployment _ioTHubPublisherDeployment;
 
         public PublishNodesFromFileTestTheory(IIoTPlatformTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
