@@ -23,7 +23,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         public IIoTPlatformTestContext() {
             Configuration = GetConfiguration();
-            RegistryHelper = new RegistryHelper(IoTHubConfig);
+            RegistryHelper = new RegistryHelper(this);
             OutputHelper = null;
         }
 
