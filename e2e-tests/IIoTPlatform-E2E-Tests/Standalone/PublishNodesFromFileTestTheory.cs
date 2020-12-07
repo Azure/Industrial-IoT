@@ -80,13 +80,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [Fact, PriorityOrder(6)]
         public async Task Test_VerifyDataAvailableAtIoTHub() {
             //use test event processor to verify data send to IoT Hub
-            await TestHelper.StopMonitoringIncomingMessages(_context);
-            await TestHelper.StartMonitoringIncomingMessages(_context, 0, 0, 0);
+            await TestHelper.StartMonitoringIncomingMessages(_context, 1, 1000, 10000);
 
             // wait some time to generate events to process
             await Task.Delay(90 * 1000);
             var json = await TestHelper.StopMonitoringIncomingMessages(_context);
-            Assert.Equal(200, (int)json.status);
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
         }
 
