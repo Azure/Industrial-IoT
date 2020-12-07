@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.Standalone {
-    using IIoTPlatform_E2E_Tests.Deploy;
     using System;
     using System.Linq;
     using System.Threading;
@@ -17,30 +16,16 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
     /// </summary>
     [TestCaseOrderer("IIoTPlatform_E2E_Tests.TestExtensions.TestOrderer", TestConstants.TestAssemblyName)]
-    [Collection("IIoT Platform Test Collection")]
+    [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
     public class PublishNodesFromFileTestTheory {
         private readonly ITestOutputHelper _output;
-        private readonly IIoTPlatformTestContext _context;
+        private readonly IIoTStandaloneTestContext _context;
 
-        /// <summary>
-        /// Deployment for edgeHub and edgeAgent so called "base deployment"
-        /// </summary>
-        private readonly IIoTHubEdgeDeployment _ioTHubEdgeBaseDeployment;
-
-        /// <summary>
-        /// Deployment for OPC Publisher as standalone
-        /// </summary>
-        private readonly IIoTHubEdgeDeployment _ioTHubPublisherDeployment;
-
-        public PublishNodesFromFileTestTheory(IIoTPlatformTestContext context, ITestOutputHelper output) {
+        public PublishNodesFromFileTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
-
-            // Create deployments.
-            _ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
-            _ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context);
         }
 
         [Fact, PriorityOrder(1)]
@@ -54,7 +39,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [Fact, PriorityOrder(2)]
         public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
             var ct = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
-            var result = await _ioTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(ct.Token);
+            var result = await _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(ct.Token);
             _output.WriteLine("Created new EdgeBase layered deployment and publisher_standalone");
             Assert.True(result);
         }
@@ -80,7 +65,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [Fact, PriorityOrder(4)]
         public async Task Test_PublishFromPublishedNodesFile_Expect_Success() {
             var ct = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
-            var result = await _ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(ct.Token);
+            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(ct.Token);
             _output.WriteLine("Created new layered deployment and publisher_standalone");
             Assert.True(result);
         }
@@ -94,7 +79,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(6)]
-        public async void Test_VerifyDataAvailableAtIoTHub() {
+        public async Task Test_VerifyDataAvailableAtIoTHub() {
             //use test event processor to verify data send to IoT Hub
             await TestHelper.StopMonitoringIncomingMessages(_context);
             await TestHelper.StartMonitoringIncomingMessages(_context, 0, 0, 0);
@@ -102,6 +87,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // wait some time to generate events to process
             await Task.Delay(90 * 1000);
             var json = await TestHelper.StopMonitoringIncomingMessages(_context);
+            Assert.Equal(200, (int)json.status);
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
         }
 

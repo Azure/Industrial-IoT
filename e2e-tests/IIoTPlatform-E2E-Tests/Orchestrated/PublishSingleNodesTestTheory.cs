@@ -252,7 +252,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(10)]
-        public async void Test_VerifyDataAvailableAtIoTHub() {
+        public async Task Test_VerifyDataAvailableAtIoTHub() {
 
             //use test event processor to verify data send to IoT Hub
             await TestHelper.StartMonitoringIncomingMessages(_context, 1, 1000, 10000);
@@ -289,7 +289,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(12)]
-        public async void Test_VerfiyNoDataIncomingAtIoTHub() {
+        public async Task Test_VerfiyNoDataIncomingAtIoTHub() {
             await Task.Delay(90 * 1000); //wait till the publishing has stopped
             //use test event processor to verify data send to IoT Hub
             await TestHelper.StartMonitoringIncomingMessages(_context, 0, 0, 0);
