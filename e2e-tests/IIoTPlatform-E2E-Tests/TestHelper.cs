@@ -26,26 +26,38 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Request OAuth token using Http basic authentication from environment variables
         /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns>Return content of request token or empty string</returns>
-        public static async Task<string> GetTokenAsync(IIoTPlatformTestContext context) {
+        public static async Task<string> GetTokenAsync(
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default
+        ) {
             return await GetTokenAsync(
                 context.IIoTPlatformConfigHubConfig.AuthTenant,
                 context.IIoTPlatformConfigHubConfig.AuthClientId,
                 context.IIoTPlatformConfigHubConfig.AuthClientSecret,
-                context.IIoTPlatformConfigHubConfig.ApplicationName
+                context.IIoTPlatformConfigHubConfig.ApplicationName,
+                ct
             );
         }
 
         /// <summary>
         /// Request OAuth token using Http basic authentication
         /// </summary>
-        /// <param name="tenantId"></param>
+        /// <param name="tenantId">Tenant ID</param>
         /// <param name="clientId">User name for HTTP basic authentication</param>
         /// <param name="clientSecret">Password for HTTP basic authentication</param>
         /// <param name="applicationName">Name of deployed Industrial IoT</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns>Return content of request token or empty string</returns>
-        public static async Task<string> GetTokenAsync(string tenantId, string clientId, string clientSecret, string applicationName) {
-
+        public static async Task<string> GetTokenAsync(
+            string tenantId,
+            string clientId,
+            string clientSecret,
+            string applicationName,
+            CancellationToken ct = default
+        ) {
             Assert.True(!string.IsNullOrWhiteSpace(tenantId), "tenantId is null");
             Assert.True(!string.IsNullOrWhiteSpace(clientId), "clientId is null");
             Assert.True(!string.IsNullOrWhiteSpace(clientSecret), "clientSecret is null");
@@ -61,7 +73,7 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddParameter("grant_type", "client_credentials");
             request.AddParameter("scope", $"https://{tenantId}/{applicationName}-service/.default");
 
-            var response = await client.ExecuteAsync(request);
+            var response = await client.ExecuteAsync(request, ct);
             Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
@@ -73,8 +85,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// Read PublishedNodes json from OPC-PLC and provide the data to the tests
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns>Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</returns>
-        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedOpcUaNodesAsync(IIoTPlatformTestContext context) {
+        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedOpcUaNodesAsync(
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default
+        ) {
             var result = new Dictionary<string, PublishedNodesEntryModel>();
 
             var opcPlcUrls = context.OpcPlcConfig.Urls;
@@ -91,7 +107,7 @@ namespace IIoTPlatform_E2E_Tests {
                         client.BaseAddress = baseAddress;
                         client.Timeout = TimeSpan.FromMilliseconds(TestConstants.DefaultTimeoutInMilliseconds);
 
-                        using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile)) {
+                        using (var response = await client.GetAsync(TestConstants.OpcSimulation.PublishedNodesFile, ct)) {
                             Assert.NotNull(response);
                             Assert.True(response.IsSuccessStatusCode, $"http GET request to load pn.json failed, Status {response.StatusCode}");
                             var json = await response.Content.ReadAsStringAsync();
@@ -132,7 +148,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Switch to publisher standalone mode
         /// </summary>
-        public static void SwitchToStandaloneMode(IIoTPlatformTestContext context) {
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        public static async Task SwitchToStandaloneModeAsync(
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default
+        ) {
             var patch =
                 @"{
                     tags: {
@@ -140,7 +161,7 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 }";
 
-            UpdateTagAsync(patch, context).Wait();
+            await UpdateTagAsync(patch, context, ct);
         }
 
         /// <summary>
@@ -148,7 +169,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="destinationFilePath">Path of the PublishedNodesFile.json file to be deleted</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static void SwitchToOrchestratedMode(string destinationFilePath, IIoTPlatformTestContext context) {
+        /// <param name="ct">Cancellation token</param>
+        public static async Task SwitchToOrchestratedModeAsync(
+            string destinationFilePath,
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default
+        ) {
             var patch =
                @"{
                     tags: {
@@ -157,7 +183,7 @@ namespace IIoTPlatform_E2E_Tests {
                 }";
 
             DeletePublishedNodesFile(destinationFilePath, context);
-            UpdateTagAsync(patch, context).Wait();
+            await UpdateTagAsync(patch, context, ct);
         }
 
         /// <summary>
@@ -165,10 +191,15 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="patch">Name of deployed Industrial IoT</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        private static async Task UpdateTagAsync(string patch, IIoTPlatformTestContext context) {
+        /// <param name="ct">Cancellation token</param>
+        private static async Task UpdateTagAsync(
+            string patch,
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default
+        ) {
             var registryManager = context.RegistryHelper.RegistryManager;
-            var twin = await registryManager.GetTwinAsync(context.DeviceConfig.DeviceId);
-            await registryManager.UpdateTwinAsync(twin.DeviceId, patch, twin.ETag);
+            var twin = await registryManager.GetTwinAsync(context.DeviceConfig.DeviceId, ct);
+            await registryManager.UpdateTwinAsync(twin.DeviceId, patch, twin.ETag, ct);
         }
 
         /// <summary>
@@ -274,13 +305,19 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="expectedValuesChangesPerTimestamp">The expected number of value changes per timestamp</param>
         /// <param name="expectedIntervalOfValueChanges">The expected time difference between values changes in milliseconds</param>
         /// <param name="expectedMaximalDuration">The time difference between OPC UA Server fires event until Changes Received in IoT Hub in milliseconds </param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async Task StartMonitoringIncomingMessages(IIoTPlatformTestContext context,
-            int expectedValuesChangesPerTimestamp, int expectedIntervalOfValueChanges, int expectedMaximalDuration) {
+        public static async Task StartMonitoringIncomingMessages(
+            IIoTPlatformTestContext context,
+            int expectedValuesChangesPerTimestamp,
+            int expectedIntervalOfValueChanges,
+            int expectedMaximalDuration,
+            CancellationToken ct = default
+        ) {
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
 
             var client = new RestClient(runtimeUrl) {
-                Timeout = 30000,
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
                 Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
                     context.TestEventProcessorConfig.TestEventProcessorPassword)
             };
@@ -299,7 +336,7 @@ namespace IIoTPlatform_E2E_Tests {
             var request = new RestRequest(Method.PUT);
             request.AddJsonBody(body);
 
-            var response = await client.ExecuteAsync(request);
+            var response = await client.ExecuteAsync(request, ct);
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
         }
@@ -308,13 +345,17 @@ namespace IIoTPlatform_E2E_Tests {
         /// Stops the monitoring of incoming event to an IoT Hub and returns success/failure.
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async Task<dynamic> StopMonitoringIncomingMessages(IIoTPlatformTestContext context) {
+        public static async Task<dynamic> StopMonitoringIncomingMessages(
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default
+        ) {
             // TODO Merge with Start-Method to avoid code duplication
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
 
             var client = new RestClient(runtimeUrl) {
-                Timeout = 30000,
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds,
                 Authenticator = new HttpBasicAuthenticator(context.TestEventProcessorConfig.TestEventProcessorUsername,
                     context.TestEventProcessorConfig.TestEventProcessorPassword)
             };
@@ -326,7 +367,7 @@ namespace IIoTPlatform_E2E_Tests {
             var request = new RestRequest(Method.PUT);
             request.AddJsonBody(body);
 
-            var response = await client.ExecuteAsync(request);
+            var response = await client.ExecuteAsync(request, ct);
 
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
@@ -403,22 +444,24 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>content of GET /registry/v2/application request as dynamic object</returns>
         public static async Task<dynamic> WaitForDiscoveryToBeCompletedAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct) {
-
+            CancellationToken ct
+        ) {
             ct.ThrowIfCancellationRequested();
 
             try {
                 dynamic json;
                 int numberOfItems;
                 do {
-                    var accessToken = await TestHelper.GetTokenAsync(context);
-                    var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+                    var accessToken = await TestHelper.GetTokenAsync(context, ct);
+                    var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
+                        Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    };
 
                     var request = new RestRequest(Method.GET);
                     request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
                     request.Resource = TestConstants.APIRoutes.RegistryApplications;
 
-                    var response = await client.ExecuteAsync(request);
+                    var response = await client.ExecuteAsync(request, ct);
                     Assert.NotNull(response);
                     Assert.True(response.IsSuccessful, "GET /registry/v2/application failed!");
 
@@ -452,8 +495,10 @@ namespace IIoTPlatform_E2E_Tests {
             IIoTPlatformTestContext context,
             CancellationToken ct) {
 
-            var accessToken = await TestHelper.GetTokenAsync(context);
-            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+            var accessToken = await TestHelper.GetTokenAsync(context, ct);
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds
+            };
 
             ct.ThrowIfCancellationRequested();
             try {
@@ -464,7 +509,7 @@ namespace IIoTPlatform_E2E_Tests {
                     request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
                     request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
 
-                    var response = await client.ExecuteAsync(request);
+                    var response = await client.ExecuteAsync(request, ct);
                     Assert.NotNull(response);
                     Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
 
@@ -480,7 +525,7 @@ namespace IIoTPlatform_E2E_Tests {
                     activationState = (string)json.items[0].activationState;
                     // wait the endpoint to be connected
                     if (activationState == "Activated") {
-                        await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
+                        await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, ct);
                     }
                 } while (activationState != "ActivatedAndConnected");
 
