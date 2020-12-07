@@ -52,8 +52,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var opcPlcServerNodes = simulatedOpcServer[simulatedOpcServer.Keys.First()];
             var publishedNodes = opcPlcServerNodes;
             publishedNodes.OpcNodes = opcPlcServerNodes.OpcNodes.Take(1).ToArray();
-            //PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] { publishedNodes };
-            //Create and save a published_nodes.json file with numberOfNodes nodes
             TestHelper.SavePublishedNodesFile(publishedNodes, _context);
             _output.WriteLine("Saved published_nodes.json file");
 
@@ -75,7 +73,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var cts = new CancellationTokenSource(TestConstants.MaxDelayDeploymentToBeLoadedInMilliseconds);
 
             // We will wait for module to be deployed.
-            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, new string[] { "publisher_standalone" });
+            var exception = await Record.ExceptionAsync(async () => await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, _context, new string[] { "publisher_standalone" }));
+            Assert.Null(exception);
         }
 
         [Fact, PriorityOrder(6)]
