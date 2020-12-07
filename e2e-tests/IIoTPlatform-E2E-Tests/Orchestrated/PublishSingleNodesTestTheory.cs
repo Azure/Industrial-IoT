@@ -53,7 +53,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             // We will wait for microservices of IIoT platform to be healthy and modules to be deployed.
             await TestHelper.WaitForServicesAsync(_context, cts.Token);
-            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, _context);
+            await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token);
 
             var accessToken = await TestHelper.GetTokenAsync(_context);
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context);
@@ -252,7 +252,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(10)]
-        public async void Test_VerifyDataAvailableAtIoTHub() {
+        public async Task Test_VerifyDataAvailableAtIoTHub() {
 
             //use test event processor to verify data send to IoT Hub
             await TestHelper.StartMonitoringIncomingMessages(_context, 1, 1000, 10000);
@@ -289,7 +289,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(12)]
-        public async void Test_VerfiyNoDataIncomingAtIoTHub() {
+        public async Task Test_VerfiyNoDataIncomingAtIoTHub() {
             await Task.Delay(90 * 1000); //wait till the publishing has stopped
             //use test event processor to verify data send to IoT Hub
             await TestHelper.StartMonitoringIncomingMessages(_context, 0, 0, 0);
