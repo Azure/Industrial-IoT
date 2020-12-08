@@ -31,9 +31,9 @@ namespace IIoTPlatform_E2E_Tests {
         public const int DefaultDelayMilliseconds = 5 * 1000;
 
         /// <summary>
-        /// Default timeout of loading edge modules
+        /// Maximum timeout for a test case
         /// </summary>
-        public const int MaxDelayDeploymentToBeLoadedInMilliseconds = 10 * 60 * 1000;
+        public const int MaxTestTimeoutMilliseconds = 10 * 60 * 1000;
 
         /// <summary>
         /// Name of Published Nodes Json used by publisher module

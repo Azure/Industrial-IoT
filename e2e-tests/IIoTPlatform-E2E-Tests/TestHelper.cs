@@ -307,7 +307,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="expectedMaximalDuration">The time difference between OPC UA Server fires event until Changes Received in IoT Hub in milliseconds </param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async Task StartMonitoringIncomingMessages(
+        public static async Task StartMonitoringIncomingMessagesAsync(
             IIoTPlatformTestContext context,
             int expectedValuesChangesPerTimestamp,
             int expectedIntervalOfValueChanges,
@@ -347,7 +347,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async Task<dynamic> StopMonitoringIncomingMessages(
+        public static async Task<dynamic> StopMonitoringIncomingMessagesAsync(
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
