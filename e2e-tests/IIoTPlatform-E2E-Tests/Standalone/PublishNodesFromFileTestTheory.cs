@@ -46,7 +46,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(3)]
-        public async Task Test_SwitchToStandaloneMode() {
+        public async Task Test_SwitchToStandaloneModeAndLoadPublishedNodesFile() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context, cts.Token);
 
@@ -63,7 +63,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(4)]
-        public async Task Test_PublishFromPublishedNodesFile_Expect_Success() {
+        public async Task Test_CreateLayeredDeployment_Expect_Success() {
             var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
             var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
             _output.WriteLine("Created new layered deployment and publisher_standalone");
