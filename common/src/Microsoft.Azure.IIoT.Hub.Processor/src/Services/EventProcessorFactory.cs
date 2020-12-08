@@ -17,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
     using System.Diagnostics;
     using Autofac;
     using Prometheus;
-    using System.Globalization;
 
     /// <summary>
     /// Default event hub event processor factory.

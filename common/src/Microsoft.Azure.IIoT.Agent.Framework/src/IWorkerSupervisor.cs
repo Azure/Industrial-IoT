@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework {
-    using System.Threading.Tasks;
-
     /// <summary>
     /// Worker supervisor
     /// </summary>

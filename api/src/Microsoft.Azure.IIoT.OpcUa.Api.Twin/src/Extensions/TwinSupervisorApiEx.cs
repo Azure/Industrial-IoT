@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Threading;
@@ -206,6 +207,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
                 }
                 return result;
             }
+        }
+
+        /// <summary>
+        /// Read node history with custom encoded extension object details
+        /// </summary>
+        /// <param name="api"></param>
+        /// <param name="endpointUrl"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static Task<HistoryReadResponseApiModel<VariantValue>> HistoryReadRawAsync(
+            this ITwinModuleApi api, string endpointUrl, HistoryReadRequestApiModel<VariantValue> request,
+            CancellationToken ct = default) {
+            return api.HistoryReadRawAsync(NewEndpoint(endpointUrl), request, ct);
+        }
+
+        /// <summary>
+        /// Read history call with custom encoded extension object details
+        /// </summary>
+        /// <param name="api"></param>
+        /// <param name="endpointUrl"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static Task<HistoryReadNextResponseApiModel<VariantValue>> HistoryReadRawNextAsync(
+            this ITwinModuleApi api, string endpointUrl, HistoryReadNextRequestApiModel request,
+            CancellationToken ct = default) {
+            return api.HistoryReadRawNextAsync(NewEndpoint(endpointUrl), request, ct);
+        }
+
+        /// <summary>
+        /// Update using raw extension object details
+        /// </summary>
+        /// <param name="api"></param>
+        /// <param name="endpointUrl"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(
+            this ITwinModuleApi api, string endpointUrl, HistoryUpdateRequestApiModel<VariantValue> request,
+            CancellationToken ct = default) {
+            return api.HistoryUpdateRawAsync(NewEndpoint(endpointUrl), request, ct);
         }
 
         /// <summary>

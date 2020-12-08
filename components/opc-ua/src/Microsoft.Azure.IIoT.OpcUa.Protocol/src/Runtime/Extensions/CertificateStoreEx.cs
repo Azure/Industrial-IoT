@@ -4,10 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Opc.Ua;
-    using System.Net;
 
 
     /// <summary>

@@ -11,11 +11,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
-    using System.IdentityModel.Selectors;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>

@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
-    using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using System.Linq;
@@ -18,6 +17,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
 
     [Collection(ReadHistoryCollection.Name)]
     public class SupervisorReadValuesTests {
@@ -31,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
         private HistoryReadValuesTests<EndpointRegistrationModel> GetTests(
             string deviceId, string moduleId, IContainer services) {
             return new HistoryReadValuesTests<EndpointRegistrationModel>(
-                () => services.Resolve<IHistorianServices<EndpointRegistrationModel>>(),
+                () => services.Resolve<IHistoricAccessServices<EndpointRegistrationModel>>(),
                 new EndpointRegistrationModel {
                     Endpoint = new EndpointModel {
                         Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
@@ -42,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
                     },
                     Id = "testid",
                     SupervisorId = SupervisorModelEx.CreateSupervisorId(deviceId, moduleId)
-                });
+                }, services.Resolve<IVariantEncoderFactory>());
         }
 
         private readonly HistoryServerFixture _server;

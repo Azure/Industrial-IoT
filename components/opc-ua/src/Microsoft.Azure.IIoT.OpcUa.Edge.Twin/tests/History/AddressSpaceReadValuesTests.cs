@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.History.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
@@ -31,15 +30,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.History {
         private HistoryReadValuesTests<EndpointModel> GetTests() {
             var codec = new VariantEncoderFactory();
             return new HistoryReadValuesTests<EndpointModel>(
-                () => new HistoricAccessAdapter<EndpointModel>(new AddressSpaceServices(_server.Client,
-                    codec, _server.Logger), codec),
+                () => new AddressSpaceServices(_server.Client, codec, _server.Logger),
                 new EndpointModel {
                     Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
                     AlternativeUrls = _hostEntry?.AddressList
                         .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                         .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
                     Certificate = _server.Certificate?.RawData?.ToThumbprint()
-                });
+                }, codec);
         }
 
         [Fact]

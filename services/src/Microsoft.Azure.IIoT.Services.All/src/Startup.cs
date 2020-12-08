@@ -104,10 +104,6 @@ namespace Microsoft.Azure.IIoT.Services.All {
             app.AddStartupBranch<OpcUa.Publisher.Edge.Startup>("/edge/publisher");
             app.AddStartupBranch<OpcUa.Events.Startup>("/events");
 
-            if (!Config.IsMinimumDeployment) {
-                app.AddStartupBranch<OpcUa.Twin.History.Startup>("/history");
-            }
-
             app.UseHealthChecks("/healthz");
 
             // Start processors

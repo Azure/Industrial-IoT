@@ -8,14 +8,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading.Tasks;

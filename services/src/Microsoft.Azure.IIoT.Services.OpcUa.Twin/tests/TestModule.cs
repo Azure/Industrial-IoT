@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
-    using Microsoft.Azure.IIoT.OpcUa.History;
-    using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
