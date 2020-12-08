@@ -15,7 +15,6 @@ The following Microservices are part of the platform:
 * [OPC Publisher Microservice and Orchestrator](publisher.md) (GA)
 * [OPC Historic Data Access Microservice](twin-history.md) (Preview)
 * [SignalR Event Service](events.md) (Preview)
-* [OPC Vault Microservice](vault.md) (Experimental)
 * [OPC Gateway Service](twin-gateway.md) (Experimental)
 
 These microservices use business logic and components included in this repository to provide discovery, registration, and remote control of industrial devices through REST APIs that can be implemented in any programming language and framework that can call an HTTP endpoint.
