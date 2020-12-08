@@ -42,16 +42,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services,
             Func<string, Func<AuthorizationHandlerContext, bool>> roles, params string[] policies) {
             return services.AddAuthorizationPolicies(
-                (n, builder, provider) => {
-                    var config = provider.GetService<IRoleConfig>();
-                    if (config?.UseRoles == true) {
-                        var rights = roles(n);
-                        if (rights != null) {
-                            return builder.RequireAuthenticatedUser().RequireAssertion(rights);
-                        }
-                    }
-                    return builder.RequireAuthenticatedUser();
-                }, policies);
+                (n, builder, provider) => builder.RequireAuthenticatedUser(), policies);
         }
 
         /// <summary>

@@ -46,24 +46,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Dps idscope </summary>
         public const string PCS_DPS_IDSCOPE =
             "PCS_DPS_IDSCOPE";
-        /// <summary> ADLS Gen2 account </summary>
-        public const string PCS_ADLSG2_ACCOUNT =
-            "PCS_ADLSG2_ACCOUNT";
-        /// <summary> ADLS Gen2 account key </summary>
-        public const string PCS_ADLSG2_ACCOUNT_KEY =
-            "PCS_ADLSG2_ACCOUNT_KEY";
-        /// <summary> ADLS Gen2 endpoint suffix </summary>
-        public const string PCS_ADLSG2_ENDPOINTSUFFIX =
-            "PCS_ADLSG2_ENDPOINTSUFFIX";
-        /// <summary> ADLS Gen2 connection string </summary>
-        public const string PCS_ADLSG2_CONNSTRING =
-            "PCS_ADLSG2_CONNSTRING";
-        /// <summary> CDM storage drive </summary>
-        public const string PCS_CDM_DRIVE_NAME =
-            "PCS_ADLSG2_CONTAINER_CDM";
-        /// <summary> CDM storage folder </summary>
-        public const string PCS_CDM_ROOT_FOLDER =
-            "PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER";
         /// <summary> storage connection string </summary>
         public const string PCS_STORAGE_CONNSTRING =
             "PCS_STORAGE_CONNSTRING";
@@ -136,18 +118,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service secret </summary>
         public const string PCS_AAD_SERVICE_SECRET =
             "PCS_AUTH_SERVICE_SECRET";
-        /// <summary> Built in Auth server disabled </summary>
-        public const string PCS_AUTH_SERVICE_DISABLED =
-            "PCS_AUTH_SERVICE_DISABLED";
-        /// <summary> Built in Auth server trusted issuer </summary>
-        public const string PCS_AUTH_SERVICE_ISSUER =
-            "PCS_AUTH_SERVICE_ISSUER";
-        /// <summary> Built in Auth server service application id </summary>
-        public const string PCS_AUTH_SERVICE_SERVICE_APPID =
-            "PCS_AUTH_SERVICE_SERVICE_APPID";
-        /// <summary> Built in Auth server service secret </summary>
-        public const string PCS_AUTH_SERVICE_SERVICE_SECRET =
-            "PCS_AUTH_SERVICE_SERVICE_SECRET";
         /// <summary> Client application id </summary>
         public const string PCS_AAD_CONFIDENTIAL_CLIENT_APPID =
             "PCS_AUTH_CLIENT_APPID";
@@ -157,15 +127,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Client application id </summary>
         public const string PCS_AAD_PUBLIC_CLIENT_APPID =
             "PCS_AUTH_PUBLIC_CLIENT_APPID";
-        /// <summary> Built in Auth server service application id </summary>
-        public const string PCS_AUTH_SERVICE_CLIENT_APPID =
-            "PCS_AUTH_SERVICE_CLIENT_APPID";
-        /// <summary> Built in Auth server service secret </summary>
-        public const string PCS_AUTH_SERVICE_CLIENT_SECRET =
-            "PCS_AUTH_SERVICE_CLIENT_SECRET";
-        /// <summary> Whether to use role based access </summary>
-        public const string PCS_AUTH_ROLES =
-            "PCS_AUTH_ROLES";
         /// <summary> Auth required </summary>
         public const string PCS_AUTH_REQUIRED =
             "PCS_AUTH_REQUIRED";
@@ -187,12 +148,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service url </summary>
         public const string PCS_SERVICE_URL =
             "PCS_SERVICE_URL";
-        /// <summary> Auth service endpoint url </summary>
-        public const string PCS_AUTH_SERVICE_URL =
-            "PCS_AUTH_SERVICE_URL";
-        /// <summary> User servíce endpoint url </summary>
-        public const string PCS_USERS_SERVICE_URL =
-            "PCS_USERS_SERVICE_URL";
         /// <summary> OPC twin service endpoint url </summary>
         public const string PCS_TWIN_SERVICE_URL =
             "PCS_TWIN_SERVICE_URL";
@@ -241,18 +196,12 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service URL path base for OPC registry service </summary>
         public const string PCS_TWIN_REGISTRY_SERVICE_PATH_BASE =
             "PCS_TWIN_REGISTRY_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for OPC vault service </summary>
-        public const string PCS_VAULT_SERVICE_PATH_BASE =
-            "PCS_VAULT_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for OPC publisher service </summary>
         public const string PCS_PUBLISHER_SERVICE_PATH_BASE =
             "PCS_PUBLISHER_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for OPC history service </summary>
         public const string PCS_HISTORY_SERVICE_PATH_BASE =
             "PCS_HISTORY_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for gateway service </summary>
-        public const string PCS_GATEWAY_SERVICE_PATH_BASE =
-            "PCS_GATEWAY_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for publisher orchestrator service </summary>
         public const string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE =
             "PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE";
@@ -262,12 +211,6 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service URL path base for events service </summary>
         public const string PCS_EVENTS_SERVICE_PATH_BASE =
             "PCS_EVENTS_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for auth service </summary>
-        public const string PCS_AUTH_SERVICE_PATH_BASE =
-            "PCS_AUTH_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for user servíce </summary>
-        public const string PCS_USERS_SERVICE_PATH_BASE =
-            "PCS_USERS_SERVICE_PATH_BASE";
         /// <summary> Deployment Level </summary>
         public const string PCS_DEPLOYMENT_LEVEL =
             "PCS_DEPLOYMENT_LEVEL";

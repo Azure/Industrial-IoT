@@ -31,10 +31,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
         ICorsConfig, IOpenApiConfig, IServiceBusConfig,
         ICosmosDbConfig, IItemContainerConfig, IForwardedHeadersConfig,
-        IContainerRegistryConfig, ILogWorkspaceConfig, IRoleConfig {
-
-        /// <inheritdoc/>
-        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
+        IContainerRegistryConfig, ILogWorkspaceConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
