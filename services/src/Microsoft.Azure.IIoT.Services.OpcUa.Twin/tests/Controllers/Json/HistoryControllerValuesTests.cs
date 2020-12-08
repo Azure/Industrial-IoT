@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Json {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
     using System.Threading.Tasks;
     using Xunit;
 
-    [Collection(ReadJsonCollection.Name)]
+    [Collection(HistoryJsonCollection.Name)]
     public class HistoryControllerValuesTests : IClassFixture<WebAppFixture> {
 
         public HistoryControllerValuesTests(WebAppFixture factory, HistoryServerFixture server) {

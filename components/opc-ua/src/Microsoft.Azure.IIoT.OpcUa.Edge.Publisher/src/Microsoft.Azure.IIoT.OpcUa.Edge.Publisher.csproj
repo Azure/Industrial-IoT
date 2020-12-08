@@ -4,6 +4,11 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Utils\**" />
+    <EmbeddedResource Remove="Utils\**" />
+    <None Remove="Utils\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.11.1" />
   </ItemGroup>
   <ItemGroup>
@@ -13,8 +18,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Protocol\src\Microsoft.Azure.IIoT.OpcUa.Protocol.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utils\" />
   </ItemGroup>
 </Project>
