@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
     /// the OPC twin module receiving service requests via device method calls.
     /// </summary>
     public sealed class TwinModuleControlClient : IBrowseServices<string>, IHistoricAccessServices<string>,
-        INodeServices<string>, IUploadServices<string> {
+        INodeServices<string> {
 
         /// <summary>
         /// Create service
@@ -32,17 +32,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        /// <inheritdoc/>
-        public async Task<ModelUploadStartResultModel> ModelUploadStartAsync(
-            string endpointId, ModelUploadStartRequestModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            var result = await CallServiceOnTwinAsync<ModelUploadStartRequestModel, ModelUploadStartResultModel>(
-                "ModelUploadStart_V2", endpointId, request);
-            return result;
         }
 
         /// <inheritdoc/>
