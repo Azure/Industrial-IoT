@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Azure.IIoT.App.Common;
-    using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Services.SecureData;
@@ -33,7 +32,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -230,8 +228,6 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<TwinServiceClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<VaultServiceClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceClient>()
                 .AsImplementedInterfaces();
