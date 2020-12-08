@@ -98,7 +98,7 @@ The following details of the Azure IoT Hub would be required:
     "sb://iothub-ns-XXXXXX-XXX-XXXXXXX-XXXXXXXXXX.servicebus.windows.net/"
     ```
 
-  * Four consumer groups. Please create new consumer groups for components of Azure Industrial IoT.
+  * Several consumer groups. Please create new consumer groups for components of Azure Industrial IoT.
     The consumer groups can be created with the following commands:
 
     ```bash

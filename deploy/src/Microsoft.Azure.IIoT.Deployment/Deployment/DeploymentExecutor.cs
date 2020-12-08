@@ -226,10 +226,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             _authenticationManager = AuthenticationManagerFactory
                 .GetAuthenticationManager(
-                    _authConf.AzureEnvironment,
-                    _authConf.TenantId,
-                    _authConf.ClientId,
-                    _authConf.ClientSecret
+                    _authConf
                 );
 
             await _authenticationManager
@@ -1189,7 +1186,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 storageAccountGen2ConectionString,
                 deploymentScriptsBlobContainer.Name,
                 jumpboxShBlobName,
-                Resources.Scripts.jumpbox,
+                Resources.Scripts.JumpboxSh,
                 cancellationToken
             );
 
