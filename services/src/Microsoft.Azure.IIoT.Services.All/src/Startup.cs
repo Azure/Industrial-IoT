@@ -99,7 +99,6 @@ namespace Microsoft.Azure.IIoT.Services.All {
 
             // Minimal API surface
             app.AddStartupBranch<OpcUa.Registry.Startup>("/registry");
-            app.AddStartupBranch<OpcUa.Vault.Startup>("/vault");
             app.AddStartupBranch<OpcUa.Twin.Startup>("/twin");
             app.AddStartupBranch<OpcUa.Publisher.Startup>("/publisher");
             app.AddStartupBranch<OpcUa.Publisher.Edge.Startup>("/edge/publisher");
