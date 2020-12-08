@@ -98,15 +98,13 @@ The following details of the Azure IoT Hub would be required:
     "sb://iothub-ns-XXXXXX-XXX-XXXXXXX-XXXXXXXXXX.servicebus.windows.net/"
     ```
 
-  * Four consumer groups. Please create new consumer groups for components of Azure Industrial IoT.
+  * Several consumer groups. Please create new consumer groups for components of Azure Industrial IoT.
     The consumer groups can be created with the following commands:
 
     ```bash
     $ az iot hub consumer-group create --hub-name MyIotHub --name events
 
     $ az iot hub consumer-group create --hub-name MyIotHub --name telemetry
-
-    $ az iot hub consumer-group create --hub-name MyIotHub --name tunnel
 
     $ az iot hub consumer-group create --hub-name MyIotHub --name onboarding
     ```
@@ -115,7 +113,6 @@ The following details of the Azure IoT Hub would be required:
   
     * `events`: will be used by `eventsProcessor` microservices
     * `telemetry`: will be used by `telemetryProcessor` microservices
-    * `tunnel`: will be used by `tunnelProcessor` microservices
     * `onboarding`: will be used by `onboarding` microservices
 
 * Connection string of `iothubowner` policy for the Azure IoT Hub.
@@ -538,7 +535,6 @@ $ helm install azure-iiot azure-iiot/azure-industrial-iot --namespace azure-iiot
   --set azure.iotHub.eventHub.endpoint=<IoTHubEventHubEndpoint> \
   --set azure.iotHub.eventHub.consumerGroup.events=<IoTHubEventHubEventsConsumerGroup> \
   --set azure.iotHub.eventHub.consumerGroup.telemetry=<IoTHubEventHubTelemetryConsumerGroup> \
-  --set azure.iotHub.eventHub.consumerGroup.tunnel=<IoTHubEventHubTunnelConsumerGroup> \
   --set azure.iotHub.eventHub.consumerGroup.onboarding=<IoTHubEventHubOnboardingConsumerGroup> \
   --set azure.iotHub.sharedAccessPolicies.iothubowner.connectionString=<IoTHubConnectionString> \
   --set azure.cosmosDB.connectionString=<CosmosDBConnectionString> \
@@ -584,7 +580,6 @@ values.
 | `azure.iotHub.eventHub.endpoint`                                                            | Event Hub-compatible endpoint of built-in EventHub of IoT Hub                                    | `null`                               |
 | `azure.iotHub.eventHub.consumerGroup.events`                                                | Consumer group of built-in EventHub of IoT Hub for `eventsProcessor`                             | `null`                               |
 | `azure.iotHub.eventHub.consumerGroup.telemetry`                                             | Consumer group of built-in EventHub of IoT Hub for `telemetryProcessor`                          | `null`                               |
-| `azure.iotHub.eventHub.consumerGroup.tunnel`                                                | Consumer group of built-in EventHub of IoT Hub for `tunnelProcessor`                             | `null`                               |
 | `azure.iotHub.eventHub.consumerGroup.onboarding`                                            | Consumer group of built-in EventHub of IoT Hub for `onboarding`                                  | `null`                               |
 | `azure.iotHub.sharedAccessPolicies.iothubowner.connectionString`                            | Connection string of `iothubowner` policy of IoT Hub                                             | `null`                               |
 | `azure.cosmosDB.connectionString`                                                           | Cosmos DB connection string with read-write permissions                                          | `null`                               |
@@ -719,8 +714,6 @@ following aspects of application runtime for microservices:
 | `apps.urlPathBase.registry`                     | URL path base for `registry` component                                           | `/registry`       |
 | `apps.urlPathBase.twin`                         | URL path base for `twin` component                                               | `/twin`           |
 | `apps.urlPathBase.history`                      | URL path base for `history` component                                            | `/history`        |
-| `apps.urlPathBase.gateway`                      | URL path base for `gateway` component                                            | `/ua`             |
-| `apps.urlPathBase.vault`                        | URL path base for `vault` component                                              | `/vault`          |
 | `apps.urlPathBase.publisher`                    | URL path base for `publisher` component                                          | `/publisher`      |
 | `apps.urlPathBase.edgeJobs`                     | URL path base for `edgeJobs` component                                           | `/edge/publisher` |
 | `apps.urlPathBase.events`                       | URL path base for `events` component                                             | `/events`         |
@@ -754,8 +747,6 @@ Here is the list of all Azure Industrial IoT components that are deployed by thi
 | `sync`                  | [Registry Synchronization Agent](../../../docs/services/registry-sync.md)   | `true`             |
 | `twin`                  | [OPC Twin Microservice](../../../docs/services/twin.md)                     | `true`             |
 | `history`               | [OPC Historian Access Microservice](../../../docs/services/twin-history.md) | `true`             |
-| `gateway`               | [OPC Gateway Microservice](../../../docs/services/twin-gateway.md)          | `true`             |
-| `vault`                 | [OPC Vault Microservice](../../../docs/services/vault.md)                   | `true`             |
 | `publisher`             | [OPC Publisher Service](../../../docs/services/publisher.md)                | `true`             |
 | `events`                | [Events Service](../../../docs/services/events.md)                          | `true`             |
 | `edgeJobs`              | [Publisher jobs orchestrator service](../../../docs/services/publisher.md)  | `true`             |
@@ -763,7 +754,6 @@ Here is the list of all Azure Industrial IoT components that are deployed by thi
 | `eventsProcessor`       | [Edge Event Processor](../../../docs/services/processor-events.md)          | `true`             |
 | `telemetryCdmProcessor` | [Datalake export](../../../docs/services/processor-telemetry-cdm.md)        | `false`            |
 | `telemetryProcessor`    | [Edge Telemetry processor](../../../docs/services/processor-telemetry.md)   | `true`             |
-| `tunnelProcessor`       | [Http Tunnel processor](../../../docs/services/processor-tunnel.md)         | `true`             |
 | `engineeringTool`       | [Engineering Tool](../../../docs/services/engineeringtool.md)               | `false`            |
 
 #### Deployment Resource Configuration
@@ -794,8 +784,6 @@ Those are the values of `imageRepository` for all components:
 | `deployment.microServices.sync.imageRepository`                    | `iot/opc-registry-sync-service`                |
 | `deployment.microServices.twin.imageRepository`                    | `iot/opc-twin-service`                         |
 | `deployment.microServices.history.imageRepository`                 | `iot/opc-history-service`                      |
-| `deployment.microServices.gateway.imageRepository`                 | `iot/opc-gateway-service`                      |
-| `deployment.microServices.vault.imageRepository`                   | `iot/opc-vault-service`                        |
 | `deployment.microServices.publisher.imageRepository`               | `iot/opc-publisher-service`                    |
 | `deployment.microServices.edgeJobs.imageRepository`                | `iot/opc-publisher-edge-service`               |
 | `deployment.microServices.events.imageRepository`                  | `iot/industrial-iot-events-service`            |
@@ -803,7 +791,6 @@ Those are the values of `imageRepository` for all components:
 | `deployment.microServices.eventsProcessor.imageRepository`         | `iot/industrial-iot-events-processor`          |
 | `deployment.microServices.telemetryCdmProcessor.imageRepository`   | `iot/industrial-iot-telemetry-cdm-processor`   |
 | `deployment.microServices.telemetryProcessor.imageRepository`      | `iot/industrial-iot-telemetry-processor`       |
-| `deployment.microServices.tunnelProcessor.imageRepository`         | `iot/industrial-iot-tunnel-processor`          |
 | `deployment.microServices.engineeringTool.imageRepository`         | `iot/industrial-iot-frontend`                  |
 
 #### Service Resource Configuration
@@ -832,9 +819,6 @@ Those are the service ports exposed by components:
 | `deployment.microServices.registry.service.port`             | `9042`               |
 | `deployment.microServices.twin.service.port`                 | `9041`               |
 | `deployment.microServices.history.service.port`              | `9043`               |
-| `deployment.microServices.gateway.service.port`              | `9040`               |
-| `deployment.microServices.gateway.service.opcPort`           | `51111`              |
-| `deployment.microServices.vault.service.port`                | `9044`               |
 | `deployment.microServices.publisher.service.port`            | `9045`               |
 | `deployment.microServices.edgeJobs.service.port`             | `9046`               |
 | `deployment.microServices.events.service.port`               | `9050`               |
@@ -860,8 +844,6 @@ in `values.yaml`. Note that Ingress is disabled by default.
 | `deployment.ingress.paths.registry`        | Path on which `registry` component should be exposed. Should be set to enable for `registry`.               | `/registry`       |
 | `deployment.ingress.paths.twin`            | Path on which `twin` component should be exposed. Should be set to enable for `twin`.                       | `/twin`           |
 | `deployment.ingress.paths.history`         | Path on which `history` component should be exposed. Should be set to enable for `history`.                 | `/history`        |
-| `deployment.ingress.paths.gateway`         | Path on which `gateway` component should be exposed. Should be set to enable for `gateway`.                 | `/ua`             |
-| `deployment.ingress.paths.vault`           | Path on which `vault` component should be exposed. Should be set to enable for `vault`.                     | `/vault`          |
 | `deployment.ingress.paths.publisher`       | Path on which `publisher` component should be exposed. Should be set to enable for `publisher`.             | `/publisher`      |
 | `deployment.ingress.paths.events`          | Path on which `events` component should be exposed. Should be set to enable for `events`.                   | `/events`         |
 | `deployment.ingress.paths.edgeJobs`        | Path on which `edgeJobs` component should be exposed. Should be set to enable for `edgeJobs`.               | `/edge/publisher` |
@@ -924,7 +906,6 @@ azure:
       consumerGroup:
         events: <IoTHubEventHubEventsConsumerGroup>
         telemetry: <IoTHubEventHubTelemetryConsumerGroup>
-        tunnel: <IoTHubEventHubTunnelConsumerGroup>
         onboarding: <IoTHubEventHubOnboardingConsumerGroup>
 
     sharedAccessPolicies:
@@ -1062,7 +1043,6 @@ Here is the full list of components with Swagger UIs:
 | `registry`      | `9042`               | `/registry/swagger/index.html`      |
 | `twin`          | `9041`               | `/twin/swagger/index.html`          |
 | `history`       | `9043`               | `/history/swagger/index.html`       |
-| `vault`         | `9044`               | `/vault/swagger/index.html`         |
 | `publisher`     | `9045`               | `/publisher/swagger/index.html`     |
 | `events`        | `9050`               | `/events/swagger/index.html`        |
 | `edgeJobs`      | `9051`               | `/edge/publisher/swagger/index.html`|

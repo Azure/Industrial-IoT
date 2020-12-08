@@ -397,7 +397,6 @@ azure:
       consumerGroup:
         events: events
         telemetry: telemetry
-        tunnel: tunnel
         onboarding: onboarding
 
     sharedAccessPolicies:
