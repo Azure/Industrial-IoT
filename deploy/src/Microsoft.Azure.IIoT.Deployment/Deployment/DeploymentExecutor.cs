@@ -226,10 +226,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             _authenticationManager = AuthenticationManagerFactory
                 .GetAuthenticationManager(
-                    _authConf.AzureEnvironment,
-                    _authConf.TenantId,
-                    _authConf.ClientId,
-                    _authConf.ClientSecret
+                    _authConf
                 );
 
             await _authenticationManager
@@ -979,6 +976,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
+            // Create "tunnel" consumer group.
+            var iotHubEventHubCGTunnel = await _iotHubManagementClient
+                .CreateEventHubConsumerGroupAsync(
+                    _resourceGroup,
+                    iotHub,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TUNNEL_NAME,
+                    cancellationToken
+                );
+
             // Create "onboarding" consumer group.
             var iotHubEventHubCGOnboarding = await _iotHubManagementClient
                 .CreateEventHubConsumerGroupAsync(
@@ -1135,6 +1142,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
                 iotHubEventHubCGEvents,
                 iotHubEventHubCGTelemetry,
+                iotHubEventHubCGTunnel,
                 iotHubEventHubCGOnboarding,
                 // Cosmos DB
                 cosmosDBAccountConnectionString,
@@ -1189,7 +1197,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 storageAccountGen2ConectionString,
                 deploymentScriptsBlobContainer.Name,
                 jumpboxShBlobName,
-                Resources.Scripts.jumpbox,
+                Resources.Scripts.JumpboxSh,
                 cancellationToken
             );
 

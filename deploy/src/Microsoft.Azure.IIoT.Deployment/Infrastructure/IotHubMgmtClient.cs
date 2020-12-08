@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_EVENTS_NAME = "events";
         public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TELEMETRY_NAME = "telemetry";
+        public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TUNNEL_NAME = "tunnel";
         public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_ONBOARDING_NAME = "onboarding";
 
         public const string IOT_HUB_OWNER_KEY_NAME = "iothubowner";

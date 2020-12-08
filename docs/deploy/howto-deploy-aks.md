@@ -590,50 +590,14 @@ The following Azure regions are supported by `Microsoft.Azure.IIoT.Deployment` f
 ### AKS
 
 All cloud microservices of Azure Industrial IoT solution are deployed to an AKS Kubernetes cluster.
-`Microsoft.Azure.IIoT.Deployment` deploys `1.16.10` version of Kubernetes.
+`Microsoft.Azure.IIoT.Deployment` deploys latest available patch version of `1.18` Kubernetes.
 
 #### Kubernetes Dashboard
 
-To see state of microservices you can check Kubernetes dashboard.
-
-You can follow this tutorial to do that: [Access the Kubernetes web dashboard in Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/kubernetes-dashboard).
-Please follow the steps for `1.16.10` version.
-
-Alternatively, you can run the following commands:
-
-1. Make sure you have `kubectl` installed. If it is not already installed, run the following command to
-    download and install `kubectl`:
-
-    ```bash
-    az aks install-cli
-    ```
-
-    More details about the command and its optional parameters can be found [here](https://docs.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-install-cli).
-
-2. Get admin access credentials for a managed Kubernetes cluster. You would need the name of the resource
-    group containing AKS resource and the name of the AKS resource:
-
-    ```bash
-    az aks get-credentials --admin --resource-group myResourceGroup --name myAKSCluster
-    ```
-
-    More details about the command and its optional parameters can be found [here](https://docs.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-get-credentials).
-
-3. Open a proxy to Kubernetes API Server:
-
-    ```bash
-    kubectl proxy
-    ```
-
-    More details about the command and its optional parameters can be found [here](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#proxy).
-
-4. Open the following URL in your browser: `http://127.0.0.1:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy`
-
-5. Sign in to Kubernetes dashboard using kubeconfig:
-
-   * Select `Kubeconfig` and click `Choose kubeconfig file` to open file selector.
-   * Select your `kubeconfig` file (defaults to `$HOME/.kube/config`).
-   * Click `Sign In`.
+One can use Kubernetes Dashboard to see state of microservices in a Kubernetes cluster. AKS `1.18.x` and above does not
+contain Kubernetes Dashboard by default. So one will need to deploy it before using it. Please follow the steps
+[here](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) to deploy and then access
+Kubernetes Dashboard.
 
 ### Helm Charts
 
@@ -649,9 +613,9 @@ that.
 
 Additionally, the following Helm charts will be deployed:
 
-* [`stable/nginx-ingress`](https://hub.helm.sh/charts/stable/nginx-ingress) (version `1.36.0`) will be
-  deployed to `nginx-ingress` namespace to act as Ingress Controller.
-* [`jetstack/cert-manager`](https://hub.helm.sh/charts/jetstack/cert-manager) (version `v0.13.0`) will be
+* [`ingress-nginx/ingress-nginx`](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx) (version `3.12.0`) will be
+  deployed to `ingress-nginx` namespace to act as Ingress Controller.
+* [`jetstack/cert-manager`](https://artifacthub.io/packages/helm/jetstack/cert-manager) (version `v1.1.0`) will be
   deployed to `cert-manager` namespace to provide valid SSL certificates for Ingress resources.
 
 ### APIs of Microservices
@@ -701,6 +665,7 @@ Azure AD Docs:
 Azure Kubernetes Service (AKS) Docs:
 
 * [Access the Kubernetes web dashboard in Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/kubernetes-dashboard)
+* [Kubernetes Web UI (Dashboard)](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/)
 * [Install applications with Helm in Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/kubernetes-helm)
 * [Create an HTTPS ingress controller and use your own TLS certificates on Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/ingress-own-tls)
 

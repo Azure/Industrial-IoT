@@ -1,4 +1,4 @@
-﻿<#
+<#
  .SYNOPSIS
     Deploys Industrial IoT services to Azure.
 
@@ -65,7 +65,7 @@
 
 param(
     [ValidateSet("minimum", "local", "services", "simulation", "app", "all")] [string] $type = "all",
-    [string] $version,
+    [string] $version = "preview",
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
@@ -1153,6 +1153,8 @@ $script:requiredProviders = @(
     "microsoft.compute",
     "microsoft.containerregistry"
 )
+
+Write-Host "Using '$($script:version)' version..."
 
 Select-RepositoryAndBranch
 Write-Host "Signing in ..."
