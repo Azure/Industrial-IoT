@@ -35,7 +35,6 @@ To get started
 * Read up on the Azure Industrial IoT Platform [architecture](architecture.md) and [flow](architecture-flow.md)
 * Read about the [Industrial IoT cloud Microservices](services/readme.md)
   * [What is OPC Twin?](services/twin.md)
-  * [What is OPC Vault?](services/vault.md)
 * [Explore and work with the REST API](api/readme.md)
 * [Explore the code structure](code-structure.md)
 * [Explore the C# API reference](../api/csharp-api/index.md)

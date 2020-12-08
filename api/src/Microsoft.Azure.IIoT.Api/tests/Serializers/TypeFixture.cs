@@ -3,13 +3,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api {
-    using Microsoft.Azure.IIoT.Api.Identity.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -23,8 +21,6 @@ namespace Microsoft.Azure.IIoT.Api {
 
         public static IEnumerable<object[]> GetDataContractTypes() {
             return      GetAllApiModelTypes<BrowseDirection>()
-                .Concat(GetAllApiModelTypes<UsersServiceClient>())
-                .Concat(GetAllApiModelTypes<VaultServiceClient>())
                 .Concat(GetAllApiModelTypes<TwinServiceClient>())
                 .Concat(GetAllApiModelTypes<RegistryServiceClient>())
                 .Concat(GetAllApiModelTypes<PublisherServiceClient>())
