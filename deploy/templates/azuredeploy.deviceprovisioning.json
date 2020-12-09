@@ -1,0 +1,147 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "templateUrl": {
+            "type": "string",
+            "defaultValue": "https://raw.githubusercontent.com/Azure/Industrial-IoT",
+            "metadata": {
+                "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
+            }
+        },
+        "dpsName": {
+            "type": "string",
+            "defaultValue": "[concat('dps', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 6))]",
+            "metadata": {
+                "description": "The name of the Azure Device Provisioning service created as part of this deployment."
+            }
+        },
+        "dpsSku": {
+            "type": "string",
+            "defaultValue": "S1",
+            "allowedValues": [
+                "S1"
+            ],
+            "metadata": {
+                "description": "The Azure Device Provisioning service SKU to use."
+            }
+        },
+        "dpsCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "minValue": 1,
+            "maxValue": 3,
+            "metadata": {
+                "description": "The Azure Device Provisioning service capacity."
+            }
+        },
+        "dpsIotHubHostName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of Azure IoT Hub to attach to Time Series Insights and the Device Provisioning service."
+            }
+        },
+        "dpsIotHubConnectionString": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Connection string of Azure IoT Hub for Device Provisioning service."
+            }
+        },
+        "dpsIotHubLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Location of Azure IoT Hub for Device Provisioning service."
+            }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for Azure resources."
+            }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource name of the KeyVault created as part of the deployment."
+            }
+        },
+        "branchName": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "The branch from which to deploy deploy services and application.  Default to master."
+            }
+        }
+    },
+    "variables": {
+        "dpsResourceId": "[resourceId('Microsoft.Devices/provisioningServices', parameters('dpsName'))]",
+        "templateBaseUrl": "[if(empty(parameters('templateUrl')), deployment().properties.templateLink.uri, concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/templates/'))]",
+        "standardConfigurationResourceName": "infrastructure.configuration"
+    },
+    "resources": [
+        {
+            "comments": "Azure Device Provisioning service.",
+            "type": "Microsoft.Devices/provisioningServices",
+            "name": "[parameters('dpsName')]",
+            "apiVersion": "2018-01-22",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "sku": {
+                "name": "[parameters('dpsSku')]",
+                "capacity": "[parameters('dpsCapacity')]"
+            },
+            "properties": {
+                "iotHubs": [
+                    {
+                        "connectionString": "[parameters('dpsIotHubConnectionString')]",
+                        "location": "[parameters('dpsIotHubLocation')]",
+                        "name": "[parameters('dpsIotHubHostName')]"
+                    }
+                ]
+            }
+        },
+        {
+            "comments": "Save standard infrastructure configuration in keyVault.",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-08-01",
+            "name": "[variables('standardConfigurationResourceName')]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "configuration": {
+                        "value": [
+                            {
+                                "key": "PCS_DPS_CONNSTRING",
+                                "value": "[concat('HostName=', reference(variables('dpsResourceId'), '2018-01-22'). serviceOperationsHostName, ';SharedAccessKeyName=', listkeys(variables('dpsResourceId'), '2018-01-22').value[0].keyName, ';SharedAccessKey=', listkeys(variables('dpsResourceId'), '2018-01-22').value[0].primaryKey)]"
+                            },
+                            {
+                                "key": "PCS_DPS_IDSCOPE",
+                                "value": "[reference(variables('dpsResourceId'), '2018-01-22').idScope]"
+                            },
+                            {
+                                "key": "PCS_DPS_ENDPOINT",
+                                "value": "[reference(variables('dpsResourceId'), '2018-01-22').deviceProvisioningHostName]"
+                            }
+                        ]
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[concat(variables('templateBaseUrl'), 'azuredeploy.configuration.json')]"
+                }
+            },
+            "dependsOn": [
+                "[variables('dpsResourceId')]"
+            ]
+        }
+    ],
+    "outputs": {
+    }
+}
