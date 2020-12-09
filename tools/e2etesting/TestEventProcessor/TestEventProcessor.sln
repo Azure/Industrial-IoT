@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30523.141
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestEventProcessor", "TestEventProcessor\TestEventProcessor.csproj", "{9A73DD25-978F-4C82-A63C-6D1968B38C32}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestEventProcessor.BusinessLogic", "TestEventProcessor.Businesslogic\TestEventProcessor.BusinessLogic.csproj", "{088745BA-3A1D-487B-9FFE-A75F59938147}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestEventProcessor.BusinessLogic", "TestEventProcessor.BusinessLogic\TestEventProcessor.BusinessLogic.csproj", "{088745BA-3A1D-487B-9FFE-A75F59938147}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestEventProcessor.Service", "TestEventProcessor.Service\TestEventProcessor.Service.csproj", "{8FBF91D6-3B8B-4726-B1A8-E8548B3EB8DF}"
 EndProject
