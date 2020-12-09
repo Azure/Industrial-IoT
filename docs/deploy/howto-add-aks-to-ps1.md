@@ -356,8 +356,8 @@ deployment:
 ```
 
 > **NOTE**: Please note that we have used `2.7.199` as the value of `image:tag` configuration parameter
-> above. That will result in `2.7.199` version of microservices to be deployed. If you want to deploy a
-> different version of the platform, please specify it as the value of `image:tag` parameter.
+> above. That will result in `2.7.199` version of microservices and edge modules to be deployed. If you want
+> to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
 #### Passing Azure resource details through YAML file
 
@@ -493,8 +493,8 @@ deployment:
 ```
 
 > **NOTE**: Please note that we have used `2.7.199` as the value of `image:tag` configuration parameter
-> above. That will result in `2.7.199` version of microservices to be deployed. If you want to deploy a
-> different version of the platform, please specify it as the value of `image:tag` parameter.
+> above. That will result in `2.7.199` version of microservices and edge modules to be deployed. If you want
+> to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
 #### Installing `azure-industrial-iot` Helm chart
 
