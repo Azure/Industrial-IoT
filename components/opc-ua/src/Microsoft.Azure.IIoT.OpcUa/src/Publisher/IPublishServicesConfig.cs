@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
     using System;
 
     /// <summary>
-    /// Configuratoin for job definition creation logic.
+    /// Configuration for job definition creation logic.
     /// </summary>
     public interface IPublishServicesConfig {
 

@@ -1,0 +1,40 @@
+steps:
+- task: DownloadPipelineArtifact@2
+  inputs:
+    artifact: 'testartifacts'
+    path: $(BasePath)
+
+- task: AzurePowerShell@5
+  displayName: "Deploy containers with simulated PLCs"
+  timeoutInMinutes: 90
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DeployPLCs.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+
+- task: AzurePowerShell@5
+  displayName: "Deploy VM with IoT Edge Runtime"
+  timeoutInMinutes: 90
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DeployEdge.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -KeysPath "$(Agent.TempDirectory)"
+
+- task: AzurePowerShell@5
+  displayName: "Deploy TestEventProcessor"
+  timeoutInMinutes: 90
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -PackageDirectory "$(BasePath)\TestEventProcessor"

@@ -20,9 +20,9 @@ We have also built an application running on Azure that lets you access the serv
 
 ## Getting started
 
-Clone the repository:
+Select one of our release branches and clone the repository:
   ```bash
-  git clone https://github.com/Azure/Industrial-IoT
+  git clone -b <ReleaseBranchName> https://github.com/Azure/Industrial-IoT
   cd Industrial-IoT
   ```
 

@@ -220,6 +220,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Agent.Framework.Tests", "common\src\Microsoft.Azure.IIoT.Agent.Framework\tests\Microsoft.Azure.IIoT.Agent.Framework.Tests.csproj", "{63F1C41D-6D07-4F0D-967C-CBF3752139A0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "e2e-tests", "e2e-tests", "{3CBA8E21-10AF-436F-BF20-F623E78B23BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IIoTPlatform-E2E-Tests", "e2e-tests\IIoTPlatform-E2E-Tests\IIoTPlatform-E2E-Tests.csproj", "{92E0F653-222D-4116-9277-85226B30C84F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -892,6 +896,14 @@ Global
 		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Release|x64.ActiveCfg = Release|Any CPU
 		{63F1C41D-6D07-4F0D-967C-CBF3752139A0}.Release|x64.Build.0 = Release|Any CPU
+		{92E0F653-222D-4116-9277-85226B30C84F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92E0F653-222D-4116-9277-85226B30C84F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92E0F653-222D-4116-9277-85226B30C84F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{92E0F653-222D-4116-9277-85226B30C84F}.Debug|x64.Build.0 = Debug|Any CPU
+		{92E0F653-222D-4116-9277-85226B30C84F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92E0F653-222D-4116-9277-85226B30C84F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92E0F653-222D-4116-9277-85226B30C84F}.Release|x64.ActiveCfg = Release|Any CPU
+		{92E0F653-222D-4116-9277-85226B30C84F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -998,6 +1010,7 @@ Global
 		{422C4B02-BC9F-4494-893F-7214F8FB17E1} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
 		{6F5D5CE2-57A3-4116-8A82-72120C9461C6} = {1266F300-8BD2-4F1E-BA88-911F5F3AC36C}
 		{63F1C41D-6D07-4F0D-967C-CBF3752139A0} = {BBEE26AC-8733-469B-B816-0A54EA99FC59}
+		{92E0F653-222D-4116-9277-85226B30C84F} = {3CBA8E21-10AF-436F-BF20-F623E78B23BA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}

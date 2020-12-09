@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for Azure resources."
+            }
+        },
+        "managedIdentityName": {
+            "type": "string",
+            "defaultValue": "[concat('msi', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5))]",
+            "metadata": {
+                "description": "The name of the managed identity to create. If client principal was omitted a default identity will be provisioned to access resources."
+            }
+        }
+    },
+    "variables": {
+        "identityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('managedIdentityName'))]"
+    },
+    "resources": [
+        {
+            "comments": "Managed identity to access keyvault.",
+            "name": "[parameters('managedIdentityName')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2018-11-30",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]"
+        }
+    ],
+    "outputs": {
+        "managedIdentityResourceId": {
+            "type": "string",
+            "value": "[variables('identityResourceId')]"
+        },
+        "managedIdentityClientId": {
+            "type": "string",
+            "value": "[reference(variables('identityResourceId'), '2018-11-30').clientId]"
+        },
+        "managedIdentityPrincipalId": {
+            "type": "string",
+            "value": "[reference(variables('identityResourceId'), '2018-11-30').principalId]"
+        },
+        "managedIdentityTenantId": {
+            "type": "string",
+            "value": "[reference(variables('identityResourceId'), '2018-11-30').tenantId]"
+        }
+    }
+}
