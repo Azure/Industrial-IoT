@@ -1764,8 +1764,13 @@ namespace OpcPublisher
                                     SentLastTime = DateTime.UtcNow;
                                     Logger.Debug($"Sending {encodedhubMessage.BodyStream.Length} bytes to hub.");
                                 }
-                                catch
+                                catch (Exception ex)
                                 {
+                                    if (ex is AggregateException)
+                                    {
+                                        ex = ((AggregateException)ex).Flatten();
+                                    }
+                                    Logger.Error(ex, "Error while sending message. Dropping...");
                                     FailedMessages++;
                                 }
 
