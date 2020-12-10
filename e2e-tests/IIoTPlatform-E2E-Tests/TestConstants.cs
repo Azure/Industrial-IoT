@@ -38,12 +38,18 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Name of Published Nodes Json used by publisher module
         /// </summary>
-        public const string PublisherPublishedNodesFile = "published_nodes.json";
+        public const string PublishedNodesFilename = "published_nodes.json";
 
         /// <summary>
         /// Folder to store published_nodes.json file
         /// </summary>
         public const string PublishedNodesFolder = "/mount";
+
+        /// <summary>
+        /// The full name of the publishednodes.json on the Edge
+        /// </summary>
+        public static readonly string PublishedNodesFullName =
+            PublishedNodesFolder.TrimEnd('/') + "/" + PublishedNodesFilename;
 
         /// <summary>
         /// Target condition for standalone publisher

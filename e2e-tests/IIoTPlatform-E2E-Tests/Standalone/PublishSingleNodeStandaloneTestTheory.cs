@@ -9,6 +9,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using System.Threading;
     using System.Threading.Tasks;
     using TestExtensions;
+    using TestModels;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -18,59 +19,33 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     [TestCaseOrderer("IIoTPlatform_E2E_Tests.TestExtensions.TestOrderer", TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
-    public class PublishNodesFromFileTestTheory {
+    public class PublishSingleNodeStandaloneTestTheory {
         private readonly ITestOutputHelper _output;
         private readonly IIoTStandaloneTestContext _context;
 
-        public PublishNodesFromFileTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output) {
+        public PublishSingleNodeStandaloneTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
         }
 
         [Fact, PriorityOrder(1)]
-        public async Task Test_ReadSimulatedOpcUaNodes() {
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context, cts.Token);
-            Assert.NotNull(simulatedOpcServer);
-            Assert.NotEmpty(simulatedOpcServer.Keys);
-            Assert.NotEmpty(simulatedOpcServer.Values);
-        }
-
-        [Fact, PriorityOrder(2)]
         public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
             var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
             var result = await _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
-            _output.WriteLine("Created new EdgeBase layered deployment and publisher_standalone");
+            _output.WriteLine("Created/Updated new EdgeBase deployment");
+            Assert.True(result);
+        }
+
+        [Fact, PriorityOrder(2)]
+        public async Task Test_CreatePublisherLayeredDeployment_Expect_Success() {
+            var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
+            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
+            _output.WriteLine("Created/Updated layered deployment for publisher module");
             Assert.True(result);
         }
 
         [Fact, PriorityOrder(3)]
-        public async Task Test_SwitchToStandaloneModeAndLoadPublishedNodesFile() {
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context, cts.Token);
-
-            //Create a published_nodes file with one node
-            var opcPlcServerNodes = simulatedOpcServer[simulatedOpcServer.Keys.First()];
-            var publishedNodes = opcPlcServerNodes;
-            publishedNodes.OpcNodes = opcPlcServerNodes.OpcNodes.Take(1).ToArray();
-            TestHelper.SavePublishedNodesFile(publishedNodes, _context);
-            _output.WriteLine("Saved published_nodes.json file");
-
-            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
-            TestHelper.LoadPublishedNodesFile(_context.PublishedNodesFileInternalFolder, TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile, _context);
-            _output.WriteLine("Switched to standalone mode and loaded published_nodes.json file");
-        }
-
-        [Fact, PriorityOrder(4)]
-        public async Task Test_CreateLayeredDeployment_Expect_Success() {
-            var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
-            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
-            _output.WriteLine("Created new layered deployment and publisher_standalone");
-            Assert.True(result);
-        }
-
-        [Fact, PriorityOrder(5)]
         public async Task Test_WaitForModuleDeployed() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -79,12 +54,24 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.Null(exception);
         }
 
-        [Fact, PriorityOrder(6)]
-        public async Task Test_VerifyDataAvailableAtIoTHub() {
+        [Fact, PriorityOrder(4)]
+        public async Task Test_StartPublishingSingleNode_Expect_Success() {
+            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+
+            var simulatedPublishedNodesConfiguration = await TestHelper.GetSimulatedPublishedNodesConfiguration(_context, cts.Token);
+
+            var model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
+            model.OpcNodes = model.OpcNodes.Take(1).ToArray();
+
+            await TestHelper.PublishNodesInStandaloneMode(new[] { model }, _context);
+        }
+
+        [Fact, PriorityOrder(5)]
+        public async Task Test_VerifyDataAvailableAtIoTHub_Expect_NumberOfValueChanges_GreaterThan_Zer() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             //use test event processor to verify data send to IoT Hub
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 1, 1000, 10000, cts.Token);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
 
             // wait some time to generate events to process
             await Task.Delay(90 * 1000, cts.Token);
@@ -92,15 +79,24 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
         }
 
+        [Fact, PriorityOrder(6)]
+        public async Task Test_StopPublishingAllNodes_Expect_Success() {
+            await TestHelper.PublishNodesInStandaloneMode(new PublishedNodesEntryModel[0], _context);
+        }
+
         [Fact, PriorityOrder(7)]
-        public async Task SwitchToOrchestratedMode() {
+        public async Task Test_VerfiyNoDataIncomingAtIoTHub_Expected_NumberOfValueChanges_Equals_Zero() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            await TestHelper.SwitchToOrchestratedModeAsync(
-                TestConstants.PublishedNodesFolder + "/" + TestConstants.PublisherPublishedNodesFile,
-                _context,
-                cts.Token
-            );
-            _output.WriteLine("Switched to orchestrated mode and deleted published_nodes.json file");
+
+            await Task.Delay(90 * 1000, cts.Token); //wait till the publishing has stopped
+
+            //use test event processor to verify data send to IoT Hub
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            // wait some time to generate events to process
+            await Task.Delay(90 * 1000, cts.Token);
+
+            var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            Assert.True((int)json.totalValueChangesCount == 0, "Messages received at IoT Hub");
         }
     }
 }

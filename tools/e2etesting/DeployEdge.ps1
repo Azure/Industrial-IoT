@@ -100,7 +100,7 @@ Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-id' with value '$($
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-id' -SecretValue (ConvertTo-SecureString $edgeIdentity.Id -AsPlainText -Force) | Out-Null
 
 Write-Host "Updating 'os' and '__type__'-Tags in Device Twin..."
-Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"} | Out-Null
+Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"; "unmanaged" = $true } | Out-Null
 
 ## Generate SSH keys
 $privateKeyFilePath = Join-Path $KeysPath "id_rsa_iotedge"
