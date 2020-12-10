@@ -86,6 +86,11 @@ namespace IIoTPlatform_E2E_Tests {
             public static string PublisherStartFormat = "/publisher/v2/publish/{0}/start";
 
             /// <summary>
+            /// Route to start or stop publishing multiple OPC UA nodes from OPC Publisher
+            /// </summary>
+            public static string PublisherBulkFormat = "/publisher/v2/publish/{0}/bulk";
+
+            /// <summary>
             /// Route to read all publishing jobs
             /// </summary>
             public static string PublisherJobs = "/publisher/v2/jobs";

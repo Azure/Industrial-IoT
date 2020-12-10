@@ -11,6 +11,7 @@ namespace IIoTPlatform_E2E_Tests {
     using RestSharp.Authenticators;
     using System;
     using System.Collections.Generic;
+    using System.Dynamic;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -18,6 +19,7 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Newtonsoft.Json.Converters;
     using TestExtensions;
     using TestModels;
     using Xunit;
@@ -471,7 +473,7 @@ namespace IIoTPlatform_E2E_Tests {
                     }
 
                     Assert.NotEmpty(response.Content);
-                    json = JsonConvert.DeserializeObject(response.Content);
+                    json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                     Assert.NotNull(json);
                     numberOfItems = (int)json.items.Count;
 
@@ -519,7 +521,7 @@ namespace IIoTPlatform_E2E_Tests {
                     }
 
                     Assert.NotEmpty(response.Content);
-                    json = JsonConvert.DeserializeObject(response.Content);
+                    json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                     Assert.NotNull(json);
 
                     activationState = (string)json.items[0].activationState;
