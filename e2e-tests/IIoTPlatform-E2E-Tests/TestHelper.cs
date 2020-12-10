@@ -13,6 +13,7 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
     using System.Text;
     using System.Threading;
@@ -87,7 +88,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</returns>
-        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedOpcUaNodesAsync(
+        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedPublishedNodesConfigurationAsync(
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
@@ -132,67 +133,12 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
-        /// Save PublishedNodes json from OPC-PLC and provide the data to the tests
-        /// </summary>
-        /// <param name="simulatedOpcServer">Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</param>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static void SavePublishedNodesFile(PublishedNodesEntryModel simulatedOpcServer, IIoTPlatformTestContext context) {
-            Assert.NotNull(simulatedOpcServer);
-
-            PublishedNodesEntryModel[] model = new PublishedNodesEntryModel[] {simulatedOpcServer};
-            var json = JsonConvert.SerializeObject(model, Formatting.Indented);
-            context.PublishedNodesFileInternalFolder = Directory.GetCurrentDirectory() + "/published_nodes.json";
-            File.WriteAllText(context.PublishedNodesFileInternalFolder, json);
-        }
-
-        /// <summary>
-        /// Switch to publisher standalone mode
-        /// </summary>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="ct">Cancellation token</param>
-        public static async Task SwitchToStandaloneModeAsync(
-            IIoTPlatformTestContext context,
-            CancellationToken ct = default
-        ) {
-            var patch =
-                @"{
-                    tags: {
-                        unmanaged: true
-                    }
-                }";
-
-            await UpdateTagAsync(patch, context, ct);
-        }
-
-        /// <summary>
-        /// Switch to publisher orchestrated mode
-        /// </summary>
-        /// <param name="destinationFilePath">Path of the PublishedNodesFile.json file to be deleted</param>
-        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        /// <param name="ct">Cancellation token</param>
-        public static async Task SwitchToOrchestratedModeAsync(
-            string destinationFilePath,
-            IIoTPlatformTestContext context,
-            CancellationToken ct = default
-        ) {
-            var patch =
-               @"{
-                    tags: {
-                        unmanaged: null
-                    }
-                }";
-
-            DeletePublishedNodesFile(destinationFilePath, context);
-            await UpdateTagAsync(patch, context, ct);
-        }
-
-        /// <summary>
         /// Update Device Twin tag
         /// </summary>
         /// <param name="patch">Name of deployed Industrial IoT</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
-        private static async Task UpdateTagAsync(
+        public static async Task UpdateTagAsync(
             string patch,
             IIoTPlatformTestContext context,
             CancellationToken ct = default
@@ -208,34 +154,50 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="sourceFilePath">Source file path</param>
         /// <param name="destinationFilePath">Destination file path</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static void LoadPublishedNodesFile(string sourceFilePath, string destinationFilePath, IIoTPlatformTestContext context) {
-            Assert.True(File.Exists(sourceFilePath), "source file does not exist");
+        public static async Task SwitchToStandaloneModeAndPublishNodesAsync(IEnumerable<PublishedNodesEntryModel> entries, IIoTPlatformTestContext context, CancellationToken ct = default) {
+            DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
 
-            CreateFolderOnIoTEdge(TestConstants.PublishedNodesFolder, context);
-            using var keyFile = new PrivateKeyFile(GetPrivateSshKey(context));
-            using var client = new ScpClient(
-                context.SshConfig.Host,
-                context.SshConfig.Username,
-                keyFile);
-            client.Connect();
+            var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
+            CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
+            using var client = CreateScpClientAndConnect(context);
+            await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            client.Upload(stream, TestConstants.PublishedNodesFullName);
 
-            if (string.IsNullOrEmpty(sourceFilePath)) {
-                DeletePublishedNodesFile(destinationFilePath, context);
-            }
-            using (Stream localFile = File.OpenRead(sourceFilePath)) {
-                client.Upload(localFile, destinationFilePath);
-            }
+            await SwitchToStandaloneModeAsync(context, ct);
         }
 
         /// <summary>
-        /// Get Content of environment variable as memory stream
+        /// Sets the unmanaged-Tag to "true" to enable Standalone-Mode
         /// </summary>
-        /// <param name="sshConfig">SSH config</param>
-        /// <returns>Memory stream instance</returns>
-        private static Stream GetPrivateSshKey(ISshConfig sshConfig) {
-            var buffer = Encoding.Default.GetBytes(sshConfig.PrivateKey);
-            var stream = new MemoryStream(buffer);
-            return stream;
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <returns></returns>
+        public static async Task SwitchToStandaloneModeAsync(IIoTPlatformTestContext context, CancellationToken ct = default) {
+            var patch =
+                @"{
+                    tags: {
+                        unmanaged: true
+                    }
+                }";
+
+            await UpdateTagAsync(patch, context, ct);
+        }
+
+        /// <summary>
+        /// Sets the unmanaged-Tag to "true" to enable Orchestrated-Mode
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <returns></returns>
+        public static async Task SwitchToOrchestratedModeAsync(IIoTPlatformTestContext context, CancellationToken ct = default) {
+            var patch =
+                @"{
+                    tags: {
+                        unmanaged: null
+                    }
+                }";
+
+            await UpdateTagAsync(patch, context, ct);
+
+            DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
         }
 
         /// <summary>
@@ -244,9 +206,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns>Instance of SshClient, that need to be disposed</returns>
         private static SshClient CreateSshClientAndConnect(IIoTPlatformTestContext context) {
-            context.OutputHelper?.WriteLine("Load private key from environment variable");
-            var privateKeyStream = GetPrivateSshKey(context.SshConfig);
-            var privateKeyFile = new PrivateKeyFile(privateKeyStream);
+            var privateKeyFile = GetPrivateSshKey(context);
 
             context.OutputHelper?.WriteLine("Create SSH Client");
             var client = new SshClient(
@@ -264,33 +224,74 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
-        /// Delete published_nodes.json file into the OPC Publisher edge module
+        /// Create a new ScpClient based on SshConfig and directly connects to host
         /// </summary>
-        /// <param name="destinationFilePath">Destination file path</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static void DeletePublishedNodesFile(string destinationFilePath, IIoTPlatformTestContext context) {
+        /// <returns>Instance of SshClient, that need to be disposed</returns>
+        private static ScpClient CreateScpClientAndConnect(IIoTPlatformTestContext context) {
+            var privateKeyFile = GetPrivateSshKey(context);
+
+            context.OutputHelper?.WriteLine("Create SCP Client");
+            var client = new ScpClient(
+                context.SshConfig.Host,
+                context.SshConfig.Username,
+                privateKeyFile);
+
+            context.OutputHelper?.WriteLine("open scp connection to host {0} with username {1}",
+                context.SshConfig.Host,
+                context.SshConfig.Username);
+            client.Connect();
+            context.OutputHelper?.WriteLine("scp connection successful established");
+
+            return client;
+        }
+
+        /// <summary>
+        /// Gets the private SSH key from the configuration to connect to the Edge VM
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <returns></returns>
+        private static PrivateKeyFile GetPrivateSshKey(IIoTPlatformTestContext context)
+        {
+            context.OutputHelper?.WriteLine("Load private key from environment variable");
+
+            var buffer = Encoding.Default.GetBytes(context.SshConfig.PrivateKey);
+            var privateKeyStream = new MemoryStream(buffer);
+
+            var privateKeyFile = new PrivateKeyFile(privateKeyStream);
+            return privateKeyFile;
+        }
+
+        /// <summary>
+        /// Delete a file on the Edge VM
+        /// </summary>
+        /// <param name="fileName">Filename of the file to delete</param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        public static void DeleteFileOnEdgeVM(string fileName, IIoTPlatformTestContext context) {
             var isSuccessful = false;
             using var client = CreateSshClientAndConnect(context);
 
-            var terminal = client.RunCommand("rm " + destinationFilePath);
-            if (string.IsNullOrEmpty(terminal.Error)) {
+            var terminal = client.RunCommand("rm " + fileName);
+
+            if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.ToLowerInvariant().Contains("no such file")) {
                 isSuccessful = true;
             }
             Assert.True(isSuccessful, "Delete file was not successful");
         }
 
         /// <summary>
-        /// CreateFolder a folder on IoTEdge to store published_nodes.json file
+        /// Create a folder on Edge VM (if not exists)
         /// </summary>
-        /// <param name="folderPath">Destination file path</param>
+        /// <param name="folderPath">Name of the folder to create.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        private static void CreateFolderOnIoTEdge(string folderPath, IIoTPlatformTestContext context) {
+        private static void CreateFolderOnEdgeVM(string folderPath, IIoTPlatformTestContext context) {
             Assert.True(!string.IsNullOrWhiteSpace(folderPath), "folder does not exist");
 
             var isSuccessful = false;
             using var client = CreateSshClientAndConnect(context);
 
             var terminal = client.RunCommand("sudo mkdir " + folderPath + ";" + "cd " + folderPath + "; " + "sudo chmod 777 " + folderPath);
+
             if (string.IsNullOrEmpty(terminal.Error) || terminal.Error.Contains("File exists")) {
                 isSuccessful = true;
             }
@@ -384,7 +385,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns></returns>
         public static async Task WaitForServicesAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct
+            CancellationToken ct = default
         ) {
             const string healthyState = "Healthy";
 
@@ -400,12 +401,12 @@ namespace IIoTPlatform_E2E_Tests {
                     Timeout = TestConstants.DefaultTimeoutInMilliseconds
                 };
 
-                while(true) {
+                while (true) {
                     ct.ThrowIfCancellationRequested();
 
                     var tasks = new List<Task<IRestResponse>>();
 
-                    foreach(var healthRoute in healthRoutes) {
+                    foreach (var healthRoute in healthRoutes) {
                         var request = new RestRequest(Method.GET) {
                             Resource = healthRoute
                         };
@@ -416,9 +417,8 @@ namespace IIoTPlatform_E2E_Tests {
                     Task.WaitAll(tasks.ToArray());
 
                     var healthyServices = tasks
-                        .Where(task => task.Result.StatusCode == System.Net.HttpStatusCode.OK)
-                        .Where(task => task.Result.Content == healthyState)
-                        .Count();
+                        .Where(task => task.Result.StatusCode == HttpStatusCode.OK)
+                        .Count(task => task.Result.Content == healthyState);
 
                     if (healthyServices == healthRoutes.Length) {
                         context.OutputHelper?.WriteLine("All API microservices of IIoT platform " +
@@ -444,7 +444,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>content of GET /registry/v2/application request as dynamic object</returns>
         public static async Task<dynamic> WaitForDiscoveryToBeCompletedAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct
+            CancellationToken ct = default
         ) {
             ct.ThrowIfCancellationRequested();
 
@@ -493,7 +493,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
         public static async Task<dynamic> WaitForEndpointToBeActivatedAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct) {
+            CancellationToken ct = default) {
 
             var accessToken = await TestHelper.GetTokenAsync(context, ct);
             var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
