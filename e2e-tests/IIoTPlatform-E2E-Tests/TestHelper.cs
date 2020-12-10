@@ -88,7 +88,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>Dictionary with URL of PLC-PLC as key and Content of Published Nodes files as value</returns>
-        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedPublishedNodesConfiguration(
+        public static async Task<IDictionary<string, PublishedNodesEntryModel>> GetSimulatedPublishedNodesConfigurationAsync(
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
@@ -154,16 +154,16 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="sourceFilePath">Source file path</param>
         /// <param name="destinationFilePath">Destination file path</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static async Task PublishNodesInStandaloneMode(IEnumerable<PublishedNodesEntryModel> entries, IIoTPlatformTestContext context) {
-            await DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
+        public static async Task PublishNodesInStandaloneModeAsync(IEnumerable<PublishedNodesEntryModel> entries, IIoTPlatformTestContext context, CancellationToken ct = default) {
+            DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
 
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
-            await CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
+            CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
             using var client = CreateScpClientAndConnect(context);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
             client.Upload(stream, TestConstants.PublishedNodesFullName);
 
-            await SwitchToStandaloneMode(context);
+            await SwitchToStandaloneModeAsync(context, ct);
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns></returns>
-        public static async Task SwitchToStandaloneMode(IIoTPlatformTestContext context) {
+        public static async Task SwitchToStandaloneModeAsync(IIoTPlatformTestContext context, CancellationToken ct = default) {
             var patch =
                 @"{
                     tags: {
@@ -179,7 +179,7 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 }";
 
-            await UpdateTagAsync(patch, context);
+            await UpdateTagAsync(patch, context, ct);
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns></returns>
-        public static async Task SwitchToOrchestratedMode(IIoTPlatformTestContext context) {
+        public static async Task SwitchToOrchestratedModeAsync(IIoTPlatformTestContext context, CancellationToken ct = default) {
             var patch =
                 @"{
                     tags: {
@@ -195,9 +195,9 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                 }";
 
-            await UpdateTagAsync(patch, context);
+            await UpdateTagAsync(patch, context, ct);
 
-            await DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
+            DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
         }
 
         /// <summary>
@@ -267,7 +267,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="fileName">Filename of the file to delete</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static Task DeleteFileOnEdgeVM(string fileName, IIoTPlatformTestContext context) {
+        public static void DeleteFileOnEdgeVM(string fileName, IIoTPlatformTestContext context) {
             var isSuccessful = false;
             using var client = CreateSshClientAndConnect(context);
 
@@ -277,8 +277,6 @@ namespace IIoTPlatform_E2E_Tests {
                 isSuccessful = true;
             }
             Assert.True(isSuccessful, "Delete file was not successful");
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -286,7 +284,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="folderPath">Name of the folder to create.</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        private static Task CreateFolderOnEdgeVM(string folderPath, IIoTPlatformTestContext context) {
+        private static void CreateFolderOnEdgeVM(string folderPath, IIoTPlatformTestContext context) {
             Assert.True(!string.IsNullOrWhiteSpace(folderPath), "folder does not exist");
 
             var isSuccessful = false;
@@ -299,8 +297,6 @@ namespace IIoTPlatform_E2E_Tests {
             }
 
             Assert.True(isSuccessful, "Folder creation was not successful");
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -389,7 +385,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns></returns>
         public static async Task WaitForServicesAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct
+            CancellationToken ct = default
         ) {
             const string healthyState = "Healthy";
 
@@ -448,7 +444,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>content of GET /registry/v2/application request as dynamic object</returns>
         public static async Task<dynamic> WaitForDiscoveryToBeCompletedAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct
+            CancellationToken ct = default
         ) {
             ct.ThrowIfCancellationRequested();
 
@@ -497,7 +493,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
         public static async Task<dynamic> WaitForEndpointToBeActivatedAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct) {
+            CancellationToken ct = default) {
 
             var accessToken = await TestHelper.GetTokenAsync(context, ct);
             var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {

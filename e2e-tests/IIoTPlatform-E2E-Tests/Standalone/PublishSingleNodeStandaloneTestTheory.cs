@@ -58,19 +58,19 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         public async Task Test_StartPublishingSingleNode_Expect_Success() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            var simulatedPublishedNodesConfiguration = await TestHelper.GetSimulatedPublishedNodesConfiguration(_context, cts.Token);
+            var simulatedPublishedNodesConfiguration = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
 
             var model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
             model.OpcNodes = model.OpcNodes.Take(1).ToArray();
 
-            await TestHelper.PublishNodesInStandaloneMode(new[] { model }, _context);
+            await TestHelper.PublishNodesInStandaloneModeAsync(new[] { model }, _context);
         }
 
         [Fact, PriorityOrder(5)]
-        public async Task Test_VerifyDataAvailableAtIoTHub_Expect_NumberOfValueChanges_GreaterThan_Zer() {
+        public async Task Test_VerifyDataAvailableAtIoTHub_Expect_NumberOfValueChanges_GreaterThan_Zero() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            //use test event processor to verify data send to IoT Hub
+            //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
 
             // wait some time to generate events to process
@@ -81,7 +81,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(6)]
         public async Task Test_StopPublishingAllNodes_Expect_Success() {
-            await TestHelper.PublishNodesInStandaloneMode(new PublishedNodesEntryModel[0], _context);
+            await TestHelper.PublishNodesInStandaloneModeAsync(new PublishedNodesEntryModel[0], _context);
         }
 
         [Fact, PriorityOrder(7)]
@@ -90,7 +90,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             await Task.Delay(90 * 1000, cts.Token); //wait till the publishing has stopped
 
-            //use test event processor to verify data send to IoT Hub
+            //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
             // wait some time to generate events to process
             await Task.Delay(90 * 1000, cts.Token);
