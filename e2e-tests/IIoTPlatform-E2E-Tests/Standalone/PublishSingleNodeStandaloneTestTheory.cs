@@ -46,15 +46,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(3)]
-        public async Task Test_WaitForModuleDeployed() {
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            // We will wait for module to be deployed.
-            var exception = await Record.ExceptionAsync(async () => await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, new string[] { "publisher_standalone" }));
-            Assert.Null(exception);
-        }
-
-        [Fact, PriorityOrder(4)]
         public async Task Test_StartPublishingSingleNode_Expect_Success() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -64,6 +55,15 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             model.OpcNodes = model.OpcNodes.Take(1).ToArray();
 
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { model }, _context, cts.Token);
+        }
+
+        [Fact, PriorityOrder(4)]
+        public async Task Test_WaitForModuleDeployed() {
+            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+
+            // We will wait for module to be deployed.
+            var exception = await Record.ExceptionAsync(async () => await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, new string[] { "publisher_standalone" }));
+            Assert.Null(exception);
         }
 
         [Fact, PriorityOrder(5)]
