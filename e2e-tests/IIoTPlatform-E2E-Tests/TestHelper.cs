@@ -191,7 +191,7 @@ namespace IIoTPlatform_E2E_Tests {
             var patch =
                 @"{
                     tags: {
-                        unmanaged: false
+                        unmanaged: null
                     }
                 }";
 
