@@ -63,7 +63,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
             model.OpcNodes = model.OpcNodes.Take(1).ToArray();
 
-            await TestHelper.PublishNodesInStandaloneModeAsync(new[] { model }, _context);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { model }, _context, cts.Token);
         }
 
         [Fact, PriorityOrder(5)]
@@ -81,11 +81,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(6)]
         public async Task Test_StopPublishingAllNodes_Expect_Success() {
-            await TestHelper.PublishNodesInStandaloneModeAsync(new PublishedNodesEntryModel[0], _context);
+            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new PublishedNodesEntryModel[0], _context);
         }
 
         [Fact, PriorityOrder(7)]
-        public async Task Test_VerfiyNoDataIncomingAtIoTHub_Expected_NumberOfValueChanges_Equals_Zero() {
+        public async Task Test_VerifyNoDataIncomingAtIoTHub_Expected_NumberOfValueChanges_Equals_Zero() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             await Task.Delay(90 * 1000, cts.Token); //wait till the publishing has stopped
@@ -97,6 +97,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True((int)json.totalValueChangesCount == 0, "Messages received at IoT Hub");
+        }
+
+        [Fact, PriorityOrder(8)]
+        public async Task Test_SwitchToOrchestratedMode() {
+            await TestHelper.SwitchToOrchestratedModeAsync(_context);
         }
     }
 }

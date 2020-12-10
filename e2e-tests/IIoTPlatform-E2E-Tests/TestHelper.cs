@@ -154,7 +154,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="sourceFilePath">Source file path</param>
         /// <param name="destinationFilePath">Destination file path</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static async Task PublishNodesInStandaloneModeAsync(IEnumerable<PublishedNodesEntryModel> entries, IIoTPlatformTestContext context, CancellationToken ct = default) {
+        public static async Task SwitchToStandaloneModeAndPublishNodesAsync(IEnumerable<PublishedNodesEntryModel> entries, IIoTPlatformTestContext context, CancellationToken ct = default) {
             DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
 
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);

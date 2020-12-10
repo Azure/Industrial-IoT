@@ -314,7 +314,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(12)]
-        public async Task Test_VerfiyNoDataIncomingAtIoTHub() {
+        public async Task Test_VerifyNoDataIncomingAtIoTHub() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             await Task.Delay(90 * 1000, cts.Token); //wait till the publishing has stopped
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
