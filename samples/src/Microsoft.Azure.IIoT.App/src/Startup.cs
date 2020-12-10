@@ -225,7 +225,7 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces(); // Per request
 
-            // Register twin, vault, and registry services clients
+            // Register twin and registry services clients
             builder.RegisterType<TwinServiceClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()

@@ -5,7 +5,7 @@ image:
   # image.registry is URL of Docker registry from where images will be pulled.
   registry: mcr.microsoft.com
   # image.tag defines which version of Docker images to pull.
-  tag: 2.7.105
+  tag: 2.7.200
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
@@ -74,6 +74,7 @@ azure:
   # The following CosmosDB containers will be created (<db_name>.<container_name>):
   #   - iiot_opc.iiot_opc-indices
   #   - iiot_opc.iiot_opc-requests
+  #   - OpcVault.AppsAndCertRequests
   cosmosDB:
     # azure.cosmosDB.connectionString is connection string for CosmosDB. It should provide read-write permissions.
     connectionString: null
@@ -202,7 +203,7 @@ azure:
 
 # externalServiceUrl is URL on which components of Azure Industrial IoT solution will be available externally.
 # This property is required so that Publisher Edge Module can communicate with jobs orchestrator service (edgeJobs) for reporting its status and requesting publisher jobs.
-# NOTE: If this parameter is not set, then Publisher Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within Kubernetes cluster. 
+# NOTE: If this parameter is not set, then Publisher Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within Kubernetes cluster.
 # NOTE: It is still recommended to set externalServiceUrl even if loadConfFromKeyVault is set to true.
 externalServiceUrl: null
 
@@ -745,7 +746,7 @@ deployment:
     #   - myapp.domain.com
     tls: []
 
-# Prometheus metrics values. 
+# Prometheus metrics values.
 prometheus:
   # prometheus.scrape determines whether to add Pod annotations for Prometheus metrics scraping or not.
   scrape: true

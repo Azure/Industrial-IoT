@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
             // Use default token sources
             builder.RegisterModule<NativeClientAuthentication>();
 
-            // Register twin, vault, and registry services clients
+            // Register twin and registry services clients
             builder.RegisterType<TwinServiceClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()

@@ -507,7 +507,7 @@ The following details of the Azure Storage account would be required:
 
 ## Installing the Chart
 
-This chart installs `2.7.105` version of components by default.
+This chart installs `2.7.200` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -573,7 +573,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.7.105`           |
+| `image.tag`         | Image tag                                | `2.7.200`           |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
@@ -794,7 +794,6 @@ Those are the values of `imageRepository` for all components:
 | `deployment.microServices.twin.imageRepository`                    | `iot/opc-twin-service`                         |
 | `deployment.microServices.history.imageRepository`                 | `iot/opc-history-service`                      |
 | `deployment.microServices.gateway.imageRepository`                 | `iot/opc-gateway-service`                      |
-| `deployment.microServices.vault.imageRepository`                   | `iot/opc-vault-service`                        |
 | `deployment.microServices.publisher.imageRepository`               | `iot/opc-publisher-service`                    |
 | `deployment.microServices.edgeJobs.imageRepository`                | `iot/opc-publisher-edge-service`               |
 | `deployment.microServices.events.imageRepository`                  | `iot/industrial-iot-events-service`            |
