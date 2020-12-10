@@ -21,15 +21,20 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     [TestCaseOrderer("IIoTPlatform_E2E_Tests.TestExtensions.TestOrderer", TestConstants.TestAssemblyName)]
     [Collection("IIoT Platform Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeOrchestratedTraitValue)]
-    public class PublishSingleNodesTestTheory
+    public class PublishSingleNodeOrchestratedTestTheory
     {
         private readonly ITestOutputHelper _output;
         private readonly IIoTPlatformTestContext _context;
 
-        public PublishSingleNodesTestTheory(IIoTPlatformTestContext context, ITestOutputHelper output) {
+        public PublishSingleNodeOrchestratedTestTheory(IIoTPlatformTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
+        }
+
+        [Fact, PriorityOrder(0)]
+        public async Task Test_SetUnmanagedTagFalse() {
+            await TestHelper.SwitchToOrchestratedModeAsync(_context);
         }
 
         [Fact, PriorityOrder(1)]
@@ -42,7 +47,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         [Fact, PriorityOrder(2)]
         public async Task Test_ReadSimulatedOpcUaNodes() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context, cts.Token);
+            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
             Assert.NotNull(simulatedOpcServer);
             Assert.NotEmpty(simulatedOpcServer.Keys);
             Assert.NotEmpty(simulatedOpcServer.Values);
@@ -58,7 +63,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token);
 
             var accessToken = await TestHelper.GetTokenAsync(_context, cts.Token);
-            var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context, cts.Token);
+            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
 
             var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) {Timeout = TestConstants.DefaultTimeoutInMilliseconds};
 
@@ -187,7 +192,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var accessToken = await TestHelper.GetTokenAsync(_context, cts.Token);
-            var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context, cts.Token);
+            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
             var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) {
                 Timeout = TestConstants.DefaultTimeoutInMilliseconds
             };
@@ -228,7 +233,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var accessToken = await TestHelper.GetTokenAsync(_context, cts.Token);
-            var simulatedOpcServer = await TestHelper.GetSimulatedOpcUaNodesAsync(_context, cts.Token);
+            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
             var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) {
                 Timeout = TestConstants.DefaultTimeoutInMilliseconds
             };
@@ -270,8 +275,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            //use test event processor to verify data send to IoT Hub
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 1, 1000, 10000, cts.Token);
+            //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
             // wait some time to generate events to process
             await Task.Delay(90 * 1000, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
@@ -309,10 +314,10 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
         [Fact, PriorityOrder(12)]
-        public async Task Test_VerfiyNoDataIncomingAtIoTHub() {
+        public async Task Test_VerifyNoDataIncomingAtIoTHub() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             await Task.Delay(90 * 1000, cts.Token); //wait till the publishing has stopped
-            //use test event processor to verify data send to IoT Hub
+            //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
             // wait some time to generate events to process
             await Task.Delay(90 * 1000, cts.Token);
