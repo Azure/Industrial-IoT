@@ -1,0 +1,81 @@
+parameters:
+- name: PublisherMode
+  type: string
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Set Service Principal Environment Variables'
+  name: promoteserviceprincipal
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
+
+- task: AzurePowerShell@5
+  displayName: 'Set KeyVaultName-Variable'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+    scriptArguments: >
+      -ResourceGroupName '$(ResourceGroupName)'
+
+- task: AzurePowerShell@5
+  displayName: "Add permissions to KeyVault"
+  name: keyvaultpermissions
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+    scriptArguments: >
+      -KeyVaultName "$(KeyVaultName)"
+      -ResourceGroupName "$(ResourceGroupName)"
+      -ServicePrincipalName "$(ServicePrincipalId)"
+
+- task: AzureKeyVault@1
+  displayName: 'Retrieve KeyVault secrets'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: '$(KeyVaultName)'
+    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,testeventprocessor-baseurl,testeventprocessor-username,testeventprocessor-password,iothub-eventhub-connectionstring,storageaccount-iothubcheckpoint-connectionstring'
+
+- task: AzureKeyVault@1
+  displayName: 'Retrieve KeyVault secrets for API tests'
+  condition: eq( '${{ parameters.PublisherMode }}', 'orchestrated')
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: '$(KeyVaultName)'
+    SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Executing xUnit tests (with PublisherMode=${{ parameters.PublisherMode }})'
+  timeoutInMinutes: 90
+  inputs:
+    command: test
+    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
+    arguments: '--configuration Release --filter PublisherMode=${{ parameters.PublisherMode }} --verbosity=normal'
+  env:
+    PCS_SERVICE_URL: '$(pcs-service-url)'
+    PCS_AUTH_TENANT: '$(pcs-auth-tenant)'
+    PCS_AUTH_CLIENT_APPID: '$(pcs-auth-client-appid)'
+    PCS_AUTH_CLIENT_SECRET: '$(pcs-auth-client-secret)'
+    ApplicationName: '$(ApplicationName)'
+    PLC_SIMULATION_URLS: '$(plc-simulation-urls)'
+    IOT_EDGE_DEVICE_ID: '$(iot-edge-device-id)'
+    IOT_EDGE_DEVICE_DNSNAME: '$(iot-edge-device-dnsname)'
+    IOT_EDGE_VM_USERNAME: '$(iot-edge-vm-username)'
+    IOT_EDGE_VM_PUBLICKEY: '$(iot-edge-vm-publickey)'
+    IOT_EDGE_VM_PRIVATEKEY: '$(iot-edge-vm-privatekey)'
+    PCS_IOTHUB_CONNSTRING: '$(pcs-iothub-connstring)'
+    IOTHUB_EVENTHUB_CONNECTIONSTRING: '$(iothub-eventhub-connectionstring)'
+    STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING: '$(storageaccount-iothubcheckpoint-connectionstring)'
+    TESTEVENTPROCESSOR_BASEURL: '$(testeventprocessor-baseurl)'
+    TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
+    TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
+    PCS_IMAGES_TAG: '$(PlatformVersion)'
