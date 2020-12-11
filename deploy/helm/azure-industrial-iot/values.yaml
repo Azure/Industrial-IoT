@@ -5,7 +5,7 @@ image:
   # image.registry is URL of Docker registry from where images will be pulled.
   registry: mcr.microsoft.com
   # image.tag defines which version of Docker images to pull.
-  tag: 2.7.105
+  tag: 2.7.200
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
@@ -203,7 +203,7 @@ azure:
 
 # externalServiceUrl is URL on which components of Azure Industrial IoT solution will be available externally.
 # This property is required so that Publisher Edge Module can communicate with jobs orchestrator service (edgeJobs) for reporting its status and requesting publisher jobs.
-# NOTE: If this parameter is not set, then Publisher Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within Kubernetes cluster. 
+# NOTE: If this parameter is not set, then Publisher Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within Kubernetes cluster.
 # NOTE: It is still recommended to set externalServiceUrl even if loadConfFromKeyVault is set to true.
 externalServiceUrl: null
 
@@ -232,7 +232,6 @@ apps:
     twin: /twin
     history: /history
     gateway: /ua
-    vault: /vault
     publisher: /publisher
     events: /events
     engineeringTool: /frontend
@@ -412,43 +411,6 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
         opcNodePort: null
-
-    # deployment.microServices.vault contains values specific to yaml definitions of deployment and service kubernetes resources for opc-vault-service.
-    vault:
-      enabled: true
-      deploymentAnnotations: {}
-      podAnnotations: {}
-      extraLabels: {}
-      replicas: 1
-      imageRepository: iot/opc-vault-service
-      extraArgs: []
-
-      # resources:
-      #   requests:
-      #     memory: "64Mi"
-      #     cpu: "50m"
-      #   limits:
-      #     memory: "256Mi"
-      #     cpu: "150m"
-      resources: {}
-
-      # .Values.deployment.microServices.vault.extraEnv defines additional environment variables for the container.
-      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
-      extraEnv: []
-
-      service:
-        annotations: {}
-        type: ClusterIP
-        port: 9044
-        # Exposed as a headless service:
-        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
-        clusterIP: null
-        # List of IP addresses at which the service is available
-        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
-        externalIPs: []
-        loadBalancerIP: null
-        loadBalancerSourceRanges: []
-        nodePort: null
 
     # deployment.microServices.publisher contains values specific to yaml definitions of deployment and service kubernetes resources for opc-publisher-service.
     publisher:
@@ -769,7 +731,6 @@ deployment:
       twin: /twin
       history: /history
       gateway: /ua
-      vault: /vault
       publisher: /publisher
       events: /events
       edgeJobs: /edge/publisher
@@ -785,7 +746,7 @@ deployment:
     #   - myapp.domain.com
     tls: []
 
-# Prometheus metrics values. 
+# Prometheus metrics values.
 prometheus:
   # prometheus.scrape determines whether to add Pod annotations for Prometheus metrics scraping or not.
   scrape: true

@@ -15,8 +15,6 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
@@ -72,12 +70,10 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
             // Use default token sources
             builder.RegisterModule<NativeClientAuthentication>();
 
-            // Register twin, vault, and registry services clients
+            // Register twin and registry services clients
             builder.RegisterType<TwinServiceClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<VaultServiceClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceClient>()
                 .AsImplementedInterfaces();
@@ -122,8 +118,6 @@ namespace Microsoft.Azure.IIoT.Test.Scenarios.Cli {
             _twin = _scope.Resolve<ITwinServiceApi>();
             _registry = _scope.Resolve<IRegistryServiceApi>();
             _publisher = _scope.Resolve<IPublisherServiceApi>();
-            _vault = _scope.Resolve<IVaultServiceApi>();
-            _jobs = _scope.Resolve<IPublisherJobServiceApi>();
         }
 
         /// <inheritdoc/>
@@ -697,9 +691,7 @@ Commands and Options
         private readonly Random _rand = new Random();
         private readonly ILifetimeScope _scope;
         private readonly ITwinServiceApi _twin;
-        private readonly IPublisherJobServiceApi _jobs;
         private readonly IPublisherServiceApi _publisher;
         private readonly IRegistryServiceApi _registry;
-        private readonly IVaultServiceApi _vault;
     }
 }
