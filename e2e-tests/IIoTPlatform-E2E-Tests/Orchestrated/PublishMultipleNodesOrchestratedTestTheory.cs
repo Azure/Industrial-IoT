@@ -66,7 +66,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             // use the second OPC PLC for testing
             cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var testPlc = _context.SimulatedPublishedNodes.Values.Skip(1).First();
-            _context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, GetEntryModelWithoutNodes(testPlc));
+            _context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, _context.GetEntryModelWithoutNodes(testPlc));
             var body = new {
                 discoveryUrl = testPlc.EndpointUrl
             };
@@ -346,23 +346,6 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
                 _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                 Assert.True(response.IsSuccessful, "DELETE /publisher/v2/jobs/{jobId} failed!");
             }
-        }
-
-        /// <summary>
-        /// Create a Copy except the OpcNodes array
-        /// </summary>
-        /// <param name="testPlc">Source object</param>
-        /// <returns>Copy</returns>
-        private PublishedNodesEntryModel GetEntryModelWithoutNodes(PublishedNodesEntryModel testPlc) {
-            return new PublishedNodesEntryModel {
-                EncryptedAuthPassword = testPlc.EncryptedAuthPassword,
-                EncryptedAuthUsername = testPlc.EncryptedAuthUsername,
-                EndpointUrl = testPlc.EndpointUrl,
-                OpcAuthenticationPassword = testPlc.OpcAuthenticationPassword,
-                OpcAuthenticationUsername = testPlc.OpcAuthenticationUsername,
-                UseSecurity = testPlc.UseSecurity,
-                OpcNodes = null
-            };
         }
     }
 }

@@ -39,5 +39,22 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             SimulatedPublishedNodes = new ReadOnlyDictionary<string, PublishedNodesEntryModel>(
                 simulatedPlcs.ToDictionary(kvp => kvp.Value.EndpointUrl, kvp => kvp.Value));
         }
+
+        /// <summary>
+        /// Create a Copy except the OpcNodes array
+        /// </summary>
+        /// <param name="testPlc">Source object</param>
+        /// <returns>Copy</returns>
+        public PublishedNodesEntryModel GetEntryModelWithoutNodes(PublishedNodesEntryModel testPlc) {
+            return new PublishedNodesEntryModel {
+                EncryptedAuthPassword = testPlc.EncryptedAuthPassword,
+                EncryptedAuthUsername = testPlc.EncryptedAuthUsername,
+                EndpointUrl = testPlc.EndpointUrl,
+                OpcAuthenticationPassword = testPlc.OpcAuthenticationPassword,
+                OpcAuthenticationUsername = testPlc.OpcAuthenticationUsername,
+                UseSecurity = testPlc.UseSecurity,
+                OpcNodes = null
+            };
+        }
     }
 }
