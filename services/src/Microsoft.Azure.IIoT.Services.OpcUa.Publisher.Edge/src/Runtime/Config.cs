@@ -29,8 +29,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Runtime {
     /// </summary>
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
         ICorsConfig, IOpenApiConfig, IJobOrchestratorConfig, ICosmosDbConfig,
-        IJobDatabaseConfig, IWorkerDatabaseConfig, IForwardedHeadersConfig,
-        IRoleConfig {
+        IJobDatabaseConfig, IWorkerDatabaseConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
@@ -73,9 +72,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.Runtime {
         public bool UseV2 => _openApi.UseV2;
         /// <inheritdoc/>
         public string OpenApiServerHost => _openApi.OpenApiServerHost;
-
-        /// <inheritdoc/>
-        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
