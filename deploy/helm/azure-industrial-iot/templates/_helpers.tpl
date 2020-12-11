@@ -61,10 +61,6 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "gateway" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.vault.fullname" -}}
-{{- printf "%s-%s" .Release.Name "vault" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{- define "azure-industrial-iot.onboarding.fullname" -}}
 {{- printf "%s-%s" .Release.Name "onboarding" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
@@ -124,10 +120,6 @@ Those are used in Service selectors so they have to be unique for each microserv
 
 {{- define "azure-industrial-iot.gateway.component" -}}
 {{- "opc-gateway-service" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{- define "azure-industrial-iot.vault.component" -}}
-{{- "opc-vault-service" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "azure-industrial-iot.onboarding.component" -}}

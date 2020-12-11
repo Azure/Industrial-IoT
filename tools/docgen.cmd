@@ -56,7 +56,6 @@ call :generate_doc_for_service twin
 call :generate_doc_for_service publisher
 call :generate_doc_for_service registry
 call :generate_doc_for_service history
-call :generate_doc_for_service vault
 call :generate_doc_for_service events
 
 set service=
