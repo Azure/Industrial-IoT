@@ -20,7 +20,9 @@ a Helm chart on top of a platform deployed through either `deploy.cmd` or `deplo
   * [Deploy azure-industrial-iot Helm chart](#deploy-azure-industrial-iot-helm-chart)
     * [Using configuration in Azure Key Vault](#using-configuration-in-azure-key-vault)
     * [Passing Azure resource details through YAML file](#passing-azure-resource-details-through-yaml-file)
-    * [Installing the chart](#installing-the-chart)
+    * [Installing `azure-industrial-iot` Helm chart](#installing-azure-industrial-iot-helm-chart)
+      * [Installing the chart from GitHub repository](#installing-the-chart-from-github-repository)
+      * [Installing the chart from Helm chart repository](#installing-the-chart-from-helm-chart-repository)
   * [Check status of deployed resources](#check-status-of-deployed-resources)
   * [Enable Prometheus metrics scraping](#enable-prometheus-metrics-scraping)
   * [Update Redirect URIs of web App Registration](#update-redirect-uris-of-web-app-registration)
@@ -310,6 +312,9 @@ Note the following values in the YAML file:
   `pcs-` secrets in Azure Key Vault.
 
 ```yaml
+image:
+  tag: 2.7.199
+
 loadConfFromKeyVault: true
 
 azure:
@@ -350,6 +355,10 @@ deployment:
     hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
 
+> **NOTE**: Please note that we have used `2.7.199` as the value of `image:tag` configuration parameter
+> above. That will result in `2.7.199` version of microservices and edge modules to be deployed. If you want
+> to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
+
 #### Passing Azure resource details through YAML file
 
 If you decide to pass all Azure resource details through YAML file, please follow
@@ -387,6 +396,9 @@ Note the following values in the YAML file:
   Azure Key Vault.
 
 ```yaml
+image:
+  tag: 2.7.199
+
 azure:
   tenantId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 
@@ -480,10 +492,19 @@ deployment:
     hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
 
-#### Installing the chart
+> **NOTE**: Please note that we have used `2.7.199` as the value of `image:tag` configuration parameter
+> above. That will result in `2.7.199` version of microservices and edge modules to be deployed. If you want
+> to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
-Here we will install `azure-industrial-iot` Helm chart from the root of the GitHub repo. For that, please
-use `aiiot.yaml` that you created above and run the following command:
+#### Installing `azure-industrial-iot` Helm chart
+
+##### Installing the chart from GitHub repository
+
+Here we will install `azure-industrial-iot` Helm chart from the root of the GitHub repo. This deployment
+method should be used for development purposes. For production deployments please check next section on
+[installing the chart from Helm chart repository](#installing-the-chart-from-helm-chart-repository).
+
+For installing the chart, please use `aiiot.yaml` that you created above and run the following command:
 
 ```bash
 helm install aiiot --namespace aiiot .\deploy\helm\azure-industrial-iot\ -f aiiot.yaml
@@ -494,8 +515,10 @@ accordingly if you want to install a different version of the chart. Please chec
 version for a list of applicable values for that specific version. Documentation links of different versions
 of the chart can be found in [Deploying Azure Industrial IoT Platform Microservices Using Helm](howto-deploy-helm.md).
 
-You can also install the charts from one of Helm repositories that we publish to. For that you would first
-add Helm repository and then install the chart from there as shown bellow.
+##### Installing the chart from Helm chart repository
+
+You can also install `azure-industrial-iot` Helm charts from one of Helm repositories that we publish to.
+For that you would first add Helm repository and then install the chart from there as shown bellow.
 
 ```bash
 helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
@@ -505,6 +528,8 @@ helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0
 
 Please note that the version of the chart in GitHub repo will be ahead of chart versions that we publish
 to Helm repositories.
+
+Details of both Helm chart repositories that we publish to can be found in [Helm Repositories](howto-deploy-helm.md#helm-repositories).
 
 ### Check status of deployed resources
 

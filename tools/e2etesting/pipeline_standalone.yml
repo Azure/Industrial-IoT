@@ -1,0 +1,64 @@
+name: $(Date:yyyyMMdd)$(Rev:rr)
+
+trigger: none
+pr: none
+
+pool:
+  name: '$(AgentPool)'
+
+variables:
+- template: steps/variables.yml
+
+stages:
+- stage: build
+  displayName: "Build Resources"
+  condition: ne(variables['UseExisting'], true)
+  jobs:
+  - job: buildtestresources
+    displayName: 'Build Test Resources'
+    steps:
+    - template: steps/buildtestresources.yml
+
+- stage: deploy
+  displayName: "Deploy Components"
+  dependsOn: build
+  condition: and(not(canceled()), eq(dependencies.build.result, 'Succeeded'))
+  jobs:  
+  - job: deploystandalone
+    displayName: 'Deploy Standalone Resources'
+    steps:
+    - template: steps/deploystandalone.yml
+
+  - job: deploytestresources
+    condition: and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded'))
+    dependsOn: deploystandalone
+    displayName: 'Deploy Test Resources'
+    pool:
+      name: '$(AgentPool)'
+    steps:
+    - template: steps/deploytestresources.yml
+
+- stage: runtests
+  displayName: "Execute tests"
+  dependsOn: deploy
+  condition: and(not(canceled()), or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped')))
+  jobs:
+  - job: runtests
+    displayName: 'Run End 2 End Tests'
+    steps:
+    - template: steps/runtests.yml
+      parameters:
+        PublisherMode: 'standalone'
+
+- stage: cleanup
+  displayName: Cleanup resources
+  dependsOn: runtests
+  condition: and(not(canceled()), eq(variables['Cleanup'], true))
+  jobs:
+  - job: cleanup
+    displayName: Cleanup
+    steps:
+    - template: steps/cleanup.yml
+      parameters:
+        CleanupAppRegistrations: false
+  

@@ -18,7 +18,7 @@ jobs:
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/get-matrix.ps1
-      arguments: -FileName *.sln
+      arguments: -FileName Industrial-IoT.sln
 - job: buildall
   displayName: Building
   dependsOn: buildprep
