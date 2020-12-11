@@ -56,5 +56,12 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
                 OpcNodes = null
             };
         }
+
+        /// <summary>
+        /// Reset the consumed nodes
+        /// </summary>
+        public void Reset() {
+            ConsumedOpcUaNodes?.Clear();
+        }
     }
 }

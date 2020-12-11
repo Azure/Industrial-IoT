@@ -28,6 +28,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
+            _context.Reset();
         }
 
         [Fact, PriorityOrder(1)]
