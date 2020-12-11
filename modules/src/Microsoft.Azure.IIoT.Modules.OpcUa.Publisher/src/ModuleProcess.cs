@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// <summary>
         /// Opc stack trace mask
         /// </summary>
-        public int OpcStackTraceMask { get; set; } = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
+        public int OpcStackTraceMask { get; set; }
 
         /// <inheritdoc />
         public void Reset() {
@@ -113,9 +113,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
                         CheckDeprecatedParams(logger);
-                        //SetStackTraceMask();
-                         // Start module
-                         await module.StartAsync(IdentityType.Publisher, SiteId,
+                        SetStackTraceMask();
+                        // Start module
+                        await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
@@ -267,8 +267,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             builder.RegisterType<IdentityTokenSettingsController>()
                 .AsImplementedInterfaces().SingleInstance();
-            //builder.RegisterType<StackLogger>()
-            //    .AsImplementedInterfaces().SingleInstance().AutoActivate();
+            builder.RegisterType<StackLogger>()
+                .AsImplementedInterfaces().SingleInstance().AutoActivate();
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()
