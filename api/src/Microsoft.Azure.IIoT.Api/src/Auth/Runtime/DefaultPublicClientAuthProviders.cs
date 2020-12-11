@@ -22,9 +22,6 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
 
             // ...
 
-            builder.RegisterType<AuthServiceApiClientConfig>()
-                .AsImplementedInterfaces();
-
             base.Load(builder);
         }
     }

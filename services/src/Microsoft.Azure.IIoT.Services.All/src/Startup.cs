@@ -161,11 +161,6 @@ namespace Microsoft.Azure.IIoT.Services.All {
                     Task.Run(() => Processor.Events.Program.Main(args), _cts.Token),
                     Task.Run(() => Processor.Telemetry.Program.Main(args), _cts.Token),
                 };
-
-                if (!_config.IsMinimumDeployment) {
-                    processes.Add(Task.Run(() => Processor.Telemetry.Cdm.Program.Main(args),
-                        _cts.Token));
-                }
                 _runner = Task.WhenAll(processes.ToArray());
             }
 

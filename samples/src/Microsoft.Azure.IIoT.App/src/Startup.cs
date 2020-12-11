@@ -213,9 +213,6 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterModule<WebAppAuthentication>();
             builder.RegisterType<AadApiWebConfig>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<AuthServiceApiWebConfig>()
-                .AsImplementedInterfaces();
-
             builder.RegisterType<DistributedProtectedCache>()
                 .AsImplementedInterfaces();
 

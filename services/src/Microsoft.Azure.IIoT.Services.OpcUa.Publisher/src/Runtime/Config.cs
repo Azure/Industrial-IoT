@@ -34,13 +34,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
-        ICorsConfig, IOpenApiConfig, IRoleConfig,
+        ICorsConfig, IOpenApiConfig,
         ICosmosDbConfig, IJobDatabaseConfig, IRegistryConfig, ITwinConfig,
         IForwardedHeadersConfig, IContainerRegistryConfig, IWorkerDatabaseConfig,
         IPublishServicesConfig {
-
-        /// <inheritdoc/>
-        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;

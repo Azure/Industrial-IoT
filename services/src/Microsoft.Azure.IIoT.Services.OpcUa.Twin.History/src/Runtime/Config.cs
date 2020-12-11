@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
-        ICorsConfig, IOpenApiConfig, IForwardedHeadersConfig, IRoleConfig {
+        ICorsConfig, IOpenApiConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -52,9 +52,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
         public bool UseV2 => _openApi.UseV2;
         /// <inheritdoc/>
         public string OpenApiServerHost => _openApi.OpenApiServerHost;
-
-        /// <inheritdoc/>
-        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
