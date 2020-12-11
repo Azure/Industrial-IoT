@@ -32,6 +32,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Prometheus;
     using System.Collections.Generic;
     using System.Linq;
+    using Opc.Ua;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog.Events;
 
     /// <summary>
     /// Publisher module
@@ -54,6 +57,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// Site of the module
         /// </summary>
         public string SiteId { get; set; }
+
+        /// <summary>
+        /// Opc stack trace mask
+        /// </summary>
+        public int OpcStackTraceMask { get; set; } = Utils.TraceMasks.Error | Utils.TraceMasks.Security | Utils.TraceMasks.StackTrace | Utils.TraceMasks.StartStop;
 
         /// <inheritdoc />
         public void Reset() {
@@ -105,8 +113,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
                         CheckDeprecatedParams(logger);
-                        // Start module
-                        await module.StartAsync(IdentityType.Publisher, SiteId,
+                        //SetStackTraceMask();
+                         // Start module
+                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this);
                         kPublisherModuleStart.WithLabels(
                             identity.DeviceId ?? "", identity.ModuleId ?? "").Inc();
@@ -167,6 +176,36 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         }
 
         /// <summary>
+        /// Set stack trace mask based on log level.
+        /// </summary>
+        public void SetStackTraceMask() {
+            switch (LogControl.Level.MinimumLevel) {
+                case LogEventLevel.Fatal:
+                    OpcStackTraceMask = 0;
+                    break;
+                case LogEventLevel.Error:
+                    OpcStackTraceMask = Utils.TraceMasks.Error;
+                    break;
+                case LogEventLevel.Warning:
+                    OpcStackTraceMask = 0;
+                    break;
+                case LogEventLevel.Information:
+                    OpcStackTraceMask = 0;
+                    break;
+                case LogEventLevel.Debug:
+                    OpcStackTraceMask = Utils.TraceMasks.StartStop | Utils.TraceMasks.ExternalSystem | Utils.TraceMasks.Security;
+                    break;
+                case LogEventLevel.Verbose:
+                    OpcStackTraceMask = Utils.TraceMasks.All;
+                    break;
+            }
+            Utils.SetTraceMask(OpcStackTraceMask);
+            Utils.SetTraceOutput(Utils.TraceOutput.DebugAndFile);
+            Utils.SetTraceLog(null, false);
+            Console.WriteLine($"opcstacktracemask set to: 0x{OpcStackTraceMask:X}");
+        }
+
+        /// <summary>
         /// Autofac configuration.
         /// </summary>
         /// <param name="configuration"></param>
@@ -219,7 +258,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // Cloud job orchestrator
                 builder.RegisterType<PublisherOrchestratorClient>()
                     .AsImplementedInterfaces().SingleInstance();
-
                 // ... plus controllers
                 builder.RegisterType<ConfigurationSettingsController>()
                     .AsImplementedInterfaces().SingleInstance();
@@ -229,6 +267,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             builder.RegisterType<IdentityTokenSettingsController>()
                 .AsImplementedInterfaces().SingleInstance();
+            //builder.RegisterType<StackLogger>()
+            //    .AsImplementedInterfaces().SingleInstance().AutoActivate();
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()
