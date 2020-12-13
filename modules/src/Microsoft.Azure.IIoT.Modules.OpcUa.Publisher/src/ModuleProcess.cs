@@ -30,6 +30,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Extensions.Configuration;
     using Serilog;
     using Prometheus;
+    using System.Collections.Generic;
+    using System.Linq;
+    using Opc.Ua;
+    using Microsoft.Azure.IIoT.Diagnostics;
+    using Serilog.Events;
 
     /// <summary>
     /// Publisher module
@@ -52,6 +57,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         /// Site of the module
         /// </summary>
         public string SiteId { get; set; }
+
+        /// <summary>
+        /// Opc stack trace mask
+        /// </summary>
+        public int OpcStackTraceMask { get; set; }
 
         /// <inheritdoc />
         public void Reset() {
@@ -102,6 +112,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Information("Starting module OpcPublisher version {version}.", version);
                         logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
+                        CheckDeprecatedParams(logger);
+                        SetStackTraceMask();
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             "OpcPublisher", version, this);
@@ -123,7 +135,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     }
                     finally {
                         await workerSupervisor.StopAsync();
-                        await sessionManager?.StopAsync();
+                        await (sessionManager?.StopAsync() ?? Task.CompletedTask);
                         await module.StopAsync();
                         OnRunning?.Invoke(this, false);
                         kPublisherModuleStart.WithLabels(
@@ -132,6 +144,65 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Checks and warns about deprecated params and environment variables.
+        /// </summary>
+        /// <param name="logger"></param>
+        private void CheckDeprecatedParams(ILogger logger) {
+            // List with pairs of deprecated and new/replacement options.
+            // If newOption is null, warning will not suggest using it instead.
+            var deprecatedOptions = new List<(string deprecatedOption, string newOption)> {
+                // Deprecated on 2020-09-17.
+                (LegacyCliConfigKeys.MaxOutgressMessages,
+                 LegacyCliConfigKeys.MaxEgressMessageQueue),
+            };
+
+            // Concatenate all option keys into one list.
+            var configKeys = _config.Providers.SelectMany(p => p.GetChildKeys(new List<string>(), null));
+
+            // Warn about deprecated option and optionally suggest using new one.
+            foreach (var option in deprecatedOptions) {
+                if (configKeys.Contains(option.deprecatedOption, StringComparer.CurrentCultureIgnoreCase)) {
+                    string warning = @$"The parameter or environment variable '{option.deprecatedOption}' has been deprecated and will be removed in a future version. ";
+                    warning += !string.IsNullOrEmpty(option.newOption)
+                        ? @$"Please use '{option.newOption}' instead."
+                        : "";
+
+                    logger.Warning(warning);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set stack trace mask based on log level.
+        /// </summary>
+        public void SetStackTraceMask() {
+            switch (LogControl.Level.MinimumLevel) {
+                case LogEventLevel.Fatal:
+                    OpcStackTraceMask = 0;
+                    break;
+                case LogEventLevel.Error:
+                    OpcStackTraceMask = Utils.TraceMasks.Error;
+                    break;
+                case LogEventLevel.Warning:
+                    OpcStackTraceMask = 0;
+                    break;
+                case LogEventLevel.Information:
+                    OpcStackTraceMask = 0;
+                    break;
+                case LogEventLevel.Debug:
+                    OpcStackTraceMask = Utils.TraceMasks.StartStop | Utils.TraceMasks.ExternalSystem | Utils.TraceMasks.Security;
+                    break;
+                case LogEventLevel.Verbose:
+                    OpcStackTraceMask = Utils.TraceMasks.All;
+                    break;
+            }
+            Utils.SetTraceMask(OpcStackTraceMask);
+            Utils.SetTraceOutput(Utils.TraceOutput.DebugAndFile);
+            Utils.SetTraceLog(null, false);
+            Console.WriteLine($"opcstacktracemask set to: 0x{OpcStackTraceMask:X}");
         }
 
         /// <summary>
@@ -187,7 +258,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // Cloud job orchestrator
                 builder.RegisterType<PublisherOrchestratorClient>()
                     .AsImplementedInterfaces().SingleInstance();
-
                 // ... plus controllers
                 builder.RegisterType<ConfigurationSettingsController>()
                     .AsImplementedInterfaces().SingleInstance();
@@ -197,6 +267,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             builder.RegisterType<IdentityTokenSettingsController>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<StackLogger>()
+                .AsImplementedInterfaces().SingleInstance().AutoActivate();
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()
