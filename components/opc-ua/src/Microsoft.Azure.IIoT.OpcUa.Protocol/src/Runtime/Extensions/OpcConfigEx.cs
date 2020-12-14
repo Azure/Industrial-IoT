@@ -95,7 +95,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         await applicationConfiguration.Validate(applicationConfiguration.ApplicationType);
                         var application = new ApplicationInstance(applicationConfiguration);
                         var hasAppCertificate = await application.CheckApplicationInstanceCertificate(true,
-                            CertificateFactory.defaultKeySize);
+                            CertificateFactory.DefaultKeySize);
                         if (!hasAppCertificate) {
                             throw new InvalidConfigurationException("OPC UA application certificate invalid");
                         }
