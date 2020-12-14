@@ -5,6 +5,7 @@
 
 namespace IIoTPlatform_E2E_Tests.Deploy {
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
     using Newtonsoft.Json;
     using TestExtensions;
 
@@ -22,6 +23,8 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
 
         /// <inheritdoc />
         protected override string DeploymentName => kDeploymentName;
+
+        protected override string TargetCondition => kTargetCondition;
 
         /// <inheritdoc />
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
@@ -86,5 +89,6 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
 
         private const string kModuleName = "publisher_standalone";
         private const string kDeploymentName = "__default-opcpublisher-standalone";
+        private const string kTargetCondition = "(tags.__type__ = 'iiotedge' AND IS_DEFINED(tags.unmanaged))";
     }
 }

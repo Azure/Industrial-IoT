@@ -153,7 +153,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
                 var endpoint = ((string)json.items[indexOfTestPlc].registration.endpointUrl).TrimEnd('/');
                 if (endpoint == testPlc.EndpointUrl) {
                     found = true;
-                    var endpointState = (string)json.items[0].endpointState;
+                    var endpointState = (string)json.items[indexOfTestPlc].endpointState;
                     Assert.Equal("Ready", endpointState);
                     break;
                 }
@@ -248,7 +248,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 50, 1000, 90_000_000, cts.Token);
             // wait some time to generate events to process
-            await Task.Delay(90 * 1000, cts.Token);
+            await Task.Delay(180 * 1000, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
 
