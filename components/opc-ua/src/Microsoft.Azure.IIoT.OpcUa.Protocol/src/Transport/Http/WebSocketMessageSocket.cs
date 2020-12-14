@@ -45,6 +45,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         public int Handle => _socket.GetHashCode();
 
         /// <inheritdoc/>
+        public TransportChannelFeatures MessageSocketFeatures => throw new NotImplementedException();
+
+        /// <inheritdoc/>
         public void Close() {
             if (_open.IsCancellationRequested) {
                 return;
@@ -252,6 +255,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
 
             // Dispose socket
             Try.Op(_socket.Dispose);
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> BeginConnect(Uri endpointUrl, EventHandler<IMessageSocketAsyncEventArgs> callback, object state, CancellationToken cts) {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc/>

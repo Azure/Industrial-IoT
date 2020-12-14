@@ -508,11 +508,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                     }
 
                     // determine if self-signed.
-                    var isSelfSigned = Utils.CompareDistinguishedName(
+                    var isSelfSigned = X509Utils.CompareDistinguishedName(
                         certificate.Subject, certificate.Issuer);
 
                     // do not allow self signed application certs as user token
-                    if (isSelfSigned && Utils.HasApplicationURN(certificate)) {
+                    if (isSelfSigned && X509Utils.HasApplicationURN(certificate)) {
                         throw new ServiceResultException(StatusCodes.BadCertificateUseNotAllowed);
                     }
                     return false;
@@ -551,7 +551,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
             private Task _statusLogger;
             private DateTime _lastEventTime;
             private CancellationTokenSource _cts;
-            private X509CertificateValidator _certificateValidator;
+            private ICertificateValidator _certificateValidator;
 
             private const string kServerNamespaceUri = "http://opcfoundation.org/UA/Sample/";
         }
