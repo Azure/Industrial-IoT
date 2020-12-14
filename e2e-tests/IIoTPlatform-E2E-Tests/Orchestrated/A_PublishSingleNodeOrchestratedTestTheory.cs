@@ -79,11 +79,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var response = await client.ExecuteAsync(request, cts.Token);
             Assert.NotNull(response);
-            Assert.True(response.IsSuccessful, "POST /registry/v2/application failed!");
 
             if (!response.IsSuccessful) {
                 _output.WriteLine($"StatusCode: {response.StatusCode}");
                 _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "POST /registry/v2/application failed!");
             }
         }
 
@@ -113,11 +113,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var response = await client.ExecuteAsync(request, cts.Token);
             Assert.NotNull(response);
-            Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
 
             if (!response.IsSuccessful) {
                 _output.WriteLine($"StatusCode: {response.StatusCode}");
                 _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
             }
 
             Assert.NotEmpty(response.Content);
@@ -161,11 +161,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var response = await client.ExecuteAsync(request, cts.Token);
             Assert.NotNull(response);
-            Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
 
             if (!response.IsSuccessful) {
                 _output.WriteLine($"StatusCode: {response.StatusCode}");
                 _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
             }
 
             Assert.Empty(response.Content);
@@ -211,11 +211,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var response = await client.ExecuteAsync(request, cts.Token);
             Assert.NotNull(response);
-            Assert.True(response.IsSuccessful, "POST /publisher/v2/publish/{endpointId}/start failed!");
 
             if (!response.IsSuccessful) {
                 _output.WriteLine($"StatusCode: {response.StatusCode}");
                 _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "POST /publisher/v2/publish/{endpointId}/start failed!");
             }
 
             Assert.Equal("{}",response.Content);
@@ -244,11 +244,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var response = await client.ExecuteAsync(request, cts.Token);
             Assert.NotNull(response);
-            Assert.True(response.IsSuccessful, "GET /publisher/v2/jobs failed!");
 
             if (!response.IsSuccessful) {
                 _output.WriteLine($"StatusCode: {response.StatusCode}");
                 _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "GET /publisher/v2/jobs failed!");
             }
 
             dynamic json = JsonConvert.DeserializeObject(response.Content);
@@ -305,11 +305,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var response = await client.ExecuteAsync(request, cts.Token);
             Assert.NotNull(response);
-            Assert.True(response.IsSuccessful, "DELETE /publisher/v2/jobs/{jobId} failed!");
 
             if (!response.IsSuccessful) {
                 _output.WriteLine($"StatusCode: {response.StatusCode}");
                 _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "DELETE /publisher/v2/jobs/{jobId} failed!");
             }
         }
 
@@ -323,6 +323,27 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             await Task.Delay(90 * 1000, cts.Token);
             var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
             Assert.True((int)json.totalValueChangesCount == 0, "Messages received at IoT Hub");
+        }
+
+        [Fact, PriorityOrder(13)]
+        public async Task Test_RemoveAllApplications() {
+            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+
+            var accessToken = await TestHelper.GetTokenAsync(_context, cts.Token);
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+            var request = new RestRequest(Method.DELETE);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            request.Resource = TestConstants.APIRoutes.RegistryApplications;
+
+            var response = await client.ExecuteAsync(request, cts.Token);
+            Assert.NotNull(response);
+
+            if (!response.IsSuccessful) {
+                _output.WriteLine($"StatusCode: {response.StatusCode}");
+                _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "DELETE /registry/v2/application failed!");
+            }
         }
     }
 }

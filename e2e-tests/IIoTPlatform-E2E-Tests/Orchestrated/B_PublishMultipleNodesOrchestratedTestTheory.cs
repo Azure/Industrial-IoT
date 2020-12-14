@@ -347,5 +347,26 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
                 Assert.True(response.IsSuccessful, "DELETE /publisher/v2/jobs/{jobId} failed!");
             }
         }
+
+        [Fact, PriorityOrder(8)]
+        public async Task Test_RemoveAllApplications() {
+            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+
+            var accessToken = await TestHelper.GetTokenAsync(_context, cts.Token);
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+            var request = new RestRequest(Method.DELETE);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            request.Resource = TestConstants.APIRoutes.RegistryApplications;
+
+            var response = await client.ExecuteAsync(request, cts.Token);
+            Assert.NotNull(response);
+
+            if (!response.IsSuccessful) {
+                _output.WriteLine($"StatusCode: {response.StatusCode}");
+                _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "DELETE /registry/v2/application failed!");
+            }
+        }
     }
 }
