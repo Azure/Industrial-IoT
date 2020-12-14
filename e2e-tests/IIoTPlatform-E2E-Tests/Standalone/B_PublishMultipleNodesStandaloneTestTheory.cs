@@ -20,12 +20,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
-    [PriorityOrder(3)]
-    public class PublishMultipleNodesStandaloneTestTheory {
+    public class B_PublishMultipleNodesStandaloneTestTheory {
         private readonly ITestOutputHelper _output;
         private readonly IIoTStandaloneTestContext _context;
 
-        public PublishMultipleNodesStandaloneTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output) {
+        public B_PublishMultipleNodesStandaloneTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
