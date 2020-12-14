@@ -16,20 +16,19 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     using Xunit.Abstractions;
     using System.Threading;
     using Newtonsoft.Json.Converters;
-    using IIoTPlatform_E2E_Tests.TestModels;
     using System.Collections.Generic;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
     /// </summary>
-    [TestCaseOrderer("IIoTPlatform_E2E_Tests.TestExtensions.TestOrderer", TestConstants.TestAssemblyName)]
+    [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Multiple Nodes Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeOrchestratedTraitValue)]
-    public class PublishMultipleNodesOrchestratedTestTheory {
+    public class B_PublishMultipleNodesOrchestratedTestTheory {
         private readonly ITestOutputHelper _output;
         private readonly IIoTMultipleNodesTestContext _context;
 
-        public PublishMultipleNodesOrchestratedTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output) {
+        public B_PublishMultipleNodesOrchestratedTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;

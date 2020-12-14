@@ -18,15 +18,15 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
     /// </summary>
-    [TestCaseOrderer("IIoTPlatform_E2E_Tests.TestExtensions.TestOrderer", TestConstants.TestAssemblyName)]
+    [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Platform Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeOrchestratedTraitValue)]
-    public class PublishSingleNodeOrchestratedTestTheory
+    public class A_PublishSingleNodeOrchestratedTestTheory
     {
         private readonly ITestOutputHelper _output;
         private readonly IIoTPlatformTestContext _context;
 
-        public PublishSingleNodeOrchestratedTestTheory(IIoTPlatformTestContext context, ITestOutputHelper output) {
+        public A_PublishSingleNodeOrchestratedTestTheory(IIoTPlatformTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
@@ -125,7 +125,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             Assert.NotEmpty(json);
             var count = (int)json.items.Count;
-            Assert.Equal(1, count);
+            Assert.True(count > 1, "no applications registered");
             var id = (string)json.items[0].registration.id;
             Assert.NotEmpty(id);
             var securityMode = (string)json.items[0].registration.endpoint.securityMode;

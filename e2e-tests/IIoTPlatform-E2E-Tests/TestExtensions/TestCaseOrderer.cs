@@ -13,7 +13,14 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     /// <summary>
     /// Orderer to order use test cases based on <see cref="PriorityOrderAttribute"/>
     /// </summary>
-    public class TestOrderer : ITestCaseOrderer {
+    public class TestCaseOrderer : ITestCaseOrderer {
+
+        /// <summary>
+        /// Fullname of the TestCollectionOrderer, as constant to be used in assembly info
+        /// </summary>
+        public const string FullName = "IIoTPlatform_E2E_Tests.TestExtensions.TestCaseOrderer";
+
+        /// <inheritdoc />
         public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase {
             var sortedMethods = new SortedDictionary<uint, List<TTestCase>>();
 

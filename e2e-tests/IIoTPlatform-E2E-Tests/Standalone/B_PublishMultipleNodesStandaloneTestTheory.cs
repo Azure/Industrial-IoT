@@ -17,9 +17,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
     /// </summary>
-    [TestCaseOrderer("IIoTPlatform_E2E_Tests.TestExtensions.TestOrderer", TestConstants.TestAssemblyName)]
+    [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
+    [PriorityOrder(3)]
     public class PublishMultipleNodesStandaloneTestTheory {
         private readonly ITestOutputHelper _output;
         private readonly IIoTStandaloneTestContext _context;
