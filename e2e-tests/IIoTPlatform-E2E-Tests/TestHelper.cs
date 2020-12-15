@@ -160,6 +160,8 @@ namespace IIoTPlatform_E2E_Tests {
             DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
 
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
+            context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
+            context.OutputHelper?.WriteLine(json);
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
             using var client = CreateScpClientAndConnect(context);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
