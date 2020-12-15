@@ -55,7 +55,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token);
 
             var accessToken = await TestHelper.GetTokenAsync(_context, cts.Token);
-            await _context.LoadSimulatedPublisedNodes(cts.Token);
+            await _context.LoadSimulatedPublishedNodes(cts.Token);
 
             var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) {Timeout = TestConstants.DefaultTimeoutInMilliseconds};
 

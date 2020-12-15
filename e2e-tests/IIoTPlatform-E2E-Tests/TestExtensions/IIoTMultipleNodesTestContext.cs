@@ -33,7 +33,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Uses the Testhelper to load the simulated OPC UA Nodes and transform them
         /// </summary>
         /// <returns></returns>
-        public async Task LoadSimulatedPublisedNodes(CancellationToken token) {
+        public async Task LoadSimulatedPublishedNodes(CancellationToken token) {
             var simulatedPlcs = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(this, token);
 
             SimulatedPublishedNodes = new ReadOnlyDictionary<string, PublishedNodesEntryModel>(

@@ -91,10 +91,21 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         public async Task Test_GetApplicationsFromRegistry_ExpectOneRegisteredApplication() {
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            var simulatedOpcServer = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
             dynamic json = await TestHelper.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token);
 
             var numberOfItems = (int)json.items.Count;
-            Assert.True(numberOfItems == 1, $"number of applications registered need to be higher than 0 but was {numberOfItems}");
+            bool found = false;
+            var testPlc = simulatedOpcServer.Values.First();
+            for (int indexOfTestPlc = 0; indexOfTestPlc < numberOfItems; indexOfTestPlc++) {
+
+                var endpoint = ((string)json.items[indexOfTestPlc].discoveryUrls[0]).TrimEnd('/');
+                if (endpoint == testPlc.EndpointUrl) {
+                    found = true;
+                    break;
+                }
+            }
+            Assert.True(found, "OPC Application not activated");
         }
 
 

@@ -51,7 +51,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         public async Task Test_StartPublishingSingleNode_Expect_Success() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            await _context.LoadSimulatedPublisedNodes(cts.Token);
+            await _context.LoadSimulatedPublishedNodes(cts.Token);
             var testPlc = _context.SimulatedPublishedNodes.Skip(2).First().Value;
             var nodesToPublish = _context.GetEntryModelWithoutNodes(testPlc);
             _context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, nodesToPublish);
