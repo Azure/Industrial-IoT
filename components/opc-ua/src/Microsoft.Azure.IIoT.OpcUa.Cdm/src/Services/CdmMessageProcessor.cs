@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 Invoke = (level, msg) => LogCdm(cdmLogger, level, msg)
             });
             _cdmCorpus.Storage.Mount("adls", _storage.Adapter);
-            var gitAdapter = new GithubAdapter();
+            var gitAdapter = new CdmStandardsAdapter();
             _cdmCorpus.Storage.Mount("cdm", gitAdapter);
             _cdmCorpus.Storage.DefaultNamespace = "adls";
             _cdmCorpus.AppId = "Azure Industrial IoT";

@@ -10,23 +10,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
     using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using System.IO;
-    using System.Collections.Concurrent;
 
     /// <summary>
     /// Writes data tables into files on file storage
     /// </summary>
-    public class CdmFileStorageAdapter : NetworkAdapter, StorageAdapter, IStorageAdapter,
-        IDisposable {
+    public class CdmFileStorageAdapter : NetworkAdapter, IStorageAdapter, IDisposable {
 
         /// <inheritdoc/>
-        public string LocationHint { get; set; }
-
-        /// <inheritdoc/>
-        public StorageAdapter Adapter => this;
+        public StorageAdapterBase Adapter => this;
 
         /// <summary>
         /// CDM Azure Data lake storage handler
@@ -53,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <inheritdoc/>
-        public bool CanRead() {
+        public override bool CanRead() {
             return true;
         }
 
@@ -64,7 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <inheritdoc/>
-        public async Task<string> ReadAsync(string corpusPath) {
+        public override async Task<string> ReadAsync(string corpusPath) {
             try {
                 var file = await GetCorpusFileAsync(corpusPath);
                 using (var stream = new MemoryStream()) {
@@ -79,12 +75,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <inheritdoc/>
-        public bool CanWrite() {
+        public override bool CanWrite() {
             return true;
         }
 
         /// <inheritdoc/>
-        public async Task WriteAsync(string corpusPath, string data) {
+        public override async Task WriteAsync(string corpusPath, string data) {
             try {
                 var file = await GetCorpusFileAsync(corpusPath);
                 using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(data))) {
@@ -120,7 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <inheritdoc />
-        public async Task<List<string>> FetchAllFilesAsync(string folderCorpusPath) {
+        public override async Task<List<string>> FetchAllFilesAsync(string folderCorpusPath) {
             try {
                 var folder = await GetCorpusFolderAsync(folderCorpusPath);
                 var result = await folder.GetAllFilesAsync();
@@ -133,7 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <inheritdoc />
-        public string CreateAdapterPath(string corpusPath) {
+        public override string CreateAdapterPath(string corpusPath) {
             if (string.IsNullOrEmpty(corpusPath)) {
                 return null;
             }
@@ -142,7 +138,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <inheritdoc />
-        public string CreateCorpusPath(string adapterPath) {
+        public override string CreateCorpusPath(string adapterPath) {
             if (string.IsNullOrEmpty(adapterPath)) {
                 return null;
             }
@@ -151,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <inheritdoc />
-        public async Task<DateTimeOffset?> ComputeLastModifiedTimeAsync(string corpusPath) {
+        public override async Task<DateTimeOffset?> ComputeLastModifiedTimeAsync(string corpusPath) {
             try {
                 var file = await GetCorpusFileAsync(corpusPath);
                 return await file.GetLastModifiedAsync();
@@ -163,13 +159,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <inheritdoc/>
-        public void UpdateConfig(string config) {
+        public override void UpdateConfig(string config) {
             // Do not honor this
             UpdateNetworkConfig(config);
         }
 
         /// <inheritdoc/>
-        public string FetchConfig() {
+        public override string FetchConfig() {
             var configObject = new JObject
             {
                 { "hostname", _hostName },
@@ -189,7 +185,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         }
 
         /// <inheritdoc />
-        public void ClearCache() {
+        public override void ClearCache() {
             return;
         }
 

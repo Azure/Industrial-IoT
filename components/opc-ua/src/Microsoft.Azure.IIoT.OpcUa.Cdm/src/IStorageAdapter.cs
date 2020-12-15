@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm {
         /// <summary>
         /// Storage adapter to mount
         /// </summary>
-        StorageAdapter Adapter { get; }
+        StorageAdapterBase Adapter { get; }
 
         /// <summary>
         /// Lock file
