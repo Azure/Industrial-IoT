@@ -118,6 +118,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
                 Timeout = TestConstants.DefaultTimeoutInMilliseconds
             };
 
+            // TODO use TestHelper.WaitForEndpointToBeActivatedAsync(...) instead of calling it directly
             var request = new RestRequest(Method.GET);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
             request.Resource = TestConstants.APIRoutes.RegistryEndpoints;

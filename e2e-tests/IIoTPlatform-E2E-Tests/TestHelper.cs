@@ -526,6 +526,7 @@ namespace IIoTPlatform_E2E_Tests {
                     json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                     Assert.NotNull(json);
 
+                    // TODO look in items for the right endpoint (require additional parameter)
                     activationState = (string)json.items[0].activationState;
                     // wait the endpoint to be connected
                     if (activationState == "Activated") {
