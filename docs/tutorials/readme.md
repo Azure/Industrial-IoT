@@ -10,7 +10,6 @@ To begin, [deploy the Azure Industrial IoT Platform](../deploy/howto-deploy-all-
 2. [Discover and register assets using the engineering tool](tut-discover-assets.md)
 3. [Subscribe to data in the engineering tool](tut-publish-data.md)
 4. [Visualize and analyze the data using Time Series Insights](tut-timeseriesinsights.md)
-5. [Visualize OPC UA PubSub data in Power BI](tut-power-bi-cdm.md)
 
 ## Next steps
 
