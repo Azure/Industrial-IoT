@@ -334,8 +334,6 @@ deployment:
   microServices:
     engineeringTool:
       enabled: true
-    telemetryCdmProcessor:
-      enabled: true
 
   ingress:
     enabled: true
@@ -433,7 +431,6 @@ azure:
       name: eventhub-XXXXXX
 
       consumerGroup:
-        telemetryCdm: telemetry_cdm
         telemetryUx: telemetry_ux
 
   serviceBusNamespace:
@@ -470,8 +467,6 @@ externalServiceUrl: https://aks-cluster-ip.westeurope.cloudapp.azure.com
 deployment:
   microServices:
     engineeringTool:
-      enabled: true
-    telemetryCdmProcessor:
       enabled: true
 
   ingress:
@@ -562,8 +557,6 @@ For that do the following:
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/frontend/signin-oidc`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/registry/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/twin/swagger/oauth2-redirect.html`
-   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/history/swagger/oauth2-redirect.html`
-   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/vault/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/edge/publisher/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/events/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/publisher/swagger/oauth2-redirect.html`
@@ -592,8 +585,6 @@ Public IP address resource.
 | Engineering Tool                       | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/frontend/`                         |
 | OPC Registry Swagger UI                | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/registry/swagger/index.html`       |
 | OPC Twin Swagger UI                    | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/twin/swagger/index.html`           |
-| OPC Historian Access Swagger UI        | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/history/swagger/index.html`        |
-| OPC Vault Swagger UI                   | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/vault/swagger/index.html`          |
-| Publisher Lobs Orchestrator Swagger UI | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/edge/publisher/swagger/index.html` |
-| Events Swagger UI                      | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/events/swagger/index.html`         |
 | OPC Publisher Swagger UI               | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/publisher/swagger/index.html`      |
+| Publisher Jobs Orchestrator Swagger UI | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/edge/publisher/swagger/index.html` |
+| Events Swagger UI                      | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/events/swagger/index.html`         |

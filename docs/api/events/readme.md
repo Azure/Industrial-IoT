@@ -72,6 +72,13 @@ Register a client to receive discovery progress events through SignalR for a par
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="unsubscribebyrequestid"></a>
 #### Unsubscribe from discovery progress for a request.
 ```
@@ -96,6 +103,13 @@ Unregister a client and stop it from receiving discovery events for a particular
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="subscribebydiscovererid"></a>
@@ -133,6 +147,13 @@ Register a client to receive discovery progress events through SignalR from a pa
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="unsubscribebydiscovererid"></a>
 #### Unsubscribe from discovery progress from discoverer.
 ```
@@ -157,6 +178,13 @@ Unregister a client and stop it from receiving discovery events.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="telemetry_resource"></a>
@@ -199,6 +227,13 @@ Register a client to receive publisher samples through SignalR.
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="unsubscribe"></a>
 #### Unsubscribe from receiving samples.
 ```
@@ -223,6 +258,13 @@ Unregister a client and stop it from receiving samples.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

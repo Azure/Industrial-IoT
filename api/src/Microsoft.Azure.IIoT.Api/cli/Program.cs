@@ -15,8 +15,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.SignalR;
@@ -75,8 +73,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .AsImplementedInterfaces();
             builder.RegisterType<RegistryServiceClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HistoryServiceClient>()
-                .AsImplementedInterfaces();
             builder.RegisterType<PublisherServiceClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherJobServiceClient>()
@@ -123,7 +119,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             _scope = container.BeginLifetimeScope();
             _twin = _scope.Resolve<ITwinServiceApi>();
             _registry = _scope.Resolve<IRegistryServiceApi>();
-            _history = _scope.Resolve<IHistoryServiceApi>();
             _publisher = _scope.Resolve<IPublisherServiceApi>();
             _jobs = _scope.Resolve<IPublisherJobServiceApi>();
             _serializer = _scope.Resolve<IJsonSerializer>();
@@ -2053,7 +2048,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             Console.WriteLine("Registry:  " + await _registry.GetServiceStatusAsync());
             Console.WriteLine("Publisher: " + await _publisher.GetServiceStatusAsync());
             Console.WriteLine("Jobs:      " + await _jobs.GetServiceStatusAsync());
-            Console.WriteLine("History:   " + await _history.GetServiceStatusAsync());
         }
 
         /// <summary>
@@ -2947,7 +2941,6 @@ Commands and Options
         private readonly IPublisherJobServiceApi _jobs;
         private readonly IPublisherServiceApi _publisher;
         private readonly IRegistryServiceApi _registry;
-        private readonly IHistoryServiceApi _history;
         private readonly IJsonSerializer _serializer;
     }
 }

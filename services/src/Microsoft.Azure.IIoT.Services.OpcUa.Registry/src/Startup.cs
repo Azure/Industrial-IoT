@@ -28,7 +28,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Deploy;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Migration;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Auth;
@@ -231,19 +230,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             builder.RegisterType<StartupMigration>()
                 .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<VaultApplicationMigration>()
-                .AsImplementedInterfaces().SingleInstance();
-#if !USE_APP_DB // TODO: Decide whether when to switch
             builder.RegisterType<ApplicationTwins>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ApplicationRecordQuery>()
-                .AsImplementedInterfaces().SingleInstance();
-#else
-            builder.RegisterType<ApplicationDatabase>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<ApplicationTwinsMigration>()
-                .AsImplementedInterfaces().SingleInstance();
-#endif
+
             // Additional registry services
             builder.RegisterType<TwinModuleActivationClient>()
                 .AsImplementedInterfaces();

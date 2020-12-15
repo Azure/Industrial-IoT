@@ -25,6 +25,7 @@ Azure Industrial IoT OPC UA Twin Service
 
 * Browse : Browse nodes services
 * Call : Call node method services
+* History : History raw access services
 * Read : Node read services
 * Write : Node writing services
 
@@ -82,6 +83,13 @@ Browse a node on the specified endpoint. The endpoint must be activated and conn
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getsetofuniquenodes"></a>
 #### Browse set of unique target nodes
 ```
@@ -114,6 +122,13 @@ Browse the set of unique hierarchically referenced target nodes on the endpoint.
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="browsenext"></a>
@@ -159,6 +174,13 @@ Browse next set of references on the endpoint. The endpoint must be activated an
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getnextsetofuniquenodes"></a>
 #### Browse next set of unique target nodes
 ```
@@ -191,6 +213,13 @@ Browse the next set of unique hierarchically referenced target nodes on the endp
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="browseusingpath"></a>
@@ -234,6 +263,13 @@ Browse using a path from the specified node id. This call uses TranslateBrowsePa
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="call_resource"></a>
@@ -284,6 +320,13 @@ Invoke method node with specified input arguments. The endpoint must be activate
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getcallmetadata"></a>
 #### Get method meta data
 ```
@@ -325,6 +368,168 @@ Return method meta data to support a user interface displaying forms to input an
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
+<a name="history_resource"></a>
+### History
+History raw access services
+
+
+<a name="historyreadraw"></a>
+#### Read history using json details
+```
+POST /twin/v2/history/read/{endpointId}
+```
+
+
+##### Description
+Read node history if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Body**|**body**  <br>*required*|The history read request|[VariantValueHistoryReadRequestApiModel](definitions.md#variantvaluehistoryreadrequestapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[VariantValueHistoryReadResponseApiModel](definitions.md#variantvaluehistoryreadresponseapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
+<a name="historyreadrawnext"></a>
+#### Read next batch of history as json
+```
+POST /twin/v2/history/read/{endpointId}/next
+```
+
+
+##### Description
+Read next batch of node history values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Body**|**body**  <br>*required*|The history read next request|[HistoryReadNextRequestApiModel](definitions.md#historyreadnextrequestapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[VariantValueHistoryReadNextResponseApiModel](definitions.md#variantvaluehistoryreadnextresponseapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
+<a name="historyupdateraw"></a>
+#### Update node history using raw json
+```
+POST /twin/v2/history/update/{endpointId}
+```
+
+
+##### Description
+Update node history using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
+|**Body**|**body**  <br>*required*|The history update request|[VariantValueHistoryUpdateRequestApiModel](definitions.md#variantvaluehistoryupdaterequestapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[HistoryUpdateResponseApiModel](definitions.md#historyupdateresponseapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `text/plain`
+* `application/json`
+* `text/json`
+* `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="read_resource"></a>
@@ -375,6 +580,13 @@ Read a variable node's value. The endpoint must be activated and connected and t
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getvalue"></a>
 #### Get variable value
 ```
@@ -407,6 +619,13 @@ Get a variable node's value using its node id. The endpoint must be activated an
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="readattributes"></a>
@@ -450,6 +669,13 @@ Read attributes of a node. The endpoint must be activated and connected and the 
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="write_resource"></a>
@@ -500,6 +726,13 @@ Write variable node's value. The endpoint must be activated and connected and th
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="writeattributes"></a>
 #### Write node attributes
 ```
@@ -541,6 +774,13 @@ Write any attribute of a node. The endpoint must be activated and connected and 
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

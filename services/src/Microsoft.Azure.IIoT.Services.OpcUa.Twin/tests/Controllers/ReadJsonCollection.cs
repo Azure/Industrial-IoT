@@ -11,4 +11,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
     public class ReadJsonCollection : ICollectionFixture<TestServerFixture> {
         public const string Name = "ReadJsonControllers";
     }
+
+    [CollectionDefinition(Name)]
+    public class HistoryJsonCollection : ICollectionFixture<HistoryServerFixture> {
+        public const string Name = "HistoryJsonControllers";
+    }
 }

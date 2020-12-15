@@ -38,7 +38,6 @@ After starting open a browser window to:
 
 - http://localhost:9080/registry/swagger for OPC Registry Microservice
 - http://localhost:9080/twin/swagger for OPC UA Server Twin Microservice
-- http://localhost:9080/history/swagger for OPC UA Historic Access Microservice
 - http://localhost:9080/publisher/swagger for the OPC Publisher service
 
 which will show you the each Microservice's swagger UI. If the services exit immediately after start, check that the `.env` file exists in the root of the repository.

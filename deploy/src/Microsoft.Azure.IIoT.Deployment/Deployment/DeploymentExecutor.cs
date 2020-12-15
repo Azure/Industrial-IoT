@@ -21,8 +21,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
     using Authentication;
     using Infrastructure;
     using Configuration;
-
-    using Microsoft.Azure.KeyVault.Models;
     using Microsoft.Azure.Management.ContainerService.Fluent.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;

@@ -241,6 +241,78 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             return _serializer.Deserialize<MethodCallResponseApiModel>(response);
         }
 
+        /// <inheritdoc/>
+        public async Task<HistoryReadResponseApiModel<VariantValue>> HistoryReadRawAsync(
+            EndpointApiModel endpoint, HistoryReadRequestApiModel<VariantValue> request,
+            CancellationToken ct) {
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+            if (string.IsNullOrEmpty(endpoint.Url)) {
+                throw new ArgumentNullException(nameof(endpoint.Url));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Details == null) {
+                throw new ArgumentNullException(nameof(request.Details));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "HistoryRead_V2", _serializer.SerializeToString(new {
+                    endpoint,
+                    request
+                }), null, ct);
+            return _serializer.Deserialize<HistoryReadResponseApiModel<VariantValue>>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadNextResponseApiModel<VariantValue>> HistoryReadRawNextAsync(
+            EndpointApiModel endpoint, HistoryReadNextRequestApiModel request,
+            CancellationToken ct) {
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+            if (string.IsNullOrEmpty(endpoint.Url)) {
+                throw new ArgumentNullException(nameof(endpoint.Url));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (string.IsNullOrEmpty(request.ContinuationToken)) {
+                throw new ArgumentNullException(nameof(request.ContinuationToken));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "HistoryReadNext_V2", _serializer.SerializeToString(new {
+                    endpoint,
+                    request
+                }), null, ct);
+            return _serializer.Deserialize<HistoryReadNextResponseApiModel<VariantValue>>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(
+            EndpointApiModel endpoint, HistoryUpdateRequestApiModel<VariantValue> request,
+            CancellationToken ct) {
+            if (endpoint == null) {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+            if (string.IsNullOrEmpty(endpoint.Url)) {
+                throw new ArgumentNullException(nameof(endpoint.Url));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            if (request.Details == null) {
+                throw new ArgumentNullException(nameof(request.Details));
+            }
+            var response = await _methodClient.CallMethodAsync(_deviceId, _moduleId,
+                "HistoryUpdate_V2", _serializer.SerializeToString(new {
+                    endpoint,
+                    request
+                }), null, ct);
+            return _serializer.Deserialize<HistoryUpdateResponseApiModel>(response);
+        }
+
         private readonly IJsonSerializer _serializer;
         private readonly IMethodClient _methodClient;
         private readonly string _moduleId;

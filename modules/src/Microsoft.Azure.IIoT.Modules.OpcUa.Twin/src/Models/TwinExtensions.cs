@@ -15,66 +15,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Models {
     public static class TwinExtensions {
 
         /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ModelUploadStartRequestApiModel ToApiModel(
-            this ModelUploadStartRequestModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ModelUploadStartRequestApiModel {
-                ContentEncoding = model.ContentEncoding,
-                Diagnostics = model.Diagnostics.ToApiModel()
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static ModelUploadStartRequestModel ToServiceModel(
-            this ModelUploadStartRequestApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ModelUploadStartRequestModel {
-                ContentEncoding = model.ContentEncoding,
-                Diagnostics = model.Diagnostics.ToServiceModel()
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ModelUploadStartResponseApiModel ToApiModel(
-            this ModelUploadStartResultModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ModelUploadStartResponseApiModel {
-                BlobName = model.BlobName,
-                ContentEncoding = model.ContentEncoding,
-                TimeStamp = model.TimeStamp
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static ModelUploadStartResultModel ToServiceModel(
-            this ModelUploadStartResponseApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ModelUploadStartResultModel {
-                BlobName = model.BlobName,
-                ContentEncoding = model.ContentEncoding,
-                TimeStamp = model.TimeStamp
-            };
-        }
-
-        /// <summary>
         /// Create from service model
         /// </summary>
         /// <param name="model"></param>

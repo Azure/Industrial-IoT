@@ -6,12 +6,10 @@
 namespace Microsoft.Azure.IIoT.App.Pages {
     using System;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
     using Microsoft.Azure.IIoT.App.Data;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.App.Models;
-    using System.Runtime.CompilerServices;
 
     public partial class Publishers {
 

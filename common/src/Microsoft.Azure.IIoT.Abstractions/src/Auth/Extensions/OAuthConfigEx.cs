@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Auth {
-    using System;
-
     /// <summary>
     /// Configuration extensions
     /// </summary>
