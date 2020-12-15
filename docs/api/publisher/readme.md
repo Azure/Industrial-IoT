@@ -81,6 +81,13 @@ List all jobs that are registered or continues a query.
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="listjobs"></a>
 #### Get list of jobs
 ```
@@ -113,6 +120,13 @@ List all jobs that are registered or continues a query.
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getjob"></a>
@@ -148,6 +162,13 @@ Returns a job with the provided identifier.
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="deletejob"></a>
 #### Delete job by id
 ```
@@ -171,6 +192,13 @@ Deletes a job.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="canceljob"></a>
@@ -198,6 +226,13 @@ Cancels a job execution.
 |**200**|Success|No Content|
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="restartjob"></a>
 #### Restart job by id
 ```
@@ -221,6 +256,13 @@ Restarts a cancelled job which sets it back to active.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="publish_resource"></a>
@@ -271,6 +313,13 @@ Returns currently published node ids for an endpoint. The endpoint must be activ
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getnextlistofpublishednodes"></a>
 #### Get next set of published nodes
 ```
@@ -303,6 +352,13 @@ Returns next set of currently published node ids for an endpoint. The endpoint m
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="bulkpublishvalues"></a>
@@ -348,6 +404,13 @@ Adds or removes in bulk values that should be published from a particular endpoi
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="startpublishingvalues"></a>
 #### Start publishing node values
 ```
@@ -389,6 +452,13 @@ Start publishing variable node values to IoT Hub. The endpoint must be activated
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="stoppublishingvalues"></a>
@@ -434,6 +504,13 @@ Stop publishing variable node values to IoT Hub. The endpoint must be activated 
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="workers_resource"></a>
 ### Workers
 Agent controller
@@ -473,6 +550,13 @@ List all workers that are registered or continues a query.
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getworker"></a>
 #### Get worker
 ```
@@ -506,6 +590,13 @@ Returns a worker with the provided identifier.
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="deleteworker"></a>
 #### Delete worker by id
 ```
@@ -529,6 +620,13 @@ Deletes an worker in the registry.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

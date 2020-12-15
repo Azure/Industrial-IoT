@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.OpcUa.History.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
@@ -17,8 +16,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -34,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Net;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
@@ -43,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     /// Harness for opc twin module
     /// </summary>
     public class TwinModuleFixture : IInjector,
-        IHistoryModuleConfig, ITwinModuleConfig, IDisposable {
+        ITwinModuleConfig, IDisposable {
 
         /// <summary>
         /// Device id
@@ -312,16 +308,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             builder.RegisterType<TwinSupervisorAdapter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleClient>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoryModuleClient>()
-                .AsImplementedInterfaces();
-
-            // Adapts to expanded hda
-            builder.RegisterType<HistoricAccessAdapter<string>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoricAccessAdapter<EndpointRegistrationModel>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoricAccessAdapter<EndpointApiModel>>()
                 .AsImplementedInterfaces();
 
             // Supervisor clients

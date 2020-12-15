@@ -6,12 +6,10 @@
 namespace Microsoft.Azure.IIoT.Api.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Events.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Events;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -22,16 +20,13 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
     /// Complete api configuration
     /// </summary>
     public class ApiConfig : DiagnosticsConfig, ITwinConfig, IRegistryConfig,
-        IHistoryConfig, IPublisherConfig, IEventsConfig, ISignalRClientConfig {
+        IPublisherConfig, IEventsConfig, ISignalRClientConfig {
 
         /// <inheritdoc/>
         public string OpcUaTwinServiceUrl => _twin.OpcUaTwinServiceUrl;
 
         /// <inheritdoc/>
         public string OpcUaRegistryServiceUrl => _registry.OpcUaRegistryServiceUrl;
-
-        /// <inheritdoc/>
-        public string OpcUaHistoryServiceUrl => _history.OpcUaHistoryServiceUrl;
 
         /// <inheritdoc/>
         public string OpcUaPublisherServiceUrl => _publisher.OpcUaPublisherServiceUrl;
@@ -47,14 +42,12 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
             base(configuration) {
             _twin = new TwinConfig(configuration);
             _registry = new RegistryConfig(configuration);
-            _history = new HistoryConfig(configuration);
             _publisher = new PublisherConfig(configuration);
             _events = new EventsConfig(configuration);
         }
 
         private readonly TwinConfig _twin;
         private readonly RegistryConfig _registry;
-        private readonly HistoryConfig _history;
         private readonly PublisherConfig _publisher;
         private readonly EventsConfig _events;
     }

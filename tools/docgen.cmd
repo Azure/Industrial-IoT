@@ -55,7 +55,6 @@ set convert=docker run --rm --mount type=bind,source=%cd%,target=/opt swagger2ma
 call :generate_doc_for_service twin
 call :generate_doc_for_service publisher
 call :generate_doc_for_service registry
-call :generate_doc_for_service history
 call :generate_doc_for_service events
 
 set service=

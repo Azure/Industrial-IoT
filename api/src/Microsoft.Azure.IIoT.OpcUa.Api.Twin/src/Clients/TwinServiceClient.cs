@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
     /// <summary>
     /// Implementation of twin service api.
     /// </summary>
-    public sealed class TwinServiceClient : ITwinServiceApi {
+    public sealed class TwinServiceClient : ITwinServiceApi, IHistoryServiceRawApi {
 
         /// <summary>
         /// Create service client
@@ -58,6 +58,66 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             catch (Exception ex) {
                 return ex.Message;
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadResponseApiModel<VariantValue>> HistoryReadRawAsync(
+            string endpointId, HistoryReadRequestApiModel<VariantValue> content, CancellationToken ct) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (content.Details == null) {
+                throw new ArgumentNullException(nameof(content.Details));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v2/history/read/{endpointId}", Resource.Platform);
+            _serializer.SerializeToRequest(request, content);
+            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return _serializer.DeserializeResponse<HistoryReadResponseApiModel<VariantValue>>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryReadNextResponseApiModel<VariantValue>> HistoryReadRawNextAsync(
+            string endpointId, HistoryReadNextRequestApiModel content, CancellationToken ct) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (string.IsNullOrEmpty(content.ContinuationToken)) {
+                throw new ArgumentNullException(nameof(content.ContinuationToken));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v2/history/read/{endpointId}/next", Resource.Platform);
+            _serializer.SerializeToRequest(request, content);
+            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return _serializer.DeserializeResponse<HistoryReadNextResponseApiModel<VariantValue>>(response);
+        }
+
+        /// <inheritdoc/>
+        public async Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(
+            string endpointId, HistoryUpdateRequestApiModel<VariantValue> content, CancellationToken ct) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (content.Details == null) {
+                throw new ArgumentNullException(nameof(content.Details));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v2/history/update/{endpointId}", Resource.Platform);
+            _serializer.SerializeToRequest(request, content);
+            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return _serializer.DeserializeResponse<HistoryUpdateResponseApiModel>(response);
         }
 
         /// <inheritdoc/>

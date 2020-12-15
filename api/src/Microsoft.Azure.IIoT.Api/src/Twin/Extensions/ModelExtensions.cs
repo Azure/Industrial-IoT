@@ -7,7 +7,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Linq;
+    using System;
 
     /// <summary>
     /// Model conversion extensions
@@ -1197,6 +1199,368 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
                 Results = model.Results?
                     .Select(a => a.ToServiceModel())
                     .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Create from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static HistoryReadNextRequestApiModel ToApiModel(
+            this HistoryReadNextRequestModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadNextRequestApiModel {
+                ContinuationToken = model.ContinuationToken,
+                Abort = model.Abort,
+                Header = model.Header.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Convert back to service model
+        /// </summary>
+        /// <returns></returns>
+        public static HistoryReadNextRequestModel ToServiceModel(
+            this HistoryReadNextRequestApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadNextRequestModel {
+                ContinuationToken = model.ContinuationToken,
+                Abort = model.Abort,
+                Header = model.Header.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Create from service model
+        /// </summary>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model"></param>
+        /// <param name="convert"></param>
+        public static HistoryReadNextResponseApiModel<T> ToApiModel<S, T>(
+            this HistoryReadNextResultModel<S> model, Func<S, T> convert) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadNextResponseApiModel<T> {
+                History = convert(model.History),
+                ContinuationToken = model.ContinuationToken,
+                ErrorInfo = model.ErrorInfo.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Create from api model
+        /// </summary>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model"></param>
+        /// <param name="convert"></param>
+        public static HistoryReadNextResultModel<T> ToServiceModel<S, T>(
+            this HistoryReadNextResponseApiModel<S> model, Func<S, T> convert) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadNextResultModel<T> {
+                History = convert(model.History),
+                ContinuationToken = model.ContinuationToken,
+                ErrorInfo = model.ErrorInfo.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Create from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static HistoryReadRequestApiModel<VariantValue> ToApiModel(
+            this HistoryReadRequestModel<VariantValue> model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadRequestApiModel<VariantValue> {
+                NodeId = model.NodeId,
+                BrowsePath = model.BrowsePath,
+                IndexRange = model.IndexRange,
+                Details = model.Details,
+                Header = model.Header.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static HistoryReadRequestModel<VariantValue> ToServiceModel(
+            this HistoryReadRequestApiModel<VariantValue> model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadRequestModel<VariantValue> {
+                NodeId = model.NodeId,
+                BrowsePath = model.BrowsePath,
+                IndexRange = model.IndexRange,
+                Details = model.Details,
+                Header = model.Header.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Create from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static HistoryReadNextResponseApiModel<VariantValue> ToApiModel(
+            this HistoryReadNextResultModel<VariantValue> model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadNextResponseApiModel<VariantValue> {
+                History = model.History,
+                ContinuationToken = model.ContinuationToken,
+                ErrorInfo = model.ErrorInfo.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static HistoryReadNextResultModel<VariantValue> ToServiceModel(
+            this HistoryReadNextResponseApiModel<VariantValue> model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadNextResultModel<VariantValue> {
+                History = model.History,
+                ContinuationToken = model.ContinuationToken,
+                ErrorInfo = model.ErrorInfo.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Create from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static HistoryReadResponseApiModel<VariantValue> ToApiModel(
+            this HistoryReadResultModel<VariantValue> model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadResponseApiModel<VariantValue> {
+                History = model.History,
+                ContinuationToken = model.ContinuationToken,
+                ErrorInfo = model.ErrorInfo.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static HistoryReadResultModel<VariantValue> ToServiceModel(
+            this HistoryReadResponseApiModel<VariantValue> model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadResultModel<VariantValue> {
+                History = model.History,
+                ContinuationToken = model.ContinuationToken,
+                ErrorInfo = model.ErrorInfo.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Create from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static HistoryUpdateRequestApiModel<VariantValue> ToApiModel(
+            this HistoryUpdateRequestModel<VariantValue> model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryUpdateRequestApiModel<VariantValue> {
+                Details = model.Details,
+                NodeId = model.NodeId,
+                BrowsePath = model.BrowsePath,
+                Header = model.Header.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Convert back to service model
+        /// </summary>
+        /// <returns></returns>
+        public static HistoryUpdateRequestModel<VariantValue> ToServiceModel(
+            this HistoryUpdateRequestApiModel<VariantValue> model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryUpdateRequestModel<VariantValue> {
+                Details = model.Details,
+                NodeId = model.NodeId,
+                BrowsePath = model.BrowsePath,
+                Header = model.Header.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Convert to api model
+        /// </summary>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model"></param>
+        /// <param name="convert"></param>
+        /// <returns></returns>
+        public static HistoryReadRequestApiModel<S> ToApiModel<S, T>(
+            this HistoryReadRequestModel<T> model, Func<T, S> convert) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadRequestApiModel<S> {
+                Details = convert(model.Details),
+                BrowsePath = model.BrowsePath,
+                NodeId = model.NodeId,
+                IndexRange = model.IndexRange,
+                Header = model.Header.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model"></param>
+        /// <param name="convert"></param>
+        /// <returns></returns>
+        public static HistoryReadRequestModel<S> ToServiceModel<S, T>(
+            this HistoryReadRequestApiModel<T> model, Func<T, S> convert) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadRequestModel<S> {
+                Details = convert(model.Details),
+                BrowsePath = model.BrowsePath,
+                NodeId = model.NodeId,
+                IndexRange = model.IndexRange,
+                Header = model.Header.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Create from service model
+        /// </summary>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model"></param>
+        /// <param name="convert"></param>
+        public static HistoryReadResponseApiModel<T> ToApiModel<S, T>(
+            this HistoryReadResultModel<S> model, Func<S, T> convert) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadResponseApiModel<T> {
+                History = convert(model.History),
+                ContinuationToken = model.ContinuationToken,
+                ErrorInfo = model.ErrorInfo.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Create to service model
+        /// </summary>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model"></param>
+        /// <param name="convert"></param>
+        public static HistoryReadResultModel<T> ToServiceModel<S, T>(
+            this HistoryReadResponseApiModel<S> model, Func<S, T> convert) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryReadResultModel<T> {
+                History = convert(model.History),
+                ContinuationToken = model.ContinuationToken,
+                ErrorInfo = model.ErrorInfo.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Convert to api model
+        /// </summary>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model"></param>
+        /// <param name="convert"></param>
+        /// <returns></returns>
+        public static HistoryUpdateRequestApiModel<S> ToApiModel<S, T>(
+            this HistoryUpdateRequestModel<T> model, Func<T, S> convert) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryUpdateRequestApiModel<S> {
+                Details = convert(model.Details),
+                NodeId = model.NodeId,
+                BrowsePath = model.BrowsePath,
+                Header = model.Header.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="model"></param>
+        /// <param name="convert"></param>
+        /// <returns></returns>
+        public static HistoryUpdateRequestModel<S> ToServiceModel<S, T>(
+            this HistoryUpdateRequestApiModel<T> model, Func<T, S> convert) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryUpdateRequestModel<S> {
+                Details = convert(model.Details),
+                NodeId = model.NodeId,
+                BrowsePath = model.BrowsePath,
+                Header = model.Header.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Create from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static HistoryUpdateResponseApiModel ToApiModel(
+            this HistoryUpdateResultModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryUpdateResponseApiModel {
+                Results = model.Results?
+                    .Select(r => r.ToApiModel())
+                    .ToList(),
+                ErrorInfo = model.ErrorInfo.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static HistoryUpdateResultModel ToServiceModel(
+            this HistoryUpdateResponseApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new HistoryUpdateResultModel {
+                Results = model.Results?
+                    .Select(r => r.ToServiceModel())
+                    .ToList(),
+                ErrorInfo = model.ErrorInfo.ToServiceModel()
             };
         }
     }

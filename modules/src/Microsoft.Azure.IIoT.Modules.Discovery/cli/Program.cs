@@ -20,7 +20,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Net;
     using System.Diagnostics.Tracing;
     using System.Collections.Generic;
 

@@ -4,11 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
-    using Microsoft.Azure.IIoT.OpcUa.History.Models;
-    using Microsoft.Azure.IIoT.OpcUa.History;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using System.Threading.Tasks;
     using Xunit;
     using System;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
 
     public class HistoryReadValuesTests<T> {
 
@@ -17,9 +19,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         /// </summary>
         /// <param name="services"></param>
         /// <param name="endpoint"></param>
-        public HistoryReadValuesTests(Func<IHistorianServices<T>> services, T endpoint) {
+        public HistoryReadValuesTests(Func<IHistoricAccessServices<T>> services, T endpoint, IVariantEncoderFactory codec) {
             _services = services;
             _endpoint = endpoint;
+            _codec = codec;
         }
 
         public async Task HistoryReadInt64ValuesTest1Async() {
@@ -35,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         EndTime = DateTime.UtcNow + TimeSpan.FromDays(1),
                         ReturnBounds = true
                     }
-                });
+                }, _codec);
 
             Assert.NotNull(results.History);
             Assert.Equal(14, results.History.Length);
@@ -110,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         StartTime = DateTime.UtcNow - TimeSpan.FromDays(600),
                         NumValues = 10
                     }
-                });
+                }, _codec);
 
             Assert.NotNull(results.History);
             Assert.Equal(10, results.History.Length);
@@ -169,7 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         StartTime = DateTime.UtcNow - TimeSpan.FromDays(600),
                         EndTime = DateTime.UtcNow + TimeSpan.FromDays(1),
                     }
-                });
+                }, _codec);
 
             Assert.NotNull(results.History);
             Assert.Equal(12, results.History.Length);
@@ -236,7 +239,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                         EndTime = DateTime.UtcNow + TimeSpan.FromDays(1),
                         NumValues = 10
                     }
-                });
+                }, _codec);
 
             Assert.NotNull(results.History);
             Assert.Equal(10, results.History.Length);
@@ -284,6 +287,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         }
 
         private readonly T _endpoint;
-        private readonly Func<IHistorianServices<T>> _services;
+        private readonly IVariantEncoderFactory _codec;
+        private readonly Func<IHistoricAccessServices<T>> _services;
     }
 }

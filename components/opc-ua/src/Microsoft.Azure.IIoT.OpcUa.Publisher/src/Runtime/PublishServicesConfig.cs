@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.Configuration;
     using System;
-    using Serilog;
 
     /// <summary>
     /// Configuration of defaults for job definition generation logic for OPC Publisher module.

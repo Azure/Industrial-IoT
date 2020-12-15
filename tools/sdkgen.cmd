@@ -47,7 +47,6 @@ pushd generated
 call :generate_sdk_for_service twin
 call :generate_sdk_for_service publisher
 call :generate_sdk_for_service registry
-call :generate_sdk_for_service history
 call :generate_sdk_for_service events
 
 popd
