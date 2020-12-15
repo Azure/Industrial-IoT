@@ -55,7 +55,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/events/v2/discovery/requests/{requestId}/events": {
@@ -95,7 +102,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/events/v2/discovery/requests/{requestId}/events/{connectionId}": {
@@ -126,7 +140,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/events/v2/discovery/{discovererId}/events/{connectionId}": {
@@ -157,7 +178,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/events/v2/telemetry/{endpointId}/samples": {
@@ -197,7 +225,14 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     },
     "/events/v2/telemetry/{endpointId}/samples/{connectionId}": {
@@ -228,16 +263,26 @@
           "200": {
             "description": "Success"
           }
-        }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
       }
     }
   },
   "securityDefinitions": {
-    "bearer": {
-      "type": "apiKey",
-      "name": "Authorization",
-      "in": "header",
-      "description": "Authorization token in the form of 'bearer <token>'"
+    "oauth2": {
+      "type": "oauth2",
+      "flow": "implicit",
+      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
+      "scopes": {
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
+      },
+      "description": "Implicit oauth2 token flow."
     }
   },
   "tags": [

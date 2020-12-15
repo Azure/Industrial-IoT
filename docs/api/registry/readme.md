@@ -75,6 +75,13 @@ Registers a server solely using a discovery url. Requires that the onboarding ag
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getlistofapplications"></a>
 #### Get list of applications
 ```
@@ -107,6 +114,13 @@ Get all registered applications in paged form. The returned model can contain a 
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="createapplication"></a>
@@ -151,6 +165,13 @@ The application is registered using the provided information, but it is not asso
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="deletealldisabledapplications"></a>
 #### Purge applications
 ```
@@ -174,6 +195,13 @@ Purges all applications that have not been seen for a specified amount of time.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="discoverserver"></a>
@@ -210,6 +238,13 @@ Registers servers by running a discovery scan in a supervisor's network. Require
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="cancel"></a>
 #### Cancel discovery
 ```
@@ -233,6 +268,13 @@ Cancels a discovery request using the request identifier.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="queryapplications"></a>
@@ -278,6 +320,13 @@ List applications that match a query model. The returned model can contain a con
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getfilteredlistofapplications"></a>
 #### Get filtered list of applications
 ```
@@ -321,6 +370,13 @@ Get a list of applications filtered using the specified query parameters. The re
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getlistofsites"></a>
 #### Get list of sites
 ```
@@ -355,6 +411,13 @@ List all sites applications are registered in.
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getapplicationregistration"></a>
 #### Get application registration
 ```
@@ -384,6 +447,13 @@ GET /registry/v2/applications/{applicationId}
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="deleteapplication"></a>
 #### Unregister application
 ```
@@ -407,6 +477,13 @@ Unregisters and deletes application and all its associated endpoints.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updateapplicationregistration"></a>
@@ -444,6 +521,13 @@ The application information is updated with new properties. Note that this infor
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="disableapplication"></a>
 #### Disable an enabled application.
 ```
@@ -469,6 +553,13 @@ A manager can disable an application.
 |**200**|Success|No Content|
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="enableapplication"></a>
 #### Re-enable a disabled application.
 ```
@@ -492,6 +583,13 @@ A manager can enable an application.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="discovery_resource"></a>
@@ -531,6 +629,13 @@ Get all registered discoverers and therefore twin modules in paged form. The ret
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="querydiscoverers"></a>
@@ -576,6 +681,13 @@ Get all discoverers that match a specified query. The returned model can contain
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getfilteredlistofdiscoverers"></a>
 #### Get filtered list of discoverers
 ```
@@ -592,7 +704,7 @@ Get a list of discoverers filtered using the specified query parameters. The ret
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Query**|**connected**  <br>*optional*|Included connected or disconnected|boolean|
-|**Query**|**discovery**  <br>*optional*|Discovery mode of discoverer|enum (Off, Local, Network, Fast, Scan)|
+|**Query**|**discovery**  <br>*optional*|Discovery mode of discoverer|enum (Off, Local, Network, Fast, Scan, Url)|
 |**Query**|**pageSize**  <br>*optional*|Number of results to return|integer (int32)|
 |**Query**|**siteId**  <br>*optional*|Site of the discoverer|string|
 
@@ -612,6 +724,13 @@ Get a list of discoverers filtered using the specified query parameters. The ret
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="setdiscoverymode"></a>
 #### Enable server discovery
 ```
@@ -628,7 +747,7 @@ Allows a caller to configure recurring discovery runs on the discovery module id
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**discovererId**  <br>*required*|discoverer identifier|string|
-|**Query**|**mode**  <br>*required*|Discovery mode|enum (Off, Local, Network, Fast, Scan)|
+|**Query**|**mode**  <br>*required*|Discovery mode|enum (Off, Local, Network, Fast, Scan, Url)|
 |**Body**|**body**  <br>*optional*|Discovery configuration|[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
 
 
@@ -646,6 +765,13 @@ Allows a caller to configure recurring discovery runs on the discovery module id
 * `text/json`
 * `application/*+json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getdiscoverer"></a>
@@ -681,6 +807,13 @@ Returns a discoverer's registration and connectivity information. A discoverer i
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="updatediscoverer"></a>
 #### Update discoverer information
 ```
@@ -714,6 +847,13 @@ Allows a caller to configure recurring discovery runs on the twin module identif
 * `text/json`
 * `application/*+json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="endpoints_resource"></a>
@@ -754,6 +894,13 @@ Get all registered endpoints in paged form. The returned model can contain a con
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="queryendpoints"></a>
@@ -798,6 +945,13 @@ Return endpoints that match the specified query. The returned model can contain 
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getfilteredlistofendpoints"></a>
@@ -846,6 +1000,13 @@ Get a list of endpoints filtered using the specified query parameters. The retur
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getendpoint"></a>
 #### Get endpoint information
 ```
@@ -880,6 +1041,13 @@ Gets information about an endpoint.
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="activateendpoint"></a>
 #### Activate endpoint
 ```
@@ -903,6 +1071,13 @@ Activates an endpoint for subsequent use in twin service. All endpoints must be 
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getendpointcertificate"></a>
@@ -938,6 +1113,13 @@ Gets current certificate of the endpoint.
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="deactivateendpoint"></a>
 #### Deactivate endpoint
 ```
@@ -961,6 +1143,13 @@ Deactivates the endpoint and disable access through twin service.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="gateways_resource"></a>
@@ -1000,6 +1189,13 @@ Get all registered Gateways and therefore twin modules in paged form. The return
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="querygateway"></a>
@@ -1045,6 +1241,13 @@ Get all Gateways that match a specified query. The returned model can contain a 
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getfilteredlistofgateway"></a>
 #### Get filtered list of Gateways
 ```
@@ -1080,6 +1283,13 @@ Get a list of Gateways filtered using the specified query parameters. The return
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getgateway"></a>
 #### Get Gateway registration information
 ```
@@ -1111,6 +1321,13 @@ Returns a Gateway's registration and connectivity information. A Gateway id corr
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updategateway"></a>
@@ -1146,6 +1363,13 @@ Allows a caller to configure operations on the Gateway module identified by the 
 * `text/json`
 * `application/*+json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="publishers_resource"></a>
@@ -1186,6 +1410,13 @@ Get all registered publishers and therefore twin modules in paged form. The retu
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="querypublisher"></a>
@@ -1232,6 +1463,13 @@ Get all publishers that match a specified query. The returned model can contain 
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getfilteredlistofpublisher"></a>
 #### Get filtered list of publishers
 ```
@@ -1268,6 +1506,13 @@ Get a list of publishers filtered using the specified query parameters. The retu
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getpublisher"></a>
 #### Get publisher registration information
 ```
@@ -1300,6 +1545,13 @@ Returns a publisher's registration and connectivity information. A publisher id 
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updatepublisher"></a>
@@ -1335,6 +1587,13 @@ Allows a caller to configure operations on the publisher module identified by th
 * `text/json`
 * `application/*+json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="supervisors_resource"></a>
@@ -1375,6 +1634,13 @@ Get all registered supervisors and therefore twin modules in paged form. The ret
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="querysupervisors"></a>
@@ -1421,6 +1687,13 @@ Get all supervisors that match a specified query. The returned model can contain
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getfilteredlistofsupervisors"></a>
 #### Get filtered list of supervisors
 ```
@@ -1458,6 +1731,13 @@ Get a list of supervisors filtered using the specified query parameters. The ret
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="getsupervisor"></a>
 #### Get supervisor registration information
 ```
@@ -1490,6 +1770,13 @@ Returns a supervisor's registration and connectivity information. A supervisor i
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="updatesupervisor"></a>
@@ -1527,6 +1814,13 @@ Allows a caller to configure recurring discovery runs on the twin module identif
 * `application/x-msgpack`
 
 
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="resetsupervisor"></a>
 #### Reset supervisor
 ```
@@ -1550,6 +1844,13 @@ Allows a caller to reset the twin module using its supervisor identity identifie
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 <a name="getsupervisorstatus"></a>
@@ -1583,6 +1884,13 @@ Allows a caller to get runtime status for a supervisor.
 * `application/json`
 * `text/json`
 * `application/x-msgpack`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
 

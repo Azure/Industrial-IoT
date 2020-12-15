@@ -40,7 +40,6 @@ Next section will guide you on the configuration of the data-points to be publis
 
 Once the configuration of the published data is done, the endpoints may be disconnected from the engineering tool. Please not though that endpoints need to be reconnected, so that browsing is possible, when modifications to the publishing data-points are required.
 
-The telemetry data from the OPC UA Servers on the field is now flowing into the IIoT platform and is stored in the TSI storage respective in the Azure DataLake Gen 2 in CDM format.
+The telemetry data from the OPC UA Servers on the field is now flowing into the IIoT platform and to Azure TimeSeries Insights (TSI).
 
 - [Visualize and analyze your data in Time Series Insights](tut-timeseriesinsights.md)
-- [Visualize and analyze your data in CDM format in Power Bi](tut-power-bi-cdm.md)

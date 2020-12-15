@@ -13,7 +13,6 @@ The following Microservices are part of the platform:
 * [Registry Microservice](registry.md) (GA)
 * [OPC Twin Microservice](twin.md) (GA)
 * [OPC Publisher Microservice and Orchestrator](publisher.md) (GA)
-* [OPC Historic Data Access Microservice](twin-history.md) (Preview)
 * [SignalR Event Service](events.md) (Preview)
 
 These microservices use business logic and components included in this repository to provide discovery, registration, and remote control of industrial devices through REST APIs that can be implemented in any programming language and framework that can call an HTTP endpoint.
@@ -29,7 +28,6 @@ The following Agents are part of the platform and handle event processing as wel
 * [Edge Telemetry Processor](processor-telemetry.md) (GA)
 * [Registry Onboarding Processor](processor-onboarding.md) (GA)
 * [Edge Event Processor](processor-events.md) (GA)
-* [Datalake and CDM Telemetry Exporter](processor-telemetry-cdm.md) (Preview)
 * [Registry Sync service](registry-sync.md) (GA)
 
 ## Other components
