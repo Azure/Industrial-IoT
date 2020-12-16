@@ -269,7 +269,6 @@ helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespac
     --set azure.auth.servicesApp.appId=$AIIOT_SERVICES_APP_ID \
     --set azure.auth.servicesApp.secret=$AIIOT_SERVICES_APP_SECRET \
     --set externalServiceUrl="https://$AIIOT_SERVICES_HOSTNAME" \
-    --set deployment.microServices.engineeringTool.enabled=true \
     --set deployment.microServices.telemetryCdmProcessor.enabled=true \
     --set deployment.ingress.enabled=true \
     --set deployment.ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \

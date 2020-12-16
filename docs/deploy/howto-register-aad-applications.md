@@ -39,8 +39,7 @@ Use the following command to run `aad-register.ps1` script for creation of the A
 Specify desired application name instead of the `<application-name>` and your tenant id.
 Follow the script commands and provide additional details where needed.
 
-> Note: `ReplyUrl` has the following format `https://<application-name>.azurewebsites.net/`, as we are using
-> an instance of App Service to host Engineering Tool.
+> Note: `ReplyUrl` is required for any web app acting as client and when using Azure App Service typically looks like `https://<application-name>.azurewebsites.net/`.
 
 ```bash
 cd deploy/scripts

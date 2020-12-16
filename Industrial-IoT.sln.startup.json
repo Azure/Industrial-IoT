@@ -8,7 +8,6 @@
     "MultiProjectConfigurations": {
         "Local development": {
             "Projects": {
-                "Microsoft.Azure.IIoT.App": {},
                 "Microsoft.Azure.IIoT.Cli": {},
                 "Microsoft.Azure.IIoT.Services.All": {},
                 "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
@@ -18,7 +17,6 @@
         },
         "Local development (no publisher)": {
             "Projects": {
-                "Microsoft.Azure.IIoT.App": {},
                 "Microsoft.Azure.IIoT.Cli": {},
                 "Microsoft.Azure.IIoT.Services.All": {},
                 "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
@@ -27,7 +25,6 @@
         },
         "Individual Services": {
             "Projects": {
-                "Microsoft.Azure.IIoT.App": {},
                 "Microsoft.Azure.IIoT.Cli": {},
                 "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
                 "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
@@ -45,17 +42,10 @@
         },
         "No services": {
             "Projects": {
-                "Microsoft.Azure.IIoT.App": {},
                 "Microsoft.Azure.IIoT.Cli": {},
                 "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
                 "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
                 "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {}
-            }
-        },
-        "Engineering tool": {
-            "Projects": {
-                "Microsoft.Azure.IIoT.App": {},
-                "Microsoft.Azure.IIoT.Cli": {}
             }
         }
     }

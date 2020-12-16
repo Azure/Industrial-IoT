@@ -27,7 +27,6 @@ a Helm chart on top of a platform deployed through either `deploy.cmd` or `deplo
   * [Enable Prometheus metrics scraping](#enable-prometheus-metrics-scraping)
   * [Update Redirect URIs of web App Registration](#update-redirect-uris-of-web-app-registration)
   * [Remove App Service and App Service Plan resources](#remove-app-service-and-app-service-plan-resources)
-  * [Access Engineering Tool and Swagger UIs](#access-engineering-tool-and-swagger-uis)
 
 ## Introduction
 
@@ -331,9 +330,6 @@ azure:
 externalServiceUrl: https://aks-cluster-ip.westeurope.cloudapp.azure.com
 
 deployment:
-  microServices:
-    engineeringTool:
-      enabled: true
 
   ingress:
     enabled: true
@@ -362,12 +358,6 @@ deployment:
 If you decide to pass all Azure resource details through YAML file, please follow
 [documentation of `azure-industrial-iot` Helm chart](../../deploy/helm/azure-industrial-iot/README.md)
 to get the parameters. In the end, `aiiot.yaml` value file would look something like the one below.
-
-In this case as well, we will have to set up Access Policies for service principal of `service` App
-Registration in Azure Key Vault so that Engineering Tool and OPC-Vault microservices are able to fetch the
-`dataprotection` key from  Azure Key Vault. That is required for proper functionality of
-[ASP.NET Core Data Protection](https://docs.microsoft.com/aspnet/core/security/data-protection/configuration/overview?view=aspnetcore-3.1#protectkeyswithazurekeyvault)
-feature.
 
 To do that:
 
@@ -465,9 +455,6 @@ azure:
 externalServiceUrl: https://aks-cluster-ip.westeurope.cloudapp.azure.com
 
 deployment:
-  microServices:
-    engineeringTool:
-      enabled: true
 
   ingress:
     enabled: true
@@ -554,11 +541,9 @@ For that do the following:
   `aks-cluster-ip.westeurope.cloudapp.azure.com` with the hostname that you got from `DNS name` of Public
   IP address resource:
 
-   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/frontend/signin-oidc`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/registry/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/twin/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/edge/publisher/swagger/oauth2-redirect.html`
-   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/events/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/publisher/swagger/oauth2-redirect.html`
 
 4. You should also delete `*.azurewebsites.net` entries from this list, as those point to containers that
@@ -566,7 +551,7 @@ For that do the following:
   instances in the next step.
 5. Click **Save** to save the changes.
 
-Now you should be able to go to Engineering Tool and Swagger UIs of microservices and authenticate there.
+Now you should be able to go to the Swagger UIs of the microservices and authenticate there.
 
 ### Remove App Service and App Service Plan resources
 
@@ -576,15 +561,13 @@ in the AKS cluster instead of the App Service instances
 
 ### Access Engineering Tool and Swagger UIs
 
-Now you should be able to access Engineering Tool and Swagger UIs of microservices. To do that please
+Now you should be able to access Swagger UIs of microservices. To do that please
 substitute `aks-cluster-ip.westeurope.cloudapp.azure.com` with the hostname that you got from `DNS name` of
 Public IP address resource.
 
 | Service                                | URL                                                                                      |
 |----------------------------------------|------------------------------------------------------------------------------------------|
-| Engineering Tool                       | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/frontend/`                         |
 | OPC Registry Swagger UI                | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/registry/swagger/index.html`       |
 | OPC Twin Swagger UI                    | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/twin/swagger/index.html`           |
 | OPC Publisher Swagger UI               | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/publisher/swagger/index.html`      |
 | Publisher Jobs Orchestrator Swagger UI | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/edge/publisher/swagger/index.html` |
-| Events Swagger UI                      | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/events/swagger/index.html`         |

@@ -34,8 +34,6 @@ The following Agents are part of the platform and handle event processing as wel
 
 An alternative to hosting individual containers in a cluster is the "[all in one service container](all-in-one.md)", which is a single web service that hosts all micro services and agents in its process.  
 
-A sample web application is provided in the form of the Azure Industrial IoT [Engineering Tool](engineeringtool.md), which is deployed using the [deployment script](../deploy/howto-deploy-all-in-one.md).
-
 ## Next steps
 
 * [Deploy Microservices to Azure](../deploy/readme.md)

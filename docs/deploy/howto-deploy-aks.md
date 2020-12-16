@@ -515,8 +515,8 @@ The following Azure regions are supported by `Microsoft.Azure.IIoT.Deployment` f
 2. **ApplicationUrl**
 
     Base URL that will be used for generating RedirectUris for client application. This is required for
-    enabling client authentication for use of exposed APIs (including access to Swagger) and the Engineering
-    Tool. Usually it would look like:
+    enabling client authentication for use of exposed APIs (including access to Swagger). 
+    Usually it would look like:
 
     > `<ApplicationName>.<Region>.cloudapp.azure.com`
 

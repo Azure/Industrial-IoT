@@ -30,7 +30,7 @@ cd Industrial-IoT
 7. Start debugging by pressing the "Start" button or hitting F5.
 8. [Ensure the Microservices are running](#ensure-the-microservices-are-running).
 
-> Installing [this extension](https://marketplace.visualstudio.com/items?itemName=vs-publisher-141975.SwitchStartupProject) you can start an entire environment containing Edge modules, command line interface, engineering sample application and services from within Visual Studio 2019. Just select the the "Local development" startup configuration in the top left corner drop down in the IDE. Use the "no services" configuration if you want to start only the edge environment and applications.
+> Installing [this extension](https://marketplace.visualstudio.com/items?itemName=vs-publisher-141975.SwitchStartupProject) you can start an entire environment containing Edge modules, command line interface, and services from within Visual Studio 2019. Just select the the "Local development" startup configuration in the top left corner drop down in the IDE. Use the "no services" configuration if you want to start only the edge environment and applications.
 
 ## Ensure the Microservices are running
 

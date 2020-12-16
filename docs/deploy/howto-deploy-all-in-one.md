@@ -8,7 +8,6 @@ This article explains how to deploy the Azure Industrial IoT Platform and Simula
 - A PLC server simulation
 - All required Azure infrastructure
 - The Industrial IoT Platform
-- The Industrial IoT Engineering tool
 
 ## Running the script
 

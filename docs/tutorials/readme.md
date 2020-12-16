@@ -6,13 +6,7 @@
 
 To begin, [deploy the Azure Industrial IoT Platform](../deploy/howto-deploy-all-in-one.md), then follow these step-by-step guides and learn how to:
 
-1. [Deploy IoT Edge to discover and connect your own assets](../deploy/howto-install-iot-edge.md)
-2. [Discover and register assets using the engineering tool](tut-discover-assets.md)
-3. [Subscribe to data in the engineering tool](tut-publish-data.md)
-4. [Visualize and analyze the data using Time Series Insights](tut-timeseriesinsights.md)
-
-## Next steps
-
+- [Deploy IoT Edge to discover and connect your own assets](../deploy/howto-install-iot-edge.md)
 - [View logs and metrics in Application Insights](tut-applicationinsights.md)
 - [Discover a server and browse its address space using the CLI](tut-use-cli.md)
 - [Discover a server and browse its address space using Postman](tut-use-postman.md)
