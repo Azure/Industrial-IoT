@@ -48,7 +48,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(3)]
-        public async Task Test_StartPublishingSingleNode_Expect_Success() {
+        public async Task Test_StartPublishing250Nodes_Expect_Success() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             await _context.LoadSimulatedPublishedNodes(cts.Token);
@@ -59,6 +59,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             nodesToPublish.OpcNodes = testPlc.OpcNodes.Take(250).ToArray();
 
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { nodesToPublish }, _context, cts.Token);
+
+            await Task.Delay(60 * 1000, cts.Token); //wait some time till the updated pn.json is reflected
         }
 
         [Fact, PriorityOrder(4)]

@@ -55,6 +55,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             model.OpcNodes = model.OpcNodes.Take(1).ToArray();
 
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { model }, _context, cts.Token);
+
+            await Task.Delay(60 * 1000, cts.Token); //wait some time till the updated pn.json is reflected
         }
 
         [Fact, PriorityOrder(4)]
