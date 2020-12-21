@@ -4,7 +4,7 @@
  
 The Azure Industrial IoT Platform is a Microsoft suite of modules and services that make it easier to connect your industrial assets to Azure. The Azure Industrial IoT Platform, consisting of edge and cloud services, allows you to discover industrial assets on-site and automatically register them in the cloud for easy access to your plant floor telemetry wherever you happen to be in the world.  We have worked to establish a large and vibrant partner network in order to support all types of industrial interfaces through the use of adapters, fully integrated with our platform – while natively supporting OPC UA by default. 
  
-We are pleased to announce that we are releasing the next update, 2.7.20x of the Azure Industrial IoT Platform. We are planing to release it on January 12th. 
+We are pleased to announce that we are releasing the next update, 2.7.20x of the Azure Industrial IoT Platform. We are planning to release it on January 12th. 
  
 One of the changes that will be delivered with the update are the removal of Bouncy Castle, a collection of APIs used in cryptography. Based on the new system.formats. asn1 library released with .NET Core 5 many ASN.1 encoding and decoding operations have been reimplemented to be able to retire the dependency on the external crypto library, Bouncy Castle.  
  
