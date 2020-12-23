@@ -20,10 +20,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// List of endpoints for it
         /// </summary>
         public List<EndpointRegistrationModel> Endpoints { get; set; }
-
-        /// <summary>
-        /// Registration security assessment
-        /// </summary>
-        public SecurityAssessment? SecurityAssessment { get; set; }
     }
 }

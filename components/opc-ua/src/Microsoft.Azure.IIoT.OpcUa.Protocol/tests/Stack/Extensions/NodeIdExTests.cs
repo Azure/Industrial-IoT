@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Extensions {
-    using Opc.Ua;
     using Xunit;
     using System;
 
@@ -97,6 +96,21 @@ namespace Opc.Ua.Extensions {
             Assert.Equal(expected, result.Identifier);
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
             Assert.Equal(1, result.NamespaceIndex);
+        }
+
+        [Fact]
+        public void DecodeNodeIdFromIntUrl() {
+            var context = new ServiceMessageContext();
+            var uri = "http://contosos.com#i=1";
+            var result = uri.ToExpandedNodeId(context);
+            Assert.Equal("http://contosos.com", result.NamespaceUri);
+        }
+
+        [Fact]
+        public void ParseNodeIdUsingAbsoluteUri() {
+            var value = "http://contosos.com#i=1";
+            Uri.TryCreate(value, UriKind.Absolute, out var uri);
+            Assert.NotEqual("http://contosos.com", uri.NoQueryAndFragment().AbsoluteUri);
         }
 
         [Fact]

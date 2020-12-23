@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Result of a discovery run - part of last event element
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// If discovery failed, result information
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        public VariantValue Diagnostics { get; set; }
 
         /// <summary>
         /// Operation audit context

@@ -16,9 +16,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor discovery mode
+        /// Managing provided endpoint twin
         /// </summary>
-        public DiscoveryMode? Discovery { get; set; }
+        public string EndpointId { get; set; }
 
         /// <summary>
         /// Included connected or disconnected

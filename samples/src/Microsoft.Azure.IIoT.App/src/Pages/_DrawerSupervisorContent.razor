@@ -1,0 +1,69 @@
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
+
+@using Microsoft.Azure.IIoT.App.Services;
+@using Microsoft.Azure.IIoT.App.Common;
+@using Microsoft.Azure.IIoT.App.Components.Loader;
+
+@inject Registry RegistryHelper
+@inject UICommon CommonHelper
+
+<div class="drawer-content list-group">
+    <div class="list-group-item text-left">
+        @if (SupervisorStatus != null)
+        {
+            <div class="label">
+                DeviceId:
+                <div class="body">
+                    @(string.IsNullOrEmpty(SupervisorStatus.DeviceId)
+                        ? CommonHelper.None
+                        : SupervisorStatus.DeviceId)
+                </div>
+            </div>
+            <div class="label">
+                ModuleId:
+                <div class="body">
+                    @(string.IsNullOrEmpty(SupervisorStatus.ModuleId)
+                        ? CommonHelper.None
+                        : SupervisorStatus.ModuleId)
+                </div>
+            </div>
+            <div class="label">
+                SiteId:
+                <div class="body">
+                    @(string.IsNullOrEmpty(SupervisorStatus.SiteId)
+                        ? CommonHelper.None
+                        : SupervisorStatus.SiteId)
+                </div>
+            </div>
+            <div class="label">
+                Endpoints:
+                @{
+                    if (SupervisorStatus.Endpoints != null)
+                    {
+                        foreach (var endpoint in SupervisorStatus.Endpoints)
+                        {
+                            string Id = endpoint.Id == null ? CommonHelper.None : endpoint.Id;
+                            <div class="label">
+                                Uri:
+                                <div class="body">@Id</div>
+                            </div>
+                            string ActivationState = endpoint.ActivationState == null ? CommonHelper.None : endpoint.ActivationState.ToString();
+                            <div class="label">
+                                Connection Status:
+                                <div class="body">@ActivationState</div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="body">@CommonHelper.None</div>
+                    }
+                }
+            </div>
+        }
+        <Spinner IsLoading=@IsLoading></Spinner>
+    </div>
+</div>

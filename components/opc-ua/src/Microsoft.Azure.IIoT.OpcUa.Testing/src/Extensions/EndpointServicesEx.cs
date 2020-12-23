@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Threading.Tasks;
     using Opc.Ua.Extensions;
     using Opc.Ua;
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="endpoint"></param>
         /// <param name="readNode"></param>
         /// <returns></returns>
-        public static Task<JToken> ReadValueAsync(this IEndpointServices client,
+        public static Task<VariantValue> ReadValueAsync(this IEndpointServices client,
             EndpointModel endpoint, string readNode) {
             return ReadValueAsync(client, endpoint, null, readNode);
         }
@@ -33,9 +33,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="elevation"></param>
         /// <param name="readNode"></param>
         /// <returns></returns>
-        public static Task<JToken> ReadValueAsync(this IEndpointServices client,
+        public static Task<VariantValue> ReadValueAsync(this IEndpointServices client,
             EndpointModel endpoint, CredentialModel elevation, string readNode) {
-            var codec = new JsonVariantEncoder();
+            var codec = new VariantEncoderFactory();
             return client.ExecuteServiceAsync(endpoint, elevation, session => {
                 var nodesToRead = new ReadValueIdCollection {
                     new ReadValueId {
@@ -45,8 +45,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 };
                 var responseHeader = session.Read(null, 0, TimestampsToReturn.Both,
                     nodesToRead, out var values, out var diagnosticInfos);
-                var result = codec.Encode(values[0].WrappedValue,
-                    out var tmp, session.MessageContext);
+                var result = codec.Create(session.MessageContext)
+                    .Encode(values[0].WrappedValue, out var tmp);
                 return Task.FromResult(result);
             });
         }

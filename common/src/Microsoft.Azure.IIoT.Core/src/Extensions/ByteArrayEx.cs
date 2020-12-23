@@ -38,6 +38,26 @@ namespace System {
         }
 
         /// <summary>
+        /// Test base 16
+        /// </summary>
+        /// <param name="base16"></param>
+        /// <param name="upperCase"></param>
+        /// <returns></returns>
+        public static bool IsBase16(this string base16,
+            bool upperCase = true) {
+            if (string.IsNullOrWhiteSpace(base16)) {
+                return false;
+            }
+            var charLookup = upperCase ?
+                "0123456789ABCDEF" : "0123456789abcdef";
+            foreach (var c in base16) {
+                if (!charLookup.Contains(c))
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Convert to base 64
         /// </summary>
         /// <param name="value"></param>

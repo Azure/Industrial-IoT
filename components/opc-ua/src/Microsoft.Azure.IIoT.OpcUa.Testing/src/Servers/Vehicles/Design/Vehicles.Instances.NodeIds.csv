@@ -1,0 +1,8 @@
+BicycleType,365,DataType
+BicycleType_Encoding_DefaultBinary,370,Object
+BicycleType_Encoding_DefaultJson,15004,Object
+BicycleType_Encoding_DefaultXml,366,Object
+ParkingLot,281,Object
+ParkingLotType,378,DataType
+VehiclesInstances_BinarySchema,353,Variable
+VehiclesInstances_XmlSchema,341,Variable

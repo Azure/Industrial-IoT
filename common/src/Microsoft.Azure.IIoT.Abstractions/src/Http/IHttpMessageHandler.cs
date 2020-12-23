@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http {
+    using System;
     using System.Net;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -11,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Http {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Handles requests and responses in the client chain, but 
+    /// Handles requests and responses in the client chain, but
     /// injectable using dependency injection, e.g Autofac.
     /// </summary>
     public interface IHttpMessageHandler : IHttpHandler {
@@ -25,22 +26,23 @@ namespace Microsoft.Azure.IIoT.Http {
         /// Handle request
         /// </summary>
         /// <param name="resourceId"></param>
+        /// <param name="requestUri"></param>
         /// <param name="headers"></param>
         /// <param name="content"></param>
-        /// <param name="cancellationToken"></param>
-        Task OnRequestAsync(string resourceId, HttpRequestHeaders headers,
-            HttpContent content, CancellationToken cancellationToken);
+        /// <param name="ct"></param>
+        Task OnRequestAsync(string resourceId, Uri requestUri, HttpRequestHeaders headers,
+            HttpContent content, CancellationToken ct);
 
         /// <summary>
         /// Handle response
         /// </summary>
         /// <param name="resourceId"></param>
+        /// <param name="requestUri"></param>
         /// <param name="statusCode"></param>
         /// <param name="headers"></param>
         /// <param name="content"></param>
-        /// <param name="cancellationToken"></param>
-        Task OnResponseAsync(string resourceId, HttpStatusCode statusCode,
-            HttpResponseHeaders headers, HttpContent content,
-            CancellationToken cancellationToken);
+        /// <param name="ct"></param>
+        Task OnResponseAsync(string resourceId, Uri requestUri, HttpStatusCode statusCode,
+            HttpResponseHeaders headers, HttpContent content, CancellationToken ct);
     }
 }

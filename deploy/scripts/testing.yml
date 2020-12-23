@@ -1,0 +1,72 @@
+version: '3'
+services:
+  opcserver0:
+    image: ${REPOSITORY:-mcr.microsoft.com}/iot/opc-ua-test-server:${VERSION:-latest}
+    restart: always
+    ports:
+      - "51200:51200"
+    environment:
+      - SERVER_PORT=51200
+  opcserver1:
+    image: ${REPOSITORY:-mcr.microsoft.com}/iot/opc-ua-test-server:${VERSION:-latest}
+    restart: always
+    ports:
+      - "51201:51201"
+    environment:
+      - SERVER_PORT=51201
+  opcserver2:
+    image: ${REPOSITORY:-mcr.microsoft.com}/iot/opc-ua-test-server:${VERSION:-latest}
+    restart: always
+    ports:
+      - "51202:51202"
+    environment:
+      - SERVER_PORT=51202
+  opcserver3:
+    image: ${REPOSITORY:-mcr.microsoft.com}/iot/opc-ua-test-server:${VERSION:-latest}
+    restart: always
+    ports:
+      - "51203:51203"
+    environment:
+      - SERVER_PORT=51203
+  opcserver4:
+    image: ${REPOSITORY:-mcr.microsoft.com}/iot/opc-ua-test-server:${VERSION:-latest}
+    restart: always
+    ports:
+      - "51204:51204"
+    environment:
+      - SERVER_PORT=51204
+  opcserver5:
+    image: ${REPOSITORY:-mcr.microsoft.com}/iot/opc-ua-test-server:${VERSION:-latest}
+    restart: always
+    ports:
+      - "51205:51205"
+    environment:
+      - SERVER_PORT=51205
+  opcserver6:
+    image: ${REPOSITORY:-mcr.microsoft.com}/iot/opc-ua-test-server:${VERSION:-latest}
+    restart: always
+    ports:
+      - "51206:51206"
+    environment:
+      - SERVER_PORT=51206
+  opcserver7:
+    image: ${REPOSITORY:-mcr.microsoft.com}/iot/opc-ua-test-server:${VERSION:-latest}
+    restart: always
+    ports:
+      - "51207:51207"
+    environment:
+      - SERVER_PORT=51207
+  opcserver8:
+    image: ${REPOSITORY:-mcr.microsoft.com}/iot/opc-ua-test-server:${VERSION:-latest}
+    restart: always
+    ports:
+      - "51208:51208"
+    environment:
+      - SERVER_PORT=51208
+  opcserver9:
+    image: ${REPOSITORY:-mcr.microsoft.com}/iot/opc-ua-test-server:${VERSION:-latest}
+    restart: always
+    ports:
+      - "51209:51209"
+    environment:
+      - SERVER_PORT=51209

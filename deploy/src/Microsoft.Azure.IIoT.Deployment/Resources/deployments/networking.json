@@ -1,0 +1,192 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "iiotServicesName": {
+            "type": "string",
+            "defaultValue": "iiotservices",
+            "metadata": {
+                "description": "Name of IIoT solution, used as name prefix."
+            }
+        },
+        "nsgName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('iiotServicesName'), '-nsg')]",
+            "metadata": {
+                "description": "Name of network security groups."
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('iiotServicesName'), '-vnet')]",
+            "metadata": {
+                "description": "Name of virtual networks."
+            }
+        },
+        "subnetAKSName": {
+            "type": "string",
+            "defaultValue": "aks-subnet",
+            "metadata": {
+                "description": "Name of subnet for an AKS cluster."
+            }
+        },
+        "subnetVMName": {
+            "type": "string",
+            "defaultValue": "vm-subnet",
+            "metadata": {
+                "description": "Name of subnet for a VM."
+            }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for resources."
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+        "subnetAKSRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetAKSName'))]",
+        "subnetVMRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetVMName'))]"
+    },
+    "resources": [
+        {
+            "comments":  "Default Network Security Group for template",
+            "name": "[parameters('nsgName')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "UASC",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "4840",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "HTTPS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "HTTP",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[parameters('vnetName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-08-01",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[variables('nsgId')]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/8"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnetAKSName')]",
+                        "properties": {
+                            "addressPrefix": "10.240.0.0/16",
+                            "networkSecurityGroup": {
+                                "id": "[variables('nsgId')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[parameters('subnetVMName')]",
+                        "properties": {
+                            "addressPrefix": "10.241.0.0/16",
+                            "networkSecurityGroup": {
+                                "id": "[variables('nsgId')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+        "nsgName": {
+            "type": "string",
+            "value": "[parameters('nsgName')]"
+        },
+        "nsgId": {
+            "type": "string",
+            "value": "[variables('nsgId')]"
+        },
+        "vnetName": {
+            "type": "string",
+            "value": "[parameters('vnetName')]"
+        },
+        "vnetId": {
+            "type": "string",
+            "value": "[variables('vnetId')]"
+        },
+        "subnetAKSName": {
+            "type": "string",
+            "value": "[parameters('subnetAKSName')]"
+        },
+        "subnetAKSRef": {
+            "type": "string",
+            "value": "[variables('subnetAKSRef')]"
+        },
+        "subnetVMName": {
+            "type": "string",
+            "value": "[parameters('subnetVMName')]"
+        },
+        "subnetVMRef": {
+            "type": "string",
+            "value": "[variables('subnetVMRef')]"
+        }
+    }
+}

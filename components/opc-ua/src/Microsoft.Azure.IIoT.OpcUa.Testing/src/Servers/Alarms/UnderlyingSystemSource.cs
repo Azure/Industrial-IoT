@@ -48,7 +48,7 @@ namespace Alarms {
         /// <summary>
         /// Used to receive events when the state of an alarm changed.
         /// </summary>
-        public AlarmChangedEventHandler OnAlarmChanged;
+        public AlarmChangedEventHandler OnAlarmChanged { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the source.
@@ -495,7 +495,6 @@ namespace Alarms {
             // no change so nothing to report.
         }
 
-        private readonly object _lock = new object();
         private readonly List<UnderlyingSystemAlarm> _alarms;
         private readonly Dictionary<uint, UnderlyingSystemAlarm> _archive;
         private uint _nextRecordNumber;

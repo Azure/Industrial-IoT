@@ -1,0 +1,61 @@
+{{- if .Values.deployment.microServices.engineeringTool.enabled }}
+{{- if ( ne .Values.azure.auth.required true ) }}
+{{- fail "engineeringTool requires authentication to be enabled" }}
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "azure-industrial-iot.engineering-tool.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.engineering-tool.component" . }}
+    app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.engineeringTool.extraLabels }}
+{{ toYaml .Values.deployment.microServices.engineeringTool.extraLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deployment.microServices.engineeringTool.service.annotations }}
+  annotations:
+{{ toYaml .Values.deployment.microServices.engineeringTool.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.deployment.microServices.engineeringTool.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.engineering-tool.component" . }}
+    app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.engineeringTool.service.clusterIP }}
+  clusterIP: {{ .Values.deployment.microServices.engineeringTool.service.clusterIP }}
+{{- end }}
+{{- if .Values.deployment.microServices.engineeringTool.service.externalIPs }}
+  externalIPs:
+{{ toYaml .Values.deployment.microServices.engineeringTool.service.externalIPs | indent 2 }}
+{{- end }}
+{{- if .Values.deployment.microServices.engineeringTool.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.deployment.microServices.engineeringTool.service.loadBalancerIP }}
+{{- end }}
+{{- if .Values.deployment.microServices.engineeringTool.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml .Values.deployment.microServices.engineeringTool.service.loadBalancerSourceRanges | indent 2 }}
+{{- end }}
+  ports:
+  - port: {{ .Values.deployment.microServices.engineeringTool.service.httpPort }}
+    targetPort: 80
+    protocol: TCP
+    name: http
+{{- if .Values.deployment.microServices.engineeringTool.service.httpNodePort }}
+    nodePort: {{ .Values.deployment.microServices.engineeringTool.service.httpNodePort }}
+{{- end }}
+  - port: {{ .Values.deployment.microServices.engineeringTool.service.httpsPort }}
+    targetPort: 443
+    protocol: TCP
+    name: https
+{{- if .Values.deployment.microServices.engineeringTool.service.httpsNodePort }}
+    nodePort: {{ .Values.deployment.microServices.engineeringTool.service.httpsNodePort }}
+{{- end }}
+{{- end }}

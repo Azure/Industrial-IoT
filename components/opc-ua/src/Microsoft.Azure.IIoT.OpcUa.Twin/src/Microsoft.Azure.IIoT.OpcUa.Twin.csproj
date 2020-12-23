@@ -1,23 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT OPC Twin component</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
-  <Choose>
-    <When Condition="'$(PROJECT_BUILD)' == ''">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub\src\Microsoft.Azure.IIoT.Hub.csproj" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub" Version="$(ReleaseVersion)" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Protocol\src\Microsoft.Azure.IIoT.OpcUa.Protocol.csproj" />
+  </ItemGroup>
 </Project>

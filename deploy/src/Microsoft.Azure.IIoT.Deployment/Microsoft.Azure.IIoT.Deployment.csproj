@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>8.0</LangVersion>
 
     <!--https://docs.microsoft.com/en-us/dotnet/core/whats-new/dotnet-core-3-0#assembly-linking-->
@@ -10,44 +10,44 @@
 
     <!--https://docs.microsoft.com/en-us/dotnet/core/whats-new/dotnet-core-3-0#readytorun-images-->
     <PublishReadyToRun>true</PublishReadyToRun>
-    
+
     <!--<PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>-->
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.27.2" />
+    <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.35.0" />
     <PackageReference Include="Microsoft.Azure.Management.IotHub" Version="2.10.0-preview" />
-    <PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.27.2" />
-    <PackageReference Include="Microsoft.Azure.Management.OperationalInsights" Version="0.19.0-preview" />
-    <PackageReference Include="Microsoft.Azure.Management.ApplicationInsights" Version="0.2.0-preview" />
-    <PackageReference Include="Microsoft.Azure.Management.Authorization" Version="2.11.0-preview" />
-    <PackageReference Include="Microsoft.Azure.Management.Graph.RBAC.Fluent" Version="1.27.2" />
-    <PackageReference Include="Microsoft.Azure.Management.SignalR" Version="1.0.1" />
-    
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.3.1" />
-    
-    <!--<PackageReference Include="Microsoft.Graph" Version="1.18.0" />-->
-    <PackageReference Include="Microsoft.Graph.Beta" Version="0.8.0-preview" />
-    <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.2" />
-    
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Azure.Management.OperationalInsights" Version="0.21.0-preview" />
+    <PackageReference Include="Microsoft.Azure.Management.ApplicationInsights" Version="0.3.0-preview" />
+    <PackageReference Include="Microsoft.Azure.Management.Authorization" Version="2.12.0-preview" />
+    <PackageReference Include="Microsoft.Azure.Management.SignalR" Version="1.1.0" />
 
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.0" />
-    
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.5.2" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.0" />
 
-    <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
+    <PackageReference Include="Microsoft.Graph" Version="3.20.0" />
+    <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.5" />
 
-    <PackageReference Include="KubernetesClient" Version="1.6.4" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.23.0" />
+
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.10" />
+
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.7.0" />
+
+    <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
 
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Resources\ArmTemplates.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ArmTemplates.resx</DependentUpon>
+    </Compile>
     <Compile Update="Resources\IIoTDeploymentTags.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -61,6 +61,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Resources\ArmTemplates.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ArmTemplates.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Resources\IIoTDeploymentTags.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>IIoTDeploymentTags.Designer.cs</LastGenOutput>
@@ -72,9 +76,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\scripts\jumpbox.sh" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\deployments\" />
   </ItemGroup>
 
 </Project>

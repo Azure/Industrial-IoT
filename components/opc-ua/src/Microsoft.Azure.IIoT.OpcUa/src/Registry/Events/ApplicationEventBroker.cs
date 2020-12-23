@@ -16,7 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
     /// all event versions to event bus
     /// </summary>
     public sealed class ApplicationEventBroker :
-        IApplicationEventBroker, IApplicationRegistryEvents {
+        IRegistryEventBroker<IApplicationRegistryListener>,
+        IRegistryEvents<IApplicationRegistryListener> {
 
         /// <summary>
         /// Create broker
@@ -27,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
             _processor = processor;
             _listeners = new ConcurrentDictionary<string, IApplicationRegistryListener>();
 
-            _listeners.TryAdd("v2", new Events.v2.ApplicationEventPublisher(bus));
+            _listeners.TryAdd("v2", new Events.v2.ApplicationEventBusPublisher(bus));
             // ...
         }
 

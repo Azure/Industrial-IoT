@@ -213,8 +213,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="cont"></param>
-        /// <param name="maxRetry"></param>
         /// <param name="work"></param>
+        /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithLinearBackoff(ILogger logger,
             Func<Task> work, Func<Exception, bool> cont, int? maxRetry = null) {
@@ -269,8 +269,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <typeparam name="T"></typeparam>
         /// <param name="logger"></param>
         /// <param name="cont"></param>
-        /// <param name="maxRetry"></param>
         /// <param name="work"></param>
+        /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task<T> WithLinearBackoff<T>(ILogger logger,
             Func<Task<T>> work, Func<Exception, bool> cont, int? maxRetry = null) {
@@ -280,8 +280,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with exponential backoff
         /// </summary>
-        /// <param name="ct"></param>
         /// <param name="logger"></param>
+        /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
         /// <param name="maxRetry"></param>
@@ -321,8 +321,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="cont"></param>
-        /// <param name="maxRetry"></param>
         /// <param name="work"></param>
+        /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithExponentialBackoff(ILogger logger,
             Func<Task> work, Func<Exception, bool> cont, int? maxRetry = null) {
@@ -376,8 +376,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="logger"></param>
-        /// <param name="cont"></param>
         /// <param name="work"></param>
+        /// <param name="cont"></param>
         /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task<T> WithExponentialBackoff<T>(ILogger logger,
@@ -428,8 +428,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="cont"></param>
-        /// <param name="maxRetry"></param>
         /// <param name="work"></param>
+        /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithLinearBackoff(ILogger logger,
             Action work, Func<Exception, bool> cont, int? maxRetry = null) {
@@ -484,8 +484,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <typeparam name="T"></typeparam>
         /// <param name="logger"></param>
         /// <param name="cont"></param>
-        /// <param name="maxRetry"></param>
         /// <param name="work"></param>
+        /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task<T> WithLinearBackoff<T>(ILogger logger,
             Func<T> work, Func<Exception, bool> cont, int? maxRetry = null) {
@@ -495,8 +495,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Retry with exponential backoff
         /// </summary>
-        /// <param name="ct"></param>
         /// <param name="logger"></param>
+        /// <param name="ct"></param>
         /// <param name="work"></param>
         /// <param name="cont"></param>
         /// <param name="maxRetry"></param>
@@ -535,8 +535,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="cont"></param>
-        /// <param name="maxRetry"></param>
         /// <param name="work"></param>
+        /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithExponentialBackoff(ILogger logger,
             Action work, Func<Exception, bool> cont, int? maxRetry = null) {
@@ -590,8 +590,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <typeparam name="T"></typeparam>
         /// <param name="logger"></param>
         /// <param name="cont"></param>
-        /// <param name="maxRetry"></param>
         /// <param name="work"></param>
+        /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task<T> WithExponentialBackoff<T>(ILogger logger,
             Func<T> work, Func<Exception, bool> cont, int? maxRetry = null) {
@@ -641,8 +641,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="cont"></param>
-        /// <param name="maxRetry"></param>
         /// <param name="work"></param>
+        /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task WithoutDelay(ILogger logger,
             Action work, Func<Exception, bool> cont, int? maxRetry = null) {
@@ -696,8 +696,8 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <typeparam name="T"></typeparam>
         /// <param name="logger"></param>
         /// <param name="cont"></param>
-        /// <param name="maxRetry"></param>
         /// <param name="work"></param>
+        /// <param name="maxRetry"></param>
         /// <returns></returns>
         public static Task<T> WithoutDelay<T>(ILogger logger,
             Func<T> work, Func<Exception, bool> cont, int? maxRetry = null) {
@@ -718,7 +718,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         private static async Task DelayOrThrow(ILogger logger, Func<Exception, bool> cont,
             Func<int, Exception, int> policy, int maxRetry, int k, Exception ex,
             CancellationToken ct) {
-            if ((k > maxRetry || !cont(ex)) && !(ex is ITransientException)) {
+            if (k > maxRetry || !cont(ex)) {
                 logger?.Verbose(ex, "Give up after {k}", k);
                 throw ex;
             }

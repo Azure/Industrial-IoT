@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.Extensions {
     using Opc.Ua.Models;
-    using Opc.Ua;
     using System;
     using System.Globalization;
     using System.Linq;
@@ -168,19 +167,14 @@ namespace Opc.Ua.Extensions {
                 return ExpandedNodeId.Parse(value);
             }
             var identifier = ParseNodeIdUri(value, out var nsUri, out var srvUri);
+
+            // Allocate entry in context if does not exist
+            var nsIndex = context.NamespaceUris.GetIndexOrAppend(nsUri);
             if (!string.IsNullOrEmpty(srvUri)) {
-                // References a node id on a server
-                if (nsUri == Namespaces.OpcUa) {
-                    return new ExpandedNodeId(identifier, 0, null,
-                        context.ServerUris.GetIndexOrAppend(srvUri));
-                }
-                return new ExpandedNodeId(identifier, context.NamespaceUris.GetIndexOrAppend(nsUri),
-                    nsUri, context.ServerUris.GetIndexOrAppend(srvUri));
+                return new ExpandedNodeId(identifier, 0, nsUri == Namespaces.OpcUa ? null : nsUri,
+                    context.ServerUris.GetIndexOrAppend(srvUri));
             }
-            if (nsUri == Namespaces.OpcUa) {
-                return new ExpandedNodeId(identifier, 0, null, 0);
-            }
-            return new ExpandedNodeId(identifier, context.NamespaceUris.GetIndexOrAppend(nsUri), nsUri, 0);
+            return new ExpandedNodeId(identifier, 0, nsUri == Namespaces.OpcUa ? null : nsUri, 0);
         }
 
         /// <summary>
@@ -250,6 +244,21 @@ namespace Opc.Ua.Extensions {
         }
 
         /// <summary>
+        /// Validates node id string
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static bool IsValid(string value) {
+            try {
+                ToExpandedNodeId(value, new ServiceMessageContext());
+                return true;
+            }
+            catch {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Parses a node uri and returns components.  The format of the uri is
         /// <para>namespaceuri(?srv=serverurn)#idtype_idasstring</para>.  Avoid url
         /// encoding due to the problem of storage encoding again.
@@ -276,7 +285,10 @@ namespace Opc.Ua.Extensions {
                 if (string.IsNullOrEmpty(uri.Fragment)) {
                     throw new FormatException($"Bad fragment - should contain identifier.");
                 }
-                nsUri = uri.NoQueryAndFragment().AbsoluteUri;
+
+                var idStart = value.IndexOf('#');
+
+                nsUri = idStart >= 0 ? value.Substring(0, idStart) : uri.NoQueryAndFragment().AbsoluteUri;
                 value = uri.Fragment.TrimStart('#');
             }
 
@@ -326,8 +338,8 @@ namespace Opc.Ua.Extensions {
         /// <summary>
         /// Parse identfier from string
         /// </summary>
-        /// <param name="text"></param>
         /// <param name="type"></param>
+        /// <param name="text"></param>
         /// <returns></returns>
         private static object ParseIdentifier(char type, string text) {
             switch (type) {

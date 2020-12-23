@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
     using System;
     using System.Collections.Generic;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Azure.Management.CosmosDB.Fluent;
@@ -23,13 +22,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         private const string kCOSMOS_DB_ACCOUNT_CONNECTION_STRING_FORMAT = "AccountEndpoint={0};AccountKey={1};";
 
-        private readonly CosmosDB _cosmosDBManagementClient;
+        private readonly CosmosDBManagementClient _cosmosDBManagementClient;
 
         public CosmosDBMgmtClient(
             string subscriptionId,
             RestClient restClient
         ) {
-            _cosmosDBManagementClient = new CosmosDB(restClient) {
+            _cosmosDBManagementClient = new CosmosDBManagementClient(restClient) {
                 SubscriptionId = subscriptionId
             };
         }
@@ -114,7 +113,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             throw new Exception(errorMessage);
         }
 
-        public async Task<DatabaseAccountInner> CreateDatabaseAccountAsync(
+        public async Task<DatabaseAccountGetResultsInner> CreateDatabaseAccountAsync(
             IResourceGroup resourceGroup,
             string cosmosDBAccountName,
             IDictionary<string, string> tags = null,
@@ -125,7 +124,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
                 Log.Information($"Creating Azure CosmosDB Account: {cosmosDBAccountName} ...");
 
-                var databaseAccountParameters = new DatabaseAccountCreateUpdateParametersInner {
+                var databaseAccountParameters = new DatabaseAccountCreateUpdateParameters {
                     Location = resourceGroup.RegionName,
                     Tags = tags,
 
@@ -169,7 +168,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         public async Task<string> GetCosmosDBAccountConnectionStringAsync(
             IResourceGroup resourceGroup,
-            DatabaseAccountInner cosmosDBAccount,
+            DatabaseAccountGetResultsInner cosmosDBAccount,
             CancellationToken cancellationToken = default
         ) {
             var cosmosDBAccountKeys = await _cosmosDBManagementClient

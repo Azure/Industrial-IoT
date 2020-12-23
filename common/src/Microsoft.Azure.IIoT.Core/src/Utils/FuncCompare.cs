@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace System.Collections.Generic {
-    using System;
 
     /// <summary>
     /// Lambda comparer

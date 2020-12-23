@@ -63,11 +63,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public List<string> Locales { get; set; }
 
         /// <summary>
-        /// Callbacks to invoke once onboarding finishes
-        /// </summary>
-        public List<CallbackModel> Callbacks { get; set; }
-
-        /// <summary>
         /// Activate all endpoints with this filter during onboarding.
         /// </summary>
         public EndpointActivationFilterModel ActivationFilter { get; set; }

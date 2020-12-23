@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module {
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -21,6 +22,6 @@ namespace Microsoft.Azure.IIoT.Module {
         /// <summary>
         /// Get all properties the twin has reported and thus applied.
         /// </summary>
-        IReadOnlyDictionary<string, dynamic> Reported { get; }
+        IReadOnlyDictionary<string, VariantValue> Reported { get; }
     }
 }

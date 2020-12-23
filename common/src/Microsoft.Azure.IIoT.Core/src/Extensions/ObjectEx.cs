@@ -6,7 +6,6 @@
 namespace System {
     using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Linq;
 
     /// <summary>
     /// Base object extensions

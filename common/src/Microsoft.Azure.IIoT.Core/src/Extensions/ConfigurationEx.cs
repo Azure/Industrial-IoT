@@ -65,5 +65,19 @@ namespace Microsoft.Extensions.Configuration {
             }
             return builder;
         }
+
+        /// <summary>
+        /// Add environment variables
+        /// </summary>
+        /// <param name="configurationBuilder"></param>
+        /// <param name="environmentVariableTarget"></param>
+        /// <returns></returns>
+        public static IConfigurationBuilder AddEnvironmentVariables(
+            this IConfigurationBuilder configurationBuilder,
+            EnvironmentVariableTarget environmentVariableTarget) {
+            configurationBuilder.AddInMemoryCollection(Environment.GetEnvironmentVariables(
+                environmentVariableTarget).ToKeyValuePairs<string, string>());
+            return configurationBuilder;
+        }
     }
 }

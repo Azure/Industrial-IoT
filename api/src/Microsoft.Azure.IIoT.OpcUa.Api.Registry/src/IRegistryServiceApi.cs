@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,8 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// Returns status of the service
         /// </summary>
         /// <returns></returns>
-        Task<StatusResponseApiModel> GetServiceStatusAsync(
-            CancellationToken ct = default);
+        Task<string> GetServiceStatusAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Kick off onboarding of new server
@@ -37,6 +37,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task DiscoverAsync(DiscoveryRequestApiModel request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Cancel a discovery request with a particular id
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task CancelAsync(DiscoveryCancelApiModel request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -154,23 +163,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             CancellationToken ct = default);
 
         /// <summary>
+        /// Get endpoint certificate
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<X509CertificateChainApiModel> GetEndpointCertificateAsync(
+            string endpointId, CancellationToken ct = default);
+
+        /// <summary>
         /// Set endpoint activation state to activated
         /// </summary>
         /// <param name="endpointId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task ActivateEndpointAsync(string endpointId,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Update endpoint registration
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task UpdateEndpointAsync(string endpointId,
-            EndpointRegistrationUpdateApiModel request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -195,8 +202,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>
-        /// Find endpoint based on specified critiria. Pass continuation
-        /// token if any is returned to ListTwins to retrieve
+        /// Find endpoint based on specified criteria. Pass continuation
+        /// token if any is returned to ListEndpointsAsync to retrieve
         /// the remaining items
         /// </summary>
         /// <param name="query"></param>
@@ -207,17 +214,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         Task<EndpointInfoListApiModel> QueryEndpointsAsync(
             EndpointRegistrationQueryApiModel query,
             bool? onlyServerState = null, int? pageSize = null,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Get supervisor
-        /// </summary>
-        /// <param name="supervisorId"></param>
-        /// <param name="onlyServerState"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<SupervisorApiModel> GetSupervisorAsync(
-            string supervisorId, bool? onlyServerState = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -235,6 +231,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="supervisorId"></param>
         /// <param name="ct"></param>
         Task ResetSupervisorAsync(string supervisorId,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get supervisor
+        /// </summary>
+        /// <param name="supervisorId"></param>
+        /// <param name="onlyServerState"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<SupervisorApiModel> GetSupervisorAsync(
+            string supervisorId, bool? onlyServerState = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -273,5 +280,153 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         Task<SupervisorListApiModel> QuerySupervisorsAsync(
             SupervisorQueryApiModel query, bool? onlyServerState = null,
             int? pageSize = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Get discoverer
+        /// </summary>
+        /// <param name="discovererId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<DiscovererApiModel> GetDiscovererAsync(
+            string discovererId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Update discoverer including config updates.
+        /// </summary>
+        /// <param name="discovererId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task UpdateDiscovererAsync(string discovererId,
+            DiscovererUpdateApiModel request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// List all discoverers
+        /// </summary>
+        /// <param name="continuation"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<DiscovererListApiModel> ListDiscoverersAsync(
+            string continuation = null, int? pageSize = null,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Find discoverers based on specified criteria. Pass
+        /// continuation token if any returned to ListDiscoverers to
+        /// retrieve remaining items.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<DiscovererListApiModel> QueryDiscoverersAsync(
+            DiscovererQueryApiModel query,
+            int? pageSize = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Enable or disable discovery with optional configuration
+        /// </summary>
+        /// <param name="discovererId"></param>
+        /// <param name="mode"></param>
+        /// <param name="config"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task SetDiscoveryModeAsync(string discovererId,
+            DiscoveryMode mode, DiscoveryConfigApiModel config = null,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get gateway
+        /// </summary>
+        /// <param name="gatewayId"></param>
+        /// <param name="onlyServerState"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<PublisherApiModel> GetPublisherAsync(
+            string gatewayId, bool? onlyServerState = null,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Update Publisher including config updates.
+        /// </summary>
+        /// <param name="gatewayId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task UpdatePublisherAsync(string gatewayId,
+            PublisherUpdateApiModel request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// List all gateways
+        /// </summary>
+        /// <param name="continuation"></param>
+        /// <param name="onlyServerState"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<PublisherListApiModel> ListPublishersAsync(
+            string continuation = null, bool? onlyServerState = null,
+            int? pageSize = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Find gateways based on specified criteria. Pass
+        /// continuation token if any returned to ListPublishers to
+        /// retrieve remaining items.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="onlyServerState"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<PublisherListApiModel> QueryPublishersAsync(
+            PublisherQueryApiModel query, bool? onlyServerState = null,
+            int? pageSize = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Get gateway
+        /// </summary>
+        /// <param name="gatewayId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<GatewayInfoApiModel> GetGatewayAsync(
+            string gatewayId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Update Gateway including config updates.
+        /// </summary>
+        /// <param name="gatewayId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task UpdateGatewayAsync(string gatewayId,
+            GatewayUpdateApiModel request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// List all gateways
+        /// </summary>
+        /// <param name="continuation"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<GatewayListApiModel> ListGatewaysAsync(
+            string continuation = null, int? pageSize = null,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Find gateways based on specified criteria. Pass
+        /// continuation token if any returned to ListGateways to
+        /// retrieve remaining items.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<GatewayListApiModel> QueryGatewaysAsync(
+            GatewayQueryApiModel query, int? pageSize = null,
+            CancellationToken ct = default);
     }
 }

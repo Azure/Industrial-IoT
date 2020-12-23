@@ -143,7 +143,7 @@ namespace TestData {
 
                 foreach (var node in PredefinedNodes.Values) {
 
-                    if (node is ConditionState condition && !object.ReferenceEquals(condition.Parent, conditionsFolder)) {
+                    if (node is ConditionState condition && !ReferenceEquals(condition.Parent, conditionsFolder)) {
                         condition.AddNotifier(SystemContext, null, true, conditionsFolder);
                         conditionsFolder.AddNotifier(SystemContext, null, false, condition);
                     }
@@ -197,9 +197,7 @@ namespace TestData {
                         var activeNode = new TestSystemConditionState(passiveNode.Parent);
                         activeNode.Create(context, passiveNode);
 
-                        if (passiveNode.Parent != null) {
-                            passiveNode.Parent.ReplaceChild(context, activeNode);
-                        }
+                        passiveNode.Parent?.ReplaceChild(context, activeNode);
 
                         return activeNode;
                     }
@@ -212,9 +210,7 @@ namespace TestData {
                         var activeNode = new ScalarValueObjectState(passiveNode.Parent);
                         activeNode.Create(context, passiveNode);
 
-                        if (passiveNode.Parent != null) {
-                            passiveNode.Parent.ReplaceChild(context, activeNode);
-                        }
+                        passiveNode.Parent?.ReplaceChild(context, activeNode);
 
                         return activeNode;
                     }
@@ -227,9 +223,7 @@ namespace TestData {
                         var activeNode = new AnalogScalarValueObjectState(passiveNode.Parent);
                         activeNode.Create(context, passiveNode);
 
-                        if (passiveNode.Parent != null) {
-                            passiveNode.Parent.ReplaceChild(context, activeNode);
-                        }
+                        passiveNode.Parent?.ReplaceChild(context, activeNode);
 
                         return activeNode;
                     }
@@ -242,9 +236,7 @@ namespace TestData {
                         var activeNode = new ArrayValueObjectState(passiveNode.Parent);
                         activeNode.Create(context, passiveNode);
 
-                        if (passiveNode.Parent != null) {
-                            passiveNode.Parent.ReplaceChild(context, activeNode);
-                        }
+                        passiveNode.Parent?.ReplaceChild(context, activeNode);
 
                         return activeNode;
                     }
@@ -257,9 +249,7 @@ namespace TestData {
                         var activeNode = new AnalogArrayValueObjectState(passiveNode.Parent);
                         activeNode.Create(context, passiveNode);
 
-                        if (passiveNode.Parent != null) {
-                            passiveNode.Parent.ReplaceChild(context, activeNode);
-                        }
+                        passiveNode.Parent?.ReplaceChild(context, activeNode);
 
                         return activeNode;
                     }
@@ -272,9 +262,7 @@ namespace TestData {
                         var activeNode = new UserScalarValueObjectState(passiveNode.Parent);
                         activeNode.Create(context, passiveNode);
 
-                        if (passiveNode.Parent != null) {
-                            passiveNode.Parent.ReplaceChild(context, activeNode);
-                        }
+                        passiveNode.Parent?.ReplaceChild(context, activeNode);
 
                         return activeNode;
                     }
@@ -287,9 +275,7 @@ namespace TestData {
                         var activeNode = new UserArrayValueObjectState(passiveNode.Parent);
                         activeNode.Create(context, passiveNode);
 
-                        if (passiveNode.Parent != null) {
-                            passiveNode.Parent.ReplaceChild(context, activeNode);
-                        }
+                        passiveNode.Parent?.ReplaceChild(context, activeNode);
 
                         return activeNode;
                     }
@@ -302,9 +288,7 @@ namespace TestData {
                         var activeNode = new MethodTestState(passiveNode.Parent);
                         activeNode.Create(context, passiveNode);
 
-                        if (passiveNode.Parent != null) {
-                            passiveNode.Parent.ReplaceChild(context, activeNode);
-                        }
+                        passiveNode.Parent?.ReplaceChild(context, activeNode);
 
                         return activeNode;
                     }
@@ -372,7 +356,7 @@ namespace TestData {
             HistoryDataReader reader = null;
             var data = new HistoryData();
 
-            if (nodeToRead.ContinuationPoint != null && nodeToRead.ContinuationPoint.Length > 0) {
+            if (nodeToRead.ContinuationPoint?.Length > 0) {
                 // restore the continuation point.
                 reader = RestoreDataReader(serverContext, nodeToRead.ContinuationPoint);
 

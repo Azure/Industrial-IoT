@@ -4,23 +4,29 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Default;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.AspNetCore;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.Serializers.MessagePack;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Autofac;
+    using Autofac.Extensions.Hosting;
     using System;
     using System.Net.Http;
     using System.Text;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using System.Threading;
+    using System.Linq;
 
     /// <summary>
     /// Startup class for tests
@@ -31,9 +37,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        /// <param name="configuration"></param>
-        public TestStartup(IHostingEnvironment env, IConfiguration configuration) :
-            base(env, configuration) {
+        public TestStartup(IWebHostEnvironment env) : base(env, new Config(null)) {
         }
 
         /// <inheritdoc/>
@@ -41,8 +45,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             base.ConfigureContainer(builder);
 
             builder.RegisterType<TestIoTHubConfig>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TestModule>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TestIdentity>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ClientServices>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -50,35 +56,74 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AddressSpaceServices>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<PublishServicesStub<EndpointModel>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<UploadServicesStub<EndpointModel>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterType<TestAuthConfig>()
+                .AsImplementedInterfaces();
         }
 
-        public class TestIoTHubConfig : IIoTHubConfig {
+        public class TestAuthConfig : IServerAuthConfig {
+            public bool AllowAnonymousAccess => true;
+            public IEnumerable<IOAuthServerConfig> JwtBearerProviders { get; }
+        }
+
+        public class TestIoTHubConfig : IIoTHubConfig, IIoTHubConfigurationServices {
             public string IoTHubConnString =>
                 ConnectionString.CreateServiceConnectionString(
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-            public string IoTHubResourceId => null;
+
+            public Task ApplyConfigurationAsync(string deviceId,
+                ConfigurationContentModel configuration, CancellationToken ct = default) {
+                return Task.CompletedTask;
+            }
+
+            public Task<ConfigurationModel> CreateOrUpdateConfigurationAsync(
+                ConfigurationModel configuration, bool forceUpdate, CancellationToken ct = default) {
+                return Task.FromResult<ConfigurationModel>(new ConfigurationModel());
+            }
+
+            public Task DeleteConfigurationAsync(string configurationId, string etag,
+                CancellationToken ct = default) {
+                return Task.CompletedTask;
+            }
+
+            public Task<ConfigurationModel> GetConfigurationAsync(string configurationId,
+                CancellationToken ct = default) {
+                return Task.FromResult<ConfigurationModel>(new ConfigurationModel());
+            }
+
+            public Task<IEnumerable<ConfigurationModel>> ListConfigurationsAsync(
+                int? maxCount, CancellationToken ct = default) {
+                return Task.FromResult(Enumerable.Empty<ConfigurationModel>());
+            }
         }
     }
 
     /// <inheritdoc/>
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory {
 
+        public static IEnumerable<object[]> GetSerializers() {
+            yield return new object[] { new MessagePackSerializer() };
+            yield return new object[] { new NewtonSoftJsonSerializer() };
+        }
+
         /// <inheritdoc/>
-        protected override IWebHostBuilder CreateWebHostBuilder() {
-            return WebHost.CreateDefaultBuilder().UseStartup<TestStartup>();
+        protected override IHostBuilder CreateHostBuilder() {
+            return Extensions.Hosting.Host.CreateDefaultBuilder();
         }
 
         /// <inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder) {
-            builder.UseContentRoot(".");
+            builder.UseContentRoot(".").UseStartup<TestStartup>();
             base.ConfigureWebHost(builder);
+        }
+
+        /// <inheritdoc/>
+        protected override IHost CreateHost(IHostBuilder builder) {
+            builder.UseAutofac();
+            return base.CreateHost(builder);
         }
 
         /// <inheritdoc/>
@@ -92,7 +137,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public T Resolve<T>() {
-            return (T)Server.Host.Services.GetService(typeof(T));
+            return (T)Server.Services.GetService(typeof(T));
         }
     }
 }

@@ -77,12 +77,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </summary>
         /// <param name="continuation"></param>
         /// <param name="pageSize"></param>
-        /// <param name="disabled"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<ApplicationInfoListModel> ListAsync(
-            string continuation, int? pageSize, bool? disabled,
-            CancellationToken ct = default);
+        Task<ApplicationInfoListModel> ListAsync(string continuation,
+            int? pageSize, CancellationToken ct = default);
 
         /// <summary>
         /// List all applications in a site

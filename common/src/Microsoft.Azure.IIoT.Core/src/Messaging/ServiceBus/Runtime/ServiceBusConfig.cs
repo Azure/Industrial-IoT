@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime {
 
         /// <inheritdoc/>
         public string ServiceBusConnString => GetStringOrDefault(kServiceBusConnectionString,
-            GetStringOrDefault("PCS_SERVICEBUS_CONNSTRING",
-                GetStringOrDefault("_SB_CS", null)));
+            () => GetStringOrDefault(PcsVariable.PCS_SERVICEBUS_CONNSTRING,
+                () => GetStringOrDefault("_SB_CS", () => null)));
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public ServiceBusConfig(IConfigurationRoot configuration) :
+        public ServiceBusConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

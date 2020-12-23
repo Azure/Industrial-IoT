@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
-    using MemoryBuffer;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -16,18 +16,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using System.Threading.Tasks;
     using System.Xml;
     using Xunit;
-    using Formatting = Newtonsoft.Json.Formatting;
+    using MemoryBuffer;
 
     public class CallScalarMethodTests<T> {
 
         /// <summary>
         /// Create node services tests
         /// </summary>
-        /// <param name="services"></param>
-        /// <param name="endpoint"></param>
         public CallScalarMethodTests(Func<INodeServices<T>> services, T endpoint) {
             _services = services;
             _endpoint = endpoint;
+            _serializer = new NewtonSoftJsonSerializer();
         }
 
         public async Task NodeMethodMetadataStaticScalarMethod1TestAsync() {
@@ -48,223 +47,223 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 arg => {
                     Assert.Equal("BooleanIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Boolean", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Boolean", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("SByteIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("SByte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("SByte", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ByteIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Byte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Byte", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int16In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int16", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt16In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt16", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int32In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int32", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt32In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt32", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int64In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int64", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt64In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt64", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("FloatIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Float", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Float", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("DoubleIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Double", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Double", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
                 arg => {
                     Assert.Equal("BooleanOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Boolean", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Boolean", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("SByteOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("SByte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("SByte", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ByteOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Byte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Byte", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int16Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int16", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt16Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt16", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int32Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int32", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt32Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt32", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int64Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int64", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt64Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt64", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("FloatOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Float", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Float", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("DoubleOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Double", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Double", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
         }
 
@@ -287,203 +286,203 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 arg => {
                     Assert.Equal("StringIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("String", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("String", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("DateTimeIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("DateTime", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("DateTime", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("GuidIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Guid", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Guid", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ByteStringIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ByteString", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("ByteString", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("XmlElementIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("XmlElement", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("XmlElement", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("NodeIdIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("NodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("NodeId", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ExpandedNodeIdIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExpandedNodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("ExpandedNodeId", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("QualifiedNameIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("QualifiedName", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("QualifiedName", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("LocalizedTextIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("LocalizedText", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("LocalizedText", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StatusCodeIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("StatusCode", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("StatusCode", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
                 arg => {
                     Assert.Equal("StringOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("String", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("String", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("DateTimeOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("DateTime", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("DateTime", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("GuidOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Guid", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Guid", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ByteStringOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ByteString", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("ByteString", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("XmlElementOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("XmlElement", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("XmlElement", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("NodeIdOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("NodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("NodeId", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ExpandedNodeIdOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExpandedNodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("ExpandedNodeId", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("QualifiedNameOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("QualifiedName", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("QualifiedName", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("LocalizedTextOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("LocalizedText", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("LocalizedText", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StatusCodeOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("StatusCode", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("StatusCode", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
         }
 
@@ -506,63 +505,63 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 arg => {
                     Assert.Equal("VariantIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
                 arg => {
                     Assert.Equal("VariantOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
         }
 
@@ -588,63 +587,63 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 arg => {
                     Assert.Equal("VariantIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
                 arg => {
                     Assert.Equal("VariantOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
         }
 
@@ -672,63 +671,63 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 arg => {
                     Assert.Equal("VariantIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
                 arg => {
                     Assert.Equal("VariantOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", JsonConvert.SerializeObject(arg.ArrayDimensions));
+                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
         }
 
@@ -1104,7 +1103,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 new MethodCallArgumentModel {
                     DataType = "XmlElement",
-                    Value = JToken.FromObject(XmlElementEx.SerializeObject(
+                    Value = _serializer.FromObject(XmlElementEx.SerializeObject(
                         new MemoryBufferInstance{
                             Name = "test",
                             TagCount = 333,
@@ -1125,7 +1124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 new MethodCallArgumentModel {
                     DataType = "LocalizedText",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Locale = "de",
                         Text = "Hallo Welt"
                     })
@@ -1147,40 +1146,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.Collection(result.Results,
                 arg => {
-                    Assert.Equal((string)input[0].Value, (string)arg.Value);
+                    Assert.Equal(input[0].Value, arg.Value);
                     Assert.Equal(input[0].DataType, arg.DataType);
                 },
                 arg => {
-                    Assert.Equal((string)input[1].Value, (string)arg.Value);
+                    Assert.Equal(input[1].Value, arg.Value);
                     Assert.Equal(input[1].DataType, arg.DataType);
                 },
                 arg => {
-                    Assert.Equal((string)input[2].Value, (string)arg.Value);
+                    Assert.Equal(input[2].Value, arg.Value);
                     Assert.Equal(input[2].DataType, arg.DataType);
                 },
                 arg => {
-                    Assert.Equal((string)input[3].Value, (string)arg.Value);
+                    Assert.Equal(input[3].Value, arg.Value);
                     Assert.Equal(input[3].DataType, arg.DataType);
                 },
                 arg => {
-                    Assert.Equal(input[4].Value.ToString(Formatting.None),
-                        arg.Value.ToString(Formatting.None));
+                    Assert.Equal(input[4].Value, arg.Value);
                     Assert.Equal(input[4].DataType, arg.DataType);
                 },
                 arg => {
-                    Assert.Equal((string)input[5].Value, (string)arg.Value);
+                    Assert.Equal(input[5].Value, arg.Value);
                     Assert.Equal(input[5].DataType, arg.DataType);
                 },
                 arg => {
-                    Assert.Equal((string)input[6].Value, (string)arg.Value);
+                    Assert.Equal(input[6].Value, arg.Value);
                     Assert.Equal(input[6].DataType, arg.DataType);
                 },
                 arg => {
-                    Assert.Equal((string)input[7].Value, (string)arg.Value);
+                    Assert.Equal(input[7].Value, arg.Value);
                     Assert.Equal(input[7].DataType, arg.DataType);
                 },
                 arg => {
-                    Assert.True(JToken.DeepEquals(input[8].Value, arg.Value),
+                    Assert.True(VariantValue.DeepEquals(input[8].Value, arg.Value),
                         $"Expected: {input[8].Value} != Actual: {arg.Value}");
                     Assert.Equal(input[8].DataType, arg.DataType);
                 },
@@ -1212,43 +1210,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.Collection(result.Results,
                  arg => {
-                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[0], arg.DataType);
                  },
                  arg => {
-                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[1], arg.DataType);
                  },
                  arg => {
-                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[2], arg.DataType);
                  },
                  arg => {
-                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[3], arg.DataType);
                  },
                  arg => {
-                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[4], arg.DataType);
                  },
                  arg => {
-                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[5], arg.DataType);
                  },
                  arg => {
-                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[6], arg.DataType);
                  },
                  arg => {
-                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[7], arg.DataType);
                  },
                  arg => {
-                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[8], arg.DataType);
                  },
                  arg => {
-                     Assert.Equal(JTokenType.Null, arg.Value.Type);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[9], arg.DataType);
                  });
         }
@@ -1263,7 +1261,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
                     DataType = "Variant",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1274,7 +1272,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 new MethodCallArgumentModel {
                     DataType = "ExtensionObject",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1300,7 +1298,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(8, (int)arg.Value);
                 },
                 arg => {
-                    Assert.True(JToken.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1323,7 +1321,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 new MethodCallArgumentModel {
                     DataType = "ExtensionObject",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         TypeId = "http://test.org/#s=test2",
                         Body = new Opc.Ua.Argument("test1", Opc.Ua.DataTypes.String, -1, "desc1")
                             .AsBinary(Opc.Ua.ServiceMessageContext.GlobalContext)
@@ -1348,8 +1346,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(9999, (int)arg.Value);
                 },
                 arg => {
-                    Assert.Equal(input[2].Value.ToString(Formatting.None),
-                        arg.Value.ToString(Formatting.None));
+                    Assert.Equal(input[2].Value, arg.Value);
                 });
         }
 
@@ -1371,7 +1368,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
                     DataType = "Variant",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1382,7 +1379,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 new MethodCallArgumentModel {
                     DataType = "ExtensionObject",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1408,7 +1405,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(8, (int)arg.Value);
                 },
                 arg => {
-                    Assert.True(JToken.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1425,7 +1422,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
                     DataType = "Variant",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1436,7 +1433,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 new MethodCallArgumentModel {
                     DataType = "ExtensionObject",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1462,7 +1459,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(8, (int)arg.Value);
                 },
                 arg => {
-                    Assert.True(JToken.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1483,7 +1480,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
                     DataType = "Variant",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1494,7 +1491,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 new MethodCallArgumentModel {
                     DataType = "ExtensionObject",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1521,7 +1518,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(8, (int)arg.Value);
                 },
                 arg => {
-                    Assert.True(JToken.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1547,7 +1544,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
                     DataType = "Variant",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1558,7 +1555,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 new MethodCallArgumentModel {
                     DataType = "ExtensionObject",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1585,7 +1582,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(8, (int)arg.Value);
                 },
                 arg => {
-                    Assert.True(JToken.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1610,7 +1607,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var input = new List<MethodCallArgumentModel> {
                 new MethodCallArgumentModel {
                     DataType = "Variant",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1621,7 +1618,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 new MethodCallArgumentModel {
                     DataType = "ExtensionObject",
-                    Value = JToken.FromObject(new {
+                    Value = _serializer.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1649,7 +1646,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal(8, (int)arg.Value);
                 },
                 arg => {
-                    Assert.True(JToken.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1658,8 +1655,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         public async Task NodeMethodCallBoiler2ResetTestAsync() {
 
             var service = _services();
-            var methodId = "ns=5;i=37";
-            var objectId = "ns=5;i=31";
+            var methodId = "ns=4;i=37";
+            var objectId = "ns=4;i=31";
 
             // Act
             var result = await service.NodeMethodCallAsync(_endpoint,
@@ -1695,5 +1692,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
         private readonly T _endpoint;
         private readonly Func<INodeServices<T>> _services;
+        private readonly IJsonSerializer _serializer;
     }
 }

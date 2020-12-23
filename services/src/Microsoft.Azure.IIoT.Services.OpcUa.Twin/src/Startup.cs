@@ -4,31 +4,35 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.Services;
-    using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Clients;
-    using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Http.Auth;
-    using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using AutofacSerilogIntegration;
-    using Newtonsoft.Json;
-    using Swashbuckle.AspNetCore.Swagger;
+    using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Correlation;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.Auth;
+    using Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default;
+    using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Http.Ssl;
+    using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Module.Default;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Deploy;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Auth;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime;
+    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.OpenApi.Models;
+    using Prometheus;
     using System;
-    using Serilog;
     using ILogger = Serilog.ILogger;
-    using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
     /// Webservice startup
@@ -43,35 +47,38 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         /// <summary>
         /// Service info - Initialized in constructor
         /// </summary>
-        public ServiceInfo ServiceInfo { get; }
+        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
 
         /// <summary>
         /// Current hosting environment - Initialized in constructor
         /// </summary>
-        public IHostingEnvironment Environment { get; }
+        public IWebHostEnvironment Environment { get; }
 
         /// <summary>
-        /// Di container - Initialized in `ConfigureServices`
-        /// </summary>
-        public IContainer ApplicationContainer { get; private set; }
-
-        /// <summary>
-        /// Created through builder
+        /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) {
+        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
+            this(env, new Config(new ConfigurationBuilder()
+                .AddConfiguration(configuration)
+                .AddFromDotEnvFile()
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                // Above configuration providers will provide connection
+                // details for KeyVault configuration provider.
+                .AddFromKeyVault(providerPriority: ConfigurationProviderPriority.Lowest)
+                .Build())) {
+        }
+
+        /// <summary>
+        /// Create startup
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IWebHostEnvironment env, Config configuration) {
             Environment = env;
-            ServiceInfo = new ServiceInfo();
-            Config = new Config(
-                new ConfigurationBuilder()
-                    .AddConfiguration(configuration)
-                    .SetBasePath(env.ContentRootPath)
-                    .AddJsonFile(
-                        "appsettings.json", true, true)
-                    .AddJsonFile(
-                        $"appsettings.{env.EnvironmentName}.json", true, true)
-                    .Build());
+            Config = configuration;
         }
 
         /// <summary>
@@ -81,49 +88,35 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services) {
 
-            services.AddLogging(o => o.AddConsole().AddDebug());
+            // services.AddLogging(o => o.AddConsole().AddDebug());
 
-            // Setup (not enabling yet) CORS
+            services.AddHeaderForwarding();
             services.AddCors();
+            services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
 
-            // Add authentication
-            services.AddJwtBearerAuthentication(Config,
-                Environment.IsDevelopment());
-
-            // Add authorization
-            services.AddAuthorization(options => {
-                options.AddPolicies(Config.AuthRequired,
-                    Config.UseRoles && !Environment.IsDevelopment());
-            });
+            services.AddHttpsRedirect();
+            services.AddAuthentication()
+                .AddJwtBearerProvider(AuthProvider.AzureAD)
+                .AddJwtBearerProvider(AuthProvider.AuthService);
+            services.AddAuthorizationPolicies(
+                Policies.RoleMapping,
+                Policies.CanBrowse,
+                Policies.CanControl,
+                Policies.CanPublish);
 
             // TODO: Remove http client factory and use
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc()
-                .AddApplicationPart(GetType().Assembly)
-                .AddControllersAsServices()
-                .AddJsonOptions(options => {
-                    options.SerializerSettings.Formatting = Formatting.Indented;
-                    options.SerializerSettings.Converters.Add(new ExceptionConverter(
-                        Environment.IsDevelopment()));
-                    options.SerializerSettings.MaxDepth = 10;
-                });
+            services.AddControllers().AddSerializers();
+            services.AddSwagger(ServiceInfo.Name, ServiceInfo.Description);
 
-            services.AddSwagger(Config, new Info {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
-
-            // Prepare DI container
-            var builder = new ContainerBuilder();
-            builder.Populate(services);
-            ConfigureContainer(builder);
-            ApplicationContainer = builder.Build();
-            return new AutofacServiceProvider(ApplicationContainer);
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry(Config.InstrumentationKey);
+            services.AddSingleton<ITelemetryInitializer, ApplicationInsightsTelemetryInitializer>();
         }
 
 
@@ -133,35 +126,36 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var log = applicationContainer.Resolve<ILogger>();
 
-            var log = ApplicationContainer.Resolve<ILogger>();
+            app.UsePathBase();
+            app.UseHeaderForwarding();
 
-            if (Config.AuthRequired) {
-                app.UseAuthentication();
-            }
-            if (Config.HttpsRedirectPort > 0) {
-                // app.UseHsts();
-                app.UseHttpsRedirection();
-            }
-
+            app.UseRouting();
             app.EnableCors();
-            app.UseCorrelation();
-            app.UseSwagger(Config, new Info {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
 
-            app.UseMvc();
+            app.UseJwtBearerAuthentication();
+            app.UseAuthorization();
+            app.UseHttpsRedirect();
+
+            app.UseCorrelation();
+            app.UseSwagger();
+            app.UseMetricServer();
+            app.UseHttpMetrics();
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/healthz");
+            });
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}", ServiceInfo.Name,
-                Uptime.ProcessId);
+            log.Information("{service} web service started with id {id}",
+                ServiceInfo.Name, ServiceInfo.Id);
         }
 
         /// <summary>
@@ -172,42 +166,56 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
 
             // Register service info and configuration interfaces
             builder.RegisterInstance(ServiceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(Config.Configuration)
+                .AsImplementedInterfaces();
 
-            // Register logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(Config, Config.Configuration));
-            // Register metrics logger
-            builder.RegisterType<MetricLogger>()
-                .AsImplementedInterfaces().SingleInstance();
-            // CORS setup
-            builder.RegisterType<CorsSetup>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Add diagnostics
+            builder.AddDiagnostics(Config);
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
+#if DEBUG
+            builder.RegisterType<NoOpCertValidator>()
+                .AsImplementedInterfaces();
+#endif
+            // Add serializers
+            builder.RegisterModule<MessagePackModule>();
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
-            // ... with bearer auth
-            if (Config.AuthRequired) {
-                builder.RegisterType<BehalfOfTokenProvider>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<DistributedTokenCache>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<HttpBearerAuthentication>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
+            // Add service to service authentication
+            builder.RegisterModule<WebApiAuthentication>();
+
+            // CORS setup
+            builder.RegisterType<CorsSetup>()
+                .AsImplementedInterfaces();
 
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<IoTHubTwinMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<ChunkMethodClient>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Edge clients
-            builder.RegisterModule<TwinModuleClients>();
+            builder.RegisterType<TwinModuleControlClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<TwinModuleSupervisorClient>()
+                .AsImplementedInterfaces();
+
+            // Edge deployment
+            builder.RegisterType<IoTHubConfigurationClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<IoTHubSupervisorDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
+                .AsImplementedInterfaces().SingleInstance();
         }
     }
 }

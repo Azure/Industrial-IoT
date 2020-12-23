@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Extensions {
-    using Opc.Ua;
     using Xunit;
 
     public class TypeInfoExTests {

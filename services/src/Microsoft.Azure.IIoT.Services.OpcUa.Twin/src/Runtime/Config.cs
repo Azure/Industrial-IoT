@@ -4,101 +4,95 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
-    using Microsoft.Azure.IIoT.Services.Swagger;
-    using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
-    using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Services.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.EventHub;
-    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Extensions.Configuration;
-    using System;
+    using Microsoft.Azure.IIoT.Deploy;
+    using Microsoft.Azure.IIoT.Deploy.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.Azure.IIoT.Hosting;
+    using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : ConfigBase, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, ISwaggerConfig, IEventHubConfig, IApplicationInsightsConfig {
+    public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
+        ICorsConfig, IOpenApiConfig, IForwardedHeadersConfig,
+        IContainerRegistryConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
         /// <inheritdoc/>
-        public string IoTHubResourceId => _hub.IoTHubResourceId;
-        /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
         public bool CorsEnabled => _cors.CorsEnabled;
-        /// <inheritdoc/>
-        public string AppId => _auth.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
-        /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
-        /// <inheritdoc/>
-        public string Audience => _auth.Audience;
-        /// <inheritdoc/>
-        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
-        /// <inheritdoc/>
-        public bool AuthRequired => _auth.AuthRequired;
-        /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
-        /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
-        /// <inheritdoc/>
-        public bool UIEnabled => _swagger.UIEnabled;
-        /// <inheritdoc/>
-        public bool WithAuth => _swagger.WithAuth;
-        /// <inheritdoc/>
-        public bool WithHttpScheme => _swagger.WithHttpScheme;
-        /// <inheritdoc/>
-        public string SwaggerAppId => _swagger.SwaggerAppId;
-        /// <inheritdoc/>
-        public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
-        /// <inheritdoc/>
-        public string EventHubConnString => _eh.EventHubConnString;
-        /// <inheritdoc/>
-        public string EventHubPath => _eh.EventHubPath;
-        /// <inheritdoc/>
-        public bool UseWebsockets => _eh.UseWebsockets;
-        /// <inheritdoc/>
-        public string ConsumerGroup => _eh.ConsumerGroup;
 
-        /// <summary>
-        /// Whether to use role based access
-        /// </summary>
-        public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
         /// <inheritdoc/>
-        public TelemetryConfiguration TelemetryConfiguration => _ai.TelemetryConfiguration;
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
+        /// <inheritdoc/>
+        public string ServicePathBase => GetStringOrDefault(
+            PcsVariable.PCS_TWIN_SERVICE_PATH_BASE,
+            () => _host.ServicePathBase);
+
+        /// <inheritdoc/>
+        public bool UIEnabled => _openApi.UIEnabled;
+        /// <inheritdoc/>
+        public bool WithAuth => _openApi.WithAuth;
+        /// <inheritdoc/>
+        public string OpenApiAppId => _openApi.OpenApiAppId;
+        /// <inheritdoc/>
+        public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
+        /// <inheritdoc/>
+        public string OpenApiAuthorizationUrl => _openApi.OpenApiAuthorizationUrl;
+        /// <inheritdoc/>
+        public bool UseV2 => _openApi.UseV2;
+        /// <inheritdoc/>
+        public string OpenApiServerHost => _openApi.OpenApiServerHost;
+
+        /// <inheritdoc/>
+        public string DockerServer => _cr.DockerServer;
+        /// <inheritdoc/>
+        public string DockerUser => _cr.DockerUser;
+        /// <inheritdoc/>
+        public string DockerPassword => _cr.DockerPassword;
+        /// <inheritdoc/>
+        public string ImagesNamespace => _cr.ImagesNamespace;
+        /// <inheritdoc/>
+        public string ImagesTag => _cr.ImagesTag;
+
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public Config(IConfigurationRoot configuration) :
+        public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _swagger = new SwaggerConfig(configuration);
-            _auth = new AuthConfig(configuration);
+            _openApi = new OpenApiConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
-            _eh = new EventHubConfig(configuration);
-            _ai = new ApplicationInsightsConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
+            _cr = new ContainerRegistryConfig(configuration);
         }
 
-        private readonly SwaggerConfig _swagger;
-        private readonly AuthConfig _auth;
+        private readonly ContainerRegistryConfig _cr;
+        private readonly OpenApiConfig _openApi;
+        private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
-        private readonly EventHubConfig _eh;
-        private readonly ApplicationInsightsConfig _ai;
         private readonly IoTHubConfig _hub;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }

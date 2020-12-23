@@ -1,0 +1,62 @@
+/*
+    This is a configuration file for the SwitchStartupProject Visual Studio Extension
+    See https://bitbucket.org/thirteen/switchstartupproject/src/tip/Configuration.md
+*/
+{
+    "Version": 3,
+    "ListAllProjects": false,
+    "MultiProjectConfigurations": {
+        "Local development": {
+            "Projects": {
+                "Microsoft.Azure.IIoT.App": {},
+                "Microsoft.Azure.IIoT.Cli": {},
+                "Microsoft.Azure.IIoT.Services.All": {},
+                "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {}
+            }
+        },
+        "Local development (no publisher)": {
+            "Projects": {
+                "Microsoft.Azure.IIoT.App": {},
+                "Microsoft.Azure.IIoT.Cli": {},
+                "Microsoft.Azure.IIoT.Services.All": {},
+                "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {}
+            }
+        },
+        "Individual Services": {
+            "Projects": {
+                "Microsoft.Azure.IIoT.App": {},
+                "Microsoft.Azure.IIoT.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Events": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Publisher": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Registry": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Twin": {},
+                "Microsoft.Azure.IIoT.Services.Processor.Onboarding": {},
+                "Microsoft.Azure.IIoT.Services.Processor.Events": {},
+                "Microsoft.Azure.IIoT.Services.Processor.Telemetry": {}
+            }
+        },
+        "No services": {
+            "Projects": {
+                "Microsoft.Azure.IIoT.App": {},
+                "Microsoft.Azure.IIoT.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {}
+            }
+        },
+        "Engineering tool": {
+            "Projects": {
+                "Microsoft.Azure.IIoT.App": {},
+                "Microsoft.Azure.IIoT.Cli": {}
+            }
+        }
+    }
+}

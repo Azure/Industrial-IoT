@@ -4,13 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// State of the endpoint after activation
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum EndpointConnectivityState {
 
         /// <summary>
@@ -46,6 +43,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// General connection error
         /// </summary>
-        Error
+        Error,
+
+        /// <summary>
+        /// Client disconnected
+        /// </summary>
+        Disconnected,
+
+        /// <summary>
+        /// User is not authorized to connect.
+        /// </summary>
+        Unauthorized
     }
 }

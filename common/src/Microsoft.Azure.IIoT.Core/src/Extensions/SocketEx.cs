@@ -47,8 +47,8 @@ socket.EndSend, TaskCreationOptions.DenyChildAttach);
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
         /// <param name="size"></param>
-        /// <param name="remoteEndpoint"></param>
         /// <param name="flags"></param>
+        /// <param name="remoteEndpoint"></param>
         /// <returns></returns>
         public static Task<int> SendToAsync(this Socket socket, byte[] buffer,
             int offset, int size, SocketFlags flags, EndPoint remoteEndpoint) {

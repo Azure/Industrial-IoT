@@ -1,39 +1,33 @@
-﻿<Project Sdk="Microsoft.NET.Sdk;Microsoft.NET.Sdk.Publish">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <IsPackable>false</IsPackable>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Notification.Blob\src\Microsoft.Azure.IIoT.Services.Notification.Blob.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Alerting\src\Microsoft.Azure.IIoT.Services.OpcUa.Alerting.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Jobs\src\Microsoft.Azure.IIoT.Services.OpcUa.Jobs.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Gateway\src\Microsoft.Azure.IIoT.Services.OpcUa.Gateway.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.History\src\Microsoft.Azure.IIoT.Services.OpcUa.History.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Onboarding\src\Microsoft.Azure.IIoT.Services.OpcUa.Onboarding.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Processor\src\Microsoft.Azure.IIoT.Services.OpcUa.Processor.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Twin\src\Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Vault\src\Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj" />
+    <Compile Remove="pki\**" />
+    <EmbeddedResource Remove="pki\**" />
+    <None Remove="pki\**" />
   </ItemGroup>
-  <Choose>
-    <When Condition="'$(PROJECT_BUILD)' == ''">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Auth\src\Microsoft.Azure.IIoT.Auth.csproj" />
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Client\src\Microsoft.Azure.IIoT.Hub.Client.csproj" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Auth" Version="$(ReleaseVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Hub.Client" Version="$(ReleaseVersion)" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
   <ItemGroup>
-    <None Update="Settings.job">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.9" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge\src\Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Edge.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Events\src\Microsoft.Azure.IIoT.Services.Processor.Events.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Onboarding\src\Microsoft.Azure.IIoT.Services.Processor.Onboarding.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Telemetry\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Events\src\Microsoft.Azure.IIoT.Services.OpcUa.Events.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Publisher\src\Microsoft.Azure.IIoT.Services.OpcUa.Publisher.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Twin\src\Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="container.json" />
+    <None Remove="tempkey.rsa" />
+    <None Include="container.json" />
   </ItemGroup>
 </Project>

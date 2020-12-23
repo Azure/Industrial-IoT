@@ -4,55 +4,62 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
+    using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers;
-    using Microsoft.Azure.IIoT.OpcUa.History.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Default;
-    using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Extensions.Configuration;
     using Autofac;
-    using AutofacSerilogIntegration;
-    using Newtonsoft.Json.Linq;
+    using Opc.Ua;
     using System;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using Serilog;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
 
     /// <summary>
     /// Harness for opc twin module
     /// </summary>
     public class TwinModuleFixture : IInjector,
-        IHistoryModuleConfig, ITwinModuleConfig, IDisposable {
+        ITwinModuleConfig, IDisposable {
 
         /// <summary>
         /// Device id
         /// </summary>
-        public string DeviceId { get; set; }
+        public string DeviceId { get; }
 
         /// <summary>
         /// Module id
         /// </summary>
-        public string ModuleId { get; set; }
+        public string ModuleId { get; }
+
+        /// <summary>
+        /// ServerPkiRootPath
+        /// </summary>
+        public string ServerPkiRootPath { get; }
+
+        /// <summary>
+        /// ClientPkiRootPath
+        /// </summary>
+        public string ClientPkiRootPath { get; }
 
         /// <summary>
         /// Hub container
@@ -63,14 +70,26 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         /// Create fixture
         /// </summary>
         public TwinModuleFixture() {
+
+            DeviceId = Utils.GetHostName();
+            ModuleId = Guid.NewGuid().ToString();
+
+            ServerPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
+               Guid.NewGuid().ToByteArray().ToBase16String());
+            ClientPkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
+               Guid.NewGuid().ToByteArray().ToBase16String());
+
+            _config = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string> {
+                    {"EnableMetrics", "false"},
+                    {"PkiRootPath", ClientPkiRootPath}
+                })
+                .Build();
             HubContainer = CreateHubContainer();
             _hub = HubContainer.Resolve<IIoTHubTwinServices>();
 
-            DeviceId = Guid.NewGuid().ToString();
-            ModuleId = Guid.NewGuid().ToString();
-
             // Create module identitity
-            var twin = _hub.CreateAsync(new DeviceTwinModel {
+            var twin = _hub.CreateOrUpdateAsync(new DeviceTwinModel {
                 Id = DeviceId,
                 ModuleId = ModuleId
             }).Result;
@@ -79,8 +98,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             // Get device registration and create module host with controller
             _device = _hub.GetRegistrationAsync(twin.Id, twin.ModuleId).Result;
             _running = false;
-
-            _module = new ModuleProcess(null, this);
+            _module = new ModuleProcess(_config, this);
             var tcs = new TaskCompletionSource<bool>();
             _module.OnRunning += (_, e) => tcs.TrySetResult(e);
             _process = Task.Run(() => _module.RunAsync());
@@ -96,6 +114,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                 var result = _process.Result;
                 Assert.Equal(1, result);
                 _running = false;
+            }
+            if (Directory.Exists(ServerPkiRootPath)) {
+                Try.Op(() => Directory.Delete(ServerPkiRootPath, true));
             }
             HubContainer.Dispose();
         }
@@ -116,13 +137,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             // Add mock sdk
             builder.RegisterModule<IoTHubMockModule>();
 
-            // Override publisher
-            builder.RegisterType<ConfiguredPublisher>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublisherMethodClient>()
-                .AsImplementedInterfaces();
-
             // Override client config
+            builder.RegisterInstance(_config).AsImplementedInterfaces();
             builder.RegisterType<TestClientServicesConfig>()
                 .AsImplementedInterfaces();
         }
@@ -177,13 +193,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         private void AssertStopped() {
             Assert.False(_running);
             var twin = _hub.GetAsync(DeviceId, ModuleId).Result;
-            // Assert
-            Assert.False((bool)twin.Properties.Reported[TwinProperty.kConnected]);
-
             // TODO : Fix cleanup!!!
             // TODO :Assert.NotEqual("testType", twin.Properties.Reported[TwinProperty.kType]);
-            // TODO :Assert.NotEqual("TestSite", twin.Properties.Reported[TwinProperty.kSiteId]);
-            // TODO :Assert.Equal("disconnected", twin.ConnectionState);
+            // TODO :Assert.Equal("Disconnected", twin.ConnectionState);
             Assert.NotEqual(_etag, twin.Etag);
         }
 
@@ -194,10 +206,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             Assert.True(_running);
             var twin = _hub.GetAsync(DeviceId, ModuleId).Result;
             // Assert
-            Assert.Equal("connected", twin.ConnectionState);
-            Assert.Equal(true, twin.Properties.Reported[TwinProperty.kConnected]);
-            Assert.Equal("supervisor", twin.Properties.Reported[TwinProperty.kType]);
-            Assert.Equal(JValue.CreateNull(), twin.Properties.Reported[TwinProperty.kSiteId]);
+            Assert.Equal("Connected", twin.ConnectionState);
+            Assert.Equal(IdentityType.Supervisor, twin.Properties.Reported[TwinProperty.Type]);
+            Assert.False(twin.Properties.Reported.TryGetValue(TwinProperty.SiteId, out _));
         }
 
         /// <summary>
@@ -210,15 +221,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                 new EndpointInfoModel {
                     Registration = endpoint,
                     ApplicationId = "uas" + Guid.NewGuid().ToString()
-                }.ToEndpointRegistration().ToDeviceTwin();
-            var result = _hub.CreateAsync(twin).Result;
+                }.ToEndpointRegistration(_serializer).ToDeviceTwin(_serializer);
+            var result = _hub.CreateOrUpdateAsync(twin).Result;
             var registry = HubContainer.Resolve<IEndpointRegistry>();
+            var activate = HubContainer.Resolve<IEndpointActivation>();
             var endpoints = registry.ListAllEndpointsAsync().Result;
             var ep1 = endpoints.FirstOrDefault();
 
             if (ep1.ActivationState == EndpointActivationState.Deactivated) {
                 // Activate
-                registry.ActivateEndpointAsync(ep1.Registration.Id).Wait();
+                activate.ActivateEndpointAsync(ep1.Registration.Id).Wait();
             }
             return ep1.Registration;
         }
@@ -229,9 +241,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         /// <param name="endpoint"></param>
         /// <returns></returns>
         public void DeactivateTwinId(EndpointRegistrationModel endpoint) {
-            var registry = HubContainer.Resolve<IEndpointRegistry>();
+            var activate = HubContainer.Resolve<IEndpointActivation>();
             // Deactivate
-            registry.DeactivateEndpointAsync(endpoint.Id).Wait();
+            activate.DeactivateEndpointAsync(endpoint.Id).Wait();
         }
 
         /// <inheritdoc/>
@@ -254,6 +266,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             /// <inheritdoc/>
             public TransportOption Transport => TransportOption.Any;
 
+            /// <inheritdoc/>
+            public bool EnableMetrics => false;
+
             private readonly DeviceModel _device;
         }
 
@@ -265,9 +280,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                 ConnectionString.CreateServiceConnectionString(
                     "test.test.org", "iothubowner", Convert.ToBase64String(
                         Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-
-            /// <inheritdoc/>
-            public string IoTHubResourceId => null;
         }
 
         /// <summary>
@@ -276,52 +288,45 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         /// <returns></returns>
         private IContainer CreateHubContainer() {
             var builder = new ContainerBuilder();
+
+            builder.RegisterModule<NewtonSoftJsonModule>();
             builder.RegisterInstance(this).AsImplementedInterfaces();
-            builder.RegisterLogger(LogEx.ConsoleOut());
+            builder.RegisterInstance(_config).AsImplementedInterfaces();
+            builder.AddDiagnostics();
             builder.RegisterModule<IoTHubMockService>();
             builder.RegisterType<TestIoTHubConfig>()
                 .AsImplementedInterfaces();
 
             // Twin and history clients
-            builder.RegisterModule<TwinModuleClients>();
+            builder.RegisterType<TwinModuleControlClient>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<TwinModuleSupervisorClient>()
+                .AsImplementedInterfaces();
 
             builder.RegisterType<HistoryRawSupervisorAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinSupervisorAdapter>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterType<TwinModuleClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<HistoryModuleClient>()
-                .AsImplementedInterfaces();
-
-            // Adapts to expanded hda
-            builder.RegisterType<HistoricAccessAdapter<string>>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<HistoricAccessAdapter<EndpointRegistrationModel>>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<HistoricAccessAdapter<EndpointApiModel>>()
-                .AsImplementedInterfaces().SingleInstance();
 
             // Supervisor clients
-            builder.RegisterType<ActivationClient>()
+            builder.RegisterType<TwinModuleActivationClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<DiagnosticsClient>()
+            builder.RegisterType<TwinModuleCertificateClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryClient>()
+            builder.RegisterType<TwinModuleDiagnosticsClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<DiscovererModuleClient>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<JsonVariantEncoder>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
 
             // Add services
             builder.RegisterModule<RegistryServices>();
             builder.RegisterType<ApplicationTwins>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<EndpointEventBrokerStub>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ApplicationEventBrokerStub>()
-                .AsImplementedInterfaces();
+            builder.RegisterModule<EventBrokerStubs>();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
@@ -333,6 +338,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         private readonly DeviceModel _device;
         private bool _running;
         private readonly ModuleProcess _module;
+        private readonly IConfiguration _config;
         private readonly Task<int> _process;
+        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

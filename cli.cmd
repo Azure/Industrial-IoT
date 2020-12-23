@@ -7,20 +7,23 @@
 set current-path=%~dp0
 rem // remove trailing slash
 set current-path=%current-path:~0,-1%
-set build_root=%current-path%\..
+set build_root=%current-path%
 
-set url=
-set app=
-set client=
+set PCS_KEYVAULT_URL=
+set PCS_KEYVAULT_APPID=
+set PCS_KEYVAULT_SECRET=
+set PCS_AUTH_TENANT=
 
 :args-loop
 if "%1" equ "" goto :args-done
-if "%1" equ "--cloud-url" goto :arg-url
+if "%1" equ "--keyvault-url" goto :arg-url
 if "%1" equ  "-u" goto :arg-url
-if "%1" equ "--client-id" goto :arg-client
-if "%1" equ  "-c" goto :arg-client
-if "%1" equ "--application-name" goto :arg-app
-if "%1" equ  "-a" goto :arg-app
+if "%1" equ "--sp-appid" goto :arg-appid
+if "%1" equ  "-i" goto :arg-appid
+if "%1" equ "--sp-secret" goto :arg-secret
+if "%1" equ  "-p" goto :arg-secret
+if "%1" equ "--sp-tenant" goto :arg-tenant
+if "%1" equ  "-t" goto :arg-tenant
 goto :usage
 
 :args-continue
@@ -34,57 +37,43 @@ echo.
 echo Usage:                 cli.cmd [options] 
 echo Run with a .env file in the root, or specify the following options:
 echo. 
-echo -u --cloud-url         The cloud endpoint shown after deployment completes.
-echo -a --application-name  The name of the application as chosen during deployment.
-echo -c --client-id         The AAD client id (Guid) from AAD.
+echo -u --keyvault-url      The keyvault url to access.
+echo -i --sp-appid          The service principal to use to access keyvault
+echo -p --sp-secret         The secret key of the principal identity
+echo -t --sp-tenant         The tenant of the service principal
 echo. 
 exit /b 1
 
 :arg-url
 shift
 if "%1" equ "" call :usage && exit /b 1
-set url=%1
+set PCS_KEYVAULT_URL=%1
 goto :args-continue
-:arg-app
+:arg-appid
 shift
 if "%1" equ "" call :usage && exit /b 1
-set app=%1
+set PCS_KEYVAULT_APPID=%1
 goto :args-continue
-:arg-client
+:arg-secret
 shift
 if "%1" equ "" call :usage && exit /b 1
-set client=%1
+set PCS_KEYVAULT_SECRET=%1
 goto :args-continue
-
+:arg-tenant
+shift
+if "%1" equ "" call :usage && exit /b 1
+set PCS_AUTH_TENANT=%1
+goto :args-continue
 :args-done
-goto :setenv
-
-:cleanup
-set PCS_SERVICE_URL=
-set PCS_AUTH_REQUIRED=
-set PCS_WEBUI_AUTH_AAD_APPID=
-set PCS_AUTH_AUDIENCE=
-goto :eof
-
-:setenv
-call :cleanup
-if "%url%" == "" if exist .env goto :main
-if "%url%" == "" goto :usage
-set PCS_SERVICE_URL=%url%
-if not "%PCS_SERVICE_URL%" == "" echo Connecting to %PCS_SERVICE_URL% ...
-if not "%app%" == "" set PCS_AUTH_AUDIENCE=https://microsoft.onmicrosoft.com/%app%-services
-rem todo:  Should read from powershell
-set PCS_WEBUI_AUTH_AAD_APPID=%client%
-set PCS_AUTH_REQUIRED=true
-if not "%PCS_AUTH_AUDIENCE%" == "" if not "%PCS_WEBUI_AUTH_AAD_APPID%" == "" goto :main
-set PCS_AUTH_REQUIRED=false
-echo WARNING: Accessing endpoint without authentication.
-echo Specify an application name and client id to use authentication.
-goto :main
 
 :main
-pushd api\src\Microsoft.Azure.IIoT.OpcUa.Api\cli
+pushd %build_root%\api\src\Microsoft.Azure.IIoT.Api\cli
 dotnet run console
 popd
-call :cleanup
+
+set PCS_KEYVAULT_URL=
+set PCS_KEYVAULT_APPID=
+set PCS_KEYVAULT_SECRET=
+set PCS_AUTH_TENANT=
 goto :eof
+

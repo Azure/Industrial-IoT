@@ -12,10 +12,10 @@ namespace Microsoft.Azure.IIoT.Messaging {
     public interface IEventQueueService {
 
         /// <summary>
-        /// Create client to namespace/topic path.
+        /// Create client to queue path.
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        Task<IEventQueueClient> OpenAsync(string path);
+        Task<IEventQueueClient> OpenAsync(string path = null);
     }
 }

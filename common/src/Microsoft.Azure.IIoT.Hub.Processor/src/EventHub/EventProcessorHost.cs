@@ -5,21 +5,21 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     using Microsoft.Azure.IIoT.Messaging.EventHub;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Storage.Datalake;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
     using Serilog;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Autofac;
 
     /// <summary>
     /// Implementation of event processor host interface to host event
     /// processors.
     /// </summary>
-    public sealed class EventProcessorHost : IStartable, IDisposable,
-        IEventProcessorHost, IHost {
+    public sealed class EventProcessorHost : IDisposable, IEventProcessingHost, IHostProcess {
 
         /// <summary>
         /// Create host wrapper
@@ -28,8 +28,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// <param name="hub"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public EventProcessorHost(IEventProcessorFactory factory, IEventHubConfig hub,
-            IEventProcessorConfig config, ILogger logger) :
+        public EventProcessorHost(IEventProcessorFactory factory, IEventHubConsumerConfig hub,
+            IEventProcessorHostConfig config, ILogger logger) :
             this(factory, hub, config, null, null, logger) {
         }
 
@@ -39,11 +39,11 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// <param name="factory"></param>
         /// <param name="hub"></param>
         /// <param name="config"></param>
-        /// <param name="logger"></param>
         /// <param name="checkpoint"></param>
         /// <param name="lease"></param>
-        public EventProcessorHost(IEventProcessorFactory factory, IEventHubConfig hub,
-            IEventProcessorConfig config, ICheckpointManager checkpoint,
+        /// <param name="logger"></param>
+        public EventProcessorHost(IEventProcessorFactory factory, IEventHubConsumerConfig hub,
+            IEventProcessorHostConfig config, ICheckpointManager checkpoint,
             ILeaseManager lease, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _hub = hub ?? throw new ArgumentNullException(nameof(hub));
@@ -51,52 +51,58 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _lease = lease;
             _checkpoint = checkpoint;
-            _lock = new SemaphoreSlim(1);
+            _lock = new SemaphoreSlim(1, 1);
         }
 
         /// <inheritdoc/>
         public async Task StartAsync() {
-            if (_host != null) {
-                return;
-            }
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
                 if (_host != null) {
+                    _logger.Debug("Event processor host already running.");
                     return;
                 }
 
+                _logger.Debug("Starting event processor host...");
                 var consumerGroup = _hub.ConsumerGroup;
                 if (string.IsNullOrEmpty(consumerGroup)) {
                     consumerGroup = "$default";
                 }
+                _logger.Information("Using Consumer Group: \"{consumerGroup}\"", consumerGroup);
                 if (_lease != null && _checkpoint != null) {
                     _host = new EventHubs.Processor.EventProcessorHost(
                         $"host-{Guid.NewGuid()}", _hub.EventHubPath, consumerGroup,
                         GetEventHubConnectionString(), _checkpoint, _lease);
                 }
-                else if (_config.BlobStorageConnString != null) {
-                    _host = new EventHubs.Processor.EventProcessorHost(
-                        _hub.EventHubPath, consumerGroup, GetEventHubConnectionString(),
-                        _config.BlobStorageConnString,
-                        _config.LeaseContainerName ?? _hub.EventHubPath.ToSha1Hash());
-                }
                 else {
-                    _logger.Error("No checkpointing storage configured or checkpoint " +
-                        "manager/lease manager implementation injected.");
-                    throw new InvalidConfigurationException(
-                        "Invalid checkpoint configuration.");
+                    var blobConnectionString = _config.GetStorageConnString();
+                    if (!string.IsNullOrEmpty(blobConnectionString)) {
+                        _host = new EventHubs.Processor.EventProcessorHost(
+                            _hub.EventHubPath, consumerGroup, GetEventHubConnectionString(),
+                            blobConnectionString,
+                            !string.IsNullOrEmpty(_config.LeaseContainerName) ?
+                                _config.LeaseContainerName : _hub.EventHubPath.ToSha1Hash());
+                    }
+                    else {
+                        throw new InvalidConfigurationException(
+                            "Invalid checkpointing configuration. No storage configured " +
+                            "or checkpoint manager/lease manager implementation injected.");
+                    }
                 }
                 await _host.RegisterEventProcessorFactoryAsync(
                     _factory, new EventProcessorOptions {
-                        InitialOffsetProvider = s =>
-                            EventPosition.FromEnqueuedTime(DateTime.UtcNow),
+                        InitialOffsetProvider = s => _config.InitialReadFromEnd ?
+                            EventPosition.FromEnqueuedTime(DateTime.UtcNow) :
+                            EventPosition.FromStart(),
                         MaxBatchSize = _config.ReceiveBatchSize,
                         ReceiveTimeout = _config.ReceiveTimeout,
-                        InvokeProcessorAfterReceiveTimeout = true
+                        InvokeProcessorAfterReceiveTimeout = true,
+                        EnableReceiverRuntimeMetric = true
                     });
+                _logger.Information("Event processor host started.");
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Error starting event processor host");
+                _logger.Error(ex, "Error starting event processor host.");
                 _host = null;
                 throw ex;
             }
@@ -107,15 +113,18 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
 
         /// <inheritdoc/>
         public async Task StopAsync() {
-            if (_host == null) {
-                return;
-            }
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
                 if (_host != null) {
+                    _logger.Debug("Stopping event processor host...");
                     await _host.UnregisterEventProcessorAsync();
                     _host = null;
+                    _logger.Information("Event processor host stopped.");
                 }
+            }
+            catch (Exception ex) {
+                _logger.Warning(ex, "Error stopping event processor host");
+                _host = null;
             }
             finally {
                 _lock.Release();
@@ -161,8 +170,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
 
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
-        private readonly IEventHubConfig _hub;
-        private readonly IEventProcessorConfig _config;
+        private readonly IEventHubConsumerConfig _hub;
+        private readonly IEventProcessorHostConfig _config;
         private readonly IEventProcessorFactory _factory;
         private readonly ILeaseManager _lease;
         private readonly ICheckpointManager _checkpoint;

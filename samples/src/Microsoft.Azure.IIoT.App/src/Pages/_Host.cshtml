@@ -1,0 +1,48 @@
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@page "/"
+@namespace Microsoft.Azure.IIoT.App.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
+
+@inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Engineering Tool</title>
+    <base href="~/discoverers" />
+    @Html.Raw(JavaScriptSnippet.FullScript)
+</head>
+<body>
+    <link href="css/blazored-modal.min.css" rel="stylesheet" />
+    <link async rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link async href="css/site.min.css" rel="stylesheet" />
+    <link async href="css/spinner.min.css" rel="stylesheet" />
+    <link async href="~/css/drawer.min.css" rel="stylesheet" />
+    <link async href="~/css/material-icons.min.css" rel="stylesheet" />
+    <app>
+        <component type="typeof(App)" render-mode="ServerPrerendered" />
+    </app>
+
+    <div id="blazor-error-ui">
+        <environment include="Staging,Production">
+            An error has occurred. This application may no longer respond until reloaded.
+        </environment>
+        <environment include="Development">
+            An unhandled exception has occurred. See browser dev tools for details.
+        </environment>
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">X</a>
+    </div>
+
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>

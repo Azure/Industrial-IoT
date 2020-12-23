@@ -1,0 +1,44 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the provisioned keyvault to store configuration in."
+            }
+        },
+        "configuration": {
+            "type": "array",
+            "metadata": {
+                "description": "Configuration of key value pairs to store in keyvault."
+            }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for resources."
+            }
+        }
+    },
+    "resources": [
+        {
+            "comments": "KeyVault configuration secret.",
+            "name": "[concat(parameters('keyVaultName'), '/', toLower(replace(parameters('configuration')[copyIndex()].key, '_', '-')))]",
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "apiVersion": "2016-10-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
+            "copy":{
+                "count": "[length(parameters('configuration'))]",
+                "mode": "Parallel",
+                "name": "configurationCopy"
+            },
+            "properties": {
+                "contentType": "application/json",
+                "value": "[string(parameters('configuration')[copyIndex()].value)]"
+            }
+        }
+    ]
+}

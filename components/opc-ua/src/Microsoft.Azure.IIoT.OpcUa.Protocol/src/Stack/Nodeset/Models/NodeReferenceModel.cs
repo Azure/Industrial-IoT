@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Nodeset {
-    using Opc.Ua;
     using System.Runtime.Serialization;
     using System;
 

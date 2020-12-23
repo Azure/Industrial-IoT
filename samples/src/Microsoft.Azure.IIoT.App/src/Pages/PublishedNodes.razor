@@ -1,0 +1,112 @@
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
+
+@page "/PublishedNodes/{endpointId}"
+@page "/PublishedNodes/{endpointId}/{discovererId}/{applicationId}/{supervisorId}"
+
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.App.Services;
+@using Microsoft.Azure.IIoT.App.Components.Buttons;
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage;
+@using Microsoft.Azure.IIoT.App.Components.Loader;
+@using Microsoft.Azure.IIoT.App.Common;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
+@using Microsoft.Azure.IIoT.App.Models;
+
+
+@inject NavigationManager NavigationManager
+@inject Publisher PublisherHelper
+@inject UICommon CommonHelper
+@inject Registry RegistryHelper
+@inject PublisherServiceEvents PublisherServiceEvents
+
+@inherits IIoTItemsCollection<ListNode>
+
+<h1>Published Nodes</h1>
+
+<table class="table table-responsive @_tableView">
+    <thead>
+        <tr>
+            <th class="width-large">Node Id</th>
+            <th class="width-large">Display Name</th>
+            <th class="width-small">Publishing Interval</th>
+            <th class="width-small">Sampling Interval</th>
+            <th class="width-small">Heartbeat Interval</th>
+            <th class="width-medium-large">Value</th>
+            @if (IsIdGiven(DiscovererId) && IsIdGiven(ApplicationId) && IsIdGiven(SupervisorId))
+            {
+                <th class="width-xsmall">
+                    @{var link = @NavigationManager.BaseUri + "endpoints/" + @DiscovererId + "/" + @ApplicationId + "/" + @SupervisorId;}
+                    <a href="@link" aria-label="back"><span class="oi oi-arrow-left"></span></a>
+                </th>
+            }
+            else
+            {
+                <th class="width-xsmall">
+                    @{var link = @NavigationManager.BaseUri + "endpoints";}
+                    <a href="@link" aria-label="back"><span class="oi oi-arrow-left"></span></a>
+                </th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var node in Items.Results)
+        {
+            <tr>
+                <td class="hover-text width-large">
+                    <div>
+                        @(string.IsNullOrEmpty(node.PublishedItem.NodeId)
+                            ? CommonHelper.None
+                            : node.PublishedItem.NodeId)
+                    </div>
+                </td>
+                <td class="hover-text width-medium-large">
+                    <div>
+                        @(string.IsNullOrEmpty(node.PublishedItem.DisplayName)
+                            ? CommonHelper.None
+                            : node.PublishedItem.DisplayName)
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        @(node.PublishedItem.PublishingInterval.HasValue && node.PublishedItem.PublishingInterval.Value != TimeSpan.MinValue
+                            ? node.PublishedItem.PublishingInterval.Value.Milliseconds.ToString()
+                            : CommonHelper.None)
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        @(node.PublishedItem.SamplingInterval.HasValue && node.PublishedItem.SamplingInterval.Value != TimeSpan.MinValue
+                            ? node.PublishedItem.SamplingInterval.Value.Milliseconds.ToString()
+                            : CommonHelper.None)
+                    </div>
+                </td>
+                <td class="hover-text width-small">
+                    <div>
+                        @(node.PublishedItem.HeartbeatInterval.HasValue && node.PublishedItem.HeartbeatInterval.Value != TimeSpan.MinValue
+                            ? node.PublishedItem.HeartbeatInterval.Value.Seconds.ToString()
+                            : CommonHelper.None)
+                    </div>
+                </td>
+                <td class="width-medium-large">
+                    <div class="value-scroll">
+                        <span>@node.Value</span>
+                        <span>(@node.DataType)</span>
+                        <span>(@node.Status -</span>
+                        <span> @node.Timestamp)</span>
+                    </div>
+                </td>
+                <td></td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="@_tableEmpty center">No published nodes found for this endpoint.</div>
+
+<ErrorMessage PageError="@Items.Error" Status="@Status"></ErrorMessage>
+
+<LoadMore Result=@Items IsLoading=@IsLoading LoadMoreItems=@(async() => await LoadMoreItems()) />
+
+<Spinner IsLoading=@IsLoading></Spinner>

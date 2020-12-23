@@ -1,0 +1,32 @@
+[
+  {
+    "outputFileName": "wwwroot/css/drawer.min.css",
+    "inputFiles": [
+      "wwwroot/css/drawer.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/site.min.css",
+    "inputFiles": [
+      "wwwroot/css/site.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/spinner.min.css",
+    "inputFiles": [
+      "wwwroot/css/spinner.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/blazored-modal.min.css",
+    "inputFiles": [
+      "wwwroot/css/blazored-modal.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/material-icons.min.css",
+    "inputFiles": [
+      "wwwroot/css/material-icons/material-icons.css"
+    ]
+  }
+]

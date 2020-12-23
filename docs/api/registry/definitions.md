@@ -11,11 +11,11 @@ Application info model
 |---|---|---|
 |**applicationId**  <br>*optional*|Unique application id|string|
 |**applicationName**  <br>*optional*|Default name of application|string|
-|**applicationType**  <br>*optional*|Type of application  <br>**Example** : `"Server"`|enum (Server, Client, ClientAndServer, DiscoveryServer)|
+|**applicationType**  <br>*optional*||[ApplicationType](definitions.md#applicationtype)|
 |**applicationUri**  <br>*optional*|Unique application uri|string|
-|**capabilities**  <br>*optional*|The capabilities advertised by the server.  <br>**Example** : `"LDS"`|< string > array|
-|**certificate**  <br>*optional*|Application public cert  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
-|**created**  <br>*optional*|Created|[RegistryOperationApiModel](definitions.md#registryoperationapimodel)|
+|**capabilities**  <br>*optional*|The capabilities advertised by the server.|< string > array|
+|**created**  <br>*optional*||[RegistryOperationApiModel](definitions.md#registryoperationapimodel)|
+|**discovererId**  <br>*optional*|Discoverer that registered the application|string|
 |**discoveryProfileUri**  <br>*optional*|Discovery profile uri|string|
 |**discoveryUrls**  <br>*optional*|Discovery urls of the server|< string > array|
 |**gatewayServerUri**  <br>*optional*|Gateway server uri|string|
@@ -25,8 +25,7 @@ Application info model
 |**notSeenSince**  <br>*optional*|Last time application was seen|string (date-time)|
 |**productUri**  <br>*optional*|Product uri|string|
 |**siteId**  <br>*optional*|Site of the application  <br>**Example** : `"productionlineA"`|string|
-|**supervisorId**  <br>*optional*|Supervisor having registered the application|string|
-|**updated**  <br>*optional*|Updated|[RegistryOperationApiModel](definitions.md#registryoperationapimodel)|
+|**updated**  <br>*optional*||[RegistryOperationApiModel](definitions.md#registryoperationapimodel)|
 
 
 <a name="applicationinfolistapimodel"></a>
@@ -40,55 +39,15 @@ List of registered applications
 |**items**  <br>*optional*|Application infos|< [ApplicationInfoApiModel](definitions.md#applicationinfoapimodel) > array|
 
 
-<a name="applicationrecordapimodel"></a>
-### ApplicationRecordApiModel
+<a name="applicationregistrationapimodel"></a>
+### ApplicationRegistrationApiModel
 Application with optional list of endpoints
 
 
 |Name|Description|Schema|
 |---|---|---|
-|**application**  <br>*required*|Application information|[ApplicationInfoApiModel](definitions.md#applicationinfoapimodel)|
-|**recordId**  <br>*required*|Record id|integer (int32)|
-
-
-<a name="applicationrecordlistapimodel"></a>
-### ApplicationRecordListApiModel
-Create response
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**applications**  <br>*optional*|Applications found|< [ApplicationRecordApiModel](definitions.md#applicationrecordapimodel) > array|
-|**lastCounterResetTime**  <br>*required*|Last counter reset|string (date-time)|
-|**nextRecordId**  <br>*required*|Next record id|integer (int32)|
-
-
-<a name="applicationrecordqueryapimodel"></a>
-### ApplicationRecordQueryApiModel
-Query by id
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**applicationName**  <br>*optional*|Application name|string|
-|**applicationType**  <br>*optional*|Application type|enum (Server, Client, ClientAndServer, DiscoveryServer)|
-|**applicationUri**  <br>*optional*|Application uri|string|
-|**maxRecordsToReturn**  <br>*optional*|Max records to return|integer (int32)|
-|**productUri**  <br>*optional*|Product uri|string|
-|**serverCapabilities**  <br>*optional*|Server capabilities|< string > array|
-|**startingRecordId**  <br>*optional*|Starting record id|integer (int32)|
-
-
-<a name="applicationregistrationapimodel"></a>
-### ApplicationRegistrationApiModel
-Application with list of endpoints
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**application**  <br>*required*|Application information|[ApplicationInfoApiModel](definitions.md#applicationinfoapimodel)|
+|**application**  <br>*required*||[ApplicationInfoApiModel](definitions.md#applicationinfoapimodel)|
 |**endpoints**  <br>*optional*|List of endpoint twins|< [EndpointRegistrationApiModel](definitions.md#endpointregistrationapimodel) > array|
-|**securityAssessment**  <br>*optional*|Application security assessment|enum (Unknown, Low, Medium, High)|
 
 
 <a name="applicationregistrationqueryapimodel"></a>
@@ -99,15 +58,16 @@ Application information
 |Name|Description|Schema|
 |---|---|---|
 |**applicationName**  <br>*optional*|Name of application|string|
-|**applicationType**  <br>*optional*|Type of application|enum (Server, Client, ClientAndServer, DiscoveryServer)|
+|**applicationType**  <br>*optional*||[ApplicationType](definitions.md#applicationtype)|
 |**applicationUri**  <br>*optional*|Application uri|string|
 |**capability**  <br>*optional*|Application capability to query with|string|
+|**discovererId**  <br>*optional*|Discoverer id to filter with|string|
 |**discoveryProfileUri**  <br>*optional*|Discovery profile uri|string|
 |**gatewayServerUri**  <br>*optional*|Gateway server uri|string|
 |**includeNotSeenSince**  <br>*optional*|Whether to include apps that were soft deleted|boolean|
 |**locale**  <br>*optional*|Locale of application name - default is "en"|string|
 |**productUri**  <br>*optional*|Product uri|string|
-|**siteOrSupervisorId**  <br>*optional*|Supervisor or site the application belongs to.|string|
+|**siteOrGatewayId**  <br>*optional*|Supervisor or site the application belongs to.|string|
 
 
 <a name="applicationregistrationrequestapimodel"></a>
@@ -118,9 +78,9 @@ Application information
 |Name|Description|Schema|
 |---|---|---|
 |**applicationName**  <br>*optional*|Default name of the server or client.|string|
-|**applicationType**  <br>*optional*|Type of application  <br>**Example** : `"Server"`|enum (Server, Client, ClientAndServer, DiscoveryServer)|
+|**applicationType**  <br>*optional*||[ApplicationType](definitions.md#applicationtype)|
 |**applicationUri**  <br>*required*|Unique application uri|string|
-|**capabilities**  <br>*optional*|The OPC UA defined capabilities of the server.  <br>**Example** : `"LDS"`|< string > array|
+|**capabilities**  <br>*optional*|The OPC UA defined capabilities of the server.|< string > array|
 |**discoveryProfileUri**  <br>*optional*|The discovery profile uri of the server.|string|
 |**discoveryUrls**  <br>*optional*|Discovery urls of the server.|< string > array|
 |**gatewayServerUri**  <br>*optional*|Gateway server uri|string|
@@ -149,7 +109,6 @@ Application registration update request
 |---|---|---|
 |**applicationName**  <br>*optional*|Default name of the server or client.|string|
 |**capabilities**  <br>*optional*|Capabilities of the application|< string > array|
-|**certificate**  <br>*optional*|Application public cert  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**discoveryProfileUri**  <br>*optional*|Discovery profile uri|string|
 |**discoveryUrls**  <br>*optional*|Discovery urls of the application|< string > array|
 |**gatewayServerUri**  <br>*optional*|Gateway server uri|string|
@@ -166,7 +125,14 @@ List of application sites
 |Name|Description|Schema|
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation or null if final|string|
-|**sites**  <br>*optional*|Distinct list of sites applications were registered in.|< string > array|
+|**sites**  <br>*optional*|Sites|< string > array|
+
+
+<a name="applicationtype"></a>
+### ApplicationType
+Application type
+
+*Type* : enum (Server, Client, ClientAndServer, DiscoveryServer)
 
 
 <a name="authenticationmethodapimodel"></a>
@@ -176,54 +142,98 @@ Authentication Method model
 
 |Name|Description|Schema|
 |---|---|---|
-|**configuration**  <br>*optional*|Method specific configuration|object|
-|**credentialType**  <br>*optional*|Type of credential  <br>**Default** : `"None"`|enum (None, UserName, X509Certificate, JwtToken)|
+|**configuration**  <br>*optional*|Method specific configuration|string|
+|**credentialType**  <br>*optional*||[CredentialType](definitions.md#credentialtype)|
 |**id**  <br>*required*|Method id|string|
 |**securityPolicy**  <br>*optional*|Security policy to use when passing credential.|string|
 
 
-<a name="callbackapimodel"></a>
-### CallbackApiModel
-A registered callback
+<a name="credentialtype"></a>
+### CredentialType
+Type of credentials to use for authentication
+
+*Type* : enum (None, UserName, X509Certificate, JwtToken)
+
+
+<a name="discovererapimodel"></a>
+### DiscovererApiModel
+Discoverer registration model
 
 
 |Name|Description|Schema|
 |---|---|---|
-|**authenticationHeader**  <br>*optional*|Authentication header to add or null if not needed|string|
-|**method**  <br>*optional*|Http Method to use for callback|enum (Get, Post, Put, Delete)|
-|**uri**  <br>*optional*|Uri to call - should use https scheme in which<br>case security is enforced.|string|
+|**connected**  <br>*optional*|Whether discoverer is connected on this registration|boolean|
+|**discovery**  <br>*optional*||[DiscoveryMode](definitions.md#discoverymode)|
+|**discoveryConfig**  <br>*optional*||[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
+|**id**  <br>*required*|Discoverer id|string|
+|**logLevel**  <br>*optional*||[TraceLogLevel](definitions.md#traceloglevel)|
+|**outOfSync**  <br>*optional*|Whether the registration is out of sync between<br>client (module) and server (service) (default: false).|boolean|
+|**requestedConfig**  <br>*optional*||[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
+|**requestedMode**  <br>*optional*||[DiscoveryMode](definitions.md#discoverymode)|
+|**siteId**  <br>*optional*|Site of the discoverer|string|
 
 
-<a name="credentialapimodel"></a>
-### CredentialApiModel
-Credential model
+<a name="discovererlistapimodel"></a>
+### DiscovererListApiModel
+Discoverer registration list
 
 
 |Name|Description|Schema|
 |---|---|---|
-|**type**  <br>*optional*|Type of credential  <br>**Default** : `"None"`|enum (None, UserName, X509Certificate, JwtToken)|
-|**value**  <br>*optional*|Value to pass to server|object|
+|**continuationToken**  <br>*optional*|Continuation or null if final|string|
+|**items**  <br>*optional*|Registrations|< [DiscovererApiModel](definitions.md#discovererapimodel) > array|
+
+
+<a name="discovererqueryapimodel"></a>
+### DiscovererQueryApiModel
+Discoverer registration query
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**connected**  <br>*optional*|Included connected or disconnected|boolean|
+|**discovery**  <br>*optional*||[DiscoveryMode](definitions.md#discoverymode)|
+|**siteId**  <br>*optional*|Site of the discoverer|string|
+
+
+<a name="discovererupdateapimodel"></a>
+### DiscovererUpdateApiModel
+Discoverer update request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**discovery**  <br>*optional*||[DiscoveryMode](definitions.md#discoverymode)|
+|**discoveryConfig**  <br>*optional*||[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
+|**logLevel**  <br>*optional*||[TraceLogLevel](definitions.md#traceloglevel)|
+|**siteId**  <br>*optional*|Site the discoverer is part of|string|
 
 
 <a name="discoveryconfigapimodel"></a>
 ### DiscoveryConfigApiModel
-Discovery configuration
+Discovery configuration api model
 
 
 |Name|Description|Schema|
 |---|---|---|
-|**activationFilter**  <br>*optional*|Activate all twins with this filter during onboarding.|[EndpointActivationFilterApiModel](definitions.md#endpointactivationfilterapimodel)|
+|**activationFilter**  <br>*optional*||[EndpointActivationFilterApiModel](definitions.md#endpointactivationfilterapimodel)|
 |**addressRangesToScan**  <br>*optional*|Address ranges to scan (null == all wired nics)|string|
-|**callbacks**  <br>*optional*|Callbacks to invoke once onboarding finishes|< [CallbackApiModel](definitions.md#callbackapimodel) > array|
 |**discoveryUrls**  <br>*optional*|List of preset discovery urls to use|< string > array|
-|**idleTimeBetweenScansSec**  <br>*optional*|Delay time between discovery sweeps in seconds|integer (int32)|
+|**idleTimeBetweenScans**  <br>*optional*|Delay time between discovery sweeps|string (date-span)|
 |**locales**  <br>*optional*|List of locales to filter with during discovery|< string > array|
 |**maxNetworkProbes**  <br>*optional*|Max network probes that should ever run.|integer (int32)|
 |**maxPortProbes**  <br>*optional*|Max port probes that should ever run.|integer (int32)|
 |**minPortProbesPercent**  <br>*optional*|Probes that must always be there as percent of max.|integer (int32)|
-|**networkProbeTimeoutMs**  <br>*optional*|Network probe timeout|integer (int32)|
-|**portProbeTimeoutMs**  <br>*optional*|Port probe timeout|integer (int32)|
+|**networkProbeTimeout**  <br>*optional*|Network probe timeout|string (date-span)|
+|**portProbeTimeout**  <br>*optional*|Port probe timeout|string (date-span)|
 |**portRangesToScan**  <br>*optional*|Port ranges to scan (null == all unassigned)|string|
+
+
+<a name="discoverymode"></a>
+### DiscoveryMode
+Discovery mode to use
+
+*Type* : enum (Off, Local, Network, Fast, Scan)
 
 
 <a name="discoveryrequestapimodel"></a>
@@ -233,8 +243,8 @@ Discovery request
 
 |Name|Description|Schema|
 |---|---|---|
-|**configuration**  <br>*optional*|Scan configuration to use|[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
-|**discovery**  <br>*optional*|Discovery mode to use|enum (Off, Local, Network, Fast, Scan)|
+|**configuration**  <br>*optional*||[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
+|**discovery**  <br>*optional*||[DiscoveryMode](definitions.md#discoverymode)|
 |**id**  <br>*optional*|Id of discovery request|string|
 
 
@@ -245,9 +255,16 @@ Endpoint Activation Filter model
 
 |Name|Description|Schema|
 |---|---|---|
-|**securityMode**  <br>*optional*|Security mode level to activate. If null,<br>then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is assumed.|enum (Best, Sign, SignAndEncrypt, None)|
+|**securityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
 |**securityPolicies**  <br>*optional*|Endpoint security policies to filter against.<br>If set to null, all policies are in scope.|< string > array|
 |**trustLists**  <br>*optional*|Certificate trust list identifiers to use for<br>activation, if null, all certificates are<br>trusted.  If empty list, no certificates are<br>trusted which is equal to no filter.|< string > array|
+
+
+<a name="endpointactivationstate"></a>
+### EndpointActivationState
+Activation state of the endpoint twin
+
+*Type* : enum (Deactivated, Activated, ActivatedAndConnected)
 
 
 <a name="endpointactivationstatusapimodel"></a>
@@ -257,7 +274,7 @@ Endpoint Activation status model
 
 |Name|Description|Schema|
 |---|---|---|
-|**activationState**  <br>*optional*|Activation state|enum (Deactivated, Activated, ActivatedAndConnected)|
+|**activationState**  <br>*optional*||[EndpointActivationState](definitions.md#endpointactivationstate)|
 |**id**  <br>*required*|Identifier of the endoint|string|
 
 
@@ -269,11 +286,17 @@ Endpoint model
 |Name|Description|Schema|
 |---|---|---|
 |**alternativeUrls**  <br>*optional*|Alternative endpoint urls that can be used for<br>accessing and validating the server|< string > array|
-|**certificate**  <br>*optional*|Endpoint certificate that was registered.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
-|**securityMode**  <br>*optional*|Security Mode to use for communication<br>default to best.  <br>**Default** : `"Best"`|enum (Best, Sign, SignAndEncrypt, None)|
-|**securityPolicy**  <br>*optional*|Security policy uri to use for communication<br>default to best.|string|
-|**url**  <br>*required*|Endpoint url to use to connect with|string|
-|**user**  <br>*optional*|User Authentication|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**certificate**  <br>*optional*|Endpoint certificate thumbprint|string|
+|**securityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
+|**securityPolicy**  <br>*optional*|Security policy uri to use for communication.<br>default to best.|string|
+|**url**  <br>*optional*|Endpoint url to use to connect with|string|
+
+
+<a name="endpointconnectivitystate"></a>
+### EndpointConnectivityState
+State of the endpoint after activation
+
+*Type* : enum (Connecting, NotReachable, Busy, NoTrust, CertificateInvalid, Ready, Error, Disconnected, Unauthorized)
 
 
 <a name="endpointinfoapimodel"></a>
@@ -283,12 +306,12 @@ Endpoint registration model
 
 |Name|Description|Schema|
 |---|---|---|
-|**activationState**  <br>*optional*|Activation state of endpoint|enum (Deactivated, Activated, ActivatedAndConnected)|
+|**activationState**  <br>*optional*||[EndpointActivationState](definitions.md#endpointactivationstate)|
 |**applicationId**  <br>*required*|Application id endpoint is registered under.|string|
-|**endpointState**  <br>*optional*|Last state of the activated endpoint|enum (Connecting, NotReachable, Busy, NoTrust, CertificateInvalid, Ready, Error)|
+|**endpointState**  <br>*optional*||[EndpointConnectivityState](definitions.md#endpointconnectivitystate)|
 |**notSeenSince**  <br>*optional*|Last time endpoint was seen|string (date-time)|
 |**outOfSync**  <br>*optional*|Whether the registration is out of sync|boolean|
-|**registration**  <br>*required*|Endpoint registration|[EndpointRegistrationApiModel](definitions.md#endpointregistrationapimodel)|
+|**registration**  <br>*required*||[EndpointRegistrationApiModel](definitions.md#endpointregistrationapimodel)|
 
 
 <a name="endpointinfolistapimodel"></a>
@@ -310,11 +333,13 @@ Endpoint registration model
 |Name|Description|Schema|
 |---|---|---|
 |**authenticationMethods**  <br>*optional*|Supported authentication methods that can be selected to<br>obtain a credential and used to interact with the endpoint.|< [AuthenticationMethodApiModel](definitions.md#authenticationmethodapimodel) > array|
-|**endpoint**  <br>*required*|Endpoint information of the registration|[EndpointApiModel](definitions.md#endpointapimodel)|
+|**discovererId**  <br>*optional*|Discoverer that registered the endpoint|string|
+|**endpoint**  <br>*required*||[EndpointApiModel](definitions.md#endpointapimodel)|
 |**endpointUrl**  <br>*optional*|Original endpoint url of the endpoint|string|
 |**id**  <br>*required*|Registered identifier of the endpoint|string|
 |**securityLevel**  <br>*optional*|Security level of the endpoint|integer (int32)|
 |**siteId**  <br>*optional*|Registered site of the endpoint|string|
+|**supervisorId**  <br>*optional*|Supervisor that manages the endpoint.|string|
 
 
 <a name="endpointregistrationqueryapimodel"></a>
@@ -325,24 +350,147 @@ Endpoint query
 |Name|Description|Schema|
 |---|---|---|
 |**activated**  <br>*optional*|Whether the endpoint was activated|boolean|
-|**certificate**  <br>*optional*|Certificate of the endpoint  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
+|**applicationId**  <br>*optional*|Application id to filter|string|
+|**certificate**  <br>*optional*|Endpoint certificate thumbprint|string|
 |**connected**  <br>*optional*|Whether the endpoint is connected on supervisor.|boolean|
-|**endpointState**  <br>*optional*|The last state of the the activated endpoint|enum (Connecting, NotReachable, Busy, NoTrust, CertificateInvalid, Ready, Error)|
+|**discovererId**  <br>*optional*|Discoverer id to filter with|string|
+|**endpointState**  <br>*optional*||[EndpointConnectivityState](definitions.md#endpointconnectivitystate)|
 |**includeNotSeenSince**  <br>*optional*|Whether to include endpoints that were soft deleted|boolean|
-|**securityMode**  <br>*optional*|Security Mode|enum (Best, Sign, SignAndEncrypt, None)|
+|**securityMode**  <br>*optional*||[SecurityMode](definitions.md#securitymode)|
 |**securityPolicy**  <br>*optional*|Security policy uri|string|
+|**siteOrGatewayId**  <br>*optional*|Site or gateway id to filter with|string|
+|**supervisorId**  <br>*optional*|Supervisor id to filter with|string|
 |**url**  <br>*optional*|Endoint url for direct server access|string|
-|**userAuthentication**  <br>*optional*|Type of credential selected for authentication|enum (None, UserName, X509Certificate, JwtToken)|
 
 
-<a name="endpointregistrationupdateapimodel"></a>
-### EndpointRegistrationUpdateApiModel
-Endpoint registration update request
+<a name="gatewayapimodel"></a>
+### GatewayApiModel
+Gateway registration model
 
 
 |Name|Description|Schema|
 |---|---|---|
-|**user**  <br>*optional*|User authentication to change on the endpoint.|[CredentialApiModel](definitions.md#credentialapimodel)|
+|**connected**  <br>*optional*|Whether Gateway is connected on this registration|boolean|
+|**id**  <br>*required*|Gateway id|string|
+|**siteId**  <br>*optional*|Site of the Gateway|string|
+
+
+<a name="gatewayinfoapimodel"></a>
+### GatewayInfoApiModel
+Gateway info model
+
+
+|Name|Schema|
+|---|---|
+|**gateway**  <br>*required*|[GatewayApiModel](definitions.md#gatewayapimodel)|
+|**modules**  <br>*optional*|[GatewayModulesApiModel](definitions.md#gatewaymodulesapimodel)|
+
+
+<a name="gatewaylistapimodel"></a>
+### GatewayListApiModel
+Gateway registration list
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation or null if final|string|
+|**items**  <br>*optional*|Registrations|< [GatewayApiModel](definitions.md#gatewayapimodel) > array|
+
+
+<a name="gatewaymodulesapimodel"></a>
+### GatewayModulesApiModel
+Gateway modules model
+
+
+|Name|Schema|
+|---|---|
+|**discoverer**  <br>*optional*|[DiscovererApiModel](definitions.md#discovererapimodel)|
+|**publisher**  <br>*optional*|[PublisherApiModel](definitions.md#publisherapimodel)|
+|**supervisor**  <br>*optional*|[SupervisorApiModel](definitions.md#supervisorapimodel)|
+
+
+<a name="gatewayqueryapimodel"></a>
+### GatewayQueryApiModel
+Gateway registration query
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**connected**  <br>*optional*|Included connected or disconnected|boolean|
+|**siteId**  <br>*optional*|Site of the Gateway|string|
+
+
+<a name="gatewayupdateapimodel"></a>
+### GatewayUpdateApiModel
+Gateway registration update request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**siteId**  <br>*optional*|Site of the Gateway|string|
+
+
+<a name="publisherapimodel"></a>
+### PublisherApiModel
+Publisher registration model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**configuration**  <br>*optional*||[PublisherConfigApiModel](definitions.md#publisherconfigapimodel)|
+|**connected**  <br>*optional*|Whether publisher is connected on this registration|boolean|
+|**id**  <br>*required*|Publisher id|string|
+|**logLevel**  <br>*optional*||[TraceLogLevel](definitions.md#traceloglevel)|
+|**outOfSync**  <br>*optional*|Whether the registration is out of sync between<br>client (module) and server (service) (default: false).|boolean|
+|**siteId**  <br>*optional*|Site of the publisher|string|
+
+
+<a name="publisherconfigapimodel"></a>
+### PublisherConfigApiModel
+Default publisher agent configuration
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**capabilities**  <br>*optional*|Capabilities|< string, string > map|
+|**heartbeatInterval**  <br>*optional*|Heartbeat interval|string (date-span)|
+|**jobCheckInterval**  <br>*optional*|Interval to check job|string (date-span)|
+|**jobOrchestratorUrl**  <br>*optional*|Job orchestrator endpoint url|string|
+|**maxWorkers**  <br>*optional*|Parallel jobs|integer (int32)|
+
+
+<a name="publisherlistapimodel"></a>
+### PublisherListApiModel
+Publisher registration list
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation or null if final|string|
+|**items**  <br>*optional*|Registrations|< [PublisherApiModel](definitions.md#publisherapimodel) > array|
+
+
+<a name="publisherqueryapimodel"></a>
+### PublisherQueryApiModel
+Publisher registration query
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**connected**  <br>*optional*|Included connected or disconnected|boolean|
+|**siteId**  <br>*optional*|Site for the publishers|string|
+
+
+<a name="publisherupdateapimodel"></a>
+### PublisherUpdateApiModel
+Publisher registration update request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**configuration**  <br>*optional*||[PublisherConfigApiModel](definitions.md#publisherconfigapimodel)|
+|**logLevel**  <br>*optional*||[TraceLogLevel](definitions.md#traceloglevel)|
+|**siteId**  <br>*optional*|Site of the publisher|string|
 
 
 <a name="registryoperationapimodel"></a>
@@ -356,35 +504,23 @@ Registry operation log model
 |**time**  <br>*required*|Operation time|string (date-time)|
 
 
+<a name="securitymode"></a>
+### SecurityMode
+Security mode of endpoint
+
+*Type* : enum (Best, Sign, SignAndEncrypt, None)
+
+
 <a name="serverregistrationrequestapimodel"></a>
 ### ServerRegistrationRequestApiModel
-Application registration request
+Server registration request
 
 
 |Name|Description|Schema|
 |---|---|---|
-|**activationFilter**  <br>*optional*|Upon discovery, activate all endpoints with this filter.|[EndpointActivationFilterApiModel](definitions.md#endpointactivationfilterapimodel)|
-|**callback**  <br>*optional*|An optional callback hook to register.|[CallbackApiModel](definitions.md#callbackapimodel)|
+|**activationFilter**  <br>*optional*||[EndpointActivationFilterApiModel](definitions.md#endpointactivationfilterapimodel)|
 |**discoveryUrl**  <br>*required*|Discovery url to use for registration|string|
 |**id**  <br>*optional*|Registration id|string|
-
-
-<a name="statusresponseapimodel"></a>
-### StatusResponseApiModel
-Status response model
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**$metadata**  <br>*optional*  <br>*read-only*|Optional meta data.|< string, string > map|
-|**currentTime**  <br>*optional*  <br>*read-only*|Current time|string|
-|**dependencies**  <br>*optional*  <br>*read-only*|A property bag with details about the internal dependencies|< string, string > map|
-|**name**  <br>*optional*|Name of this service|string|
-|**properties**  <br>*optional*  <br>*read-only*|A property bag with details about the service|< string, string > map|
-|**startTime**  <br>*optional*  <br>*read-only*|Start time of service|string|
-|**status**  <br>*optional*|Operational status|string|
-|**uid**  <br>*optional*  <br>*read-only*|Value generated at bootstrap by each instance of the service and<br>used to correlate logs coming from the same instance. The value<br>changes every time the service starts.|string|
-|**upTime**  <br>*optional*  <br>*read-only*|Up time of service|integer (int64)|
 
 
 <a name="supervisorapimodel"></a>
@@ -394,12 +530,9 @@ Supervisor registration model
 
 |Name|Description|Schema|
 |---|---|---|
-|**certificate**  <br>*optional*|Supervisor public client cert  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**connected**  <br>*optional*|Whether supervisor is connected on this registration|boolean|
-|**discovery**  <br>*optional*|Whether the supervisor is in discovery mode  <br>**Default** : `"Off"`|enum (Off, Local, Network, Fast, Scan)|
-|**discoveryConfig**  <br>*optional*|Supervisor configuration|[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
 |**id**  <br>*required*|Supervisor id|string|
-|**logLevel**  <br>*optional*|Current log level  <br>**Default** : `"Information"`|enum (Error, Information, Debug, Verbose)|
+|**logLevel**  <br>*optional*||[TraceLogLevel](definitions.md#traceloglevel)|
 |**outOfSync**  <br>*optional*|Whether the registration is out of sync between<br>client (module) and server (service) (default: false).|boolean|
 |**siteId**  <br>*optional*|Site of the supervisor|string|
 
@@ -423,8 +556,7 @@ Supervisor registration query
 |Name|Description|Schema|
 |---|---|---|
 |**connected**  <br>*optional*|Included connected or disconnected|boolean|
-|**discovery**  <br>*optional*|Discovery mode of supervisor|enum (Off, Local, Network, Fast, Scan)|
-|**siteId**  <br>*optional*|Site of the supervisor|string|
+|**siteId**  <br>*optional*|Site for the supervisors|string|
 
 
 <a name="supervisorstatusapimodel"></a>
@@ -442,17 +574,54 @@ Supervisor runtime status
 
 <a name="supervisorupdateapimodel"></a>
 ### SupervisorUpdateApiModel
-Supervisor registration update request
+Supervisor update request
 
 
 |Name|Description|Schema|
 |---|---|---|
-|**discovery**  <br>*optional*|Whether the supervisor is in discovery mode.<br>If null, does not change.  <br>**Default** : `"Off"`|enum (Off, Local, Network, Fast, Scan)|
-|**discoveryCallbacks**  <br>*optional*|Callbacks to add or remove (see below)|< [CallbackApiModel](definitions.md#callbackapimodel) > array|
-|**discoveryConfig**  <br>*optional*|Supervisor discovery configuration|[DiscoveryConfigApiModel](definitions.md#discoveryconfigapimodel)|
-|**logLevel**  <br>*optional*|Current log level|enum (Error, Information, Debug, Verbose)|
-|**removeDiscoveryCallbacks**  <br>*optional*|Whether to add or remove callbacks|boolean|
-|**siteId**  <br>*optional*|Site of the supervisor|string|
+|**logLevel**  <br>*optional*||[TraceLogLevel](definitions.md#traceloglevel)|
+|**siteId**  <br>*optional*|Site the supervisor is part of|string|
+
+
+<a name="traceloglevel"></a>
+### TraceLogLevel
+Log level
+
+*Type* : enum (Error, Information, Debug, Verbose)
+
+
+<a name="x509certificateapimodel"></a>
+### X509CertificateApiModel
+Certificate model
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**certificate**  <br>*optional*|Raw data  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
+|**notAfterUtc**  <br>*optional*|Not after validity|string (date-time)|
+|**notBeforeUtc**  <br>*optional*|Not before validity|string (date-time)|
+|**selfSigned**  <br>*optional*|Self signed|boolean|
+|**serialNumber**  <br>*optional*|Serial number|string|
+|**subject**  <br>*optional*|Subject|string|
+|**thumbprint**  <br>*optional*|Thumbprint|string|
+
+
+<a name="x509certificatechainapimodel"></a>
+### X509CertificateChainApiModel
+Certificate chain
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**chain**  <br>*optional*|Chain|< [X509CertificateApiModel](definitions.md#x509certificateapimodel) > array|
+|**status**  <br>*optional*|Chain validation status if validated|enum (NoError, NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)|
+
+
+<a name="x509chainstatus"></a>
+### X509ChainStatus
+Status of x509 chain
+
+*Type* : enum (NoError, NotTimeValid, Revoked, NotSignatureValid, NotValidForUsage, UntrustedRoot, RevocationStatusUnknown, Cyclic, InvalidExtension, InvalidPolicyConstraints, InvalidBasicConstraints, InvalidNameConstraints, HasNotSupportedNameConstraint, HasNotDefinedNameConstraint, HasNotPermittedNameConstraint, HasExcludedNameConstraint, PartialChain, CtlNotTimeValid, CtlNotSignatureValid, CtlNotValidForUsage, HasWeakSignature, OfflineRevocation, NoIssuanceChainPolicy, ExplicitDistrust, HasNotSupportedCriticalExtension)
 
 
 

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -32,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// <summary>
         /// An optional component path from the node identified by
         /// MethodId or from a resolved objectId to the actual
-        /// method node.  
+        /// method node.
         /// </summary>
         public string[] MethodBrowsePath { get; set; }
 

@@ -28,6 +28,11 @@ namespace Microsoft.Azure.IIoT.Http {
         HttpResponseHeaders Headers { get; }
 
         /// <summary>
+        /// Response content headers
+        /// </summary>
+        HttpContentHeaders ContentHeaders { get; }
+
+        /// <summary>
         /// Response content
         /// </summary>
         byte[] Content { get; }

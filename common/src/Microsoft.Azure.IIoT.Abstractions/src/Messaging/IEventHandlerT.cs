@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
     /// <summary>
     /// Handles typed integration events
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface IEventHandler<T> : IHandler {
 
         /// <summary>

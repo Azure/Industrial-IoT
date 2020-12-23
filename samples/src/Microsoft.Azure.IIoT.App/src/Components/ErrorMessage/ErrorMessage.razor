@@ -1,0 +1,17 @@
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@page "/errorMessage"
+
+@if (Status != null || PageError != null) {
+    <div class="error-message">
+        <div class="closediv">
+            <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => CloseErrorMessage())" class="oi oi-x closebtn"></a>
+        </div>
+        <div>
+            Error: @(Status ?? PageError)
+        </div>
+    </div>
+}

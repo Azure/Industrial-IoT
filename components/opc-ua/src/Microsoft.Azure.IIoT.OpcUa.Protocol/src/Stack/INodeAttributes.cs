@@ -194,6 +194,11 @@ namespace Opc.Ua {
         Variant? Value { get; set; }
 
         /// <summary>
+        /// Get data value
+        /// </summary>
+        DataValue DataValue { get; }
+
+        /// <summary>
         /// Inverse name of the reference if the node is a reference
         /// type, otherwise null.
         /// </summary>

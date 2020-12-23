@@ -4,18 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Result of attribute write
     /// </summary>
+    [DataContract]
     public class WriteResponseApiModel {
 
         /// <summary>
         /// All results of attribute writes
         /// </summary>
-        [JsonProperty(PropertyName = "results")]
+        [DataMember(Name = "results", Order = 0)]
         public List<AttributeWriteResponseApiModel> Results { set; get; }
     }
 }

@@ -16,11 +16,6 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault {
         string KeyVaultBaseUrl { get; }
 
         /// <summary>
-        /// Keyvault resource id
-        /// </summary>
-        string KeyVaultResourceId { get; }
-
-        /// <summary>
         /// Is hsm key vault
         /// </summary>
         bool KeyVaultIsHsm { get; }

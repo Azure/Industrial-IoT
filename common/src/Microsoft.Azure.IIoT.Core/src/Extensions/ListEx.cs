@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace System.Collections.Generic {
-    using System;
 
     /// <summary>
     /// List extensions
@@ -12,6 +11,7 @@ namespace System.Collections.Generic {
     public static class ListEx {
 
         private static readonly Random rng = new Random();
+
         /// <summary>
         /// Shuffle list
         /// </summary>
@@ -30,6 +30,24 @@ namespace System.Collections.Generic {
                 list[n] = value;
             }
             return list;
+        }
+
+        /// <summary>
+        /// Add range
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="range"></param>
+        public static void AddRange<T>(this IList<T> list, IEnumerable<T> range) {
+            if (list == null) {
+                throw new ArgumentNullException(nameof(list));
+            }
+            if (range == null) {
+                return;
+            }
+            foreach (var item in range) {
+                list.Add(item);
+            }
         }
     }
 }

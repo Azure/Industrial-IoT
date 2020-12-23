@@ -505,7 +505,7 @@ namespace DataAccess {
                     _simulationTimer = null;
                 }
 
-                _generator = new Opc.Ua.Test.DataGenerator(null);
+                _generator = new Opc.Ua.Test.TestDataGenerator();
                 _simulationTimer = new Timer(DoSimulation, null, 1000, 1000);
             }
         }
@@ -551,7 +551,7 @@ namespace DataAccess {
         private readonly Dictionary<string, UnderlyingSystemBlock> _blocks;
         private Timer _simulationTimer;
         private long _simulationCounter;
-        private Opc.Ua.Test.DataGenerator _generator;
+        private Opc.Ua.Test.TestDataGenerator _generator;
     }
 
     /// <summary>

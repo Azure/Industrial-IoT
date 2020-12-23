@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -45,11 +46,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Site of the application
         /// </summary>
         public string SiteId { get; set; }
-
-        /// <summary>
-        /// Application cert
-        /// </summary>
-        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Application capabilities

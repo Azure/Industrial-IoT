@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Utils {
+    using Microsoft.Azure.IIoT.Auth.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -35,8 +36,18 @@ namespace Microsoft.Azure.IIoT.Utils {
             Endpoint,
             /// <summary>Account endpoint</summary>
             AccountEndpoint,
-            /// <summary>Account endpoint</summary>
+            /// <summary>Account key</summary>
+            AccountName,
+            /// <summary>Account name</summary>
             AccountKey,
+            /// <summary>Access key</summary>
+            AccessKey,
+            /// <summary>Expires</summary>
+            Expires,
+            /// <summary>default endpoint suffix</summary>
+            EndpointSuffix,
+            /// <summary>default protocol</summary>
+            DefaultEndpointsProtocol,
         }
 
         /// <summary>
@@ -63,11 +74,6 @@ namespace Microsoft.Azure.IIoT.Utils {
         public string DeviceId => this[Id.DeviceId];
 
         /// <summary>
-        /// Get module id
-        /// </summary>
-        public string ModuleId => this[Id.ModuleId];
-
-        /// <summary>
         /// Get shared access key name
         /// </summary>
         public string SharedAccessKeyName => this[Id.SharedAccessKeyName];
@@ -75,17 +81,17 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Get shared access key
         /// </summary>
-        public string SharedAccessKey => this[Id.SharedAccessKey] ?? this[Id.AccountKey];
+        public string SharedAccessKey => this[Id.SharedAccessKey] ?? this[Id.AccountKey] ?? this[Id.AccessKey];
 
         /// <summary>
-        /// Get shared access key
+        /// Get endpoint suffix
         /// </summary>
-        public string SharedAccessToken => this[Id.SharedAccessToken];
+        public string EndpointSuffix => this[Id.EndpointSuffix];
 
         /// <summary>
         /// Get account endpoint
         /// </summary>
-        public string Endpoint => this[Id.AccountEndpoint] ?? this[Id.Endpoint];
+        public string Endpoint => this[Id.AccountName] ?? this[Id.AccountEndpoint] ?? this[Id.Endpoint];
 
         /// <summary>
         /// Parse connection string
@@ -144,6 +150,32 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <summary>
+        /// Create endpoint access string
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static ConnectionString CreateFromAccessToken(IdentityTokenModel token) {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.Expires] = token.Expires.ToBinary().ToString();
+            connectionString._items[Id.Endpoint] = token.Identity;
+            connectionString._items[Id.AccessKey] = token.Key;
+            return connectionString;
+        }
+
+        /// <summary>
+        /// Create Signalr connection string
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="key"></param>
+        public static ConnectionString CreateWithEndpointAndAccessKey(Uri endpoint,
+            string key) {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.Endpoint] = endpoint.ToString();
+            connectionString._items[Id.AccessKey] = key;
+            return connectionString;
+        }
+
+        /// <summary>
         /// Create cosmos db connection string
         /// </summary>
         /// <param name="endpoint"></param>
@@ -153,6 +185,23 @@ namespace Microsoft.Azure.IIoT.Utils {
             var connectionString = new ConnectionString();
             connectionString._items[Id.AccountEndpoint] = endpoint.ToString();
             connectionString._items[Id.AccountKey] = key;
+            return connectionString;
+        }
+
+        /// <summary>
+        /// Create cosmos db connection string
+        /// </summary>
+        /// <param name="accountName"></param>
+        /// <param name="endpointSuffix"></param>
+        /// <param name="key"></param>
+        /// <param name="protocol"></param>
+        public static ConnectionString CreateStorageConnectionString(
+            string accountName, string endpointSuffix, string key, string protocol) {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.AccountKey] = key;
+            connectionString._items[Id.AccountName] = accountName;
+            connectionString._items[Id.DefaultEndpointsProtocol] = protocol;
+            connectionString._items[Id.EndpointSuffix] = endpointSuffix;
             return connectionString;
         }
 
@@ -203,6 +252,20 @@ namespace Microsoft.Azure.IIoT.Utils {
         }
 
         /// <summary>
+        /// Create device connection string
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static ConnectionString CreateDeviceConnectionString(
+            IdentityTokenModel token) {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.Expires] = token.Expires.ToBinary().ToString();
+            connectionString._items[Id.DeviceId] = token.Identity;
+            connectionString._items[Id.AccessKey] = token.Key;
+            return connectionString;
+        }
+
+        /// <summary>
         /// Create module connection string
         /// </summary>
         /// <param name="hostName"></param>
@@ -233,6 +296,19 @@ namespace Microsoft.Azure.IIoT.Utils {
                 b.Append(";");
             }
             return b.ToString().TrimEnd(';');
+        }
+
+        /// <summary>
+        /// Convert to identity token
+        /// </summary>
+        /// <returns></returns>
+        public IdentityTokenModel ToIdentityToken() {
+            return new IdentityTokenModel {
+                Expires = this[Id.Expires] == null ? DateTime.UtcNow :
+                    DateTime.FromBinary(long.Parse(this[Id.Expires])),
+                Identity = this[Id.Endpoint] ?? this[Id.ModuleId] ?? this[Id.DeviceId],
+                Key = this[Id.AccessKey]
+            };
         }
 
         /// <summary>

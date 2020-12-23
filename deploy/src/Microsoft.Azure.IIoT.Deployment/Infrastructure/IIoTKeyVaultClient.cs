@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -18,16 +18,28 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
     class IIoTKeyVaultClient : IDisposable {
 
-        public const string WEB_APP_CERT_NAME = "webAppCert";
         public const string AKS_CLUSTER_CERT_NAME = "aksClusterCert";
+        public const string DATAPROTECTION_KEY_NAME = "dataprotection";
 
         private readonly KeyVaultClient _keyVaultClient;
         private readonly VaultInner _keyVault;
 
+        /// <summary>
+        /// Constructor of IIoT-specific KeyVault client.
+        /// </summary>
+        /// <param name="authenticationCallback"></param>
+        /// <param name="keyVault"></param>
         public IIoTKeyVaultClient(
             AuthenticationCallback authenticationCallback,
             VaultInner keyVault
         ) {
+            if (authenticationCallback is null) {
+                throw new ArgumentNullException(nameof(authenticationCallback));
+            }
+            if (keyVault is null) {
+                throw new ArgumentNullException(nameof(keyVault));
+            }
+
             var kvAuthenticationCallback = new KeyVaultClient.AuthenticationCallback(
                 async (authority, resource, scope) => {
                     return await authenticationCallback(authority, resource, scope);
@@ -38,22 +50,32 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             _keyVault = keyVault;
         }
 
+        /// <summary>
+        /// Wait for certificate to be created.
+        /// </summary>
+        /// <param name="certificateName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         private async Task WaitForCertificateCreationAsync(
             string certificateName,
             CancellationToken cancellationToken = default
         ) {
-            var webAppCertificateOperation = await _keyVaultClient
+            if (string.IsNullOrEmpty(certificateName)) {
+                throw new ArgumentNullException(nameof(certificateName));
+            }
+
+            var certificateOperation = await _keyVaultClient
                 .GetCertificateOperationAsync(
                     _keyVault.Properties.VaultUri,
                     certificateName,
                     cancellationToken
                 );
 
-            while (webAppCertificateOperation.Status.ToLower().Equals("inprogress")) {
+            while (certificateOperation.Status.ToLower().Equals("inprogress")) {
                 cancellationToken.ThrowIfCancellationRequested();
                 await Task.Delay(1000, cancellationToken);
 
-                webAppCertificateOperation = await _keyVaultClient
+                certificateOperation = await _keyVaultClient
                     .GetCertificateOperationAsync(
                         _keyVault.Properties.VaultUri,
                         certificateName,
@@ -66,6 +88,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string certificateName,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrEmpty(certificateName)) {
+                throw new ArgumentNullException(nameof(certificateName));
+            }
+
+            // We first have to wait for certificate to be created.
             await WaitForCertificateCreationAsync(certificateName, cancellationToken);
 
             var certificateBundle = await _keyVaultClient
@@ -84,6 +111,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string certificateName,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrEmpty(certificateName)) {
+                throw new ArgumentNullException(nameof(certificateName));
+            }
+
+            // We first have to wait for certificate to be created.
             await WaitForCertificateCreationAsync(certificateName, cancellationToken);
 
             var secretBundle = await _keyVaultClient
@@ -116,6 +148,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrEmpty(certificateName)) {
+                throw new ArgumentNullException(nameof(certificateName));
+            }
+            if (string.IsNullOrEmpty(certificateCN)) {
+                throw new ArgumentNullException(nameof(certificateCN));
+            }
+
             try {
                 tags ??= new Dictionary<string, string>();
 
@@ -168,6 +207,129 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 Log.Error(ex, $"Failed to add certificate to Azure KeyVault: {certificateName}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Retrieves the public portion of a key plus its attributes.
+        /// </summary>
+        /// <param name="keyName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<KeyBundle> GetKeyAsync(
+            string keyName,
+            CancellationToken cancellationToken = default
+        ) {
+            if (string.IsNullOrEmpty(keyName)) {
+                throw new ArgumentNullException(nameof(keyName));
+            }
+
+            var keyBundle = await _keyVaultClient
+                .GetKeyAsync(
+                    _keyVault.Properties.VaultUri,
+                    keyName,
+                    cancellationToken
+                );
+
+            return keyBundle;
+        }
+
+        /// <summary>
+        /// Creates a new key, stores it, then returns key parameters and attributes.
+        /// </summary>
+        /// <param name="keyName"></param>
+        /// <param name="keyParameters"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<KeyBundle> CreateKeyAsync(
+            string keyName,
+            NewKeyParameters keyParameters,
+            CancellationToken cancellationToken = default
+        ) {
+            if (string.IsNullOrEmpty(keyName)) {
+                throw new ArgumentNullException(nameof(keyName));
+            }
+
+            var keyBundle = await _keyVaultClient
+                .CreateKeyAsync(
+                    _keyVault.Properties.VaultUri,
+                    keyName,
+                    keyParameters,
+                    cancellationToken
+                );
+
+            return keyBundle;
+        }
+
+        /// <summary>
+        /// Creates a new key for dataprotection and returns key parameters and attributes.
+        /// </summary>
+        /// <param name="keyName"></param>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<KeyBundle> CreateDataprotectionKeyAsync(
+            string keyName,
+            IDictionary<string, string> tags = null,
+            CancellationToken cancellationToken = default
+        ) {
+            if (string.IsNullOrEmpty(keyName)) {
+                throw new ArgumentNullException(nameof(keyName));
+            }
+
+            tags ??= new Dictionary<string, string>();
+            var keyParameters = new NewKeyParameters {
+                KeySize = 2048,
+                Kty = KeyVault.WebKey.JsonWebKeyType.Rsa,
+                KeyOps = new List<string> {
+                    KeyVault.WebKey.JsonWebKeyOperation.Wrap,
+                    KeyVault.WebKey.JsonWebKeyOperation.Unwrap
+                },
+                Tags = tags
+            };
+
+            var keyBundle = await CreateKeyAsync(
+                keyName,
+                keyParameters,
+                cancellationToken
+            );
+
+            return keyBundle;
+        }
+
+        /// <summary>
+        /// Create secret with "application/json" content type.
+        /// </summary>
+        /// <param name="secretName"></param>
+        /// <param name="secretValue"></param>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<SecretBundle> CreateSecretAsync(
+            string secretName,
+            string secretValue,
+            IDictionary<string, string> tags = null,
+            CancellationToken cancellationToken = default
+        ) {
+            if (string.IsNullOrEmpty(secretName)) {
+                throw new ArgumentNullException(nameof(secretName));
+            }
+            if (string.IsNullOrEmpty(secretValue)) {
+                throw new ArgumentNullException(nameof(secretValue));
+            }
+
+            tags ??= new Dictionary<string, string>();
+
+            var secret = await _keyVaultClient
+                .SetSecretAsync(
+                    _keyVault.Properties.VaultUri,
+                    secretName,
+                    secretValue,
+                    tags,
+                    "application/json",
+                    cancellationToken: cancellationToken
+                );
+
+            return secret;
         }
 
         public void Dispose() {

@@ -5,11 +5,17 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.Api {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
-    using Microsoft.Azure.IIoT.OpcUa.History;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.Utils;
+    using Opc.Ua;
+    using System.Linq;
     using System.Net;
+    using System.Net.Sockets;
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
@@ -20,20 +26,26 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.Api {
         public SupervisorReadValuesTests(HistoryServerFixture server, TwinModuleFixture module) {
             _server = server;
             _module = module;
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
+                ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
         private HistoryReadValuesTests<EndpointApiModel> GetTests() {
             return new HistoryReadValuesTests<EndpointApiModel>(
-                () => _module.HubContainer.Resolve<IHistorianServices<EndpointApiModel>>(),
+                () => _module.HubContainer.Resolve<IHistoricAccessServices<EndpointApiModel>>(),
                 new EndpointApiModel {
-                    Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                    Certificate = _server.Certificate?.RawData
-                });
+                    Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+                    AlternativeUrls = _hostEntry?.AddressList
+                        .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                        .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
+                    Certificate = _server.Certificate?.RawData?.ToThumbprint()
+                },
+                _module.HubContainer.Resolve<IVariantEncoderFactory>());
         }
 
         private readonly HistoryServerFixture _server;
         private readonly TwinModuleFixture _module;
-
+        private readonly IPHostEntry _hostEntry;
 
         [Fact]
         public async Task HistoryReadInt64ValuesTest1Async() {

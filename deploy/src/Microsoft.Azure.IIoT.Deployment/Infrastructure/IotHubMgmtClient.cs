@@ -23,9 +23,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
         public const int IOT_HUB_EVENT_HUB_PARTITIONS_COUNT = 4;
+        public const int IOT_HUB_EVENT_HUB_RETENTION_TIME_IN_DAYS = 2;
 
-        public const string IOT_HUB_EVENT_HUB_ONBOARDING_ENDPOINT_NAME = "events";
-        public const string IOT_HUB_EVENT_HUB_ONBOARDING_CONSUMER_GROUP_NAME = "onboarding";
+        public const string IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME = "events";
+
+        public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_EVENTS_NAME = "events";
+        public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TELEMETRY_NAME = "telemetry";
+        public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TUNNEL_NAME = "tunnel";
+        public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_ONBOARDING_NAME = "onboarding";
 
         public const string IOT_HUB_OWNER_KEY_NAME = "iothubowner";
 
@@ -55,6 +60,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             };
         }
 
+        /// <summary>
+        /// Generate randomized IoT Hub name.
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="suffixLen"></param>
+        /// <returns></returns>
         public static string GenerateIotHubName(
             string prefix = DEFAULT_IOT_HUB_NAME_PREFIX,
             int suffixLen = 5
@@ -63,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         }
 
         /// <summary>
-        /// Checks whether given IoTHub name is available.
+        /// Checks whether given IoT Hub name is available.
         /// </summary>
         /// <param name="iotHubName"></param>
         /// <param name="cancellationToken"></param>
@@ -96,19 +107,19 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 throw;
             }
             catch (Exception ex) {
-                Log.Error(ex, $"Failed to check IoTHub Service name availability for {iotHubName}");
+                Log.Error(ex, $"Failed to check IoT Hub Service name availability for {iotHubName}");
                 throw;
             }
 
             // !nameAvailabilityInfo.NameAvailable.HasValue
-            throw new Exception($"Failed to check IoTHub Service name availability for {iotHubName}");
+            throw new Exception($"Failed to check IoT Hub Service name availability for {iotHubName}");
         }
 
         /// <summary>
-        /// Tries to generate IoTHub name that is available.
+        /// Tries to generate IoT Hub name that is available.
         /// </summary>
         /// <param name="cancellationToken"></param>
-        /// <returns>An available name for IoTHub.</returns>
+        /// <returns>An available name for IoT Hub.</returns>
         /// <exception cref="Microsoft.Rest.Azure.CloudException"></exception>
         public async Task<string> GenerateAvailableNameAsync(
             CancellationToken cancellationToken = default
@@ -133,21 +144,34 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 throw;
             }
             catch (Exception ex) {
-                Log.Error(ex, "Failed to generate unique IoTHub service name");
+                Log.Error(ex, "Failed to generate unique IoT Hub service name");
                 throw;
             }
 
-            var errorMessage = $"Failed to generate unique IoTHub service name " +
+            var errorMessage = $"Failed to generate unique IoT Hub service name " +
                 $"after {NUM_OF_MAX_NAME_AVAILABILITY_CHECKS} retries";
 
             Log.Error(errorMessage);
             throw new Exception(errorMessage);
         }
 
+        /// <summary>
+        /// Create a Stanrard tier (S1) IoT Hub.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="iotHubName"></param>
+        /// <param name="iotHubEventHubRetentionTimeInDays"></param>
+        /// <param name="iotHubEventHubPartitionsCount"></param>
+        /// <param name="storageAccountConectionString"></param>
+        /// <param name="storageAccountIotHubContainerName"></param>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<IotHubDescription> CreateIotHubAsync(
             IResourceGroup resourceGroup,
             string iotHubName,
-            int iotHubEventHubEndpointsPartitionsCount,
+            int iotHubEventHubRetentionTimeInDays,
+            int iotHubEventHubPartitionsCount,
             string storageAccountConectionString,
             string storageAccountIotHubContainerName,
             IDictionary<string, string> tags = null,
@@ -171,14 +195,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     EnableFileUploadNotifications = true,
                     Features = "None",
                     EventHubEndpoints = new Dictionary<string, EventHubProperties> {
-                        { "events", new EventHubProperties {
-                                RetentionTimeInDays = 1,
-                                PartitionCount = iotHubEventHubEndpointsPartitionsCount
-                            }
-                        },
-                        { "operationsMonitoringEvents", new EventHubProperties {
-                                RetentionTimeInDays = 1,
-                                PartitionCount = iotHubEventHubEndpointsPartitionsCount
+                        // The only possible keys to this dictionary is 'events'.
+                        { IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME, new EventHubProperties {
+                                RetentionTimeInDays = iotHubEventHubRetentionTimeInDays,
+                                PartitionCount = iotHubEventHubPartitionsCount
                             }
                         }
                     },
@@ -195,7 +215,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                             //Source = "DeviceMessages",  // Seem to be set by FallbackRouteProperties constructor.
                             Condition = "true",
                             IsEnabled = true,
-                            EndpointNames = new List<string> { "events" }
+                            EndpointNames = new List<string> { IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME }
                         }
                     },
                     StorageEndpoints = new Dictionary<string, StorageEndpointProperties> {
@@ -257,11 +277,20 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
+        /// <summary>
+        /// Create a consumer group for given IoT Hub built-in Event Hub endpoint.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="iotHub"></param>
+        /// <param name="eventHubEndpointName"></param>
+        /// <param name="consumerGroupName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<EventHubConsumerGroupInfo> CreateEventHubConsumerGroupAsync(
             IResourceGroup resourceGroup,
             IotHubDescription iotHub,
-            string eventHubEndpointName = IOT_HUB_EVENT_HUB_ONBOARDING_ENDPOINT_NAME,
-            string consumerGroupName = IOT_HUB_EVENT_HUB_ONBOARDING_CONSUMER_GROUP_NAME,
+            string eventHubEndpointName,
+            string consumerGroupName,
             CancellationToken cancellationToken = default
         ) {
             try {
@@ -287,6 +316,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
+        /// <summary>
+        /// Get IoT Hub connection string for given key/policy.
+        /// Default key/policy name is 'iothubowner'.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="iotHub"></param>
+        /// <param name="keyName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<string> GetIotHubConnectionStringAsync(
             IResourceGroup resourceGroup,
             IotHubDescription iotHub,

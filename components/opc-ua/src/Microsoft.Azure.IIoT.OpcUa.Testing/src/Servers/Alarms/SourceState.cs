@@ -87,7 +87,7 @@ namespace Alarms {
             // need to check if this source has already been processed during this refresh operation.
             for (var ii = 0; ii < events.Count; ii++) {
 
-                if (events[ii] is InstanceStateSnapshot e && object.ReferenceEquals(e.Handle, this)) {
+                if (events[ii] is InstanceStateSnapshot e && ReferenceEquals(e.Handle, this)) {
                     return;
                 }
             }

@@ -118,97 +118,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="_00_industrial_iot_namespace" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\00_industrial_iot_namespace.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  <data name="_04_oms_agent_configmap" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\04_oms_agent_configmap.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_01_industrial_iot_serviceaccount" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\01_industrial_iot_serviceaccount.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_02_industrial_iot_role" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\02_industrial_iot_role.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_03_industrial_iot_role_binding" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\03_industrial_iot_role_binding.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_10_industrial_iot_env_secret" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\10_industrial_iot_env_secret.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_11_registry_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\11_registry_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_11_registry_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\11_registry_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_12_twin_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\12_twin_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_12_twin_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\12_twin_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_13_history_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\13_history_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_13_history_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\13_history_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_14_gateway_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\14_gateway_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_14_gateway_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\14_gateway_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_15_vault_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\15_vault_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_15_vault_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\15_vault_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_16_alerting_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\16_alerting_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_17_onboarding_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\17_onboarding_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_18_jobs_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\18_jobs_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_19_modelprocessor_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\19_modelprocessor_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_20_blobnotification_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\20_blobnotification_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_21_twinwebui_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\21_twinwebui_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_25_default_ssl_certificate_secret" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\25_default_ssl_certificate_secret.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-  </data>
-  <data name="_30_industrial_iot_ingress" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\30_industrial_iot_ingress.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_40_ingress_nginx_namespace" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\40_ingress_nginx_namespace.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_41_nginx_ingress_serviceaccount" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\41_nginx_ingress_serviceaccount.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_42_nginx_ingress_clusterrole" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\42_nginx_ingress_clusterrole.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_43_nginx_ingress_role" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\43_nginx_ingress_role.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_44_nginx_ingress_role_nisa_binding" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\44_nginx_ingress_role_nisa_binding.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_45_nginx_ingress_clusterrole_nisa_binding" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\45_nginx_ingress_clusterrole_nisa_binding.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_51_nginx_ingress_controller_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\51_nginx_ingress_controller_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
-  </data>
-  <data name="_52_ingress_nginx_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\52_ingress_nginx_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  <data name="_90_letsencrypt_cluster_issuer" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\90_letsencrypt_cluster_issuer.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
 </root>

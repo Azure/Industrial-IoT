@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Method argument metadata model
@@ -29,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// <summary>
         /// Default value for the argument
         /// </summary>
-        public JToken DefaultValue { get; set; }
+        public VariantValue DefaultValue { get; set; }
 
         /// <summary>
         /// Optional, scalar if not set

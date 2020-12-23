@@ -1,0 +1,5 @@
+# Always ensure to include industrial-iot-pr for every item that follows.
+* @Azure/industrial-iot-pr
+
+# Only exception is doc updates
+/docs/ @Azure/azure-industrial-iot

@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Sample;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua.Server;
     using System;
@@ -35,6 +36,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
         public X509Certificate2 Certificate => _serverHost.Certificate;
 
         /// <summary>
+        /// Cert folder
+        /// </summary>
+        public string PkiRootPath { get; private set; }
+
+        /// <summary>
         /// Logger
         /// </summary>
         public ILogger Logger { get; }
@@ -56,20 +62,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             if (nodes == null) {
                 throw new ArgumentNullException(nameof(nodes));
             }
-            Logger = LogEx.ConsoleOut(LogEventLevel.Debug);
+            Logger = ConsoleOutLogger.Create(LogEventLevel.Debug);
             _config = new TestClientServicesConfig();
             _client = new Lazy<ClientServices>(() => {
                 return new ClientServices(Logger, _config);
             }, false);
-            _serverHost = new ServerConsoleHost(
-                new ServerFactory(Logger, nodes) {
-                    LogStatus = false
-                }, Logger) {
-                AutoAccept = true
-            };
+            PkiRootPath = Path.Combine(Directory.GetCurrentDirectory(), "pki",
+               Guid.NewGuid().ToByteArray().ToBase16String());
             var port = Interlocked.Increment(ref _nextPort);
             for (var i = 0; i < 200; i++) { // Retry 200 times
                 try {
+                    _serverHost = new ServerConsoleHost(
+                        new ServerFactory(Logger, nodes) {
+                            LogStatus = false
+                        }, Logger) {
+                        PkiRootPath = PkiRootPath,
+                        AutoAccept = true
+                    };
                     Logger.Information("Starting server host on {port}...",
                         port);
                     _serverHost.StartAsync(new int[] { port }).Wait();
@@ -89,17 +98,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures {
             Logger.Information("Disposing server and client fixture...");
             _serverHost.Dispose();
             // Clean up all created certificates
-            var certFolder = Path.Combine(Directory.GetCurrentDirectory(), "OPC Foundation");
-            if (Directory.Exists(certFolder)) {
+            if (Directory.Exists(PkiRootPath)) {
                 Logger.Information("Server disposed - cleaning up server certificates...");
-                Try.Op(() => Directory.Delete(certFolder, true));
+                Try.Op(() => Directory.Delete(PkiRootPath, true));
             }
             if (_client.IsValueCreated) {
                 Logger.Information("Disposing client...");
                 Task.Run(() => _client.Value.Dispose()).Wait();
-                Logger.Information("Client disposed - cleaning up client certificates...");
-                _config?.Dispose();
             }
+            Logger.Information("Client disposed - cleaning up client certificates...");
+            _config?.Dispose();
             Logger.Information("Server and client fixture disposed.");
         }
 

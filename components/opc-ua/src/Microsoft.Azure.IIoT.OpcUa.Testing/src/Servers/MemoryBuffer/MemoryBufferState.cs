@@ -492,7 +492,7 @@ namespace MemoryBuffer {
                         var index = -1;
 
                         for (var ii = 0; ii < monitoredItems.Length; ii++) {
-                            if (object.ReferenceEquals(monitoredItems[ii], monitoredItem)) {
+                            if (ReferenceEquals(monitoredItems[ii], monitoredItem)) {
                                 index = ii;
                                 break;
                             }

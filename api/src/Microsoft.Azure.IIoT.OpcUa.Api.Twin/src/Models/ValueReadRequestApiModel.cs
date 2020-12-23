@@ -4,25 +4,28 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Node value read request webservice api model
     /// </summary>
+    [DataContract]
     public class ValueReadRequestApiModel {
 
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0,
+            EmitDefaultValue = false)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// An optional path from NodeId instance to
         /// the actual node.
         /// </summary>
-        [JsonProperty(PropertyName = "browsePath",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "browsePath", Order = 1,
+            EmitDefaultValue = false)]
         public string[] BrowsePath { get; set; }
 
         /// <summary>
@@ -30,17 +33,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// out of a matrix or 0:1 for the first item in
         /// an array, string or bytestring.
         /// See 7.22 of part 4: NumericRange.
-        /// (default: null)
         /// </summary>
-        [JsonProperty(PropertyName = "indexRange",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "indexRange", Order = 2,
+            EmitDefaultValue = false)]
         public string IndexRange { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "header",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "header", Order = 3,
+            EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

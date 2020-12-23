@@ -1,10 +1,10 @@
 <#
  .SYNOPSIS
-    Build docker container for a mcr.json definition in the tree.
+    Build docker container for a container.json definition in the tree.
 
  .PARAMETER Path
     The folder to build the docker files from which also contains
-    the mcr.json file.  
+    the container.json file.
 
  .PARAMETER ImageName
     The name of the image.
@@ -38,15 +38,20 @@ $dockerversion = &docker @("version") 2>&1 | %{ "$_" } `
     | ConvertFrom-Csv -Delimiter ':' -Header @("Key", "Value") `
     | Where-Object { $_.Key -eq "OS/Arch" } `
     | ForEach-Object { $platform = $_.Value }
+if ($LastExitCode -ne 0) {
+    throw "docker version failed with $($LastExitCode)."
+}
 
 if ([string]::IsNullOrEmpty($platform)) {
     $platform = "linux/amd64"
 }
 if ($platform -eq "windows/amd64") {
     $osVerToPlatform = @{
-        "10.0.17134" = "windows/amd64:10.0.17134.885" 
-        "10.0.17763" = "windows/amd64:10.0.17763.615" 
-        "10.0.18362" = "windows/amd64:10.0.17134.885"
+        "10.0.17134" = "windows/amd64:10.0.17134.1305" 
+        "10.0.17763" = "windows/amd64:10.0.17763.1457" 
+        "10.0.18362" = "windows/amd64:10.0.18362.1082"
+        "10.0.18363" = "windows/amd64:10.0.18363.1082"
+        "10.0.19041" = "windows/amd64:10.0.19041.508"
     }
     $osver = (Get-WmiObject Win32_OperatingSystem).Version
     $platform = $osVerToPlatform.Item($osver)
@@ -69,5 +74,5 @@ $argumentList = @("build",
 $argumentList += $buildContext
 & docker $argumentList 2>&1 | %{ "$_" }
 if ($LastExitCode -ne 0) {
-    throw "Error: 'docker $($args)' failed with $($LastExitCode)."
+    throw "Error building $($ImageName): 'docker $($args)' failed with $($LastExitCode)."
 }

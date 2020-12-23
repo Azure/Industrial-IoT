@@ -1,0 +1,83 @@
+{{- if .Values.deployment.microServices.registry.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "azure-industrial-iot.registry.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.registry.component" . }}
+    app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.registry.extraLabels }}
+{{ toYaml .Values.deployment.microServices.registry.extraLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deployment.microServices.registry.deploymentAnnotations }}
+  annotations:
+{{ toYaml .Values.deployment.microServices.registry.deploymentAnnotations | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.deployment.microServices.registry.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: {{ template "azure-industrial-iot.registry.component" . }}
+      app.kubernetes.io/part-of: azure-industrial-iot
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+        app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        app.kubernetes.io/component: {{ template "azure-industrial-iot.registry.component" . }}
+        app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.registry.extraLabels }}
+{{ toYaml .Values.deployment.microServices.registry.extraLabels | indent 8 }}
+{{- end }}
+      annotations:
+        # Required to detect deployment change when 10_industrial_iot_env_secret.yaml is changed.
+        checksum/config: {{ include (print $.Template.BasePath "/10_industrial_iot_env_secret.yaml") . | sha256sum }}
+        {{- if .Values.prometheus.scrape }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "9042"
+        {{- end }}
+{{- if .Values.deployment.microServices.registry.podAnnotations }}
+{{ toYaml .Values.deployment.microServices.registry.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      serviceAccountName: {{ template "azure-industrial-iot.serviceAccountName" . }}
+{{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 6 }}
+{{- end }}
+      containers:
+      - name: {{ template "azure-industrial-iot.registry.component" . }}-container
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.registry.imageRepository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.deployment.microServices.registry.extraArgs }}
+        args:
+          {{- range .Values.deployment.microServices.registry.extraArgs }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
+{{- if .Values.deployment.microServices.registry.resources }}
+        resources:
+{{ toYaml .Values.deployment.microServices.registry.resources | indent 10 }}
+{{- end }}
+        ports:
+        - containerPort: 9042
+        envFrom:
+        - secretRef:
+            name: {{ include "azure-industrial-iot.env.fullname" . }}
+{{- if .Values.deployment.microServices.registry.extraEnv }}
+        env:
+{{ toYaml .Values.deployment.microServices.registry.extraEnv | indent 8 }}
+{{- end }}
+{{- end }}

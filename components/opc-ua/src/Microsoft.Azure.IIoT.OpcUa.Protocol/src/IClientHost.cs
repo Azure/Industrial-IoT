@@ -4,14 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using System;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Client host services
     /// </summary>
     public interface IClientHost {
+
+        /// <summary>
+        /// initializes the client configuration 
+        /// </summary>
+        /// <returns></returns>
+        Task InitializeAsync();
 
         /// <summary>
         /// Add certificate to trust list
@@ -26,19 +30,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="certificate"></param>
         /// <returns></returns>
         Task RemoveTrustedPeerAsync(byte[] certificate);
-
-        /// <summary>
-        /// Register endpoint state callback
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="callback"></param>
-        Task RegisterAsync(EndpointModel endpoint,
-            Func<EndpointConnectivityState, Task> callback);
-
-        /// <summary>
-        /// Unregister endpoint status callback
-        /// </summary>
-        /// <param name="endpoint"></param>
-        Task UnregisterAsync(EndpointModel endpoint);
     }
 }

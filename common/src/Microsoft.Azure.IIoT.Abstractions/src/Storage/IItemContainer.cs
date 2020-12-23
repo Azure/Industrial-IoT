@@ -21,12 +21,5 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <exception cref="System.NotSupportedException" />
         /// <returns></returns>
         IDocuments AsDocuments();
-
-        /// <summary>
-        /// Presents the items as graph
-        /// </summary>
-        /// <exception cref="System.NotSupportedException" />
-        /// <returns></returns>
-        IGraph AsGraph();
     }
 }

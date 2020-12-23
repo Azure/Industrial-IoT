@@ -1,0 +1,32 @@
+﻿@*------------------------------------------------------------
+    Copyright (c) Microsoft Corporation.  All rights reserved.
+    Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
+
+@inherits LayoutComponentBase
+
+<BlazoredModal />
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4">
+        <WorkbookLink />
+        <TSILink />
+        <LoginDisplay />
+        <Help />
+    </div>
+
+    <div class="content px-4">
+        <AuthorizeView>
+            <Authorized>
+                @Body
+            </Authorized>
+            <NotAuthorized>
+                <h1>Please sign in.</h1>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>

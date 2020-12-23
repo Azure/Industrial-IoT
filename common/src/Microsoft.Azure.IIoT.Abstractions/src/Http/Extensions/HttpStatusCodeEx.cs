@@ -46,7 +46,12 @@ namespace Microsoft.Azure.IIoT.Http {
                 case HttpStatusCode.BadRequest:
                     throw new BadRequestException(message, inner);
                 case HttpStatusCode.Forbidden:
-                    throw new ResourceInvalidStateException(message, inner);
+                    if (message.Contains("IotHubQuotaExceeded")) {
+                        throw new IotHubQuotaExceededException(message, inner);
+                    } 
+                    else {
+                        throw new ResourceInvalidStateException(message, inner);
+                    }          
                 case HttpStatusCode.Unauthorized:
                     throw new UnauthorizedAccessException(message, inner);
                 case HttpStatusCode.NotFound:
@@ -58,6 +63,12 @@ namespace Microsoft.Azure.IIoT.Http {
                 case HttpStatusCode.PreconditionFailed:
                     throw new ResourceOutOfDateException(message, inner);
                 case HttpStatusCode.InternalServerError:
+                    if (message.Contains("IotHubQuotaExceeded")) {
+                        throw new IotHubQuotaExceededException(message, inner);
+                    }
+                    else {
+                        throw new ResourceInvalidStateException(message, inner);
+                    }
                 case HttpStatusCode.GatewayTimeout:
                 case HttpStatusCode.ServiceUnavailable:
                 case HttpStatusCode.TemporaryRedirect:

@@ -4,9 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using AutoFixture;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json.Linq;
+    using AutoFixture;
     using System;
     using System.Linq;
     using Xunit;
@@ -76,9 +77,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [Fact]
         public void TestEqualIsNotEqualWithDeviceModel() {
             var r1 = CreateRegistration();
-            var m = r1.ToDeviceTwin();
+            var m = r1.ToDeviceTwin(_serializer);
             m.Tags["DiscoveryProfileUri"] = null;
-            var r2 = m.ToRegistration();
+            var r2 = m.ToEntityRegistration();
 
             Assert.NotEqual(r1, r2);
             Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
@@ -89,8 +90,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [Fact]
         public void TestEqualIsEqualWithDeviceModel() {
             var r1 = CreateRegistration();
-            var m = r1.ToDeviceTwin();
-            var r2 = m.ToRegistration();
+            var m = r1.ToDeviceTwin(_serializer);
+            var r2 = m.ToEntityRegistration();
 
             Assert.Equal(r1, r2);
             Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -104,14 +105,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var r1 = CreateRegistration();
             var r2 = r1.ToServiceModel().ToApplicationRegistration(true);
-            var m1 = r1.Patch(r2);
+            var m1 = r1.Patch(r2, _serializer);
             var r3 = r2.ToServiceModel().ToApplicationRegistration(false);
-            var m2 = r2.Patch(r3);
+            var m2 = r2.Patch(r3, _serializer);
 
-            Assert.True((bool?)m1.Tags[nameof(BaseRegistration.IsDisabled)] ?? false);
-            Assert.NotNull((DateTime?)m1.Tags[nameof(BaseRegistration.NotSeenSince)]);
-            Assert.Null((bool?)m2.Tags[nameof(BaseRegistration.IsDisabled)]);
-            Assert.Null((DateTime?)m2.Tags[nameof(BaseRegistration.NotSeenSince)]);
+            Assert.True((bool?)m1.Tags[nameof(EntityRegistration.IsDisabled)] ?? false);
+            Assert.NotNull((DateTime?)m1.Tags[nameof(EntityRegistration.NotSeenSince)]);
+            Assert.Null((bool?)m2.Tags[nameof(EntityRegistration.IsDisabled)]);
+            Assert.Null((DateTime?)m2.Tags[nameof(EntityRegistration.NotSeenSince)]);
         }
 
         /// <summary>
@@ -120,10 +121,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <returns></returns>
         private static ApplicationRegistration CreateRegistration() {
             var fix = new Fixture();
-            var cert = fix.CreateMany<byte>(1000).ToArray();
             var r1 = fix.Build<ApplicationRegistration>()
-                .With(x => x.Certificate, cert.EncodeAsDictionary())
-                .With(x => x.Thumbprint, cert.ToSha1Hash())
                 .With(x => x.Capabilities, fix.CreateMany<string>().ToHashSet()
                     .EncodeAsDictionary(true))
                 .With(x => x.DiscoveryUrls, fix.CreateMany<string>().ToList()
@@ -135,5 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 .Create();
             return r1;
         }
+
+        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

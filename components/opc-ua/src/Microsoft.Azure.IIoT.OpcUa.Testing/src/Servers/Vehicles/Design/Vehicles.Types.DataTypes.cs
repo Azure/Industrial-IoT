@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  *
@@ -27,16 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Vehicles.Types {
-    using System;
-    using System.Collections.Generic;
-    using System.Runtime.Serialization;
-    using Opc.Ua;
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using Opc.Ua;
 
+namespace Vehicles.Types {
     #region VehicleType Class
 #if (!OPCUA_EXCLUDE_VehicleType)
     /// <summary>
-    /// A description for the VehicleType DataType.
+    /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -68,18 +68,14 @@ namespace Vehicles.Types {
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the Make field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Make", IsRequired = false, Order = 1)]
         public string Make {
             get { return m_make; }
             set { m_make = value; }
         }
 
-        /// <summary>
-        /// A description for the Model field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Model", IsRequired = false, Order = 2)]
         public string Model {
             get { return m_model; }
@@ -248,7 +244,7 @@ namespace Vehicles.Types {
     #region CarType Class
 #if (!OPCUA_EXCLUDE_CarType)
     /// <summary>
-    /// A description for the CarType DataType.
+    /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -279,9 +275,7 @@ namespace Vehicles.Types {
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the NoOfPassengers field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "NoOfPassengers", IsRequired = false, Order = 1)]
         public uint NoOfPassengers {
             get { return m_noOfPassengers; }
@@ -450,7 +444,7 @@ namespace Vehicles.Types {
     #region TruckType Class
 #if (!OPCUA_EXCLUDE_TruckType)
     /// <summary>
-    /// A description for the TruckType DataType.
+    /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -481,9 +475,7 @@ namespace Vehicles.Types {
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the CargoCapacity field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "CargoCapacity", IsRequired = false, Order = 1)]
         public uint CargoCapacity {
             get { return m_cargoCapacity; }

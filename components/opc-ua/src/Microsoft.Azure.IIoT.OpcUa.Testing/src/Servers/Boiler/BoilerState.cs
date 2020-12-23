@@ -147,7 +147,7 @@ namespace Boiler {
         private double Adjust(double value, double target, double step, Opc.Ua.Range range) {
             // convert percentage step to an absolute step if range is specified.
             if (range != null) {
-                step = step * range.Magnitude;
+                step *= range.Magnitude;
             }
 
             var difference = target - value;
@@ -252,6 +252,8 @@ namespace Boiler {
         private ISystemContext _simulationContext;
         private Timer _simulationTimer;
         private Random _random;
+#pragma warning disable IDE0052 // Remove unread private members
         private long _simulationCounter;
+#pragma warning restore IDE0052 // Remove unread private members
     }
 }

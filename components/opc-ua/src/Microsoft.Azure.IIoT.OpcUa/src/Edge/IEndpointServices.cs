@@ -4,7 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -13,9 +15,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge {
     public interface ITwinServices {
 
         /// <summary>
-        /// Endpoint
+        /// Current state to report
         /// </summary>
-        EndpointModel Endpoint { get; }
+        public EndpointConnectivityState State { get; }
+
+        /// <summary>
+        /// Called to get endpoint
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<EndpointModel> GetEndpointAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Called to update endpoint

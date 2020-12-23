@@ -25,10 +25,38 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         private readonly SignalRManagementClient _signalRManagementClient;
 
+        /// <summary>
+        /// Defines possible ServiceModes for SignalR service.
+        /// </summary>
+        public class ServiceMode {
+
+            private const string kServiceModeFlag = "ServiceMode";
+
+            private ServiceMode(string value) {
+                Value = value;
+                Flag = kServiceModeFlag;
+            }
+
+            public string Flag { get; }
+
+            public string Value { get; }
+
+            public static ServiceMode Default { get { return new ServiceMode("Default"); } }
+            public static ServiceMode Serverless { get { return new ServiceMode("Serverless"); } }
+            public static ServiceMode Classic { get { return new ServiceMode("Classic"); } }
+        }
+
         public SignalRMgmtClient(
             string subscriptionId,
             RestClient restClient
         ) {
+            if (string.IsNullOrEmpty(subscriptionId)) {
+                throw new ArgumentNullException(nameof(subscriptionId));
+            }
+            if (restClient is null) {
+                throw new ArgumentNullException(nameof(restClient));
+            }
+
             // We need to initialize new RestClient so that we
             // extract RootHttpHandler and DelegatingHandlers out of it.
             var signalRRestClient = RestClient
@@ -47,6 +75,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             };
         }
 
+        /// <summary>
+        /// Generate a random name for SignalR service.
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="suffixLen"></param>
+        /// <returns></returns>
         public static string GenerateName(
             string prefix = DEFAULT_NAME_PREFIX,
             int suffixLen = 5
@@ -54,25 +88,40 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return SdkContext.RandomResourceName(prefix, suffixLen);
         }
 
+        /// <summary>
+        /// Create a Standard tier Serverless instance of SignalR service in the given resource group.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="signalRName"></param>
+        /// <param name="serviceMode"></param>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<SignalRResource> CreateAsync(
             IResourceGroup resourceGroup,
             string signalRName,
+            ServiceMode serviceMode,
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (string.IsNullOrEmpty(signalRName)) {
+                throw new ArgumentNullException(nameof(signalRName));
+            }
+
             try {
                 tags ??= new Dictionary<string, string>();
 
                 Log.Information($"Creating SignalR Service: {signalRName} ...");
 
-                // Constructor of SignalRFeature will set Flag to "ServiceMode".
-                // Bug report for adding feature to explicitly set the Flag to "ServiceMode":
-                // https://github.com/Azure/azure-sdk-for-net/issues/8806
                 var serviceModeFeature = new SignalRFeature {
-                    Value = "Default"
+                    Flag = serviceMode.Flag,
+                    Value = serviceMode.Value
                 };
 
-                var signalRCreateParameters = new SignalRCreateParameters() {
+                var signalRCreateParameters = new SignalRResource() {
                     Location = resourceGroup.RegionName,
                     Tags = tags,
 
@@ -81,11 +130,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         Tier = "Standard",
                         Capacity = 1,
                     },
-                    Properties = new SignalRCreateOrUpdateProperties {
-                        HostNamePrefix = signalRName,
-                        Features = new List<SignalRFeature> {
-                           serviceModeFeature
-                        }
+                    HostNamePrefix = signalRName,
+                    Features = new List<SignalRFeature> {
+                        serviceModeFeature
                     }
                 };
 
@@ -110,11 +157,25 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
+        /// <summary>
+        /// Get the SignalR service and its properties.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="signalRName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<SignalRResource> GetAsync(
             IResourceGroup resourceGroup,
             string signalRName,
             CancellationToken cancellationToken = default
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (string.IsNullOrEmpty(signalRName)) {
+                throw new ArgumentNullException(nameof(signalRName));
+            }
+
             try {
                 Log.Information($"Getting SignalR Service: {signalRName} ...");
 
@@ -136,11 +197,25 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
+        /// <summary>
+        /// Delete the SignalR service.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="signalR"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task DeleteAsync(
             IResourceGroup resourceGroup,
             SignalRResource signalR,
             CancellationToken cancellationToken = default
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (signalR is null) {
+                throw new ArgumentNullException(nameof(signalR));
+            }
+
             try {
                 Log.Debug($"Deleting SignalR Service: {signalR.Name} ...");
 
@@ -173,6 +248,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string signalRName,
             CancellationToken cancellationToken = default
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (string.IsNullOrEmpty(signalRName)) {
+                throw new ArgumentNullException(nameof(signalRName));
+            }
+
             try {
                 var parameters = new NameAvailabilityParameters {
                     Type = "Microsoft.SignalRService/SignalR",
@@ -216,6 +298,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IResourceGroup resourceGroup,
             CancellationToken cancellationToken = default
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+
             try {
                 for (var numOfChecks = 0; numOfChecks < NUM_OF_MAX_NAME_AVAILABILITY_CHECKS; ++numOfChecks) {
                     var signalRName = GenerateName();
@@ -248,11 +334,25 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             throw new Exception(errorMessage);
         }
 
+        /// <summary>
+        /// Get primary connection string for the SignalR service.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="signalR"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<string> GetConnectionStringAsync(
             IResourceGroup resourceGroup,
             SignalRResource signalR,
             CancellationToken cancellationToken = default
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (signalR is null) {
+                throw new ArgumentNullException(nameof(signalR));
+            }
+
             try {
                 var keys = await _signalRManagementClient
                     .SignalR

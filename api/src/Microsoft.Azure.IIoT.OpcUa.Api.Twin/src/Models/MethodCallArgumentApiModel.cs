@@ -4,24 +4,25 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// method arg model
     /// </summary>
+    [DataContract]
     public class MethodCallArgumentApiModel {
 
         /// <summary>
         /// Initial value or value to use
         /// </summary>
-        [JsonProperty(PropertyName = "value")]
-        public JToken Value { get; set; }
+        [DataMember(Name = "value", Order = 0)]
+        public VariantValue Value { get; set; }
 
         /// <summary>
         /// Data type Id of the value (from meta data)
         /// </summary>
-        [JsonProperty(PropertyName = "dataType")]
+        [DataMember(Name = "dataType", Order = 1)]
         public string DataType { get; set; }
     }
 }

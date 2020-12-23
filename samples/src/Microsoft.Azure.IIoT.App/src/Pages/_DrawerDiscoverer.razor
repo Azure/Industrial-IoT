@@ -1,0 +1,94 @@
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+------------------------------------------------------------*@
+
+@using Microsoft.Azure.IIoT.App.Services;
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage;
+
+@inject Registry RegistryHelper
+
+<div class="drawer-content list-group">
+    <div class="list-group-item text-justify list-group-item-heading">
+        <b>Enter configuration parameters for scan.</b>
+        <br><b>To apply default config leave the input field blank and click on apply</b>
+    </div>
+    <hr />
+    <div class="list-group-item text-left">
+        <EditForm Model="@InputData" OnValidSubmit="@UpdateDiscovererConfigAsync">
+            <FluentValidator />
+
+            <div class="form-group">
+                <label>Mask Address Range (CIDR notation)</label>
+                <input @bind="@InputData.RequestedAddressRangesToScan" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveAddressRangesToScan ?? "IP-address/netmask")" />
+            </div>
+            <div class="form-group">
+                <label>Port Range</label>
+                <input @bind="@InputData.RequestedPortRangesToScan" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortRangesToScan ?? "StartPort-EndPort")" />
+            </div>
+            <div class="form-group">
+                <label>Max Network Probes</label>
+                <input @bind="@InputData.RequestedMaxNetworkProbes" aria-label="maxNetworkProbes" id="MaxNetworkProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxNetworkProbes ?? "")" />
+            </div>
+            <div class="form-group">
+                <label>Max Port Probes</label>
+                <input @bind="@InputData.RequestedMaxPortProbes" aria-label="maxPortProbes" id="MaxPortProbes" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveMaxPortProbes ?? "")" />
+            </div>
+            <div class="form-group">
+                <label>Network Probe Timeout</label>
+                <input @bind="@InputData.RequestedNetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveNetworkProbeTimeout ?? "")" />
+            </div>
+            <div class="form-group">
+                <label>Port Probe Timeout</label>
+                <input @bind="@InputData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="@(DiscovererData.EffectivePortProbeTimeout ?? "")" />
+            </div>
+            <div class="form-group @IdleTimeView">
+                <label>Idle Time Between Scans</label>
+                <input @bind="@InputData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="@(DiscovererData.EffectiveIdleTimeBetweenScans ?? "")" />
+            </div>
+            <label>Discovery Urls</label>
+            <div class="flex">
+                <input @bind="@DiscoveryUrl" aria-label="DiscoveryUrls" id="DiscoveryUrls" type="text" class="form-control" />
+                <button @onclick="@DiscoveryAddUrlButtonClick" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
+                <button @onclick="@(() => InputData.ClearDiscoveryUrlList())" type="button" class="btn btn-primary shadow-none">Clear</button>
+            </div>
+            <div class="form-group margin-top">
+                @if (UrlListVisible) {
+                    <button @onclick="@UrlListButtonClick" aria-label="Hide Discovery URL list" type="button" class="btn btn-primary shadow-none section-toggle-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="16" height="16">
+                            <path d="m 6,3 5,5 5,-5 z" fill="#797979" transform="rotate(180, 10, 4)" />
+                        </svg>
+                        <span style="margin-left:8px;">Discovery Url list</span>
+                    </button>
+                    <div>
+                        <ul class="list-unstyled">
+                            @if (InputData.RequestedDiscoveryUrls == null || InputData.RequestedDiscoveryUrls.Count == 0) {
+                                <li>(None)</li>
+                            }
+                            else {
+                                foreach (var discoveryUrl in InputData.RequestedDiscoveryUrls) {
+                                    <li>@discoveryUrl</li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                } 
+                else {
+                    <button @onclick="@UrlListButtonClick" aria-label="Show Discovery URL list" type="button" class="btn btn-primary shadow-none section-toggle-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="16" height="16">
+                            <path d="m 6,3 5,5 5,-5 z" fill="#797979" />
+                        </svg>
+                        <span style="margin-left:8px;">Discovery Url list</span>
+                    </button>
+                }
+                </div>
+            <hr />
+            <ValidationSummary />
+            <div>
+                <button type="submit" class="btn btn-primary shadow-none">@ButtonLabel</button>
+            </div>
+            <ErrorMessage PageError="@null" Status="@Status"></ErrorMessage>
+        </EditForm>
+    </div>
+</div>

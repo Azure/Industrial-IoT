@@ -25,8 +25,9 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true)
-                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddFromDotEnvFile()
                 .AddCommandLine(args)
                 .Build();
 #if DEBUG

@@ -5,7 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.Utils {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
     using Autofac;
+    using Serilog;
 
     /// <summary>
     /// Host auto starter
@@ -13,23 +17,41 @@ namespace Microsoft.Azure.IIoT.Utils {
     public class HostAutoStart : IDisposable, IStartable {
 
         /// <summary>
-        /// Auto registers handlers in client
+        /// Create host auto starter
         /// </summary>
-        /// <param name="host"></param>
-        public HostAutoStart(IHost host) {
-            _host = host ?? throw new ArgumentNullException(nameof(host));
-        }
-
-        /// <inheritdoc/>
-        public void Dispose() {
-            _host.StopAsync().Wait();
+        /// <param name="hosts"></param>
+        /// <param name="logger"></param>
+        public HostAutoStart(IEnumerable<IHostProcess> hosts, ILogger logger) {
+            _host = hosts?.ToList() ?? throw new ArgumentNullException(nameof(hosts));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public void Start() {
-            _host.StartAsync().Wait();
+            try {
+                _logger.Debug("Starting all hosts...");
+                Task.WhenAll(_host.Select(h => h.StartAsync())).Wait();
+                _logger.Information("All hosts started.");
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to start some hosts.");
+                throw ex;
+            }
         }
 
-        private readonly IHost _host;
+        /// <inheritdoc/>
+        public void Dispose() {
+            try {
+                _logger.Debug("Stopping all hosts...");
+                Task.WhenAll(_host.Select(h => h.StopAsync())).Wait();
+                _logger.Information("All hosts stopped.");
+            }
+            catch (Exception ex) {
+                _logger.Warning(ex, "Failed to stop all hosts.");
+            }
+        }
+
+        private readonly List<IHostProcess> _host;
+        private readonly ILogger _logger;
     }
 }

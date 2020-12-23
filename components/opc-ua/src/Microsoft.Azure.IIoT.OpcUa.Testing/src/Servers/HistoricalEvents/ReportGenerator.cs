@@ -180,25 +180,26 @@ namespace HistoricalEvents {
         }
 
         public DataRow GenerateFluidLevelTestReport() {
-            var row = _dataset.Tables[0].NewRow();
+            lock (_dataset) {
+                var row = _dataset.Tables[0].NewRow();
 
-            row[0] = Guid.NewGuid().ToString();
-            row[1] = DateTime.UtcNow;
+                row[0] = Guid.NewGuid().ToString();
+                row[1] = DateTime.UtcNow;
 
-            var index = GetRandom(0, kWellUIDs.Length - 1);
-            row[2] = kWellNames[index];
-            row[3] = kWellUIDs[index];
+                var index = GetRandom(0, kWellUIDs.Length - 1);
+                row[2] = kWellNames[index];
+                row[3] = kWellUIDs[index];
 
-            row[4] = DateTime.UtcNow.AddHours(-GetRandom(0, 10));
-            row[5] = GetRandom(kTestReasons);
-            row[6] = GetRandom(0, 1000);
-            row[7] = GetRandom(kUnitLengths);
-            row[8] = GetRandom(kTesters);
+                row[4] = DateTime.UtcNow.AddHours(-GetRandom(0, 10));
+                row[5] = GetRandom(kTestReasons);
+                row[6] = GetRandom(0, 1000);
+                row[7] = GetRandom(kUnitLengths);
+                row[8] = GetRandom(kTesters);
 
-            _dataset.Tables[0].Rows.Add(row);
-            _dataset.AcceptChanges();
-
-            return row;
+                _dataset.Tables[0].Rows.Add(row);
+                _dataset.AcceptChanges();
+                return row;
+            }
         }
 
         /// <summary>
@@ -215,16 +216,17 @@ namespace HistoricalEvents {
             filter.Append('\'');
             filter.Append(')');
 
-            for (var ii = 0; ii < _dataset.Tables.Count; ii++) {
-                var view = new DataView(_dataset.Tables[ii], filter.ToString(), null, DataViewRowState.CurrentRows);
+            lock (_dataset) {
+                for (var ii = 0; ii < _dataset.Tables.Count; ii++) {
+                    var view = new DataView(_dataset.Tables[ii], filter.ToString(), null, DataViewRowState.CurrentRows);
 
-                if (view.Count > 0) {
-                    view[0].Delete();
-                    _dataset.AcceptChanges();
-                    return true;
+                    if (view.Count > 0) {
+                        view[0].Delete();
+                        _dataset.AcceptChanges();
+                        return true;
+                    }
                 }
             }
-
             return false;
         }
 
@@ -305,13 +307,15 @@ namespace HistoricalEvents {
                 filter.Append(')');
             }
 
-            var view = new DataView(
+            lock (_dataset) {
+                var view = new DataView(
                 _dataset.Tables[(int)reportType],
                 filter.ToString(),
                 Opc.Ua.BrowseNames.Time,
                 DataViewRowState.CurrentRows);
 
-            return view;
+                return view;
+            }
         }
 
         /// <summary>
@@ -371,25 +375,27 @@ namespace HistoricalEvents {
         }
 
         public DataRow GenerateInjectionTestReport() {
-            var row = _dataset.Tables[1].NewRow();
+            lock (_dataset) {
+                var row = _dataset.Tables[1].NewRow();
 
-            row[0] = Guid.NewGuid().ToString();
-            row[1] = DateTime.UtcNow;
+                row[0] = Guid.NewGuid().ToString();
+                row[1] = DateTime.UtcNow;
 
-            var index = GetRandom(0, kWellUIDs.Length - 1);
-            row[2] = kWellNames[index];
-            row[3] = kWellUIDs[index];
+                var index = GetRandom(0, kWellUIDs.Length - 1);
+                row[2] = kWellNames[index];
+                row[3] = kWellUIDs[index];
 
-            row[4] = DateTime.UtcNow.AddHours(-GetRandom(0, 10));
-            row[5] = GetRandom(kTestReasons);
-            row[6] = GetRandom(0, 1000);
-            row[7] = GetRandom(kUnitTimes);
-            row[8] = GetRandom(kInjectionFluids);
+                row[4] = DateTime.UtcNow.AddHours(-GetRandom(0, 10));
+                row[5] = GetRandom(kTestReasons);
+                row[6] = GetRandom(0, 1000);
+                row[7] = GetRandom(kUnitTimes);
+                row[8] = GetRandom(kInjectionFluids);
 
-            _dataset.Tables[1].Rows.Add(row);
-            _dataset.AcceptChanges();
+                _dataset.Tables[1].Rows.Add(row);
+                _dataset.AcceptChanges();
 
-            return row;
+                return row;
+            }
         }
 
         public DataRow UpdateeInjectionTestReport(DataRow row, IList<SimpleAttributeOperand> fields, IList<Variant> values) {

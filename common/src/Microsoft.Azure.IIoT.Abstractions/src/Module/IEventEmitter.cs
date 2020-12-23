@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module {
-    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -20,14 +21,14 @@ namespace Microsoft.Azure.IIoT.Module {
         /// <param name="propertyId">property id</param>
         /// <param name="value">property value</param>
         /// <returns></returns>
-        Task SendAsync(string propertyId, dynamic value);
+        Task ReportAsync(string propertyId, VariantValue value);
 
         /// <summary>
         /// Send property changed notifications
         /// </summary>
         /// <param name="properties">property id</param>
         /// <returns></returns>
-        Task SendAsync(IEnumerable<KeyValuePair<string,
-            dynamic>> properties);
+        Task ReportAsync(IEnumerable<KeyValuePair<string,
+            VariantValue>> properties);
     }
 }

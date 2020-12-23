@@ -4,16 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaSecurityMode = Opc.Ua.MessageSecurityMode;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
     using UaTokenType = Opc.Ua.UserTokenType;
     using UaNodeClass = Opc.Ua.NodeClass;
+    using UaFilterOperator = Opc.Ua.FilterOperator;
+    using UaMonitoringMode = Opc.Ua.MonitoringMode;
+    using UaDeadbandType = Opc.Ua.DeadbandType;
+    using UaDataChangeTrigger = Opc.Ua.DataChangeTrigger;
     using UaPermissionType = Opc.Ua.PermissionType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
+    using UaMonitoredItemMessageContentMask = Opc.Ua.MonitoredItemMessageContentMask;
+    using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;
+    using JsonNetworkMessageContentMask = Opc.Ua.JsonNetworkMessageContentMask;
+    using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
+    using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
+    using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
     using System.Collections.Generic;
+    using System;
 
     /// <summary>
     /// Stack types conversions
@@ -310,6 +321,501 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 default:
                     return UaDiagnosticsLevel.None;
             }
+        }
+
+        /// <summary>
+        /// Convert monitoring mode
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static MonitoringMode? ToServiceType(this UaMonitoringMode mode) {
+            switch (mode) {
+                case UaMonitoringMode.Disabled:
+                    return MonitoringMode.Disabled;
+                case UaMonitoringMode.Sampling:
+                    return MonitoringMode.Sampling;
+                case UaMonitoringMode.Reporting:
+                    return MonitoringMode.Reporting;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert monitoring mode
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static UaMonitoringMode? ToStackType(this MonitoringMode? mode) {
+            if (mode == null) {
+                return null;
+            }
+            switch (mode) {
+                case MonitoringMode.Disabled:
+                    return UaMonitoringMode.Disabled;
+                case MonitoringMode.Sampling:
+                    return UaMonitoringMode.Sampling;
+                case MonitoringMode.Reporting:
+                    return UaMonitoringMode.Reporting;
+                default:
+                    return UaMonitoringMode.Reporting;
+            }
+        }
+
+        /// <summary>
+        /// Convert deadband type
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static UaDeadbandType ToStackType(this DeadbandType? mode) {
+            if (mode == null) {
+                return UaDeadbandType.None;
+            }
+            switch (mode.Value) {
+                case DeadbandType.Absolute:
+                    return UaDeadbandType.Absolute;
+                case DeadbandType.Percent:
+                    return UaDeadbandType.Percent;
+                default:
+                    return UaDeadbandType.None;
+            }
+        }
+
+        /// <summary>
+        /// Convert deadband type
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static DeadbandType? ToServiceType(this UaDeadbandType mode) {
+            switch (mode) {
+                case UaDeadbandType.None:
+                    return null;
+                case UaDeadbandType.Absolute:
+                    return DeadbandType.Absolute;
+                case UaDeadbandType.Percent:
+                    return DeadbandType.Percent;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert deadband type
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static UaDataChangeTrigger ToStackType(this DataChangeTriggerType? mode) {
+            if (mode == null) {
+                return UaDataChangeTrigger.Status;
+            }
+            switch (mode.Value) {
+                case DataChangeTriggerType.Status:
+                    return UaDataChangeTrigger.Status;
+                case DataChangeTriggerType.StatusValue:
+                    return UaDataChangeTrigger.StatusValue;
+                case DataChangeTriggerType.StatusValueTimestamp:
+                    return UaDataChangeTrigger.StatusValueTimestamp;
+                default:
+                    return UaDataChangeTrigger.Status;
+            }
+        }
+
+        /// <summary>
+        /// Convert deadband type
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        public static DataChangeTriggerType? ToServiceType(this UaDataChangeTrigger mode) {
+            switch (mode) {
+                case UaDataChangeTrigger.Status:
+                    return DataChangeTriggerType.Status;
+                case UaDataChangeTrigger.StatusValue:
+                    return DataChangeTriggerType.StatusValue;
+                case UaDataChangeTrigger.StatusValueTimestamp:
+                    return DataChangeTriggerType.StatusValueTimestamp;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Convert to stack type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static UaFilterOperator ToStackType(this FilterOperatorType type) {
+            switch (type) {
+                case FilterOperatorType.Equals:
+                    return UaFilterOperator.Equals;
+                case FilterOperatorType.IsNull:
+                    return UaFilterOperator.IsNull;
+                case FilterOperatorType.GreaterThan:
+                    return UaFilterOperator.GreaterThan;
+                case FilterOperatorType.LessThan:
+                    return UaFilterOperator.LessThan;
+                case FilterOperatorType.GreaterThanOrEqual:
+                    return UaFilterOperator.GreaterThanOrEqual;
+                case FilterOperatorType.LessThanOrEqual:
+                    return UaFilterOperator.LessThanOrEqual;
+                case FilterOperatorType.Like:
+                    return UaFilterOperator.Like;
+                case FilterOperatorType.Not:
+                    return UaFilterOperator.Not;
+                case FilterOperatorType.Between:
+                    return UaFilterOperator.Between;
+                case FilterOperatorType.InList:
+                    return UaFilterOperator.InList;
+                case FilterOperatorType.And:
+                    return UaFilterOperator.And;
+                case FilterOperatorType.Or:
+                    return UaFilterOperator.Or;
+                case FilterOperatorType.Cast:
+                    return UaFilterOperator.Cast;
+                case FilterOperatorType.InView:
+                    return UaFilterOperator.InView;
+                case FilterOperatorType.OfType:
+                    return UaFilterOperator.OfType;
+                case FilterOperatorType.RelatedTo:
+                    return UaFilterOperator.RelatedTo;
+                case FilterOperatorType.BitwiseAnd:
+                    return UaFilterOperator.BitwiseAnd;
+                case FilterOperatorType.BitwiseOr:
+                    return UaFilterOperator.BitwiseOr;
+                default:
+                    throw new NotSupportedException($"{type} not supported");
+            }
+        }
+
+        /// <summary>
+        /// Convert to stack type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static FilterOperatorType ToServiceType(this UaFilterOperator type) {
+            switch (type) {
+                case UaFilterOperator.Equals:
+                    return FilterOperatorType.Equals;
+                case UaFilterOperator.IsNull:
+                    return FilterOperatorType.IsNull;
+                case UaFilterOperator.GreaterThan:
+                    return FilterOperatorType.GreaterThan;
+                case UaFilterOperator.LessThan:
+                    return FilterOperatorType.LessThan;
+                case UaFilterOperator.GreaterThanOrEqual:
+                    return FilterOperatorType.GreaterThanOrEqual;
+                case UaFilterOperator.LessThanOrEqual:
+                    return FilterOperatorType.LessThanOrEqual;
+                case UaFilterOperator.Like:
+                    return FilterOperatorType.Like;
+                case UaFilterOperator.Not:
+                    return FilterOperatorType.Not;
+                case UaFilterOperator.Between:
+                    return FilterOperatorType.Between;
+                case UaFilterOperator.InList:
+                    return FilterOperatorType.InList;
+                case UaFilterOperator.And:
+                    return FilterOperatorType.And;
+                case UaFilterOperator.Or:
+                    return FilterOperatorType.Or;
+                case UaFilterOperator.Cast:
+                    return FilterOperatorType.Cast;
+                case UaFilterOperator.InView:
+                    return FilterOperatorType.InView;
+                case UaFilterOperator.OfType:
+                    return FilterOperatorType.OfType;
+                case UaFilterOperator.RelatedTo:
+                    return FilterOperatorType.RelatedTo;
+                case UaFilterOperator.BitwiseAnd:
+                    return FilterOperatorType.BitwiseAnd;
+                case UaFilterOperator.BitwiseOr:
+                    return FilterOperatorType.BitwiseOr;
+                default:
+                    throw new NotSupportedException($"{type} not supported");
+            }
+        }
+
+        /// <summary>
+        /// Get message content mask
+        /// </summary>
+        /// <returns></returns>
+        public static uint ToMonitoredItemMessageMask(this DataSetContentMask? message,
+            DataSetFieldContentMask? field) {
+            UaMonitoredItemMessageContentMask result = 0;
+            if (field == null) {
+                result |=
+                    UaMonitoredItemMessageContentMask.SourceTimestamp |
+                    UaMonitoredItemMessageContentMask.ServerTimestamp |
+                    UaMonitoredItemMessageContentMask.StatusCode |
+                    UaMonitoredItemMessageContentMask.NodeId |
+                    UaMonitoredItemMessageContentMask.EndpointUrl |
+                    UaMonitoredItemMessageContentMask.ApplicationUri |
+                    UaMonitoredItemMessageContentMask.DisplayName |
+                    UaMonitoredItemMessageContentMask.ExtensionFields |
+                    UaMonitoredItemMessageContentMask.SequenceNumber;
+            }
+            else {
+                if (0 != (field & DataSetFieldContentMask.SourceTimestamp)) {
+                    result |= UaMonitoredItemMessageContentMask.SourceTimestamp;
+                }
+                if (0 != (field & DataSetFieldContentMask.SourcePicoSeconds)) {
+                    result |= UaMonitoredItemMessageContentMask.SourcePicoSeconds;
+                }
+                if (0 != (field & DataSetFieldContentMask.ServerTimestamp)) {
+                    result |= UaMonitoredItemMessageContentMask.ServerTimestamp;
+                }
+                if (0 != (field & DataSetFieldContentMask.ServerPicoSeconds)) {
+                    result |= UaMonitoredItemMessageContentMask.ServerPicoSeconds;
+                }
+                if (0 != (field & DataSetFieldContentMask.StatusCode)) {
+                    result |= UaMonitoredItemMessageContentMask.StatusCode;
+                }
+                if (0 != (field & DataSetFieldContentMask.NodeId)) {
+                    result |= UaMonitoredItemMessageContentMask.NodeId;
+                }
+                if (0 != (field & DataSetFieldContentMask.EndpointUrl)) {
+                    result |= UaMonitoredItemMessageContentMask.EndpointUrl;
+                }
+                if (0 != (field & DataSetFieldContentMask.ApplicationUri)) {
+                    result |= UaMonitoredItemMessageContentMask.ApplicationUri;
+                }
+                if (0 != (field & DataSetFieldContentMask.DisplayName)) {
+                    result |= UaMonitoredItemMessageContentMask.DisplayName;
+                }
+                if (0 != (field & DataSetFieldContentMask.ExtensionFields)) {
+                    result |= UaMonitoredItemMessageContentMask.ExtensionFields;
+                }
+            }
+            if (message == null) {
+                result |=
+                    UaMonitoredItemMessageContentMask.Timestamp |
+                    UaMonitoredItemMessageContentMask.Status;
+            }
+            else {
+                if (0 != (message & DataSetContentMask.Timestamp)) {
+                    result |= UaMonitoredItemMessageContentMask.Timestamp;
+                }
+                if (0 != (message & DataSetContentMask.PicoSeconds)) {
+                    result |= UaMonitoredItemMessageContentMask.PicoSeconds;
+                }
+                if (0 != (message & DataSetContentMask.Status)) {
+                    result |= UaMonitoredItemMessageContentMask.Status;
+                }
+                if (0 != (message & DataSetContentMask.SequenceNumber)) {
+                    result |= UaMonitoredItemMessageContentMask.SequenceNumber;
+                }
+
+            }
+            return (uint)result;
+        }
+
+        /// <summary>
+        /// Get network message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public static uint ToStackType(this NetworkMessageContentMask? mask, MessageEncoding? encoding) {
+            if (mask == null) {
+                mask =
+                    NetworkMessageContentMask.NetworkMessageHeader |
+                    NetworkMessageContentMask.NetworkMessageNumber |
+                    NetworkMessageContentMask.DataSetMessageHeader |
+                    NetworkMessageContentMask.PublisherId |
+                    NetworkMessageContentMask.DataSetClassId;
+            }
+            switch (encoding) {
+                case MessageEncoding.Uadp:
+                    return (uint)ToUadpStackType(mask.Value);
+                case MessageEncoding.Json:
+                    return (uint)ToJsonStackType(mask.Value);
+            }
+            return (uint)ToJsonStackType(mask.Value);
+        }
+
+        /// <summary>
+        /// Get network message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public static uint ToStackType(this DataSetContentMask? mask, MessageEncoding? encoding) {
+            if (mask == null) {
+                mask =
+                    DataSetContentMask.DataSetWriterId |
+                    DataSetContentMask.MetaDataVersion |
+                    DataSetContentMask.MajorVersion |
+                    DataSetContentMask.MinorVersion |
+                    DataSetContentMask.SequenceNumber |
+                    DataSetContentMask.Timestamp |
+                    DataSetContentMask.Status;
+            }
+            switch (encoding) {
+                case MessageEncoding.Uadp:
+                    return (uint)ToUadpStackType(mask.Value);
+                case MessageEncoding.Json:
+                    return (uint)ToJsonStackType(mask.Value);
+            }
+            return (uint)ToJsonStackType(mask.Value);
+        }
+
+        /// <summary>
+        /// Get network message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <returns></returns>
+        private static JsonNetworkMessageContentMask ToJsonStackType(this NetworkMessageContentMask mask) {
+            var result = JsonNetworkMessageContentMask.None;
+            if (0 != (mask & NetworkMessageContentMask.PublisherId)) {
+                result |= JsonNetworkMessageContentMask.PublisherId;
+            }
+            if (0 != (mask & NetworkMessageContentMask.DataSetClassId)) {
+                result |= JsonNetworkMessageContentMask.DataSetClassId;
+            }
+            if (0 != (mask & NetworkMessageContentMask.NetworkMessageHeader)) {
+                result |= JsonNetworkMessageContentMask.NetworkMessageHeader;
+            }
+            if (0 != (mask & NetworkMessageContentMask.DataSetMessageHeader)) {
+                result |= JsonNetworkMessageContentMask.DataSetMessageHeader;
+            }
+            if (0 != (mask & NetworkMessageContentMask.SingleDataSetMessage)) {
+                result |= JsonNetworkMessageContentMask.SingleDataSetMessage;
+            }
+            if (0 != (mask & NetworkMessageContentMask.ReplyTo)) {
+                result |= JsonNetworkMessageContentMask.ReplyTo;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get dataset message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <returns></returns>
+        private static JsonDataSetMessageContentMask ToJsonStackType(this DataSetContentMask mask) {
+            var result = JsonDataSetMessageContentMask.None;
+            if (0 != (mask & DataSetContentMask.Timestamp)) {
+                result |= JsonDataSetMessageContentMask.Timestamp;
+            }
+            if (0 != (mask & DataSetContentMask.Status)) {
+                result |= JsonDataSetMessageContentMask.Status;
+            }
+            if (0 != (mask & DataSetContentMask.MetaDataVersion)) {
+                result |= JsonDataSetMessageContentMask.MetaDataVersion;
+            }
+            if (0 != (mask & DataSetContentMask.SequenceNumber)) {
+                result |= JsonDataSetMessageContentMask.SequenceNumber;
+            }
+            if (0 != (mask & DataSetContentMask.DataSetWriterId)) {
+                result |= JsonDataSetMessageContentMask.DataSetWriterId;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get network message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <returns></returns>
+        private static UadpNetworkMessageContentMask ToUadpStackType(this NetworkMessageContentMask mask) {
+            var result = UadpNetworkMessageContentMask.None;
+            if (0 != (mask & NetworkMessageContentMask.PublisherId)) {
+                result |= UadpNetworkMessageContentMask.PublisherId;
+            }
+            if (0 != (mask & NetworkMessageContentMask.GroupHeader)) {
+                result |= UadpNetworkMessageContentMask.GroupHeader;
+            }
+            if (0 != (mask & NetworkMessageContentMask.WriterGroupId)) {
+                result |= UadpNetworkMessageContentMask.WriterGroupId;
+            }
+            if (0 != (mask & NetworkMessageContentMask.GroupVersion)) {
+                result |= UadpNetworkMessageContentMask.GroupVersion;
+            }
+            if (0 != (mask & NetworkMessageContentMask.NetworkMessageNumber)) {
+                result |= UadpNetworkMessageContentMask.NetworkMessageNumber;
+            }
+            if (0 != (mask & NetworkMessageContentMask.SequenceNumber)) {
+                result |= UadpNetworkMessageContentMask.SequenceNumber;
+            }
+            if (0 != (mask & NetworkMessageContentMask.PayloadHeader)) {
+                result |= UadpNetworkMessageContentMask.PayloadHeader;
+            }
+            if (0 != (mask & NetworkMessageContentMask.Timestamp)) {
+                result |= UadpNetworkMessageContentMask.Timestamp;
+            }
+            if (0 != (mask & NetworkMessageContentMask.Picoseconds)) {
+                result |= UadpNetworkMessageContentMask.PicoSeconds;
+            }
+            if (0 != (mask & NetworkMessageContentMask.DataSetClassId)) {
+                result |= UadpNetworkMessageContentMask.DataSetClassId;
+            }
+            if (0 != (mask & NetworkMessageContentMask.PromotedFields)) {
+                result |= UadpNetworkMessageContentMask.PromotedFields;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get dataset message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <returns></returns>
+        private static UadpDataSetMessageContentMask ToUadpStackType(this DataSetContentMask mask) {
+            var result = UadpDataSetMessageContentMask.None;
+            if (0 != (mask & DataSetContentMask.Timestamp)) {
+                result |= UadpDataSetMessageContentMask.Timestamp;
+            }
+            if (0 != (mask & DataSetContentMask.PicoSeconds)) {
+                result |= UadpDataSetMessageContentMask.PicoSeconds;
+            }
+            if (0 != (mask & DataSetContentMask.Status)) {
+                result |= UadpDataSetMessageContentMask.Status;
+            }
+            if (0 != (mask & DataSetContentMask.SequenceNumber)) {
+                result |= UadpDataSetMessageContentMask.SequenceNumber;
+            }
+            if (0 != (mask & DataSetContentMask.MinorVersion)) {
+                result |= UadpDataSetMessageContentMask.MinorVersion;
+            }
+            if (0 != (mask & DataSetContentMask.MajorVersion)) {
+                result |= UadpDataSetMessageContentMask.MajorVersion;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get dataset message content mask
+        /// </summary>
+        /// <param name="mask"></param>
+        /// <returns></returns>
+        public static UaDataSetFieldContentMask ToStackType(this DataSetFieldContentMask? mask) {
+            if (mask == null) {
+                mask =
+                    DataSetFieldContentMask.StatusCode |
+                    DataSetFieldContentMask.SourceTimestamp |
+                    DataSetFieldContentMask.SourcePicoSeconds |
+                    DataSetFieldContentMask.ServerPicoSeconds |
+                    DataSetFieldContentMask.ServerTimestamp;
+            }
+            var result = UaDataSetFieldContentMask.None;
+            if (0 != (mask & DataSetFieldContentMask.StatusCode)) {
+                result |= UaDataSetFieldContentMask.StatusCode;
+            }
+            if (0 != (mask & DataSetFieldContentMask.SourceTimestamp)) {
+                result |= UaDataSetFieldContentMask.SourceTimestamp;
+            }
+            if (0 != (mask & DataSetFieldContentMask.ServerTimestamp)) {
+                result |= UaDataSetFieldContentMask.ServerTimestamp;
+            }
+            if (0 != (mask & DataSetFieldContentMask.SourcePicoSeconds)) {
+                result |= UaDataSetFieldContentMask.SourcePicoSeconds;
+            }
+            if (0 != (mask & DataSetFieldContentMask.ServerPicoSeconds)) {
+                result |= UaDataSetFieldContentMask.ServerPicoSeconds;
+            }
+            if (0 != (mask & DataSetFieldContentMask.RawData)) {
+                result |= UaDataSetFieldContentMask.RawData;
+            }
+            return result;
         }
     }
 }

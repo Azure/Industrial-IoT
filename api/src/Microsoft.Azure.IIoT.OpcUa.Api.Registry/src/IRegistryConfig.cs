@@ -14,10 +14,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// Opc registry service url
         /// </summary>
         string OpcUaRegistryServiceUrl { get; }
-
-        /// <summary>
-        /// Resource id of registry service
-        /// </summary>
-        string OpcUaRegistryServiceResourceId { get; }
     }
 }

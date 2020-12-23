@@ -14,6 +14,10 @@
 *.sh text eol=lf
 *.json text eol=lf
 *.rb text eol=lf
+*.go text eol=lf
+*.java text eol=lf
+*.ts text eol=lf
+*.js text eol=lf
 *.py text eol=lf
 
 # Denote all files that should not have line endings normalized, should not be

@@ -52,9 +52,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Called when application is unregistered
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="applicationId"></param>
         /// <param name="application"></param>
         /// <returns></returns>
         Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application);
+            string applicationId, ApplicationInfoModel application);
     }
 }

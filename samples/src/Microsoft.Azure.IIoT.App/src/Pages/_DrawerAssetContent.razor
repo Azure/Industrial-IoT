@@ -1,0 +1,157 @@
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@using Microsoft.Azure.IIoT.App.Common;
+
+@inject UICommon CommonHelper
+
+<div class="drawer-content list-group">
+    <div class="list-group-item text-left">
+        <div class="label">
+            Name:
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.ApplicationName)
+                    ? CommonHelper.None
+                    : ApplicationData.ApplicationName)
+            </div>
+        </div>
+        <div class="label">
+            Id:
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.ApplicationId)
+                    ? CommonHelper.None
+                    : ApplicationData.ApplicationId)
+            </div>
+        </div>
+        <div class="label">
+            Uri:
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.ApplicationUri)
+                    ? CommonHelper.None
+                    : ApplicationData.ApplicationUri)
+            </div>
+        </div>
+        <div class="label">
+            Type:
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.ApplicationType.ToString())
+                    ? CommonHelper.None
+                    : ApplicationData.ApplicationType.ToString())
+            </div>
+        </div>
+        <div class="label">
+            Capabilities:
+            @{
+                if (ApplicationData.Capabilities != null)
+                {
+                    foreach (var capability in ApplicationData.Capabilities)
+                    {
+                        <div class="body">@capability</div>
+                    }
+                }
+                else
+                {
+                    <div class="body">@CommonHelper.None</div>
+                }
+            }
+        </div>
+        <div class="label">
+            Discoverer Id:
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.DiscovererId)
+                    ? CommonHelper.None
+                    : ApplicationData.DiscovererId)
+            </div>
+        </div>
+        <div class="label">
+            Product Uri:
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.ProductUri)
+                    ? CommonHelper.None
+                    : ApplicationData.ProductUri)
+            </div>
+        </div>
+        <div class="label">
+            Site:
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.SiteId)
+                    ? CommonHelper.None
+                    : ApplicationData.SiteId)
+            </div>
+        </div>
+        <div class="label">
+            Gateway Server Uri:
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.GatewayServerUri)
+                    ? CommonHelper.None
+                    : ApplicationData.GatewayServerUri)
+            </div>
+        </div>
+        <div class="label">
+            Host Addresses:
+            @{
+                if (ApplicationData.HostAddresses != null)
+                {
+                    @foreach (var address in ApplicationData.HostAddresses)
+                    {
+                        <div class="body">@address</div>
+                    }
+                }
+                else
+                {
+                    <div class="body">@CommonHelper.None</div>
+                }
+            }
+        </div>
+        <div class="label">
+            Discovery Urls:
+            @{
+                if (ApplicationData.DiscoveryUrls != null)
+                {
+                    @foreach (var url in ApplicationData.DiscoveryUrls)
+                    {
+                        <div class="body">@url</div>
+                    }
+                }
+                else
+                {
+                    <div class="body">@CommonHelper.None</div>
+                }
+            }
+        </div>
+        <div class="label">
+            Localized Names:
+            @{
+                if (ApplicationData.LocalizedNames != null)
+                {
+                    @foreach (var name in ApplicationData.LocalizedNames)
+                    {
+                        <div class="body">@name</div>
+                    }
+                }
+                else
+                {
+                    <div class="body">@CommonHelper.None</div>
+                }
+            }
+        </div>
+        <div class="label">
+            Created:
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.Created.Time.ToString())
+                    ? CommonHelper.None
+                    : ApplicationData.Created.Time.ToString())
+            </div>
+        </div>
+        <div class="label">
+            Updated:
+            <div class="body">
+                @(string.IsNullOrEmpty(ApplicationData.Updated.Time.ToString())
+                    ? CommonHelper.None
+                    : ApplicationData.Updated.Time.ToString())
+            </div>
+        </div>
+    </div>
+</div>

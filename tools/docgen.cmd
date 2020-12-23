@@ -53,9 +53,9 @@ docker pull swagger2markup/swagger2markup:latest
 set convert=docker run --rm --mount type=bind,source=%cd%,target=/opt swagger2markup/swagger2markup:latest convert
 
 call :generate_doc_for_service twin
+call :generate_doc_for_service publisher
 call :generate_doc_for_service registry
-call :generate_doc_for_service history
-call :generate_doc_for_service vault
+call :generate_doc_for_service events
 
 set service=
 set convert=
@@ -63,7 +63,7 @@ if exist config.properties del /f config.properties
 popd
 goto :eof
 
-rem 
+rem
 rem generate doc
 rem
 :generate_doc_for_service

@@ -4,88 +4,96 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Application information
     /// </summary>
+    [DataContract]
     public class ApplicationRegistrationRequestApiModel {
 
         /// <summary>
         /// Unique application uri
         /// </summary>
-        [JsonProperty(PropertyName = "applicationUri")]
+        [DataMember(Name = "applicationUri", Order = 0)]
+        [Required]
         public string ApplicationUri { get; set; }
 
         /// <summary>
         /// Type of application
         /// </summary>
-        [JsonProperty(PropertyName = "applicationType",
-            NullValueHandling = NullValueHandling.Ignore)]
+        /// <example>Server</example>
+        [DataMember(Name = "applicationType", Order = 1,
+            EmitDefaultValue = false)]
         public ApplicationType? ApplicationType { get; set; }
 
         /// <summary>
-        /// Product uri
+        /// Product uri of the application.
         /// </summary>
-        [JsonProperty(PropertyName = "productUri",
-            NullValueHandling = NullValueHandling.Ignore)]
+        /// <example>http://contoso.com/fridge/1.0</example>
+        [DataMember(Name = "productUri", Order = 2,
+            EmitDefaultValue = false)]
         public string ProductUri { get; set; }
 
         /// <summary>
-        /// Default name of the application
+        /// Default name of the server or client.
         /// </summary>
-        [JsonProperty(PropertyName = "applicationName",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "applicationName", Order = 3,
+            EmitDefaultValue = false)]
         public string ApplicationName { get; set; }
 
         /// <summary>
-        /// Locale of default name - defaults to "en"
+        /// Locale of default name
         /// </summary>
-        [JsonProperty(PropertyName = "locale",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "locale", Order = 4,
+            EmitDefaultValue = false)]
         public string Locale { get; set; }
 
         /// <summary>
         /// Site of the application
         /// </summary>
-        [JsonProperty(PropertyName = "siteId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "siteId", Order = 5,
+            EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Localized names of application
+        /// Localized names key off locale id.
         /// </summary>
-        [JsonProperty(PropertyName = "localizedNames",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "localizedNames", Order = 6,
+            EmitDefaultValue = false)]
         public Dictionary<string, string> LocalizedNames { get; set; }
 
         /// <summary>
-        /// Capabilities
+        /// The OPC UA defined capabilities of the server.
         /// </summary>
-        [JsonProperty(PropertyName = "capabilities",
-            NullValueHandling = NullValueHandling.Ignore)]
+        /// <example>LDS</example>
+        /// <example>DA</example>
+        [DataMember(Name = "capabilities", Order = 7,
+            EmitDefaultValue = false)]
         public HashSet<string> Capabilities { get; set; }
 
         /// <summary>
-        /// Discovery urls of the server
+        /// Discovery urls of the server.
         /// </summary>
-        [JsonProperty(PropertyName = "discoveryUrls",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "discoveryUrls", Order = 8,
+            EmitDefaultValue = false)]
         public HashSet<string> DiscoveryUrls { get; set; }
 
         /// <summary>
-        /// Discovery profile uri
+        /// The discovery profile uri of the server.
         /// </summary>
-        [JsonProperty(PropertyName = "discoveryProfileUri",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "discoveryProfileUri", Order = 9,
+            EmitDefaultValue = false)]
         public string DiscoveryProfileUri { get; set; }
 
         /// <summary>
         /// Gateway server uri
         /// </summary>
-        [JsonProperty(PropertyName = "gatewayServerUri",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "gatewayServerUri", Order = 10,
+            EmitDefaultValue = false)]
         public string GatewayServerUri { get; set; }
     }
 }

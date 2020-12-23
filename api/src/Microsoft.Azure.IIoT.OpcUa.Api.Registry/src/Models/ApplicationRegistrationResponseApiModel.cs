@@ -4,17 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Result of an application registration
     /// </summary>
+    [DataContract]
     public class ApplicationRegistrationResponseApiModel {
 
         /// <summary>
         /// New id application was registered under
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id", Order = 0)]
         public string Id { get; set; }
     }
 }

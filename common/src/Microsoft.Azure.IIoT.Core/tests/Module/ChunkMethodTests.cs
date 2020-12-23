@@ -4,19 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module {
-    using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Module.Models;
-    using Serilog;
-    using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Text;
-    using System.Threading.Tasks;
     using Xunit;
     using AutoFixture;
-    using System.Threading;
 
-    public class ChunkMethodTests {
+    public partial class ChunkMethodTests {
 
         [Theory]
         [InlineData(120 * 1024)]
@@ -30,15 +25,15 @@ namespace Microsoft.Azure.IIoT.Module {
 
             var expectedMethod = fixture.Create<string>();
             var expectedContentType = fixture.Create<string>();
-            var expectedRequest = JsonConvertEx.SerializeObject(new {
+            var expectedRequest = _serializer.SerializeToString(new {
                 test1 = fixture.Create<string>(),
                 test2 = fixture.Create<long>()
             });
-            var expectedResponse = JsonConvertEx.SerializeObject(new {
+            var expectedResponse = _serializer.SerializeToString(new {
                 test1 = fixture.Create<byte[]>(),
                 test2 = fixture.Create<string>()
             });
-            var server = new TestServer(chunkSize, (method, buffer, type) => {
+            var server = new TestChunkServer(_serializer, chunkSize, (method, buffer, type) => {
                 Assert.Equal(expectedMethod, method);
                 Assert.Equal(expectedContentType, type);
                 Assert.Equal(expectedRequest, Encoding.UTF8.GetString(buffer));
@@ -68,11 +63,11 @@ namespace Microsoft.Azure.IIoT.Module {
             var expectedContentType = fixture.Create<string>();
 
             var expectedRequest = new byte[200000];
-            r.NextBytes(expectedRequest);
+            kR.NextBytes(expectedRequest);
             var expectedResponse = new byte[300000];
-            r.NextBytes(expectedResponse);
+            kR.NextBytes(expectedResponse);
 
-            var server = new TestServer(chunkSize, (method, buffer, type) => {
+            var server = new TestChunkServer(_serializer, chunkSize, (method, buffer, type) => {
                 Assert.Equal(expectedMethod, method);
                 Assert.Equal(expectedContentType, type);
                 Assert.Equal(expectedRequest, buffer);
@@ -84,36 +79,7 @@ namespace Microsoft.Azure.IIoT.Module {
             Assert.Equal(expectedResponse, result);
         }
 
-        private static readonly Random r = new Random();
-        public class TestServer : IJsonMethodClient, IMethodHandler {
-
-            public TestServer(int size,
-                Func<string, byte[], string, byte[]> handler) {
-                MaxMethodPayloadCharacterCount = size;
-                _handler = handler;
-                _server = new ChunkMethodServer(this, LogEx.Trace());
-            }
-
-            public IMethodClient CreateClient() {
-                return new ChunkMethodClient(this, LogEx.Trace());
-            }
-
-            public int MaxMethodPayloadCharacterCount { get; }
-
-            public async Task<string> CallMethodAsync(string deviceId,
-                string moduleId, string method, string json, TimeSpan? timeout,
-                CancellationToken ct) {
-                var processed = await _server.ProcessAsync(
-                    JsonConvertEx.DeserializeObject<MethodChunkModel>(json));
-                return JsonConvertEx.SerializeObject(processed);
-            }
-
-            public Task<byte[]> InvokeAsync(string method, byte[] payload, string contentType) {
-                return Task.FromResult(_handler.Invoke(method, payload, contentType));
-            }
-
-            private readonly ChunkMethodServer _server;
-            private readonly Func<string, byte[], string, byte[]> _handler;
-        }
+        private static readonly Random kR = new Random();
+        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

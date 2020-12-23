@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
@@ -16,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     /// <li>Specify methodId and objectId node ids and leave the browse
     /// paths null.</li>
     /// <li>Specify an objectBrowsePath to a real object node from
-    /// the node specified with objectId.  If objectId is null, the
+    /// the node specified with objectId.  If objectId == null, the
     /// root node (i=84) is used. </li>
     /// <li>Specify a methodBrowsePath from the above object node
     /// to the actual method node to call on the object.  methodId
@@ -25,53 +26,54 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     /// path from it to a real method node.</li>
     /// </ul>
     /// </remarks>
+    [DataContract]
     public class MethodCallRequestApiModel {
 
         /// <summary>
-        /// Method id of method to call. 
+        /// Method id of method to call.
         /// </summary>
-        [JsonProperty(PropertyName = "methodId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "methodId", Order = 0,
+            EmitDefaultValue = false)]
         public string MethodId { get; set; }
 
         /// <summary>
         /// Context of the method, i.e. an object or object type
-        /// node. 
+        /// node.
         /// </summary>
-        [JsonProperty(PropertyName = "objectId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "objectId", Order = 1,
+            EmitDefaultValue = false)]
         public string ObjectId { get; set; }
 
         /// <summary>
         /// Arguments for the method - null means no args
         /// </summary>
-        [JsonProperty(PropertyName = "arguments",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "arguments", Order = 2,
+            EmitDefaultValue = false)]
         public List<MethodCallArgumentApiModel> Arguments { get; set; }
 
         /// <summary>
         /// An optional component path from the node identified by
         /// MethodId or from a resolved objectId to the actual
-        /// method node.  
+        /// method node.
         /// </summary>
-        [JsonProperty(PropertyName = "methodBrowsePath",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "methodBrowsePath", Order = 3,
+            EmitDefaultValue = false)]
         public string[] MethodBrowsePath { get; set; }
 
         /// <summary>
         /// An optional component path from the node identified by
         /// ObjectId to the actual object or objectType node.
-        /// If ObjectId is null, the root node (i=84) is used.
+        /// If ObjectId == null, the root node (i=84) is used.
         /// </summary>
-        [JsonProperty(PropertyName = "objectBrowsePath",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "objectBrowsePath", Order = 4,
+            EmitDefaultValue = false)]
         public string[] ObjectBrowsePath { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "header",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "header", Order = 5,
+            EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

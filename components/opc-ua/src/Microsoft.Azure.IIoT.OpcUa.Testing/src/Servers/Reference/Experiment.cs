@@ -48,7 +48,6 @@ namespace Reference {
             DateTime endTime,
             double processingInterval,
             AggregateConfiguration configuration) {
-            _startTime = startTime;
             _endTime = endTime;
             _configuration = configuration;
             _processingInterval = processingInterval;
@@ -364,8 +363,8 @@ namespace Reference {
         protected class TimeSlice {
             public DateTime StartTime { get; set; }
             public DateTime EndTime { get; set; }
-            public LinkedListNode<DataValue> EarlyBound;
-            public LinkedListNode<DataValue> LateBound;
+            public LinkedListNode<DataValue> EarlyBound { get; set; }
+            public LinkedListNode<DataValue> LateBound { get; set; }
             public bool Complete { get; set; }
         }
 
@@ -375,7 +374,6 @@ namespace Reference {
         private double _processingInterval;
         private bool _timeFlowsBackward;
         private LinkedList<DataValue> _values;
-        private DateTime _startTime;
         private DateTime _endTime;
     }
 }

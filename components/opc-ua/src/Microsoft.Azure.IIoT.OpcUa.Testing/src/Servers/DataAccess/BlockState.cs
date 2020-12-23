@@ -83,9 +83,7 @@ namespace DataAccess {
                 if (context.SystemHandle is UnderlyingSystem system) {
                     var block = system.FindBlock(_blockId);
 
-                    if (block != null) {
-                        block.StartMonitoring(OnTagsChanged);
-                    }
+                    block?.StartMonitoring(OnTagsChanged);
                 }
             }
 
@@ -104,9 +102,7 @@ namespace DataAccess {
                 if (context.SystemHandle is UnderlyingSystem system) {
                     var block = system.FindBlock(_blockId);
 
-                    if (block != null) {
-                        block.StopMonitoring();
-                    }
+                    block?.StopMonitoring();
                 }
             }
 

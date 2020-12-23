@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>Azure Industrial IoT OPC API</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Agent.Framework\src\Microsoft.Azure.IIoT.Agent.Framework.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Publisher\src\Microsoft.Azure.IIoT.OpcUa.Api.Publisher.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Registry\src\Microsoft.Azure.IIoT.OpcUa.Api.Registry.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Twin\src\Microsoft.Azure.IIoT.OpcUa.Api.Twin.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api.Publisher\src\Microsoft.Azure.IIoT.OpcUa.Api.Publisher.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
+  </ItemGroup>
+</Project>

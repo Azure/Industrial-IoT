@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.Extensions {
     using System;
-    using Opc.Ua;
 
     /// <summary>
     /// Datavalue extensions

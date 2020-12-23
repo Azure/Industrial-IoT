@@ -22,6 +22,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models {
         public RegistryOperationContextModel Context { get; set; }
 
         /// <summary>
+        /// Application id
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
         /// Application
         /// </summary>
         public ApplicationInfoModel Application { get; set; }

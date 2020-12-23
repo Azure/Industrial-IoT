@@ -1,0 +1,51 @@
+{{- if .Values.deployment.microServices.registry.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "azure-industrial-iot.registry.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.registry.component" . }}
+    app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.registry.extraLabels }}
+{{ toYaml .Values.deployment.microServices.registry.extraLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deployment.microServices.registry.service.annotations }}
+  annotations:
+{{ toYaml .Values.deployment.microServices.registry.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.deployment.microServices.registry.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.registry.component" . }}
+    app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.registry.service.clusterIP }}
+  clusterIP: {{ .Values.deployment.microServices.registry.service.clusterIP }}
+{{- end }}
+{{- if .Values.deployment.microServices.registry.service.externalIPs }}
+  externalIPs:
+{{ toYaml .Values.deployment.microServices.registry.service.externalIPs | indent 2 }}
+{{- end }}
+{{- if .Values.deployment.microServices.registry.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.deployment.microServices.registry.service.loadBalancerIP }}
+{{- end }}
+{{- if .Values.deployment.microServices.registry.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml .Values.deployment.microServices.registry.service.loadBalancerSourceRanges | indent 2 }}
+{{- end }}
+  ports:
+  - port: {{ .Values.deployment.microServices.registry.service.port }}
+    targetPort: 9042
+    protocol: TCP
+    name: http
+{{- if .Values.deployment.microServices.registry.service.nodePort }}
+    nodePort: {{ .Values.deployment.microServices.registry.service.nodePort }}
+{{- end }}
+{{- end }}

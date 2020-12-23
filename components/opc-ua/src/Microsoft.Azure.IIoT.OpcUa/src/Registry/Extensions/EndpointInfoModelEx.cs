@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Collections.Generic;
     using System.Linq;
     using System;
@@ -36,6 +37,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var id = $"{url}-{applicationId}-{mode}-{securityPolicy}";
             return "uat" + id.ToSha1Hash();
+        }
+
+        /// <summary>
+        /// Checks whether the identifier is an endpoint id
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <returns></returns>
+        public static bool IsEndpointId(string endpointId) {
+            if (string.IsNullOrWhiteSpace(endpointId)) {
+                return false;
+            }
+            if (!endpointId.StartsWith("uat")) {
+                return false;
+            }
+            return endpointId.Substring(3).IsBase16();
         }
 
         /// <summary>

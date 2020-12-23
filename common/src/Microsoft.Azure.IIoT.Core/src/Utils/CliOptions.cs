@@ -85,7 +85,13 @@ namespace Microsoft.Azure.IIoT.Utils {
                 !options.TryGetValue(key2, out value)) {
                 return defaultValue;
             }
-            return value.As<T>();
+            try {
+                return value.As<T>();
+            }
+            catch {
+                throw new ArgumentException(
+                    $"Invalid value '{value}' provided for parameter {key1}, {key2}.");
+            }
         }
 
         /// <summary>
@@ -99,7 +105,13 @@ namespace Microsoft.Azure.IIoT.Utils {
                 !options.TryGetValue(key2, out value)) {
                 throw new ArgumentException($"Missing {key1}/{key2} option.");
             }
-            return value.As<T>();
+            try {
+                return value.As<T>();
+            }
+            catch {
+                throw new ArgumentException(
+                    $"Invalid value '{value}' provided for parameter {key1}, {key2}.");
+            }
         }
 
         /// <summary>
@@ -116,7 +128,13 @@ namespace Microsoft.Azure.IIoT.Utils {
             if (string.IsNullOrEmpty(value)) {
                 return true;
             }
-            return value.As<bool>();
+            try {
+                return value.As<bool>();
+            }
+            catch {
+                throw new ArgumentException(
+                    $"'{value}' cannot be evaluted as a boolean for parameter {key1}, {key2}.");
+            }
         }
 
         /// <summary>
@@ -133,9 +151,21 @@ namespace Microsoft.Azure.IIoT.Utils {
                 return defaultValue;
             }
             if (typeof(T).IsEnum) {
-                return (T)Enum.Parse(typeof(T), value, true);
+                try {
+                    return (T)Enum.Parse(typeof(T), value, true);
+                }
+                catch {
+                    throw new ArgumentException("Value must be one of [" +
+                        Enum.GetNames(typeof(T)).Aggregate((a, b) => a + ", " + b) + "]");
+                }
             }
-            return value.As<T>();
+            try {
+                return value.As<T>();
+            }
+            catch {
+                throw new ArgumentException(
+                    $"Invalid value '{value}' provided for parameter {key1}, {key2}.");
+            }
         }
 
         /// <summary>
@@ -152,7 +182,13 @@ namespace Microsoft.Azure.IIoT.Utils {
             if (string.IsNullOrEmpty(value)) {
                 return true;
             }
-            return value.As<bool>();
+            try {
+                return value.As<bool>();
+            }
+            catch {
+                throw new ArgumentException(
+                    $"'{value}' cannot be evaluted as a boolean for parameter {key1}, {key2}.");
+            }
         }
 
         private readonly Dictionary<string, string> options;

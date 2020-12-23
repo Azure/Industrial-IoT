@@ -24,6 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
-            Uri discoveryUrl, List<string> locales, CancellationToken ct);
+            Uri discoveryUrl, List<string> locales, CancellationToken ct = default);
     }
 }

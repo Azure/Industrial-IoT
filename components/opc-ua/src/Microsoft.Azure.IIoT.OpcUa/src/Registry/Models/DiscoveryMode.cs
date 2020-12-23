@@ -4,13 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// Discovery mode to use
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum DiscoveryMode {
 
         /// <summary>
@@ -36,6 +33,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Perform a deep scan of all networks.
         /// </summary>
-        Scan
+        Scan,
+
+        /// <summary>
+        /// Look for DiscoveryUrls
+        /// </summary>
+        Url
     }
 }

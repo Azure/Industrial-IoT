@@ -1,14 +1,7 @@
-/* Copyright (c) 1996-2016, OPC Foundation. All rights reserved.
-   The source code in this file is covered under a dual-license scenario:
-     - RCL: for OPC Foundation members in good-standing
-     - GPL V2: everybody else
-   RCL license terms accompanied with this source code. See http://opcfoundation.org/License/RCL/1.00/
-   GNU General Public License as published by the Free Software Foundation;
-   version 2 of the License are accompanied with this source code. See http://opcfoundation.org/License/GPLv2
-   This source code is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*/
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
     using Opc.Ua.Extensions;
@@ -210,11 +203,11 @@ namespace Opc.Ua.Encoders {
             }
             if (token.Type == JTokenType.String) {
                 return XmlConvert.ToDateTime((string)token,
-                    XmlDateTimeSerializationMode.Utc);
+                    XmlDateTimeSerializationMode.Utc).ToOpcUaUniversalTime();
             }
             var value = token.ToObject<DateTime?>();
             if (value != null) {
-                return value.Value;
+                return value.Value.ToOpcUaUniversalTime();
             }
             return DateTime.MinValue;
         }
@@ -241,14 +234,47 @@ namespace Opc.Ua.Encoders {
             if (token is JObject o) {
                 _stack.Push(o);
                 // Read non reversable encoding
-                var id = ReadString("Id");
-                var uri = ReadString("Uri");
-                if (string.IsNullOrEmpty(uri)) {
-                    var index = (ushort)ReadUInt32("Index");
-                    uri = Context.NamespaceUris.GetString(index);
+                ushort namespaceIndex = 0;
+                NodeId nodeId = null;
+                if (TryGetToken("Namespace", out var namespaceToken)) {
+                    switch (namespaceToken.Type) {
+                        case JTokenType.String:
+                            var namespaceString = ReadString("Namespace");
+                            if (namespaceString != null) {
+                                namespaceIndex = Context.NamespaceUris.GetIndexOrAppend(namespaceString);
+                            }
+                            break;
+                        case JTokenType.Integer:
+                            namespaceIndex = ReadUInt16("Namespace");
+                            break;
+                    }
+                }
+                var idType = (IdType)ReadByte("IdType");
+                switch (idType) {
+                    case IdType.Numeric:
+                        nodeId = new NodeId(ReadUInt32("Id"), namespaceIndex);
+                        break;
+                    case IdType.String:
+                        nodeId = new NodeId(ReadString("Id"), namespaceIndex);
+                        break;
+                    case IdType.Guid:
+                        nodeId = new NodeId(ReadGuid("Id"), namespaceIndex);
+                        break;
+                    case IdType.Opaque:
+                        nodeId = new NodeId(ReadByteString("Id"), namespaceIndex);
+                        break;
+                }
+                if (NodeId.IsNull(nodeId)) {
+                    var id = ReadString("Id");
+                    _stack.Pop();
+                    nodeId = id.ToNodeId(Context);
+                    if (!NodeId.IsNull(nodeId)) {
+                        return nodeId;
+                    }
+                    return NodeId.Parse(id);
                 }
                 _stack.Pop();
-                return NodeId.Parse(id);
+                return nodeId;
             }
             if (token.Type == JTokenType.String) {
                 var id = (string)token;
@@ -269,19 +295,62 @@ namespace Opc.Ua.Encoders {
             if (token is JObject o) {
                 _stack.Push(o);
                 // Read non reversable encoding
-                var id = ReadString("Id");
-                var uri = ReadString("Uri");
-                if (string.IsNullOrEmpty(uri)) {
-                    var index = (ushort)ReadUInt32("Index");
-                    uri = Context.NamespaceUris.GetString(index);
+                ushort namespaceIndex = 0;
+                string namespaceUri = null;
+                if (TryGetToken("Namespace", out var namespaceToken)) {
+                    switch (namespaceToken.Type) {
+                        case JTokenType.String:
+                            namespaceUri = ReadString("Namespace");
+                            if (namespaceUri != null) {
+                                namespaceIndex = Context.NamespaceUris.GetIndexOrAppend(namespaceUri);
+                            }
+                            break;
+                        case JTokenType.Integer:
+                            namespaceIndex = ReadUInt16("Namespace");
+                            break;
+                    }
                 }
-                var serverIndex = (ushort)ReadUInt32("ServerIndex");
-                if (serverIndex == 0) {
-                    var server = ReadString("ServerUri");
-                    serverIndex = Context.NamespaceUris.GetIndexOrAppend(server);
+                uint serverIndex = 0;
+                if (TryGetToken("ServerUri", out var serverToken)) {
+                    switch (serverToken.Type) {
+                        case JTokenType.String:
+                            var serverUri = ReadString("ServerUri");
+                            if (serverUri != null) {
+                                serverIndex = Context.ServerUris.GetIndexOrAppend(serverUri);
+                            }
+                            break;
+                        case JTokenType.Integer:
+                            serverIndex = ReadUInt32("ServerUri");
+                            break;
+                    }
+                }
+                var idType = (IdType)ReadByte("IdType");
+                NodeId nodeId = null;
+                switch (idType) {
+                    case IdType.Numeric:
+                        nodeId = new NodeId(ReadUInt32("Id"), namespaceIndex);
+                        break;
+                    case IdType.String:
+                        nodeId = new NodeId(ReadString("Id"), namespaceIndex);
+                        break;
+                    case IdType.Guid:
+                        nodeId = new NodeId(ReadGuid("Id"), namespaceIndex);
+                        break;
+                    case IdType.Opaque:
+                        nodeId = new NodeId(ReadByteString("Id"), namespaceIndex);
+                        break;
+                }
+                if (NodeId.IsNull(nodeId)) {
+                    var id = ReadString("Id");
+                    _stack.Pop();
+                    var expandedNodeId = id.ToExpandedNodeId(Context);
+                    if (!NodeId.IsNull(expandedNodeId)) {
+                        return expandedNodeId;
+                    }
+                    return ExpandedNodeId.Parse(id);
                 }
                 _stack.Pop();
-                return new ExpandedNodeId(NodeId.Parse(id), uri, serverIndex);
+                return new ExpandedNodeId(nodeId, namespaceUri, serverIndex);
             }
             if (token.Type == JTokenType.String) {
                 var id = (string)token;
@@ -424,25 +493,32 @@ namespace Opc.Ua.Encoders {
             if (!TryGetToken(property, out var token)) {
                 return null;
             }
-            if (token is JObject o && HasAnyOf(o,
-                "Value", "StatusCode", "SourceTimestamp", "ServerTimestamp")) {
-                _stack.Push(o);
-                var dv = new DataValue {
-                    WrappedValue = ReadVariant("Value"),
-                    StatusCode = ReadStatusCode("StatusCode"),
-                    SourceTimestamp = ReadDateTime("SourceTimestamp"),
-                    SourcePicoseconds = ReadUInt16("SourcePicoseconds"),
-                    ServerTimestamp = ReadDateTime("ServerTimestamp"),
-                    ServerPicoseconds = ReadUInt16("ServerPicoseconds")
-                };
-                _stack.Pop();
-                return dv;
-            }
-            var variant = ReadVariant(property);
-            if (variant == Variant.Null) {
+            if (token is JObject o) {
+                if (HasAnyOf(o, "Value", "StatusCode", "SourceTimestamp", "ServerTimestamp")) {
+                    _stack.Push(o);
+                    var dv = new DataValue {
+                        WrappedValue = ReadVariant("Value"),
+                        StatusCode = ReadStatusCode("StatusCode"),
+                        SourceTimestamp = ReadDateTime("SourceTimestamp"),
+                        SourcePicoseconds = ReadUInt16("SourcePicoseconds"),
+                        ServerTimestamp = ReadDateTime("ServerTimestamp"),
+                        ServerPicoseconds = ReadUInt16("ServerPicoseconds")
+                    };
+                    _stack.Pop();
+                    return dv;
+                }
+                var objectVariant = TryReadVariant(o, out var tmp);
+                if (objectVariant != Variant.Null) {
+                    return new DataValue(objectVariant);
+                }
                 return null;
             }
-            return new DataValue(variant);
+
+            var tokenVariant = ReadVariantFromToken(token);
+            if (tokenVariant == Variant.Null) {
+                return new DataValue(tokenVariant);
+            }
+            return null;
         }
 
         /// <inheritdoc/>
@@ -559,6 +635,11 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
+        public IDictionary<string, string> ReadStringDictionary(string property) {
+            return ReadDictionary(property, () => ReadString(null));
+        }
+
+        /// <inheritdoc/>
         public DateTimeCollection ReadDateTimeArray(string property) {
             return ReadArray(property, () => ReadDateTime(null));
         }
@@ -616,6 +697,11 @@ namespace Opc.Ua.Encoders {
         /// <inheritdoc/>
         public DataValueCollection ReadDataValueArray(string property) {
             return ReadArray(property, () => ReadDataValue(null));
+        }
+
+        /// <inheritdoc/>
+        public IDictionary<string, DataValue> ReadDataValueDictionary(string property) {
+            return ReadDictionary(property, () => ReadDataValue(null));
         }
 
         /// <inheritdoc/>
@@ -894,8 +980,13 @@ namespace Opc.Ua.Encoders {
             try {
                 switch (token.Type) {
                     case JTokenType.Integer:
-                        return !unsigned ? new Variant((long)token) :
-                            new Variant((ulong)token);
+                        try {
+                            return !unsigned ? new Variant((long)token) :
+                                new Variant((ulong)token);
+                        }
+                        catch (OverflowException){
+                            return new Variant((ulong)token);
+                        }
                     case JTokenType.Boolean:
                         return new Variant((bool)token);
                     case JTokenType.Bytes:
@@ -1027,9 +1118,13 @@ namespace Opc.Ua.Encoders {
             var result = array
                 .Select(t => ReadVariantFromToken(t, unsigned))
                 .ToArray();
+            var validBuiltInType = result.FirstOrDefault(v => v.TypeInfo?.BuiltInType != null).TypeInfo?.BuiltInType;
+            if (validBuiltInType == null) {
+                return Variant.Null;
+            }
             if (result
                 .Where(v => v != Variant.Null)
-                .All(v => v.TypeInfo.BuiltInType == result[0].TypeInfo.BuiltInType)) {
+                .All(v => v.TypeInfo.BuiltInType == validBuiltInType)) {
                 // TODO: This needs tests as it should not work.
                 return new Variant(result.Select(v => v.Value).ToArray());
             }
@@ -1493,6 +1588,18 @@ namespace Opc.Ua.Encoders {
             return ReadToken(token, reader).YieldReturn().ToArray();
         }
 
+        private IDictionary<string, T> ReadDictionary<T>(string property,
+            Func<T> reader) {
+            if (!TryGetToken(property, out var token) || !(token is JObject o)) {
+                return null;
+            }
+            var dictionary = new Dictionary<string, T>();
+            foreach (var p in o.Properties()) {
+                    dictionary[p.Name] = ReadToken(p.Value, reader);
+            }
+            return dictionary;
+        }
+
         /// <summary>
         /// Read token using a specified reader
         /// </summary>
@@ -1590,9 +1697,14 @@ namespace Opc.Ua.Encoders {
             if (_reader == null) {
                 return null;
             }
+            if (_reader.TokenType == JsonToken.EndObject &&
+                string.IsNullOrEmpty(_reader.Path)) {
+                return null;
+            }
             if (_reader is JsonLoader loader) {
                 loader.Reset();
             }
+
             var root = JToken.ReadFrom(_reader,
                 new JsonLoadSettings {
                     CommentHandling = CommentHandling.Ignore,

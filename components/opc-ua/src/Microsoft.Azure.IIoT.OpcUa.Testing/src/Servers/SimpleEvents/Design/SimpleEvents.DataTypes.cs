@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  *
@@ -27,16 +27,16 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace SimpleEvents {
-    using System;
-    using System.Collections.Generic;
-    using System.Runtime.Serialization;
-    using Opc.Ua;
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using Opc.Ua;
 
+namespace SimpleEvents {
     #region CycleStepDataType Class
 #if (!OPCUA_EXCLUDE_CycleStepDataType)
     /// <summary>
-    /// A description for the CycleStepDataType DataType.
+    /// 
     /// </summary>
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -68,18 +68,14 @@ namespace SimpleEvents {
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the Name field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Name", IsRequired = false, Order = 1)]
         public string Name {
             get { return m_name; }
             set { m_name = value; }
         }
 
-        /// <summary>
-        /// A description for the Duration field.
-        /// </summary>
+        /// <remarks />
         [DataMember(Name = "Duration", IsRequired = false, Order = 2)]
         public double Duration {
             get { return m_duration; }

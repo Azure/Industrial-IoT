@@ -1,0 +1,1162 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Opc-Publisher-Service",
+    "description": "Azure Industrial IoT OPC UA Publisher Service",
+    "contact": {
+      "url": "https://www.github.com/Azure/Industrial-IoT"
+    },
+    "license": {
+      "name": "MIT LICENSE",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "v2"
+  },
+  "host": "localhost:9080",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/publisher/v2/jobs": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get list of jobs",
+        "description": "List all jobs that are registered or continues a query.",
+        "operationId": "ListJobs",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "continuationToken",
+            "description": "Optional Continuation token",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "description": "Optional number of results to return",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/JobInfoListApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
+        "x-ms-pageable": {
+          "nextLinkName": "continuationToken"
+        }
+      },
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Query jobs",
+        "description": "List all jobs that are registered or continues a query.",
+        "operationId": "QueryJobs",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json",
+          "application/x-msgpack"
+        ],
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageSize",
+            "description": "Optional number of results to return",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Query specification to use as filter.",
+            "schema": {
+              "$ref": "#/definitions/JobInfoQueryApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/JobInfoListApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/publisher/v2/jobs/{id}": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get job by id",
+        "description": "Returns a job with the provided identifier.",
+        "operationId": "GetJob",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/JobInfoApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Delete job by id",
+        "description": "Deletes a job.",
+        "operationId": "DeleteJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/publisher/v2/jobs/{id}/cancel": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Cancel job by id",
+        "description": "Cancels a job execution.",
+        "operationId": "CancelJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/publisher/v2/jobs/{id}/restart": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Restart job by id",
+        "description": "Restarts a cancelled job which sets it back to active.",
+        "operationId": "RestartJob",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/publisher/v2/publish/{endpointId}/start": {
+      "post": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Start publishing node values",
+        "description": "Start publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.",
+        "operationId": "StartPublishingValues",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json",
+          "application/x-msgpack"
+        ],
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The publish request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PublishStartRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishStartResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/publisher/v2/publish/{endpointId}/bulk": {
+      "post": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Bulk publish node values",
+        "description": "Adds or removes in bulk values that should be published from a particular endpoint.",
+        "operationId": "BulkPublishValues",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json",
+          "application/x-msgpack"
+        ],
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The identifier of an activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The bulk publish request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PublishBulkRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishBulkResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/publisher/v2/publish/{endpointId}/stop": {
+      "post": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Stop publishing node values",
+        "description": "Stop publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.",
+        "operationId": "StopPublishingValues",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json",
+          "application/x-msgpack"
+        ],
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The unpublish request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PublishStopRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishStopResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/publisher/v2/publish/{endpointId}": {
+      "post": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Get currently published nodes",
+        "description": "Returns currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.",
+        "operationId": "GetFirstListOfPublishedNodes",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json",
+          "application/x-msgpack"
+        ],
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The list request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PublishedItemListRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishedItemListResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Get next set of published nodes",
+        "description": "Returns next set of currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.",
+        "operationId": "GetNextListOfPublishedNodes",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "continuationToken",
+            "description": "The continuation token to continue with",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishedItemListResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
+        "x-ms-pageable": {
+          "nextLinkName": "continuationToken"
+        }
+      }
+    },
+    "/publisher/v2/workers": {
+      "get": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Get list of workers",
+        "description": "List all workers that are registered or continues a query.",
+        "operationId": "ListWorkers",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "continuationToken",
+            "description": "Optional Continuation token",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "description": "Optional number of results to return",
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/WorkerInfoListApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ],
+        "x-ms-pageable": {
+          "nextLinkName": "continuationToken"
+        }
+      }
+    },
+    "/publisher/v2/workers/{id}": {
+      "get": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Get worker",
+        "description": "Returns a worker with the provided identifier.",
+        "operationId": "GetWorker",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/WorkerInfoApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Workers"
+        ],
+        "summary": "Delete worker by id",
+        "description": "Deletes an worker in the registry.",
+        "operationId": "DeleteWorker",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "DemandOperators": {
+      "description": "Demand operator",
+      "enum": [
+        "Equals",
+        "Match",
+        "Exists"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "DemandOperators",
+        "modelAsString": false
+      }
+    },
+    "DemandApiModel": {
+      "description": "Demand model",
+      "required": [
+        "key"
+      ],
+      "type": "object",
+      "properties": {
+        "key": {
+          "description": "Key",
+          "type": "string"
+        },
+        "operator": {
+          "$ref": "#/definitions/DemandOperators"
+        },
+        "value": {
+          "description": "Value",
+          "type": "string"
+        }
+      }
+    },
+    "RedundancyConfigApiModel": {
+      "description": "Redundancy configuration",
+      "type": "object",
+      "properties": {
+        "desiredActiveAgents": {
+          "format": "int32",
+          "description": "Number of desired active agents",
+          "type": "integer"
+        },
+        "desiredPassiveAgents": {
+          "format": "int32",
+          "description": "Number of passive agents",
+          "type": "integer"
+        }
+      }
+    },
+    "JobStatus": {
+      "description": "Job status",
+      "enum": [
+        "Active",
+        "Canceled",
+        "Completed",
+        "Error",
+        "Deleted"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "JobStatus",
+        "modelAsString": false
+      }
+    },
+    "ProcessMode": {
+      "description": "Processing mode for processing engine",
+      "enum": [
+        "Active",
+        "Passive"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "ProcessMode",
+        "modelAsString": false
+      }
+    },
+    "ProcessingStatusApiModel": {
+      "description": "processing status",
+      "type": "object",
+      "properties": {
+        "lastKnownHeartbeat": {
+          "format": "date-time",
+          "description": "Last known heartbeat",
+          "type": "string"
+        },
+        "lastKnownState": {
+          "description": "Last known state"
+        },
+        "processMode": {
+          "$ref": "#/definitions/ProcessMode"
+        }
+      }
+    },
+    "JobLifetimeDataApiModel": {
+      "description": "Lifetime data",
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/JobStatus"
+        },
+        "processingStatus": {
+          "description": "Processing status",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ProcessingStatusApiModel"
+          }
+        },
+        "updated": {
+          "format": "date-time",
+          "description": "Updated at",
+          "type": "string"
+        },
+        "created": {
+          "format": "date-time",
+          "description": "Created at",
+          "type": "string"
+        }
+      }
+    },
+    "JobInfoApiModel": {
+      "description": "Job info model",
+      "required": [
+        "id"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Job id",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name",
+          "type": "string"
+        },
+        "jobConfigurationType": {
+          "description": "Configuration type",
+          "type": "string"
+        },
+        "jobConfiguration": {
+          "description": "Job configuration"
+        },
+        "demands": {
+          "description": "Demands",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DemandApiModel"
+          }
+        },
+        "redundancyConfig": {
+          "$ref": "#/definitions/RedundancyConfigApiModel"
+        },
+        "lifetimeData": {
+          "$ref": "#/definitions/JobLifetimeDataApiModel"
+        }
+      }
+    },
+    "JobInfoListApiModel": {
+      "description": "Job info list model",
+      "type": "object",
+      "properties": {
+        "continuationToken": {
+          "description": "Continuation token",
+          "type": "string"
+        },
+        "jobs": {
+          "description": "Jobs",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/JobInfoApiModel"
+          }
+        }
+      }
+    },
+    "JobInfoQueryApiModel": {
+      "description": "Job info query model",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Name",
+          "type": "string"
+        },
+        "jobConfigurationType": {
+          "description": "Configuration type",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/JobStatus"
+        }
+      }
+    },
+    "PublishedItemApiModel": {
+      "description": "A monitored and published item",
+      "required": [
+        "nodeId"
+      ],
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node to monitor",
+          "type": "string"
+        },
+        "displayName": {
+          "description": "Display name of the node to monitor",
+          "type": "string"
+        },
+        "publishingInterval": {
+          "format": "date-span",
+          "description": "Publishing interval to use",
+          "type": "string"
+        },
+        "samplingInterval": {
+          "format": "date-span",
+          "description": "Sampling interval to use",
+          "type": "string"
+        },
+        "heartbeatInterval": {
+          "format": "date-span",
+          "description": "Sampling interval to use",
+          "type": "string"
+        }
+      }
+    },
+    "CredentialType": {
+      "description": "Type of credentials to use for authentication",
+      "enum": [
+        "None",
+        "UserName",
+        "X509Certificate",
+        "JwtToken"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "CredentialType",
+        "modelAsString": false
+      }
+    },
+    "CredentialApiModel": {
+      "description": "Credential model",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/CredentialType"
+        },
+        "value": {
+          "description": "Value to pass to server"
+        }
+      }
+    },
+    "DiagnosticsLevel": {
+      "description": "Level of diagnostics requested in responses",
+      "enum": [
+        "None",
+        "Status",
+        "Operations",
+        "Diagnostics",
+        "Verbose"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "DiagnosticsLevel",
+        "modelAsString": false
+      }
+    },
+    "DiagnosticsApiModel": {
+      "description": "Diagnostics configuration",
+      "type": "object",
+      "properties": {
+        "level": {
+          "$ref": "#/definitions/DiagnosticsLevel"
+        },
+        "auditId": {
+          "description": "Client audit log entry.\r\n(default: client generated)",
+          "type": "string"
+        },
+        "timeStamp": {
+          "format": "date-time",
+          "description": "Timestamp of request.\r\n(default: client generated)",
+          "type": "string"
+        }
+      }
+    },
+    "RequestHeaderApiModel": {
+      "description": "Request header model",
+      "type": "object",
+      "properties": {
+        "elevation": {
+          "$ref": "#/definitions/CredentialApiModel"
+        },
+        "locales": {
+          "description": "Optional list of locales in preference order.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "diagnostics": {
+          "$ref": "#/definitions/DiagnosticsApiModel"
+        }
+      }
+    },
+    "PublishStartRequestApiModel": {
+      "description": "Publish request",
+      "required": [
+        "item"
+      ],
+      "type": "object",
+      "properties": {
+        "item": {
+          "$ref": "#/definitions/PublishedItemApiModel"
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
+    "ServiceResultApiModel": {
+      "description": "Service result",
+      "type": "object",
+      "properties": {
+        "statusCode": {
+          "format": "int64",
+          "description": "Error code - if null operation succeeded.",
+          "type": "integer"
+        },
+        "errorMessage": {
+          "description": "Error message in case of error or null.",
+          "type": "string"
+        },
+        "diagnostics": {
+          "description": "Additional diagnostics information"
+        }
+      }
+    },
+    "PublishStartResponseApiModel": {
+      "description": "Result of publish request",
+      "type": "object",
+      "properties": {
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
+        }
+      }
+    },
+    "PublishBulkRequestApiModel": {
+      "description": "Publish in bulk request",
+      "type": "object",
+      "properties": {
+        "NodesToAdd": {
+          "description": "Node to add",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PublishedItemApiModel"
+          }
+        },
+        "NodesToRemove": {
+          "description": "Node to remove",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
+    "PublishBulkResponseApiModel": {
+      "description": "Result of bulk request",
+      "type": "object",
+      "properties": {
+        "NodesToAdd": {
+          "description": "Node to add",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ServiceResultApiModel"
+          }
+        },
+        "NodesToRemove": {
+          "description": "Node to remove",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ServiceResultApiModel"
+          }
+        }
+      }
+    },
+    "PublishStopRequestApiModel": {
+      "description": "Unpublish request",
+      "required": [
+        "nodeId"
+      ],
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node of published item to unpublish",
+          "type": "string"
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
+    "PublishStopResponseApiModel": {
+      "description": "Result of publish stop request",
+      "type": "object",
+      "properties": {
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
+        }
+      }
+    },
+    "PublishedItemListRequestApiModel": {
+      "description": "Request list of published items",
+      "type": "object",
+      "properties": {
+        "continuationToken": {
+          "description": "Continuation token or null to start",
+          "type": "string"
+        }
+      }
+    },
+    "PublishedItemListResponseApiModel": {
+      "description": "List of published nodes",
+      "type": "object",
+      "properties": {
+        "items": {
+          "description": "Monitored items",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PublishedItemApiModel"
+          }
+        },
+        "continuationToken": {
+          "description": "Continuation or null if final",
+          "type": "string"
+        }
+      }
+    },
+    "WorkerStatus": {
+      "description": "Worker state",
+      "enum": [
+        "Stopped",
+        "Stopping",
+        "WaitingForJob",
+        "ProcessingJob"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "WorkerStatus",
+        "modelAsString": false
+      }
+    },
+    "WorkerInfoApiModel": {
+      "description": "Worker info",
+      "type": "object",
+      "properties": {
+        "workerId": {
+          "description": "Identifier of the worker instance",
+          "type": "string"
+        },
+        "agentId": {
+          "description": "Identifier of the agent",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/WorkerStatus"
+        },
+        "lastSeen": {
+          "format": "date-time",
+          "description": "Last seen",
+          "type": "string"
+        }
+      }
+    },
+    "WorkerInfoListApiModel": {
+      "description": "Worker info list model",
+      "type": "object",
+      "properties": {
+        "continuationToken": {
+          "description": "Continuation token",
+          "type": "string"
+        },
+        "workers": {
+          "description": "Workers",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WorkerInfoApiModel"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "oauth2": {
+      "type": "oauth2",
+      "flow": "implicit",
+      "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
+      "scopes": {
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
+      },
+      "description": "Implicit oauth2 token flow."
+    }
+  },
+  "tags": [
+    {
+      "name": "Jobs",
+      "description": "Jobs controller"
+    },
+    {
+      "name": "Publish",
+      "description": "Value and Event publishing services"
+    },
+    {
+      "name": "Workers",
+      "description": "Agent controller"
+    }
+  ]
+}

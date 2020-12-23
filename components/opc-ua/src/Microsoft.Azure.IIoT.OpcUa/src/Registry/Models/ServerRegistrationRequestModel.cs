@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using System.Collections.Generic;
 
     /// <summary>
     /// Server registration request
@@ -17,19 +16,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string DiscoveryUrl { get; set; }
 
         /// <summary>
-        /// Only retrieve information for the provided locales
+        /// User defined request id
         /// </summary>
-        public List<string> Locales { get; set; }
-
-        /// <summary>
-        /// User defined registration id
-        /// </summary>
-        public string RegistrationId { get; set; }
-
-        /// <summary>
-        /// Callback to invoke once registration finishes
-        /// </summary>
-        public CallbackModel Callback { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Upon discovery, activate all endpoints with this filter.

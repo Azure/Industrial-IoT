@@ -184,9 +184,7 @@ namespace Vehicles {
                 if (PredefinedNodes.TryGetValue(nodeId, out node)) {
                     var handle = new NodeHandle(nodeId, node);
 
-                    if (cache != null) {
-                        cache.Add(nodeId, node);
-                    }
+                    cache?.Add(nodeId, node);
 
                     return handle;
                 }

@@ -1,0 +1,94 @@
+{
+	"info": {
+		"_postman_id": "4bc21fd7-504c-457b-8b60-552cab3820ed",
+		"name": "TestEventProcessor-API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Start monitoring",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{Password}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{Username}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"CommandType\": 0,\r\n    \"Configuration\": {\r\n        \"IoTHubEventHubEndpointConnectionString\": \"{{IoTHubEventHubEndpointConnectionString}}\",\r\n        \"StorageConnectionString\": \"{{StorageConnectionString}}\",\r\n        \"ExpectedValueChangesPerTimestamp\": {{ExpectedValueChangesPerTimestamp}},\r\n        \"ExpectedIntervalOfValueChanges\": {{ExpectedIntervalOfValueChanges}},\r\n        \"ExpectedMaximalDuration\": {{ExpectedMaximalDuration}}\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BaseUrl}}/Runtime/",
+					"host": [
+						"{{BaseUrl}}"
+					],
+					"path": [
+						"Runtime",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Stop monitoring",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{Password}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{Username}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"CommandType\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BaseUrl}}/Runtime/",
+					"host": [
+						"{{BaseUrl}}"
+					],
+					"path": [
+						"Runtime",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

@@ -1,0 +1,17 @@
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@page "/drawer"
+
+@if (IsOpen) {
+    OpenPanel();
+    <div class="@DivClass">
+        <div class="top-row drawer-top px-4">
+            <div class="header ">@HeaderText</div>
+        </div>
+        <a aria-label="closePanel" href="javascript: void(0)" @onclick="@(() => ClosePanel())" class="@CloseIcon"></a>
+        @ChildContent
+    </div>
+}

@@ -4,30 +4,41 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.All {
-    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Hosting;
+    using Autofac.Extensions.Hosting;
+    using Serilog;
 
     /// <summary>
-    /// All in one services host
+    /// Main entry point
     /// </summary>
-    public class Program {
+    public static class Program {
 
         /// <summary>
-        /// Main entry point for all in one services host
+        /// Main entry point
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
-            Task.WaitAll(new[] {
-                Task.Run(() => Hub.Router.Program.Main(args)),
-                Task.Run(() => OpcUa.Alerting.Program.Main(args)),
-                Task.Run(() => OpcUa.Jobs.Program.Main(args)),
-                Task.Run(() => OpcUa.Gateway.Program.Main(args)),
-                Task.Run(() => OpcUa.History.Program.Main(args)),
-                Task.Run(() => OpcUa.Onboarding.Program.Main(args)),
-                Task.Run(() => OpcUa.Processor.Program.Main(args)),
-                Task.Run(() => OpcUa.Registry.Program.Main(args)),
-                Task.Run(() => OpcUa.Twin.Program.Main(args)),
-                Task.Run(() => OpcUa.Vault.Program.Main(args)),
-            });
+#if DEBUG
+            Log.Logger = Diagnostics.ConsoleLogger.Create();
+            Diagnostics.LogControl.Level.MinimumLevel = Serilog.Events.LogEventLevel.Debug;
+#endif
+            CreateHostBuilder(args).Build().Run();
+        }
+
+        /// <summary>
+        /// Create host builder
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static IHostBuilder CreateHostBuilder(string[] args) {
+            return Host.CreateDefaultBuilder(args)
+                .UseAutofac()
+                .ConfigureWebHostDefaults(builder => builder
+                    .UseUrls("http://*:9080")
+                    .UseSerilog()
+                    .UseStartup<Startup>()
+                    .UseKestrel(o => o.AddServerHeader = false));
         }
     }
 }

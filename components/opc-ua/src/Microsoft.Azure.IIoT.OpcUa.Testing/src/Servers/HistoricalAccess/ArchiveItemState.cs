@@ -159,10 +159,12 @@ namespace HistoricalAccess {
         }
 
 #pragma warning disable RECS0154 // Parameter is never used
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Creates a new sample.
         /// </summary>
         public List<DataValue> NewSamples(SystemContext context)
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RECS0154 // Parameter is never used
         {
             var newSamples = new List<DataValue>();
@@ -303,10 +305,12 @@ namespace HistoricalAccess {
         }
 
 #pragma warning disable RECS0154 // Parameter is never used
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Updates the history.
         /// </summary>
         public uint UpdateAnnotations(SystemContext context, Annotation annotation, DataValue value, PerformUpdateType performUpdateType)
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RECS0154 // Parameter is never used
         {
             var replaced = false;
@@ -421,10 +425,12 @@ namespace HistoricalAccess {
         }
 
 #pragma warning disable RECS0154 // Parameter is never used
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Deletes a property value from the history.
         /// </summary>
         public uint DeleteAnnotationHistory(SystemContext context, QualifiedName propertyName, DateTime sourceTimestamp)
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RECS0154 // Parameter is never used
         {
             var deleted = false;
@@ -519,7 +525,7 @@ namespace HistoricalAccess {
                 ModificationTime = DateTime.UtcNow
             };
 
-            if (context.OperationContext != null && context.OperationContext.UserIdentity != null) {
+            if (context.OperationContext?.UserIdentity != null) {
                 info.UserName = context.OperationContext.UserIdentity.DisplayName;
             }
 
@@ -534,12 +540,12 @@ namespace HistoricalAccess {
         }
 
 #pragma warning disable RECS0154 // Parameter is never used
-#pragma warning disable RECS0154 // Parameter is never used
+#pragma warning disable IDE0060 // Parameter is never used
         /// <summary>
         /// Reads the history for the specified time range.
         /// </summary>
         public DataView ReadHistory(DateTime startTime, DateTime endTime, bool isModified, QualifiedName browseName)
-#pragma warning restore RECS0154 // Parameter is never used
+#pragma warning restore IDE0060 // Parameter is never used
 #pragma warning restore RECS0154 // Parameter is never used
         {
             if (isModified) {

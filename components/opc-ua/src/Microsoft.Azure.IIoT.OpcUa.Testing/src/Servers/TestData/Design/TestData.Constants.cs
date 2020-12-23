@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  *
@@ -27,9 +27,9 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace TestData {
-    using Opc.Ua;
+using Opc.Ua;
 
+namespace TestData {
     #region DataType Identifiers
     /// <summary>
     /// A class that declares constants for all DataTypes in the Model Design.

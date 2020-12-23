@@ -23,7 +23,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return new DiscoveryConfigModel {
                 ActivationFilter = model.ActivationFilter.Clone(),
                 AddressRangesToScan = model.AddressRangesToScan,
-                Callbacks = model.Callbacks?.Select(c => c.Clone()).ToList(),
                 DiscoveryUrls = model.DiscoveryUrls?.ToList(),
                 Locales = model.Locales?.ToList(),
                 IdleTimeBetweenScans = model.IdleTimeBetweenScans,

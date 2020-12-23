@@ -6,25 +6,34 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.Utils;
+    using Opc.Ua;
+    using System.Linq;
     using System.Net;
+    using System.Net.Sockets;
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
-    using System;
 
     [Collection(WriteCollection.Name)]
     public class TwinValueCallArrayTests {
 
         public TwinValueCallArrayTests(TestServerFixture server) {
             _server = server;
+            _hostEntry = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
+                ?? Try.Op(() => Dns.GetHostEntry("localhost"));
         }
 
         private EndpointModel Endpoint => new EndpointModel {
-            Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-            Certificate = _server.Certificate?.RawData
+            Url = $"opc.tcp://{_hostEntry?.HostName ?? "localhost"}:{_server.Port}/UA/SampleServer",
+            AlternativeUrls = _hostEntry?.AddressList
+                .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
+                .Select(ip => $"opc.tcp://{ip}:{_server.Port}/UA/SampleServer").ToHashSet(),
+            Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 
         private CallArrayMethodTests<string> GetTests(EndpointRegistrationModel endpoint,
@@ -34,7 +43,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         }
 
         private readonly TestServerFixture _server;
-        private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+        private readonly IPHostEntry _hostEntry;
+#if TEST_ALL
+        private readonly bool _runAll = true;
+#else
+        private readonly bool _runAll = System.Environment.GetEnvironmentVariable("TEST_ALL") != null;
+#endif
 
         [SkippableFact]
         public async Task NodeMethodMetadataStaticArrayMethod1TestAsync() {

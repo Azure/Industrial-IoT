@@ -69,8 +69,8 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// Query items using expressions
         /// </summary>
         /// <param name="query"></param>
-        /// <param name="options"></param>
         /// <param name="pageSize"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
         IResultFeed<R> Query<T, R>(
             Func<IQueryable<IDocumentInfo<T>>, IQueryable<R>> query,
@@ -106,12 +106,5 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// <exception cref="NotSupportedException"/>
         /// <returns></returns>
         ISqlClient OpenSqlClient();
-
-        /// <summary>
-        /// Open bulk loader if supported
-        /// </summary>
-        /// <exception cref="NotSupportedException"/>
-        /// <returns></returns>
-        Task<IDocumentLoader> CreateBulkLoader();
     }
 }

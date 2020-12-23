@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace System.Collections.Generic {
-    using System;
     using System.Linq;
 
     /// <summary>
@@ -34,6 +33,34 @@ namespace System.Collections.Generic {
             }
             return that.All(kv => dict.TryGetValue(kv.Key, out var v) &&
                 equality(kv.Value, v));
+        }
+
+        /// <summary>
+        /// Returns the contents of a dictionary as KeyValuePairs
+        /// </summary>
+        /// <typeparam name="K"></typeparam>
+        /// <typeparam name="V"></typeparam>
+        /// <param name="dictionary"></param>
+        /// <returns></returns>
+        public static IEnumerable<KeyValuePair<K, V>> ToKeyValuePairs<K, V>(
+            this IDictionary dictionary) {
+            foreach (var key in dictionary.Keys) {
+                yield return new KeyValuePair<K, V>((K)key, (V)dictionary[key]);
+            }
+        }
+
+        /// <summary>
+        /// Returns the contents of a dictionary as typed dictionary
+        /// </summary>
+        /// <typeparam name="K"></typeparam>
+        /// <typeparam name="V"></typeparam>
+        /// <param name="dictionary"></param>
+        /// <returns></returns>
+        public static Dictionary<K, V> ToDictionary<K, V>(
+            this IDictionary dictionary) {
+            return dictionary
+                .ToKeyValuePairs<K, V>()
+                .ToDictionary(k => k.Key, v => v.Value);
         }
 
         /// <summary>

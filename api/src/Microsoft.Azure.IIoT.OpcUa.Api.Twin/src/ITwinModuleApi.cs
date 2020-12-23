@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -12,6 +14,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
     /// Represents OPC twin module api
     /// </summary>
     public interface ITwinModuleApi {
+
+        /// <summary>
+        /// Read node history with custom encoded extension object details
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<HistoryReadResponseApiModel<VariantValue>> HistoryReadRawAsync(
+            EndpointApiModel endpoint, HistoryReadRequestApiModel<VariantValue> request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Read history call with custom encoded extension object details
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<HistoryReadNextResponseApiModel<VariantValue>> HistoryReadRawNextAsync(
+            EndpointApiModel endpoint, HistoryReadNextRequestApiModel request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Update using raw extension object details
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(
+            EndpointApiModel endpoint, HistoryUpdateRequestApiModel<VariantValue> request,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Browse node on endpoint

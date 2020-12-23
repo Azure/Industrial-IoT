@@ -48,46 +48,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public static async Task<bool> Async(Func<Task> action) {
-            try {
-                await action.Invoke();
-                return true;
-            }
-            catch {
-                return false;
-            }
-        }
-
-
-        /// <summary>
-        /// Try operation
-        /// </summary>
-        /// <param name="action"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public static async Task<bool> Async(Func<CancellationToken, Task> action,
-            CancellationToken ct) {
-            try {
-                await action.Invoke(ct);
-                return true;
-            }
-            catch {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Try operation
-        /// </summary>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        public static async Task<T> Async<T>(Func<Task<T>> action) {
-            try {
-                return await action.Invoke();
-            }
-            catch {
-                return default;
-            }
+        public static Task<bool> Async(Func<Task> action) {
+            return action.Invoke()
+                .ContinueWith(t => t.IsCompletedSuccessfully);
         }
 
         /// <summary>
@@ -96,14 +59,32 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="action"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<T> Async<T>(Func<CancellationToken, Task<T>> action,
+        public static Task<bool> Async(Func<CancellationToken, Task> action,
             CancellationToken ct) {
-            try {
-                return await action.Invoke(ct);
-            }
-            catch {
-                return default;
-            }
+            return action.Invoke(ct)
+                .ContinueWith(t => t.IsCompletedSuccessfully);
+        }
+
+        /// <summary>
+        /// Try operation
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public static Task<T> Async<T>(Func<Task<T>> action) {
+            return action.Invoke()
+                .ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : default);
+        }
+
+        /// <summary>
+        /// Try operation
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static Task<T> Async<T>(Func<CancellationToken, Task<T>> action,
+            CancellationToken ct) {
+            return action.Invoke(ct)
+                .ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : default);
         }
 
         /// <summary>
@@ -112,7 +93,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <typeparam name="T"></typeparam>
         /// <param name="options"></param>
         /// <returns></returns>
+#pragma warning disable IDE1006 // Naming Styles
         public static async Task<T> Options<T>(params Func<Task<T>>[] options) {
+#pragma warning restore IDE1006 // Naming Styles
             var exceptions = new List<Exception>();
             foreach (var option in options) {
                 try {
@@ -130,7 +113,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
+#pragma warning disable IDE1006 // Naming Styles
         public static async Task Options(params Func<Task>[] options) {
+#pragma warning restore IDE1006 // Naming Styles
             var exceptions = new List<Exception>();
             foreach (var option in options) {
                 try {

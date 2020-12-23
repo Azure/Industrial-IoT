@@ -37,9 +37,9 @@ if (![string]::IsNullOrEmpty($JobPrefix)) {
 }
 
 $agents = @{
-    linux = "Hosted Ubuntu 1604"
-    windows = "Hosted Windows 2019 with VS2019"
-    mac = "Hosted macOS"
+    windows = "windows-2019"
+    linux = "ubuntu-18.04"
+    mac = "macOS-10.15"
 }
 
 $jobMatrix = @{}
@@ -62,10 +62,11 @@ Get-ChildItem $BuildRoot -Recurse `
     $agents.keys | ForEach-Object {
         $jobName = "$($JobPrefix)$($postFix)$($_)"
         $jobMatrix.Add($jobName, @{ 
-            "poolName" = $agents.Item($_)
+            "poolImage" = $agents.Item($_)
             "folder" = $folder 
             "fullFolder" = $fullFolder 
             "file" = $file 
+            "agent" = $($_)
         })
     }
 }

@@ -33,26 +33,28 @@ goto :args-continue
 :args-done
 goto :main
 
-
 rem
 rem generate sdk
 rem
 :generate_sdk
 
 docker pull azuresdk/autorest:latest
-if exist %build_root%\api\generated rmdir /s /q %build_root%\api\generated
-mkdir %build_root%\api\generated
-pushd %build_root%\api\generated
+pushd %build_root%\api
+if exist generated rmdir /s /q generated
+mkdir generated
+pushd generated
 
 call :generate_sdk_for_service twin
+call :generate_sdk_for_service publisher
 call :generate_sdk_for_service registry
-call :generate_sdk_for_service history
-call :generate_sdk_for_service vault
+call :generate_sdk_for_service events
 
+popd
 popd
 goto :eof
 
 :generate_sdk_for_service
+echo Processing swagger for %1
 set service=%1
 copy %build_root%\docs\api\%service%\autorest.md readme.md
 copy %build_root%\api\swagger\%service%.json swagger.json

@@ -514,10 +514,7 @@
         <Locale></Locale>
         <Text>EngineeringUnits</Text>
       </DisplayName>
-      <Description>
-        <Locale></Locale>
-        <Text>The unit of measure for length.</Text>
-      </Description>
+      <Description i:nil="true" />
       <WriteMask>0</WriteMask>
       <UserWriteMask>0</UserWriteMask>
       <RolePermissions />
@@ -786,10 +783,7 @@
         <Locale></Locale>
         <Text>EngineeringUnits</Text>
       </DisplayName>
-      <Description>
-        <Locale></Locale>
-        <Text>The unit of measure for time.</Text>
-      </Description>
+      <Description i:nil="true" />
       <WriteMask>0</WriteMask>
       <UserWriteMask>0</UserWriteMask>
       <RolePermissions />

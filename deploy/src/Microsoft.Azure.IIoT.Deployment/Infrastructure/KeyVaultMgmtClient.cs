@@ -30,11 +30,25 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string subscriptionId,
             RestClient restClient
         ) {
+            if (string.IsNullOrWhiteSpace(subscriptionId)) {
+                throw new ArgumentNullException(nameof(subscriptionId));
+            }
+            if (restClient is null) {
+                throw new ArgumentNullException(nameof(restClient));
+            }
+
             _keyVaultManagementClient = new KeyVaultManagementClient(restClient) {
                 SubscriptionId = subscriptionId
             };
         }
 
+        /// <summary>
+        /// Generate somewhat randomized name for a KeyVault with
+        /// given prefix and random suffix of given length.
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="suffixLen"></param>
+        /// <returns></returns>
         public static string GenerateName(
             string prefix = DEFAULT_NAME_PREFIX,
             int suffixLen = 5
@@ -42,6 +56,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return SdkContext.RandomResourceName(prefix, suffixLen);
         }
 
+        /// <summary>
+        /// Get default KeyVault creation parameters.
+        /// </summary>
+        /// <param name="tenantId"></param>
+        /// <param name="resourceGroup"></param>
+        /// <param name="serviceApplicationSP"></param>
+        /// <param name="owner"></param>
+        /// <param name="tags"></param>
+        /// <returns></returns>
         public VaultCreateOrUpdateParameters GetCreationParameters(
             Guid tenantId,
             IResourceGroup resourceGroup,
@@ -49,6 +72,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             DirectoryObject owner,
             IDictionary<string, string> tags = null
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (serviceApplicationSP is null) {
+                throw new ArgumentNullException(nameof(serviceApplicationSP));
+            }
+            if (owner is null) {
+                throw new ArgumentNullException(nameof(owner));
+            }
+
             tags ??= new Dictionary<string, string>();
 
             var keyVaultAccessPolicies = new List<AccessPolicyEntry> {
@@ -56,12 +89,26 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         TenantId = tenantId,
                         ObjectId = serviceApplicationSP.Id,
                         Permissions = new Permissions {
+                            Keys = new List<KeyPermissions> {
+                                KeyPermissions.Get,
+                                KeyPermissions.List,
+                                KeyPermissions.Sign,
+                                KeyPermissions.UnwrapKey,
+                                KeyPermissions.WrapKey,
+                                KeyPermissions.Create
+                            },
                             Secrets = new List<SecretPermissions> {
-                                SecretPermissions.Get
+                                SecretPermissions.Get,
+                                SecretPermissions.List,
+                                SecretPermissions.Set,
+                                SecretPermissions.Delete
                             },
                             Certificates = new List<CertificatePermissions> {
                                 CertificatePermissions.Get,
-                                CertificatePermissions.List
+                                CertificatePermissions.List,
+                                CertificatePermissions.Update,
+                                CertificatePermissions.Create,
+                                CertificatePermissions.Import
                             }
                         }
                     },
@@ -72,7 +119,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                             Keys = new List<KeyPermissions> {
                                 KeyPermissions.Get,
                                 KeyPermissions.List,
-                                KeyPermissions.Sign 
+                                KeyPermissions.Sign,
+                                KeyPermissions.Create
                             },
                             Secrets = new List<SecretPermissions> {
                                 SecretPermissions.Get,
@@ -116,12 +164,30 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return keyVaultParameters;
         }
 
+        /// <summary>
+        /// Create a KeyVault.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="keyVaultName"></param>
+        /// <param name="keyVaultParameter"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<VaultInner> CreateAsync(
             IResourceGroup resourceGroup,
             string keyVaultName,
             VaultCreateOrUpdateParameters keyVaultParameter,
             CancellationToken cancellationToken = default
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (string.IsNullOrWhiteSpace(keyVaultName)) {
+                throw new ArgumentNullException(nameof(keyVaultName));
+            }
+            if (keyVaultParameter is null) {
+                throw new ArgumentNullException(nameof(keyVaultParameter));
+            }
+
             try {
                 Log.Information($"Creating Azure KeyVault: {keyVaultName} ...");
 
@@ -144,11 +210,25 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
+        /// <summary>
+        /// Get KeyVault details by its name.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="keyVaultName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<VaultInner> GetAsync(
             IResourceGroup resourceGroup,
             string keyVaultName,
             CancellationToken cancellationToken = default
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (string.IsNullOrWhiteSpace(keyVaultName)) {
+                throw new ArgumentNullException(nameof(keyVaultName));
+            }
+
             return await _keyVaultManagementClient
                 .Vaults
                 .GetAsync(
@@ -168,6 +248,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string keyVaultName,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrWhiteSpace(keyVaultName)) {
+                throw new ArgumentNullException(nameof(keyVaultName));
+            }
+
             try {
                 var result = await _keyVaultManagementClient
                     .Vaults

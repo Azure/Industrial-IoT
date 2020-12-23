@@ -1,0 +1,71 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "publicIpName": {
+            "type": "string",
+            "defaultValue": "aks-public-ip"
+        },
+        "publicIpSku": {
+            "type": "string",
+            "allowedValues": [
+                "Basic",
+                "Standard"
+            ],
+            "defaultValue": "Standard"
+        },
+        "publicIpAllocationMethod": {
+            "type": "string",
+            "allowedValues": [
+                "Dynamic",
+                "Static"
+            ],
+            "defaultValue": "Static"
+        },
+        "publicIpDomainNameLabel": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for resources."
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "publicIpId": "[resourceId(resourceGroup().name, 'Microsoft.Network/publicIpAddresses', parameters('publicIpName'))]"
+    },
+    "resources": [
+        {
+            "name": "[parameters('publicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "2019-11-01",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "sku": {
+                "name": "[parameters('publicIpSku')]"
+            },
+            "properties": {
+                "publicIpAllocationMethod": "[parameters('publicIpAllocationMethod')]",
+                "dnsSettings": "[if(
+                    empty(parameters('publicIpDomainNameLabel')),
+                    json('null'),
+                    json(concat('{\"domainNameLabel\": \"', parameters('publicIpDomainNameLabel') ,'\"}'))
+                )]"
+            }
+        }
+    ],
+    "outputs": {
+        "publicIpName": {
+            "type": "string",
+            "value": "[parameters('publicIpName')]"
+        },
+        "publicIpId": {
+            "type": "string",
+            "value": "[variables('publicIpId')]"
+        }
+   }
+}

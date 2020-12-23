@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
-    using System.IdentityModel.Selectors;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
@@ -30,10 +29,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
         /// <summary>
         /// Server factory
         /// </summary>
-        /// <param name="nodes"></param>
         /// <param name="logger"></param>
-        public ServerFactory(ILogger logger,
-            IEnumerable<INodeManagerFactory> nodes) {
+        /// <param name="nodes"></param>
+        public ServerFactory(ILogger logger, IEnumerable<INodeManagerFactory> nodes) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
         }
@@ -55,15 +53,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                 new DataAccess.DataAccessServer(),
                 new Alarms.AlarmConditionServer(),
                 // new PerfTest.PerfTestServer(),
-                new SimpleEvents.SimpleEventsServer()
+                new SimpleEvents.SimpleEventsServer(),
+                new Plc.PlcServer()
             }) {
         }
 
         /// <inheritdoc/>
-        public ApplicationConfiguration CreateServer(IEnumerable<int> ports,
+        public ApplicationConfiguration CreateServer(IEnumerable<int> ports, string applicationName,
             out ServerBase server) {
             server = new Server(LogStatus, _nodes, _logger);
-            return Server.CreateServerConfiguration(ports);
+            return Server.CreateServerConfiguration(ports, applicationName);
         }
 
         /// <inheritdoc/>
@@ -72,8 +71,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
             /// <summary>
             /// Create server
             /// </summary>
-            /// <param name="nodes"></param>
             /// <param name="logStatus"></param>
+            /// <param name="nodes"></param>
             /// <param name="logger"></param>
             public Server(bool logStatus, IEnumerable<INodeManagerFactory> nodes,
                 ILogger logger) {
@@ -88,13 +87,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
             /// <param name="ports"></param>
             /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(
-                IEnumerable<int> ports) {
+                IEnumerable<int> ports, string pkiRootPath) {
                 var extensions = new List<object> {
                     new MemoryBuffer.MemoryBufferConfiguration {
                         Buffers = new MemoryBuffer.MemoryBufferInstanceCollection {
                             new MemoryBuffer.MemoryBufferInstance {
                                 Name = "UInt32",
-                                TagCount = 100,
+                                TagCount = 10000,
                                 DataType = "UInt32"
                             },
                             new MemoryBuffer.MemoryBufferInstance {
@@ -105,53 +104,44 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                         }
                     },
 
-
-                    ///
+                    /// ...
                 };
+                if (string.IsNullOrEmpty(pkiRootPath)) {
+                    pkiRootPath = "pki";
+                }
                 return new ApplicationConfiguration {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
-                    ApplicationUri =
-                $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
-
+                    ApplicationUri = $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
                     Extensions = new XmlElementCollection(
                         extensions.Select(XmlElementEx.SerializeObject)),
 
                     ProductUri = "http://opcfoundation.org/UA/SampleServer",
                     SecurityConfiguration = new SecurityConfiguration {
                         ApplicationCertificate = new CertificateIdentifier {
-                            StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/MachineDefault",
-                            SubjectName = "UA Core Sample Server"
+                            StoreType = CertificateStoreType.Directory,
+                            StorePath = $"{pkiRootPath}/own",
+                            SubjectName = "UA Core Sample Server",
                         },
                         TrustedPeerCertificates = new CertificateTrustList {
-                            StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/UA Applications",
+                            StoreType = CertificateStoreType.Directory,
+                            StorePath = $"{pkiRootPath}/trusted",
                         },
                         TrustedIssuerCertificates = new CertificateTrustList {
-                            StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/UA Certificate Authorities",
+                            StoreType = CertificateStoreType.Directory,
+                            StorePath = $"{pkiRootPath}/issuer",
                         },
                         RejectedCertificateStore = new CertificateTrustList {
-                            StoreType = "Directory",
-                            StorePath =
-                "OPC Foundation/CertificateStores/RejectedCertificates",
+                            StoreType = CertificateStoreType.Directory,
+                            StorePath = $"{pkiRootPath}/rejected",
                         },
-                        AutoAcceptUntrustedCertificates = false
+                        MinimumCertificateKeySize = 1024,
+                        RejectSHA1SignedCertificates = false,
+                        AutoAcceptUntrustedCertificates = true,
+                        AddAppCertToTrustedStore = true
                     },
                     TransportConfigurations = new TransportConfigurationCollection(),
-                    TransportQuotas = new TransportQuotas {
-                        OperationTimeout = 120000,
-                        MaxStringLength = ushort.MaxValue,
-                        MaxByteStringLength = ushort.MaxValue * 16,
-                        MaxArrayLength = ushort.MaxValue,
-                        MaxBufferSize = ushort.MaxValue,
-                        ChannelLifetime = 300000,
-                        SecurityTokenLifetime = 3600000
-                    },
+                    TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),
                     ServerConfiguration = new ServerConfiguration {
 
                         // Sample server specific
@@ -184,20 +174,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                         SecurityPolicies = new ServerSecurityPolicyCollection {
                             new ServerSecurityPolicy {
                                 SecurityMode = MessageSecurityMode.Sign,
-                                SecurityPolicyUri =
-                "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
+                                SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
                             },
                             new ServerSecurityPolicy {
                                 SecurityMode = MessageSecurityMode.SignAndEncrypt,
-                                SecurityPolicyUri =
-                "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
+                                SecurityPolicyUri =SecurityPolicies.Basic256Sha256,
+                            },
+                            new ServerSecurityPolicy {
+                                SecurityMode = MessageSecurityMode.None,
+                                SecurityPolicyUri = SecurityPolicies.None
                             }
                         },
                         UserTokenPolicies = new UserTokenPolicyCollection {
                             new UserTokenPolicy {
                                 TokenType = UserTokenType.Anonymous,
-                                SecurityPolicyUri =
-                "http://opcfoundation.org/UA/SecurityPolicy#None"
+                                SecurityPolicyUri = SecurityPolicies.None,
                             },
                             new UserTokenPolicy {
                                 TokenType = UserTokenType.UserName
@@ -265,9 +256,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                 _logger.Debug("The server is stopping.");
                 base.OnServerStopping();
                 _cts.Cancel();
-                if (_statusLogger != null) {
-                    _statusLogger.Wait();
-                }
+                _statusLogger?.Wait();
             }
 
             /// <inheritdoc/>
@@ -305,25 +294,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                 base.Dispose(disposing);
                 _cts?.Dispose();
             }
-
-#if USER_AUTHENTICATION
-            /// <inheritdoc/>
-            protected override ResourceManager CreateResourceManager(
-                IServerInternal server, ApplicationConfiguration configuration) {
-                var resourceManager = new ResourceManager(server, configuration);
-                // add some localized strings to the resource manager to demonstrate that localization occurs.
-                resourceManager.Add("InvalidPassword", "de-DE",
-                    "Das Passwort ist nicht gültig für Konto '{0}'.");
-                resourceManager.Add("InvalidPassword", "es-ES",
-                    "La contraseña no es válida para la cuenta de '{0}'.");
-
-                resourceManager.Add("UnexpectedUserTokenError",
-                    "fr-FR", "Une erreur inattendue s'est produite lors de la validation utilisateur.");
-                resourceManager.Add("UnexpectedUserTokenError",
-                    "de-DE", "Ein unerwarteter Fehler ist aufgetreten während des Anwenders.");
-                return resourceManager;
-            }
-#endif
 
             /// <summary>
             /// Handle session event by logging status
@@ -436,30 +406,74 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                     throw new ArgumentNullException(nameof(session));
                 }
 
-                // check for a WSS token.
-                var wssToken = args.NewIdentity as IssuedIdentityToken;
+                if (args.NewIdentity is AnonymousIdentityToken guest) {
+                    args.Identity = new UserIdentity(guest);
+                    Utils.Trace("Guest access accepted: {0}", args.Identity.DisplayName);
+                    return;
+                }
 
                 // check for a user name token.
                 if (args.NewIdentity is UserNameIdentityToken userNameToken) {
-                    VerifyPassword(userNameToken.UserName, userNameToken.DecryptedPassword);
+                    var admin = VerifyPassword(userNameToken.UserName, userNameToken.DecryptedPassword);
                     args.Identity = new UserIdentity(userNameToken);
-                    Utils.Trace("UserName Token Accepted: {0}", args.Identity.DisplayName);
+                    if (admin) {
+                        args.Identity = new SystemConfigurationIdentity(args.Identity);
+                    }
+                    Utils.Trace("UserName Token accepted: {0}", args.Identity.DisplayName);
                     return;
                 }
 
                 // check for x509 user token.
                 if (args.NewIdentity is X509IdentityToken x509Token) {
-                    VerifyCertificate(x509Token.Certificate);
+                    var admin = VerifyCertificate(x509Token.Certificate);
                     args.Identity = new UserIdentity(x509Token);
-                    Utils.Trace("X509 Token Accepted: {0}", args.Identity.DisplayName);
+                    if (admin) {
+                        args.Identity = new SystemConfigurationIdentity(args.Identity);
+                    }
+                    Utils.Trace("X509 Token accepted: {0}", args.Identity.DisplayName);
                     return;
                 }
+
+                // check for x509 user token.
+                if (args.NewIdentity is IssuedIdentityToken wssToken) {
+                    var admin = VerifyToken(wssToken);
+                    args.Identity = new UserIdentity(wssToken);
+                    if (admin) {
+                        args.Identity = new SystemConfigurationIdentity(args.Identity);
+                    }
+                    Utils.Trace("Issued Token accepted: {0}", args.Identity.DisplayName);
+                    return;
+                }
+
+                // construct translation object with default text.
+                var info = new TranslationInfo("InvalidToken", "en-US",
+                    "Specified token is not valid.");
+                // create an exception with a vendor defined sub-code.
+                throw new ServiceResultException(new ServiceResult(
+                    StatusCodes.BadIdentityTokenRejected, "Bad token",
+                    kServerNamespaceUri, new LocalizedText(info)));
+            }
+
+            /// <summary>
+            /// Validates the token
+            /// </summary>
+            /// <param name="wssToken"></param>
+            private bool VerifyToken(IssuedIdentityToken wssToken) {
+                if ((wssToken.TokenData?.Length ?? 0) == 0) {
+                    var info = new TranslationInfo("InvalidToken", "en-US",
+                        "Specified token is empty.");
+                    // create an exception with a vendor defined sub-code.
+                    throw new ServiceResultException(new ServiceResult(
+                        StatusCodes.BadIdentityTokenRejected, "Bad token",
+                        kServerNamespaceUri, new LocalizedText(info)));
+                }
+                return false;
             }
 
             /// <summary>
             /// Validates the password for a username token.
             /// </summary>
-            private void VerifyPassword(string userName, string password) {
+            private bool VerifyPassword(string userName, string password) {
                 if (string.IsNullOrEmpty(password)) {
                     // construct translation object with default text.
                     var info = new TranslationInfo(
@@ -468,17 +482,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                         userName);
                     // create an exception with a vendor defined sub-code.
                     throw new ServiceResultException(new ServiceResult(
-                        StatusCodes.BadIdentityTokenRejected,
-                        "InvalidPassword",
-                        "http://opcfoundation.org/UA/Sample/",
-                        new LocalizedText(info)));
+                        StatusCodes.BadIdentityTokenRejected, "InvalidPassword",
+                        kServerNamespaceUri, new LocalizedText(info)));
                 }
+
+                if (userName.EqualsIgnoreCase("test") && password == "test") {
+                    // Testing purposes only
+                    return true;
+                }
+                return false;
             }
 
             /// <summary>
             /// Verifies that a certificate user token is trusted.
             /// </summary>
-            private void VerifyCertificate(X509Certificate2 certificate) {
+            private bool VerifyCertificate(X509Certificate2 certificate) {
                 try {
                     if (_certificateValidator != null) {
                         _certificateValidator.Validate(certificate);
@@ -495,6 +513,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                     if (isSelfSigned && Utils.HasApplicationURN(certificate)) {
                         throw new ServiceResultException(StatusCodes.BadCertificateUseNotAllowed);
                     }
+                    return false;
                 }
                 catch (Exception e) {
                     TranslationInfo info;
@@ -520,10 +539,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
 
                     // create an exception with a vendor defined sub-code.
                     throw new ServiceResultException(new ServiceResult(
-                        result,
-                        info.Key,
-                        "http://opcfoundation.org/UA/Sample/",
-                        new LocalizedText(info)));
+                        result, info.Key, kServerNamespaceUri, new LocalizedText(info)));
                 }
             }
 
@@ -533,7 +549,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
             private Task _statusLogger;
             private DateTime _lastEventTime;
             private CancellationTokenSource _cts;
-            private X509CertificateValidator _certificateValidator;
+            private ICertificateValidator _certificateValidator;
+
+            private const string kServerNamespaceUri = "http://opcfoundation.org/UA/Sample/";
         }
 
         private readonly ILogger _logger;

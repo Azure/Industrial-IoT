@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             EndpointInfoModel endpoint);
 
         /// <summary>
-        /// New endpoint
+        /// Activated endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             EndpointInfoModel endpoint);
 
         /// <summary>
-        /// New endpoint
+        /// Endpoint was deactivated
         /// </summary>
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             EndpointInfoModel endpoint);
 
         /// <summary>
-        /// New endpoint
+        /// Updated endpoint
         /// </summary>
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
@@ -67,12 +67,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             EndpointInfoModel endpoint);
 
         /// <summary>
-        /// New endpoint
+        /// Deleted endpoint
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="endpointId"></param>
         /// <param name="endpoint"></param>
         /// <returns></returns>
         Task OnEndpointDeletedAsync(RegistryOperationContextModel context,
-            EndpointInfoModel endpoint);
+            string endpointId, EndpointInfoModel endpoint);
     }
 }

@@ -4,127 +4,56 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
-    /// <summary>
-    /// Discovery mode to use
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum DiscoveryMode {
-
-        /// <summary>
-        /// No discovery
-        /// </summary>
-        Off,
-
-        /// <summary>
-        /// Find and use local discovery server on edge device
-        /// </summary>
-        Local,
-
-        /// <summary>
-        /// Find and use all LDS in all connected networks
-        /// </summary>
-        Network,
-
-        /// <summary>
-        /// Fast network scan of */24 and known list of ports
-        /// </summary>
-        Fast,
-
-        /// <summary>
-        /// Perform a deep scan of all networks.
-        /// </summary>
-        Scan
-    }
-
-    /// <summary>
-    /// Log level for supervisor
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum SupervisorLogLevel {
-
-        /// <summary>
-        /// Error only
-        /// </summary>
-        Error = 0,
-
-        /// <summary>
-        /// Default
-        /// </summary>
-        Information = 1,
-
-        /// <summary>
-        /// Debug log
-        /// </summary>
-        Debug = 2,
-
-        /// <summary>
-        /// Verbose
-        /// </summary>
-        Verbose = 3
-    }
+    using System.Runtime.Serialization;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Supervisor registration model
     /// </summary>
+    [DataContract]
     public class SupervisorApiModel {
 
         /// <summary>
         /// Supervisor id
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id", Order = 0)]
+        [Required]
         public string Id { get; set; }
 
         /// <summary>
-        /// Site of the application
+        /// Site of the supervisor
         /// </summary>
-        [JsonProperty(PropertyName = "siteId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "siteId", Order = 1,
+            EmitDefaultValue = false)]
         public string SiteId { get; set; }
-
-        /// <summary>
-        /// Whether the supervisor is in discovery mode
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DiscoveryMode? Discovery { get; set; }
-
-        /// <summary>
-        /// Supervisor discovery config
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryConfig",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
-
-        /// <summary>
-        /// Supervisor public client cert
-        /// </summary>
-        [JsonProperty(PropertyName = "certificate",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Current log level
         /// </summary>
-        [JsonProperty(PropertyName = "logLevel",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public SupervisorLogLevel? LogLevel { get; set; }
+        [DataMember(Name = "logLevel", Order = 2,
+            EmitDefaultValue = false)]
+        public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between
         /// client (module) and server (service) (default: false).
         /// </summary>
-        [JsonProperty(PropertyName = "outOfSync",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "outOfSync", Order = 3,
+            EmitDefaultValue = false)]
         public bool? OutOfSync { get; set; }
 
         /// <summary>
         /// Whether supervisor is connected on this registration
         /// </summary>
-        [JsonProperty(PropertyName = "connected",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "connected", Order = 4,
+            EmitDefaultValue = false)]
         public bool? Connected { get; set; }
+
+        /// <summary>
+        /// The reported version of the supervisor
+        /// </summary>
+        [DataMember(Name = "version", Order = 5,
+            EmitDefaultValue = false)]
+        public string Version { get; set; }
     }
 }

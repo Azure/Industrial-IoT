@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Tasks.Runtime {
-    using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
@@ -13,18 +12,18 @@ namespace Microsoft.Azure.IIoT.Tasks.Runtime {
     /// </summary>
     public class TaskProcessorConfig : ConfigBase, ITaskProcessorConfig {
 
-        private const string MaxInstancesKey = "MaxInstances";
-        private const string MaxQueueSizeKey = "MaxQueueSize";
+        private const string kMaxInstancesKey = "MaxInstances";
+        private const string kMaxQueueSizeKey = "MaxQueueSize";
         /// <summary> Max task instances - best between 1-5 </summary>
-        public int MaxInstances => GetIntOrDefault(MaxInstancesKey, 1);
+        public int MaxInstances => GetIntOrDefault(kMaxInstancesKey, () => 1);
         /// <summary> Max queue size to use for in memory queue </summary>
-        public int MaxQueueSize => GetIntOrDefault(MaxQueueSizeKey, 1000);
+        public int MaxQueueSize => GetIntOrDefault(kMaxQueueSizeKey, () => 1000);
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public TaskProcessorConfig(IConfigurationRoot configuration) :
+        public TaskProcessorConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

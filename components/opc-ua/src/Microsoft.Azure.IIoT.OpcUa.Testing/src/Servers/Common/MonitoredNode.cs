@@ -196,7 +196,7 @@ namespace Opc.Ua.Sample {
         public void DeleteItem(IMonitoredItem monitoredItem) {
             if (_monitoredItems != null) {
                 for (var ii = 0; ii < _monitoredItems.Count; ii++) {
-                    if (object.ReferenceEquals(monitoredItem, _monitoredItems[ii])) {
+                    if (ReferenceEquals(monitoredItem, _monitoredItems[ii])) {
                         _monitoredItems.RemoveAt(ii);
                         break;
                     }
@@ -249,7 +249,7 @@ namespace Opc.Ua.Sample {
             }
 
             for (var ii = 0; ii < _eventSubscriptions.Count; ii++) {
-                if (object.ReferenceEquals(eventSubscription, _eventSubscriptions[ii])) {
+                if (ReferenceEquals(eventSubscription, _eventSubscriptions[ii])) {
                     return;
                 }
             }
@@ -263,7 +263,7 @@ namespace Opc.Ua.Sample {
         public void UnsubscribeToEvents(ISystemContext context, IEventMonitoredItem eventSubscription) {
             if (_eventSubscriptions != null) {
                 for (var ii = 0; ii < _eventSubscriptions.Count; ii++) {
-                    if (object.ReferenceEquals(eventSubscription, _eventSubscriptions[ii])) {
+                    if (ReferenceEquals(eventSubscription, _eventSubscriptions[ii])) {
                         _eventSubscriptions.RemoveAt(ii);
 
                         if (_eventSubscriptions.Count == 0) {
@@ -302,7 +302,7 @@ namespace Opc.Ua.Sample {
             if (_eventSubscriptions != null) {
                 for (var ii = 0; ii < _eventSubscriptions.Count; ii++) {
                     // only process items monitoring this node.
-                    if (!object.ReferenceEquals(monitoredItem, _eventSubscriptions[ii])) {
+                    if (!ReferenceEquals(monitoredItem, _eventSubscriptions[ii])) {
                         continue;
                     }
 

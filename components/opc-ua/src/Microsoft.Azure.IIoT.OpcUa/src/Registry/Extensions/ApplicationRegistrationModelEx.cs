@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -62,16 +63,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             return new ApplicationRegistrationModel {
                 Application = model.Application.Clone(),
-                Endpoints = model.Endpoints?.Select(e => e.Clone()).ToList(),
-                SecurityAssessment = model.SecurityAssessment
+                Endpoints = model.Endpoints?.Select(e => e.Clone()).ToList()
             };
         }
 
         /// <summary>
         /// Add or update a server list
         /// </summary>
-        /// <param name="server"></param>
         /// <param name="discovered"></param>
+        /// <param name="server"></param>
         public static void AddOrUpdate(this List<ApplicationRegistrationModel> discovered,
             ApplicationRegistrationModel server) {
             var actual = discovered
@@ -88,8 +88,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Create Union with server
         /// </summary>
-        /// <param name="server"></param>
         /// <param name="model"></param>
+        /// <param name="server"></param>
         public static void UnionWith(this ApplicationRegistrationModel model,
             ApplicationRegistrationModel server) {
 
@@ -125,20 +125,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Update security assessment
-        /// </summary>
-        /// <param name="model"></param>
-        public static ApplicationRegistrationModel SetSecurityAssessment(
-            this ApplicationRegistrationModel model) {
-            if (model.Endpoints == null || !model.Endpoints.Any()) {
-                return model;
-            }
-            model.SecurityAssessment = (SecurityAssessment)
-                model.Endpoints.Average(e => (int)e.GetSecurityAssessment());
-            return model;
         }
     }
 }

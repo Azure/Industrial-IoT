@@ -15,6 +15,8 @@ set clean=
 if "%1" equ "" goto :args-done
 if "%1" equ "--xtrace" goto :arg-trace
 if "%1" equ  "-x" goto :arg-trace
+if "%1" equ "--hostname" goto :arg-hostname
+if "%1" equ  "-h" goto :arg-hostname
 goto :usage
 :args-continue
 shift
@@ -24,10 +26,16 @@ goto :args-loop
 echo swagger.cmd [options]
 echo options:
 echo -x --xtrace        print a trace of each command.
+echo -h --hostname      specify host name to retrieve from.
 exit /b 1
 
 :arg-trace
 echo on
+goto :args-continue
+
+:arg-hostname
+shift
+set _hostname=%1
 goto :args-continue
 
 :args-done
@@ -36,33 +44,25 @@ goto :main
 rem
 rem wait until listening
 rem
-:wait_up
-:wait_up_0
-set _registry_up=
-set _twin_up=
-set _history_up=
-set _vault_up=
-for /f %%i in ('netstat -na ^| findstr "9041" ^| findstr "LISTENING"') do set _twin_up=1
-for /f %%i in ('netstat -na ^| findstr "9042" ^| findstr "LISTENING"') do set _registry_up=1
-for /f %%i in ('netstat -na ^| findstr "9043" ^| findstr "LISTENING"') do set _history_up=1
-for /f %%i in ('netstat -na ^| findstr "9044" ^| findstr "LISTENING"') do set _vault_up=1
-if "%_twin_up%" == "" goto :wait_up_0
-if "%_registry_up%" == "" goto :wait_up_0
-if "%_history_up%" == "" goto :wait_up_0
-if "%_vault_up%" == "" goto :wait_up_0
+:retrieve_spec
+:retrieve_retry
+if exist %1.json del /f %1.json
+curl -o %1.json http://%_hostname%/%1/swagger/v2/openapi.json
+if exist %1.json goto :eof
 ping nowhere -w 5000 >nul 2>&1
-goto :eof
+goto :retrieve_retry
 
 rem
 rem retrieve swagger json
 rem
-:retrieve_spec
+:retrieve_specs
+echo Retrieve swagger docs from %_hostname%.
 if not exist %build_root%\api\swagger mkdir %build_root%\api\swagger
 pushd %build_root%\api\swagger
-curl -o twin.json http://%_hostname%:9041/v2/swagger.json
-curl -o registry.json http://%_hostname%:9042/v2/swagger.json
-curl -o history.json http://%_hostname%:9043/v2/swagger.json
-curl -o vault.json http://%_hostname%:9044/v2/swagger.json
+call :retrieve_spec twin
+call :retrieve_spec publisher
+call :retrieve_spec registry
+call :retrieve_spec events
 popd
 goto :eof
 
@@ -70,18 +70,18 @@ goto :eof
 @rem Main
 @rem
 :main
+
+if not "%_hostname%" == "" goto :run
 rem start all services
 pushd %build_root%\services\src\Microsoft.Azure.IIoT.Services.All\src
 rem force https scheme only
 rem set PCS_AUTH_HTTPSREDIRECTPORT=443
 start dotnet run --project Microsoft.Azure.IIoT.Services.All.csproj
-call :wait_up
-echo ... Up.
+set _hostname=localhost:9080
+goto :run
 
-for /f %%i in ('hostname') do set _hostname=%%i
-if "%_hostname%" == "" set _hostname=localhost
-echo Retrieve swagger.
-call :retrieve_spec
+:run
+call :retrieve_specs
 
 :done
 if exist %TMP%\sdk_build.log del /f %TMP%\sdk_build.log

@@ -9,6 +9,12 @@
 
 $version = & (Join-Path $PSScriptRoot "get-version.ps1")
 
+# Call versioning for build
+& ./tools/nbgv  @("cloud", "-c", "-a")
+if ($LastExitCode -ne 0) {
+   Write-Warning "Error: 'nbgv cloud -c -a' failed with $($LastExitCode)."
+}
+
 # Set build environment version numbers in pipeline context
 Write-Host "Setting version build variables:"
 

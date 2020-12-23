@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Attribute and value to write to it
@@ -24,6 +25,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// <summary>
         /// Value to write (mandatory)
         /// </summary>
-        public JToken Value { get; set; }
+        public VariantValue Value { get; set; }
     }
 }

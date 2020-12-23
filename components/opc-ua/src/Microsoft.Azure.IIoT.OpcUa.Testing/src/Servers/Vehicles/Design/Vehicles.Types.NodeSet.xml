@@ -160,10 +160,7 @@ bGxhYmxlPSJ0cnVlIj48L3hzOmVsZW1lbnQ+DQoNCjwveHM6c2NoZW1hPg==</ByteString>
         <Locale></Locale>
         <Text>NamespaceUri</Text>
       </DisplayName>
-      <Description>
-        <Locale></Locale>
-        <Text>A URI that uniquely identifies the dictionary.</Text>
-      </Description>
+      <Description i:nil="true" />
       <WriteMask>0</WriteMask>
       <UserWriteMask>0</UserWriteMask>
       <RolePermissions />
@@ -340,10 +337,7 @@ IDwvb3BjOlN0cnVjdHVyZWRUeXBlPg0KDQo8L29wYzpUeXBlRGljdGlvbmFyeT4=</ByteString>
         <Locale></Locale>
         <Text>NamespaceUri</Text>
       </DisplayName>
-      <Description>
-        <Locale></Locale>
-        <Text>A URI that uniquely identifies the dictionary.</Text>
-      </Description>
+      <Description i:nil="true" />
       <WriteMask>0</WriteMask>
       <UserWriteMask>0</UserWriteMask>
       <RolePermissions />
@@ -1420,7 +1414,9 @@ IDwvb3BjOlN0cnVjdHVyZWRUeXBlPg0KDQo8L29wYzpUeXBlRGljdGlvbmFyeT4=</ByteString>
         <Identifier>ns=1;i=314</Identifier>
       </DataType>
       <ValueRank>1</ValueRank>
-      <ArrayDimensions />
+      <ArrayDimensions>
+        <UInt32>0</UInt32>
+      </ArrayDimensions>
       <AccessLevel>3</AccessLevel>
       <UserAccessLevel>3</UserAccessLevel>
       <MinimumSamplingInterval>0</MinimumSamplingInterval>
@@ -1440,10 +1436,7 @@ IDwvb3BjOlN0cnVjdHVyZWRUeXBlPg0KDQo8L29wYzpUeXBlRGljdGlvbmFyeT4=</ByteString>
         <Locale></Locale>
         <Text>Deprecated</Text>
       </DisplayName>
-      <Description>
-        <Locale></Locale>
-        <Text>Indicates that all of the definitions for the dictionary are available through a DataTypeDefinition Attribute.</Text>
-      </Description>
+      <Description i:nil="true" />
       <WriteMask>0</WriteMask>
       <UserWriteMask>0</UserWriteMask>
       <RolePermissions />
@@ -1498,10 +1491,7 @@ IDwvb3BjOlN0cnVjdHVyZWRUeXBlPg0KDQo8L29wYzpUeXBlRGljdGlvbmFyeT4=</ByteString>
         <Locale></Locale>
         <Text>Deprecated</Text>
       </DisplayName>
-      <Description>
-        <Locale></Locale>
-        <Text>Indicates that all of the definitions for the dictionary are available through a DataTypeDefinition Attribute.</Text>
-      </Description>
+      <Description i:nil="true" />
       <WriteMask>0</WriteMask>
       <UserWriteMask>0</UserWriteMask>
       <RolePermissions />

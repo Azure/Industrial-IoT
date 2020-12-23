@@ -5,20 +5,15 @@ jobs:
 - job: sdl
   displayName: SDL Tasks
   pool:
-    name: Hosted Windows 2019 with VS2019
+    vmImage: 'windows-2019'
     demands:
     - msbuild
     - npm
+  variables:
+    runCodesignValidationInjection: false
+    DOTNET_CLI_TELEMETRY_OPTOUT: true
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   steps:
-  # # This step will rely on existing setup of .Net Core for now.
-  # # Once we move all projects to .Net Core 3, we will uncomment this.
-  # - task: UseDotNet@2
-  #   displayName: 'Install .NET Core SDK'
-  #   inputs:
-  #     packageType: sdk
-  #     version: 3.0.x
-  #     includePreviewVersions: false
-  #     installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2
     displayName: Versioning
     inputs:
@@ -27,8 +22,10 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: Restore
     inputs:
-      command: restore
+      command: restore 
       projects: 'Industrial-IoT.sln'
+      feedsToUse: 'config'
+      nugetConfigPath: './NuGet.Config'
   - task: MSBuild@1
     displayName: Build
     inputs:
@@ -37,7 +34,7 @@ jobs:
   - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
     displayName: 'Credential Scanner'
     inputs:
-      debugMode: false
+      toolMajorVersion: V2
     continueOnError: true
   - task: RoslynAnalyzers@2
     displayName: 'Run Roslyn Analyzers'
@@ -47,13 +44,8 @@ jobs:
   - task: 'msospo.ospo-extension.8d7f9abb-6896-461d-9e25-4f74ed65ddb2.notice@0'
     displayName: Generate 3rd Party Notices
     inputs:
+      outputformat: 'text'
       outputfile: thirdpartynotices.txt
-    continueOnError: true
-  - task: TSLint@1
-    displayName: 'Run TSLint'
-    inputs:
-      Files: '**\*.ts;**\*.js'
-      ExcludeFiles: 'api\**'
     continueOnError: true
   - task: BinSkim@3
     displayName: 'BinSkim '
@@ -76,6 +68,9 @@ jobs:
     displayName: PoliCheck
     inputs:
       targetType: F
+      SOMEnabled: false
+      uploadToSOM: true
+      workspaceid: f26cefbe-7e7b-436a-8aad-ded8bb5d03e1
     continueOnError: true
   - task: SdtReport@1
     displayName: 'Create Security Analysis Report'
@@ -90,6 +85,7 @@ jobs:
     displayName: 'Post Analysis'
     inputs:
       BinSkim: true
+      PoliCheck: true
       CredScan: true
       RoslynAnalyzers: true
   - script: |
@@ -111,7 +107,7 @@ jobs:
       uploadFortifySCA: false
       uploadFxCop: false
       uploadModernCop: false
-      uploadPoliCheck: true
+      uploadPoliCheck: false
       uploadPREfast: false
       uploadRoslyn: true
       uploadTSLint: false

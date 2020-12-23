@@ -4,10 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
-    using Microsoft.Azure.IIoT.Services.Swagger;
-    using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
-    using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Services.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
@@ -15,60 +17,55 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Storage;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Extensions.Configuration;
-    using System;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.Azure.IIoT.Hosting;
+    using Microsoft.Azure.IIoT.Deploy;
+    using Microsoft.Azure.IIoT.Deploy.Runtime;
+    using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : ConfigBase, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, ISwaggerConfig, IServiceBusConfig,
-        ICosmosDbConfig, IItemContainerConfig, IApplicationInsightsConfig {
+    public class Config : DiagnosticsConfig, IWebHostConfig, IIoTHubConfig,
+        ICorsConfig, IOpenApiConfig, IServiceBusConfig,
+        ICosmosDbConfig, IItemContainerConfig, IForwardedHeadersConfig,
+        IContainerRegistryConfig, ILogWorkspaceConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
-        /// <inheritdoc/>
-        public string IoTHubResourceId => _hub.IoTHubResourceId;
+
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
         public bool CorsEnabled => _cors.CorsEnabled;
+
         /// <inheritdoc/>
-        public string AppId => _auth.AppId;
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
         /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
+        public string ServicePathBase => GetStringOrDefault(
+            PcsVariable.PCS_TWIN_REGISTRY_SERVICE_PATH_BASE,
+            () => _host.ServicePathBase);
+
+
         /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
+        public bool UIEnabled => _openApi.UIEnabled;
         /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
+        public bool WithAuth => _openApi.WithAuth;
         /// <inheritdoc/>
-        public string Audience => _auth.Audience;
+        public string OpenApiAppId => _openApi.OpenApiAppId;
         /// <inheritdoc/>
-        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
+        public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
-        public bool AuthRequired => _auth.AuthRequired;
+        public string OpenApiAuthorizationUrl => _openApi.OpenApiAuthorizationUrl;
         /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
+        public bool UseV2 => _openApi.UseV2;
         /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
-        /// <inheritdoc/>
-        public bool UIEnabled => _swagger.UIEnabled;
-        /// <inheritdoc/>
-        public bool WithAuth => _swagger.WithAuth;
-        /// <inheritdoc/>
-        public bool WithHttpScheme => _swagger.WithHttpScheme;
-        /// <inheritdoc/>
-        public string SwaggerAppId => _swagger.SwaggerAppId;
-        /// <inheritdoc/>
-        public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
+        public string OpenApiServerHost => _openApi.OpenApiServerHost;
+
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
+
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
         /// <inheritdoc/>
@@ -78,35 +75,54 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         /// <inheritdoc/>
         public string DatabaseName => "iiot_opc";
 
-        /// <summary>
-        /// Whether to use role based access
-        /// </summary>
-        public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
         /// <inheritdoc/>
-        public TelemetryConfiguration TelemetryConfiguration => _ai.TelemetryConfiguration;
+        public string DockerServer => _cr.DockerServer;
+        /// <inheritdoc/>
+        public string DockerUser => _cr.DockerUser;
+        /// <inheritdoc/>
+        public string DockerPassword => _cr.DockerPassword;
+        /// <inheritdoc/>
+        public string ImagesNamespace => _cr.ImagesNamespace;
+        /// <inheritdoc/>
+        public string ImagesTag => _cr.ImagesTag;
+        /// <inheritdoc/>
+        public string LogWorkspaceId => _lwc.LogWorkspaceId;
+        /// <inheritdoc/>
+        public string LogWorkspaceKey => _lwc.LogWorkspaceKey;
+
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public Config(IConfigurationRoot configuration) :
+        public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _swagger = new SwaggerConfig(configuration);
-            _auth = new AuthConfig(configuration);
+            _openApi = new OpenApiConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
-            _ai = new ApplicationInsightsConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
+            _cr = new ContainerRegistryConfig(configuration);
+            _lwc = new LogWorkspaceConfig(configuration);
         }
 
-        private readonly SwaggerConfig _swagger;
-        private readonly AuthConfig _auth;
+        private readonly ContainerRegistryConfig _cr;
+        private readonly LogWorkspaceConfig _lwc;
+        private readonly OpenApiConfig _openApi;
+        private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly CosmosDbConfig _cosmos;
-        private readonly ApplicationInsightsConfig _ai;
         private readonly IoTHubConfig _hub;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }

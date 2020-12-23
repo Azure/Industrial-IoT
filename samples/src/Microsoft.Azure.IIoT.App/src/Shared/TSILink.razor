@@ -1,0 +1,21 @@
+﻿@*------------------------------------------------------------
+  Copyright (c) Microsoft Corporation.  All rights reserved.
+  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+ ------------------------------------------------------------*@
+
+@using Microsoft.Azure.IIoT.App.Runtime
+@using Microsoft.AspNetCore.Components
+
+@inject NavigationManager NavigationManager
+@inject Config Configuration
+
+<AuthorizeView>
+    <Authorized>
+        @if(!string.IsNullOrEmpty(TsiLink))
+        {
+            <a href="@TsiLink" class="tsi_link" target="_blank">Go to Time Series Insights</a>
+        }
+    </Authorized>
+    <NotAuthorized>
+    </NotAuthorized>
+</AuthorizeView>

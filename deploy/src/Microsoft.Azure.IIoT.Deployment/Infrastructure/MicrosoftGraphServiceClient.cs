@@ -125,6 +125,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 cancellationToken
              );
 
+            if (string.IsNullOrEmpty(passwordCredential?.SecretText)) {
+                throw new Exception($"Failed to get password credentials for application: {application.DisplayName}");
+            }
+
             return passwordCredential;
         }
 
@@ -155,7 +159,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         }
 
         /// <summary>
-        /// Update service application to include client application 
+        /// Update service application to include client application
         /// as knownClientApplications.
         /// </summary>
         /// <param name="serviceApplication"></param>
@@ -403,8 +407,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 ClientId = clientApplicationSP.Id,
                 ResourceId = serviceApplicationSP.Id,
                 Scope = "user_impersonation",
-                StartTime = DateTimeOffset.UtcNow,
-                ExpiryTime = DateTimeOffset.UtcNow.AddYears(2)
+                //StartTime = DateTimeOffset.UtcNow,
+                //ExpiryTime = DateTimeOffset.UtcNow.AddYears(2)
             };
 
             await _graphServiceClient
@@ -426,8 +430,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 ClientId = clientApplicationSP.Id,
                 ResourceId = microsoftGraphApplicationSP.Id,
                 Scope = "User.Read",
-                StartTime = DateTimeOffset.UtcNow,
-                ExpiryTime = DateTimeOffset.UtcNow.AddYears(2)
+                //StartTime = DateTimeOffset.UtcNow,
+                //ExpiryTime = DateTimeOffset.UtcNow.AddYears(2)
             };
 
             await _graphServiceClient

@@ -1,5 +1,5 @@
 /* ========================================================================
- * Copyright (c) 2005-2016 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2019 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  *
@@ -27,18 +27,18 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace MemoryBuffer {
-    using System;
-    using System.Collections.Generic;
-    using Opc.Ua;
+using System;
+using System.Collections.Generic;
+using Opc.Ua;
 
+namespace MemoryBuffer {
     #region MemoryTagState Class
-#if !OPCUA_EXCLUDE_MemoryTagState
+#if (!OPCUA_EXCLUDE_MemoryTagState)
     /// <summary>
     /// Stores an instance of the MemoryTagType VariableType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class MemoryTagState : BaseDataVariableState {
         #region Constructors
         /// <summary>
@@ -68,7 +68,7 @@ namespace MemoryBuffer {
             return ValueRanks.Scalar;
         }
 
-#if !OPCUA_EXCLUDE_InitializationStrings
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -94,8 +94,8 @@ namespace MemoryBuffer {
 
         #region Initialization String
         private const string InitializationString =
-           "AQAAACIAAABodHRwOi8vc2FtcGxlcy5vcmcvVUEvbWVtb3J5YnVmZmVy/////xVggQACAAAAAQAVAAAA" +
-           "TWVtb3J5VGFnVHlwZUluc3RhbmNlAQH6AwEB+gMAGAEB/////wAAAAA=";
+           "AQAAACIAAABodHRwOi8vc2FtcGxlcy5vcmcvVUEvbWVtb3J5YnVmZmVy/////xVgiQICAAAAAQAVAAAA" +
+           "TWVtb3J5VGFnVHlwZUluc3RhbmNlAQH6AwEB+gP6AwAAABj+////AQH/////AAAAAA==";
         #endregion
 #endif
         #endregion
@@ -165,12 +165,12 @@ namespace MemoryBuffer {
     #endregion
 
     #region MemoryBufferState Class
-#if !OPCUA_EXCLUDE_MemoryBufferState
+#if (!OPCUA_EXCLUDE_MemoryBufferState)
     /// <summary>
     /// Stores an instance of the MemoryBufferType ObjectType.
     /// </summary>
     /// <exclude />
-    [System.CodeDom.Compiler.GeneratedCode("Opc.Ua.ModelCompiler", "1.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     public partial class MemoryBufferState : BaseObjectState {
         #region Constructors
         /// <summary>
@@ -186,7 +186,7 @@ namespace MemoryBuffer {
             return Opc.Ua.NodeId.Create(MemoryBuffer.ObjectTypes.MemoryBufferType, MemoryBuffer.Namespaces.MemoryBuffer, namespaceUris);
         }
 
-#if !OPCUA_EXCLUDE_InitializationStrings
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <summary>
         /// Initializes the instance.
         /// </summary>
@@ -212,18 +212,16 @@ namespace MemoryBuffer {
 
         #region Initialization String
         private const string InitializationString =
-           "AQAAACIAAABodHRwOi8vc2FtcGxlcy5vcmcvVUEvbWVtb3J5YnVmZmVy/////wRggAABAAAAAQAYAAAA" +
-           "TWVtb3J5QnVmZmVyVHlwZUluc3RhbmNlAQHoAwEB6AP/////AgAAABVgqQoCAAAAAQAMAAAAU3RhcnRB" +
-           "ZGRyZXNzAQHrAwAuAETrAwAABwAAAAAAB/////8BAf////8AAAAAFWCpCgIAAAABAAsAAABTaXplSW5C" +
-           "eXRlcwEB7AMALgBE7AMAAAcAEAAAAAf/////AQH/////AAAAAA==";
+           "AQAAACIAAABodHRwOi8vc2FtcGxlcy5vcmcvVUEvbWVtb3J5YnVmZmVy/////wRggAIBAAAAAQAYAAAA" +
+           "TWVtb3J5QnVmZmVyVHlwZUluc3RhbmNlAQHoAwEB6APoAwAA/////wIAAAAVYKkKAgAAAAEADAAAAFN0" +
+           "YXJ0QWRkcmVzcwEB6wMALgBE6wMAAAcAAAAAAAf/////AQH/////AAAAABVgqQoCAAAAAQALAAAAU2l6" +
+           "ZUluQnl0ZXMBAewDAC4AROwDAAAHABAAAAAH/////wEB/////wAAAAA=";
         #endregion
 #endif
         #endregion
 
         #region Public Properties
-        /// <summary>
-        /// A description for the StartAddress Property.
-        /// </summary>
+        /// <remarks />
         public PropertyState<uint> StartAddress {
             get => m_startAddress;
 
@@ -236,9 +234,7 @@ namespace MemoryBuffer {
             }
         }
 
-        /// <summary>
-        /// A description for the SizeInBytes Property.
-        /// </summary>
+        /// <remarks />
         public PropertyState<uint> SizeInBytes {
             get => m_sizeInBytes;
 

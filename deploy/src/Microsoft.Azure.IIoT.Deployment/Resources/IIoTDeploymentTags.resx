@@ -120,6 +120,9 @@
   <data name="KEY_APPLICATION" xml:space="preserve">
     <value>application</value>
   </data>
+  <data name="KEY_IOT_SUITE_TYPE" xml:space="preserve">
+    <value>IotSuiteType</value>
+  </data>
   <data name="KEY_MANAGED_BY" xml:space="preserve">
     <value>managed_by</value>
   </data>
@@ -130,12 +133,15 @@
     <value>version</value>
   </data>
   <data name="VALUE_APPLICATION_IIOT" xml:space="preserve">
-    <value>industrial-iot</value>
+    <value>AzureIndustrialIoT</value>
+  </data>
+  <data name="VALUE_IOT_SUITE_TYPE_SUF" xml:space="preserve">
+    <value>IAI</value>
   </data>
   <data name="VALUE_MANAGED_BY_IIOT" xml:space="preserve">
     <value>Microsoft.Azure.IIoT.Deployment</value>
   </data>
   <data name="VALUE_VERSION_IIOT" xml:space="preserve">
-    <value>2.5.2</value>
+    <value>2.7.199</value>
   </data>
 </root>

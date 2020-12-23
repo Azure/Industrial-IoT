@@ -167,7 +167,9 @@
         <Identifier>ns=1;i=183</Identifier>
       </DataType>
       <ValueRank>1</ValueRank>
-      <ArrayDimensions />
+      <ArrayDimensions>
+        <UInt32>0</UInt32>
+      </ArrayDimensions>
       <AccessLevel>1</AccessLevel>
       <UserAccessLevel>1</UserAccessLevel>
       <MinimumSamplingInterval>0</MinimumSamplingInterval>
@@ -409,10 +411,7 @@ VHlwZT4NCg0KPC9vcGM6VHlwZURpY3Rpb25hcnk+</ByteString>
         <Locale></Locale>
         <Text>NamespaceUri</Text>
       </DisplayName>
-      <Description>
-        <Locale></Locale>
-        <Text>A URI that uniquely identifies the dictionary.</Text>
-      </Description>
+      <Description i:nil="true" />
       <WriteMask>0</WriteMask>
       <UserWriteMask>0</UserWriteMask>
       <RolePermissions />
@@ -672,10 +671,7 @@ PC94czpzY2hlbWE+</ByteString>
         <Locale></Locale>
         <Text>NamespaceUri</Text>
       </DisplayName>
-      <Description>
-        <Locale></Locale>
-        <Text>A URI that uniquely identifies the dictionary.</Text>
-      </Description>
+      <Description i:nil="true" />
       <WriteMask>0</WriteMask>
       <UserWriteMask>0</UserWriteMask>
       <RolePermissions />
@@ -1059,10 +1055,7 @@ PC94czpzY2hlbWE+</ByteString>
         <Locale></Locale>
         <Text>Deprecated</Text>
       </DisplayName>
-      <Description>
-        <Locale></Locale>
-        <Text>Indicates that all of the definitions for the dictionary are available through a DataTypeDefinition Attribute.</Text>
-      </Description>
+      <Description i:nil="true" />
       <WriteMask>0</WriteMask>
       <UserWriteMask>0</UserWriteMask>
       <RolePermissions />
@@ -1117,10 +1110,7 @@ PC94czpzY2hlbWE+</ByteString>
         <Locale></Locale>
         <Text>Deprecated</Text>
       </DisplayName>
-      <Description>
-        <Locale></Locale>
-        <Text>Indicates that all of the definitions for the dictionary are available through a DataTypeDefinition Attribute.</Text>
-      </Description>
+      <Description i:nil="true" />
       <WriteMask>0</WriteMask>
       <UserWriteMask>0</UserWriteMask>
       <RolePermissions />

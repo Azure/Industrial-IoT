@@ -4,163 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-    using Newtonsoft.Json.Linq;
-
-    /// <summary>
-    /// Node attribute identifiers
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum NodeAttribute {
-
-        /// <summary>
-        /// Node class
-        /// </summary>
-        NodeClass = 2,
-
-        /// <summary>
-        /// Browse name
-        /// </summary>
-        BrowseName,
-
-        /// <summary>
-        /// Display name
-        /// </summary>
-        DisplayName,
-
-        /// <summary>
-        /// Description
-        /// </summary>
-        Description,
-
-        /// <summary>
-        /// Node write mask
-        /// </summary>
-        WriteMask,
-
-        /// <summary>
-        /// User write mask
-        /// </summary>
-        UserWriteMask,
-
-        /// <summary>
-        /// Is abstract
-        /// </summary>
-        IsAbstract,
-
-        /// <summary>
-        /// Symmetric
-        /// </summary>
-        Symmetric,
-
-        /// <summary>
-        /// Inverse name
-        /// </summary>
-        InverseName,
-
-        /// <summary>
-        /// Contains no loop
-        /// </summary>
-        ContainsNoLoops,
-
-        /// <summary>
-        /// Event notifier
-        /// </summary>
-        EventNotifier,
-
-        /// <summary>
-        /// Value for variable
-        /// </summary>
-        Value,
-
-        /// <summary>
-        /// Datatype
-        /// </summary>
-        DataType,
-
-        /// <summary>
-        /// Value rank
-        /// </summary>
-        ValueRank,
-
-        /// <summary>
-        /// Array dimension
-        /// </summary>
-        ArrayDimensions,
-
-        /// <summary>
-        /// Accesslevel
-        /// </summary>
-        AccessLevel,
-
-        /// <summary>
-        /// User access level
-        /// </summary>
-        UserAccessLevel,
-
-        /// <summary>
-        /// Minimum sampling interval
-        /// </summary>
-        MinimumSamplingInterval,
-
-        /// <summary>
-        /// Whether node is historizing
-        /// </summary>
-        Historizing,
-
-        /// <summary>
-        /// Method can be called
-        /// </summary>
-        Executable,
-
-        /// <summary>
-        /// User can call method
-        /// </summary>
-        UserExecutable,
-
-        /// <summary>
-        /// Data type definition
-        /// </summary>
-        DataTypeDefinition,
-
-        /// <summary>
-        /// Role permissions
-        /// </summary>
-        RolePermissions,
-
-        /// <summary>
-        /// User role permissions
-        /// </summary>
-        UserRolePermissions,
-
-        /// <summary>
-        /// Access restrictions on node
-        /// </summary>
-        AccessRestrictions
-    }
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
+    using System.Runtime.Serialization;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Attribute and value to write to it
     /// </summary>
+    [DataContract]
     public class AttributeWriteRequestApiModel {
 
         /// <summary>
         /// Node to write to (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
+        [Required]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Attribute to write (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "attribute")]
+        [DataMember(Name = "attribute", Order = 1)]
+        [Required]
         public NodeAttribute Attribute { get; set; }
 
         /// <summary>
         /// Value to write (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "value")]
-        public JToken Value { get; set; }
+        [DataMember(Name = "value", Order = 2)]
+        [Required]
+        public VariantValue Value { get; set; }
     }
 }

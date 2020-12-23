@@ -3,9 +3,9 @@
     Builds csproj file and returns buildable dockerfile build definitions
 
  .PARAMETER Path
-    The folder containing the mcr.json file.
+    The folder containing the container.json file.
 
- .PARAMETER Configuration
+ .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
     Debug also includes debugger into images (where applicable).
 #>
@@ -28,17 +28,17 @@ $configuration = "Release"
 if ($Debug.IsPresent) {
     $configuration = "Debug"
 }
-$metadata = Get-Content -Raw -Path (Join-Path $Path "mcr.json") `
+$metadata = Get-Content -Raw -Path (Join-Path $Path "container.json") `
     | ConvertFrom-Json
 
 $definitions = @()
 
 # Create build job definitions from dotnet project in current folder
 $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
-if ($projFile -ne $null) {
+if ($projFile) {
 
     $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
-    $runtimes = @("linux-arm", "linux-x64", "win-x64", "win-arm", "win-arm64", "")
+    $runtimes = @("linux-arm", "linux-arm64", "linux-x64", "win-x64", "")
     if (![string]::IsNullOrEmpty($metadata.base)) {
         # Shortcut - only build portable
         $runtimes = @("")
@@ -51,6 +51,7 @@ if ($projFile -ne $null) {
         if (![string]::IsNullOrEmpty($runtimeId)) {
             $argumentList += "-r"
             $argumentList += $runtimeId
+            $argumentList += "/p:TargetLatestRuntimePatch=true"
         }
         else {
             $runtimeId = "portable"
@@ -60,7 +61,7 @@ if ($projFile -ne $null) {
         $argumentList += $projFile.FullName
 
         Write-Host "Publish $($projFile.FullName) with $($runtimeId) runtime..."
-        & dotnet $argumentList 2>&1 | %{ Write-Host "$_" }
+        & dotnet $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
         if ($LastExitCode -ne 0) {
             throw "Error: 'dotnet $($argumentList)' failed with $($LastExitCode)."
         }
@@ -83,47 +84,41 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
 
     # Default platform definitions
     $platforms = @{
-        "linux/arm/v7" = @{
+        "linux/arm" = @{
             runtimeId = "linux-arm"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-arm32v7"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
+        "linux/arm64" = @{
+            runtimeId = "linux-arm64"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
+            platformTag = "linux-arm64v8"
+            runtimeOnly = "RUN chmod +x $($assemblyName)"
+            debugger = $null
+            entryPoint = "[`"./$($assemblyName)`"]"
+        }
         "linux/amd64" = @{
             runtimeId = "linux-x64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
-        "windows/amd64:10.0.17134.885" = @{
+        "windows/amd64:10.0.17763.1457" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1803"
-            platformTag = "nanoserver-amd64-1803"
-            debugger = $null
-            entryPoint = "[`"$($assemblyName).exe`"]"
-        }
-        "windows/amd64:10.0.17763.615" = @{
-            runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1809"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.17763.1457-amd64"
             platformTag = "nanoserver-amd64-1809"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
-        "windows/arm" = @{
-            runtimeId = "win-arm"
-            image = "mcr.microsoft.com/windows/nanoserver:1809-arm32v7"
-            platformTag = "nanoserver-arm32v7-1809"
-            debugger = $null
-            entryPoint = "[`"$($assemblyName).exe`"]"
-        }
-        "windows/amd64:10.0.18362.239" = @{
+        "windows/amd64:10.0.18363.1082" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1903"
-            platformTag = "nanoserver-amd64-1903"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.18363.1082-amd64"
+            platformTag = "nanoserver-amd64-1909"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
@@ -137,6 +132,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         $baseImage = $platformInfo.image
         $platformTag = $platformInfo.platformTag
         $entryPoint = $platformInfo.entryPoint
+        $environmentVars = @("ENV DOTNET_RUNNING_IN_CONTAINER=true")
 
         #
         # Check for overridden base image name - e.g. aspnet core images
@@ -173,24 +169,30 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             $metadata.exposes | ForEach-Object {
                 $exposes = "$("EXPOSE $($_)" | Out-String)$($exposes)"
             }
+            $environmentVars += "ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=true"
         }
         $workdir = ""
         if ($metadata.workdir -ne $null) {
             $workdir = "WORKDIR /$($metadata.workdir)"
         }
+        if ([string]::IsNullOrEmpty($workdir)) {
+            $workdir = "WORKDIR /app"
+        }
         $dockerFileContent = @"
 FROM $($baseImage)
+
 $($exposes)
 
-WORKDIR /app
+$($workdir)
 COPY . .
 $($runtimeOnly)
 
 $($debugger)
 
+$($environmentVars | Out-String)
+
 ENTRYPOINT $($entryPoint)
 
-$($workdir)
 "@ 
         $imageContent = (Join-Path $output $runtimeId)
         $dockerFile = (Join-Path $imageContent "Dockerfile.$($platformTag)")

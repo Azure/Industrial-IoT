@@ -21,24 +21,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Whether supervisor is in discovery mode
-        /// </summary>
-        public DiscoveryMode? Discovery { get; set; }
-
-        /// <summary>
-        /// Supervisor discovery config
-        /// </summary>
-        public DiscoveryConfigModel DiscoveryConfig { get; set; }
-
-        /// <summary>
-        /// Supervisor public client cert
-        /// </summary>
-        public byte[] Certificate { get; set; }
-
-        /// <summary>
         /// Current log level
         /// </summary>
-        public SupervisorLogLevel? LogLevel { get; set; }
+        public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between
@@ -50,5 +35,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Whether supervisor is connected
         /// </summary>
         public bool? Connected { get; set; }
+
+        /// <summary>
+        /// The reported version of the supervisor
+        /// </summary>
+        public string Version { get; set; }
     }
 }

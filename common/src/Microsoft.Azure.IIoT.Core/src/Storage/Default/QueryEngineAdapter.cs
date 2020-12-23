@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage.Default {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
 
@@ -17,24 +17,24 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
         /// Create adapter
         /// </summary>
         /// <param name="provider"></param>
-        public QueryEngineAdapter(Func<IEnumerable<IDocumentInfo<JObject>>, string,
-            IEnumerable<IDocumentInfo<JObject>>> provider) {
+        public QueryEngineAdapter(Func<IEnumerable<IDocumentInfo<VariantValue>>, string,
+            IEnumerable<IDocumentInfo<VariantValue>>> provider) {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
         /// <inheritdoc/>
-        public IEnumerable<IDocumentInfo<JObject>> ExecuteSql(
-            IEnumerable<IDocumentInfo<JObject>> values, string query) {
+        public IEnumerable<IDocumentInfo<VariantValue>> ExecuteSql(
+            IEnumerable<IDocumentInfo<VariantValue>> values, string query) {
             return _provider(values, query);
         }
 
         /// <inheritdoc/>
-        public IEnumerable<IDocumentInfo<JObject>> ExecuteGremlin(
-            IEnumerable<IDocumentInfo<JObject>> values, string query) {
+        public IEnumerable<IDocumentInfo<VariantValue>> ExecuteGremlin(
+            IEnumerable<IDocumentInfo<VariantValue>> values, string query) {
             return _provider(values, query);
         }
 
-        private readonly Func<IEnumerable<IDocumentInfo<JObject>>, string,
-            IEnumerable<IDocumentInfo<JObject>>> _provider;
+        private readonly Func<IEnumerable<IDocumentInfo<VariantValue>>, string,
+            IEnumerable<IDocumentInfo<VariantValue>>> _provider;
     }
 }

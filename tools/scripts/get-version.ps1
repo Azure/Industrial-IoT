@@ -8,16 +8,18 @@
 #>
 
 try {
-    $buildRoot = & (Join-Path $PSScriptRoot "get-root.ps1") -startDir $path `
-        -fileName "version.props"
-    # set version number from first encountered version.props
-    [xml] $props=Get-Content -Path (Join-Path $buildRoot "version.props")
-    $VersionPrefix="$($props.Project.PropertyGroup.VersionPrefix)".Trim()
-    $VersionFull = $VersionPrefix
+    # Try install tool
+    & dotnet @("tool", "install", "--tool-path", "./tools", "--framework", "netcoreapp3.1", "nbgv") 2>&1 
+
+    $props = (& ./tools/nbgv  @("get-version", "-f", "json")) | ConvertFrom-Json
+    if ($LastExitCode -ne 0) {
+        throw "Error: 'nbgv get-version -f json' failed with $($LastExitCode)."
+    }
 
     return [pscustomobject] @{ 
-        Full = $VersionFull
-        Prefix = $VersionPrefix
+        Full = $props.CloudBuildAllVars.NBGV_NuGetPackageVersion
+        Prefix = $props.CloudBuildAllVars.NBGV_SimpleVersion
+        Prerelease = $props.CloudBuildAllVars.NBGV_PrereleaseVersion
     }
 }
 catch {

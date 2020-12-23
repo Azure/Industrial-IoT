@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -13,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
 
         /// <summary>
         /// Node to browse.
-        /// (default: RootFolder).
+        /// (defaults to root folder).
         /// </summary>
         public string NodeId { get; set; }
 

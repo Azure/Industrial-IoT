@@ -1,41 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.2\Microsoft.Azure.IIoT.Services.OpcUa.Registry.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netcoreapp2.2\Microsoft.Azure.IIoT.Services.OpcUa.Registry.xml</DocumentationFile>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="5.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.AzureKeyVault.HostingStartup" Version="2.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
-  </ItemGroup>
-  <Choose>
-    <When Condition="'$(PROJECT_BUILD)' == ''">
-      <ItemGroup>
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Services\src\Microsoft.Azure.IIoT.Services.csproj" />
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Storage\src\Microsoft.Azure.IIoT.Storage.csproj" />
-        <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Messaging\src\Microsoft.Azure.IIoT.Messaging.csproj" />
-        <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Registry\src\Microsoft.Azure.IIoT.OpcUa.Registry.csproj" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Services" Version="$(ReleaseVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Messaging" Version="$(ReleaseVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.Storage" Version="$(PrereleaseVersion)" />
-        <PackageReference Include="Microsoft.Azure.IIoT.OpcUa.Registry" Version="$(ReleaseVersion)" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-  <ItemGroup>
-    <Folder Include="Properties" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.9" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <DotNetCliToolReference Include="Swashbuckle.AspNetCore.Cli" Version="2.4.0-beta1" />
+    <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api\src\Microsoft.Azure.IIoT.Api.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Service.Client\src\Microsoft.Azure.IIoT.Hub.Service.Client.csproj" />
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.AppInsights\src\Microsoft.Azure.IIoT.Diagnostics.AppInsights.csproj" />
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore\src\Microsoft.Azure.IIoT.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore.OpenApi\src\Microsoft.Azure.IIoT.AspNetCore.OpenApi.csproj" />
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Storage.CosmosDb\src\Microsoft.Azure.IIoT.Storage.CosmosDb.csproj" />
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Messaging.ServiceBus\src\Microsoft.Azure.IIoT.Messaging.ServiceBus.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Registry\src\Microsoft.Azure.IIoT.OpcUa.Registry.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Remove="container.json" />
+    <None Include="container.json" />
   </ItemGroup>
 </Project>
