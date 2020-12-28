@@ -527,34 +527,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         }
 
         /// <summary>
-        /// Convert to api model
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static MonitoredItemMessageApiModel ToApiModel(
-            this MonitoredItemMessageModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new MonitoredItemMessageApiModel {
-                PublisherId = model.PublisherId,
-                DataSetWriterId = model.DataSetWriterId,
-                EndpointId = model.EndpointId,
-                NodeId = model.NodeId,
-                DisplayName = model.DisplayName,
-                ServerTimestamp = model.ServerTimestamp,
-                ServerPicoseconds = model.ServerPicoseconds,
-                SourceTimestamp = model.SourceTimestamp,
-                SourcePicoseconds = model.SourcePicoseconds,
-                Timestamp = model.Timestamp,
-                SequenceNumber = model.SequenceNumber,
-                Value = model.Value?.Copy(),
-                DataType = model.DataType,
-                Status = model.Status
-            };
-        }
-
-        /// <summary>
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>

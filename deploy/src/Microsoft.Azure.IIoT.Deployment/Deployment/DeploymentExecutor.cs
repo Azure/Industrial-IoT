@@ -61,31 +61,25 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         private IotHubMgmtClient _iotHubManagementClient;
         private CosmosDBMgmtClient _cosmosDBManagementClient;
         private ServiceBusMgmtClient _serviceBusManagementClient;
-        private EventHubMgmtClient _eventHubManagementClient;
         private OperationalInsightsMgmtClient _operationalInsightsManagementClient;
         private ApplicationInsightsMgmtClient _applicationInsightsManagementClient;
         private WebSiteMgmtClient _webSiteManagementClient;
         private NetworkMgmtClient _networkManagementClient;
         private AuthorizationMgmtClient _authorizationManagementClient;
         private AksMgmtClient _aksManagementClient;
-        private SignalRMgmtClient _signalRManagementClient;
         private ComputeMgmtClient _computeManagementClient;
 
         // Resource names
         private string _keyVaultName;
         private string _storageAccountGen2Name;
-        private string _storageAccountGen2HNSName;
         private string _iotHubName;
         private string _cosmosDBAccountName;
         private string _serviceBusNamespaceName;
-        private string _eventHubNamespaceName;
-        private string _eventHubName;
         private string _operationalInsightsWorkspaceName;
         private string _applicationInsightsName;
         private string _networkSecurityGroupName;
         private string _virtualNetworkName;
         private string _aksClusterName;
-        private string _signalRName;
 
         // Resources
         private DirectoryObject _owner;
@@ -420,14 +414,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             _iotHubManagementClient = new IotHubMgmtClient(subscriptionId, _restClient);
             _cosmosDBManagementClient = new CosmosDBMgmtClient(subscriptionId, _restClient);
             _serviceBusManagementClient = new ServiceBusMgmtClient(subscriptionId, _restClient);
-            _eventHubManagementClient = new EventHubMgmtClient(subscriptionId, _restClient);
             _operationalInsightsManagementClient = new OperationalInsightsMgmtClient(subscriptionId, _restClient);
             _applicationInsightsManagementClient = new ApplicationInsightsMgmtClient(subscriptionId, _restClient);
             _webSiteManagementClient = new WebSiteMgmtClient(subscriptionId, _restClient);
             _networkManagementClient = new NetworkMgmtClient(subscriptionId, _restClient);
             _authorizationManagementClient = new AuthorizationMgmtClient(subscriptionId, _restClient);
             _aksManagementClient = new AksMgmtClient(subscriptionId, _restClient);
-            _signalRManagementClient = new SignalRMgmtClient(subscriptionId, _restClient);
             _computeManagementClient = new ComputeMgmtClient(subscriptionId, _restClient);
         }
 
@@ -626,16 +618,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 _storageAccountGen2Name = StorageMgmtClient.GenerateStorageAccountName();
             }
 
-            // Storage Account Gen2 name
-            try {
-                _storageAccountGen2HNSName = await _storageManagementClient
-                    .GenerateAvailableNameAsync(cancellationToken);
-            }
-            catch (Microsoft.Rest.Azure.CloudException) {
-                Log.Warning(notAvailableApiFormat, "Storage Account");
-                _storageAccountGen2HNSName = StorageMgmtClient.GenerateStorageAccountName();
-            }
-
             // IoT hub names
             try {
                 _iotHubName = await _iotHubManagementClient
@@ -666,18 +648,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 _serviceBusNamespaceName = ServiceBusMgmtClient.GenerateNamespaceName();
             }
 
-            // Event Hub Namespace names
-            try {
-                _eventHubNamespaceName = await _eventHubManagementClient
-                    .GenerateAvailableNamespaceNameAsync(cancellationToken);
-            }
-            catch (Microsoft.Rest.Azure.CloudException) {
-                Log.Warning(notAvailableApiFormat, "EventHub Namespace");
-                _eventHubNamespaceName = EventHubMgmtClient.GenerateEventHubNamespaceName();
-            }
-
-            _eventHubName = EventHubMgmtClient.GenerateEventHubName();
-
             // Operational Insights workspace name.
             _operationalInsightsWorkspaceName = OperationalInsightsMgmtClient.GenerateWorkspaceName();
 
@@ -690,16 +660,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // AKS cluster name
             _aksClusterName = AksMgmtClient.GenerateName();
-
-            // SignalR name
-            try {
-                _signalRName = await _signalRManagementClient
-                    .GenerateAvailableNameAsync(_resourceGroup, cancellationToken);
-            }
-            catch (Microsoft.Rest.Azure.CloudException) {
-                Log.Warning(notAvailableApiFormat, "SignalR");
-                _signalRName = SignalRMgmtClient.GenerateName();
-            }
         }
 
         protected async Task CreateAzureResourcesAsync(
@@ -895,50 +855,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            // Create Storage Account Gen2 with hierarchical namespace enabled.
-            StorageAccountInner storageAccountGen2HNS;
-            StorageAccountKey storageAccountGen2HNSKey;
-            string storageAccountGen2HNSEndpointSuffix;
-            string storageAccountGen2HNSConectionString;
-            BlobContainerInner powerbiContainer;
-
-            storageAccountGen2HNS = await _storageManagementClient
-                .CreateStorageAccountGen2Async(
-                    _resourceGroup,
-                    _storageAccountGen2HNSName,
-                    true,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
-            // NOTE: storageAccountGen2HNSKey and storageAccountGen2HNSEndpointSuffix are required for
-            // <2.8.5 version of components as processing of storageAccountGen2HNSConectionString is not
-            // present there.
-            storageAccountGen2HNSKey = await _storageManagementClient
-                .GetStorageAccountKeyAsync(
-                    _resourceGroup,
-                    storageAccountGen2HNS,
-                    cancellationToken
-                );
-            storageAccountGen2HNSEndpointSuffix = _storageManagementClient.GetDataLakeEndpointSuffix();
-            storageAccountGen2HNSConectionString = await _storageManagementClient
-                .GetStorageAccountDataLakeConectionStringAsync(
-                    _resourceGroup,
-                    storageAccountGen2HNS,
-                    cancellationToken
-                );
-
-            // Create Blob container for PowerBI storage.
-            powerbiContainer = await _storageManagementClient
-                .CreateBlobContainerAsync(
-                    _resourceGroup,
-                    storageAccountGen2HNS,
-                    StorageMgmtClient.STORAGE_ACCOUNT_POWERBI_CONTAINER_NAME,
-                    PublicAccess.None,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
             // Create IoT Hub
             IotHubDescription iotHub;
 
@@ -1012,64 +928,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            // Create Azure Event Hub Namespace and Azure Event Hub
-            EHNamespaceInner eventHubNamespace;
-            EventhubInner eventHub;
-            ConsumerGroupInner telemetryCdm;
-            ConsumerGroupInner telemetryUx;
-
-            // Create Azure Event Hub Namespace
-            eventHubNamespace = await _eventHubManagementClient
-                .CreateEventHubNamespaceAsync(
-                    _resourceGroup,
-                    _eventHubNamespaceName,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
-            // Create Azure Event Hub
-            eventHub = await _eventHubManagementClient
-                .CreateEventHubAsync(
-                    _resourceGroup,
-                    eventHubNamespace,
-                    _eventHubName,
-                    EventHubMgmtClient.DEFAULT_MESSAGE_RETENTION_IN_DAYS,
-                    EventHubMgmtClient.DEFUALT_PARTITION_COUNT,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
-            // Create "telemetry_cdm" consumer group.
-            telemetryCdm = await _eventHubManagementClient
-                .CreateConsumerGroupAsync(
-                    _resourceGroup,
-                    eventHubNamespace,
-                    eventHub,
-                    EventHubMgmtClient.EVENT_HUB_CONSUMER_GROUP_TELEMETRY_CDM,
-                    cancellationToken
-                );
-
-            // Create "telemetry_ux" consumer group.
-            telemetryUx = await _eventHubManagementClient
-                .CreateConsumerGroupAsync(
-                    _resourceGroup,
-                    eventHubNamespace,
-                    eventHub,
-                    EventHubMgmtClient.EVENT_HUB_CONSUMER_GROUP_TELEMETRY_UX,
-                    cancellationToken
-                );
-
-            // SignalR
-            var signalRServiceMode = SignalRMgmtClient.ServiceMode.Default;
-            var signalRCreationTask = _signalRManagementClient
-                .CreateAsync(
-                    _resourceGroup,
-                    _signalRName,
-                    signalRServiceMode,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
             // Collect all necessary environment variables for IIoT services.
             var iotHubOwnerConnectionString = await _iotHubManagementClient
                 .GetIotHubConnectionStringAsync(
@@ -1087,26 +945,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            var eventHubNamespaceConnectionString = await _eventHubManagementClient
-                .GetEventHubNamespaceConnectionStringAsync(
-                    _resourceGroup,
-                    eventHubNamespace,
-                    cancellationToken
-                );
-
             var serviceBusNamespace = await serviceBusNamespaceCreationTask;
             var serviceBusNamespaceConnectionString = await _serviceBusManagementClient
                 .GetServiceBusNamespaceConnectionStringAsync(
                     _resourceGroup,
                     serviceBusNamespace,
-                    cancellationToken
-                );
-
-            var signalR = await signalRCreationTask;
-            var signalRConnectionString = await _signalRManagementClient
-                .GetConnectionStringAsync(
-                    _resourceGroup,
-                    signalR,
                     cancellationToken
                 );
 
@@ -1147,23 +990,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 // Storage Account
                 storageAccountGen2ConectionString,
                 dataprotectionBlobContainer.Name,
-                // ADLS Gen2 Storage Account with enabled HNS
-                storageAccountGen2HNS.Name,
-                storageAccountGen2HNSKey.Value,
-                storageAccountGen2HNSEndpointSuffix,
-                storageAccountGen2HNSConectionString,
-                powerbiContainer.Name,
-                StorageMgmtClient.POWERBI_ROOT_FOLDER,
-                // Event Hub Namespace
-                eventHub,
-                eventHubNamespaceConnectionString,
-                telemetryCdm,
-                telemetryUx,
                 // Service Bus
                 serviceBusNamespaceConnectionString,
-                // SignalR
-                signalRConnectionString,
-                signalRServiceMode.Value,
                 // Key Vault
                 keyVault,
                 IIoTKeyVaultClient.DATAPROTECTION_KEY_NAME,
@@ -1577,14 +1405,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             disposeIfNotNull(_iotHubManagementClient);
             disposeIfNotNull(_cosmosDBManagementClient);
             disposeIfNotNull(_serviceBusManagementClient);
-            disposeIfNotNull(_eventHubManagementClient);
             disposeIfNotNull(_operationalInsightsManagementClient);
             disposeIfNotNull(_applicationInsightsManagementClient);
             disposeIfNotNull(_webSiteManagementClient);
             disposeIfNotNull(_networkManagementClient);
             disposeIfNotNull(_authorizationManagementClient);
             disposeIfNotNull(_aksManagementClient);
-            disposeIfNotNull(_signalRManagementClient);
             disposeIfNotNull(_computeManagementClient);
         }
     }

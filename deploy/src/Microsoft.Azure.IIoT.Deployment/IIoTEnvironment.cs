@@ -35,22 +35,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public readonly string PCS_STORAGE_CONNSTRING;
         public readonly string PCS_STORAGE_CONTAINER_DATAPROTECTION;
 
-        // ADLS Gen2 Storage Account
-        // NOTE: PCS_ADLSG2_ACCOUNT, PCS_ADLSG2_ACCOUNT_KEY and PCS_ADLSG2_ENDPOINTSUFFIX are required
-        // for <2.8.5 version of components as processing of PCS_ADLSG2_CONNSTRING is not present there.
-        public readonly string PCS_ADLSG2_ACCOUNT;
-        public readonly string PCS_ADLSG2_ACCOUNT_KEY;
-        public readonly string PCS_ADLSG2_ENDPOINTSUFFIX;
-        public readonly string PCS_ADLSG2_CONNSTRING;
-        public readonly string PCS_ADLSG2_CONTAINER_CDM;
-        public readonly string PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER;
-
-        // Event Hub Namespace
-        public readonly string PCS_EVENTHUB_CONNSTRING;
-        public readonly string PCS_EVENTHUB_NAME;
-        public readonly string PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM;
-        public readonly string PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX;
-
         // Service Bus
         public readonly string PCS_SERVICEBUS_CONNSTRING;
 
@@ -73,15 +57,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
         // Service URLs that will be consumed by microservices.
         public readonly string PCS_TWIN_REGISTRY_URL;
         public readonly string PCS_TWIN_SERVICE_URL;
-        public readonly string PCS_HISTORY_SERVICE_URL;
-        public readonly string PCS_VAULT_SERVICE_URL;
         public readonly string PCS_PUBLISHER_SERVICE_URL;
         public readonly string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL;
-        public readonly string PCS_EVENTS_SERVICE_URL;
-
-        // SignalR
-        public readonly string PCS_SIGNALR_CONNSTRING;
-        public readonly string PCS_SIGNALR_MODE;
 
         // Authentication
         public readonly string PCS_AUTH_REQUIRED;
@@ -101,13 +78,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
         // Service URL path bases
         public readonly string PCS_TWIN_REGISTRY_SERVICE_PATH_BASE;
         public readonly string PCS_TWIN_SERVICE_PATH_BASE;
-        public readonly string PCS_HISTORY_SERVICE_PATH_BASE;
-        public readonly string PCS_GATEWAY_SERVICE_PATH_BASE;
-        public readonly string PCS_VAULT_SERVICE_PATH_BASE;
         public readonly string PCS_PUBLISHER_SERVICE_PATH_BASE;
         public readonly string PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE;
-        public readonly string PCS_EVENTS_SERVICE_PATH_BASE;
-        public readonly string PCS_FRONTEND_APP_SERVICE_PATH_BASE;
 
         // AspNetCore
         public readonly string ASPNETCORE_FORWARDEDHEADERS_ENABLED;
@@ -134,23 +106,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // Storage Account
             string storageAccountConectionString,
             string storageAccountContainerDataprotection,
-            // ADLS Gen2 Storage Account
-            string adlsAccount,
-            string adlsAccountKey,
-            string adlsEndpointSuffix,
-            string adlsConectionString,
-            string adlsContainerCdm,
-            string adlsContainerCdmRootFolder,
-            // Event Hub Namespace
-            EventhubInner eventHub,
-            string eventHubConnectionString,
-            ConsumerGroupInner telemetryCdm,
-            ConsumerGroupInner telemetryUx,
             // Service Bus
             string serviceBusConnectionString,
-            // SignalR
-            string signalRConnectionString,
-            string signalRServiceMode,
             // Key Vault
             VaultInner keyVault,
             string dataprotectionKeyName,
@@ -183,22 +140,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             PCS_STORAGE_CONNSTRING = storageAccountConectionString;
             PCS_STORAGE_CONTAINER_DATAPROTECTION = storageAccountContainerDataprotection;
 
-            // ADLS Gen2 Storage Account
-            // NOTE: PCS_ADLSG2_ACCOUNT, PCS_ADLSG2_ACCOUNT_KEY and PCS_ADLSG2_ENDPOINTSUFFIX are required
-            // for <2.8.5 version of components as processing of PCS_ADLSG2_CONNSTRING is not present there.
-            PCS_ADLSG2_ACCOUNT = adlsAccount;
-            PCS_ADLSG2_ACCOUNT_KEY = adlsAccountKey;
-            PCS_ADLSG2_ENDPOINTSUFFIX = adlsEndpointSuffix;
-            PCS_ADLSG2_CONNSTRING = adlsConectionString;
-            PCS_ADLSG2_CONTAINER_CDM = adlsContainerCdm;
-            PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER = adlsContainerCdmRootFolder;
-
-            // Event Hub Namespace
-            PCS_EVENTHUB_CONNSTRING = eventHubConnectionString;
-            PCS_EVENTHUB_NAME = eventHub.Name;
-            PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM = telemetryCdm.Name;
-            PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX = telemetryUx.Name;
-
             // Service Bus
             PCS_SERVICEBUS_CONNSTRING = serviceBusConnectionString;
 
@@ -221,15 +162,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // Service URLs that will be consumed by microservices.
             PCS_TWIN_REGISTRY_URL = $"{serviceURL}/registry/";
             PCS_TWIN_SERVICE_URL = $"{serviceURL}/twin/";
-            PCS_HISTORY_SERVICE_URL = $"{serviceURL}/history/";
-            PCS_VAULT_SERVICE_URL = $"{serviceURL}/vault/";
             PCS_PUBLISHER_SERVICE_URL = $"{serviceURL}/publisher/";
             PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL = $"{serviceURL}/edge/publisher/";
-            PCS_EVENTS_SERVICE_URL = $"{serviceURL}/events/";
-
-            // SignalR
-            PCS_SIGNALR_CONNSTRING = signalRConnectionString;
-            PCS_SIGNALR_MODE = signalRServiceMode;
 
             // Authentication
             PCS_AUTH_REQUIRED = $"{true}";
@@ -251,13 +185,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // Service URL path bases
             PCS_TWIN_REGISTRY_SERVICE_PATH_BASE = "/registry";
             PCS_TWIN_SERVICE_PATH_BASE = "/twin";
-            PCS_HISTORY_SERVICE_PATH_BASE = "/history";
-            PCS_GATEWAY_SERVICE_PATH_BASE = "/ua";
-            PCS_VAULT_SERVICE_PATH_BASE = "/vault";
             PCS_PUBLISHER_SERVICE_PATH_BASE = "/publisher";
             PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE = "/edge/publisher";
-            PCS_EVENTS_SERVICE_PATH_BASE = "/events";
-            PCS_FRONTEND_APP_SERVICE_PATH_BASE = "/frontend";
 
             // AspNetCore
             ASPNETCORE_FORWARDEDHEADERS_ENABLED = $"{true}";
@@ -282,20 +211,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 { $"{nameof(PCS_STORAGE_CONNSTRING)}", PCS_STORAGE_CONNSTRING },
                 { $"{nameof(PCS_STORAGE_CONTAINER_DATAPROTECTION)}", PCS_STORAGE_CONTAINER_DATAPROTECTION },
 
-                // ADLS Gen2 Storage Account
-                { $"{nameof(PCS_ADLSG2_ACCOUNT)}", PCS_ADLSG2_ACCOUNT },
-                { $"{nameof(PCS_ADLSG2_ACCOUNT_KEY)}", PCS_ADLSG2_ACCOUNT_KEY },
-                { $"{nameof(PCS_ADLSG2_ENDPOINTSUFFIX)}", PCS_ADLSG2_ENDPOINTSUFFIX },
-                { $"{nameof(PCS_ADLSG2_CONNSTRING)}", PCS_ADLSG2_CONNSTRING },
-                { $"{nameof(PCS_ADLSG2_CONTAINER_CDM)}", PCS_ADLSG2_CONTAINER_CDM },
-                { $"{nameof(PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER)}", PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER },
-
-                // Event Hub Namespace
-                { $"{nameof(PCS_EVENTHUB_CONNSTRING)}", PCS_EVENTHUB_CONNSTRING },
-                { $"{nameof(PCS_EVENTHUB_NAME)}", PCS_EVENTHUB_NAME },
-                { $"{nameof(PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM)}", PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM },
-                { $"{nameof(PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX)}", PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX },
-
                 // Service Bus
                 { $"{nameof(PCS_SERVICEBUS_CONNSTRING)}", PCS_SERVICEBUS_CONNSTRING },
 
@@ -318,15 +233,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 // Service URLs that will be consumed by microservices.
                 { $"{nameof(PCS_TWIN_REGISTRY_URL)}", PCS_TWIN_REGISTRY_URL },
                 { $"{nameof(PCS_TWIN_SERVICE_URL)}", PCS_TWIN_SERVICE_URL },
-                { $"{nameof(PCS_HISTORY_SERVICE_URL)}", PCS_HISTORY_SERVICE_URL },
-                { $"{nameof(PCS_VAULT_SERVICE_URL)}", PCS_VAULT_SERVICE_URL },
                 { $"{nameof(PCS_PUBLISHER_SERVICE_URL)}", PCS_PUBLISHER_SERVICE_URL },
                 { $"{nameof(PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL)}", PCS_PUBLISHER_ORCHESTRATOR_SERVICE_URL },
-                { $"{nameof(PCS_EVENTS_SERVICE_URL)}", PCS_EVENTS_SERVICE_URL },
-
-                // SignalR
-                { $"{nameof(PCS_SIGNALR_CONNSTRING)}", PCS_SIGNALR_CONNSTRING },
-                { $"{nameof(PCS_SIGNALR_MODE)}", PCS_SIGNALR_MODE },
 
                 // Authentication
                 { $"{nameof(PCS_AUTH_REQUIRED)}", PCS_AUTH_REQUIRED },
@@ -346,13 +254,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 // Service URL path bases
                 { $"{nameof(PCS_TWIN_REGISTRY_SERVICE_PATH_BASE)}", PCS_TWIN_REGISTRY_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_TWIN_SERVICE_PATH_BASE)}", PCS_TWIN_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_HISTORY_SERVICE_PATH_BASE)}", PCS_HISTORY_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_GATEWAY_SERVICE_PATH_BASE)}", PCS_GATEWAY_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_VAULT_SERVICE_PATH_BASE)}", PCS_VAULT_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_PUBLISHER_SERVICE_PATH_BASE)}", PCS_PUBLISHER_SERVICE_PATH_BASE },
                 { $"{nameof(PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE)}", PCS_PUBLISHER_ORCHESTRATOR_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_EVENTS_SERVICE_PATH_BASE)}", PCS_EVENTS_SERVICE_PATH_BASE },
-                { $"{nameof(PCS_FRONTEND_APP_SERVICE_PATH_BASE)}", PCS_FRONTEND_APP_SERVICE_PATH_BASE },
 
                 // AspNetCore
                 { $"{nameof(ASPNETCORE_FORWARDEDHEADERS_ENABLED)}", ASPNETCORE_FORWARDEDHEADERS_ENABLED },

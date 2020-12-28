@@ -154,7 +154,6 @@ namespace Microsoft.Azure.IIoT.Services.All {
                     Task.Run(() => OpcUa.Registry.Sync.Program.Main(args), _cts.Token),
                     Task.Run(() => Processor.Onboarding.Program.Main(args), _cts.Token),
                     Task.Run(() => Processor.Events.Program.Main(args), _cts.Token),
-                    Task.Run(() => Processor.Telemetry.Program.Main(args), _cts.Token),
                 };
                 _runner = Task.WhenAll(processes.ToArray());
             }

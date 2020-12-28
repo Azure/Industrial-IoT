@@ -17,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Serializers;
@@ -61,9 +60,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
 
             // Register http client module ...
             builder.RegisterModule<HttpClientModule>();
-            // ... as well as signalR client (needed for api)
-            builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces().SingleInstance();
 
             // Use bearer authentication
             builder.RegisterModule<NativeClientAuthentication>();
@@ -76,12 +72,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             builder.RegisterType<PublisherServiceClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<PublisherJobServiceClient>()
-                .AsImplementedInterfaces();
-
-            // ... with client event callbacks
-            builder.RegisterType<RegistryServiceEvents>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<PublisherServiceEvents>()
                 .AsImplementedInterfaces();
 
             return builder.Build();
@@ -164,10 +154,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                             options = new CliOptions(args);
                             await GetStatusAsync(options);
                             break;
-                        case "monitor":
-                            options = new CliOptions(args);
-                            await MonitorAllAsync();
-                            break;
                         case "apps":
                             if (args.Length < 2) {
                                 throw new ArgumentException("Need a command!");
@@ -208,9 +194,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                 case "list":
                                     await ListApplicationsAsync(options);
                                     break;
-                                case "monitor":
-                                    await MonitorApplicationsAsync();
-                                    break;
                                 case "select":
                                     await SelectApplicationAsync(options);
                                     break;
@@ -242,9 +225,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                     break;
                                 case "list":
                                     await ListEndpointsAsync(options);
-                                    break;
-                                case "monitor":
-                                    await MonitorEndpointsAsync();
                                     break;
                                 case "select":
                                     await SelectEndpointsAsync(options);
@@ -325,12 +305,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                 case "update":
                                     await UpdateDiscovererAsync(options);
                                     break;
-                                case "scan":
-                                    await DiscovererScanAsync(options);
-                                    break;
-                                case "monitor":
-                                    await MonitorDiscoverersAsync(options);
-                                    break;
                                 case "list":
                                     await ListDiscoverersAsync(options);
                                     break;
@@ -365,9 +339,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                     break;
                                 case "update":
                                     await UpdateSupervisorAsync(options);
-                                    break;
-                                case "monitor":
-                                    await MonitorSupervisorsAsync();
                                     break;
                                 case "reset":
                                     await ResetSupervisorAsync(options);
@@ -404,9 +375,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                 case "update":
                                     await UpdatePublisherAsync(options);
                                     break;
-                                case "monitor":
-                                    await MonitorPublishersAsync();
-                                    break;
                                 case "list":
                                     await ListPublishersAsync(options);
                                     break;
@@ -438,9 +406,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                     break;
                                 case "update":
                                     await UpdateGatewayAsync(options);
-                                    break;
-                                case "monitor":
-                                    await MonitorGatewaysAsync();
                                     break;
                                 case "list":
                                     await ListGatewaysAsync(options);
@@ -476,9 +441,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                     break;
                                 case "publish":
                                     await PublishAsync(options);
-                                    break;
-                                case "monitor":
-                                    await MonitorSamplesAsync(options);
                                     break;
                                 case "unpublish":
                                     await UnpublishAsync(options);
@@ -748,24 +710,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
-        /// Monitor samples from endpoint
-        /// </summary>
-        private async Task MonitorSamplesAsync(CliOptions options) {
-            var endpointId = GetEndpointId(options);
-            var events = _scope.Resolve<IPublisherServiceEvents>();
-            Console.WriteLine("Press any key to stop.");
-
-            var finish = await events.NodePublishSubscribeByEndpointAsync(
-                endpointId, PrintSample);
-            try {
-                Console.ReadKey();
-            }
-            finally {
-                await finish.DisposeAsync();
-            }
-        }
-
-        /// <summary>
         /// Unpublish node
         /// </summary>
         private async Task UnpublishAsync(CliOptions options) {
@@ -907,21 +851,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 });
         }
 
-        /// <summary>
-        /// Monitor publishers
-        /// </summary>
-        private async Task MonitorPublishersAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
-            Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribePublisherEventsAsync(PrintEvent);
-            try {
-                Console.ReadKey();
-            }
-            finally {
-                await complete.DisposeAsync();
-            }
-        }
-
         private string _gatewayId;
 
         /// <summary>
@@ -1023,21 +952,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 new GatewayUpdateApiModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                 });
-        }
-
-        /// <summary>
-        /// Monitor gateways
-        /// </summary>
-        private async Task MonitorGatewaysAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
-            Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeGatewayEventsAsync(PrintEvent);
-            try {
-                Console.ReadKey();
-            }
-            finally {
-                await complete.DisposeAsync();
-            }
         }
 
         private string _jobId;
@@ -1287,21 +1201,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
-        /// Monitor supervisors
-        /// </summary>
-        private async Task MonitorSupervisorsAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
-            Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeSupervisorEventsAsync(PrintEvent);
-            try {
-                Console.ReadKey();
-            }
-            finally {
-                await complete.DisposeAsync();
-            }
-        }
-
-        /// <summary>
         /// Update supervisor
         /// </summary>
         private async Task UpdateSupervisorAsync(CliOptions options) {
@@ -1410,30 +1309,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
-        /// Monitor discoverers
-        /// </summary>
-        private async Task MonitorDiscoverersAsync(CliOptions options) {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
-            Console.WriteLine("Press any key to stop.");
-            IAsyncDisposable complete;
-            var discovererId = options.GetValueOrDefault<string>("-i", "--id", null);
-            if (discovererId != null) {
-                // If specified - monitor progress
-                complete = await events.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                    discovererId, PrintProgress);
-            }
-            else {
-                complete = await events.SubscribeDiscovererEventsAsync(PrintEvent);
-            }
-            try {
-                Console.ReadKey();
-            }
-            finally {
-                await complete.DisposeAsync();
-            }
-        }
-
-        /// <summary>
         /// Update discoverer
         /// </summary>
         private async Task UpdateDiscovererAsync(CliOptions options) {
@@ -1447,35 +1322,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                         config == null ? (DiscoveryMode?)null : DiscoveryMode.Fast),
                     DiscoveryConfig = config,
                 });
-        }
-
-        /// <summary>
-        /// Start and monitor discovery
-        /// </summary>
-        private async Task DiscovererScanAsync(CliOptions options) {
-            var discovererId = GetDiscovererId(options);
-            var events = _scope.Resolve<IRegistryServiceEvents>();
-            Console.WriteLine("Press any key to stop.");
-            var discovery = await events.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                discovererId, PrintProgress);
-            try {
-                var config = BuildDiscoveryConfig(options);
-                var mode = options.GetValueOrDefault("-d", "--discovery",
-                    config == null ? DiscoveryMode.Fast : DiscoveryMode.Scan);
-                if (config == null) {
-                    config = new DiscoveryConfigApiModel();
-                }
-                if (mode == DiscoveryMode.Off) {
-                    throw new ArgumentException("-d/--discovery Off is not supported");
-                }
-                await _registry.SetDiscoveryModeAsync(discovererId, mode, config);
-                Console.ReadKey();
-                await _registry.SetDiscoveryModeAsync(discovererId, DiscoveryMode.Off,
-                    new DiscoveryConfigApiModel());
-            }
-            catch {
-                await discovery.DisposeAsync();
-            }
         }
 
         private string _applicationId;
@@ -1551,34 +1397,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Registers server
         /// </summary>
         private async Task RegisterServerAsync(CliOptions options) {
-            IRegistryServiceEvents events = null;
             var id = options.GetValueOrDefault("-i", "--id", Guid.NewGuid().ToString());
-            if (options.IsSet("-m", "--monitor")) {
-                events = _scope.Resolve<IRegistryServiceEvents>();
-                var tcs = new TaskCompletionSource<bool>();
-
-                var discovery = await events.SubscribeDiscoveryProgressByRequestIdAsync(
-                    id, async ev => {
-                        await PrintProgress(ev);
-                        switch (ev.EventType) {
-                            case DiscoveryProgressType.Error:
-                            case DiscoveryProgressType.Cancelled:
-                            case DiscoveryProgressType.Finished:
-                                tcs.TrySetResult(true);
-                                break;
-                        }
-                    });
-                try {
-                    await RegisterServerAsync(options, id);
-                    await tcs.Task; // For completion
-                }
-                finally {
-                    await discovery.DisposeAsync();
-                }
-            }
-            else {
-                await RegisterServerAsync(options, id);
-            }
+            await RegisterServerAsync(options, id);
         }
 
         /// <summary>
@@ -1600,34 +1420,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Discover servers
         /// </summary>
         private async Task DiscoverServersAsync(CliOptions options) {
-            IRegistryServiceEvents events = null;
             var id = options.GetValueOrDefault("-i", "--id", Guid.NewGuid().ToString());
-            if (options.IsSet("-m", "--monitor")) {
-                events = _scope.Resolve<IRegistryServiceEvents>();
-                var tcs = new TaskCompletionSource<bool>();
-                var discovery = await events.SubscribeDiscoveryProgressByRequestIdAsync(
-                    id, async ev => {
-                        await PrintProgress(ev);
-                        switch (ev.EventType) {
-                            case DiscoveryProgressType.Error:
-                            case DiscoveryProgressType.Cancelled:
-                            case DiscoveryProgressType.Finished:
-                                tcs.TrySetResult(true);
-                                break;
-                        }
-                    });
-                try {
-                    await DiscoverServersAsync(options, id);
-                    await tcs.Task; // For completion
-                }
-                finally {
-                    await discovery.DisposeAsync();
-                }
-
-            }
-            else {
-                await DiscoverServersAsync(options, id);
-            }
+            await DiscoverServersAsync(options, id);
         }
 
         /// <summary>
@@ -1789,70 +1583,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             var result = await _registry.GetApplicationAsync(GetApplicationId(options));
             PrintResult(options, result);
         }
-
-        /// <summary>
-        /// Monitor applications
-        /// </summary>
-        private async Task MonitorApplicationsAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
-            Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeApplicationEventsAsync(PrintEvent);
-            try {
-                Console.ReadKey();
-            }
-            finally {
-                await complete.DisposeAsync();
-            }
-        }
-
-        /// <summary>
-        /// Monitor all
-        /// </summary>
-        private async Task MonitorAllAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
-            Console.WriteLine("Press any key to stop.");
-            var apps = await events.SubscribeApplicationEventsAsync(PrintEvent);
-            try {
-                var endpoint = await events.SubscribeEndpointEventsAsync(PrintEvent);
-                try {
-                    var supervisor = await events.SubscribeSupervisorEventsAsync(PrintEvent);
-                    try {
-                        var publisher = await events.SubscribePublisherEventsAsync(PrintEvent);
-                        try {
-                            var discoverers = await events.SubscribeDiscovererEventsAsync(PrintEvent);
-                            try {
-                                var supervisors = await _registry.ListAllDiscoverersAsync();
-                                var discovery = await supervisors
-                                    .Select(s => events.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                                        s.Id, PrintProgress)).AsAsyncDisposable();
-                                try {
-                                    Console.ReadKey();
-                                }
-                                finally {
-                                    await discovery.DisposeAsync();
-                                }
-                            }
-                            finally {
-                                await discoverers.DisposeAsync();
-                            }
-                        }
-                        finally {
-                            await publisher.DisposeAsync();
-                        }
-                    }
-                    finally {
-                        await supervisor.DisposeAsync();
-                    }
-                }
-                finally {
-                    await endpoint.DisposeAsync();
-                }
-            }
-            finally {
-                await apps.DisposeAsync();
-            }
-        }
-
 
         private string _endpointId;
 
@@ -2026,21 +1756,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
-        /// Monitor endpoints
-        /// </summary>
-        private async Task MonitorEndpointsAsync() {
-            var events = _scope.Resolve<IRegistryServiceEvents>();
-            Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeEndpointEventsAsync(PrintEvent);
-            try {
-                Console.ReadKey();
-            }
-            finally {
-                await complete.DisposeAsync();
-            }
-        }
-
-        /// <summary>
         /// Get status
         /// </summary>
         private async Task GetStatusAsync(CliOptions options) {
@@ -2058,141 +1773,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             Console.WriteLine(_serializer.SerializeToString(result,
                 options.GetValueOrDefault("-F", "--format", SerializeOption.Indented)));
             Console.WriteLine("==================");
-        }
-
-        /// <summary>
-        /// Print progress
-        /// </summary>
-        private static Task PrintProgress(DiscoveryProgressApiModel ev) {
-            switch (ev.EventType) {
-                case DiscoveryProgressType.Pending:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Total} waiting...");
-                    break;
-                case DiscoveryProgressType.Started:
-                    Console.WriteLine($"{ev.DiscovererId}: Started.");
-                    Console.WriteLine("==========================================");
-                    break;
-                case DiscoveryProgressType.NetworkScanStarted:
-                    Console.WriteLine($"{ev.DiscovererId}: Scanning network...");
-                    Console.WriteLine("==========================================");
-                    break;
-                case DiscoveryProgressType.NetworkScanResult:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
-                        $" {ev.Discovered} addresses found - NEW: {ev.Result}...");
-                    break;
-                case DiscoveryProgressType.NetworkScanProgress:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
-                        $" {ev.Discovered} addresses found");
-                    break;
-                case DiscoveryProgressType.NetworkScanFinished:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
-                        $" {ev.Discovered} addresses found - complete!");
-                    break;
-                case DiscoveryProgressType.PortScanStarted:
-                    Console.WriteLine($"{ev.DiscovererId}: Scanning ports...");
-                    Console.WriteLine("==========================================");
-                    break;
-                case DiscoveryProgressType.PortScanResult:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
-                        $" {ev.Discovered} ports found - NEW: {ev.Result}...");
-                    break;
-                case DiscoveryProgressType.PortScanProgress:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
-                        $" {ev.Discovered} ports found");
-                    break;
-                case DiscoveryProgressType.PortScanFinished:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
-                        $" {ev.Discovered} ports found - complete!");
-                    break;
-                case DiscoveryProgressType.ServerDiscoveryStarted:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
-                        $" Finding servers...");
-                    Console.WriteLine("==========================================");
-                    break;
-                case DiscoveryProgressType.EndpointsDiscoveryStarted:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
-                        $" ... {ev.Discovered} servers found - find " +
-                        $"endpoints on {ev.RequestDetails["url"]}...");
-                    break;
-                case DiscoveryProgressType.EndpointsDiscoveryFinished:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
-                        $" ... {ev.Discovered} servers found - {ev.Result} " +
-                        $"endpoints found on {ev.RequestDetails["url"]}...");
-                    break;
-                case DiscoveryProgressType.ServerDiscoveryFinished:
-                    Console.WriteLine($"{ev.DiscovererId}: {ev.Progress}/{ev.Total} :" +
-                        $" ... {ev.Discovered} servers found.");
-                    break;
-                case DiscoveryProgressType.Cancelled:
-                    Console.WriteLine($"{ev.DiscovererId}: Cancelled.");
-                    Console.WriteLine("==========================================");
-                    break;
-                case DiscoveryProgressType.Error:
-                    Console.WriteLine($"{ev.DiscovererId}: Failure: {ev.Result}");
-                    Console.WriteLine("==========================================");
-                    break;
-                case DiscoveryProgressType.Finished:
-                    Console.WriteLine($"{ev.DiscovererId}: Completed.");
-                    Console.WriteLine("==========================================");
-                    break;
-            }
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEvent(EndpointEventApiModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEvent(ApplicationEventApiModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEvent(SupervisorEventApiModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEvent(GatewayEventApiModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEvent(DiscovererEventApiModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print event
-        /// </summary>
-        private Task PrintEvent(PublisherEventApiModel ev) {
-            Console.WriteLine(_serializer.SerializePretty(ev));
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Print sample
-        /// </summary>
-        private Task PrintSample(MonitoredItemMessageApiModel samples) {
-            Console.WriteLine(_serializer.SerializeToString(samples));
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -2316,7 +1896,6 @@ Commands and Options
      console     Run in interactive mode. Enter commands after the >
      exit        Exit interactive mode and thus the cli.
      status      Print status of services
-     monitor     Monitor all events from all services
 
      gateways    Manage edge gateways
      publishers  Manage publisher modules
@@ -2349,8 +1928,6 @@ Commands and Options
         -c, --clear     Clear current selection
         -s, --show      Show current selection
 
-     monitor     Monitor changes to applications.
-
      sites       List application sites
         with ...
         -C, --continuation
@@ -2372,14 +1949,12 @@ Commands and Options
         -i, --id        Request id for the discovery request.
         -u, --url       Url of the discovery endpoint (mandatory)
         -a, --activate  Activate all endpoints during onboarding.
-        -m, --monitor   Monitor the discovery process to completion.
 
      discover    Discover applications and endpoints through config.
         with ...
         -i, --id        Request id for the discovery request.
         -d, --discovery Set discovery mode to use
         -a, --activate  Activate all endpoints during onboarding.
-        -m, --monitor   Monitor the discovery process to completion.
 
      cancel      Cancel application discovery.
         with ...
@@ -2470,8 +2045,6 @@ Commands and Options
         -i, --id        Endpoint id to select.
         -c, --clear     Clear current selection
         -s, --show      Show current selection
-
-     monitor     Monitor changes to endpoints.
 
      list        List endpoints
         with ...
@@ -2594,10 +2167,6 @@ Commands and Options
         -i, --id        Id of endpoint to publish value from (mandatory)
         -n, --nodeid    Node to browse (mandatory)
 
-     monitor     Monitor published items on endpoint
-        with ...
-        -i, --id        Id of endpoint to monitor nodes on (mandatory)
-
      list        List published items on endpoint
         with ...
         -i, --id        Id of endpoint with published nodes (mandatory)
@@ -2632,8 +2201,6 @@ Commands and Options
         -i, --id        Gateway id to select.
         -c, --clear     Clear current selection
         -s, --show      Show current selection
-
-     monitor     Monitor changes to gateways.
 
      update      Update gateway
         with ...
@@ -2681,8 +2248,6 @@ Commands and Options
         -i, --id        Publisher id to select.
         -c, --clear     Clear current selection
         -s, --show      Show current selection
-
-     monitor     Monitor changes to publishers.
 
      update      Update publisher
         with ...
@@ -2741,8 +2306,6 @@ Commands and Options
         -i, --id        Supervisor id to select.
         -c, --clear     Clear current selection
         -s, --show      Show current selection
-
-     monitor     Monitor changes to supervisors.
 
      list        List supervisors
         with ...
@@ -2805,12 +2368,6 @@ Commands and Options
         -c, --clear     Clear current selection
         -s, --show      Show current selection
 
-     monitor     Monitor changes to discoverer twins.
-
-     monitor     Monitor discovery progress of specified discoverer.
-        with ...
-        -i, --id        Discoverer to monitor
-
      list        List discoverers
         with ...
         -C, --continuation
@@ -2847,25 +2404,6 @@ Commands and Options
                         Max port probes to use.
         -R, --address-probes
                         Max networking probes to use.
-
-     scan        Run a scan
-        with ...
-        -i, --id        Id of discoverer to run scanning on (mandatory)
-        -d, --discovery Set discoverer discovery mode
-        -a, --activate  Activate all endpoints during onboarding.
-        -I, --idle-time Idle time between scans in seconds
-        -p, --port-ranges
-                        Port ranges to scan.
-        -r, --address-ranges
-                        Address range to scan.
-        -P, --max-port-probes
-                        Max port probes to use.
-        -R, --max-address-probes
-                        Max networking probes to use.
-        -T, --address-probe-timeout
-                        Network probe timeout in milliseconds
-        -t, --port-probe-timeout
-                        Port probe timeout in milliseconds
 
      help, -h, -? --help
                  Prints out this help.
