@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         public async Task InitializeAsync() {
             if (_appConfig == null) {
                 _appConfig = await _clientConfig.ToApplicationConfigurationAsync(
-                    _identity, true, VerifyCertificate);
+                    _identity, true, VerifyCertificate, _logger);
             }
         }
 
