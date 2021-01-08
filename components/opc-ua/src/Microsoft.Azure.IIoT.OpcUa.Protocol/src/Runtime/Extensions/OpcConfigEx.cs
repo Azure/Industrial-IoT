@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Configuration;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Net;
@@ -29,10 +30,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="identity"></param>
         /// <param name="createSelfSignedCertIfNone"></param>
         /// <param name="handler"></param>
+        /// <param name="logger"></param>
         /// <returns></returns>
         public static async Task<ApplicationConfiguration> ToApplicationConfigurationAsync(
             this IClientServicesConfig opcConfig, IIdentity identity, bool createSelfSignedCertIfNone,
-            CertificateValidationEventHandler handler) {
+            CertificateValidationEventHandler handler, ILogger logger) {
             if (string.IsNullOrWhiteSpace(opcConfig.ApplicationName)) {
                 throw new ArgumentNullException(nameof(opcConfig.ApplicationName));
             }
@@ -109,7 +111,44 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             catch (Exception e) {
                 throw new InvalidConfigurationException("OPC UA configuration not valid", e);
             }
+            LogOpcUaApplicationSecuritySettings(logger, applicationConfiguration);
             return applicationConfiguration;
+        }
+
+        /// <summary>
+        /// logs the security settings of the OPC UA configuration
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="applicationConfiguration"></param>
+        private static void LogOpcUaApplicationSecuritySettings(ILogger logger, ApplicationConfiguration applicationConfiguration) {
+            if (applicationConfiguration == null || applicationConfiguration.SecurityConfiguration == null) {
+                logger.Error("OPC UA application configuration not initialized");
+                return;
+            }
+
+            logger.Information(
+                "OPC UA security configuration minimum certificate key size is {minimumCertificateKeySize}",
+                applicationConfiguration.SecurityConfiguration.MinimumCertificateKeySize);
+
+            logger.Information(
+                "OPC UA security configuration nonce length is {nonceLength}",
+                applicationConfiguration.SecurityConfiguration.NonceLength);
+
+            if (!applicationConfiguration.SecurityConfiguration.RejectSHA1SignedCertificates) {
+                logger.Warning("OPC UA security configuration is set to accept SHA1 signed peer certificates");
+            }
+
+            if (applicationConfiguration.SecurityConfiguration.AutoAcceptUntrustedCertificates) {
+                logger.Warning("OPC UA security configuration is set to auto accept untrusted peer certificates");
+            }
+
+            if (!applicationConfiguration.SecurityConfiguration.RejectUnknownRevocationStatus) {
+                logger.Warning("OPC UA security configuration is set to accept certificates having an unknown revocation status");
+            }
+
+            if (applicationConfiguration.SecurityConfiguration.SuppressNonceValidationErrors) {
+                logger.Warning("OPC UA security configuration is set to suppress nonce validation errors");
+            }
         }
     }
 }
