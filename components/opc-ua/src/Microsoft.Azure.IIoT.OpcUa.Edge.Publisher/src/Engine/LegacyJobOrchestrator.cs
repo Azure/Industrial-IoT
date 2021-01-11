@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
             HeartbeatResultModel heartbeatResultModel;
 
-            if (_updated && heartbeat.Job != null) {
+            if (heartbeat.Job != null && (_updated || (!_assignedJobs.Any() && !_availableJobs.Any()))) {
                 if (_availableJobs.Count == 0) {
                     _updated = false;
                 }

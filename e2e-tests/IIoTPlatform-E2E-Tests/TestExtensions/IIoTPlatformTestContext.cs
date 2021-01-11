@@ -94,7 +94,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        private string GetStringOrDefault(string key, Func<string> defaultValue) {
+        private string GetStringOrDefault(string key, Func<string>? defaultValue) {
             var value = Configuration.GetValue<string>(key);
             if (string.IsNullOrEmpty(value)) {
                 return defaultValue?.Invoke() ?? string.Empty;
