@@ -443,17 +443,22 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
+        /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need to be activated and connected</param>
         /// <returns>content of GET /registry/v2/application request as dynamic object</returns>
         public static async Task<dynamic> WaitForDiscoveryToBeCompletedAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct = default
+            CancellationToken ct = default,
+            IEnumerable<string> requestedEndpointUrls = null
         ) {
             ct.ThrowIfCancellationRequested();
 
             try {
                 dynamic json;
+                int foundEndpoints = 0;
                 int numberOfItems;
+                bool shouldExit = false;
                 do {
+                    foundEndpoints = 0;
                     var accessToken = await TestHelper.GetTokenAsync(context, ct);
                     var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
                         Timeout = TestConstants.DefaultTimeoutInMilliseconds
@@ -476,8 +481,26 @@ namespace IIoTPlatform_E2E_Tests {
                     json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                     Assert.NotNull(json);
                     numberOfItems = (int)json.items.Count;
+                    if (numberOfItems <= 0) {
+                        await Task.Delay(TestConstants.DefaultDelayMilliseconds);
+                    }
+                    else {
+                        for (int indexOfOpcApplication = 0; indexOfOpcApplication < numberOfItems; indexOfOpcApplication++) {
+                            var endpoint = (string)json.items[numberOfItems].discoveryUrls[0].Trim("/");
 
-                } while (numberOfItems <= 0);
+                            if(requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
+                                foundEndpoints++;
+                            }
+                        }
+
+                        if (foundEndpoints != (requestedEndpointUrls?.Count() ?? 1)) {
+                            await Task.Delay(TestConstants.DefaultDelayMilliseconds);
+                        } else {
+                            shouldExit = true;
+                        }
+                    }
+
+                } while (!shouldExit);
 
                 return json;
             }
@@ -492,7 +515,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
-        /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need t be activated and connected</param>
+        /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need to be activated and connected</param>
         /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
         public static async Task<dynamic> WaitForEndpointToBeActivatedAsync(
             IIoTPlatformTestContext context,
