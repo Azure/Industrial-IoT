@@ -494,10 +494,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
+        /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need t be activated and connected</param>
         /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
         public static async Task<dynamic> WaitForEndpointToBeActivatedAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct = default) {
+            CancellationToken ct = default,
+            IEnumerable<string> requestedEndpointUrls = null) {
 
             var accessToken = await TestHelper.GetTokenAsync(context, ct);
             var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
@@ -507,8 +509,9 @@ namespace IIoTPlatform_E2E_Tests {
             ct.ThrowIfCancellationRequested();
             try {
                 dynamic json;
-                string activationState;
+                var activationStates = new List<string>(10);
                 do {
+                    activationStates.Clear();
                     var request = new RestRequest(Method.GET);
                     request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
                     request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
@@ -526,13 +529,25 @@ namespace IIoTPlatform_E2E_Tests {
                     json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                     Assert.NotNull(json);
 
-                    // TODO look in items for the right endpoint (require additional parameter)
-                    activationState = (string)json.items[0].activationState;
+                    if (requestedEndpointUrls == null) {
+                        activationStates.Add((string)json.items[0].activationState);
+                    } else {
+                        for (int indexOfRequestedOpcServer = 0;
+                            indexOfRequestedOpcServer < (int)json.items.Count;
+                            indexOfRequestedOpcServer++) {
+                            var endpoint = ((string)json.items[indexOfRequestedOpcServer].registration.endpointUrl).TrimEnd('/');
+                            if (requestedEndpointUrls.Contains(endpoint)) {
+                                activationStates.Add((string)json.items[indexOfRequestedOpcServer].activationState);
+                            }
+                        }
+                    }
+
                     // wait the endpoint to be connected
-                    if (activationState == "Activated") {
+                    if (activationStates.Any(s => s == "Activated")) {
                         await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, ct);
                     }
-                } while (activationState != "ActivatedAndConnected");
+
+                } while (activationStates.All(s => s != "ActivatedAndConnected"));
 
                 return json;
             }
