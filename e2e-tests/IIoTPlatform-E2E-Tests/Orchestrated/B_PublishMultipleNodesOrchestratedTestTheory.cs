@@ -57,7 +57,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var accessToken = TestHelper.GetTokenAsync(_context, cts.Token).GetAwaiter().GetResult();
             _context.LoadSimulatedPublishedNodes(cts.Token).GetAwaiter().GetResult();
 
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) {Timeout = TestConstants.DefaultTimeoutInMilliseconds};
+            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             var request = new RestRequest(Method.POST);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
@@ -66,7 +66,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             // use the second OPC PLC for testing
             cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var testPlc = _context.SimulatedPublishedNodes.Values.Skip(1).First();
-            _context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, _context.GetEntryModelWithoutNodes(testPlc));
+            _context.ConsumedOpcUaNodes[testPlc.EndpointUrl] = _context.GetEntryModelWithoutNodes(testPlc);
             var body = new {
                 discoveryUrl = testPlc.EndpointUrl
             };

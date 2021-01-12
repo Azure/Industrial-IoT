@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
-    using IIoTPlatform_E2E_Tests.Config;
     using Newtonsoft.Json;
     using Renci.SshNet;
     using RestSharp;
@@ -101,7 +100,6 @@ namespace IIoTPlatform_E2E_Tests {
             var listOfUrls = opcPlcUrls.Split(TestConstants.SimulationUrlsSeparator);
 
             foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
-                context.OutputHelper?.WriteLine($"Load pn.json from {url}");
                 try {
                     using (var client = new HttpClient()) {
                         var ub = new UriBuilder { Host = url };
@@ -529,11 +527,13 @@ namespace IIoTPlatform_E2E_Tests {
                     json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                     Assert.NotNull(json);
 
+                    int count = (int)json.items.Count;
+                    Assert.NotEqual(0, count);
                     if (requestedEndpointUrls == null) {
                         activationStates.Add((string)json.items[0].activationState);
                     } else {
                         for (int indexOfRequestedOpcServer = 0;
-                            indexOfRequestedOpcServer < (int)json.items.Count;
+                            indexOfRequestedOpcServer < count;
                             indexOfRequestedOpcServer++) {
                             var endpoint = ((string)json.items[indexOfRequestedOpcServer].registration.endpointUrl).TrimEnd('/');
                             if (requestedEndpointUrls.Contains(endpoint)) {

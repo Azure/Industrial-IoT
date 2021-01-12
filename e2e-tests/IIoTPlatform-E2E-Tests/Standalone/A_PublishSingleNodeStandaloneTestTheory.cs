@@ -30,80 +30,75 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(1)]
-        public async Task Test_CreateEdgeBaseDeployment_Expect_Success() {
+        public void Test_CreateEdgeBaseDeployment_Expect_Success() {
             var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
-            var result = await _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
+            var result = _context.IoTHubEdgeBaseDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token).GetAwaiter().GetResult();
             _output.WriteLine("Created/Updated new EdgeBase deployment");
             Assert.True(result);
         }
 
         [Fact, PriorityOrder(2)]
-        public async Task Test_CreatePublisherLayeredDeployment_Expect_Success() {
+        public void Test_CreatePublisherLayeredDeployment_Expect_Success() {
             var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
-            var result = await _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
+            var result = _context.IoTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token).GetAwaiter().GetResult();
             _output.WriteLine("Created/Updated layered deployment for publisher module");
             Assert.True(result);
         }
 
         [Fact, PriorityOrder(3)]
-        public async Task Test_StartPublishingSingleNode_Expect_Success() {
+        public void Test_StartPublishingSingleNode_Expect_Success() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            var simulatedPublishedNodesConfiguration = await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
+            var simulatedPublishedNodesConfiguration = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();
 
             var model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
             model.OpcNodes = model.OpcNodes.Take(1).ToArray();
 
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { model }, _context, cts.Token);
+            TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { model }, _context, cts.Token).GetAwaiter().GetResult();
 
-            await Task.Delay(60 * 1000, cts.Token); //wait some time till the updated pn.json is reflected
+            Task.Delay(60 * 1000, cts.Token).GetAwaiter().GetResult(); //wait some time till the updated pn.json is reflected
         }
 
         [Fact, PriorityOrder(4)]
-        public async Task Test_WaitForModuleDeployed() {
+        public void Test_WaitForModuleDeployed() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // We will wait for module to be deployed.
-            var exception = await Record.ExceptionAsync(async () => await _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, new string[] { "publisher_standalone" }));
+            var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token, new string[] { "publisher_standalone" }).GetAwaiter().GetResult());
             Assert.Null(exception);
         }
 
         [Fact, PriorityOrder(5)]
-        public async Task Test_VerifyDataAvailableAtIoTHub_Expect_NumberOfValueChanges_GreaterThan_Zero() {
+        public void Test_VerifyDataAvailableAtIoTHub_Expect_NumberOfValueChanges_GreaterThan_Zero() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).GetAwaiter().GetResult();
 
             // wait some time to generate events to process
-            await Task.Delay(90 * 1000, cts.Token);
-            var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            Task.Delay(90 * 1000, cts.Token).GetAwaiter().GetResult();
+            var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
         }
 
         [Fact, PriorityOrder(6)]
-        public async Task Test_StopPublishingAllNodes_Expect_Success() {
-            await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new PublishedNodesEntryModel[0], _context);
+        public void Test_StopPublishingAllNodes_Expect_Success() {
+            TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new PublishedNodesEntryModel[0], _context).GetAwaiter().GetResult();
+            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            Task.Delay(90 * 1000, cts.Token).GetAwaiter().GetResult(); //wait till the publishing has stopped
         }
 
         [Fact, PriorityOrder(7)]
-        public async Task Test_VerifyNoDataIncomingAtIoTHub_Expected_NumberOfValueChanges_Equals_Zero() {
+        public void Test_VerifyNoDataIncomingAtIoTHub_Expected_NumberOfValueChanges_Equals_Zero() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            await Task.Delay(90 * 1000, cts.Token); //wait till the publishing has stopped
-
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).GetAwaiter().GetResult();
             // wait some time to generate events to process
-            await Task.Delay(90 * 1000, cts.Token);
+            Task.Delay(90 * 1000, cts.Token).GetAwaiter().GetResult();
 
-            var json = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.True((int)json.totalValueChangesCount == 0, "Messages received at IoT Hub");
-        }
-
-        [Fact, PriorityOrder(8)]
-        public async Task Test_SwitchToOrchestratedMode() {
-            await TestHelper.SwitchToOrchestratedModeAsync(_context);
         }
     }
 }
