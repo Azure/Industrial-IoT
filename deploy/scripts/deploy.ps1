@@ -1,4 +1,4 @@
-<#
+﻿<#
  .SYNOPSIS
     Deploys Industrial IoT services to Azure.
 
