@@ -24,8 +24,8 @@ Use the `Trait` attribute on your test class to distinguish between orchestrated
 
 The test class gets the context as a parameter of its constructor.
 Use one of the following context types:
-* [IIoTPlatformTestContext](/TestExtensions/IIoTPlatformTestContext.cs) - for orchestrated mode
-* [IIoTStandaloneTestContext](/TestExtensions/IIoTStandaloneTestContext.cs) - for standalone mode
+* `IIoTPlatformTestContext` - for orchestrated mode
+* `IIoTStandaloneTestContext` - for standalone mode
 
 In order for the context to log information the `OutputHelper` of the context needs to be set to the `IOutputHelper` the test class gets as a constructor parameter.
 
