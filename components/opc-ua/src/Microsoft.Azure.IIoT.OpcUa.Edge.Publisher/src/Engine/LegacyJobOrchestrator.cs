@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Collections.Concurrent;
     using System.Linq;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -146,16 +147,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
                     if (currentFileHash != _lastKnownFileHash) {
-                        _logger.Information("File {publishedNodesFile} has changed, reloading...", _legacyCliModel.PublishedNodesFile);
+                        _logger.Information("File {publishedNodesFile} has changed, last known hash {LastHash}, new hash {NewHash}, reloading...",
+                            _legacyCliModel.PublishedNodesFile,
+                            _lastKnownFileHash,
+                            currentFileHash);
                         _lastKnownFileHash = currentFileHash;
                         using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
                             IEnumerable<WriterGroupJobModel> jobs = null;
                             try {
                                 jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
                             }
-                            catch (Exception ex) {
-                                _logger.Error(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
-                                // TODO: how to handle the error condition
+                            catch (IOException) {
+                                throw; //pass it thru, to handle retries
+                            }
+                            catch (SerializerException ex) {
+                                _logger.Information(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
+                                return;
                             }
                             foreach (var job in jobs) {
                                 var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
@@ -207,6 +214,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _logger.Error(ex, "Error while loading job from file. Retry expired, giving up.");
                         break;
                     }
+                }
+                catch (Exception e) {
+                    _logger.Error(e, "Error while reloading {PublishedNodesFile}", _legacyCliModel.PublishedNodesFile);
+                    _availableJobs.Clear();
+                    _assignedJobs.Clear();
+                    _updated = true;
                 }
                 finally {
                     _logger.Information("File {publishedNodesFile} has changed, reloading finalized", _legacyCliModel.PublishedNodesFile);
