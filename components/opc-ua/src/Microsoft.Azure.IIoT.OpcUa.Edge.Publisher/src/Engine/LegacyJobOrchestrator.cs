@@ -192,13 +192,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     });
                             }
                         }
-                        _agentConfig.MaxWorkers = availableJobs.Count;
-                        ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
-                        if (_agentConfig.MaxWorkers > workerThreads ||
-                            _agentConfig.MaxWorkers > asyncThreads) {
-                            var result = ThreadPool.SetMinThreads(_agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value);
-                            _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
-                                _agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value, result ? "succeeded" : "failed");
+                        if (_agentConfig.MaxWorkers < availableJobs.Count && availableJobs.Count > 1) {
+                            _agentConfig.MaxWorkers = availableJobs.Count;
+
+                            ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
+                            if (_agentConfig.MaxWorkers > workerThreads ||
+                                _agentConfig.MaxWorkers > asyncThreads) {
+                                var result = ThreadPool.SetMinThreads(_agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value);
+                                _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
+                                    _agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value, result ? "succeeded" : "failed");
+                            }
                         }
                         _availableJobs = availableJobs;
                         _assignedJobs.Clear();
