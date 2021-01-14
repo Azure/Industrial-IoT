@@ -162,8 +162,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
                             catch (SerializerException ex) {
                                 _logger.Information(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
+                                _lastKnownFileHash = string.Empty;
                                 return;
                             }
+
                             foreach (var job in jobs) {
                                 var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
                                 job.WriterGroup.DataSetWriters.ForEach(d => {
@@ -201,6 +203,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _availableJobs = availableJobs;
                         _assignedJobs.Clear();
                         _updated = true;
+                    } else {
+                        _logger.Information("File {publishedNodesFile} has changed and content-hash is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
                     }
                     break;
                 }
@@ -208,7 +212,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     retryCount--;
                     if (retryCount > 0) {
                         _logger.Information("Error while loading job from file, retrying...");
-                        Task.Delay(5000);
+                        Task.Delay(5000).GetAwaiter().GetResult();
                     }
                     else {
                         _logger.Error(ex, "Error while loading job from file. Retry expired, giving up.");
@@ -222,7 +226,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _updated = true;
                 }
                 finally {
-                    _logger.Information("File {publishedNodesFile} has changed, reloading finalized", _legacyCliModel.PublishedNodesFile);
                     _lock.Release();
                 }
             }
