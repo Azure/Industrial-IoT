@@ -76,6 +76,9 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
                     return jsonSerializer.Deserialize(reader, type);
                 }
             }
+            catch (JsonSerializationException ex) {
+                throw new SerializerException(ex.Message, ex);
+            }
             catch (JsonReaderException ex) {
                 throw new SerializerException(ex.Message, ex);
             }
