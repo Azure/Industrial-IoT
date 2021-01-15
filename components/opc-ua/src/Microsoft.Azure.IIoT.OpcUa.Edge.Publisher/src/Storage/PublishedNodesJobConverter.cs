@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Published nodes
@@ -53,6 +54,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             _logger.Debug("Reading published nodes file ({elapsed}", sw.Elapsed);
             var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(
                 publishedNodesFile);
+            if (items == null) {
+                throw new SerializerException("Published nodes files, missformed");
+            }
             _logger.Information(
                 "Read {count} items from published nodes file in {elapsed}",
                 items.Count, sw.Elapsed);
@@ -88,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         },
                         User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
                                 null : ToUserNamePasswordCredentialAsync(item).Result,
-                        
+
                     },
                         // Select and batch nodes into published data set sources
                         item => GetNodeModels(item, legacyCliModel.ScaleTestCount.GetValueOrDefault(1)),
@@ -114,7 +118,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     .Select(node => new PublishedDataSetVariableModel {
                                         // this is the monitored item id, not the nodeId!
                                         // Use the display name if any otherwise the nodeId
-                                        Id = string.IsNullOrEmpty(node.DisplayName) ? 
+                                        Id = string.IsNullOrEmpty(node.DisplayName) ?
                                                 string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
                                         PublishedVariableNodeId = node.Id,
                                         PublishedVariableDisplayName = node.DisplayName,
