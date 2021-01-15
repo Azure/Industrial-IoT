@@ -16,6 +16,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading;
     using System.Threading.Tasks;
     using System.Collections.Concurrent;
+    using System.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -32,14 +35,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="identity">Module's identity provider.</param>
 
         public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter,
-            ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigPriovider,
+            ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigProvider,
             IJobSerializer jobSerializer, ILogger logger, IIdentity identity) {
             _publishedNodesJobConverter = publishedNodesJobConverter
                 ?? throw new ArgumentNullException(nameof(publishedNodesJobConverter));
             _legacyCliModel = legacyCliModelProvider.LegacyCliModel
                     ?? throw new ArgumentNullException(nameof(legacyCliModelProvider));
-            _agentConfig = agentConfigPriovider.Config
-                    ?? throw new ArgumentNullException(nameof(agentConfigPriovider));
+            _agentConfig = agentConfigProvider.Config
+                    ?? throw new ArgumentNullException(nameof(agentConfigProvider));
 
             _jobSerializer = jobSerializer ?? throw new ArgumentNullException(nameof(jobSerializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -51,14 +54,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 directory = Environment.CurrentDirectory;
             }
 
-            _availableJobs = new Queue<JobProcessingInstructionModel>();
+            _availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
             _assignedJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
+
+            _lock = new SemaphoreSlim(1, 1);
+
+            RefreshJobFromFile();
 
             var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Created += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Renamed += _fileSystemWatcher_Changed;
             _fileSystemWatcher.EnableRaisingEvents = true;
-            RefreshJobFromFile();
         }
 
         /// <summary>
@@ -73,7 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (_assignedJobs.TryGetValue(workerId, out var job)) {
                 return Task.FromResult(job);
             }
-            if (_availableJobs.Count > 0 && (job = _availableJobs.Dequeue()) != null) {
+            if (_availableJobs.Count > 0 && _availableJobs.TryDequeue(out job)) {
                 _assignedJobs.AddOrUpdate(workerId, job);
                 if (_availableJobs.Count == 0) {
                     _updated = false;
@@ -97,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
             HeartbeatResultModel heartbeatResultModel;
 
-            if (_updated && heartbeat.Job != null) {
+            if (heartbeat.Job != null && (_updated || (!_assignedJobs.Any() && !_availableJobs.Any()))) {
                 if (_availableJobs.Count == 0) {
                     _updated = false;
                 }
@@ -135,13 +143,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var retryCount = 3;
             while (true) {
                 try {
+                    _lock.Wait();
                     var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);
-                    var availableJobs = new Queue<JobProcessingInstructionModel>();
+                    var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
                     if (currentFileHash != _lastKnownFileHash) {
-                        _logger.Information("File {publishedNodesFile} has changed, reloading...", _legacyCliModel.PublishedNodesFile);
+                        _logger.Information("File {publishedNodesFile} has changed, last known hash {LastHash}, new hash {NewHash}, reloading...",
+                            _legacyCliModel.PublishedNodesFile,
+                            _lastKnownFileHash,
+                            currentFileHash);
                         _lastKnownFileHash = currentFileHash;
                         using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
-                            var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
+                            IEnumerable<WriterGroupJobModel> jobs = null;
+                            try {
+                                jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
+                            }
+                            catch (IOException) {
+                                throw; //pass it thru, to handle retries
+                            }
+                            catch (SerializerException ex) {
+                                _logger.Information(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
+                                _lastKnownFileHash = string.Empty;
+                                return;
+                            }
+
                             foreach (var job in jobs) {
                                 var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
                                 job.WriterGroup.DataSetWriters.ForEach(d => {
@@ -149,7 +173,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     d.DataSet.ExtensionFields["PublisherId"] = jobId;
                                     d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterId;
                                 });
+                                var endpoints = string.Join(", ", job.WriterGroup.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url));
+                                _logger.Information($"Job {jobId} loaded. DataSetWriters endpoints: {endpoints}");
                                 var serializedJob = _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);
+
                                 availableJobs.Enqueue(
                                     new JobProcessingInstructionModel {
                                         Job = new JobInfoModel {
@@ -165,29 +192,44 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     });
                             }
                         }
-                        _agentConfig.MaxWorkers = availableJobs.Count;
-                        ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
-                        if (_agentConfig.MaxWorkers > workerThreads ||
-                            _agentConfig.MaxWorkers > asyncThreads) {
-                            var result = ThreadPool.SetMinThreads(_agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value);
-                            _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
-                                _agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value, result ? "succeeded" : "failed");
+                        if (_agentConfig.MaxWorkers < availableJobs.Count && availableJobs.Count > 1) {
+                            _agentConfig.MaxWorkers = availableJobs.Count;
+
+                            ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
+                            if (_agentConfig.MaxWorkers > workerThreads ||
+                                _agentConfig.MaxWorkers > asyncThreads) {
+                                var result = ThreadPool.SetMinThreads(_agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value);
+                                _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
+                                    _agentConfig.MaxWorkers.Value, _agentConfig.MaxWorkers.Value, result ? "succeeded" : "failed");
+                            }
                         }
                         _availableJobs = availableJobs;
                         _assignedJobs.Clear();
                         _updated = true;
+                    } else {
+                        _logger.Information("File {publishedNodesFile} has changed and content-hash is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
                     }
                     break;
                 }
                 catch (IOException ex) {
                     retryCount--;
                     if (retryCount > 0) {
-                        _logger.Debug("Error while loading job from file, retrying...");
+                        _logger.Information("Error while loading job from file, retrying...");
+                        Task.Delay(5000).GetAwaiter().GetResult();
                     }
                     else {
                         _logger.Error(ex, "Error while loading job from file. Retry expired, giving up.");
                         break;
                     }
+                }
+                catch (Exception e) {
+                    _logger.Error(e, "Error while reloading {PublishedNodesFile}", _legacyCliModel.PublishedNodesFile);
+                    _availableJobs.Clear();
+                    _assignedJobs.Clear();
+                    _updated = true;
+                }
+                finally {
+                    _lock.Release();
                 }
             }
         }
@@ -200,9 +242,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ILogger _logger;
 
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
-        private Queue<JobProcessingInstructionModel> _availableJobs;
+        private ConcurrentQueue<JobProcessingInstructionModel> _availableJobs;
         private readonly ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private string _lastKnownFileHash;
         private bool _updated;
+        private readonly SemaphoreSlim _lock;
     }
 }
