@@ -50,7 +50,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <remarks>
         /// Clearing the cache is not necessary in standalone mode, each modification to published_nodes.json
-        /// will create new instance of NetworkMessageEncoder
+        /// will create new instance of NetworkMessageEncoder.
+        ///
+        /// Currently orchestrated mode don't support PubSub format, therefor the cache don't need to be cleaned
+        /// This need to be rechecked, once orchestrated mode support PubSub
         /// </remarks>
         private readonly IDictionary<string, string> _knownPayloadIdentifiers;
 
