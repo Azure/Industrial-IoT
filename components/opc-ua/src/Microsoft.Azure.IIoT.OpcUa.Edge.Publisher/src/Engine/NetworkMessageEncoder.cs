@@ -44,9 +44,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// We have to lookup payload identifier per notitication, because we have to handle huge amount of
+        /// notifications a cache is useful
+        /// </summary>
+        /// <remarks>
+        /// Clearing the cache is not necessary in standalone mode, each modification to published_nodes.json
+        /// will create new instance of NetworkMessageEncoder
+        /// </remarks>
+        private readonly IDictionary<string, string> _knownPayloadIdentifiers;
+
         /// <inheritdoc/>
         public NetworkMessageEncoder(ILogger logger) {
             _logger = logger;
+            _knownPayloadIdentifiers = new Dictionary<string, string>(5000);
         }
 
         /// <inheritdoc/>
@@ -366,10 +377,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             .Select(q => q.Any() ? q.Dequeue() : null)
                                 .Where(s => s != null)
                                     .ToDictionary(
-                                        s => !string.IsNullOrEmpty(s.Id)
-                                            ? s.Id
-                                            : s.NodeId.ToExpandedNodeId(context.NamespaceUris)
-                                                .AsString(message.ServiceMessageContext),
+                                        s => GetPayloadIdentifier(s, message,context),
                                         s => s.Value);
                         var dataSetMessage = new DataSetMessage() {
                             DataSetWriterId = message.Writer.DataSetWriterId,
@@ -392,6 +400,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     yield return networkMessage;
                 }
             }
+        }
+
+        /// <summary>
+        ///  Reads to identifier to show for notification in payload of IoT Hub method
+        ///  Prio 1: DataSetFieldId (need to be read from message)
+        ///  Prio 2: DisplayName - nothing to do, because notification.Id already contains DisplayName
+        ///  Prio 3: ExpandedNodeId
+        /// </summary>
+        /// <param name="notification">Notification, were ID need to be looked up for</param>
+        /// <param name="message">subscription notification message, containing notifications</param>
+        /// <param name="context">service context</param>
+        /// <returns>identifier of payload element</returns>
+        private string GetPayloadIdentifier(MonitoredItemNotificationModel notification, DataSetMessageModel message, ServiceMessageContext context) {
+
+            if (_knownPayloadIdentifiers.TryGetValue(notification.NodeId.ToString(), out var knownPayloadIdentifier)) {
+                if (!string.IsNullOrEmpty(knownPayloadIdentifier)) {
+                    return knownPayloadIdentifier;
+                }
+            }
+            else { //do the long running lookup as less as possible
+                foreach (var dataSetWriter in message.WriterGroup.DataSetWriters) {
+                    foreach (var publishedVariable in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
+                        if (publishedVariable.PublishedVariableNodeId == notification.NodeId &&
+                            publishedVariable.Id != notification.NodeId) {
+                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = publishedVariable.Id;
+                            return publishedVariable.Id;
+                        } else {
+                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = string.Empty;
+                        }
+                    }
+                }
+            }
+
+            return !string.IsNullOrEmpty(notification.Id)
+                    ? notification.Id
+                    : notification.NodeId.ToExpandedNodeId(context.NamespaceUris)
+                        .AsString(message.ServiceMessageContext);
         }
     }
 }
