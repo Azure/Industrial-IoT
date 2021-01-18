@@ -131,15 +131,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
             if (e.ChangeType == WatcherChangeTypes.Deleted) {
                 _logger.Information("Published nodes file deleted, cancelling all publishing jobs");
-
                 _lock.Wait();
-
-                _availableJobs.Clear();
-                _assignedJobs.Clear();
-                _updated = true;
-                _lastKnownFileHash = string.Empty;
-
-                _lock.Release();
+                try {
+                    _availableJobs.Clear();
+                    _assignedJobs.Clear();
+                    _updated = true;
+                    _lastKnownFileHash = string.Empty;
+                }
+                finally {
+                    _lock.Release();
+                }
             }
             else {
                 RefreshJobFromFile();
