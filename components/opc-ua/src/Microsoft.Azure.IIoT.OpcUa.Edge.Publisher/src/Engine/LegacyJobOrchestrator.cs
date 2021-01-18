@@ -64,6 +64,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
             _fileSystemWatcher = new FileSystemWatcher(directory, file);
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Created += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Renamed += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Deleted += _fileSystemWatcher_Changed;
             _fileSystemWatcher.EnableRaisingEvents = true;
         }
 
@@ -126,7 +129,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
-            RefreshJobFromFile();
+            if (e.ChangeType == WatcherChangeTypes.Deleted) {
+                _logger.Information("Published nodes file deleted, cancelling all publishing jobs");
+                _lock.Wait();
+                try {
+                    _availableJobs.Clear();
+                    _assignedJobs.Clear();
+                    _updated = true;
+                    _lastKnownFileHash = string.Empty;
+                }
+                finally {
+                    _lock.Release();
+                }
+            }
+            else {
+                RefreshJobFromFile();
+            }
         }
 
         private static string GetChecksum(string file) {
@@ -211,7 +229,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 catch (IOException ex) {
                     retryCount--;
                     if (retryCount > 0) {
-                        _logger.Information("Error while loading job from file, retrying...");
                         Task.Delay(5000).GetAwaiter().GetResult();
                     }
                     else {
