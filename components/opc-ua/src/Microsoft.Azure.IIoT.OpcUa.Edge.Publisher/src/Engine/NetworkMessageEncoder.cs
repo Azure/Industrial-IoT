@@ -436,7 +436,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             else { //do the long running lookup as less as possible
                 foreach (var dataSetWriter in message.WriterGroup.DataSetWriters) {
                     foreach (var publishedVariableData in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
-                        if (publishedVariableData.PublishedVariableNodeId == notification.NodeId &&
+                        if ((publishedVariableData.PublishedVariableNodeId == notification.NodeId
+                              || publishedVariableData.PublishedVariableNodeId.ToExpandedNodeId(context).AsString(context) == notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context)) &&
                             publishedVariableData.Id != notification.NodeId) {
                             _knownPayloadIdentifiers[notification.NodeId.ToString()] = publishedVariableData.Id;
                             return publishedVariableData.Id;
