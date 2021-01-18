@@ -66,6 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
             _fileSystemWatcher.Created += _fileSystemWatcher_Changed;
             _fileSystemWatcher.Renamed += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Deleted += _fileSystemWatcher_Changed;
             _fileSystemWatcher.EnableRaisingEvents = true;
         }
 
@@ -128,7 +129,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
-            RefreshJobFromFile();
+            if (e.ChangeType == WatcherChangeTypes.Deleted) {
+                _logger.Information("Published nodes file deleted, cancelling all publishing jobs");
+
+                _lock.Wait();
+
+                _availableJobs.Clear();
+                _assignedJobs.Clear();
+                _updated = true;
+                _lastKnownFileHash = string.Empty;
+
+                _lock.Release();
+            }
+            else {
+                RefreshJobFromFile();
+            }
         }
 
         private static string GetChecksum(string file) {
