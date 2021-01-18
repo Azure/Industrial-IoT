@@ -167,7 +167,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
 
                             foreach (var job in jobs) {
-                                var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
+                                var jobId = string.IsNullOrEmpty(job.WriterGroup.WriterGroupId)
+                                        ? $"Standalone_{_identity.DeviceId}_{Guid.NewGuid()} "
+                                        : job.WriterGroup.WriterGroupId;
+
                                 job.WriterGroup.DataSetWriters.ForEach(d => {
                                     d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
                                     d.DataSet.ExtensionFields["PublisherId"] = jobId;
