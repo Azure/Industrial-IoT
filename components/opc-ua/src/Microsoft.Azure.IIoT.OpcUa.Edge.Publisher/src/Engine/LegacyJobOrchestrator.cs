@@ -66,6 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
             _fileSystemWatcher.Created += _fileSystemWatcher_Changed;
             _fileSystemWatcher.Renamed += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Deleted += _fileSystemWatcher_Changed;
             _fileSystemWatcher.EnableRaisingEvents = true;
         }
 
@@ -259,7 +260,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 catch (IOException ex) {
                     retryCount--;
                     if (retryCount > 0) {
-                        _logger.Information("Error while loading job from file, retrying...");
                         Task.Delay(5000).GetAwaiter().GetResult();
                     }
                     else {
