@@ -229,7 +229,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 catch (IOException ex) {
                     retryCount--;
                     if (retryCount > 0) {
-                        _logger.Information("Error while loading job from file, retrying...");
                         Task.Delay(5000).GetAwaiter().GetResult();
                     }
                     else {
