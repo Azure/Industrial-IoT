@@ -416,6 +416,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="context">service context</param>
         /// <returns>identifier of payload element</returns>
         private string GetPayloadIdentifier(MonitoredItemNotificationModel notification, DataSetMessageModel message, ServiceMessageContext context) {
+            if (notification is null) {
+                throw new ArgumentNullException(nameof(notification));
+            }
+
+            if (message is null) {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (context is null) {
+                throw new ArgumentNullException(nameof(context));
+            }
 
             if (_knownPayloadIdentifiers.TryGetValue(notification.NodeId.ToString(), out var knownPayloadIdentifier)) {
                 if (!string.IsNullOrEmpty(knownPayloadIdentifier)) {
@@ -424,11 +435,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             else { //do the long running lookup as less as possible
                 foreach (var dataSetWriter in message.WriterGroup.DataSetWriters) {
-                    foreach (var publishedVariable in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
-                        if (publishedVariable.PublishedVariableNodeId == notification.NodeId &&
-                            publishedVariable.Id != notification.NodeId) {
-                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = publishedVariable.Id;
-                            return publishedVariable.Id;
+                    foreach (var publishedVariableData in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
+                        if (publishedVariableData.PublishedVariableNodeId == notification.NodeId &&
+                            publishedVariableData.Id != notification.NodeId) {
+                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = publishedVariableData.Id;
+                            return publishedVariableData.Id;
                         } else {
                             _knownPayloadIdentifiers[notification.NodeId.ToString()] = string.Empty;
                         }
