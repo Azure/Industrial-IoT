@@ -79,8 +79,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="ct"></param>
         /// <returns></returns>
         public Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
+            _lock.Wait(ct);
             try {
-                _lock.Wait(ct);
                 if (_assignedJobs.TryGetValue(workerId, out var job)) {
                     return Task.FromResult(job);
                 }
@@ -110,9 +110,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="ct"></param>
         /// <returns></returns>
         public Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
+            _lock.Wait(ct);
             try {
-                _lock.Wait(ct);
-
                 HeartbeatResultModel heartbeatResultModel;
                 JobProcessingInstructionModel job = null;
                 if (heartbeat.Job != null) {
