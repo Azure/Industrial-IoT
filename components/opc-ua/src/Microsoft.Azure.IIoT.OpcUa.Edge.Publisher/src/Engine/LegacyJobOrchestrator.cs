@@ -66,6 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _fileSystemWatcher.Changed += _fileSystemWatcher_Changed;
             _fileSystemWatcher.Created += _fileSystemWatcher_Changed;
             _fileSystemWatcher.Renamed += _fileSystemWatcher_Changed;
+            _fileSystemWatcher.Deleted += _fileSystemWatcher_Changed;
             _fileSystemWatcher.EnableRaisingEvents = true;
         }
 
@@ -78,57 +79,100 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="ct"></param>
         /// <returns></returns>
         public Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
-            if (_assignedJobs.TryGetValue(workerId, out var job)) {
+            _lock.Wait(ct);
+            try {
+                if (_assignedJobs.TryGetValue(workerId, out var job)) {
+                    return Task.FromResult(job);
+                }
+                if (_availableJobs.Count > 0 && _availableJobs.TryDequeue(out job)) {
+                    _assignedJobs.AddOrUpdate(workerId, job);
+                }
+
                 return Task.FromResult(job);
             }
-            if (_availableJobs.Count > 0 && _availableJobs.TryDequeue(out job)) {
-                _assignedJobs.AddOrUpdate(workerId, job);
-                if (_availableJobs.Count == 0) {
-                    _updated = false;
-                }
+            catch(OperationCanceledException) {
+                _logger.Information("Operation GetAvailableJobAsync was canceled");
+                throw;
             }
-            else {
-                _updated = false;
+            catch(Exception e) {
+                _logger.Error(e, "Error while looking for available jobs, for {Worker}", workerId);
+                throw;
             }
-
-            return Task.FromResult(job);
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <summary>
-        /// Receives the heartbeat from the agent. Lifetime information is not persisted in this implementation. This method is
-        /// only used if the
-        /// publishednodes.json file has changed. Is that the case, the worker is informed to cancel (and restart) processing.
+        /// Receives the heartbeat from the LegacyJobOrchestrator, JobProcess; used to control lifetime of job (cancel, restart, keep).
         /// </summary>
         /// <param name="heartbeat"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
-            HeartbeatResultModel heartbeatResultModel;
-
-            if (heartbeat.Job != null && (_updated || (!_assignedJobs.Any() && !_availableJobs.Any()))) {
-                if (_availableJobs.Count == 0) {
-                    _updated = false;
+            _lock.Wait(ct);
+            try {
+                HeartbeatResultModel heartbeatResultModel;
+                JobProcessingInstructionModel job = null;
+                if (heartbeat.Job != null) {
+                    if (_assignedJobs.TryGetValue(heartbeat.Worker.WorkerId, out job)
+                        && job.Job.Id == heartbeat.Job.JobId) {
+                        // JobProcess should keep working
+                        heartbeatResultModel = new HeartbeatResultModel {
+                            HeartbeatInstruction = HeartbeatInstruction.Keep,
+                            LastActiveHeartbeat = DateTime.UtcNow,
+                            UpdatedJob = null,
+                        };
+                    }
+                    else {
+                        // JobProcess have to finished current and process new job (if job != null) otherwise complete
+                        heartbeatResultModel = new HeartbeatResultModel {
+                            HeartbeatInstruction = HeartbeatInstruction.CancelProcessing,
+                            LastActiveHeartbeat = DateTime.UtcNow,
+                            UpdatedJob = job,
+                        };
+                    }
                 }
+                else {
+                    // usecase when called from Timer of Worker instead of JobProcess
+                    heartbeatResultModel = new HeartbeatResultModel {
+                        HeartbeatInstruction = HeartbeatInstruction.Keep,
+                        LastActiveHeartbeat = DateTime.UtcNow,
+                        UpdatedJob = null,
+                    };
+                }
+                _logger.Debug("SendHeartbeatAsync updated worker {worker} with {heartbeatInstruction} instruction for job {jobId}.",
+                    heartbeat.Worker.WorkerId,
+                    heartbeatResultModel?.HeartbeatInstruction,
+                    job?.Job?.Id);
 
-                heartbeatResultModel = new HeartbeatResultModel {
-                    HeartbeatInstruction = HeartbeatInstruction.CancelProcessing,
-                    LastActiveHeartbeat = DateTime.UtcNow,
-                    UpdatedJob = _assignedJobs.TryGetValue(heartbeat.Worker.WorkerId, out var job) ? job : null
-                };
+                return Task.FromResult(heartbeatResultModel);
             }
-            else {
-                heartbeatResultModel = new HeartbeatResultModel {
-                    HeartbeatInstruction = HeartbeatInstruction.Keep,
-                    LastActiveHeartbeat = DateTime.UtcNow,
-                    UpdatedJob = null
-                };
+            catch (OperationCanceledException) {
+                _logger.Information("Operation SendHeartbeatAsync was canceled");
+                throw;
             }
-
-            return Task.FromResult(heartbeatResultModel);
+            finally {
+                _lock.Release();
+            }
         }
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
-            RefreshJobFromFile();
+            if (e.ChangeType == WatcherChangeTypes.Deleted) {
+                _logger.Information("Published nodes file deleted, cancelling all publishing jobs");
+                _lock.Wait();
+                try {
+                    _availableJobs.Clear();
+                    _assignedJobs.Clear();
+                    _lastKnownFileHash = string.Empty;
+                }
+                finally {
+                    _lock.Release();
+                }
+            }
+            else {
+                RefreshJobFromFile();
+            }
         }
 
         private static string GetChecksum(string file) {
@@ -167,7 +211,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             }
 
                             foreach (var job in jobs) {
-                                var jobId = $"Standalone_{_identity.DeviceId}_{_identity.ModuleId}";
+                                var jobId = string.IsNullOrEmpty(job.WriterGroup.WriterGroupId)
+                                        ? $"Standalone_{_identity.DeviceId}_{Guid.NewGuid()}"
+                                        : job.WriterGroup.WriterGroupId;
+
                                 job.WriterGroup.DataSetWriters.ForEach(d => {
                                     d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
                                     d.DataSet.ExtensionFields["PublisherId"] = jobId;
@@ -205,7 +252,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                         _availableJobs = availableJobs;
                         _assignedJobs.Clear();
-                        _updated = true;
                     } else {
                         _logger.Information("File {publishedNodesFile} has changed and content-hash is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
                     }
@@ -214,7 +260,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 catch (IOException ex) {
                     retryCount--;
                     if (retryCount > 0) {
-                        _logger.Information("Error while loading job from file, retrying...");
                         Task.Delay(5000).GetAwaiter().GetResult();
                     }
                     else {
@@ -226,7 +271,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _logger.Error(e, "Error while reloading {PublishedNodesFile}", _legacyCliModel.PublishedNodesFile);
                     _availableJobs.Clear();
                     _assignedJobs.Clear();
-                    _updated = true;
                 }
                 finally {
                     _lock.Release();
@@ -245,7 +289,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private ConcurrentQueue<JobProcessingInstructionModel> _availableJobs;
         private readonly ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private string _lastKnownFileHash;
-        private bool _updated;
         private readonly SemaphoreSlim _lock;
     }
 }
