@@ -28,4 +28,15 @@
   <ItemGroup>
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Utils\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Engine\publishednodes.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Engine\pn_assets.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
