@@ -91,8 +91,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 return Task.FromResult(job);
             }
             catch(OperationCanceledException) {
-                JobProcessingInstructionModel job = null;
-                return Task.FromResult(job);
+                _logger.Information("Operation GetAvailableJobAsync was canceled");
+                throw;
             }
             catch(Exception e) {
                 _logger.Error(e, "Error while looking for available jobs, for {Worker}", workerId);
@@ -147,6 +147,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     job?.Job?.Id);
 
                 return Task.FromResult(heartbeatResultModel);
+            }
+            catch (OperationCanceledException) {
+                _logger.Information("Operation SendHeartbeatAsync was canceled");
+                throw;
             }
             finally {
                 _lock.Release();
