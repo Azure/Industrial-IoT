@@ -261,6 +261,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
 
+            var unexpectedNodesThatPublish = new List<string>();
             // check that every published node is sending data
             if (_context.ConsumedOpcUaNodes != null) {
                 var expectedNodes = new List<string>(_context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id));
@@ -268,12 +269,17 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
                     var propertyName = (string)property.Name;
                     var nodeId = propertyName.Split('#').Last();
                     var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
-                    Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
-                    expectedNodes.Remove(expected);
+                    if (expected != null) {
+                        expectedNodes.Remove(expected);
+                    } else {
+                        unexpectedNodesThatPublish.Add(propertyName);
+                    }
                 }
 
                 expectedNodes.ForEach(n => _context.OutputHelper.WriteLine(n));
                 Assert.Empty(expectedNodes);
+
+                unexpectedNodesThatPublish.ForEach(node => _context.OutputHelper.WriteLine($"Publishing from unexpected node: {node}"));
             }
         }
 
