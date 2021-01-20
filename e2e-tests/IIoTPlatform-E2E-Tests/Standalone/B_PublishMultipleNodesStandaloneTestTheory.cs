@@ -75,7 +75,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             //wait some time till the updated pn.json is reflected
-            Task.Delay(60 * 1000, cts.Token).GetAwaiter().GetResult(); //wait some time till the updated pn.json is reflected
+            Task.Delay(3 * 60 * 1000, cts.Token).GetAwaiter().GetResult(); //wait some time till the updated pn.json is reflected
 
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             TestHelper.StartMonitoringIncomingMessagesAsync(_context, 250, 10_000, 90_000_000, cts.Token).GetAwaiter().GetResult();
