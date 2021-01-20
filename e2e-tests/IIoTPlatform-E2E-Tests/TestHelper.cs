@@ -22,6 +22,8 @@ namespace IIoTPlatform_E2E_Tests {
     using TestExtensions;
     using TestModels;
     using Xunit;
+    using Newtonsoft.Json.Linq;
+    using Xunit.Abstractions;
 
     internal static class TestHelper {
 
@@ -486,14 +488,18 @@ namespace IIoTPlatform_E2E_Tests {
                     }
                     else {
                         for (int indexOfOpcApplication = 0; indexOfOpcApplication < numberOfItems; indexOfOpcApplication++) {
-                            var endpoint = (string)json.items[numberOfItems].discoveryUrls[0].Trim("/");
+                            var endpoint = ((string)json.items[indexOfOpcApplication].discoveryUrls[0]).TrimEnd('/');
 
                             if(requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
                                 foundEndpoints++;
                             }
                         }
 
-                        if (foundEndpoints != (requestedEndpointUrls?.Count() ?? 1)) {
+                        var expectedNumberOfEndpoints = requestedEndpointUrls != null
+                                                        ? requestedEndpointUrls.Count()
+                                                        : 1;
+
+                        if (foundEndpoints < expectedNumberOfEndpoints) {
                             await Task.Delay(TestConstants.DefaultDelayMilliseconds);
                         } else {
                             shouldExit = true;
@@ -504,8 +510,9 @@ namespace IIoTPlatform_E2E_Tests {
 
                 return json;
             }
-            catch (Exception) {
+            catch (Exception e) {
                 context.OutputHelper?.WriteLine("Error: discovery module didn't find OPC UA server in time");
+                PrettyPrintException(e, context.OutputHelper);
                 throw;
             }
         }
@@ -577,6 +584,23 @@ namespace IIoTPlatform_E2E_Tests {
             catch (Exception) {
                 context.OutputHelper?.WriteLine("Error: OPC UA endpoint couldn't be activated");
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Prints the exception message and stacktrace for exception (and all inner exceptions) in test output
+        /// </summary>
+        /// <param name="e">Exception to be printed</param>
+        /// <param name="outputHelper">XUnit Test OutputHelper instance or null (no print in this case)</param>
+        private static void PrettyPrintException(Exception e, ITestOutputHelper outputHelper) {
+            if (outputHelper == null) return;
+
+            var exception = e;
+            while (exception != null) {
+                outputHelper.WriteLine(exception.Message);
+                outputHelper.WriteLine(exception.StackTrace);
+                outputHelper.WriteLine("");
+                exception = exception.InnerException;
             }
         }
     }
