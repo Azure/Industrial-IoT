@@ -518,6 +518,86 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
+        /// Wait until the OPC UA endpoint is detected
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need to be activated and connected</param>
+        /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
+        public static async Task<dynamic> WaitForEndpointDiscoveryToBeCompleted(
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default,
+            IEnumerable<string> requestedEndpointUrls = null) {
+
+            ct.ThrowIfCancellationRequested();
+
+            try {
+                dynamic json;
+                int foundEndpoints = 0;
+                int numberOfItems;
+                bool shouldExit = false;
+                do {
+                    var accessToken = await TestHelper.GetTokenAsync(context, ct);
+                    var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
+                        Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    };
+
+                    var request = new RestRequest(Method.GET);
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                    request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
+
+                    var response = await client.ExecuteAsync(request, ct);
+                    Assert.NotNull(response);
+
+                    if (!response.IsSuccessful) {
+                        context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                        context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                        Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
+                    }
+
+                    Assert.NotEmpty(response.Content);
+                    json = JsonConvert.DeserializeObject(response.Content);
+
+                    foundEndpoints = 0;
+
+                    Assert.NotNull(json);
+                    numberOfItems = (int)json.items.Count;
+                    if (numberOfItems <= 0) {
+                        await Task.Delay(TestConstants.DefaultDelayMilliseconds);
+                    }
+                    else {
+                        for (int indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++) {
+                            var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpointUrl).TrimEnd('/');
+
+                            if (requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
+                                foundEndpoints++;
+                            }
+                        }
+
+                        var expectedNumberOfEndpoints = requestedEndpointUrls != null
+                                                        ? requestedEndpointUrls.Count()
+                                                        : 1;
+
+                        if (foundEndpoints < expectedNumberOfEndpoints) {
+                            await Task.Delay(TestConstants.DefaultDelayMilliseconds);
+                        }
+                        else {
+                            shouldExit = true;
+                        }
+                    }
+
+                } while (!shouldExit);
+
+                return json;
+            }
+            catch (Exception e) {
+                context.OutputHelper?.WriteLine("Error: OPC UA endpoint not found in time");
+                PrettyPrintException(e, context.OutputHelper);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Wait for first OPC UA endpoint to be activated
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
