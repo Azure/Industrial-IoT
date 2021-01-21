@@ -34,7 +34,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             _context.OutputHelper = _output;
         }
 
-        [Fact, PriorityOrder(0)]
+        [Fact, PriorityOrder(50)]
         public void Test_SetUnmanagedTagFalse() {
             _context.Reset();
             TestHelper.SwitchToOrchestratedModeAsync(_context).GetAwaiter().GetResult();
@@ -45,7 +45,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         /// For this test theory required preparation steps are combine in this single test case
         /// </summary>
         /// <returns></returns>
-        [Fact, PriorityOrder(1)]
+        [Fact, PriorityOrder(51)]
         public void Test_PrepareTestDeploymentForTestCase_Expect_Success() {
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
@@ -171,7 +171,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             Assert.True(found, "OPC UA Endpoint couldn't be activated");
         }
 
-        [Fact, PriorityOrder(2)]
+        [Fact, PriorityOrder(52)]
         public void Test_PublishNodeWithDefaults_Expect_DataAvailableAtIoTHub() {
 
             // used if running test cases separately (during development)
@@ -208,7 +208,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             }
         }
 
-        [Fact, PriorityOrder(3)]
+        [Fact, PriorityOrder(53)]
         public void Test_GetListOfJobs_Expect_JobWithEndpointId() {
 
             // used if running test cases separately (during development)
@@ -249,7 +249,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             Assert.True(found, "Publishing Job was not created!");
         }
 
-        [Fact, PriorityOrder(4)]
+        [Fact, PriorityOrder(54)]
         public void Test_VerifyDataAvailableAtIoTHub() {
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
@@ -283,7 +283,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             }
         }
 
-        [Fact, PriorityOrder(5)]
+        [Fact, PriorityOrder(55)]
         public void Test_BulkUnpublishedNodes_Expect_Success() {
             // used if running test cases separately (during development)
             if (string.IsNullOrWhiteSpace(_context.OpcUaEndpointId)) {
@@ -320,7 +320,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             }
         }
 
-        [Fact, PriorityOrder(6)]
+        [Fact, PriorityOrder(56)]
         public void Test_VerifyNoDataIncomingAtIoTHub() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             Task.Delay(90 * 1000, cts.Token).GetAwaiter().GetResult(); //wait till the publishing has stopped
@@ -333,7 +333,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         }
 
 
-        [Fact, PriorityOrder(7)]
+        [Fact, PriorityOrder(57)]
         public void RemoveJob_Expect_Success() {
 
             // used if running test cases separately (during development)
@@ -363,7 +363,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             }
         }
 
-        [Fact, PriorityOrder(8)]
+        [Fact, PriorityOrder(58)]
         public void Test_RemoveAllApplications() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
