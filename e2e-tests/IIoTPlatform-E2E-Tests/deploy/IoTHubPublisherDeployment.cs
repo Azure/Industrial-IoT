@@ -29,8 +29,12 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         /// <inheritdoc />
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
             var registryCredentials = "";
+
+            //should only be provided if the different container registry require username and password
             if (!string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) &&
-                _context.ContainerRegistryConfig.ContainerRegistryServer != "mcr.microsoft.com") {
+                _context.ContainerRegistryConfig.ContainerRegistryServer != "mcr.microsoft.com" &&
+                !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryPassword) &&
+                !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryUser)) {
                 var registryId = _context.ContainerRegistryConfig.ContainerRegistryServer.Split('.')[0];
                 registryCredentials = @"
                     ""properties.desired.runtime.settings.registryCredentials." + registryId + @""": {
