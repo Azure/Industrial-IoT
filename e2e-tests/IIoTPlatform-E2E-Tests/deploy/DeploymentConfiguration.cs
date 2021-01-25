@@ -23,7 +23,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                 Content = new ConfigurationContent {
                     ModulesContent = CreateDeploymentModules()
                 },
-                TargetCondition = TestConstants.TargetCondition,
+                TargetCondition = TargetCondition,
                 Priority = Priority
             };
 
@@ -49,5 +49,10 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         /// Identifier of deployment
         /// </summary>
         protected abstract string DeploymentName { get; }
+
+        /// <summary>
+        /// Target condition for applying the deployment
+        /// </summary>
+        protected abstract string TargetCondition { get; }
     }
 }

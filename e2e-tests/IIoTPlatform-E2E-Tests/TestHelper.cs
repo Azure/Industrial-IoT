@@ -4,13 +4,13 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests {
-    using IIoTPlatform_E2E_Tests.Config;
     using Newtonsoft.Json;
     using Renci.SshNet;
     using RestSharp;
     using RestSharp.Authenticators;
     using System;
     using System.Collections.Generic;
+    using System.Dynamic;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -18,9 +18,12 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Newtonsoft.Json.Converters;
     using TestExtensions;
     using TestModels;
     using Xunit;
+    using Newtonsoft.Json.Linq;
+    using Xunit.Abstractions;
 
     internal static class TestHelper {
 
@@ -99,7 +102,6 @@ namespace IIoTPlatform_E2E_Tests {
             var listOfUrls = opcPlcUrls.Split(TestConstants.SimulationUrlsSeparator);
 
             foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
-                context.OutputHelper?.WriteLine($"Load pn.json from {url}");
                 try {
                     using (var client = new HttpClient()) {
                         var ub = new UriBuilder { Host = url };
@@ -158,6 +160,8 @@ namespace IIoTPlatform_E2E_Tests {
             DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
 
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
+            context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
+            context.OutputHelper?.WriteLine(json);
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
             using var client = CreateScpClientAndConnect(context);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
@@ -171,7 +175,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <returns></returns>
-        public static async Task SwitchToStandaloneModeAsync(IIoTPlatformTestContext context, CancellationToken ct = default) {
+        private static async Task SwitchToStandaloneModeAsync(IIoTPlatformTestContext context, CancellationToken ct = default) {
             var patch =
                 @"{
                     tags: {
@@ -441,17 +445,22 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
+        /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need to be activated and connected</param>
         /// <returns>content of GET /registry/v2/application request as dynamic object</returns>
         public static async Task<dynamic> WaitForDiscoveryToBeCompletedAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct = default
+            CancellationToken ct = default,
+            IEnumerable<string> requestedEndpointUrls = null
         ) {
             ct.ThrowIfCancellationRequested();
 
             try {
                 dynamic json;
+                int foundEndpoints = 0;
                 int numberOfItems;
+                bool shouldExit = false;
                 do {
+                    foundEndpoints = 0;
                     var accessToken = await TestHelper.GetTokenAsync(context, ct);
                     var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
                         Timeout = TestConstants.DefaultTimeoutInMilliseconds
@@ -471,16 +480,119 @@ namespace IIoTPlatform_E2E_Tests {
                     }
 
                     Assert.NotEmpty(response.Content);
-                    json = JsonConvert.DeserializeObject(response.Content);
+                    json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                     Assert.NotNull(json);
                     numberOfItems = (int)json.items.Count;
+                    if (numberOfItems <= 0) {
+                        await Task.Delay(TestConstants.DefaultDelayMilliseconds);
+                    }
+                    else {
+                        for (int indexOfOpcApplication = 0; indexOfOpcApplication < numberOfItems; indexOfOpcApplication++) {
+                            var endpoint = ((string)json.items[indexOfOpcApplication].discoveryUrls[0]).TrimEnd('/');
 
-                } while (numberOfItems <= 0);
+                            if(requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
+                                foundEndpoints++;
+                            }
+                        }
+
+                        var expectedNumberOfEndpoints = requestedEndpointUrls != null
+                                                        ? requestedEndpointUrls.Count()
+                                                        : 1;
+
+                        if (foundEndpoints < expectedNumberOfEndpoints) {
+                            await Task.Delay(TestConstants.DefaultDelayMilliseconds);
+                        } else {
+                            shouldExit = true;
+                        }
+                    }
+
+                } while (!shouldExit);
 
                 return json;
             }
-            catch (Exception) {
+            catch (Exception e) {
                 context.OutputHelper?.WriteLine("Error: discovery module didn't find OPC UA server in time");
+                PrettyPrintException(e, context.OutputHelper);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Wait until the OPC UA endpoint is detected
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need to be activated and connected</param>
+        /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
+        public static async Task<dynamic> WaitForEndpointDiscoveryToBeCompleted(
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default,
+            IEnumerable<string> requestedEndpointUrls = null) {
+
+            ct.ThrowIfCancellationRequested();
+
+            try {
+                dynamic json;
+                int foundEndpoints = 0;
+                int numberOfItems;
+                bool shouldExit = false;
+                do {
+                    var accessToken = await TestHelper.GetTokenAsync(context, ct);
+                    var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
+                        Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                    };
+
+                    var request = new RestRequest(Method.GET);
+                    request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                    request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
+
+                    var response = await client.ExecuteAsync(request, ct);
+                    Assert.NotNull(response);
+
+                    if (!response.IsSuccessful) {
+                        context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                        context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                        Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
+                    }
+
+                    Assert.NotEmpty(response.Content);
+                    json = JsonConvert.DeserializeObject(response.Content);
+
+                    foundEndpoints = 0;
+
+                    Assert.NotNull(json);
+                    numberOfItems = (int)json.items.Count;
+                    if (numberOfItems <= 0) {
+                        await Task.Delay(TestConstants.DefaultDelayMilliseconds);
+                    }
+                    else {
+                        for (int indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++) {
+                            var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpointUrl).TrimEnd('/');
+
+                            if (requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
+                                foundEndpoints++;
+                            }
+                        }
+
+                        var expectedNumberOfEndpoints = requestedEndpointUrls != null
+                                                        ? requestedEndpointUrls.Count()
+                                                        : 1;
+
+                        if (foundEndpoints < expectedNumberOfEndpoints) {
+                            await Task.Delay(TestConstants.DefaultDelayMilliseconds);
+                        }
+                        else {
+                            shouldExit = true;
+                        }
+                    }
+
+                } while (!shouldExit);
+
+                return json;
+            }
+            catch (Exception e) {
+                context.OutputHelper?.WriteLine("Error: OPC UA endpoint not found in time");
+                PrettyPrintException(e, context.OutputHelper);
                 throw;
             }
         }
@@ -490,10 +602,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="ct">Cancellation token</param>
+        /// <param name="requestedEndpointUrls">List of OPC UA endpoint URLS that need to be activated and connected</param>
         /// <returns>content of GET /registry/v2/endpoints request as dynamic object</returns>
         public static async Task<dynamic> WaitForEndpointToBeActivatedAsync(
             IIoTPlatformTestContext context,
-            CancellationToken ct = default) {
+            CancellationToken ct = default,
+            IEnumerable<string> requestedEndpointUrls = null) {
 
             var accessToken = await TestHelper.GetTokenAsync(context, ct);
             var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
@@ -503,8 +617,9 @@ namespace IIoTPlatform_E2E_Tests {
             ct.ThrowIfCancellationRequested();
             try {
                 dynamic json;
-                string activationState;
+                var activationStates = new List<string>(10);
                 do {
+                    activationStates.Clear();
                     var request = new RestRequest(Method.GET);
                     request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
                     request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
@@ -519,21 +634,53 @@ namespace IIoTPlatform_E2E_Tests {
                     }
 
                     Assert.NotEmpty(response.Content);
-                    json = JsonConvert.DeserializeObject(response.Content);
+                    json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                     Assert.NotNull(json);
 
-                    activationState = (string)json.items[0].activationState;
+                    int count = (int)json.items.Count;
+                    Assert.NotEqual(0, count);
+                    if (requestedEndpointUrls == null) {
+                        activationStates.Add((string)json.items[0].activationState);
+                    } else {
+                        for (int indexOfRequestedOpcServer = 0;
+                            indexOfRequestedOpcServer < count;
+                            indexOfRequestedOpcServer++) {
+                            var endpoint = ((string)json.items[indexOfRequestedOpcServer].registration.endpointUrl).TrimEnd('/');
+                            if (requestedEndpointUrls.Contains(endpoint)) {
+                                activationStates.Add((string)json.items[indexOfRequestedOpcServer].activationState);
+                            }
+                        }
+                    }
+
                     // wait the endpoint to be connected
-                    if (activationState == "Activated") {
+                    if (activationStates.Any(s => s == "Activated")) {
                         await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, ct);
                     }
-                } while (activationState != "ActivatedAndConnected");
+
+                } while (activationStates.All(s => s != "ActivatedAndConnected"));
 
                 return json;
             }
             catch (Exception) {
                 context.OutputHelper?.WriteLine("Error: OPC UA endpoint couldn't be activated");
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Prints the exception message and stacktrace for exception (and all inner exceptions) in test output
+        /// </summary>
+        /// <param name="e">Exception to be printed</param>
+        /// <param name="outputHelper">XUnit Test OutputHelper instance or null (no print in this case)</param>
+        private static void PrettyPrintException(Exception e, ITestOutputHelper outputHelper) {
+            if (outputHelper == null) return;
+
+            var exception = e;
+            while (exception != null) {
+                outputHelper.WriteLine(exception.Message);
+                outputHelper.WriteLine(exception.StackTrace);
+                outputHelper.WriteLine("");
+                exception = exception.InnerException;
             }
         }
     }

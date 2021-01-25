@@ -9,7 +9,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     /// <summary>
     /// Test context to pass data between test cases for standalone tests.
     /// </summary>
-    public class IIoTStandaloneTestContext : IIoTPlatformTestContext {
+    public class IIoTStandaloneTestContext : IIoTMultipleNodesTestContext {
 
         /// <summary>
         /// Deployment for edgeHub and edgeAgent so called "base deployment"

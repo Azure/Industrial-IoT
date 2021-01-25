@@ -27,6 +27,9 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         protected override string DeploymentName => kDeploymentName;
 
         /// <inheritdoc />
+        protected override string TargetCondition => kTargetCondition;
+
+        /// <inheritdoc />
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
             var version = "1.0.9.4";
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(@"
@@ -94,5 +97,8 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
 
         private const string kDefaultSchemaVersion = "1.0";
         private const string kDeploymentName = "iiotedge";
+        // for E2E testing we use "unmanaged" for standalone testing
+        // base deployment need to be valid for both (managed and unmanaged)
+        private const string kTargetCondition = "tags.__type__ = 'iiotedge'";
     }
 }

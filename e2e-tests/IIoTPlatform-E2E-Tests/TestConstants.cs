@@ -33,7 +33,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// Maximum timeout for a test case
         /// </summary>
-        public const int MaxTestTimeoutMilliseconds = 10 * 60 * 1000;
+        public const int MaxTestTimeoutMilliseconds = 25 * 60 * 1000;
 
         /// <summary>
         /// Name of Published Nodes Json used by publisher module
@@ -52,9 +52,9 @@ namespace IIoTPlatform_E2E_Tests {
             PublishedNodesFolder.TrimEnd('/') + "/" + PublishedNodesFilename;
 
         /// <summary>
-        /// Target condition for standalone publisher
+        /// Default Microsoft Container Registry
         /// </summary>
-        public static readonly string TargetCondition = $"(tags.__type__ = 'iiotedge' AND tags.unmanaged = true) AND tags.os = 'Linux'";
+        public static readonly string MicrosoftContainerRegistry = "mcr.microsoft.com";
 
         /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
@@ -84,6 +84,11 @@ namespace IIoTPlatform_E2E_Tests {
             /// Route to publish single OPC UA node from OPC Publisher
             /// </summary>
             public static string PublisherStartFormat = "/publisher/v2/publish/{0}/start";
+
+            /// <summary>
+            /// Route to start or stop publishing multiple OPC UA nodes from OPC Publisher
+            /// </summary>
+            public static string PublisherBulkFormat = "/publisher/v2/publish/{0}/bulk";
 
             /// <summary>
             /// Route to read all publishing jobs

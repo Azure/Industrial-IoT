@@ -1,3 +1,5 @@
+using IIoTPlatform_E2E_Tests;
+using IIoTPlatform_E2E_Tests.TestExtensions;
 using System.Runtime.InteropServices;
 using Xunit;
 
@@ -17,5 +19,5 @@ using Xunit;
 
 [assembly: Guid("275eb2f6-3c8c-42e3-b3a7-d793b0363134")]
 
-// doactivate run of test in parallel
+// deactivate run of test in parallel
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
