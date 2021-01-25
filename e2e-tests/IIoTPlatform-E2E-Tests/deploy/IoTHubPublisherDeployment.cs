@@ -32,7 +32,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
 
             //should only be provided if the different container registry require username and password
             if (!string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) &&
-                _context.ContainerRegistryConfig.ContainerRegistryServer != "mcr.microsoft.com" &&
+                _context.ContainerRegistryConfig.ContainerRegistryServer != TestConstants.MicrosoftContainerRegistry &&
                 !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryPassword) &&
                 !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryUser)) {
                 var registryId = _context.ContainerRegistryConfig.ContainerRegistryServer.Split('.')[0];
@@ -61,7 +61,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
             }).Replace("\"", "\\\"");
 
             var server = string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) ?
-                "mcr.microsoft.com" : _context.ContainerRegistryConfig.ContainerRegistryServer;
+                TestConstants.MicrosoftContainerRegistry : _context.ContainerRegistryConfig.ContainerRegistryServer;
             var ns = string.IsNullOrEmpty(_context.ContainerRegistryConfig.ImagesNamespace) ? "" :
                 _context.ContainerRegistryConfig.ImagesNamespace.TrimEnd('/') + "/";
             var version = _context.ContainerRegistryConfig.ImagesTag ?? "latest";

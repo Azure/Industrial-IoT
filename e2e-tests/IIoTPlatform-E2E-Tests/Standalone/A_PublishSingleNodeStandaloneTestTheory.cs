@@ -56,7 +56,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { model }, _context, cts.Token).GetAwaiter().GetResult();
 
-            Task.Delay(60 * 1000, cts.Token).GetAwaiter().GetResult(); //wait some time till the updated pn.json is reflected
+            Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult(); //wait some time till the updated pn.json is reflected
         }
 
         [Fact, PriorityOrder(4)]
@@ -76,7 +76,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).GetAwaiter().GetResult();
 
             // wait some time to generate events to process
-            Task.Delay(90 * 1000, cts.Token).GetAwaiter().GetResult();
+            Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
         }
@@ -85,7 +85,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         public void Test_StopPublishingAllNodes_Expect_Success() {
             TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new PublishedNodesEntryModel[0], _context).GetAwaiter().GetResult();
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            Task.Delay(90 * 1000, cts.Token).GetAwaiter().GetResult(); //wait till the publishing has stopped
+            Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult(); //wait till the publishing has stopped
         }
 
         [Fact, PriorityOrder(7)]
@@ -95,7 +95,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).GetAwaiter().GetResult();
             // wait some time to generate events to process
-            Task.Delay(90 * 1000, cts.Token).GetAwaiter().GetResult();
+            Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult();
 
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.True((int)json.totalValueChangesCount == 0, "Messages received at IoT Hub");

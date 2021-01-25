@@ -52,6 +52,11 @@ namespace IIoTPlatform_E2E_Tests {
             PublishedNodesFolder.TrimEnd('/') + "/" + PublishedNodesFilename;
 
         /// <summary>
+        /// Default Microsoft Container Registry
+        /// </summary>
+        public static readonly string MicrosoftContainerRegistry = "mcr.microsoft.com";
+
+        /// <summary>
         /// Contains constants for all routes to Industrial IoT Platform
         /// </summary>
         internal static class APIRoutes {
