@@ -496,7 +496,7 @@ use `aiiot.yaml` that you created above and run the following command:
 helm install aiiot --namespace aiiot .\deploy\helm\azure-industrial-iot\ -f aiiot.yaml
 ```
 
-`aiiot.yaml` that we created above is for `0.3.0` version of the Helm chart. Please modify it accordingly if
+`aiiot.yaml` that we created above is for `0.3.1` version of the Helm chart. Please modify it accordingly if
 you install a different version of the chart. Please check documentation of each version for a list of
 applicable values for that specific version.
 
@@ -506,7 +506,7 @@ add Helm repository and then install the chart from there as shown bellow.
 ```bash
 helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
 helm repo update
-helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0.3.0 -f aiiot.yaml
+helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0.3.1 -f aiiot.yaml
 ```
 
 ### Check status of deployed resources
