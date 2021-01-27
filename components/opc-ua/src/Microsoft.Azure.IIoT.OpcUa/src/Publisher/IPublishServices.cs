@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
             PublishStartRequestModel request);
 
         /// <summary>
-        /// Start publishing node values
+        /// Stop publishing node values
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
