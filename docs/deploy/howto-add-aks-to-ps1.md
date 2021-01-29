@@ -505,7 +505,7 @@ For installing the chart, please use `aiiot.yaml` that you created above and run
 helm install aiiot --namespace aiiot .\deploy\helm\azure-industrial-iot\ -f aiiot.yaml
 ```
 
-`aiiot.yaml` that we created above is for `0.4.0` or `0.3.1` versions of the Helm chart. Please modify it
+`aiiot.yaml` that we created above is for `0.4.0` or `0.3.2` versions of the Helm chart. Please modify it
 accordingly if you want to install a different version of the chart. Please check documentation of each
 version for a list of applicable values for that specific version. Documentation links of different versions
 of the chart can be found in [Deploying Azure Industrial IoT Platform Microservices Using Helm](howto-deploy-helm.md).
