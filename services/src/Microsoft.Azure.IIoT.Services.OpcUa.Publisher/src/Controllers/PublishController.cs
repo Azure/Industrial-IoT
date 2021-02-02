@@ -90,13 +90,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <returns>The unpublish response</returns>
         [HttpPost("{endpointId}/stop")]
         public async Task<PublishStopResponseApiModel> StopPublishingValuesAsync(
-            string endpointId, [FromBody] [Required] PublishStopRequestApiModel request) {
+            string endpointId, [FromBody] [Required] PublishStopRequestApiModel request
+        ) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _publisher.NodePublishStopAsync(
-                endpointId, request.ToServiceModel());
-            return result.ToApiModel();
+            var stopRequestModel = request.ToServiceModel();
+            var stopResultModel = await _publisher.NodePublishStopAsync(endpointId, stopRequestModel);
+            var result = stopResultModel.ToApiModel();
+            return result;
         }
 
         /// <summary>

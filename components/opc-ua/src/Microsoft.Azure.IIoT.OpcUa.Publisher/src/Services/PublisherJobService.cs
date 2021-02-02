@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
@@ -15,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -29,8 +31,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
         /// <param name="jobs"></param>
         /// <param name="serializer"></param>
         /// <param name="config"></param>
-        public PublisherJobService(IEndpointRegistry endpoints, IJobScheduler jobs,
-            IJobSerializer serializer, IPublishServicesConfig config) {
+        public PublisherJobService(
+            IEndpointRegistry endpoints,
+            IJobScheduler jobs,
+            IJobSerializer serializer,
+            IPublishServicesConfig config
+        ) {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _endpoints = endpoints ?? throw new ArgumentNullException(nameof(endpoints));
             _jobs = jobs ?? throw new ArgumentNullException(nameof(jobs));
@@ -39,7 +45,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<PublishStartResultModel> NodePublishStartAsync(
-            string endpointId, PublishStartRequestModel request) {
+            string endpointId,
+            PublishStartRequestModel request,
+            CancellationToken ct = default
+        ) {
             kNodePublishStart.Inc();
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
@@ -54,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 throw new ArgumentNullException(nameof(request.Item.NodeId));
             }
 
-            var endpoint = await _endpoints.GetEndpointAsync(endpointId);
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, ct: ct);
             if (endpoint == null) {
                 throw new ArgumentException("Invalid endpointId");
             }
@@ -81,20 +90,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 }
                 job.Demands = PublisherDemands(endpoint);
                 return Task.FromResult(true);
-            });
+            }, ct);
             return new PublishStartResultModel();
         }
 
         /// <inheritdoc/>
-        public async Task<PublishBulkResultModel> NodePublishBulkAsync(string endpointId,
-            PublishBulkRequestModel request) {
+        public async Task<PublishBulkResultModel> NodePublishBulkAsync(
+            string endpointId,
+            PublishBulkRequestModel request,
+            CancellationToken ct = default
+        ) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var endpoint = await _endpoints.GetEndpointAsync(endpointId);
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, ct: ct);
             var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
                 var publishJob = AsJob(job);
                 var jobChanged = false;
@@ -129,7 +141,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                     job.Demands = PublisherDemands(endpoint);
                 }
                 return Task.FromResult(jobChanged);
-            });
+            }, ct);
             return new PublishBulkResultModel {
                 NodesToAdd = request.NodesToAdd?
                     .Select(_ => new ServiceResultModel()).ToList(),
@@ -140,7 +152,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
 
         /// <inheritdoc/>
         public async Task<PublishStopResultModel> NodePublishStopAsync(
-            string endpointId, PublishStopRequestModel request) {
+            string endpointId,
+            PublishStopRequestModel request,
+            CancellationToken ct = default
+        ) {
             kNodePublishStop.Inc();
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
@@ -152,15 +167,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 throw new ArgumentNullException(nameof(request.NodeId));
             }
 
-            var endpoint = await _endpoints.GetEndpointAsync(endpointId);
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId, ct: ct);
             if (endpoint == null) {
                 throw new ArgumentException("Invalid endpointId");
             }
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
 
+            var jobChanged = false;
+            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
                 // remove from job
                 var publishJob = AsJob(job);
-                var jobChanged = RemoveItemFromJob(publishJob, request.NodeId,
+                jobChanged = RemoveItemFromJob(publishJob, request.NodeId,
                     new ConnectionModel {
                         Endpoint = endpoint.Registration.Endpoint,
                         Diagnostics = request.Header?.Diagnostics,
@@ -177,15 +193,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                     }
                     job.Demands = PublisherDemands(endpoint);
                 }
+
+                // Return whether the provided job has been changed or not.
                 return Task.FromResult(jobChanged);
-            });
+            }, ct);
+
+            if (!jobChanged) {
+                throw new ResourceNotFoundException($"Job does not contain node id: {request.NodeId}");
+            }
 
             return new PublishStopResultModel();
         }
 
         /// <inheritdoc/>
         public async Task<PublishedItemListResultModel> NodePublishListAsync(
-            string endpointId, PublishedItemListRequestModel request) {
+            string endpointId,
+            PublishedItemListRequestModel request,
+            CancellationToken ct = default
+        ) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
@@ -207,7 +232,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                         }))
                     .ToList();
                 return Task.FromResult(false);
-            });
+            }, ct);
             return new PublishedItemListResultModel {
                 Items = list
             };
@@ -290,10 +315,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
         /// <param name="publisherId"></param>
         /// <param name="connection"></param>
         /// <param name="dataSetWriterName"></param>
-        private void AddOrUpdateItemInJob(WriterGroupJobModel publishJob,
-            PublishedItemModel publishedItem, string endpointId, string publisherId,
-            ConnectionModel connection, string dataSetWriterName = null) {
-
+        private void AddOrUpdateItemInJob(
+            WriterGroupJobModel publishJob,
+            PublishedItemModel publishedItem,
+            string endpointId,
+            string publisherId,
+            ConnectionModel connection,
+            string dataSetWriterName = null
+        ) {
             var dataSetWriterId =
                 (string.IsNullOrEmpty(dataSetWriterName) ? GetDefaultId(endpointId) : dataSetWriterName) +
                 (publishedItem.PublishingInterval.HasValue ?
@@ -385,13 +414,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
         }
 
         /// <summary>
-        /// Add or update subscription
+        /// Remove a node from job.
         /// </summary>
         /// <param name="publishJob"></param>
         /// <param name="nodeId"></param>
         /// <param name="connection"></param>
-        private bool RemoveItemFromJob(WriterGroupJobModel publishJob,
-            string nodeId, ConnectionModel connection) {
+        /// <returns> Returns true if an item has been removed from the job, false otherwise. </returns>
+        private bool RemoveItemFromJob(
+            WriterGroupJobModel publishJob,
+            string nodeId,
+            ConnectionModel connection
+        ) {
             var found = false;
             foreach (var writer in publishJob.WriterGroup.DataSetWriters.ToList()) {
                 if (!writer.DataSet.DataSetSource.Connection.Endpoint.IsSameAs(connection.Endpoint)) {
