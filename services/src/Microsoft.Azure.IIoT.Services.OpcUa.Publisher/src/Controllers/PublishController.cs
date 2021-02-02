@@ -72,9 +72,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _publisher.NodePublishBulkAsync(
-                endpointId, request.ToServiceModel());
-            return result.ToApiModel();
+            var requestModel = request.ToServiceModel();
+            var resultModel = await _publisher.NodePublishBulkAsync(endpointId, requestModel);
+            var result = resultModel.ToApiModel();
+            return result;
         }
 
         /// <summary>

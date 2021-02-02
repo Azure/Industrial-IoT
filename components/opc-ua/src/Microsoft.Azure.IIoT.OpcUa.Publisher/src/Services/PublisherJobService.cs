@@ -68,18 +68,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 throw new ArgumentException("Invalid endpointId");
             }
 
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
+            var jobId = GetDefaultId(endpointId);
+            var result = await _jobs.NewOrUpdateJobAsync(jobId, job => {
                 var publishJob = AsJob(job);
                 // TODO change to application uri?
                 job.Name = endpoint.ApplicationId;
                 publishJob.WriterGroup.WriterGroupId = GetDefaultId(endpoint.Registration.EndpointUrl);
                 // Add subscription
-                AddOrUpdateItemInJob(publishJob, request.Item, endpointId, job.Id,
-                    new ConnectionModel {
-                        Endpoint = endpoint.Registration.Endpoint,
-                        Diagnostics = request.Header?.Diagnostics,
-                        User = request.Header?.Elevation
-                    });
+                var connection = new ConnectionModel {
+                    Endpoint = endpoint.Registration.Endpoint,
+                    Diagnostics = request.Header?.Diagnostics,
+                    User = request.Header?.Elevation
+                };
+                AddOrUpdateItemInJob(publishJob, request.Item, endpointId, job.Id, connection);
 
                 job.JobConfiguration = _serializer.SerializeJobConfiguration(
                     publishJob, out var jobType);
@@ -106,8 +107,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
+
             var endpoint = await _endpoints.GetEndpointAsync(endpointId, ct: ct);
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
+            if (endpoint == null) {
+                throw new ArgumentException("Invalid endpointId");
+            }
+
+            var jobId = GetDefaultId(endpointId);
+            var result = await _jobs.NewOrUpdateJobAsync(jobId, job => {
                 var publishJob = AsJob(job);
                 var jobChanged = false;
                 var connection = new ConnectionModel {
@@ -116,6 +123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                     User = request.Header?.Elevation
                 };
 
+                // Add nodes.
                 if (request.NodesToAdd != null) {
                     var dataSetWriterName = Guid.NewGuid().ToString();
                     foreach (var item in request.NodesToAdd) {
@@ -124,9 +132,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                         jobChanged = true;
                     }
                 }
+
+                // Remove nodes.
                 if (request.NodesToRemove != null) {
                     foreach (var item in request.NodesToRemove) {
-                        jobChanged = RemoveItemFromJob(publishJob, item, connection);
+                        jobChanged |= RemoveItemFromJob(publishJob, item, connection);
                     }
                 }
 
@@ -173,15 +183,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             }
 
             var jobChanged = false;
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
+            var jobId = GetDefaultId(endpointId);
+            var result = await _jobs.NewOrUpdateJobAsync(jobId, job => {
                 // remove from job
                 var publishJob = AsJob(job);
-                jobChanged = RemoveItemFromJob(publishJob, request.NodeId,
-                    new ConnectionModel {
-                        Endpoint = endpoint.Registration.Endpoint,
-                        Diagnostics = request.Header?.Diagnostics,
-                        User = request.Header?.Elevation
-                    });
+                var connection = new ConnectionModel {
+                    Endpoint = endpoint.Registration.Endpoint,
+                    Diagnostics = request.Header?.Diagnostics,
+                    User = request.Header?.Elevation
+                };
+                jobChanged = RemoveItemFromJob(publishJob, request.NodeId, connection);
 
                 if (jobChanged) {
                     job.JobConfiguration = _serializer.SerializeJobConfiguration(
@@ -218,7 +229,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 throw new ArgumentNullException(nameof(request));
             }
             List<PublishedItemModel> list = null;
-            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
+            var jobId = GetDefaultId(endpointId);
+            var result = await _jobs.NewOrUpdateJobAsync(jobId, job => {
                 var publishJob = AsJob(job);
                 list = publishJob.WriterGroup.DataSetWriters
                     .Select(writer => writer.DataSet.DataSetSource)
