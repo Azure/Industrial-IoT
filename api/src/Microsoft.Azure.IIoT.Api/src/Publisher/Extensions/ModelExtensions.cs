@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Auth.Models;
     using System.Linq;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Api model extensions
@@ -2015,18 +2016,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         /// <param name="model"></param>
         public static PublishBulkResponseApiModel ToApiModel(
-            this PublishBulkResultModel model) {
+            this PublishBulkResultModel model
+        ) {
             if (model == null) {
                 return null;
             }
-            return new PublishBulkResponseApiModel {
+
+            var apiModel = new PublishBulkResponseApiModel {
                 NodesToAdd = model.NodesToAdd?
-                    .Select(n => n.ToApiModel())
-                    .ToList(),
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToApiModel()),
                 NodesToRemove = model.NodesToRemove?
-                    .Select(n => n.ToApiModel())
-                    .ToList()
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToApiModel())
             };
+
+            return apiModel;
         }
 
         /// <summary>
@@ -2034,18 +2037,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         /// <param name="model"></param>
         public static PublishBulkResultModel ToServiceModel(
-            this PublishBulkResponseApiModel model) {
+            this PublishBulkResponseApiModel model
+        ) {
             if (model == null) {
                 return null;
             }
-            return new PublishBulkResultModel {
+
+            var serviceModel = new PublishBulkResultModel {
                 NodesToAdd = model.NodesToAdd?
-                    .Select(n => n.ToServiceModel())
-                    .ToList(),
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToServiceModel()),
                 NodesToRemove = model.NodesToRemove?
-                    .Select(n => n.ToServiceModel())
-                    .ToList()
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToServiceModel())
             };
+
+            return serviceModel;
         }
 
         /// <summary>

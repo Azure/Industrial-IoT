@@ -152,12 +152,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 }
                 return Task.FromResult(jobChanged);
             }, ct);
-            return new PublishBulkResultModel {
+
+            var bulkResult = new PublishBulkResultModel {
                 NodesToAdd = request.NodesToAdd?
-                    .Select(_ => new ServiceResultModel()).ToList(),
+                    .ToDictionary(node => node.NodeId, node => new ServiceResultModel()),
                 NodesToRemove = request.NodesToRemove?
-                    .Select(_ => new ServiceResultModel()).ToList(),
+                    .ToDictionary(node => node, node => new ServiceResultModel())
             };
+
+            return bulkResult;
         }
 
         /// <inheritdoc/>

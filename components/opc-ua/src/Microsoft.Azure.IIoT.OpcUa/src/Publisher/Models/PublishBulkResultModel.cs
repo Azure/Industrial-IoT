@@ -15,11 +15,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Node to add
         /// </summary>
-        public List<ServiceResultModel> NodesToAdd { get; set; }
+        public Dictionary<string, ServiceResultModel> NodesToAdd { get; set; }
 
         /// <summary>
         /// Node to remove
         /// </summary>
-        public List<ServiceResultModel> NodesToRemove { get; set; }
+        public Dictionary<string, ServiceResultModel> NodesToRemove { get; set; }
     }
 }
