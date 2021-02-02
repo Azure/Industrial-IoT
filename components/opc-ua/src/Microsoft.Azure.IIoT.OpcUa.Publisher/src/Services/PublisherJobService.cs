@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -113,6 +114,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 throw new ArgumentException("Invalid endpointId");
             }
 
+            PublishBulkResultModel bulkResult = null;
+
             var jobId = GetDefaultId(endpointId);
             var result = await _jobs.NewOrUpdateJobAsync(jobId, job => {
                 var publishJob = AsJob(job);
@@ -123,20 +126,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                     User = request.Header?.Elevation
                 };
 
+                bulkResult = new PublishBulkResultModel {
+                    NodesToAdd = new Dictionary<string, ServiceResultModel>(),
+                    NodesToRemove = new Dictionary<string, ServiceResultModel>()
+                };
+
                 // Add nodes.
-                if (request.NodesToAdd != null) {
+                if (request.NodesToAdd != null && request.NodesToAdd.Count() > 0) {
                     var dataSetWriterName = Guid.NewGuid().ToString();
                     foreach (var item in request.NodesToAdd) {
                         AddOrUpdateItemInJob(publishJob, item, endpointId, job.Id,
                             connection, dataSetWriterName);
                         jobChanged = true;
+
+                        bulkResult.NodesToAdd.Add(item.NodeId, new ServiceResultModel());
                     }
                 }
 
                 // Remove nodes.
-                if (request.NodesToRemove != null) {
+                if (request.NodesToRemove != null && request.NodesToRemove.Count() > 0) {
                     foreach (var item in request.NodesToRemove) {
-                        jobChanged |= RemoveItemFromJob(publishJob, item, connection);
+                        var currentJobChanged = RemoveItemFromJob(publishJob, item, connection);
+                        jobChanged |= currentJobChanged;
+
+                        var serviceResultModel = currentJobChanged
+                            ? new ServiceResultModel()
+                            : new ServiceResultModel() {
+                                StatusCode = (uint) HttpStatusCode.NotFound,
+                                ErrorMessage = "Job not found"
+                            };
+                        bulkResult.NodesToRemove.Add(item, serviceResultModel);
                     }
                 }
 
@@ -152,13 +171,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 }
                 return Task.FromResult(jobChanged);
             }, ct);
-
-            var bulkResult = new PublishBulkResultModel {
-                NodesToAdd = request.NodesToAdd?
-                    .ToDictionary(node => node.NodeId, node => new ServiceResultModel()),
-                NodesToRemove = request.NodesToRemove?
-                    .ToDictionary(node => node, node => new ServiceResultModel())
-            };
 
             return bulkResult;
         }
