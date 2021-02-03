@@ -199,7 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
 
             var jobChanged = false;
             var jobId = GetDefaultId(endpointId);
-            var result = await _jobs.NewOrUpdateJobAsync(jobId, job => {
+            await _jobs.NewOrUpdateJobAsync(jobId, job => {
                 // remove from job
                 var publishJob = AsJob(job);
                 var connection = new ConnectionModel {
