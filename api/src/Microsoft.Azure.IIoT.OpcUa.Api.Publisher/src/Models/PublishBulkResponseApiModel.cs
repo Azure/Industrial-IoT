@@ -18,13 +18,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "nodesToAdd", Order = 0,
             EmitDefaultValue = false)]
-        public Dictionary<string, ServiceResultApiModel> NodesToAdd { get; set; }
+        public IDictionary<string, ServiceResultApiModel> NodesToAdd { get; set; }
 
         /// <summary>
         /// Node to remove
         /// </summary>
         [DataMember(Name = "nodesToRemove", Order = 1,
             EmitDefaultValue = false)]
-        public Dictionary<string, ServiceResultApiModel> NodesToRemove { get; set; }
+        public IDictionary<string, ServiceResultApiModel> NodesToRemove { get; set; }
     }
 }
