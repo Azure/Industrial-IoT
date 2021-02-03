@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Extensions.Configuration;
     using Moq;
     using Autofac.Extras.Moq;
@@ -1165,12 +1166,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                 });
 
                 Assert.NotNull(result);
+                var nodesToAddErrors = result.NodesToAdd.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(0, nodesToAddErrors);
+                var nodesToRemoveErrors = result.NodesToRemove.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(0, nodesToRemoveErrors);
 
                 result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
                     NodesToRemove = nodesToRemove
                 });
 
                 Assert.NotNull(result);
+                nodesToAddErrors = result.NodesToAdd.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(0, nodesToAddErrors);
+                nodesToRemoveErrors = result.NodesToRemove.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(0, nodesToRemoveErrors);
 
                 var list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
                     ContinuationToken = null
@@ -1192,15 +1201,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
                             }
                         }
                     });
+
                     Assert.NotNull(result);
+                    nodesToAddErrors = result.NodesToAdd.Count(el => el.Value.StatusCode != null);
+                    Assert.Equal(0, nodesToAddErrors);
+                    nodesToRemoveErrors = result.NodesToRemove.Count(el => el.Value.StatusCode != null);
+                    Assert.Equal(0, nodesToRemoveErrors);
                 }
+
                 for (var i = 0; i < 50; i++) {
                     result = await service.NodePublishBulkAsync("endpoint1", new PublishBulkRequestModel {
                         NodesToRemove = new List<string> {
                                 "i=" + (i + 2000)
                             }
                     });
+
                     Assert.NotNull(result);
+                    nodesToAddErrors = result.NodesToAdd.Count(el => el.Value.StatusCode != null);
+                    Assert.Equal(0, nodesToAddErrors);
+                    nodesToRemoveErrors = result.NodesToRemove.Count(el => el.Value.StatusCode != null);
+                    Assert.Equal(0, nodesToRemoveErrors);
                 }
 
                 list = await service.NodePublishListAsync("endpoint1", new PublishedItemListRequestModel {
@@ -1214,14 +1234,205 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Services {
             }
         }
 
+        [Fact]
+        public async Task NodePublishStopNotExistingTest1Async() {
+            // We will try to stop publishing a node that is not present in any jobs.
+            // The call itself must throw ResourceNotFoundException exception.
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                var nodeId = "i=11211";
+                async Task<PublishStopResultModel> action() => await service.NodePublishStopAsync(
+                    "endpoint1",
+                    new PublishStopRequestModel {
+                        NodeId = nodeId
+                    }
+                );
+
+                var ex = await Assert.ThrowsAsync<ResourceNotFoundException>(action);
+                Assert.Contains($"Job does not contain node id: {nodeId}", ex.Message);
+            }
+        }
+
+        [Fact]
+        public async Task NodePublishStopNotExistingTest2Async() {
+            // We will try to start publishing a node and then stop publishing it twice.
+            // The second call must throw ResourceNotFoundException exception.
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                var endpoint = "testEndpoint";
+                var nodeId = "i=11211";
+
+                await service.NodePublishStartAsync(
+                    endpoint,
+                    new PublishStartRequestModel {
+                        Item = new PublishedItemModel {
+                            NodeId = nodeId
+                        }
+                    }
+                );
+
+                async Task<PublishStopResultModel> action() => await service.NodePublishStopAsync(
+                    endpoint,
+                    new PublishStopRequestModel {
+                        NodeId = nodeId
+                    }
+                );
+
+                // First call to remove the node.
+                await action();
+
+                // Second call to remove the node. Should throw ResourceNotFoundException.
+                var ex = await Assert.ThrowsAsync<ResourceNotFoundException>(action);
+                Assert.Contains($"Job does not contain node id: {nodeId}", ex.Message);
+            }
+        }
+
+        [Fact]
+        public async Task BulkPublishRemoveNodesTestAsync() {
+            // Here we will check that correct errors are reported back when using
+            // bulk publishing API to unpublish nodes that are not present in any jobs.
+
+            using (var mock = Setup((v, q) => {
+                throw new AssertActualExpectedException(null, q, "Query");
+            })) {
+
+                IPublishServices<string> service = mock.Create<PublisherJobService>();
+
+                var endpoint = "testEndpoint";
+                var node0 = "i=22580_0";
+                var node1 = "i=22580_1";
+                var node2 = "i=22580_2";
+
+                var result = await service.NodePublishBulkAsync(endpoint, new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel { NodeId = node0 },
+                        new PublishedItemModel { NodeId = node1 },
+                    },
+                    NodesToRemove = new List<string> {
+                        node2
+                    }
+                });
+
+                // Check NodePublishBulkAsync() call result
+                Assert.NotNull(result);
+                var nodesToAddErrors = result.NodesToAdd.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(0, nodesToAddErrors);
+                var nodesToRemoveErrors = result.NodesToRemove.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(1, nodesToRemoveErrors);
+                var nodesToRemoveNotFound = result.NodesToRemove.Count(el => el.Value.StatusCode == 404);
+                Assert.Equal(1, nodesToRemoveErrors);
+
+                var publishedNodesList = await service.NodePublishListAsync(endpoint, new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Check list of published nodes for the endpoint after NodePublishBulkAsync() call.
+                Assert.NotNull(publishedNodesList);
+                Assert.Equal(2, publishedNodesList.Items.Count());
+                Assert.Equal(node0, publishedNodesList.Items[0].NodeId);
+                Assert.Equal(node1, publishedNodesList.Items[1].NodeId);
+                Assert.Null(publishedNodesList.ContinuationToken);
+
+                result = await service.NodePublishBulkAsync(endpoint, new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {
+                        new PublishedItemModel { NodeId = node0 },
+                        new PublishedItemModel { NodeId = node2 },
+                    },
+                    NodesToRemove = new List<string> {
+                        node1
+                    }
+                });
+
+                // Check NodePublishBulkAsync() call result
+                Assert.NotNull(result);
+                nodesToAddErrors = result.NodesToAdd.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(0, nodesToAddErrors);
+                nodesToRemoveErrors = result.NodesToRemove.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(0, nodesToRemoveErrors);
+
+                publishedNodesList = await service.NodePublishListAsync(endpoint, new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Check list of published nodes for the endpoint after NodePublishBulkAsync() call.
+                Assert.NotNull(publishedNodesList);
+                Assert.Equal(2, publishedNodesList.Items.Count());
+                Assert.Equal(node0, publishedNodesList.Items[0].NodeId);
+                Assert.Equal(node2, publishedNodesList.Items[1].NodeId);
+                Assert.Null(publishedNodesList.ContinuationToken);
+
+                result = await service.NodePublishBulkAsync(endpoint, new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> {},
+                    NodesToRemove = new List<string> {
+                        node0,
+                        node2
+                    }
+                });
+
+                // Check NodePublishBulkAsync() call result
+                Assert.NotNull(result);
+                nodesToAddErrors = result.NodesToAdd.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(0, nodesToAddErrors);
+                nodesToRemoveErrors = result.NodesToRemove.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(0, nodesToRemoveErrors);
+
+                publishedNodesList = await service.NodePublishListAsync(endpoint, new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Check list of published nodes for the endpoint after NodePublishBulkAsync() call.
+                Assert.NotNull(publishedNodesList);
+                Assert.Empty(publishedNodesList.Items);
+
+                // Let's call unpublish for the same nodes again.
+                result = await service.NodePublishBulkAsync(endpoint, new PublishBulkRequestModel {
+                    NodesToAdd = new List<PublishedItemModel> { },
+                    NodesToRemove = new List<string> {
+                        node0,
+                        node2
+                    }
+                });
+
+                // Check NodePublishBulkAsync() call result
+                Assert.NotNull(result);
+                nodesToAddErrors = result.NodesToAdd.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(0, nodesToAddErrors);
+                nodesToRemoveErrors = result.NodesToRemove.Count(el => el.Value.StatusCode != null);
+                Assert.Equal(2, nodesToRemoveErrors);
+
+                publishedNodesList = await service.NodePublishListAsync(endpoint, new PublishedItemListRequestModel {
+                    ContinuationToken = null
+                });
+
+                // Check list of published nodes for the endpoint after NodePublishBulkAsync() call.
+                Assert.NotNull(publishedNodesList);
+                Assert.Empty(publishedNodesList.Items);
+            }
+        }
+
         /// <summary>
         /// Setup mock
         /// </summary>
         /// <param name="provider"></param>
         /// <param name="configuration"></param>
-        private static AutoMock Setup(Func<IEnumerable<IDocumentInfo<VariantValue>>,
-            string, IEnumerable<IDocumentInfo<VariantValue>>> provider,
-            IConfiguration configuration = null) {
+        private static AutoMock Setup(
+            Func<
+                IEnumerable<IDocumentInfo<VariantValue>>,
+                string,
+                IEnumerable<IDocumentInfo<VariantValue>>
+            > provider,
+            IConfiguration configuration = null
+        ) {
             var mock = AutoMock.GetLoose(builder => {
                 // Setup configuration
                 var conf = configuration ?? new ConfigurationBuilder()

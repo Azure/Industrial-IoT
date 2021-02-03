@@ -1,10 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -20,10 +21,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         /// </summary>
         /// <param name="jobRepository"></param>
         /// <param name="jobRepositoryEventHandlers"></param>
-        public DefaultJobService(IJobRepository jobRepository,
-            IEnumerable<IJobEventHandler> jobRepositoryEventHandlers) {
-            _jobRepository = jobRepository;
-            _jobRepositoryEventHandlers = jobRepositoryEventHandlers;
+        public DefaultJobService(
+            IJobRepository jobRepository,
+            IEnumerable<IJobEventHandler> jobRepositoryEventHandlers
+        ) {
+            _jobRepository = jobRepository ?? throw new ArgumentNullException(nameof(jobRepository));
+            _jobRepositoryEventHandlers = jobRepositoryEventHandlers ?? throw new ArgumentNullException(nameof(jobRepositoryEventHandlers));
         }
 
         /// <inheritdoc/>
@@ -114,19 +117,25 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         }
 
         /// <inheritdoc/>
-        public async Task DeleteJobAsync(string jobId, CancellationToken ct) {
+        public async Task<JobInfoModel> DeleteJobAsync(string jobId, CancellationToken ct) {
             var job = await _jobRepository.DeleteAsync(jobId, async model => {
                 foreach (var jreh in _jobRepositoryEventHandlers) {
                     await jreh.OnJobDeletingAsync(this, model);
                 }
                 return true;
             }, ct);
-            if (job != null) {
-                // Success
-                foreach (var jreh in _jobRepositoryEventHandlers) {
-                    await jreh.OnJobDeletedAsync(this, job);
-                }
+
+            // No job has been deleted
+            if (job is null) {
+                throw new ResourceNotFoundException("Job not found");
             }
+
+            // Success, a job has been deleted
+            foreach (var jreh in _jobRepositoryEventHandlers) {
+                await jreh.OnJobDeletedAsync(this, job);
+            }
+
+            return job;
         }
 
         /// <inheritdoc/>
@@ -154,8 +163,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
         }
 
         /// <inheritdoc/>
-        public async Task RestartJobAsync(string jobId, CancellationToken ct) {
-            await _jobRepository.UpdateAsync(jobId, job => {
+        public async Task<JobInfoModel> RestartJobAsync(string jobId, CancellationToken ct) {
+            var job = await _jobRepository.UpdateAsync(jobId, job => {
                 if (job.LifetimeData.Status == JobStatus.Deleted ||
                     job.LifetimeData.Status == JobStatus.Active) {
                     return Task.FromResult(false);  // Nothing to do
@@ -163,6 +172,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                 job.LifetimeData.Status = JobStatus.Active;
                 return Task.FromResult(true);
             }, ct);
+
+            return job;
         }
 
         /// <inheritdoc/>
