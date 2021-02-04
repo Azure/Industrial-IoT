@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="jobId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task RestartJobAsync(string jobId, CancellationToken ct = default);
+        Task<JobInfoModel> RestartJobAsync(string jobId, CancellationToken ct = default);
 
         /// <summary>
         /// Deletes a job
@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="jobId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task DeleteJobAsync(string jobId, CancellationToken ct = default);
+        Task<JobInfoModel> DeleteJobAsync(string jobId, CancellationToken ct = default);
 
         /// <summary>
         /// Get job or throws if not found.
@@ -63,7 +63,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="jobId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<JobInfoModel> GetJobAsync(string jobId,
-            CancellationToken ct = default);
+        Task<JobInfoModel> GetJobAsync(string jobId, CancellationToken ct = default);
     }
 }

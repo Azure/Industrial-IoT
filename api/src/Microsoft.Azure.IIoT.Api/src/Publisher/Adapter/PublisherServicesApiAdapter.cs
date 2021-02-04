@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using System;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Implements node and publish services as adapter on top of api.
@@ -25,33 +26,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
 
         /// <inheritdoc/>
         public async Task<PublishStartResultModel> NodePublishStartAsync(
-            string endpoint, PublishStartRequestModel request) {
+            string endpoint,
+            PublishStartRequestModel request,
+            CancellationToken ct = default
+        ) {
             var result = await _client.NodePublishStartAsync(endpoint,
-                request.ToApiModel());
+                request.ToApiModel(), ct);
             return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<PublishStopResultModel> NodePublishStopAsync(
-            string endpoint, PublishStopRequestModel request) {
+            string endpoint,
+            PublishStopRequestModel request,
+            CancellationToken ct = default
+        ) {
             var result = await _client.NodePublishStopAsync(endpoint,
-                request.ToApiModel());
+                request.ToApiModel(), ct);
             return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<PublishBulkResultModel> NodePublishBulkAsync(
-            string endpoint, PublishBulkRequestModel request) {
+            string endpoint,
+            PublishBulkRequestModel request,
+            CancellationToken ct = default
+        ) {
             var result = await _client.NodePublishBulkAsync(endpoint,
-                request.ToApiModel());
+                request.ToApiModel(), ct);
             return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<PublishedItemListResultModel> NodePublishListAsync(
-            string endpoint, PublishedItemListRequestModel request) {
+            string endpoint,
+            PublishedItemListRequestModel request,
+            CancellationToken ct = default
+        ) {
             var result = await _client.NodePublishListAsync(endpoint,
-                request.ToApiModel());
+                request.ToApiModel(), ct);
             return result.ToServiceModel();
         }
 
