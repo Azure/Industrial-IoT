@@ -172,6 +172,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public string ApplicationCertificateSubjectName { get; set; }
 
         /// <summary>
+        /// App  name
+        /// </summary>
+        public string ApplicationName { get; set; }
+
+        /// <summary>
         /// Peer cert path
         /// </summary>
         public string TrustedPeerCertificatesPath { get; set; }
