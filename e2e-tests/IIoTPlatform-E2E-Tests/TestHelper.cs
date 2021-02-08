@@ -328,7 +328,7 @@ namespace IIoTPlatform_E2E_Tests {
             };
 
             var body = new {
-                CommandType = 0,
+                CommandType = CommandEnum.Start,
                 Configuration = new {
                     IoTHubEventHubEndpointConnectionString = context.IoTHubConfig.IoTHubEventHubConnectionString,
                     StorageConnectionString = context.IoTHubConfig.CheckpointStorageConnectionString,
@@ -366,7 +366,7 @@ namespace IIoTPlatform_E2E_Tests {
             };
 
             var body = new {
-                CommandType = 1,
+                CommandType = CommandEnum.Stop,
             };
 
             var request = new RestRequest(Method.PUT);
