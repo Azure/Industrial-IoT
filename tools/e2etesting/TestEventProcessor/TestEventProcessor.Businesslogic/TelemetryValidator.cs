@@ -70,13 +70,6 @@ namespace TestEventProcessor.BusinessLogic {
         /// Create instance of TelemetryValidator
         /// </summary>
         /// <param name="logger">Instance to write logs</param>
-        /// <param name="iotHubConnectionString">Connection string for integrated event hub endpoint of IoTHub</param>
-        /// <param name="storageConnectionString">Connection string for storage account</param>
-        /// <param name="expectedValueChangesPerTimestamp">Number of value changes per timestamp</param>
-        /// <param name="expectedIntervalOfValueChanges">Time difference between values changes in milliseconds</param>
-        /// <param name="blobContainerName">Identifier of blob container within storage account</param>
-        /// <param name="eventHubConsumerGroup">Identifier of consumer group of event hub</param>
-        /// <param name="thresholdValue">Value that will be used to define range within timings expected as equal (in milliseconds)</param>
         public TelemetryValidator(ILogger<TelemetryValidator> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -199,14 +192,16 @@ namespace TestEventProcessor.BusinessLogic {
                     allExpectedValueChanges);
             }
 
-            return new StopResult() {
-                    ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(_valueChangesPerNodeId ?? new ConcurrentDictionary<string, int>()),
-                    AllExpectedValueChanges = allExpectedValueChanges,
-                    TotalValueChangesCount = _totalValueChangesCount,
-                    AllInExpectedInterval = allInExpectedInterval,
-                    StartTime = _startTime,
-                    EndTime = endTime,
-                };
+            var stopResult =  new StopResult() {
+                ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(_valueChangesPerNodeId ?? new ConcurrentDictionary<string, int>()),
+                AllExpectedValueChanges = allExpectedValueChanges,
+                TotalValueChangesCount = _totalValueChangesCount,
+                AllInExpectedInterval = allInExpectedInterval,
+                StartTime = _startTime,
+                EndTime = endTime,
+            };
+
+            return stopResult;
         }
 
         /// <summary>
