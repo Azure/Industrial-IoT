@@ -28,13 +28,13 @@ namespace TestEventProcessor.BusinessLogic {
     {
         private CancellationTokenSource _cancellationTokenSource;
         private EventProcessorClient _client = null;
-        private TimeSpan _opcDiffToNow = TimeSpan.Zero;
         private DateTime _startTime = DateTime.MinValue;
         private int _totalValueChangesCount = 0;
         private int _shuttingDown;
 
         // Checkers
         private MissingTimestampsChecker _missingTimestampsChecker;
+        private DelayChangeChecker _delayChangeChecker;
 
         /// <summary>
         /// Dictionary containing all sequence numbers related to a timestamp
@@ -153,6 +153,7 @@ namespace TestEventProcessor.BusinessLogic {
 
             _startTime = DateTime.UtcNow;
 
+            // Initialize checkers.
             _missingTimestampsChecker = new MissingTimestampsChecker(
                 TimeSpan.FromMilliseconds(_currentConfiguration.ExpectedIntervalOfValueChanges),
                 TimeSpan.FromMilliseconds(_currentConfiguration.ThresholdValue),
@@ -163,8 +164,13 @@ namespace TestEventProcessor.BusinessLogic {
                 token
             ).Start();
 
+            _delayChangeChecker = new DelayChangeChecker(
+                TimeSpan.FromMilliseconds(_currentConfiguration.ThresholdValue),
+                _logger
+            );
+
+            // Start local checks.
             CheckForMissingValueChangesAsync(token).Start();
-            CheckForMissingTimestampsAsync(token).Start();
 
             return new StartResult();
         }
@@ -185,11 +191,6 @@ namespace TestEventProcessor.BusinessLogic {
 
             // to finish up messages related to a timestamp, we collect some more time
             await Task.Delay(kStopDelayMilliseconds);
-
-            // check one last time if all messages related for timestamp are received
-            CheckForMissingTimestamps();
-            bool allInExpectedInterval = _observedTimestamps.IsEmpty;
-            _logger.LogInformation("Number of incomplete timestamps while stopping: {IncompleteTimestamps}", _observedTimestamps.Count);
 
             if (_cancellationTokenSource != null) {
                 _cancellationTokenSource.Cancel();
@@ -348,63 +349,6 @@ namespace TestEventProcessor.BusinessLogic {
         }
 
         /// <summary>
-        /// Running a thread that analyze that timestamps continually received (with expected interval)
-        /// </summary>
-        /// <param name="token">Token to cancel the thread</param>
-        /// <returns>Task that run until token is canceled</returns>
-        private Task CheckForMissingTimestampsAsync(CancellationToken token)
-        {
-            return new Task(() => {
-                try
-                {
-                    while (!token.IsCancellationRequested) {
-
-                        CheckForMissingTimestamps();
-                        Task.Delay(kMissingTimestampsCheckDelayMilliseconds, token).Wait(token);
-                    }
-                }
-                catch (OperationCanceledException oce)
-                {
-                    if (oce.CancellationToken == token)
-                    {
-                        return;
-                    }
-                    throw;
-                }
-            }, token);
-        }
-
-        private void CheckForMissingTimestamps()
-        {
-            while (_observedTimestamps.Count >= 2)
-            {
-                bool success = _observedTimestamps.TryDequeue(out var older);
-                success &= _observedTimestamps.TryDequeue(out var newer);
-
-                if (!success) {
-                    _logger.LogError("Can't dequeue timestamps from internal storage");
-                }
-
-                // compare on milliseconds isn't useful, instead try time window of 100 milliseconds
-                var expectedTime = older.AddMilliseconds(_currentConfiguration.ExpectedIntervalOfValueChanges);
-
-                var expectedMin = expectedTime.AddMilliseconds(-_currentConfiguration.ThresholdValue);
-                var expectedMax = expectedTime.AddMilliseconds(_currentConfiguration.ThresholdValue);
-
-                if (newer < expectedMin || newer > expectedMax) {
-                    var expectedTS = expectedTime.ToString(_dateTimeFormat);
-                    var olderTS = older.ToString(_dateTimeFormat);
-                    var newerTS = newer.ToString(_dateTimeFormat);
-                    _logger.LogWarning(
-                        "Missing timestamp, value changes for {ExpectedTs} not received, predecessor {Older} successor {Newer}",
-                        expectedTS,
-                        olderTS,
-                        newerTS);
-                }
-            }
-        }
-
-        /// <summary>
         /// Analyze payload of IoTHub message, adding timestamp and related sequence numbers into temporary
         /// </summary>
         /// <param name="arg"></param>
@@ -450,23 +394,13 @@ namespace TestEventProcessor.BusinessLogic {
 
                 // Feed data to checkers.
                 _missingTimestampsChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
+                _delayChangeChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
 
                 // don't process new timestamps when shutdown is triggered and even number of timestamps observed
                 if (_shuttingDown != 0 && _observedTimestamps.Count % 2 == 0 && !_observedTimestamps.Contains(entrySourceTimestamp)) {
                     _logger.LogInformation("Ignore timestamp {TimeStamp} because Stop is already called", entrySourceTimestamp);
                     continue;
                 }
-
-                // check and report if processing delay has changed considerably, meaning more that the threshold
-                var newOpcDiffToNow = DateTime.UtcNow - entrySourceTimestamp;
-                var diffFromLastTime = newOpcDiffToNow - _opcDiffToNow;
-
-                if (diffFromLastTime.TotalMilliseconds > _currentConfiguration.ThresholdValue)
-                {
-                    _logger.LogWarning("The different between UtcNow and Opc Source Timestamp has changed by {diff}", diffFromLastTime);
-                }
-
-                _opcDiffToNow = newOpcDiffToNow;
 
                 if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
                     _valueChangesPerTimestamp.AddOrUpdate(
