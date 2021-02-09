@@ -1,9 +1,7 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
-
 
 namespace TestEventProcessor.BusinessLogic {
     using AsyncAwaitBestPractices;
@@ -30,7 +28,7 @@ namespace TestEventProcessor.BusinessLogic {
     {
         private CancellationTokenSource _cancellationTokenSource;
         private EventProcessorClient _client = null;
-        private TimeSpan opcDiffToNow = TimeSpan.Zero;
+        private TimeSpan _opcDiffToNow = TimeSpan.Zero;
         private DateTime _startTime = DateTime.MinValue;
         private int _totalValueChangesCount = 0;
         private int _shuttingDown;
@@ -65,6 +63,13 @@ namespace TestEventProcessor.BusinessLogic {
         /// The current configuration the validator is using.
         /// </summary>
         private ValidatorConfiguration _currentConfiguration;
+
+        public static readonly int kMissingValueCheckDelayMilliseconds = 10 * 1000;
+        public static readonly int kMissingTimestampsCheckDelayMilliseconds = 10 * 1000;
+        public static readonly int kStopDelayMilliseconds = 5 * 1000;
+
+        public static readonly int kConcurrencyLevel = 4;
+        public static readonly int kDefaultCapacity = 500;
 
         /// <summary>
         /// Create instance of TelemetryValidator
@@ -119,9 +124,9 @@ namespace TestEventProcessor.BusinessLogic {
             Interlocked.Exchange(ref _shuttingDown, 0);
             _currentConfiguration = configuration;
 
-            _valueChangesPerTimestamp = new ConcurrentDictionary<DateTime, int>(4, 500);
-            _valueChangesPerNodeId = new ConcurrentDictionary<string, int>(4, 500);
-            _iotHubMessageEnqueuedTimes = new ConcurrentDictionary<DateTime, DateTime>(4, 500);
+            _valueChangesPerTimestamp = new ConcurrentDictionary<DateTime, int>(kConcurrencyLevel, kDefaultCapacity);
+            _valueChangesPerNodeId = new ConcurrentDictionary<string, int>(kConcurrencyLevel, kDefaultCapacity);
+            _iotHubMessageEnqueuedTimes = new ConcurrentDictionary<DateTime, DateTime>(kConcurrencyLevel, kDefaultCapacity);
             _observedTimestamps = new ConcurrentQueue<DateTime>();
             Interlocked.Exchange(ref _totalValueChangesCount, 0);
 
@@ -164,8 +169,10 @@ namespace TestEventProcessor.BusinessLogic {
             Interlocked.Exchange(ref _shuttingDown, 1);
 
             var endTime = DateTime.UtcNow;
+
             // to finish up messages related to a timestamp, we collect some more time
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            await Task.Delay(kStopDelayMilliseconds);
+
             // check one last time if all messages related for timestamp are received
             CheckForMissingTimestamps();
             bool allInExpectedInterval = _observedTimestamps.IsEmpty;
@@ -224,8 +231,6 @@ namespace TestEventProcessor.BusinessLogic {
 
             _logger.LogInformation("Stopped monitoring of events.");
         }
-
-
 
         /// <summary>
         /// Running a thread that analyze the value changes per timestamp
@@ -312,7 +317,7 @@ namespace TestEventProcessor.BusinessLogic {
                             }
                         }
 
-                        Task.Delay(10000, token).Wait(token);
+                        Task.Delay(kMissingValueCheckDelayMilliseconds, token).Wait(token);
                     }
                 }
                 catch (OperationCanceledException oce)
@@ -339,7 +344,7 @@ namespace TestEventProcessor.BusinessLogic {
                     while (!token.IsCancellationRequested) {
 
                         CheckForMissingTimestamps();
-                        Task.Delay(20000, token).Wait(token);
+                        Task.Delay(kMissingTimestampsCheckDelayMilliseconds, token).Wait(token);
                     }
                 }
                 catch (OperationCanceledException oce)
@@ -411,13 +416,13 @@ namespace TestEventProcessor.BusinessLogic {
 
             foreach (dynamic entry in json)
             {
-                DateTime timestamp;
-                string nodeId = null;
+                DateTime entrySourceTimestamp;
+                string entryNodeId = null;
 
                 try
                 {
-                    timestamp = (DateTime)entry.Value.SourceTimestamp;
-                    nodeId = entry.NodeId;
+                    entrySourceTimestamp = (DateTime)entry.Value.SourceTimestamp;
+                    entryNodeId = entry.NodeId;
                 }
                 catch (Exception ex)
                 {
@@ -426,40 +431,41 @@ namespace TestEventProcessor.BusinessLogic {
                 }
 
                 // don't process new timestamps when shutdown is triggered and even number of timestamps observed
-                if (_shuttingDown != 0 && _observedTimestamps.Count % 2 == 0 && !_observedTimestamps.Contains(timestamp)) {
-                    _logger.LogInformation("Ignore timestamp {TimeStamp} because Stop is already called", timestamp);
+                if (_shuttingDown != 0 && _observedTimestamps.Count % 2 == 0 && !_observedTimestamps.Contains(entrySourceTimestamp)) {
+                    _logger.LogInformation("Ignore timestamp {TimeStamp} because Stop is already called", entrySourceTimestamp);
                     continue;
                 }
 
-                var newOpcDiffToNow = DateTime.UtcNow - timestamp;
-                var diffFromLastTime = newOpcDiffToNow - opcDiffToNow;
+                // check and report if processing delay has changed considerably, meaning more that the threshold
+                var newOpcDiffToNow = DateTime.UtcNow - entrySourceTimestamp;
+                var diffFromLastTime = newOpcDiffToNow - _opcDiffToNow;
 
                 if (diffFromLastTime.TotalMilliseconds > _currentConfiguration.ThresholdValue)
                 {
                     _logger.LogWarning("The different between UtcNow and Opc Source Timestamp has changed by {diff}", diffFromLastTime);
                 }
 
-                opcDiffToNow = newOpcDiffToNow;
+                _opcDiffToNow = newOpcDiffToNow;
 
                 if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
                     _valueChangesPerTimestamp.AddOrUpdate(
-                        timestamp,
+                        entrySourceTimestamp,
                         (ts) => 0,
                         (ts, value) => ++value);
                 }
 
-                _valueChangesPerNodeId.AddOrUpdate(nodeId, 1, (k, v) => ++v);
+                _valueChangesPerNodeId.AddOrUpdate(entryNodeId, 1, (k, v) => ++v);
 
                 Interlocked.Increment(ref _totalValueChangesCount);
 
                 valueChangesCount++;
 
-                if (_currentConfiguration.ExpectedIntervalOfValueChanges > 0 && !_observedTimestamps.Contains(timestamp))
+                if (_currentConfiguration.ExpectedIntervalOfValueChanges > 0 && !_observedTimestamps.Contains(entrySourceTimestamp))
                 {
-                    _observedTimestamps.Enqueue(timestamp);
+                    _observedTimestamps.Enqueue(entrySourceTimestamp);
 
                     _iotHubMessageEnqueuedTimes.AddOrUpdate(
-                        timestamp,
+                        entrySourceTimestamp,
                         (_) => arg.Data.EnqueuedTime.UtcDateTime,
                         (ts, _) => arg.Data.EnqueuedTime.UtcDateTime);
                 }
