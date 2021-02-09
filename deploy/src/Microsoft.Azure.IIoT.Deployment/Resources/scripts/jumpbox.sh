@@ -27,6 +27,10 @@ PUBLIC_IP_DNS_LABEL=
 HELM_REPO_URL=
 HELM_CHART_VERSION=
 AIIOT_IMAGE_TAG=
+AIIOT_IMAGE_NAMESPACE=
+AIIOT_CONTAINER_REGISTRY_SERVER=
+AIIOT_CONTAINER_REGISTRY_USERNAME=
+AIIOT_CONTAINER_REGISTRY_PASSWORD=
 AIIOT_TENANT_ID=
 AIIOT_KEY_VAULT_URI=
 AIIOT_SERVICES_APP_ID=
@@ -37,19 +41,23 @@ AIIOT_SERVICES_HOSTNAME=
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        --resource_group)               RESOURCE_GROUP="$2" ;;
-        --aks_cluster)                  AKS_CLUSTER="$2" ;;
-        --role)                         ROLE="$2" ;;
-        --load_balancer_ip)             LOAD_BALANCER_IP="$2" ;;
-        --public_ip_dns_label)          PUBLIC_IP_DNS_LABEL="$2" ;;
-        --helm_repo_url)                HELM_REPO_URL="$2" ;;
-        --helm_chart_version)           HELM_CHART_VERSION="$2" ;;
-        --aiiot_image_tag)              AIIOT_IMAGE_TAG="$2" ;;
-        --aiiot_tenant_id)              AIIOT_TENANT_ID="$2" ;;
-        --aiiot_key_vault_uri)          AIIOT_KEY_VAULT_URI="$2" ;;
-        --aiiot_services_app_id)        AIIOT_SERVICES_APP_ID="$2" ;;
-        --aiiot_services_app_secret)    AIIOT_SERVICES_APP_SECRET="$2" ;;
-        --aiiot_services_hostname)      AIIOT_SERVICES_HOSTNAME="$2" ;;
+        --resource_group)                       RESOURCE_GROUP="$2" ;;
+        --aks_cluster)                          AKS_CLUSTER="$2" ;;
+        --role)                                 ROLE="$2" ;;
+        --load_balancer_ip)                     LOAD_BALANCER_IP="$2" ;;
+        --public_ip_dns_label)                  PUBLIC_IP_DNS_LABEL="$2" ;;
+        --helm_repo_url)                        HELM_REPO_URL="$2" ;;
+        --helm_chart_version)                   HELM_CHART_VERSION="$2" ;;
+        --aiiot_image_tag)                      AIIOT_IMAGE_TAG="$2" ;;
+        --aiiot_image_namespace)                AIIOT_IMAGE_NAMESPACE="$2" ;;
+        --aiiot_container_registry_server)      AIIOT_CONTAINER_REGISTRY_SERVER="$2" ;;
+        --aiiot_container_registry_username)    AIIOT_CONTAINER_REGISTRY_USERNAME="$2" ;;
+        --aiiot_container_registry_password)    AIIOT_CONTAINER_REGISTRY_PASSWORD="$2" ;;
+        --aiiot_tenant_id)                      AIIOT_TENANT_ID="$2" ;;
+        --aiiot_key_vault_uri)                  AIIOT_KEY_VAULT_URI="$2" ;;
+        --aiiot_services_app_id)                AIIOT_SERVICES_APP_ID="$2" ;;
+        --aiiot_services_app_secret)            AIIOT_SERVICES_APP_SECRET="$2" ;;
+        --aiiot_services_hostname)              AIIOT_SERVICES_HOSTNAME="$2" ;;
     esac
     shift
 done
@@ -96,6 +104,29 @@ if [[ -z "$AIIOT_IMAGE_TAG" ]]; then
     exit 1
 fi
 
+if [[ -z "$AIIOT_IMAGE_NAMESPACE" ]]; then
+    echo "Parameter is empty or missing: aiiot_image_namespace"
+    exit 1
+fi
+
+if [[ -z "$AIIOT_CONTAINER_REGISTRY_SERVER" ]]; then
+    echo "Parameter is empty or missing: aiiot_container_registry_server"
+    exit 1
+fi
+
+if [[ "$AIIOT_CONTAINER_REGISTRY_SERVER" !=  "mcr.microsoft.com"]]; then
+    echo "Private registry specified. Checking for username and password.."
+    is_private_repo=true
+
+    if [[ -z "$AIIOT_CONTAINER_REGISTRY_USERNAME" ]]; then
+        echo "Parameter is empty or missing: aiiot_container_registry_username"
+        exit 1
+    fi
+
+    if [[ -z "$AIIOT_CONTAINER_REGISTRY_PASSWORD" ]]; then
+        echo "Parameter is empty or missing: aiiot_container_registry_password"
+        exit 1
+    fi
 if [[ -z "$AIIOT_TENANT_ID" ]]; then
     echo "Parameter is empty or missing: aiiot_tenant_id"
     exit 1
@@ -259,6 +290,13 @@ fi
 
 # Create azure-industrial-iot namespace
 kubectl create namespace azure-industrial-iot
+
+# Create secrets if private registry
+if [ "$is_private_repo" = true ] ; then
+    echo 'Need to additionally create secrets for the container registry..'
+    acrname="$(cut -d'.' -f1 <<<"$AIIOT_CONTAINER_REGISTRY_SERVER")"
+    kubectl create secret docker-registry $acrname --docker-server=$AIIOT_CONTAINER_REGISTRY_SERVER --docker-username=$AIIOT_CONTAINER_REGISTRY_USERNAME --docker-password=$AIIOT_CONTAINER_REGISTRY_PASSWORD
+fi
 
 # Install aiiot/azure-industrial-iot Helm chart
 helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
