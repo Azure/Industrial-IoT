@@ -35,16 +35,12 @@ namespace TestEventProcessor.BusinessLogic {
         // Checkers
         private MissingTimestampsChecker _missingTimestampsChecker;
         private DelayChangeChecker _delayChangeChecker;
+        private ValueChangeCounterPerNodeId _valueChangeCounterPerNodeId;
 
         /// <summary>
         /// Dictionary containing all sequence numbers related to a timestamp
         /// </summary>
         private ConcurrentDictionary<DateTime, int> _valueChangesPerTimestamp;
-
-        /// <summary>
-        /// Dictionary that contains the number of value changes (value) by Node Id (key)
-        /// </summary>
-        private ConcurrentDictionary<string, int> _valueChangesPerNodeId;
 
         /// <summary>
         /// Dictionary containing timestamps the were observed
@@ -128,7 +124,6 @@ namespace TestEventProcessor.BusinessLogic {
             _currentConfiguration = configuration;
 
             _valueChangesPerTimestamp = new ConcurrentDictionary<DateTime, int>(kConcurrencyLevel, kDefaultCapacity);
-            _valueChangesPerNodeId = new ConcurrentDictionary<string, int>(kConcurrencyLevel, kDefaultCapacity);
             _iotHubMessageEnqueuedTimes = new ConcurrentDictionary<DateTime, DateTime>(kConcurrencyLevel, kDefaultCapacity);
             _observedTimestamps = new ConcurrentQueue<DateTime>();
             Interlocked.Exchange(ref _totalValueChangesCount, 0);
@@ -169,6 +164,8 @@ namespace TestEventProcessor.BusinessLogic {
                 _logger
             );
 
+            _valueChangeCounterPerNodeId = new ValueChangeCounterPerNodeId(_logger);
+
             // Start local checks.
             CheckForMissingValueChangesAsync(token).Start();
 
@@ -203,21 +200,21 @@ namespace TestEventProcessor.BusinessLogic {
             // Stop checkers.
             var missingTimestampsCounter = _missingTimestampsChecker.Stop();
 
-            bool allExpectedValueChanges = true;
-
+            var valueChangesPerNodeId = _valueChangeCounterPerNodeId.Stop();
+            var allExpectedValueChanges = true;
             if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
 
                 // TODO collect "expected" parameter as groups related to OPC UA nodes
-                allExpectedValueChanges = _valueChangesPerNodeId?.All(kvp =>
-                                                   (_totalValueChangesCount / kvp.Value ) == _currentConfiguration
-                                                       .ExpectedValueChangesPerTimestamp) ??
-                                               false;
+                allExpectedValueChanges = valueChangesPerNodeId?
+                    .All(kvp => (_totalValueChangesCount / kvp.Value ) ==
+                        _currentConfiguration.ExpectedValueChangesPerTimestamp
+                    ) ?? false;
                 _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}",
                     allExpectedValueChanges);
             }
 
             var stopResult =  new StopResult() {
-                ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(_valueChangesPerNodeId ?? new ConcurrentDictionary<string, int>()),
+                ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
                 AllExpectedValueChanges = allExpectedValueChanges,
                 TotalValueChangesCount = _totalValueChangesCount,
                 AllInExpectedInterval = missingTimestampsCounter == 0,
@@ -263,7 +260,9 @@ namespace TestEventProcessor.BusinessLogic {
                     token.ThrowIfCancellationRequested();
                     while (!token.IsCancellationRequested)
                     {
-                        _logger.LogInformation("Currently, {total} value changes were received, currently waiting for {incompletedTimestamps} timestamp to be completed.", _totalValueChangesCount, _valueChangesPerTimestamp.Count);
+                        _logger.LogInformation("Currently, {total} value changes were received, currently " +
+                            "waiting for {incompletedTimestamps} timestamp to be completed.",
+                            _totalValueChangesCount, _valueChangesPerTimestamp.Count);
 
                         var entriesToDelete = new List<DateTime>(50);
                         foreach (var missingSequence in _valueChangesPerTimestamp) {
@@ -388,13 +387,16 @@ namespace TestEventProcessor.BusinessLogic {
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from message. Please make sure that publisher is running with samples format and with --fm parameter set.");
+                    _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from " +
+                        "message. Please make sure that publisher is running with samples format and with " +
+                        "--fm parameter set.");
                     return;
                 }
 
                 // Feed data to checkers.
                 _missingTimestampsChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
                 _delayChangeChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
+                _valueChangeCounterPerNodeId.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
 
                 // don't process new timestamps when shutdown is triggered and even number of timestamps observed
                 if (_shuttingDown != 0 && _observedTimestamps.Count % 2 == 0 && !_observedTimestamps.Contains(entrySourceTimestamp)) {
@@ -405,11 +407,9 @@ namespace TestEventProcessor.BusinessLogic {
                 if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
                     _valueChangesPerTimestamp.AddOrUpdate(
                         entrySourceTimestamp,
-                        (ts) => 0,
+                        (ts) => 1,
                         (ts, value) => ++value);
                 }
-
-                _valueChangesPerNodeId.AddOrUpdate(entryNodeId, 1, (k, v) => ++v);
 
                 Interlocked.Increment(ref _totalValueChangesCount);
 
@@ -427,8 +427,7 @@ namespace TestEventProcessor.BusinessLogic {
             }
 
             _logger.LogDebug("Received {NumberOfValueChanges} from IoTHub, partition {PartitionId}, ",
-                valueChangesCount,
-                arg.Partition.PartitionId);
+                valueChangesCount, arg.Partition.PartitionId);
         }
 
         /// <summary>
@@ -438,7 +437,8 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns>Completed Task, no async work needed</returns>
         private Task Client_PartitionInitializingAsync(PartitionInitializingEventArgs arg)
         {
-            _logger.LogInformation("EventProcessorClient initializing, start with latest position for partition {PartitionId}", arg.PartitionId);
+            _logger.LogInformation("EventProcessorClient initializing, start with latest position for " +
+                "partition {PartitionId}", arg.PartitionId);
             arg.DefaultStartingPosition = EventPosition.Latest;
             return Task.CompletedTask;
         }
@@ -450,9 +450,8 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns>Completed Task, no async work needed</returns>
         private Task Client_ProcessErrorAsync(ProcessErrorEventArgs arg)
         {
-            _logger.LogError(arg.Exception, "Issue reported by EventProcessorClient, partition {PartitionId}, operation {Operation}",
-                arg.PartitionId,
-                arg.Operation);
+            _logger.LogError(arg.Exception, "Issue reported by EventProcessorClient, partition " +
+                "{PartitionId}, operation {Operation}", arg.PartitionId, arg.Operation);
             return Task.CompletedTask;
         }
 
