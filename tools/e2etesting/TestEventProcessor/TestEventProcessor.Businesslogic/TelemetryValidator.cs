@@ -192,7 +192,7 @@ namespace TestEventProcessor.BusinessLogic {
 
                 // TODO collect "expected" parameter as groups related to OPC UA nodes
                 allExpectedValueChanges = _valueChangesPerNodeId?.All(kvp =>
-                                                   (kvp.Value / _totalValueChangesCount) == _currentConfiguration
+                                                   (_totalValueChangesCount / kvp.Value ) == _currentConfiguration
                                                        .ExpectedValueChangesPerTimestamp) ??
                                                false;
                 _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}",
