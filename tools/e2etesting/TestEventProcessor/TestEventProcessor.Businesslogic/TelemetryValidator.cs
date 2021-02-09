@@ -42,11 +42,6 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         private ConcurrentDictionary<DateTime, int> _valueChangesPerTimestamp;
 
-        /// <summary>
-        /// Dictionary containing timestamps the were observed
-        /// </summary>
-        private ConcurrentQueue<DateTime> _observedTimestamps;
-
         private ConcurrentDictionary<DateTime, DateTime> _iotHubMessageEnqueuedTimes;
 
         /// <summary>
@@ -88,13 +83,13 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns>Task that run until token is canceled</returns>
         public async Task<StartResult> StartAsync(ValidatorConfiguration configuration)
         {
-            if (_cancellationTokenSource != null)
-            {
+            // Check if already started.
+            if (_cancellationTokenSource != null) {
                 return new StartResult();
             }
 
-            if (configuration == null)
-            {
+            // Check provided configuration.
+            if (configuration == null) {
                 throw new ArgumentNullException(nameof(configuration));
             }
 
@@ -125,19 +120,16 @@ namespace TestEventProcessor.BusinessLogic {
 
             _valueChangesPerTimestamp = new ConcurrentDictionary<DateTime, int>(kConcurrencyLevel, kDefaultCapacity);
             _iotHubMessageEnqueuedTimes = new ConcurrentDictionary<DateTime, DateTime>(kConcurrencyLevel, kDefaultCapacity);
-            _observedTimestamps = new ConcurrentQueue<DateTime>();
             Interlocked.Exchange(ref _totalValueChangesCount, 0);
 
             _cancellationTokenSource = new CancellationTokenSource();
             var token = _cancellationTokenSource.Token;
 
-            token.ThrowIfCancellationRequested();
+            // Initialize EventProcessorClient
             _logger.LogInformation("Connecting to blob storage...");
-
             var blobContainerClient = new BlobContainerClient(configuration.StorageConnectionString, configuration.BlobContainerName);
 
             _logger.LogInformation("Connecting to IoT Hub...");
-
             _client = new EventProcessorClient(blobContainerClient, configuration.EventHubConsumerGroup, configuration.IoTHubEventHubEndpointConnectionString);
             _client.PartitionInitializingAsync += Client_PartitionInitializingAsync;
             _client.ProcessEventAsync += Client_ProcessEventAsync;
@@ -178,7 +170,8 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns></returns>
         public async Task<StopResult> StopAsync()
         {
-            if (_observedTimestamps == null) {
+            // Check if already stopped.
+            if (_cancellationTokenSource == null) {
                 return new StopResult();
             }
 
@@ -354,7 +347,8 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns>Task that run until token is canceled</returns>
         private async Task Client_ProcessEventAsync(ProcessEventArgs arg)
         {
-            if (_cancellationTokenSource == null) //we already in stop process, so do not do anything new.
+            // Check if already stopped.
+            if (_cancellationTokenSource == null)
             {
                 _logger.LogWarning("Received Events but nothing to do, because already stopped");
                 return;
@@ -390,7 +384,7 @@ namespace TestEventProcessor.BusinessLogic {
                     _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from " +
                         "message. Please make sure that publisher is running with samples format and with " +
                         "--fm parameter set.");
-                    return;
+                    continue;
                 }
 
                 // Feed data to checkers.
@@ -398,11 +392,8 @@ namespace TestEventProcessor.BusinessLogic {
                 _delayChangeChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
                 _valueChangeCounterPerNodeId.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
 
-                // don't process new timestamps when shutdown is triggered and even number of timestamps observed
-                if (_shuttingDown != 0 && _observedTimestamps.Count % 2 == 0 && !_observedTimestamps.Contains(entrySourceTimestamp)) {
-                    _logger.LogInformation("Ignore timestamp {TimeStamp} because Stop is already called", entrySourceTimestamp);
-                    continue;
-                }
+                Interlocked.Increment(ref _totalValueChangesCount);
+                valueChangesCount++;
 
                 if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
                     _valueChangesPerTimestamp.AddOrUpdate(
@@ -411,14 +402,7 @@ namespace TestEventProcessor.BusinessLogic {
                         (ts, value) => ++value);
                 }
 
-                Interlocked.Increment(ref _totalValueChangesCount);
-
-                valueChangesCount++;
-
-                if (_currentConfiguration.ExpectedIntervalOfValueChanges > 0 && !_observedTimestamps.Contains(entrySourceTimestamp))
-                {
-                    _observedTimestamps.Enqueue(entrySourceTimestamp);
-
+                if (_currentConfiguration.ExpectedIntervalOfValueChanges > 0) {
                     _iotHubMessageEnqueuedTimes.AddOrUpdate(
                         entrySourceTimestamp,
                         (_) => arg.Data.EnqueuedTime.UtcDateTime,
