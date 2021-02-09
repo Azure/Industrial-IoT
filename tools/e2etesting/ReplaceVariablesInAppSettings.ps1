@@ -16,7 +16,11 @@ Param(
     [string] $AppSettingsFilename,
     [string] $ResourceGroupName,
     [string] $Region,
-    [string] $ImageTag
+    [string] $ImageTag,
+    [string] $ImageNamespace = "public",
+    [string] $ContainerRegistryServer = "mcr.microsoft.com",
+    [string] $ContainerRegistryUsername = $null,
+    [string] $ContainerRegistryPassword = $null
 )
 
 # Stop execution when an error occurs.
@@ -74,6 +78,9 @@ Write-Host "ApplicationName: $($ApplicationName)"
 Write-Host "ResourceGroupName: $($ResourceGroupName)"
 Write-Host "Region: $($Region)"
 Write-Host "ImageTag: $($ImageTag)"
+Write-Host "ImageNamespace: $($ImageNamespace)"
+Write-Host "ContainerRegistryServer: $($ContainerRegistryServer)"
+Write-Host "ContainerRegistryUsername: $($ContainerRegistryUsername)"
 Write-Host "AppSettingsFilename: $($AppSettingsFilename)"
 Write-Host "##[endgroup]"
 
@@ -87,5 +94,8 @@ $fileContent = $fileContent -replace "{{ApplicationName}}", $ApplicationName
 $fileContent = $fileContent -replace "{{ResourceGroupName}}", $ResourceGroupName
 $fileContent = $fileContent -replace "{{Region}}", $Region
 $fileContent = $fileContent -replace "{{ImageTag}}", $ImageTag
-
+$fileContent = $fileContent -replace "{{ImageNamespace}}", $ImageNamespace
+$fileContent = $fileContent -replace "{{ContainerRegistryServer}}", $ContainerRegistryServer
+$fileContent = $fileContent -replace "{{ContainerRegistryUsername}}", $ContainerRegistryUsername
+$fileContent = $fileContent -replace "{{ContainerRegistryPassword}}", $ContainerRegistryPassword
 $fileContent | Out-File $AppSettingsFilename -Force -Encoding utf8
