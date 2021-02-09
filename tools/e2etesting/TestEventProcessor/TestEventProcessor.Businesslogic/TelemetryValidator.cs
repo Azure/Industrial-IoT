@@ -33,6 +33,9 @@ namespace TestEventProcessor.BusinessLogic {
         private int _totalValueChangesCount = 0;
         private int _shuttingDown;
 
+        // Checkers
+        private MissingTimestampsChecker _missingTimestampsChecker;
+
         /// <summary>
         /// Dictionary containing all sequence numbers related to a timestamp
         /// </summary>
@@ -150,6 +153,16 @@ namespace TestEventProcessor.BusinessLogic {
 
             _startTime = DateTime.UtcNow;
 
+            _missingTimestampsChecker = new MissingTimestampsChecker(
+                TimeSpan.FromMilliseconds(_currentConfiguration.ExpectedIntervalOfValueChanges),
+                TimeSpan.FromMilliseconds(_currentConfiguration.ThresholdValue),
+                _logger
+            );
+            _missingTimestampsChecker.StartAsync(
+                TimeSpan.FromMilliseconds(kMissingTimestampsCheckDelayMilliseconds),
+                token
+            ).Start();
+
             CheckForMissingValueChangesAsync(token).Start();
             CheckForMissingTimestampsAsync(token).Start();
 
@@ -186,6 +199,9 @@ namespace TestEventProcessor.BusinessLogic {
             // the stop procedure takes about a minute, so we fire and forget.
             StopEventProcessorClientAsync().SafeFireAndForget(e => _logger.LogError(e, "Error while stopping event monitoring."));
 
+            // Stop checkers.
+            var missingTimestampsCounter = _missingTimestampsChecker.Stop();
+
             bool allExpectedValueChanges = true;
 
             if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
@@ -203,7 +219,7 @@ namespace TestEventProcessor.BusinessLogic {
                 ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(_valueChangesPerNodeId ?? new ConcurrentDictionary<string, int>()),
                 AllExpectedValueChanges = allExpectedValueChanges,
                 TotalValueChangesCount = _totalValueChangesCount,
-                AllInExpectedInterval = allInExpectedInterval,
+                AllInExpectedInterval = missingTimestampsCounter == 0,
                 StartTime = _startTime,
                 EndTime = endTime,
             };
@@ -418,17 +434,22 @@ namespace TestEventProcessor.BusinessLogic {
             {
                 DateTime entrySourceTimestamp;
                 string entryNodeId = null;
+                object entryValue;
 
                 try
                 {
                     entrySourceTimestamp = (DateTime)entry.Value.SourceTimestamp;
                     entryNodeId = entry.NodeId;
+                    entryValue = entry.Value.Value;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from message. Please make sure that publisher is running with samples format and with --fm parameter set.");
                     return;
                 }
+
+                // Feed data to checkers.
+                _missingTimestampsChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
 
                 // don't process new timestamps when shutdown is triggered and even number of timestamps observed
                 if (_shuttingDown != 0 && _observedTimestamps.Count % 2 == 0 && !_observedTimestamps.Contains(entrySourceTimestamp)) {
