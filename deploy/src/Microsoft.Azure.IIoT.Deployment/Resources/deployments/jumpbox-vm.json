@@ -182,6 +182,30 @@
                 "description": "Docker image tag for Azure Industrial IoT components"
             }
         },
+        "aiiotImageNamespace": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker image namespace for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryServer": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker container registry for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryUsername": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker container registry username for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryPassword": {
+            "type": "securestring",
+            "metadata": {
+              "description": "Docker container registry password for Azure Industrial IoT components"
+            }
+        },
         "aiiotTenantId": {
             "type": "string",
             "metadata": {
