@@ -20,6 +20,7 @@ namespace TestEventProcessor.BusinessLogic {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using TestEventProcessor.BusinessLogic.Checkers;
 
     /// <summary>
     /// Validates the value changes within IoT Hub Methods
