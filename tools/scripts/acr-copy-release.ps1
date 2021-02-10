@@ -122,9 +122,10 @@ Get-ChildItem $BuildRoot -Recurse -Include "container.json" | ForEach-Object {
         $targetImageArgs = @()
         foreach ($targetTag in $imageTagsMap.Item($sourceTag)) {
             $targetImageArgs += "--image"
-            $targetImageArgs += "$($imageName):$($targetTag)"
+            $targetImageArgs += "public/$($imageName):$($targetTag)"
         }
         # Create acr command line 
+        # --force is needed to replace existing tags like "latest" with new images
         $argumentList = @("acr", "import", "--force",
             "--name", $ReleaseRegistry,
             "--source", $FullImageName) + $targetImageArgs +
