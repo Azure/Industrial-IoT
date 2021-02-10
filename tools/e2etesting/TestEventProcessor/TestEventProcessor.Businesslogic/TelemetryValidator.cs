@@ -44,8 +44,6 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         private ConcurrentDictionary<DateTime, int> _valueChangesPerTimestamp;
 
-        private ConcurrentDictionary<DateTime, DateTime> _iotHubMessageEnqueuedTimes;
-
         /// <summary>
         /// Format to be used for Timestamps
         /// </summary>
@@ -122,7 +120,6 @@ namespace TestEventProcessor.BusinessLogic {
             _currentConfiguration = configuration;
 
             _valueChangesPerTimestamp = new ConcurrentDictionary<DateTime, int>(kConcurrencyLevel, kDefaultCapacity);
-            _iotHubMessageEnqueuedTimes = new ConcurrentDictionary<DateTime, DateTime>(kConcurrencyLevel, kDefaultCapacity);
             Interlocked.Exchange(ref _totalValueChangesCount, 0);
 
             _cancellationTokenSource = new CancellationTokenSource();
@@ -282,36 +279,12 @@ namespace TestEventProcessor.BusinessLogic {
 
                                 entriesToDelete.Add(missingSequence.Key);
                             }
-
-                            // Check the total duration from OPC UA Server until IoT Hub
-                            var iotHubEnqueuedTime = _iotHubMessageEnqueuedTimes[missingSequence.Key];
-                            var durationDifference = iotHubEnqueuedTime.Subtract(missingSequence.Key);
-
-                            if (durationDifference.TotalMilliseconds < 0)
-                            {
-                                _logger.LogWarning("Total duration is negative number, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
-                                    missingSequence.Key.ToString(_dateTimeFormat, formatInfoProvider),
-                                    iotHubEnqueuedTime.ToString(_dateTimeFormat, formatInfoProvider),
-                                    durationDifference);
-                            }
-                            if (Math.Round(durationDifference.TotalMilliseconds) > _currentConfiguration.ExpectedMaximalDuration)
-                            {
-                                _logger.LogInformation("Total duration exceeded limit, OPC UA Server time {OPCUATime}, IoTHub enqueue time {IoTHubTime}, delta {Diff}",
-                                    missingSequence.Key.ToString(_dateTimeFormat, formatInfoProvider),
-                                    iotHubEnqueuedTime.ToString(_dateTimeFormat, formatInfoProvider),
-                                    durationDifference);
-                            }
-
-                            // don'T check for duration between enqueued in IoTHub until processed here
-                            // IoT Hub publish notifications slower than they can be received by IoT Hub
-                            // ==> with longer runtime the difference between enqueued time and processing time will increase
                         }
 
                         // Remove all timestamps that are completed (all value changes received)
                         foreach (var entry in entriesToDelete)
                         {
                             var success = _valueChangesPerTimestamp.TryRemove(entry, out var values);
-                            success &= _iotHubMessageEnqueuedTimes.TryRemove(entry, out var enqueuedTime);
 
                             if (!success)
                             {
@@ -414,13 +387,6 @@ namespace TestEventProcessor.BusinessLogic {
                         entrySourceTimestamp,
                         (ts) => 1,
                         (ts, value) => ++value);
-                }
-
-                if (_currentConfiguration.ExpectedMaximalDuration > 0) {
-                    _iotHubMessageEnqueuedTimes.AddOrUpdate(
-                        entrySourceTimestamp,
-                        (_) => arg.Data.EnqueuedTime.UtcDateTime,
-                        (ts, _) => arg.Data.EnqueuedTime.UtcDateTime);
                 }
             }
 
