@@ -35,7 +35,7 @@ namespace TestEventProcessor.BusinessLogic {
 
         // Checkers
         private MissingTimestampsChecker _missingTimestampsChecker;
-        private DelayChangeChecker _delayChangeChecker;
+        private MessageProcessingDelayChecker _messageProcessingDelayChecker;
         private ValueChangeCounterPerNodeId _valueChangeCounterPerNodeId;
 
         /// <summary>
@@ -49,6 +49,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// Format to be used for Timestamps
         /// </summary>
         private const string _dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffffZ";
+
         /// <summary>
         /// Instance to write logs
         /// </summary>
@@ -152,7 +153,7 @@ namespace TestEventProcessor.BusinessLogic {
                 token
             ).Start();
 
-            _delayChangeChecker = new DelayChangeChecker(
+            _messageProcessingDelayChecker = new MessageProcessingDelayChecker(
                 TimeSpan.FromMilliseconds(_currentConfiguration.ThresholdValue),
                 _logger
             );
@@ -191,8 +192,9 @@ namespace TestEventProcessor.BusinessLogic {
             // the stop procedure takes about a minute, so we fire and forget.
             StopEventProcessorClientAsync().SafeFireAndForget(e => _logger.LogError(e, "Error while stopping event monitoring."));
 
-            // Stop checkers.
+            // Stop checkers and collect resutls.
             var missingTimestampsCounter = _missingTimestampsChecker.Stop();
+            var maxMessageDelay = _messageProcessingDelayChecker.Stop();
 
             var valueChangesPerNodeId = _valueChangeCounterPerNodeId.Stop();
             var allExpectedValueChanges = true;
@@ -214,6 +216,7 @@ namespace TestEventProcessor.BusinessLogic {
                 AllInExpectedInterval = missingTimestampsCounter == 0,
                 StartTime = _startTime,
                 EndTime = endTime,
+                MaxDelayToNow = maxMessageDelay,
             };
 
             return stopResult;
@@ -273,7 +276,6 @@ namespace TestEventProcessor.BusinessLogic {
                             }
 
                             // Check the total duration from OPC UA Server until IoT Hub
-
                             var iotHubEnqueuedTime = _iotHubMessageEnqueuedTimes[missingSequence.Key];
                             var durationDifference = iotHubEnqueuedTime.Subtract(missingSequence.Key);
 
@@ -390,7 +392,7 @@ namespace TestEventProcessor.BusinessLogic {
 
                 // Feed data to checkers.
                 _missingTimestampsChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
-                _delayChangeChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
+                _messageProcessingDelayChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
                 _valueChangeCounterPerNodeId.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
 
                 Interlocked.Increment(ref _totalValueChangesCount);
@@ -403,7 +405,7 @@ namespace TestEventProcessor.BusinessLogic {
                         (ts, value) => ++value);
                 }
 
-                if (_currentConfiguration.ExpectedIntervalOfValueChanges > 0) {
+                if (_currentConfiguration.ExpectedMaximalDuration > 0) {
                     _iotHubMessageEnqueuedTimes.AddOrUpdate(
                         entrySourceTimestamp,
                         (_) => arg.Data.EnqueuedTime.UtcDateTime,

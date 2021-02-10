@@ -47,5 +47,10 @@ namespace TestEventProcessor.BusinessLogic
         /// Indicates if all timestamps received have expected interval between them
         /// </summary>
         public bool AllInExpectedInterval { get; set; }
+
+        /// <summary>
+        /// Indicates max observed delay between message source timestamp and the time when it was received.
+        /// </summary>
+        public TimeSpan MaxDelayToNow { get; set; }
     }
 }
