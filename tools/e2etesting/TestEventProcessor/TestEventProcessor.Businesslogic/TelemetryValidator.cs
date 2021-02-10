@@ -12,10 +12,8 @@ namespace TestEventProcessor.BusinessLogic {
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
-    using System.Globalization;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -39,6 +37,7 @@ namespace TestEventProcessor.BusinessLogic {
         private MessageDeliveryDelayChecker _messageDeliveryDelayChecker;
         private ValueChangeCounterPerNodeId _valueChangeCounterPerNodeId;
         private MissingValueChangesChecker _missingValueChangesChecker;
+        private IncrementalIntValueChecker _incrementalIntValueChecker;
 
         /// <summary>
         /// Instance to write logs
@@ -156,6 +155,8 @@ namespace TestEventProcessor.BusinessLogic {
                 _cancellationTokenSource.Token
             ).Start();
 
+            _incrementalIntValueChecker = new IncrementalIntValueChecker(_logger);
+
             return new StartResult();
         }
 
@@ -202,6 +203,8 @@ namespace TestEventProcessor.BusinessLogic {
 
             var incompleteTimestamps = _missingValueChangesChecker.Stop();
 
+            var incrCheckerResult = _incrementalIntValueChecker.Stop();
+
             var stopResult =  new StopResult() {
                 ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
                 AllExpectedValueChanges = allExpectedValueChanges,
@@ -211,6 +214,8 @@ namespace TestEventProcessor.BusinessLogic {
                 EndTime = endTime,
                 MaxDelayToNow = maxMessageProcessingDelay.ToString(),
                 MaxDeliveyDuration = maxMessageDeliveryDelay.ToString(),
+                DroppedValueCount = incrCheckerResult.DroppedValueCount,
+                DuplicateValueCount = incrCheckerResult.DuplicateValueCount,
             };
 
             return stopResult;
@@ -290,6 +295,7 @@ namespace TestEventProcessor.BusinessLogic {
                 _messageDeliveryDelayChecker.ProcessEvent(entrySourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime);
                 _valueChangeCounterPerNodeId.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
                 _missingValueChangesChecker.ProcessEvent(entrySourceTimestamp);
+                _incrementalIntValueChecker.ProcessEvent(entryNodeId, entryValue);
 
                 Interlocked.Increment(ref _totalValueChangesCount);
                 valueChangesCount++;

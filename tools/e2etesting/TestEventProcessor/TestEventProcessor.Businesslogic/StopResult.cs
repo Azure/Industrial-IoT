@@ -58,5 +58,15 @@ namespace TestEventProcessor.BusinessLogic
         /// to IoT Hub.
         /// </summary>
         public string MaxDeliveyDuration { get; set; }
+
+        /// <summary>
+        /// Indicates the number of dropped messages detected by IncrementalIntValueChecker.
+        /// </summary>
+        public uint DroppedValueCount { get; set; }
+
+        /// <summary>
+        /// Indicates the number of duplicate messages detected by IncrementalIntValueChecker.
+        /// </summary>
+        public uint DuplicateValueCount { get; set; }
     }
 }
