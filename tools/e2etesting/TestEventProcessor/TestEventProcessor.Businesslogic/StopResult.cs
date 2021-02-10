@@ -51,12 +51,12 @@ namespace TestEventProcessor.BusinessLogic
         /// <summary>
         /// Indicates max observed delay between message source timestamp and the time when it was received.
         /// </summary>
-        public TimeSpan MaxDelayToNow { get; set; }
+        public string MaxDelayToNow { get; set; }
 
         /// <summary>
         /// Indicates max observed delay between message source timestamp and the time when it was delivered
         /// to IoT Hub.
         /// </summary>
-        public TimeSpan MaxDeliveyDuration { get; set; }
+        public string MaxDeliveyDuration { get; set; }
     }
 }

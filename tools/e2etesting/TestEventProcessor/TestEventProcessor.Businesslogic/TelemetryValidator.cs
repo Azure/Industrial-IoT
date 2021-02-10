@@ -220,8 +220,8 @@ namespace TestEventProcessor.BusinessLogic {
                 AllInExpectedInterval = missingTimestampsCounter == 0,
                 StartTime = _startTime,
                 EndTime = endTime,
-                MaxDelayToNow = maxMessageProcessingDelay,
-                MaxDeliveyDuration = maxMessageDeliveryDelay,
+                MaxDelayToNow = maxMessageProcessingDelay.ToString(),
+                MaxDeliveyDuration = maxMessageDeliveryDelay.ToString(),
             };
 
             return stopResult;
