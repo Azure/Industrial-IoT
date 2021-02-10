@@ -38,16 +38,7 @@ namespace TestEventProcessor.BusinessLogic {
         private MessageProcessingDelayChecker _messageProcessingDelayChecker;
         private MessageDeliveryDelayChecker _messageDeliveryDelayChecker;
         private ValueChangeCounterPerNodeId _valueChangeCounterPerNodeId;
-
-        /// <summary>
-        /// Dictionary containing all sequence numbers related to a timestamp
-        /// </summary>
-        private ConcurrentDictionary<DateTime, int> _valueChangesPerTimestamp;
-
-        /// <summary>
-        /// Format to be used for Timestamps
-        /// </summary>
-        private const string _dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffffZ";
+        private MissingValueChangesChecker _missingValueChangesChecker;
 
         /// <summary>
         /// Instance to write logs
@@ -59,12 +50,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         private ValidatorConfiguration _currentConfiguration;
 
-        public static readonly int kMissingValueCheckDelayMilliseconds = 10 * 1000;
-        public static readonly int kMissingTimestampsCheckDelayMilliseconds = 10 * 1000;
-        public static readonly int kStopDelayMilliseconds = 5 * 1000;
-
-        public static readonly int kConcurrencyLevel = 4;
-        public static readonly int kDefaultCapacity = 500;
+        public const int kCheckerDelayMilliseconds = 10_000;
 
         /// <summary>
         /// Create instance of TelemetryValidator
@@ -119,11 +105,9 @@ namespace TestEventProcessor.BusinessLogic {
             Interlocked.Exchange(ref _shuttingDown, 0);
             _currentConfiguration = configuration;
 
-            _valueChangesPerTimestamp = new ConcurrentDictionary<DateTime, int>(kConcurrencyLevel, kDefaultCapacity);
             Interlocked.Exchange(ref _totalValueChangesCount, 0);
 
             _cancellationTokenSource = new CancellationTokenSource();
-            var token = _cancellationTokenSource.Token;
 
             // Initialize EventProcessorClient
             _logger.LogInformation("Connecting to blob storage...");
@@ -136,7 +120,7 @@ namespace TestEventProcessor.BusinessLogic {
             _client.ProcessErrorAsync += Client_ProcessErrorAsync;
 
             _logger.LogInformation("Starting monitoring of events...");
-            await _client.StartProcessingAsync(token);
+            await _client.StartProcessingAsync(_cancellationTokenSource.Token);
 
             _startTime = DateTime.UtcNow;
 
@@ -147,8 +131,8 @@ namespace TestEventProcessor.BusinessLogic {
                 _logger
             );
             _missingTimestampsChecker.StartAsync(
-                TimeSpan.FromMilliseconds(kMissingTimestampsCheckDelayMilliseconds),
-                token
+                TimeSpan.FromMilliseconds(kCheckerDelayMilliseconds),
+                _cancellationTokenSource.Token
             ).Start();
 
             _messageProcessingDelayChecker = new MessageProcessingDelayChecker(
@@ -163,8 +147,14 @@ namespace TestEventProcessor.BusinessLogic {
 
             _valueChangeCounterPerNodeId = new ValueChangeCounterPerNodeId(_logger);
 
-            // Start local checks.
-            CheckForMissingValueChangesAsync(token).Start();
+            _missingValueChangesChecker = new MissingValueChangesChecker(
+                _currentConfiguration.ExpectedValueChangesPerTimestamp,
+                _logger
+            );
+            _missingValueChangesChecker.StartAsync(
+                TimeSpan.FromMilliseconds(kCheckerDelayMilliseconds),
+                _cancellationTokenSource.Token
+            ).Start();
 
             return new StartResult();
         }
@@ -183,9 +173,6 @@ namespace TestEventProcessor.BusinessLogic {
             Interlocked.Exchange(ref _shuttingDown, 1);
 
             var endTime = DateTime.UtcNow;
-
-            // to finish up messages related to a timestamp, we collect some more time
-            await Task.Delay(kStopDelayMilliseconds);
 
             if (_cancellationTokenSource != null) {
                 _cancellationTokenSource.Cancel();
@@ -212,6 +199,8 @@ namespace TestEventProcessor.BusinessLogic {
                 _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}",
                     allExpectedValueChanges);
             }
+
+            var incompleteTimestamps = _missingValueChangesChecker.Stop();
 
             var stopResult =  new StopResult() {
                 ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
@@ -249,82 +238,6 @@ namespace TestEventProcessor.BusinessLogic {
         }
 
         /// <summary>
-        /// Running a thread that analyze the value changes per timestamp
-        /// </summary>
-        /// <param name="token">Token to cancel the thread</param>
-        /// <returns>Task that run until token is canceled</returns>
-        private Task CheckForMissingValueChangesAsync(CancellationToken token)
-        {
-            return new Task(() => {
-                try
-                {
-                    var formatInfoProvider = new DateTimeFormatInfo();
-                    token.ThrowIfCancellationRequested();
-                    while (!token.IsCancellationRequested)
-                    {
-                        _logger.LogInformation("Currently, {total} value changes were received, currently " +
-                            "waiting for {incompletedTimestamps} timestamp to be completed.",
-                            _totalValueChangesCount, _valueChangesPerTimestamp.Count);
-
-                        var entriesToDelete = new List<DateTime>(50);
-                        foreach (var missingSequence in _valueChangesPerTimestamp) {
-                            var numberOfValueChanges = missingSequence.Value;
-                            if (numberOfValueChanges >= _currentConfiguration.ExpectedValueChangesPerTimestamp) {
-                                _logger.LogInformation(
-                                    "Received {NumberOfValueChanges} value changes for timestamp {Timestamp}",
-                                    numberOfValueChanges, missingSequence.Key);
-
-                                // don't check for gaps of sequence numbers because they reflect the for number of messages
-                                // send from OPC server to OPC publisher, it should be internally handled in OPCF stack
-
-                                entriesToDelete.Add(missingSequence.Key);
-                            }
-                        }
-
-                        // Remove all timestamps that are completed (all value changes received)
-                        foreach (var entry in entriesToDelete)
-                        {
-                            var success = _valueChangesPerTimestamp.TryRemove(entry, out var values);
-
-                            if (!success)
-                            {
-                                _logger.LogError(
-                                    "Could not remove timestamp {Timestamp} with all value changes from internal list",
-                                    entry);
-                            }
-                            else
-                            {
-                                _logger.LogInformation("[Success] All value changes received for {Timestamp}", entry);
-                            }
-                        }
-
-                        // Log total amount of missing value changes for each timestamp that already reported 80% of value changes
-                        foreach (var missingSequence in _valueChangesPerTimestamp)
-                        {
-                            if (missingSequence.Value > (int)(_currentConfiguration.ExpectedValueChangesPerTimestamp * 0.8))
-                            {
-                                _logger.LogInformation(
-                                    "For timestamp {Timestamp} there are {NumberOfMissing} value changes missing",
-                                    missingSequence.Key,
-                                    _currentConfiguration.ExpectedValueChangesPerTimestamp - missingSequence.Value);
-                            }
-                        }
-
-                        Task.Delay(kMissingValueCheckDelayMilliseconds, token).Wait(token);
-                    }
-                }
-                catch (OperationCanceledException oce)
-                {
-                    if (oce.CancellationToken == token)
-                    {
-                        return;
-                    }
-                    throw;
-                }
-            }, token);
-        }
-
-        /// <summary>
         /// Analyze payload of IoTHub message, adding timestamp and related sequence numbers into temporary
         /// </summary>
         /// <param name="arg"></param>
@@ -334,14 +247,12 @@ namespace TestEventProcessor.BusinessLogic {
             var eventReceivedTimestamp = DateTime.UtcNow;
 
             // Check if already stopped.
-            if (_cancellationTokenSource == null)
-            {
+            if (_cancellationTokenSource == null) {
                 _logger.LogWarning("Received Events but nothing to do, because already stopped");
                 return;
             }
 
-            if (!arg.HasEvent)
-            {
+            if (!arg.HasEvent) {
                 _logger.LogWarning("Received partition event without content");
                 return;
             }
@@ -349,7 +260,7 @@ namespace TestEventProcessor.BusinessLogic {
             var body = arg.Data.Body.ToArray();
             var content = Encoding.UTF8.GetString(body);
             dynamic json = JsonConvert.DeserializeObject(content);
-            int valueChangesCount = 0;
+            var valueChangesCount = 0;
 
             // TODO build variant that works with PubSub
 
@@ -378,19 +289,13 @@ namespace TestEventProcessor.BusinessLogic {
                 _messageProcessingDelayChecker.ProcessEvent(entrySourceTimestamp, eventReceivedTimestamp);
                 _messageDeliveryDelayChecker.ProcessEvent(entrySourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime);
                 _valueChangeCounterPerNodeId.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
+                _missingValueChangesChecker.ProcessEvent(entrySourceTimestamp);
 
                 Interlocked.Increment(ref _totalValueChangesCount);
                 valueChangesCount++;
-
-                if (_currentConfiguration.ExpectedValueChangesPerTimestamp > 0) {
-                    _valueChangesPerTimestamp.AddOrUpdate(
-                        entrySourceTimestamp,
-                        (ts) => 1,
-                        (ts, value) => ++value);
-                }
             }
 
-            _logger.LogDebug("Received {NumberOfValueChanges} from IoTHub, partition {PartitionId}, ",
+            _logger.LogDebug("Received {NumberOfValueChanges} messages from IoT Hub, partition {PartitionId}.",
                 valueChangesCount, arg.Partition.PartitionId);
         }
 

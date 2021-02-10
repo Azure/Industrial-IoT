@@ -7,6 +7,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -16,6 +17,9 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
     /// </summary>
     class MissingTimestampsChecker {
 
+        /// <summary>
+        /// Format to be used for Timestamps
+        /// </summary>
         private const string _dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffffZ";
 
         private readonly TimeSpan _expectedInterval;
@@ -23,6 +27,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         private readonly ILogger _logger;
         private readonly SemaphoreSlim _lock;
         private readonly IDictionary<string, List<DateTime>> _sourceTimestamps;
+        private readonly DateTimeFormatInfo _dateTimeFormatInfo;
         private bool _isStopped = false;
         private int _missingTimestampsCounter = 0;
 
@@ -48,6 +53,8 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             _expectedInterval = expectedIntervalOfValueChanges;
             _threshold = threshold;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            _dateTimeFormatInfo = new DateTimeFormatInfo();
 
             _sourceTimestamps = new Dictionary<string, List<DateTime>>();
             _lock = new SemaphoreSlim(1, 1);
@@ -125,7 +132,14 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             _isStopped = true;
 
             CheckForMissingTimestamps();
-            return _missingTimestampsCounter;
+
+            _lock.Wait();
+            try {
+                return _missingTimestampsCounter;
+            }
+            finally {
+                _lock.Release();
+            }
         }
 
         /// <summary>
@@ -157,9 +171,9 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                         var expectedMax = expectedTime + _threshold;
 
                         if (newer < expectedMin || newer > expectedMax) {
-                            var expectedTS = expectedTime.ToString(_dateTimeFormat);
-                            var olderTS = older.ToString(_dateTimeFormat);
-                            var newerTS = newer.ToString(_dateTimeFormat);
+                            var expectedTS = expectedTime.ToString(_dateTimeFormat, _dateTimeFormatInfo);
+                            var olderTS = older.ToString(_dateTimeFormat, _dateTimeFormatInfo);
+                            var newerTS = newer.ToString(_dateTimeFormat, _dateTimeFormatInfo);
                             _logger.LogWarning(
                                 "Missing timestamp for {nodeId}, value changes for {ExpectedTs} not " +
                                 "received, predecessor {Older} successor {Newer}",

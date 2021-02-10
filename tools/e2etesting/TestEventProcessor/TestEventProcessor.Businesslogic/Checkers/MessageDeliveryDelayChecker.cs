@@ -15,13 +15,14 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
     /// </summary>
     class MessageDeliveryDelayChecker {
 
+        /// <summary>
+        /// Format to be used for Timestamps
+        /// </summary>
         private const string _dateTimeFormat = "yyyy-MM-dd HH:mm:ss.fffffffZ";
 
         private readonly TimeSpan _expectedMaximalDuration;
         private readonly ILogger _logger;
-
         private readonly DateTimeFormatInfo _dateTimeFormatInfo;
-
         private readonly SemaphoreSlim _lock;
         private TimeSpan _maxMessageDeliveryDuration = TimeSpan.Zero;
 
