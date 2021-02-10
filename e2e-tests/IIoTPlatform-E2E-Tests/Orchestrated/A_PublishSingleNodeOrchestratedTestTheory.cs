@@ -296,9 +296,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).GetAwaiter().GetResult();
             // wait some time to generate events to process
-            Task.Delay(90 * 1000, cts.Token).GetAwaiter().GetResult();
+            Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True((uint)json.DroppedValueCount == 0, "Dropped messages detected");
+            Assert.True((uint)json.DuplicateValueCount == 0, "Duplicate values detected");
         }
 
         [Fact, PriorityOrder(11)]

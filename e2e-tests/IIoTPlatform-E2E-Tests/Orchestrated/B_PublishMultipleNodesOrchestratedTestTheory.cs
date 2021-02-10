@@ -261,6 +261,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             Task.Delay(delay, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True((uint)json.DroppedValueCount == 0, "Dropped messages detected");
+            Assert.True((uint)json.DuplicateValueCount == 0, "Duplicate values detected");
 
             var unexpectedNodesThatPublish = new List<string>();
             // check that every published node is sending data
