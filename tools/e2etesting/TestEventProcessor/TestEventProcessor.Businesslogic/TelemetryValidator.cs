@@ -36,6 +36,7 @@ namespace TestEventProcessor.BusinessLogic {
         // Checkers
         private MissingTimestampsChecker _missingTimestampsChecker;
         private MessageProcessingDelayChecker _messageProcessingDelayChecker;
+        private MessageDeliveryDelayChecker _messageDeliveryDelayChecker;
         private ValueChangeCounterPerNodeId _valueChangeCounterPerNodeId;
 
         /// <summary>
@@ -158,6 +159,11 @@ namespace TestEventProcessor.BusinessLogic {
                 _logger
             );
 
+            _messageDeliveryDelayChecker = new MessageDeliveryDelayChecker(
+                TimeSpan.FromMilliseconds(_currentConfiguration.ExpectedMaximalDuration),
+                _logger
+            );
+
             _valueChangeCounterPerNodeId = new ValueChangeCounterPerNodeId(_logger);
 
             // Start local checks.
@@ -194,7 +200,8 @@ namespace TestEventProcessor.BusinessLogic {
 
             // Stop checkers and collect resutls.
             var missingTimestampsCounter = _missingTimestampsChecker.Stop();
-            var maxMessageDelay = _messageProcessingDelayChecker.Stop();
+            var maxMessageProcessingDelay = _messageProcessingDelayChecker.Stop();
+            var maxMessageDeliveryDelay = _messageDeliveryDelayChecker.Stop();
 
             var valueChangesPerNodeId = _valueChangeCounterPerNodeId.Stop();
             var allExpectedValueChanges = true;
@@ -216,7 +223,8 @@ namespace TestEventProcessor.BusinessLogic {
                 AllInExpectedInterval = missingTimestampsCounter == 0,
                 StartTime = _startTime,
                 EndTime = endTime,
-                MaxDelayToNow = maxMessageDelay,
+                MaxDelayToNow = maxMessageProcessingDelay,
+                MaxDeliveyDuration = maxMessageDeliveryDelay,
             };
 
             return stopResult;
@@ -350,6 +358,8 @@ namespace TestEventProcessor.BusinessLogic {
         /// <returns>Task that run until token is canceled</returns>
         private async Task Client_ProcessEventAsync(ProcessEventArgs arg)
         {
+            var eventReceivedTimestamp = DateTime.UtcNow;
+
             // Check if already stopped.
             if (_cancellationTokenSource == null)
             {
@@ -392,7 +402,8 @@ namespace TestEventProcessor.BusinessLogic {
 
                 // Feed data to checkers.
                 _missingTimestampsChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
-                _messageProcessingDelayChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
+                _messageProcessingDelayChecker.ProcessEvent(entrySourceTimestamp, eventReceivedTimestamp);
+                _messageDeliveryDelayChecker.ProcessEvent(entrySourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime);
                 _valueChangeCounterPerNodeId.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
 
                 Interlocked.Increment(ref _totalValueChangesCount);

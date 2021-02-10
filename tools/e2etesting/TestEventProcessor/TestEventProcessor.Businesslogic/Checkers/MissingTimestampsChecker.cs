@@ -69,7 +69,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                 return;
             }
 
-            // If _expectedInterval is set to zero then
+            // Do not process if _expectedInterval is set to zero.
             if (_expectedInterval.Equals(TimeSpan.Zero)) {
                 return;
             }

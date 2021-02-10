@@ -43,18 +43,16 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         /// <summary>
         /// Method that should be called for processing of events.
         /// </summary>
-        /// <param name="_0"></param>
         /// <param name="sourceTimestamp"></param>
-        /// <param name="_1"></param>
+        /// <param name="receivedTimestamp"></param>
         public void ProcessEvent(
-            string _0,
             DateTime sourceTimestamp,
-            object _1
+            DateTime receivedTimestamp
         ) {
             _lock.Wait();
             try {
                 // Check and report if processing delay has changed considerably, meaning more that the threshold.
-                var newOpcDiffToNow = DateTime.UtcNow - sourceTimestamp;
+                var newOpcDiffToNow = receivedTimestamp - sourceTimestamp;
                 var diffDelta = newOpcDiffToNow - _lastOpcDiffToNow;
 
                 if (diffDelta.Duration() > _threshold) {
