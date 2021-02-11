@@ -297,7 +297,7 @@ kubectl create namespace azure-industrial-iot
 if [ "$is_private_repo" = true ] ; then
     echo 'Need to additionally create secrets for the container registry..'
     #acrname="$(cut -d'.' -f1 <<<"$AIIOT_CONTAINER_REGISTRY_SERVER")"
-    kubectl create secret docker-registry $AIIOT_CONTAINER_REGISTRY_USERNAME --docker-server=$AIIOT_CONTAINER_REGISTRY_SERVER --docker-username=$AIIOT_CONTAINER_REGISTRY_USERNAME --docker-password=$AIIOT_CONTAINER_REGISTRY_PASSWORD
+    kubectl create secret docker-registry $AIIOT_CONTAINER_REGISTRY_USERNAME --docker-server=$AIIOT_CONTAINER_REGISTRY_SERVER --docker-username=$AIIOT_CONTAINER_REGISTRY_USERNAME --docker-password=$AIIOT_CONTAINER_REGISTRY_PASSWORD --namespace azure-industrial-iot
 
     pcs_server="PCS_DOCKER_SERVER"
     pcs_user="PCS_DOCKER_USER"
