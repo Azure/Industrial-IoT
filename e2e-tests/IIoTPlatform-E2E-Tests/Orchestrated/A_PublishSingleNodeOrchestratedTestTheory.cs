@@ -222,7 +222,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var body = new {
                 item = new {
-                    nodeId = simulatedOpcServer.Values.First().OpcNodes.First().Id
+                    nodeId = simulatedOpcServer.Values.First().OpcNodes.First().Id,
+                    samplingInterval = "00:00:00.250",
+                    publishingInterval = "00:00:00.500",
                 }
             };
 

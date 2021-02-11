@@ -196,7 +196,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
                 NodesToAdd = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(node => new {
                     nodeId = node.Id,
                     samplingInterval = "00:00:00.250",
-                    publishingInterval = "00:00:00.500"
+                    publishingInterval = "00:00:00.500",
                 }).ToArray()
             };
 
