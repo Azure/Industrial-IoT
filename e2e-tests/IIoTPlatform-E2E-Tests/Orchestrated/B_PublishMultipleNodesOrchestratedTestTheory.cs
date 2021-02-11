@@ -193,7 +193,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var testPlc = _context.SimulatedPublishedNodes[_context.ConsumedOpcUaNodes.First().Key];
             _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes.Skip(250).ToArray();
             var body = new {
-                NodesToAdd = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(node => new {nodeId = node.Id}).ToArray()
+                NodesToAdd = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(node => new {
+                    nodeId = node.Id,
+                    samplingInterval = "00:00:00.250",
+                    publishingInterval = "00:00:00.500"
+                }).ToArray()
             };
 
             request.AddJsonBody(JsonConvert.SerializeObject(body));

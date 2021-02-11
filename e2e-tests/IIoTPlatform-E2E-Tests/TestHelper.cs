@@ -153,10 +153,14 @@ namespace IIoTPlatform_E2E_Tests {
         /// <summary>
         /// transfer the content of published_nodes.json file into the OPC Publisher edge module
         /// </summary>
-        /// <param name="sourceFilePath">Source file path</param>
-        /// <param name="destinationFilePath">Destination file path</param>
+        /// <param name="entries">Entries for published_nodes.json</param>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static async Task SwitchToStandaloneModeAndPublishNodesAsync(IEnumerable<PublishedNodesEntryModel> entries, IIoTPlatformTestContext context, CancellationToken ct = default) {
+        /// <param name="ct">Cancellation token</param>
+        public static async Task SwitchToStandaloneModeAndPublishNodesAsync(
+            IEnumerable<PublishedNodesEntryModel> entries,
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default
+        ) {
             DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
 
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
@@ -174,8 +178,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// Sets the unmanaged-Tag to "true" to enable Standalone-Mode
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        private static async Task SwitchToStandaloneModeAsync(IIoTPlatformTestContext context, CancellationToken ct = default) {
+        private static async Task SwitchToStandaloneModeAsync(
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default
+        ) {
             var patch =
                 @"{
                     tags: {
@@ -190,8 +198,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// Sets the unmanaged-Tag to "true" to enable Orchestrated-Mode
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        public static async Task SwitchToOrchestratedModeAsync(IIoTPlatformTestContext context, CancellationToken ct = default) {
+        public static async Task SwitchToOrchestratedModeAsync(
+            IIoTPlatformTestContext context,
+            CancellationToken ct = default
+        ) {
             var patch =
                 @"{
                     tags: {
