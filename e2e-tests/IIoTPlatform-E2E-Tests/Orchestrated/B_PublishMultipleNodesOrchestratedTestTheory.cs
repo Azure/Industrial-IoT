@@ -261,7 +261,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             TestHelper.StartMonitoringIncomingMessagesAsync(_context, 50, 1000, 90_000_000, cts.Token).GetAwaiter().GetResult();
             // wait some time to generate events to process
-            var delay = TestConstants.DefaultTimeoutInMilliseconds * 2; // on VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
+            // on VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
+            var delay = TestConstants.DefaultTimeoutInMilliseconds * 2;
             Task.Delay(delay, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
