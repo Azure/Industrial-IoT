@@ -52,7 +52,19 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var simulatedPublishedNodesConfiguration = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();
 
             var model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
-            model.OpcNodes = model.OpcNodes.Take(1).ToArray();
+
+            // We want to take one of the slow nodes that updates each 10 seconds.
+            // To make sure that we will not have missing values because of timing issues,
+            // we will set publishing and sampling intervals to a lower value than the publishing
+            // interval of the simulated OPC PLC. This will eliminate false-positives.
+            model.OpcNodes = model.OpcNodes
+                .Take(1).Select(opcNode => {
+                    var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
+                    opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
+                    opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
+                    return opcNode;
+                })
+                .ToArray();
 
             TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { model }, _context, cts.Token).GetAwaiter().GetResult();
 
