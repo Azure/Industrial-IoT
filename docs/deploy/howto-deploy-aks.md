@@ -30,7 +30,7 @@
 
 `Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Azure Industrial IoT solution.
 It takes care of deploying Azure infrastructure resources and microservices of Azure Industrial IoT solution.
-By default, it deploys `2.7.199` version of Azure Industrial IoT microservices.
+By default, it deploys `2.7.206` version of Azure Industrial IoT microservices.
 
 The main difference compared to the [script based deployment](howto-deploy-all-in-one.md) option is that
 from an infrastructure perspective `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
@@ -461,8 +461,8 @@ Command line argument key-value pairs can be specified with:
 | `ResourceGroup:UseExisting` | If set, should be `true` or `false`.                | Determines whether an existing Resource Group should be used or a new one should be created. |                                           |
 | `ResourceGroup:Region`      | Check bellow for list of supported Azure regions.   | Region where new Resource Group should be created.                                           |                                           |
 | `Helm:RepoUrl`              | Should be URL.                                      | Helm repository URL for `azure-industrial-iot` Helm chart.                                   | `https://microsoft.github.io/charts/repo` |
-| `Helm:ChartVersion`         |                                                     | `azure-industrial-iot` Helm chart version to be deployed.                                    | `0.3.1`                                   |
-| `Helm:ImageTag`             |                                                     | Docker image tag for Azure Industrial IoT components to be deployed.                         | `2.7.199`                                 |
+| `Helm:ChartVersion`         |                                                     | `azure-industrial-iot` Helm chart version to be deployed.                                    | `0.3.2`                                   |
+| `Helm:ImageTag`             |                                                     | Docker image tag for Azure Industrial IoT components to be deployed.                         | `2.7.206`                                 |
 | `ApplicationRegistration`   | Object, see [Special Notes](#special-notes) bellow. | Provides definitions of existing Applications and Service Principals to be used.             |                                           |
 | `SaveEnvFile`               | If set, should be `true` or `false`.                | Defines whether to create .env file after successful deployment or not.                      |                                           |
 | `NoCleanup`                 | If set, should be `true` or `false`.                | Defines whether to perform cleanup if an error occurs during deployment.                     |                                           |
@@ -527,16 +527,16 @@ The following Azure regions are supported by `Microsoft.Azure.IIoT.Deployment` f
     Provides definitions of applications and Service Principals to be used. Those definitions will be used
     instead of creating new application registrations and Service Principals for deployment of Azure
     resources.
-  
+
     This is particularly useful in `ResourceDeployment` mode, where `Microsoft.Azure.IIoT.Deployment` would
     rely on existing Application Registrations and Service Principals.
 
     > **Note**: Execution in `ApplicationRegistration` run mode will output JSON object for this property that should be used on consequent `ResourceDeployment`
     run.
-  
+
     Properties correspond to that of application registration and Service Principal manifests. Definition
     of application properties can be found [here](https://docs.microsoft.com/azure/active-directory/develop/reference-app-manifest).
-  
+
     Application objects should contain the following properties:
 
     ``` json
@@ -606,8 +606,8 @@ Kubernetes Dashboard.
 `azure-industrial-iot` Helm chart will be deployed. For more details about the chart please check its
 [documentation](../../deploy/helm/azure-industrial-iot/README.md).
 
-By default, `Microsoft.Azure.IIoT.Deployment` deploys `0.3.1` version of `azure-industrial-iot` Helm chart
-with `2.7.199` version of Azure Industrial IoT components. Both chart version and components version can be
+By default, `Microsoft.Azure.IIoT.Deployment` deploys `0.3.2` version of `azure-industrial-iot` Helm chart
+with `2.7.206` version of Azure Industrial IoT components. Both chart version and components version can be
 changed using configuration parameters. Please check `Helm:ChartVersion` and `Helm:ImageTag` parameters for
 that.
 

@@ -313,7 +313,7 @@ Note the following values in the YAML file:
 
 ```yaml
 image:
-  tag: 2.7.199
+  tag: 2.7.206
 
 loadConfFromKeyVault: true
 
@@ -353,8 +353,8 @@ deployment:
     hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
 
-> **NOTE**: Please note that we have used `2.7.199` as the value of `image:tag` configuration parameter
-> above. That will result in `2.7.199` version of microservices and edge modules to be deployed. If you want
+> **NOTE**: Please note that we have used `2.7.206` as the value of `image:tag` configuration parameter
+> above. That will result in `2.7.206` version of microservices and edge modules to be deployed. If you want
 > to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
 #### Passing Azure resource details through YAML file
@@ -395,7 +395,7 @@ Note the following values in the YAML file:
 
 ```yaml
 image:
-  tag: 2.7.199
+  tag: 2.7.206
 
 azure:
   tenantId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
@@ -487,8 +487,8 @@ deployment:
     hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
 
-> **NOTE**: Please note that we have used `2.7.199` as the value of `image:tag` configuration parameter
-> above. That will result in `2.7.199` version of microservices and edge modules to be deployed. If you want
+> **NOTE**: Please note that we have used `2.7.206` as the value of `image:tag` configuration parameter
+> above. That will result in `2.7.206` version of microservices and edge modules to be deployed. If you want
 > to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
 #### Installing `azure-industrial-iot` Helm chart
@@ -518,7 +518,7 @@ For that you would first add Helm repository and then install the chart from the
 ```bash
 helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
 helm repo update
-helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0.3.1 -f aiiot.yaml
+helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0.3.2 -f aiiot.yaml
 ```
 
 Please note that the version of the chart in GitHub repo will be ahead of chart versions that we publish
