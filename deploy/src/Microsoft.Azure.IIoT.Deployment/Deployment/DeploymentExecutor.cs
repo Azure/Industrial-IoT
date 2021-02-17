@@ -1207,7 +1207,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 Resources.IIoTK8SResources._04_oms_agent_configmap,
                 cancellationToken
             );
-            
+
             const string clusterIssuerBlobName = "90_letsencrypt_cluster_issuer.yaml";
             var clusterIssuerBlobUri = await UploadBlobAsync(
                 storageAccountGen2ConectionString,
@@ -1240,14 +1240,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // azure-industrial-iot Helm chart values
             var aiiotImageTag = helmSettings?.ImageTag ?? HelmSettings._defaultImageTag;
             var aiiotImageNamespace = helmSettings?.ImageNamespace;
-            if ( string.IsNullOrEmpty(aiiotImageNamespace)) {
-                aiiotImageNamespace = HelmSettings._defaultImageNamespace;
-            }
+            //if ( string.IsNullOrEmpty(aiiotImageNamespace)) {
+            //    aiiotImageNamespace = HelmSettings._defaultImageNamespace;
+            //}
 
             var aiiotContainerRegistryServer = helmSettings?.ContainerRegistryServer;
-            if (string.IsNullOrEmpty(aiiotContainerRegistryServer)) {
-                aiiotContainerRegistryServer = HelmSettings._defaultContainerRegistryServer;
-            }
+            //if (string.IsNullOrEmpty(aiiotContainerRegistryServer)) {
+            //    aiiotContainerRegistryServer = HelmSettings._defaultContainerRegistryServer;
+            //}
 
             var aiiotContainerRegistryUsername = helmSettings?.ContainerRegistryUsername;
             var aiiotContainerRegistryPassword = helmSettings?.ContainerRegistryPassword;

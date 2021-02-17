@@ -104,11 +104,6 @@ if [[ -z "$AIIOT_IMAGE_TAG" ]]; then
     exit 1
 fi
 
-if [[ -z "$AIIOT_IMAGE_NAMESPACE" ]]; then
-    echo "Parameter is empty or missing: aiiot_image_namespace"
-    exit 1
-fi
-
 if [[ -z "$AIIOT_CONTAINER_REGISTRY_SERVER" ]]; then
     echo "Parameter is empty or missing: aiiot_container_registry_server"
     exit 1
@@ -127,6 +122,12 @@ if [ "$AIIOT_CONTAINER_REGISTRY_SERVER" != "mcr.microsoft.com" ]; then
         echo "Parameter is empty or missing: aiiot_container_registry_password"
         exit 1
     fi
+
+    if [[ -z "$AIIOT_IMAGE_NAMESPACE" ]]; then
+        echo "Parameter is empty or missing: aiiot_image_namespace"
+        exit 1
+    fi
+
 fi
 
 if [[ -z "$AIIOT_TENANT_ID" ]]; then

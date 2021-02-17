@@ -3,8 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
     /// <summary>
     /// Represents Helm chart settings that are configurable.
@@ -15,8 +13,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         public static string _defaultRepoUrl = "https://microsoft.github.io/charts/repo";
         public static string _defaultChartVersion = "0.3.1";
         public static string _defaultImageTag = "2.7.199";
-        public static string _defaultImageNamespace = "public";
-        public static string _defaultContainerRegistryServer = "mcr.microsoft.com";
+        //public static string _defaultContainerRegistryServer = "mcr.microsoft.com";
 
         /// <summary> Helm repository URL </summary>
         public string RepoUrl { get; set; }
