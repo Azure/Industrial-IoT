@@ -28,20 +28,20 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
         }
 
         [Fact, PriorityOrder(0)]
-        public async void SwitchToOrchestratedMode() {
-            await TestHelper.SwitchToOrchestratedModeAsync(_context);
+        public void SwitchToOrchestratedMode() {
+            TestHelper.SwitchToOrchestratedModeAsync(_context).GetAwaiter().GetResult();
         }
 
         [Fact, PriorityOrder(1)]
-        public async Task Test_CollectOAuthToken() {
+        public void Test_CollectOAuthToken() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var token = await TestHelper.GetTokenAsync(_context, cts.Token);
+            var token = TestHelper.GetTokenAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.NotEmpty(token);
         }
 
         [Fact, PriorityOrder(2)]
-        public async void D1_Discover_OPC_UA_Endpoints() {
-            var endpoints = await ListEndpointsAsync().ConfigureAwait(false);
+        public void D1_Discover_OPC_UA_Endpoints() {
+            var endpoints = ListEndpointsAsync().GetAwaiter().GetResult();
 
             Assert.NotEmpty(endpoints);
 
@@ -53,8 +53,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
         }
 
         [Fact, PriorityOrder(3)]
-        public async Task T1_Browse_Address_Space() {
-            var endpoints = await ListEndpointsAsync().ConfigureAwait(false);
+        public void T1_Browse_Address_Space() {
+            var endpoints = ListEndpointsAsync().GetAwaiter().GetResult();
 
             Assert.NotEmpty(endpoints);
 
@@ -64,15 +64,15 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.Equal("ActivatedAndConnected", endpoint.ActivationState);
             Assert.Equal("Ready", endpoint.EndpointState);
 
-            var nodes = await GetNodesAsync(endpoint.Id).ConfigureAwait(false);
+            var nodes = GetNodesAsync(endpoint.Id).GetAwaiter().GetResult();
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
         }
 
         [Fact, PriorityOrder(4)]
-        public async Task T1_1_BrowseSpecificNode() {
-            var endpoints = await ListEndpointsAsync().ConfigureAwait(false);
+        public void T1_1_BrowseSpecificNode() {
+            var endpoints = ListEndpointsAsync().GetAwaiter().GetResult();
 
             Assert.NotEmpty(endpoints);
 
@@ -82,22 +82,22 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.Equal("ActivatedAndConnected", endpoint.ActivationState);
             Assert.Equal("Ready", endpoint.EndpointState);
 
-            var nodes = await GetNodesAsync(endpoint.Id).ConfigureAwait(false);
+            var nodes = GetNodesAsync(endpoint.Id).GetAwaiter().GetResult();
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
 
             var nodeId = nodes.First().NodeId;
 
-            nodes = await GetNodesAsync(endpoint.Id, nodeId).ConfigureAwait(false);
+            nodes = GetNodesAsync(endpoint.Id, nodeId).GetAwaiter().GetResult();
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
         }
 
         [Fact, PriorityOrder(5)]
-        public async Task T1_2_BrowseAllNodesOfTypeObject() {
-            var endpoints = await ListEndpointsAsync().ConfigureAwait(false);
+        public void T1_2_BrowseAllNodesOfTypeObject() {
+            var endpoints = ListEndpointsAsync().GetAwaiter().GetResult();
 
             Assert.NotEmpty(endpoints);
 
@@ -107,7 +107,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.Equal("ActivatedAndConnected", endpoint.ActivationState);
             Assert.Equal("Ready", endpoint.EndpointState);
 
-            var nodes = await GetAllNodesAsync(endpoint.Id, "Object").ConfigureAwait(false);
+            var nodes = GetAllNodesAsync(endpoint.Id, "Object").GetAwaiter().GetResult();
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
@@ -116,8 +116,8 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
         }
 
         [Fact, PriorityOrder(6)]
-        public async Task T1_3_BrowseAllNodesOfTypeVariable() {
-            var endpoints = await ListEndpointsAsync().ConfigureAwait(false);
+        public void T1_3_BrowseAllNodesOfTypeVariable() {
+            var endpoints = ListEndpointsAsync().GetAwaiter().GetResult();
 
             Assert.NotEmpty(endpoints);
 
@@ -127,7 +127,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.Equal("ActivatedAndConnected", endpoint.ActivationState);
             Assert.Equal("Ready", endpoint.EndpointState);
 
-            var nodes = await GetAllNodesAsync(endpoint.Id, "Variable").ConfigureAwait(false);
+            var nodes = GetAllNodesAsync(endpoint.Id, "Variable").GetAwaiter().GetResult();
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
