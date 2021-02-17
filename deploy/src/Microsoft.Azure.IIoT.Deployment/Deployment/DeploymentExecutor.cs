@@ -1243,6 +1243,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var aiiotContainerRegistryServer = helmSettings?.ContainerRegistryServer ?? HelmSettings._defaultContainerRegistryServer;
             var aiiotContainerRegistryUsername = helmSettings?.ContainerRegistryUsername;
             var aiiotContainerRegistryPassword = helmSettings?.ContainerRegistryPassword;
+            Log.Information("Helm Settings: tag="+aiiotImageTag+", namespace="+aiiotImageNamespace+", server="+aiiotContainerRegistryServer+", username="+aiiotContainerRegistryUsername);
+
+            var naiiotImageNamespace = string.IsNullOrEmpty(aiiotImageNamespace) ? HelmSettings._defaultImageNamespace : aiiotImageNamespace;
+            var naiiotContainerRegistryServer = string.IsNullOrEmpty(aiiotContainerRegistryServer) ? HelmSettings._defaultContainerRegistryServer : aiiotContainerRegistryServer;
+            Log.Information("New Helm Settings: tag=" + aiiotImageTag + ", namespace=" + naiiotImageNamespace + ", server=" + naiiotContainerRegistryServer + ", username=" + aiiotContainerRegistryUsername);
+
             var aiiotTenantId = _authConf.TenantId.ToString();
             var aiiotKeyVaultUri = keyVault.Properties.VaultUri;
             var aiiotServicesAppId = _applicationsManager.GetServiceApplication().AppId;
