@@ -55,6 +55,7 @@ Follow these steps:
   * at "Select principal" select your principal,
   * press the "Add" button,
   * press the "Save" button.
+* Execute /tools/e2etesting/GetSecrets.ps1
 * Add the following to your launchSettings.json under `profiles.IIoTPlatform-E2E-Tests.environmentVariables`:
   * the secrets found in the KeyVault,
   * `"ApplicationName": "<your_resource_group_name>"`.
