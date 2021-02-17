@@ -1240,15 +1240,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // azure-industrial-iot Helm chart values
             var aiiotImageTag = helmSettings?.ImageTag ?? HelmSettings._defaultImageTag;
             var aiiotImageNamespace = helmSettings?.ImageNamespace;
-            //if ( string.IsNullOrEmpty(aiiotImageNamespace)) {
-            //    aiiotImageNamespace = HelmSettings._defaultImageNamespace;
-            //}
-
-            var aiiotContainerRegistryServer = helmSettings?.ContainerRegistryServer;
-            if (string.IsNullOrEmpty(aiiotContainerRegistryServer)) {
-                aiiotContainerRegistryServer = HelmSettings._defaultContainerRegistryServer;
-            }
-
+            var aiiotContainerRegistryServer = helmSettings?.ContainerRegistryServer ?? HelmSettings._defaultContainerRegistryServer;
             var aiiotContainerRegistryUsername = helmSettings?.ContainerRegistryUsername;
             var aiiotContainerRegistryPassword = helmSettings?.ContainerRegistryPassword;
 

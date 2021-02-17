@@ -297,7 +297,6 @@ kubectl create namespace azure-industrial-iot
 # Create secrets if private registry
 if [ "$is_private_repo" = true ] ; then
     echo 'Need to additionally create secrets for the container registry..'
-    #acrname="$(cut -d'.' -f1 <<<"$AIIOT_CONTAINER_REGISTRY_SERVER")"
     kubectl create secret docker-registry $AIIOT_CONTAINER_REGISTRY_USERNAME --docker-server=$AIIOT_CONTAINER_REGISTRY_SERVER --docker-username=$AIIOT_CONTAINER_REGISTRY_USERNAME --docker-password=$AIIOT_CONTAINER_REGISTRY_PASSWORD --namespace azure-industrial-iot
 
     pcs_server="PCS_DOCKER_SERVER"
@@ -305,6 +304,27 @@ if [ "$is_private_repo" = true ] ; then
     pcs_pwd="PCS_DOCKER_PASSWORD"
     pcs_namespace="PCS_IMAGES_NAMESPACE"
     pcs_tag="PCS_IMAGES_TAG"
+    iiotsvcs=(publisher registry twin)
+    namestr="--set deployment.microServices.SERVICE_NAME.extraEnv[IDX].name=PCS_KEY "
+    valuestr="--set deployment.microServices.SERVICE_NAME.extraEnv[IDX].value=PCS_VAL "
+    setsvc=""
+    declare -A envvar=( [$pcs_server]=$AIIOT_CONTAINER_REGISTRY_SERVER [$pcs_user]=$AIIOT_CONTAINER_REGISTRY_USERNAME [$pcs_pwd]=$AIIOT_CONTAINER_REGISTRY_PASSWORD [$pcs_namespace]=$AIIOT_IMAGE_NAMESPACE [$pcs_tag]=$AIIOT_IMAGE_TAG)
+    for svc in ${iiotsvcs[@]}; do
+      idx=0
+      for key in ${!envvar[@]}; do
+        tnamestr="${namestr/SERVICE_NAME/$svc}"
+        tnamestr="${tnamestr/PCS_KEY/${key}}"
+        tnamestr="${tnamestr/IDX/$idx}"
+        setsvc+=$tnamestr
+        tvalstr="${valuestr/SERVICE_NAME/$svc}"
+        tvalstr="${tvalstr/PCS_VAL/${envvar[${key}]}}"
+        tvalstr="${tvalstr/IDX/$idx}"
+        setsvc+=$tvalstr
+        idx=$[$idx +1]
+      done
+    done
+    echo $setsvc
+
     # Install aiiot/azure-industrial-iot Helm chart
     helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
         --set image.tag=$AIIOT_IMAGE_TAG \
@@ -316,38 +336,6 @@ if [ "$is_private_repo" = true ] ; then
         --set azure.auth.servicesApp.appId=$AIIOT_SERVICES_APP_ID \
         --set azure.auth.servicesApp.secret=$AIIOT_SERVICES_APP_SECRET \
         --set externalServiceUrl="https://$AIIOT_SERVICES_HOSTNAME" \
-        --set deployment.microServices.engineeringTool.enabled=true \
-        --set deployment.microServices.telemetryCdmProcessor.enabled=true \
-        --set deployment.microServices.publisher.extraEnv[0].name=$pcs_server \
-        --set deployment.microServices.publisher.extraEnv[0].value=$AIIOT_CONTAINER_REGISTRY_SERVER \
-        --set deployment.microServices.publisher.extraEnv[1].name=$pcs_user \
-        --set deployment.microServices.publisher.extraEnv[1].value=$AIIOT_CONTAINER_REGISTRY_USERNAME \
-        --set deployment.microServices.publisher.extraEnv[2].name=$pcs_pwd \
-        --set deployment.microServices.publisher.extraEnv[2].value=$AIIOT_CONTAINER_REGISTRY_PASSWORD \
-        --set deployment.microServices.publisher.extraEnv[3].name=$pcs_namespace \
-        --set deployment.microServices.publisher.extraEnv[3].value=$AIIOT_IMAGE_NAMESPACE \
-        --set deployment.microServices.publisher.extraEnv[4].name=$pcs_tag \
-        --set deployment.microServices.publisher.extraEnv[4].value=$AIIOT_IMAGE_TAG \
-        --set deployment.microServices.registry.extraEnv[0].name=$pcs_server \
-        --set deployment.microServices.registry.extraEnv[0].value=$AIIOT_CONTAINER_REGISTRY_SERVER \
-        --set deployment.microServices.registry.extraEnv[1].name=$pcs_user \
-        --set deployment.microServices.registry.extraEnv[1].value=$AIIOT_CONTAINER_REGISTRY_USERNAME \
-        --set deployment.microServices.registry.extraEnv[2].name=$pcs_pwd \
-        --set deployment.microServices.registry.extraEnv[2].value=$AIIOT_CONTAINER_REGISTRY_PASSWORD \
-        --set deployment.microServices.registry.extraEnv[3].name=$pcs_namespace \
-        --set deployment.microServices.registry.extraEnv[3].value=$AIIOT_IMAGE_NAMESPACE \
-        --set deployment.microServices.registry.extraEnv[4].name=$pcs_tag \
-        --set deployment.microServices.registry.extraEnv[4].value=$AIIOT_IMAGE_TAG \
-        --set deployment.microServices.twin.extraEnv[0].name=$pcs_server \
-        --set deployment.microServices.twin.extraEnv[0].value=$AIIOT_CONTAINER_REGISTRY_SERVER \
-        --set deployment.microServices.twin.extraEnv[1].name=$pcs_user \
-        --set deployment.microServices.twin.extraEnv[1].value=$AIIOT_CONTAINER_REGISTRY_USERNAME \
-        --set deployment.microServices.twin.extraEnv[2].name=$pcs_pwd \
-        --set deployment.microServices.twin.extraEnv[2].value=$AIIOT_CONTAINER_REGISTRY_PASSWORD \
-        --set deployment.microServices.twin.extraEnv[3].name=$pcs_namespace \
-        --set deployment.microServices.twin.extraEnv[3].value=$AIIOT_IMAGE_NAMESPACE \
-        --set deployment.microServices.twin.extraEnv[4].name=$pcs_tag \
-        --set deployment.microServices.twin.extraEnv[4].value=$AIIOT_IMAGE_TAG \
         --set deployment.ingress.enabled=true \
         --set deployment.ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
         --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/affinity"=cookie \
@@ -359,7 +347,10 @@ if [ "$is_private_repo" = true ] ; then
         --set deployment.ingress.annotations."cert-manager\.io\/cluster-issuer"=letsencrypt-prod \
         --set deployment.ingress.tls[0].hosts[0]=$AIIOT_SERVICES_HOSTNAME \
         --set deployment.ingress.tls[0].secretName=tls-secret \
-        --set deployment.ingress.hostName=$AIIOT_SERVICES_HOSTNAME
+        --set deployment.ingress.hostName=$AIIOT_SERVICES_HOSTNAME \
+        --set deployment.microServices.engineeringTool.enabled=true \
+        --set deployment.microServices.telemetryCdmProcessor.enabled=true \
+        $setsvc
 else
     # Install aiiot/azure-industrial-iot Helm chart
     helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
