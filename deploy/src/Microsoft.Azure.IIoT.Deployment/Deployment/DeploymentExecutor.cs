@@ -1207,7 +1207,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 Resources.IIoTK8SResources._04_oms_agent_configmap,
                 cancellationToken
             );
-
+            
             const string clusterIssuerBlobName = "90_letsencrypt_cluster_issuer.yaml";
             var clusterIssuerBlobUri = await UploadBlobAsync(
                 storageAccountGen2ConectionString,
@@ -1239,15 +1239,20 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var helmChartVersion = helmSettings?.ChartVersion ?? HelmSettings._defaultChartVersion;
             // azure-industrial-iot Helm chart values
             var aiiotImageTag = helmSettings?.ImageTag ?? HelmSettings._defaultImageTag;
-            var aiiotImageNamespace = helmSettings?.ImageNamespace ?? HelmSettings._defaultImageNamespace;
-            var aiiotContainerRegistryServer = helmSettings?.ContainerRegistryServer ?? HelmSettings._defaultContainerRegistryServer;
+            var aiiotImageNamespace = helmSettings?.ImageNamespace;
+            if ( string.IsNullOrEmpty(aiiotImageNamespace)) {
+                aiiotImageNamespace = HelmSettings._defaultImageNamespace;
+            }
+
+            var aiiotContainerRegistryServer = helmSettings?.ContainerRegistryServer;
+            if (string.IsNullOrEmpty(aiiotContainerRegistryServer)) {
+                aiiotContainerRegistryServer = HelmSettings._defaultContainerRegistryServer;
+            }
+
             var aiiotContainerRegistryUsername = helmSettings?.ContainerRegistryUsername;
             var aiiotContainerRegistryPassword = helmSettings?.ContainerRegistryPassword;
-            Log.Information("Helm Settings: tag="+aiiotImageTag+", namespace="+aiiotImageNamespace+", server="+aiiotContainerRegistryServer+", username="+aiiotContainerRegistryUsername);
 
-            var naiiotImageNamespace = string.IsNullOrEmpty(aiiotImageNamespace) ? HelmSettings._defaultImageNamespace : aiiotImageNamespace;
-            var naiiotContainerRegistryServer = string.IsNullOrEmpty(aiiotContainerRegistryServer) ? HelmSettings._defaultContainerRegistryServer : aiiotContainerRegistryServer;
-            Log.Information("New Helm Settings: tag=" + aiiotImageTag + ", namespace=" + naiiotImageNamespace + ", server=" + naiiotContainerRegistryServer + ", username=" + aiiotContainerRegistryUsername);
+            Log.Information("Helm Settings: tag=" + aiiotImageTag + ", namespace=" + aiiotImageNamespace + ", server=" + aiiotContainerRegistryServer + ", username=" + aiiotContainerRegistryUsername);
 
             var aiiotTenantId = _authConf.TenantId.ToString();
             var aiiotKeyVaultUri = keyVault.Properties.VaultUri;
