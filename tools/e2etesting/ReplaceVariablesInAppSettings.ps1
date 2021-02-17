@@ -17,10 +17,10 @@ Param(
     [string] $ResourceGroupName,
     [string] $Region,
     [string] $ImageTag,
-    [string] $ImageNamespace = "public",
-    [string] $ContainerRegistryServer = "mcr.microsoft.com",
-    [string] $ContainerRegistryUsername = $null,
-    [string] $ContainerRegistryPassword = $null
+    [string] $ImageNamespace,
+    [string] $ContainerRegistryServer,
+    [string] $ContainerRegistryUsername,
+    [string] $ContainerRegistryPassword
 )
 
 # Stop execution when an error occurs.
@@ -67,6 +67,14 @@ if (!$Region) {
 
 if (!$ImageTag) {
    Write-Error "ImageTag not set."
+}
+
+if (!$ImageNamespace) {
+   $ImageNamespace="public"
+}
+
+if (!$ContainerRegistryServer) {
+   $ContainerRegistryServer="mcr.microsoft.com"
 }
 
 Write-Host "##[group]Parameter values"

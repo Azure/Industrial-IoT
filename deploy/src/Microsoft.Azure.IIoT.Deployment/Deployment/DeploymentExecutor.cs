@@ -1245,9 +1245,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             //}
 
             var aiiotContainerRegistryServer = helmSettings?.ContainerRegistryServer;
-            //if (string.IsNullOrEmpty(aiiotContainerRegistryServer)) {
-            //    aiiotContainerRegistryServer = HelmSettings._defaultContainerRegistryServer;
-            //}
+            if (string.IsNullOrEmpty(aiiotContainerRegistryServer)) {
+                aiiotContainerRegistryServer = HelmSettings._defaultContainerRegistryServer;
+            }
 
             var aiiotContainerRegistryUsername = helmSettings?.ContainerRegistryUsername;
             var aiiotContainerRegistryPassword = helmSettings?.ContainerRegistryPassword;
