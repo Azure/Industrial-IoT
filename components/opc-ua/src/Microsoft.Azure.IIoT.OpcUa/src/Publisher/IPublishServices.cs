@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -17,35 +18,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"> Cancellation token </param>
         /// <returns></returns>
         Task<PublishStartResultModel> NodePublishStartAsync(T endpoint,
-            PublishStartRequestModel request);
+            PublishStartRequestModel request, CancellationToken ct = default);
 
         /// <summary>
-        /// Start publishing node values
+        /// Stop publishing node values
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"> Cancellation token </param>
         /// <returns></returns>
         Task<PublishStopResultModel> NodePublishStopAsync(T endpoint,
-            PublishStopRequestModel request);
+            PublishStopRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Configure nodes to publish and unpublish in bulk
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"> Cancellation token </param>
         /// <returns></returns>
         Task<PublishBulkResultModel> NodePublishBulkAsync(T endpoint,
-            PublishBulkRequestModel request);
+            PublishBulkRequestModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Get all published nodes for endpoint.
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
+        /// <param name="ct"> Cancellation token </param>
         /// <returns></returns>
-        Task<PublishedItemListResultModel> NodePublishListAsync(
-            T endpoint, PublishedItemListRequestModel request);
+        Task<PublishedItemListResultModel> NodePublishListAsync(T endpoint,
+            PublishedItemListRequestModel request, CancellationToken ct = default);
     }
 }

@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
+    using System.Net;
 
     /// <summary>
     /// Value and Event publishing services
@@ -72,9 +73,22 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _publisher.NodePublishBulkAsync(
-                endpointId, request.ToServiceModel());
-            return result.ToApiModel();
+            var requestModel = request.ToServiceModel();
+            var resultModel = await _publisher.NodePublishBulkAsync(endpointId, requestModel);
+
+            var nodesToAddErrors = resultModel.NodesToAdd == null
+                ? 0
+                : resultModel.NodesToAdd.Count(el => el.Value?.StatusCode == (uint)HttpStatusCode.NotFound);
+            var nodesToRemoveErrors = resultModel.NodesToRemove == null
+                ? 0
+                : resultModel.NodesToRemove.Count(el => el.Value?.StatusCode == (uint)HttpStatusCode.NotFound);
+
+            if ((nodesToAddErrors + nodesToRemoveErrors) > 0) {
+                Response.StatusCode = 404;
+            }
+
+            var result = resultModel.ToApiModel();
+            return result;
         }
 
         /// <summary>
@@ -90,13 +104,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
         /// <returns>The unpublish response</returns>
         [HttpPost("{endpointId}/stop")]
         public async Task<PublishStopResponseApiModel> StopPublishingValuesAsync(
-            string endpointId, [FromBody] [Required] PublishStopRequestApiModel request) {
+            string endpointId, [FromBody] [Required] PublishStopRequestApiModel request
+        ) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var result = await _publisher.NodePublishStopAsync(
-                endpointId, request.ToServiceModel());
-            return result.ToApiModel();
+            var stopRequestModel = request.ToServiceModel();
+            var stopResultModel = await _publisher.NodePublishStopAsync(endpointId, stopRequestModel);
+            var result = stopResultModel.ToApiModel();
+            return result;
         }
 
         /// <summary>
