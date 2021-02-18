@@ -676,9 +676,9 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="continuationToken"></param>
         /// <returns></returns>
         public static async Task<List<(string NodeId, string NodeClass, bool Children)>> Twin_GetBrowseEndpoint(
-            IIoTPlatformTestContext context,
-            string endpointId,
-            string nodeId = null) {
+                IIoTPlatformTestContext context,
+                string endpointId,
+                string nodeId = null) {
 
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
@@ -708,10 +708,10 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="nodeClass">Class of the node to filter to or null for no filtering</param>
         /// <param name="nodeId">Id of the parent node or null to browse the root node</param>
         public static async Task<List<(string NodeId, string NodeClass, bool Children)>> Twin_GetBrowseEndpoint_Recursive(
-            IIoTPlatformTestContext context,
-            string endpointId,
-            string nodeClass = null,
-            string nodeId = null) {
+                IIoTPlatformTestContext context,
+                string endpointId,
+                string nodeClass = null,
+                string nodeId = null) {
 
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
@@ -741,7 +741,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static async Task<List<(string Id, string Url, string ActivationState, string EndpointState)>> Registry_GetEndpoints(
-            IIoTPlatformTestContext context) {
+                IIoTPlatformTestContext context) {
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var accessToken = await GetTokenAsync(context, cts.Token).ConfigureAwait(false);
@@ -791,10 +791,10 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         private static async Task<(List<(string NodeId, string NodeClass, bool Children)> results, string continuationToken)> Twin_GetBrowseEndpoint_Internal(
-            IIoTPlatformTestContext context,
-            string endpointId,
-            string nodeId = null,
-            string continuationToken = null) {
+                IIoTPlatformTestContext context,
+                string endpointId,
+                string nodeId = null,
+                string continuationToken = null) {
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var accessToken = await GetTokenAsync(context, cts.Token).ConfigureAwait(false);
