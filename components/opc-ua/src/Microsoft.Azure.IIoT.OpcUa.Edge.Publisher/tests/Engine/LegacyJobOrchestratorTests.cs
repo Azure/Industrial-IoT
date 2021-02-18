@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Publisher.Engine;
     using Serializers.NewtonSoft;
     using Xunit;
-    using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
 
     /// <summary>
     /// Tests the LegacyJobOrchestrator class
