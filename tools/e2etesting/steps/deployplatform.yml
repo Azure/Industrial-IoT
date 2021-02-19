@@ -32,6 +32,10 @@ steps:
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
       -ImageTag "$(PlatformVersion)"
+      -ImageNamespace "$(ImageNamespace)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
+      -ContainerRegistryUsername "$(ContainerRegistryUsername)"
+      -ContainerRegistryPassword "$(ContainerRegistryPassword)"
 
 - task: CmdLine@2
   displayName: 'Run deployment with IAI'
