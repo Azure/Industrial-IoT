@@ -193,7 +193,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var testPlc = _context.SimulatedPublishedNodes[_context.ConsumedOpcUaNodes.First().Key];
             _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes.Skip(250).ToArray();
             var body = new {
-                NodesToAdd = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(node => new {nodeId = node.Id}).ToArray()
+                NodesToAdd = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(node => new {
+                    nodeId = node.Id,
+                    samplingInterval = "00:00:00.250",
+                    publishingInterval = "00:00:00.500",
+                }).ToArray()
             };
 
             request.AddJsonBody(JsonConvert.SerializeObject(body));
@@ -257,10 +261,13 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             TestHelper.StartMonitoringIncomingMessagesAsync(_context, 50, 1000, 90_000_000, cts.Token).GetAwaiter().GetResult();
             // wait some time to generate events to process
-            var delay = TestConstants.DefaultTimeoutInMilliseconds * 2; // on VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
+            // on VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
+            var delay = TestConstants.DefaultTimeoutInMilliseconds * 2;
             Task.Delay(delay, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True((uint)json.droppedValueCount == 0, "Dropped messages detected");
+            Assert.True((uint)json.duplicateValueCount == 0, "Duplicate values detected");
 
             var unexpectedNodesThatPublish = new List<string>();
             // check that every published node is sending data

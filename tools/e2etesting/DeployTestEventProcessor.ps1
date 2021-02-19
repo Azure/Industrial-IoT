@@ -97,8 +97,8 @@ if (!$iotHub) {
 $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
 
 if ($keyVault.Count -ne 1) {
-    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
-} 
+    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."
+}
 
 Write-Host "Key Vault Name: $($keyVault.VaultName)"
 
