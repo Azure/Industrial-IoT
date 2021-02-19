@@ -182,6 +182,30 @@
                 "description": "Docker image tag for Azure Industrial IoT components"
             }
         },
+        "aiiotImageNamespace": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker image namespace for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryServer": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker container registry for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryUsername": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker container registry username for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryPassword": {
+            "type": "securestring",
+            "metadata": {
+              "description": "Docker container registry password for Azure Industrial IoT components"
+            }
+        },
         "aiiotTenantId": {
             "type": "string",
             "metadata": {
@@ -375,13 +399,17 @@
                         ' --helm_repo_url ', parameters('helmRepoUrl'),
                         ' --helm_chart_version ', parameters('helmChartVersion'),
                         ' --aiiot_image_tag ', parameters('aiiotImageTag'),
+                        ' --aiiot_image_namespace ', parameters('aiiotImageNamespace'),
+                        ' --aiiot_container_registry_server ', parameters('aiiotContainerRegistryServer'),
+                        ' --aiiot_container_registry_username ', parameters('aiiotContainerRegistryUsername'),
+                        ' --aiiot_container_registry_password ', parameters('aiiotContainerRegistryPassword'),
                         ' --aiiot_tenant_id ', parameters('aiiotTenantId'),
                         ' --aiiot_key_vault_uri ', parameters('aiiotKeyVaultUri'),
                         ' --aiiot_services_app_id ', parameters('aiiotServicesAppId'),
                         ' --aiiot_services_app_secret ', parameters('aiiotServicesAppSecret'),
                         ' --aiiot_services_hostname ', parameters('aiiotServicesHostname')
                     )]"
-                }
+              }
             }
         }
     ],

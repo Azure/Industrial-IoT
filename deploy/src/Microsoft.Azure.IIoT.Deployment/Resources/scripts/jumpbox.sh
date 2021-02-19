@@ -27,6 +27,10 @@ PUBLIC_IP_DNS_LABEL=
 HELM_REPO_URL=
 HELM_CHART_VERSION=
 AIIOT_IMAGE_TAG=
+AIIOT_IMAGE_NAMESPACE=
+AIIOT_CONTAINER_REGISTRY_SERVER=
+AIIOT_CONTAINER_REGISTRY_USERNAME=
+AIIOT_CONTAINER_REGISTRY_PASSWORD=
 AIIOT_TENANT_ID=
 AIIOT_KEY_VAULT_URI=
 AIIOT_SERVICES_APP_ID=
@@ -37,19 +41,23 @@ AIIOT_SERVICES_HOSTNAME=
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        --resource_group)               RESOURCE_GROUP="$2" ;;
-        --aks_cluster)                  AKS_CLUSTER="$2" ;;
-        --role)                         ROLE="$2" ;;
-        --load_balancer_ip)             LOAD_BALANCER_IP="$2" ;;
-        --public_ip_dns_label)          PUBLIC_IP_DNS_LABEL="$2" ;;
-        --helm_repo_url)                HELM_REPO_URL="$2" ;;
-        --helm_chart_version)           HELM_CHART_VERSION="$2" ;;
-        --aiiot_image_tag)              AIIOT_IMAGE_TAG="$2" ;;
-        --aiiot_tenant_id)              AIIOT_TENANT_ID="$2" ;;
-        --aiiot_key_vault_uri)          AIIOT_KEY_VAULT_URI="$2" ;;
-        --aiiot_services_app_id)        AIIOT_SERVICES_APP_ID="$2" ;;
-        --aiiot_services_app_secret)    AIIOT_SERVICES_APP_SECRET="$2" ;;
-        --aiiot_services_hostname)      AIIOT_SERVICES_HOSTNAME="$2" ;;
+        --resource_group)                       RESOURCE_GROUP="$2" ;;
+        --aks_cluster)                          AKS_CLUSTER="$2" ;;
+        --role)                                 ROLE="$2" ;;
+        --load_balancer_ip)                     LOAD_BALANCER_IP="$2" ;;
+        --public_ip_dns_label)                  PUBLIC_IP_DNS_LABEL="$2" ;;
+        --helm_repo_url)                        HELM_REPO_URL="$2" ;;
+        --helm_chart_version)                   HELM_CHART_VERSION="$2" ;;
+        --aiiot_image_tag)                      AIIOT_IMAGE_TAG="$2" ;;
+        --aiiot_image_namespace)                AIIOT_IMAGE_NAMESPACE="$2" ;;
+        --aiiot_container_registry_server)      AIIOT_CONTAINER_REGISTRY_SERVER="$2" ;;
+        --aiiot_container_registry_username)    AIIOT_CONTAINER_REGISTRY_USERNAME="$2" ;;
+        --aiiot_container_registry_password)    AIIOT_CONTAINER_REGISTRY_PASSWORD="$2" ;;
+        --aiiot_tenant_id)                      AIIOT_TENANT_ID="$2" ;;
+        --aiiot_key_vault_uri)                  AIIOT_KEY_VAULT_URI="$2" ;;
+        --aiiot_services_app_id)                AIIOT_SERVICES_APP_ID="$2" ;;
+        --aiiot_services_app_secret)            AIIOT_SERVICES_APP_SECRET="$2" ;;
+        --aiiot_services_hostname)              AIIOT_SERVICES_HOSTNAME="$2" ;;
     esac
     shift
 done
@@ -94,6 +102,32 @@ fi
 if [[ -z "$AIIOT_IMAGE_TAG" ]]; then
     echo "Parameter is empty or missing: aiiot_image_tag"
     exit 1
+fi
+
+if [[ -z "$AIIOT_CONTAINER_REGISTRY_SERVER" ]]; then
+    echo "Parameter is empty or missing: aiiot_container_registry_server"
+    exit 1
+fi
+
+if [ "$AIIOT_CONTAINER_REGISTRY_SERVER" != "mcr.microsoft.com" ]; then
+    echo "Private registry specified. Checking for username and password.."
+    is_private_repo=true
+
+    if [[ -z "$AIIOT_CONTAINER_REGISTRY_USERNAME" ]]; then
+        echo "Parameter is empty or missing: aiiot_container_registry_username"
+        exit 1
+    fi
+
+    if [[ -z "$AIIOT_CONTAINER_REGISTRY_PASSWORD" ]]; then
+        echo "Parameter is empty or missing: aiiot_container_registry_password"
+        exit 1
+    fi
+
+    if [[ -z "$AIIOT_IMAGE_NAMESPACE" ]]; then
+        echo "Parameter is empty or missing: aiiot_image_namespace"
+        exit 1
+    fi
+
 fi
 
 if [[ -z "$AIIOT_TENANT_ID" ]]; then
@@ -260,28 +294,86 @@ fi
 # Create azure-industrial-iot namespace
 kubectl create namespace azure-industrial-iot
 
-# Install aiiot/azure-industrial-iot Helm chart
-helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
-    --set image.tag=$AIIOT_IMAGE_TAG \
-    --set loadConfFromKeyVault=true \
-    --set azure.tenantId=$AIIOT_TENANT_ID \
-    --set azure.keyVault.uri=$AIIOT_KEY_VAULT_URI \
-    --set azure.auth.servicesApp.appId=$AIIOT_SERVICES_APP_ID \
-    --set azure.auth.servicesApp.secret=$AIIOT_SERVICES_APP_SECRET \
-    --set externalServiceUrl="https://$AIIOT_SERVICES_HOSTNAME" \
-    --set deployment.microServices.engineeringTool.enabled=true \
-    --set deployment.microServices.telemetryCdmProcessor.enabled=true \
-    --set deployment.ingress.enabled=true \
-    --set deployment.ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
-    --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/affinity"=cookie \
-    --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/session-cookie-name"=affinity \
-    --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/session-cookie-expires"=14400 \
-    --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/session-cookie-max-age"=14400 \
-    --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/proxy-read-timeout"=3600 \
-    --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/proxy-send-timeout"=3600 \
-    --set deployment.ingress.annotations."cert-manager\.io\/cluster-issuer"=letsencrypt-prod \
-    --set deployment.ingress.tls[0].hosts[0]=$AIIOT_SERVICES_HOSTNAME \
-    --set deployment.ingress.tls[0].secretName=tls-secret \
-    --set deployment.ingress.hostName=$AIIOT_SERVICES_HOSTNAME
+# Create secrets if private registry
+if [ "$is_private_repo" = true ] ; then
+    echo 'Need to additionally create secrets for the container registry..'
+    kubectl create secret docker-registry $AIIOT_CONTAINER_REGISTRY_USERNAME --docker-server=$AIIOT_CONTAINER_REGISTRY_SERVER --docker-username=$AIIOT_CONTAINER_REGISTRY_USERNAME --docker-password=$AIIOT_CONTAINER_REGISTRY_PASSWORD --namespace azure-industrial-iot
 
+    pcs_server="PCS_DOCKER_SERVER"
+    pcs_user="PCS_DOCKER_USER"
+    pcs_pwd="PCS_DOCKER_PASSWORD"
+    pcs_namespace="PCS_IMAGES_NAMESPACE"
+    pcs_tag="PCS_IMAGES_TAG"
+    iiotsvcs=(publisher registry twin)
+    namestr="--set deployment.microServices.SERVICE_NAME.extraEnv[IDX].name=PCS_KEY "
+    valuestr="--set deployment.microServices.SERVICE_NAME.extraEnv[IDX].value=PCS_VAL "
+    setsvc=""
+    declare -A envvar=( [$pcs_server]=$AIIOT_CONTAINER_REGISTRY_SERVER [$pcs_user]=$AIIOT_CONTAINER_REGISTRY_USERNAME [$pcs_pwd]=$AIIOT_CONTAINER_REGISTRY_PASSWORD [$pcs_namespace]=$AIIOT_IMAGE_NAMESPACE [$pcs_tag]=$AIIOT_IMAGE_TAG)
+    for svc in ${iiotsvcs[@]}; do
+      idx=0
+      for key in ${!envvar[@]}; do
+        tnamestr="${namestr/SERVICE_NAME/$svc}"
+        tnamestr="${tnamestr/PCS_KEY/${key}}"
+        tnamestr="${tnamestr/IDX/$idx}"
+        setsvc+=$tnamestr
+        tvalstr="${valuestr/SERVICE_NAME/$svc}"
+        tvalstr="${tvalstr/PCS_VAL/${envvar[${key}]}}"
+        tvalstr="${tvalstr/IDX/$idx}"
+        setsvc+=$tvalstr
+        idx=$[$idx +1]
+      done
+    done
+    echo $setsvc
+
+    # Install aiiot/azure-industrial-iot Helm chart
+    helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
+        --set image.tag=$AIIOT_IMAGE_TAG \
+        --set image.registry="$AIIOT_CONTAINER_REGISTRY_SERVER/$AIIOT_IMAGE_NAMESPACE" \
+        --set image.pullSecrets[0].name=$AIIOT_CONTAINER_REGISTRY_USERNAME \
+        --set loadConfFromKeyVault=true \
+        --set azure.tenantId=$AIIOT_TENANT_ID \
+        --set azure.keyVault.uri=$AIIOT_KEY_VAULT_URI \
+        --set azure.auth.servicesApp.appId=$AIIOT_SERVICES_APP_ID \
+        --set azure.auth.servicesApp.secret=$AIIOT_SERVICES_APP_SECRET \
+        --set externalServiceUrl="https://$AIIOT_SERVICES_HOSTNAME" \
+        --set deployment.ingress.enabled=true \
+        --set deployment.ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
+        --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/affinity"=cookie \
+        --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/session-cookie-name"=affinity \
+        --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/session-cookie-expires"=14400 \
+        --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/session-cookie-max-age"=14400 \
+        --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/proxy-read-timeout"=3600 \
+        --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/proxy-send-timeout"=3600 \
+        --set deployment.ingress.annotations."cert-manager\.io\/cluster-issuer"=letsencrypt-prod \
+        --set deployment.ingress.tls[0].hosts[0]=$AIIOT_SERVICES_HOSTNAME \
+        --set deployment.ingress.tls[0].secretName=tls-secret \
+        --set deployment.ingress.hostName=$AIIOT_SERVICES_HOSTNAME \
+        --set deployment.microServices.engineeringTool.enabled=true \
+        --set deployment.microServices.telemetryCdmProcessor.enabled=true \
+        $setsvc
+else
+    # Install aiiot/azure-industrial-iot Helm chart
+    helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
+        --set image.tag=$AIIOT_IMAGE_TAG \
+        --set loadConfFromKeyVault=true \
+        --set azure.tenantId=$AIIOT_TENANT_ID \
+        --set azure.keyVault.uri=$AIIOT_KEY_VAULT_URI \
+        --set azure.auth.servicesApp.appId=$AIIOT_SERVICES_APP_ID \
+        --set azure.auth.servicesApp.secret=$AIIOT_SERVICES_APP_SECRET \
+        --set externalServiceUrl="https://$AIIOT_SERVICES_HOSTNAME" \
+        --set deployment.microServices.engineeringTool.enabled=true \
+        --set deployment.microServices.telemetryCdmProcessor.enabled=true \
+        --set deployment.ingress.enabled=true \
+        --set deployment.ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
+        --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/affinity"=cookie \
+        --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/session-cookie-name"=affinity \
+        --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/session-cookie-expires"=14400 \
+        --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/session-cookie-max-age"=14400 \
+        --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/proxy-read-timeout"=3600 \
+        --set-string deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/proxy-send-timeout"=3600 \
+        --set deployment.ingress.annotations."cert-manager\.io\/cluster-issuer"=letsencrypt-prod \
+        --set deployment.ingress.tls[0].hosts[0]=$AIIOT_SERVICES_HOSTNAME \
+        --set deployment.ingress.tls[0].secretName=tls-secret \
+        --set deployment.ingress.hostName=$AIIOT_SERVICES_HOSTNAME
+fi
 echo "Done"
