@@ -10,7 +10,7 @@ To deploy all required modules to the Gateway using the Azure Portal...
 
 1. Sign in to the [Azure portal](https://portal.azure.com/) and navigate to the IoT Hub deployed earlier.
 
-   > An simple way to locate your IoT Hub is to find the resource group variable in your `.env` file.  This resource group contains the IoT Hub.
+   > A simple way to locate your IoT Hub is to find the resource group variable in your `.env` file.  This resource group contains the IoT Hub.
 
 2. Select **IoT Edge** from the left-hand menu.
 
@@ -23,7 +23,7 @@ To deploy all required modules to the Gateway using the Azure Portal...
 6. In the **IoT Edge Custom Module** dialog use `discovery` as name for the module, then specify the container *image URI* as
 
    ```bash
-   mcr.microsoft.com/iotedge/discovery:latest
+   mcr.microsoft.com/iotedge/discovery:2.7.206
    ```
 
    As *create options* use the following JSON:
@@ -39,7 +39,7 @@ To deploy all required modules to the Gateway using the Azure Portal...
 8. In the **IoT Edge Custom Module** dialog use `twin` as name for the module, then specify the container *image URI* as
 
    ```bash
-   mcr.microsoft.com/iotedge/opc-twin:latest
+   mcr.microsoft.com/iotedge/opc-twin:2.7.206
    ```
 
    Leave the *create options* empty.
@@ -49,7 +49,7 @@ To deploy all required modules to the Gateway using the Azure Portal...
 10. In the IoT Edge Custom Module dialog, use `publisher` as name for the module and the container *image URI* as
 
     ```bash
-    mcr.microsoft.com/iotedge/opc-publisher:latest
+    mcr.microsoft.com/iotedge/opc-publisher:2.7.206
     ```
 
     Leave the *create options* empty.

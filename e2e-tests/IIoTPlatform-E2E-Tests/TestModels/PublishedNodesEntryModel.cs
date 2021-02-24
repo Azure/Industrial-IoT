@@ -19,12 +19,12 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
         /// Secure transport should be used to
         /// </summary>
         public bool UseSecurity { get; set; }
-        
+
         /// <summary>
         /// Nodes defined in the collection.
         /// </summary>
         public OpcUaNodesModel[] OpcNodes { get; set; }
-        
+
         /// <summary>
         /// plain username
         /// </summary>

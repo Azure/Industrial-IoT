@@ -49,6 +49,6 @@ namespace TestEventProcessor.BusinessLogic
         /// Gets or sets the value that will be used to define range within timings expected as equal (in milliseconds)
         /// Current Value need to be within range of Expected Value +/- threshold
         /// </summary>
-        public int ThresholdValue { get; set; } = 50;
+        public int ThresholdValue { get; set; } = 100;
     }
 }

@@ -23,7 +23,17 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// </summary>
         /// <param name="databaseServer"></param>
         /// <param name="databaseJobRepositoryConfig"></param>
-        public JobDatabase(IDatabaseServer databaseServer, IJobDatabaseConfig databaseJobRepositoryConfig) {
+        public JobDatabase(
+            IDatabaseServer databaseServer,
+            IJobDatabaseConfig databaseJobRepositoryConfig
+        ) {
+            if (databaseServer == null) {
+                throw new ArgumentNullException(nameof(databaseServer));
+            }
+            if (databaseJobRepositoryConfig == null) {
+                throw new ArgumentNullException(nameof(databaseJobRepositoryConfig));
+            }
+
             var dbs = databaseServer.OpenAsync(databaseJobRepositoryConfig.DatabaseName).Result;
             var cont = dbs.OpenContainerAsync(databaseJobRepositoryConfig.ContainerName).Result;
             _documents = cont.AsDocuments();
@@ -156,10 +166,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
                 throw new ArgumentNullException(nameof(jobId));
             }
             while (true) {
-                var document = await _documents.FindAsync<JobDocument>(
-                    jobId);
+                var document = await _documents.FindAsync<JobDocument>(jobId);
                 if (document == null) {
-                    return null;
+                    throw new ResourceNotFoundException("Job not found");
                 }
                 var job = document.Value.ToFrameworkModel();
                 if (!await predicate(job)) {

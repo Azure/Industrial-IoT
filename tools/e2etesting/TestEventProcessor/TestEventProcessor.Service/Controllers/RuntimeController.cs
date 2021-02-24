@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -32,8 +32,8 @@ namespace TestEventProcessor.Service.Controllers
         /// <param name="validator">The validator to use to validate telemetry.</param>
         public RuntimeController(ILogger<RuntimeController> logger, ITelemetryValidator validator)
         {
-            _logger = logger;
-            _validator = validator;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         }
 
         /// <summary>

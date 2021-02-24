@@ -132,16 +132,16 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
             () => throw new Exception("IoT Hub Checkpoint Storage connection string is not provided."));
 
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
-            null);
+            () => { return string.Empty; });
 
         string IIIoTPlatformConfig.AuthTenant => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_TENANT,
-            null);
+            () => { return string.Empty; });
 
         string IIIoTPlatformConfig.AuthClientId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_APPID,
-            null);
+            () => { return string.Empty; });
 
         string IIIoTPlatformConfig.AuthClientSecret => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_AUTH_CLIENT_SECRET,
-            null);
+            () => { return string.Empty; });
 
         string IIIoTPlatformConfig.ApplicationName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.ApplicationName,
             () => throw new Exception("ApplicationName is not provided."));

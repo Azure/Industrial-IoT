@@ -1239,6 +1239,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var helmChartVersion = helmSettings?.ChartVersion ?? HelmSettings._defaultChartVersion;
             // azure-industrial-iot Helm chart values
             var aiiotImageTag = helmSettings?.ImageTag ?? HelmSettings._defaultImageTag;
+            var aiiotImageNamespace = helmSettings?.ImageNamespace;
+            var aiiotContainerRegistryServer = helmSettings?.ContainerRegistryServer ?? HelmSettings._defaultContainerRegistryServer;
+            var aiiotContainerRegistryUsername = helmSettings?.ContainerRegistryUsername;
+            var aiiotContainerRegistryPassword = helmSettings?.ContainerRegistryPassword;
+
+            Log.Information("Helm Settings: tag=" + aiiotImageTag + ", namespace=" + aiiotImageNamespace + ", server=" + aiiotContainerRegistryServer + ", username=" + aiiotContainerRegistryUsername);
+
             var aiiotTenantId = _authConf.TenantId.ToString();
             var aiiotKeyVaultUri = keyVault.Properties.VaultUri;
             var aiiotServicesAppId = _applicationsManager.GetServiceApplication().AppId;
@@ -1270,6 +1277,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 {"helmChartVersion", helmChartVersion},
                 // azure-industrial-iot Helm chart values
                 {"aiiotImageTag", aiiotImageTag},
+                {"aiiotImageNamespace", aiiotImageNamespace},
+                {"aiiotContainerRegistryServer", aiiotContainerRegistryServer},
+                {"aiiotContainerRegistryUsername", aiiotContainerRegistryUsername},
+                {"aiiotContainerRegistryPassword", aiiotContainerRegistryPassword},
                 {"aiiotTenantId", aiiotTenantId},
                 {"aiiotKeyVaultUri", aiiotKeyVaultUri},
                 {"aiiotServicesAppId", aiiotServicesAppId},

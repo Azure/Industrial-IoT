@@ -47,5 +47,26 @@ namespace TestEventProcessor.BusinessLogic
         /// Indicates if all timestamps received have expected interval between them
         /// </summary>
         public bool AllInExpectedInterval { get; set; }
+
+        /// <summary>
+        /// Indicates max observed delay between message source timestamp and the time when it was received.
+        /// </summary>
+        public string MaxDelayToNow { get; set; }
+
+        /// <summary>
+        /// Indicates max observed delay between message source timestamp and the time when it was delivered
+        /// to IoT Hub.
+        /// </summary>
+        public string MaxDeliveyDuration { get; set; }
+
+        /// <summary>
+        /// Indicates the number of dropped messages detected by IncrementalIntValueChecker.
+        /// </summary>
+        public uint DroppedValueCount { get; set; }
+
+        /// <summary>
+        /// Indicates the number of duplicate messages detected by IncrementalIntValueChecker.
+        /// </summary>
+        public uint DuplicateValueCount { get; set; }
     }
 }
