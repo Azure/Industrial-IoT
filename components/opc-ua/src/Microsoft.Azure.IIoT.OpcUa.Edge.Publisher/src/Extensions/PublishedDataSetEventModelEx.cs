@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     /// <summary>
     /// Published data set events extensions
     /// </summary>
-    public static class PublishedDataSetEventsModelEx {
+    public static class PublishedDataSetEventModelEx {
 
         /// <summary>
         /// Convert to monitored item
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="displayName"></param>
         /// <returns></returns>
         public static MonitoredItemModel ToMonitoredItem(
-            this PublishedDataSetEventsModel publishedEvents,
+            this PublishedDataSetEventModel publishedEvents,
             string displayName = null) {
             if (publishedEvents?.SelectedFields == null) {
                 return null;

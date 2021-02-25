@@ -17,11 +17,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static PublishedDataSetEventsModel Clone(this PublishedDataSetEventsModel model) {
+        public static PublishedDataSetEventModel Clone(this PublishedDataSetEventModel model) {
             if (model == null) {
                 return null;
             }
-            return new PublishedDataSetEventsModel {
+            return new PublishedDataSetEventModel {
                 Id = model.Id,
                 MonitoringMode = model.MonitoringMode,
                 TriggerId = model.TriggerId,

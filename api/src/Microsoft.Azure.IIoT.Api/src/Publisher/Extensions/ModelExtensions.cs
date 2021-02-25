@@ -1255,7 +1255,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         /// <param name="model"></param>
         public static PublishedDataSetEventsApiModel ToApiModel(
-            this PublishedDataSetEventsModel model) {
+            this PublishedDataSetEventModel model) {
             if (model == null) {
                 return null;
             }
@@ -1277,12 +1277,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public static PublishedDataSetEventsModel ToServiceModel(
+        public static PublishedDataSetEventModel ToServiceModel(
             this PublishedDataSetEventsApiModel model) {
             if (model == null) {
                 return null;
             }
-            return new PublishedDataSetEventsModel {
+            return new PublishedDataSetEventModel {
                 Id = model.Id,
                 DiscardNew = model.DiscardNew,
                 EventNotifier = model.EventNotifier,
@@ -1346,7 +1346,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new PublishedDataSetSourceApiModel {
                 Connection = model.Connection.ToApiModel(),
-                PublishedEvents = model.PublishedEvents.ToApiModel(),
+                // PublishedEvents = model.PublishedEvents.ToApiModel(), We won't support events in orchestrator mode
                 PublishedVariables = model.PublishedVariables.ToApiModel(),
                 SubscriptionSettings = model.SubscriptionSettings.ToApiModel()
             };
@@ -1362,7 +1362,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new PublishedDataSetSourceModel {
                 Connection = model.Connection.ToServiceModel(),
-                PublishedEvents = model.PublishedEvents.ToServiceModel(),
+                // PublishedEvents = model.PublishedEvents.ToServiceModel(), We won't support events in orchestrator mode
                 PublishedVariables = model.PublishedVariables.ToServiceModel(),
                 SubscriptionSettings = model.SubscriptionSettings.ToServiceModel()
             };

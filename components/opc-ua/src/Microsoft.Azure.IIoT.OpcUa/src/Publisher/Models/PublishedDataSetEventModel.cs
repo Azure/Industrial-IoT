@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     /// <summary>
     /// Describes event fields to be published
     /// </summary>
-    public class PublishedDataSetEventsModel {
+    public class PublishedDataSetEventModel {
 
         /// <summary>
         /// Identifier of event in the dataset.
