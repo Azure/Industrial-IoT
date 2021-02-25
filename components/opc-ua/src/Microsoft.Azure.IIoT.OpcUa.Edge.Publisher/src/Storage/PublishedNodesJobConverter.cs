@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Published nodes
@@ -390,6 +391,179 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             /// <summary> Nodes defined in the collection. </summary>
             [DataMember(EmitDefaultValue = false)]
             public List<OpcNodeModel> OpcNodes { get; set; }
+
+            /// <summary> Nodes defined in the collection. </summary>
+            [DataMember(EmitDefaultValue = false)]
+            public List<OpcEventModel> OpcEvents { get; set; }
+        }
+
+        /// <summary> OpcEventModel </summary>
+        [DataContract]
+        public class OpcEventModel {
+            /// <summary>
+            /// The event source of the event. This is a NodeId, which has the SubscribeToEvents bit set in the EventNotifier attribute.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string Id;
+
+            /// <summary>
+            /// A display name which can be added when publishing the event information.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public string DisplayName;
+
+            /// <summary>
+            /// The SelectClauses used to select the fields which should be published for an event.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public List<SelectClauseModel> SelectClauses;
+
+            /// <summary>
+            /// The WhereClause to specify which events are of interest.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public List<WhereClauseElementModel> WhereClauses;
+        }
+
+        /// <summary>
+        /// Class describing select clauses for an event filter.
+        /// </summary>
+        [DataContract]
+        public class SelectClauseModel {
+            /// <summary>
+            /// The NodeId of the SimpleAttributeOperand.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string TypeId;
+
+            /// <summary>
+            /// A list of QualifiedName's describing the field to be published.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public List<string> BrowsePaths;
+
+            /// <summary>
+            /// The Attribute of the identified node to be published. This is Value by default.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public string AttributeId;
+
+            /// <summary>
+            /// The index range of the node values to be published.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public string IndexRange;
+        }
+
+        /// <summary> WhereClauseElementModel </summary>
+        [DataContract]
+        public class WhereClauseElementModel {
+            /// <summary>
+            /// The Operator of the WhereClauseElement.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string Operator;
+
+            /// <summary>
+            /// The Operands of the WhereClauseElement.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public List<WhereClauseOperandModel> Operands;
+        }
+
+        /// <summary> WhereClauseOperandModel </summary>
+        [DataContract]
+        public class WhereClauseOperandModel {
+            /// <summary>
+            /// Holds an element value.
+            /// </summary>
+            [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore, NullValueHandling = NullValueHandling.Ignore)]
+            public uint? Element;
+
+            /// <summary>
+            /// Holds an Literal value.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public string Literal;
+
+            /// <summary>
+            /// Holds an AttributeOperand value.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public FilterAttributeModel Attribute;
+
+            /// <summary>
+            /// Holds an SimpleAttributeOperand value.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public FilterSimpleAttributeModel SimpleAttribute;
+        }
+
+        /// <summary>
+        /// Class to describe the SimpleAttributeOperand.
+        /// </summary>
+        [DataContract]
+        public class FilterSimpleAttributeModel {
+            /// <summary>
+            /// The TypeId of the SimpleAttributeOperand.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string TypeId;
+
+            /// <summary>
+            /// The browse path as a list of QualifiedName's of the SimpleAttributeOperand.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public List<string> BrowsePaths;
+
+            /// <summary>
+            /// The AttributeId of the SimpleAttributeOperand.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public string AttributeId;
+
+            /// <summary>
+            /// The IndexRange of the SimpleAttributeOperand.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public string IndexRange;
+        }
+
+        /// <summary>
+        /// Class to describe the AttributeOperand.
+        /// </summary>
+        [DataContract]
+        public class FilterAttributeModel {
+            /// <summary>
+            /// The NodeId of the AttributeOperand.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string NodeId;
+
+            /// <summary>
+            /// The Alias of the AttributeOperand.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public string Alias;
+
+            /// <summary>
+            /// A RelativePath describing the browse path from NodeId of the AttributeOperand.
+            /// </summary>
+            [JsonProperty(Required = Required.Always)]
+            public string BrowsePath;
+
+            /// <summary>
+            /// The AttibuteId of the AttributeOperand.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public string AttributeId;
+
+
+            /// <summary>
+            /// The IndexRange of the AttributeOperand.
+            /// </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public string IndexRange;
         }
 
         /// <summary>

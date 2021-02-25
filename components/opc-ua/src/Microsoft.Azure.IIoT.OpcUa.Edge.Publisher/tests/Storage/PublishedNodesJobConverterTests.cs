@@ -706,6 +706,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
 
+        [Fact]
+        public void PnPlcEventTest() {
+            var pn = new StringBuilder(@"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcEvents"": [
+           {
+                ""Id"": ""i=2258"",
+                ""SelectClauses"": [
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                        ""EventId""
+                        ]
+                    }
+                ],
+               ""WhereClauses"": [
+                    {
+                        ""Operator"": ""OfType"",
+                        ""Operands"": [
+                            {
+                                ""Attribute"": {
+                                    ""NodeId"": ""ns=2;i=235"",
+                                    ""BrowsePath"": """"
+                                    }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
+");
+
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn.ToString()), new LegacyCliModel()).ToList();
+
+            Assert.NotEmpty(jobs);
+
+        }
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }
