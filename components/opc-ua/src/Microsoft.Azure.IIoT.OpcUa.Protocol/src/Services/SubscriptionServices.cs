@@ -83,7 +83,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public ConnectionModel Connection => _subscription.Connection;
 
             /// <inheritdoc/>
-            public event EventHandler<SubscriptionNotificationModel> OnSubscriptionChange;
+            public event EventHandler<SubscriptionNotificationModel> OnSubscriptionDataChange;
+
+            /// <inheritdoc/>
+            public event EventHandler<SubscriptionNotificationModel> OnSubscriptionEventChange;
 
             /// <inheritdoc/>
             public event EventHandler<SubscriptionNotificationModel> OnMonitoredItemChange;
@@ -579,6 +582,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         PublishingEnabled = activate, // false on initialization
                         KeepAliveCount = revisedKeepAliveCount,
                         FastDataChangeCallback = OnSubscriptionDataChanged,
+                        FastEventCallback = OnSubscriptionEventChanged,
                         PublishingInterval = (int)_subscription.Configuration.PublishingInterval
                             .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
                         MaxNotificationsPerPublish = _subscription.Configuration.MaxNotificationsPerPublish
@@ -666,6 +670,109 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return subscription;
             }
 
+            private void OnSubscriptionEventChanged(Subscription subscription, EventNotificationList notification, IList<string> stringTable) {
+                try {
+                    if (OnSubscriptionEventChange == null) {
+                        return;
+                    }
+                    if (notification == null) {
+                        _logger.Warning(
+                            "EventChange for subscription: {Subscription} having empty notification",
+                            subscription.DisplayName);
+                        return;
+                    }
+
+                    if (_currentlyMonitored == null) {
+                        _logger.Information(
+                            "EventChange for subscription: {Subscription} having no monitored items yet",
+                            subscription.DisplayName);
+                        return;
+                    }
+
+                    // check if notification is a keep alive
+                    var isKeepAlive = notification?.Events?.Count == 1 &&
+                                      notification?.Events?.First().ClientHandle == 0 &&
+                                      notification?.Events?.First().Message?.NotificationData?.Count == 0;
+                    var sequenceNumber = notification?.Events?.First().Message?.SequenceNumber;
+                    var publishTime = (notification?.Events?.First().Message?.PublishTime).
+                        GetValueOrDefault(DateTime.UtcNow);
+
+                    _logger.Debug("Event for subscription: {Subscription}, sequence#: " +
+                        "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
+                        subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
+
+                    var message = new SubscriptionNotificationModel {
+                        ServiceMessageContext = subscription?.Session?.MessageContext,
+                        ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
+                        EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
+                        SubscriptionId = Id,
+                        Timestamp = publishTime,
+                        Notifications = notification.ToMonitoredItemNotifications(
+                                subscription?.MonitoredItems)?.ToList()
+                    };
+                    // add the heartbeat for monitored items that did not receive a datachange notification
+                    // Try access lock if we cannot continue...
+                    List<MonitoredItemWrapper> currentlyMonitored = null;
+                    if (_lock?.Wait(0) ?? true) {
+                        try {
+                            currentlyMonitored = _currentlyMonitored;
+                        }
+                        finally {
+                            _lock?.Release();
+                        }
+                    }
+
+                    if (currentlyMonitored != null) {
+                        // add the heartbeat for monitored items that did not receive a
+                        // a datachange notification
+                        foreach (var item in currentlyMonitored) {
+                            if (!notification.MonitoredItems.
+                                Exists(m => m.ClientHandle == item.Item.ClientHandle)) {
+                                if (item.ValidateHeartbeat(publishTime)) {
+                                    var defaultNotification =
+                                        new MonitoredItemNotificationModel {
+                                            Id = item.Item.DisplayName,
+                                            DisplayName = item.Item.DisplayName,
+                                            NodeId = item.Item.StartNodeId,
+                                            AttributeId = item.Item.AttributeId,
+                                            ClientHandle = item.Item.ClientHandle,
+                                            Value = new DataValue(Variant.Null,
+                                                item.Item?.Status?.Error?.StatusCode ??
+                                                StatusCodes.BadMonitoredItemIdInvalid),
+                                            Overflow = false,
+                                            NotificationData = null,
+                                            StringTable = null,
+                                            DiagnosticInfo = null,
+                                        };
+
+                                    var heartbeatValue = item.Item?.LastValue.
+                                        ToMonitoredItemNotification(item.Item, () => defaultNotification);
+                                    if (heartbeatValue != null) {
+                                        heartbeatValue.SequenceNumber = sequenceNumber;
+                                        heartbeatValue.IsHeartbeat = true;
+                                        heartbeatValue.PublishTime = publishTime;
+                                        if (message.Notifications == null) {
+                                            message.Notifications =
+                                                new List<MonitoredItemNotificationModel>();
+                                        }
+                                        message.Notifications.Add(heartbeatValue);
+                                    }
+                                    continue;
+                                }
+                            }
+                            item.ValidateHeartbeat(publishTime);
+                        }
+                    }
+
+                    if (message.Notifications?.Any() == true) {
+                        OnSubscriptionDataChange?.Invoke(this, message);
+                    }
+                }
+                catch (Exception e) {
+                    _logger.Warning(e, "Exception processing subscription notification");
+                }
+            }
+
             /// <summary>
             /// Subscription data changed
             /// </summary>
@@ -675,7 +782,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private void OnSubscriptionDataChanged(Subscription subscription,
                 DataChangeNotification notification, IList<string> stringTable) {
                 try {
-                    if (OnSubscriptionChange == null) {
+                    if (OnSubscriptionDataChange == null) {
                         return;
                     }
                     if (notification == null) {
@@ -768,7 +875,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     if (message.Notifications?.Any() == true) {
-                        OnSubscriptionChange?.Invoke(this, message);
+                        OnSubscriptionDataChange?.Invoke(this, message);
                     }
                 }
                 catch (Exception e) {
