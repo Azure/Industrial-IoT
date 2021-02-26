@@ -1,0 +1,66 @@
+# E2E test
+
+## Background
+Poperties of E2E tests:
+* black-box
+* end-to-end
+* high cost tests (long preparation / execution times)
+
+Goal of E2E tests:
+* check the customer point of view (validate)
+* cover the most important scenarios
+
+## How to write E2E tests
+### Preparation
+Use the `TestCaseOrderer` attribute with `TestCaseOrderer.FullName` parameter on
+your test class, and `PriorityOrder` on your test methods to order them.
+
+Use the `Collection` attribute on your test class to share the context between 
+test methods.
+
+Use the `Trait` attribute on your test class to distinguish between orchestrated and standalone mode:
+* for orchestrated mode use the `Trait` with the name `TestConstants.TraitConstants.PublisherModeTraitName` and the value `TestConstants.TraitConstants.PublisherModeOrchestratedTraitValue`,
+* for standalone mode use the `Trait` with the name `TestConstants.TraitConstants.PublisherModeTraitName` and the value `TestConstants.TraitConstants.PublisherModeStandaloneTraitValue`.
+
+The test class gets the context as a parameter of its constructor.
+Use one of the following context types:
+* `IIoTPlatformTestContext` - for orchestrated mode
+* `IIoTStandaloneTestContext` - for standalone mode
+
+In order for the context to log information the `OutputHelper` of the context needs to be set to the `IOutputHelper` the test class gets as a constructor parameter.
+
+If necessary you can clean the context by calling its `Reset` method, otherwise it's state is shared between test methods, and even between test classes of the same `Collection`. It is recommended to call `Reset` on the context in the first test method of a test class.
+
+All test collections should start by setting the desired mode as a first step. E.g.<br>
+`await TestHelper.SwitchToOrchestratedModeAsync(_context);`
+
+### Tips for writing tests
+
+Use and extend the `TestHelper` class.
+
+`TestEventProcessor` listens to IoT Hub and analyzes the value changes.
+
+You can reuse a test deployment to speed up test development.
+Follow these steps:
+* Start new E2E pipeline build with `Cleanup` variable set to `false`.
+* Find the `ResourceGroupName` in the pipeline logs.
+* Navigate to the given resource group on the Azure portal.
+* Change tags:
+  * add or edit tag named `owner` where the value identifies you,
+  * add the tag `DoNotDelete` with the value `true`.
+* Add yourself to the KeyVault:
+  * open "Access policies" on the azure portal,
+  * click "Add Access Policy",
+  * at "Configure from template" select "Key & Secret Management",
+  * at "Select principal" select your principal,
+  * press the "Add" button,
+  * press the "Save" button.
+* Execute /tools/e2etesting/GetSecrets.ps1
+* Add the following to your launchSettings.json under `profiles.IIoTPlatform-E2E-Tests.environmentVariables`:
+  * the secrets found in the KeyVault,
+  * `"ApplicationName": "<your_resource_group_name>"`.
+* Now you can use Visual Studio to execute your tests.
+* Don't forget to clean up by executing the pipeline with these variables set:
+  * `Cleanup = false`
+  * `UseExisting = true`
+  * `ResourceGroupName = <your_resource_group_name>`
