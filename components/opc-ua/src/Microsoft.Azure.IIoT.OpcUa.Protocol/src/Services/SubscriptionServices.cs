@@ -710,8 +710,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
                         SubscriptionId = Id,
                         Timestamp = publishTime,
+#if false
                         Notifications = notification.ToMonitoredItemNotifications(
                                 subscription?.MonitoredItems)?.ToList()
+#endif
                     };
                     // add the heartbeat for monitored items that did not receive a datachange notification
                     // Try access lock if we cannot continue...
@@ -725,6 +727,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
 
+#if false
                     if (currentlyMonitored != null) {
                         // add the heartbeat for monitored items that did not receive a
                         // a datachange notification
@@ -766,9 +769,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             item.ValidateHeartbeat(publishTime);
                         }
                     }
-
+#endif
                     if (message.Notifications?.Any() == true) {
-                        OnSubscriptionDataChange?.Invoke(this, message);
+                        OnSubscriptionEventChange?.Invoke(this, message);
                     }
                 }
                 catch (Exception e) {

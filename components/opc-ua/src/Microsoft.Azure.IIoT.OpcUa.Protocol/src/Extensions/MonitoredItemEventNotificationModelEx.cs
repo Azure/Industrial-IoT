@@ -28,12 +28,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 if (monitoredItem == null) {
                     continue;
                 }
+#if false
                 var message = notification?.Events[i]?
                     .ToMonitoredItemEventNotification(monitoredItem);
                 if (message == null) {
                     continue;
                 }
                 yield return message;
+#else
+                yield return null;
+#endif
             }
         }
 
