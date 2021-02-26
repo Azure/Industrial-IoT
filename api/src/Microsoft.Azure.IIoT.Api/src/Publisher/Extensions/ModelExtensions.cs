@@ -1219,6 +1219,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
+        public static PublishedEventItemsApiModel ToApiModel(
+            this PublishedEventItemsModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PublishedEventItemsApiModel {
+                PublishedEvents = model.PublishedEvents?
+                    .Select(d => d.ToApiModel())
+                    .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Create service model from api model
+        /// </summary>
+        public static PublishedEventItemsModel ToServiceModel(
+            this PublishedEventItemsApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PublishedEventItemsModel {
+                PublishedEvents = model.PublishedEvents?
+                    .Select(d => d.ToServiceModel())
+                    .ToList()
+            };
+        }
+
+        /// <summary>
+        /// Create api model from service model
+        /// </summary>
+        /// <param name="model"></param>
         public static PublishedDataSetApiModel ToApiModel(
             this PublishedDataSetModel model) {
             if (model == null) {
@@ -1254,12 +1285,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public static PublishedDataSetEventsApiModel ToApiModel(
+        public static PublishedDataSetEventApiModel ToApiModel(
             this PublishedDataSetEventModel model) {
             if (model == null) {
                 return null;
             }
-            return new PublishedDataSetEventsApiModel {
+            return new PublishedDataSetEventApiModel {
                 Id = model.Id,
                 DiscardNew = model.DiscardNew,
                 EventNotifier = model.EventNotifier,
@@ -1278,7 +1309,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Create service model from api model
         /// </summary>
         public static PublishedDataSetEventModel ToServiceModel(
-            this PublishedDataSetEventsApiModel model) {
+            this PublishedDataSetEventApiModel model) {
             if (model == null) {
                 return null;
             }
@@ -1346,7 +1377,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new PublishedDataSetSourceApiModel {
                 Connection = model.Connection.ToApiModel(),
-                // PublishedEvents = model.PublishedEvents.ToApiModel(), We won't support events in orchestrator mode
+                PublishedEvents = model.PublishedEvents.ToApiModel(), 
                 PublishedVariables = model.PublishedVariables.ToApiModel(),
                 SubscriptionSettings = model.SubscriptionSettings.ToApiModel()
             };
@@ -1362,7 +1393,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new PublishedDataSetSourceModel {
                 Connection = model.Connection.ToServiceModel(),
-                // PublishedEvents = model.PublishedEvents.ToServiceModel(), We won't support events in orchestrator mode
+                PublishedEvents = model.PublishedEvents.ToServiceModel(), 
                 PublishedVariables = model.PublishedVariables.ToServiceModel(),
                 SubscriptionSettings = model.SubscriptionSettings.ToServiceModel()
             };

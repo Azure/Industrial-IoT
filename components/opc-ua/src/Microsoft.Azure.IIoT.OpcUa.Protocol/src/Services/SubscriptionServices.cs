@@ -409,6 +409,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                         try {
                             toAdd.Create(rawSubscription.Session, codec, activate);
+                            if (toAdd.Template.EventFilter?.SelectClauses?.Count > 0) {
+                                toAdd.Item.AttributeId = Attributes.EventNotifier;
+                            }
                             toAdd.Item.Notification += OnMonitoredItemChanged;
                             nowMonitored.Add(toAdd);
                             count++;
