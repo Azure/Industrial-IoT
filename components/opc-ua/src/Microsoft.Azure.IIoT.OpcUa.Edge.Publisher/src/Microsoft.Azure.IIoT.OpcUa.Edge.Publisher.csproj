@@ -5,9 +5,17 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="pn.json" />
+    <None Remove="publisheddata.json" />
+    <None Remove="publishedevents.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="pn.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="publisheddata.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="publishedevents.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

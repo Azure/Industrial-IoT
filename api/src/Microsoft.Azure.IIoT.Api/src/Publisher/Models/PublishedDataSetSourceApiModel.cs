@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "publishedEvents", Order = 1,
             EmitDefaultValue = false)]
-        public PublishedDataSetEventsApiModel PublishedEvents { get; set; }
+        public PublishedEventItemsApiModel PublishedEvents { get; set; }
 
         /// <summary>
         /// Connection information (publisher extension)

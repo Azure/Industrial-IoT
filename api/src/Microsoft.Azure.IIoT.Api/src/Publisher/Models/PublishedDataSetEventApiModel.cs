@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     /// Describes event fields to be published
     /// </summary>
     [DataContract]
-    public class PublishedDataSetEventsApiModel {
+    public class PublishedDataSetEventApiModel {
 
         /// <summary>
         /// Identifier of event in the dataset.
