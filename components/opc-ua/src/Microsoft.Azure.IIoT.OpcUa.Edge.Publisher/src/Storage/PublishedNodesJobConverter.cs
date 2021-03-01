@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System.Text;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
+    using System.Diagnostics;
 
     /// <summary>
     /// Published nodes
@@ -49,11 +50,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <returns></returns>
         public IEnumerable<WriterGroupJobModel> Read(TextReader publishedNodesFile,
             LegacyCliModel legacyCliModel) {
-#if true
-            var json = File.ReadAllText("publishedevents.json");
-            var jobs = _serializer.Deserialize<IEnumerable<WriterGroupJobModel>>(json);
-            return jobs;
-#else
             var sw = Stopwatch.StartNew();
             _logger.Debug("Reading published nodes file ({elapsed}", sw.Elapsed);
             var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(
@@ -65,7 +61,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             var jobs = ToWriterGroupJobs(items, legacyCliModel);
             _logger.Information("Converted items to jobs in {elapsed}", sw.Elapsed);
             return jobs;
-#endif
         }
 
         /// <summary>
