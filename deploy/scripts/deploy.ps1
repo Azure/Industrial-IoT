@@ -9,7 +9,7 @@
     The type of deployment (minimum, local, services, simulation, app, all), defaults to all.
 
  .PARAMETER version
-    Set to "latest" or another mcr image tag to deploy - if not set deploys current master branch ("preview").
+    Set to "latest" or another mcr image tag to deploy - if not set deploys current master branch.
 
  .PARAMETER resourceGroupName
     Can be the name of an existing or new resource group.
@@ -65,7 +65,7 @@
 
 param(
     [ValidateSet("minimum", "local", "services", "simulation", "app", "all")] [string] $type = "all",
-    [string] $version = "preview",
+    [string] $version,
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
@@ -739,8 +739,15 @@ Function New-Deployment() {
             Write-Host "Using $($script:version) $($namespace) images from $($creds.dockerServer)."
         }
         else {
-            $templateParameters.Add("dockerServer", "mcr.microsoft.com")
-            Write-Host "Using $($script:version) images from mcr.microsoft.com."
+            # Official release or developer/main branch builds?
+            if ($script:branchName.StartsWith("release/")) {
+                $templateParameters.Add("dockerServer", "mcr.microsoft.com")
+                Write-Host "Using $($script:version) images from mcr.microsoft.com."
+            }
+            else {
+                $templateParameters.Add("dockerServer", "industrialiotdev.azurecr.io")
+                Write-Host "Using $($script:version) images from industrialiotdev.azurecr.io."
+            }
         }
     }
 
