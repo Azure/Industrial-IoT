@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     using System.Linq;
     using System.Text;
     using Xunit;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Test
@@ -704,6 +705,236 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
                 Assert.Equal(1000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
+        }
+
+        [Fact]
+        public void PnPlcEventTest() {
+            var pn = new StringBuilder(@"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcEvents"": [
+           {
+                ""Id"": ""i=2258"",
+                ""SelectClauses"": [
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                        ""EventId""
+                        ]
+                    }
+                ],
+               ""WhereClauses"": [
+                    {
+                        ""Operator"": ""OfType"",
+                        ""Operands"": [
+                            {
+                                ""Attribute"": {
+                                    ""NodeId"": ""ns=2;i=235"",
+                                    ""BrowsePath"": """"
+                                    }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
+");
+
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn.ToString()), new LegacyCliModel()).ToList();
+
+            Assert.NotEmpty(jobs);
+        }
+
+        [Fact]
+        public void PnPlcMultiJob1TestWithEvents() {
+
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost1:50000"",
+        ""NodeId"": {
+                ""Identifier"": ""i=2258""
+        }
+        },
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost2:50000"",
+        ""NodeId"": {
+            ""Identifier"": ""ns=0;i=2261""
+        }
+    },
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost3:50000"",
+        ""OpcNodes"": [
+
+            {
+                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
+            }
+        ],
+       ""OpcEvents"": [
+           {
+                ""Id"": ""i=2253"",
+                ""OpcSamplingInterval"": 2000,
+                ""OpcPublishingInterval"": 5000,
+                ""Heartbeat"": 3600,
+                ""SkipFirst"": true,
+                ""SelectClauses"": [
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                        ""EventId""
+                        ]
+                    }
+                ],
+               ""WhereClauses"": [
+                    {
+                        ""Operator"": ""OfType"",
+                        ""Operands"": [
+                            {
+                                ""Attribute"": {
+                                    ""NodeId"": ""ns=2;i=235"",
+                                    ""BrowsePath"": """"
+                                    }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost4:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2262""
+            },
+            {
+                ""Id"": ""ns=2;s=DipData""
+            },
+            {
+                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+            }
+        ]
+    }
+]
+";
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+
+            Assert.NotEmpty(jobs);
+
+        }
+
+        [Fact]
+        public void PnPlcJobTestWithEvents() {
+           
+            var pn = @"
+[
+  {
+    ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
+    ""UseSecurity"": false,
+    ""OpcEvents"": [
+      {
+        ""Id"": ""i=2253"",
+        ""OpcSamplingInterval"": 2000,
+        ""OpcPublishingInterval"": 5000,
+        ""Heartbeat"": 3600,
+        ""SkipFirst"": true,
+	""SelectClauses"": [
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""EventId""
+	    ] 
+	  },
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""EventType""
+	    ] 
+	  },
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""SourceNode""
+	    ] 
+	  },
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""SourceName""
+	    ] 
+	  },
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""Time""
+	    ] 
+	  },
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""ReceiveTime""
+	    ] 
+	  },
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""LocalTime""
+	    ] 
+	  },
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""Message""
+	    ] 
+	  },
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""Severity""
+	    ] 
+	  },
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""2:CycleId""
+	    ] 
+	  },
+	  {
+	    ""TypeId"": ""i=2041"",
+            ""BrowsePaths"": [
+	      ""2:CurrentStep""
+	    ] 
+	  }
+	],
+	""WhereClauses"": [
+	  {
+	    ""Operator"": ""OfType"",
+	    ""Operands"": [
+	      {
+                ""Literal"": ""ns=2;i=235""
+              }
+	    ]
+          }
+        ]
+      }
+    ]
+  }
+]
+";
+
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+
+            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
+               Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedEvents));
         }
 
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
