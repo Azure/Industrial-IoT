@@ -36,18 +36,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <returns></returns>
         public static string GetHashSafe(this PublishedDataSetSourceModel model) {
-            var id =  model.Connection?.Endpoint?.Url +
+            var id = model.Connection?.Endpoint?.Url +
                 model.Connection?.Endpoint?.SecurityMode.ToString() +
-                model.Connection?.Endpoint?.SecurityPolicy + 
+                model.Connection?.Endpoint?.SecurityPolicy +
                 model.Connection?.User?.Type.ToString() +
                 model.Connection?.User?.Value.ToJson() +
                 model.SubscriptionSettings?.PublishingInterval.ToString() +
-                model.PublishedVariables.PublishedData.First()?.Id +
-                model.PublishedVariables.PublishedData.First()?.PublishedVariableNodeId +
-                model.PublishedVariables.PublishedData.First()?.PublishedVariableDisplayName +
-                model.PublishedVariables.PublishedData.First()?.SamplingInterval +
-                model.PublishedVariables.PublishedData.First()?.HeartbeatInterval;
+                model.PublishedVariables?.PublishedData.First()?.Id +
+                model.PublishedVariables?.PublishedData.First()?.PublishedVariableNodeId +
+                model.PublishedVariables?.PublishedData.First()?.PublishedVariableDisplayName +
+                model.PublishedVariables?.PublishedData.First()?.SamplingInterval +
+                model.PublishedVariables?.PublishedData.First()?.HeartbeatInterval +
+                model.PublishedEvents?.PublishedEvents.First()?.Id +        // TODO: This needs to verified
+                model.PublishedEvents?.PublishedEvents.First()?.EventNotifier +
+                model.PublishedEvents?.PublishedEvents.First()?.BrowsePath;
             return id.ToSha1Hash();
         }
+
+        //public static string GetHashSafe(this PublishedDataSetSourceModel model) {
+        //    var id = model.Connection?.Endpoint?.Url +
+        //        model.Connection?.Endpoint?.SecurityMode.ToString() +
+        //        model.Connection?.Endpoint?.SecurityPolicy +
+        //        model.Connection?.User?.Type.ToString() +
+        //        model.Connection?.User?.Value.ToJson() +
+        //        model.SubscriptionSettings?.PublishingInterval.ToString() +
+        //        model?.PublishedVariables.PublishedData.First()?.Id +
+        //        model?.PublishedVariables.PublishedData.First()?.PublishedVariableNodeId +
+        //        model?.PublishedVariables.PublishedData.First()?.PublishedVariableDisplayName +
+        //        model?.PublishedVariables.PublishedData.First()?.SamplingInterval +
+        //        model?.PublishedVariables.PublishedData.First()?.HeartbeatInterval +
+        //        model?.PublishedEvents.PublishedEvents.First()?.Id +
+        //        model?.PublishedEvents.PublishedEvents.First()?.EventNotifier +
+        //        model?.PublishedEvents.PublishedEvents.First()?.BrowsePath;
+        //    return id.ToSha1Hash();
+        //}
+
+
+
     }
 }
