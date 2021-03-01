@@ -171,9 +171,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 };
             }
             if (model.Value != null) {
-                return new LiteralOperand {
-                    Value = encoder.Decode(model.Value, null)
-                };
+                TypeInfo typeInfo = new TypeInfo(BuiltInType.NodeId, ValueRanks.Scalar);
+                return new LiteralOperand(TypeInfo.Cast(encoder.Decode(model.Value, null), typeInfo.BuiltInType));
             }
             if (model.Alias != null && !onlySimpleAttributeOperands) {
                 return new AttributeOperand {
