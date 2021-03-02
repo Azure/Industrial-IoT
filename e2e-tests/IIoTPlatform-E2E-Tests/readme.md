@@ -34,11 +34,11 @@ If necessary you can clean the context by calling its `Reset` method, otherwise 
 All test collections should start by setting the desired mode as a first step. E.g.<br>
 `await TestHelper.SwitchToOrchestratedModeAsync(_context);`
 
-### Tips for writing tests
-
 Use and extend the `TestHelper` class.
 
 `TestEventProcessor` listens to IoT Hub and analyzes the value changes.
+
+### Executing tests in Visual Studio
 
 You can reuse a test deployment to speed up test development.
 Follow these steps:
@@ -55,10 +55,9 @@ Follow these steps:
   * at "Select principal" select your principal,
   * press the "Add" button,
   * press the "Save" button.
-* Execute /tools/e2etesting/GetSecrets.ps1
-* Add the following to your launchSettings.json under `profiles.IIoTPlatform-E2E-Tests.environmentVariables`:
-  * the secrets found in the KeyVault,
-  * `"ApplicationName": "<your_resource_group_name>"`.
+* Execute /tools/e2etesting/GetSecrets.ps1 -KeyVaultName &lt;YourKeyVaultName&gt;. You will be asked whether you want to overwrite the settings file or not.
+  * if you choose 'yes' just wait for the script to finish and no further steps are needed
+  * if you choose 'no' copy the script output to IIoTPlatform-E2E-Tests\Properties\launchSettings.json under environmentVariables
 * Now you can use Visual Studio to execute your tests.
 * Don't forget to clean up by executing the pipeline with these variables set:
   * `Cleanup = false`
