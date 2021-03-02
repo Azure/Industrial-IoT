@@ -1,5 +1,5 @@
 param(
-	[Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true)]
     [string] $KeyVaultName
 )
 
@@ -16,23 +16,23 @@ $secrets = Get-AzKeyVaultSecret -VaultName $KeyVaultName
 
 # Get the values for the secrets 
 foreach ($secret in $secrets) {
-	$secretValueSec = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $secret.Name
+    $secretValueSec = Get-AzKeyVaultSecret -VaultName $KeyVaultName -Name $secret.Name
 
-	$ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secretValueSec.SecretValue)
+    $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secretValueSec.SecretValue)
 
-	try {
+    try {
         $secretValueText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-	} finally {
-		[System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
-	}
-	$values[$secret.Name.ToUpperInvariant().Replace("-", "_")] = $secretValueText
+    } finally {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
+    }
+    $values[$secret.Name.ToUpperInvariant().Replace("-", "_")] = $secretValueText
 }
 
 # Find the full path of the launchSettings.json file
 $folderName = "e2e-tests"
 $currentPath = (Get-Location).Path
 $path = Get-ChildItem -Path $currentPath $folderName -Recurse 
-while (!$path) {	
+while (!$path) {    
     $currentPath = $currentPath + '\..'
     $path = Get-ChildItem -Path $currentPath $folderName 
 }
@@ -44,9 +44,9 @@ $launchSettings.profiles.'IIoTPlatform-E2E-Tests'.environmentVariables = [PSCust
 $json = ConvertTo-Json $launchSettings -Depth 4 
 
 if ($confirmation -eq "yes"){
-	Set-Content -Path $settingsFile $json
-	Write-Host "The file launchSettings.json is successfully updated with the secrets from your key vault."
+    Set-Content -Path $settingsFile $json
+    Write-Host "The file launchSettings.json is successfully updated with the secrets from your key vault."
 }
 else {
-	Write-Host $json
+    Write-Host $json
 }
