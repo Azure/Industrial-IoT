@@ -1161,8 +1161,6 @@ $script:requiredProviders = @(
     "microsoft.containerregistry"
 )
 
-Write-Host "Using '$($script:version)' version..."
-
 Select-RepositoryAndBranch
 Write-Host "Signing in ..."
 Write-Host

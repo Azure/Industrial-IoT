@@ -75,46 +75,55 @@ if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
     return
 }
 
+if ([string]::IsNullOrEmpty($Registry)) {
+    $Registry = $env.BUILD_REGISTRY
+}
+
 # Set namespace name based on branch name
-$releaseBuild = $false
 $namespace = $branchName
 if ($namespace.StartsWith("feature/")) {
+    # dev feature builds
     $namespace = $namespace.Replace("feature/", "")
 }
-elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
+elseif ($namespace.StartsWith("release/")) {
+    # release builds go into the staging registry from where we release to prod
     $namespace = "public"
-    $releaseBuild = $true
+    if ([string]::IsNullOrEmpty($Registry)) {
+        $Registry = "industrialiot"
+    }
 }
 $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
 $namespace = "$($namespace)/"
 
-if (![string]::IsNullOrEmpty($Registry) -and ($Registry -ne "industrialiot")) {
-    # if we build from release or from master and registry is provided we leave namespace empty
-    if ($releaseBuild) {
-        $namespace = ""
-    }
+if ([string]::IsNullOrEmpty($Registry)) {
+    # If not set and preview or feature builds then by default build into dev registry
+    $Registry = "industrialiotdev"
+}
+
+Write-Warning "Using $($Registry).azurecr.io."
+
+if ($branchName -eq "master") {
+    # latest tag is preview when building from master for backcompat reasons.
+    $latestTag = "preview"
+    $namespace = ""
+}
+else {
+    $latestTag = "latest"
 }
 
 # get and set build information from gitversion, git or version content
-$latestTag = "latest"
 $sourceTag = $env:Version_Prefix
-$prereleaseTag = $env:Version_Prerelease
-if ([string]::IsNullOrEmpty($prereleaseTag))
-{
-    $prereleaseTag = "-alpha"
-}
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
         $version = & (Join-Path $PSScriptRoot "get-version.ps1")
         $sourceTag = $version.Prefix
-        $prereleaseTag = $version.Prerelease
     }
     catch {
         $sourceTag = $null
     }
 }
 if (![string]::IsNullOrEmpty($sourceTag)) {
-    Write-Host "Using version $($sourceTag)$($prereleaseTag) from get-version.ps1"
+    Write-Host "Using version $($sourceTag) from get-version.ps1"
 }
 else {
     # Otherwise look at git tag
@@ -144,22 +153,6 @@ if (![string]::IsNullOrEmpty($Subscription)) {
     & "az" $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
-    }
-}
-
-# Check and set registry
-if ([string]::IsNullOrEmpty($Registry)) {
-    $Registry = $env.BUILD_REGISTRY
-    if ([string]::IsNullOrEmpty($Registry)) {
-        if ($releaseBuild) {
-            # Make sure we do not override latest in release builds - this is done manually later.
-            $latestTag = "preview"
-            $Registry = "industrialiot"
-        }
-        else {
-            $Registry = "industrialiotdev"
-        }
-        Write-Warning "No registry specified - using $($Registry).azurecr.io."
     }
 }
 
@@ -200,7 +193,7 @@ if (![string]::IsNullOrEmpty($metadata.tag)) {
     $tagPrefix = "$($metadata.tag)-"
 }
 
-$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($prereleaseTag)$($tagPostfix)"
+$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($tagPostfix)"
 Write-Host "Full image name: $($fullImageName)"
 
 $manifest = @" 
@@ -242,7 +235,7 @@ $definitions | ForEach-Object {
         }
     }
 
-    $image = "$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($prereleaseTag)-$($platformTag)$($tagPostfix)"
+    $image = "$($namespace)$($imageName):$($tagPrefix)$($sourceTag)-$($platformTag)$($tagPostfix)"
     Write-Host "Start build job for $($image)"
 
     # acr does not support arm64 as platform
