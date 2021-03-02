@@ -716,31 +716,31 @@ Function New-Deployment() {
                 $script:version = $script:branchName.Replace("release/", "")
             }
             else {
-                $script:version = "preview"
+                $script:version = "latest"
             }
         }
+
+        # see acr-build.ps1 for naming logic
+        $namespace = $script:branchName
+        if ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
+            $namespace = ""
+        }
+        else {
+            if ($namespace.StartsWith("feature/")) {
+                $namespace = $namespace.Replace("feature/", "")
+            }
+            $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+        }
+        
+        $templateParameters.Add("imagesNamespace", $namespace)
         $templateParameters.Add("imagesTag", $script:version)
+        Write-Host "Using $($script:version) $($namespace) images from $($creds.dockerServer)."
+
         $creds = Select-RegistryCredentials
         if ($creds) {
             $templateParameters.Add("dockerServer", $creds.dockerServer)
             $templateParameters.Add("dockerUser", $creds.dockerUser)
             $templateParameters.Add("dockerPassword", $creds.dockerPassword)
-
-            # see acr-build.ps1 for naming logic
-            $namespace = $script:branchName
-            if ($namespace.StartsWith("feature/")) {
-                $namespace = $namespace.Replace("feature/", "")
-                $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
-            }
-            elseif ($namespace.StartsWith("release/")) {
-                $namespace = "public"
-            }
-            elseif ($namespace -eq "master") {
-                $namespace = ""
-            }
-            
-            $templateParameters.Add("imagesNamespace", $namespace)
-            Write-Host "Using $($script:version) $($namespace) images from $($creds.dockerServer)."
         }
         else {
             # Official release or developer/main branch builds?
