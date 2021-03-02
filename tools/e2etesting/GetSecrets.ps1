@@ -3,12 +3,12 @@ param(
     [string] $KeyVaultName
 )
 
-$confirmation = Read-Host "Do you want to overwrite the IIoTPlatform-E2E-Tests\PropertieslaunchSettings.json file? yes/no"
+$confirmation = Read-Host "Do you want to overwrite the IIoTPlatform-E2E-Tests\Properties\launchSettings.json file? yes/no"
 
 $values = @{}
 
 # Get the resource group name 
-$resourceGroup = (Get-AzResource -Name mabakovikeyvault).ResourceGroupName
+$resourceGroup = (Get-AzResource -Name $KeyVaultName).ResourceGroupName
 $values["ApplicationName"] = $resourceGroup
 
 # Get the names of the secrets from the Key Vault
