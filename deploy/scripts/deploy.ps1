@@ -730,11 +730,15 @@ Function New-Deployment() {
             $namespace = $script:branchName
             if ($namespace.StartsWith("feature/")) {
                 $namespace = $namespace.Replace("feature/", "")
+                $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
             }
-            elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
+            elseif ($namespace.StartsWith("release/")) {
                 $namespace = "public"
             }
-            $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+            elseif ($namespace -eq "master") {
+                $namespace = ""
+            }
+            
             $templateParameters.Add("imagesNamespace", $namespace)
             Write-Host "Using $($script:version) $($namespace) images from $($creds.dockerServer)."
         }
