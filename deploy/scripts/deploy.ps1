@@ -698,6 +698,9 @@ Function New-Deployment() {
                 $script:applicationName = $script:resourceGroupName
             }
         }
+        if (Test-AzureName -Website $script:applicationName -eq $true) {
+            throw "Conflict: Website with given name $script:applicationName already exists."
+        }
         if (($script:type -eq "all") -or ($script:type -eq "app")) {
             $templateParameters.Add("siteName", $script:applicationName)
         }
