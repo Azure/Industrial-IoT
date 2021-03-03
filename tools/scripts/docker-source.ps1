@@ -94,7 +94,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         }
         "linux/arm64" = @{
             runtimeId = "linux-arm64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine-arm64v8"
             platformTag = "linux-arm64v8"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             debugger = $null
@@ -102,7 +102,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         }
         "linux/amd64" = @{
             runtimeId = "linux-x64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger
@@ -110,14 +110,14 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         }
         "windows/amd64:10.0.17763.1457" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:10.0.17763.1457-amd64"
+            image = "mcr.microsoft.com/windows/nanoserver:1809"
             platformTag = "nanoserver-amd64-1809"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
         "windows/amd64:10.0.18363.1082" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:10.0.18363.1082-amd64"
+            image = "mcr.microsoft.com/windows/nanoserver:1909"
             platformTag = "nanoserver-amd64-1909"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
