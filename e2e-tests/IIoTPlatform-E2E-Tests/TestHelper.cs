@@ -673,12 +673,12 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
         /// <param name="nodeId">Id of the parent node or null to browse the root node</param>
-        /// <param name="continuationToken"></param>
-        /// <returns></returns>
-        public static async Task<List<(string NodeId, string NodeClass, bool Children)>> Twin_GetBrowseEndpoint(
+        /// <param name="ct">Cancellation token</param>
+        public static async Task<List<(string NodeId, string NodeClass, bool Children)>> Twin_GetBrowseEndpointAsync(
                 IIoTPlatformTestContext context,
                 string endpointId,
-                string nodeId = null) {
+                string nodeId = null,
+                CancellationToken ct = default) {
 
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
@@ -688,7 +688,7 @@ namespace IIoTPlatform_E2E_Tests {
             string continuationToken = null;
 
             do {
-                var browseResult = await Twin_GetBrowseEndpoint_Internal(context, endpointId, nodeId, continuationToken);
+                var browseResult = await Twin_GetBrowseEndpoint_InternalAsync(context, endpointId, nodeId, continuationToken, ct);
 
                 if (browseResult.results.Count > 0) {
                     result.AddRange(browseResult.results);
@@ -707,18 +707,19 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
         /// <param name="nodeClass">Class of the node to filter to or null for no filtering</param>
         /// <param name="nodeId">Id of the parent node or null to browse the root node</param>
-        public static async Task<List<(string NodeId, string NodeClass, bool Children)>> Twin_GetBrowseEndpoint_Recursive(
+        public static async Task<List<(string NodeId, string NodeClass, bool Children)>> Twin_GetBrowseEndpoint_RecursiveAsync(
                 IIoTPlatformTestContext context,
                 string endpointId,
                 string nodeClass = null,
-                string nodeId = null) {
+                string nodeId = null,
+                CancellationToken ct = default) {
 
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
             }
 
             var result = new List<(string NodeId, string NodeClass, bool Children)>();
-            var nodes = await Twin_GetBrowseEndpoint(context, endpointId, nodeId).ConfigureAwait(false);
+            var nodes = await Twin_GetBrowseEndpointAsync(context, endpointId, nodeId).ConfigureAwait(false);
 
             foreach (var node in nodes) {
                 if (string.IsNullOrEmpty(nodeClass)
@@ -726,7 +727,12 @@ namespace IIoTPlatform_E2E_Tests {
                     result.Add(node);
                 }
                 if (node.Children) {
-                    var childNodes = await Twin_GetBrowseEndpoint_Recursive(context, endpointId, nodeClass, node.NodeId).ConfigureAwait(false);
+                    var childNodes = await Twin_GetBrowseEndpoint_RecursiveAsync(
+                        context,
+                        endpointId,
+                        nodeClass,
+                        node.NodeId,
+                        ct).ConfigureAwait(false);
                     if (childNodes.Any()) {
                         result.AddRange(childNodes);
                     }
@@ -737,28 +743,198 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
-        /// Gets endpoints from registry
+        /// Registers a server, the discovery url will be saved in the <paramref name="context"/>
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
-        public static async Task<List<(string Id, string Url, string ActivationState, string EndpointState)>> Registry_GetEndpoints(
-                IIoTPlatformTestContext context) {
+        /// <param name="discoveryUrl">Discovery URL to register</param>
+        public static async Task Registry_RegisterServerAsync(
+                IIoTPlatformTestContext context,
+                string discoveryUrl,
+                CancellationToken ct = default) {
 
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var accessToken = await GetTokenAsync(context, cts.Token).ConfigureAwait(false);
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+            var request = new RestRequest(Method.POST);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            request.Resource = TestConstants.APIRoutes.RegistryApplications;
+
+            var body = new {
+                discoveryUrl = discoveryUrl
+            };
+
+            request.AddJsonBody(JsonConvert.SerializeObject(body));
+
+            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+            Assert.NotNull(response);
+
+            if (!response.IsSuccessful) {
+                context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "POST /registry/v2/application failed!");
+            }
+
+            context.DiscoveryUrl = discoveryUrl;
+        }
+
+        /// <summary>
+        /// Gets the application ID associated with the DiscoveryUrl property of <paramref name="context"/>
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        public static async Task<string> Registry_GetApplicationIdAsync(
+                IIoTPlatformTestContext context,
+                CancellationToken ct = default) {
+
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+
             var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             var request = new RestRequest(Method.GET);
             request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-            request.Resource = "registry/v2/endpoints";
+            request.Resource = TestConstants.APIRoutes.RegistryApplications;
 
-            var response = await client.ExecuteAsync(request, cts.Token).ConfigureAwait(false);
+            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
             Assert.NotNull(response);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            if (!response.IsSuccessful) {
+                context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "GET /registry/v2/application failed!");
+            }
+
+            dynamic result = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
+            var json = (IDictionary<string, object>)result;
+
+            Assert.True(HasProperty(result, "items"), "GET /registry/v2/application response did not contain items");
+            Assert.False(result.items == null, "GET /registry/v2/application response items property is null");
+
+            foreach (var item in result.items) {
+                var itemDictionary = (IDictionary<string, object>)item;
+
+                if (!itemDictionary.ContainsKey("discoveryUrls")
+                    || !itemDictionary.ContainsKey("applicationId")) {
+                    continue;
+                }
+
+                var discoveryUrls = (List<object>)item.discoveryUrls;
+                var itemUrl = (string)discoveryUrls?.FirstOrDefault(url => IsUrlStringsEqual(url as string, context.DiscoveryUrl));
+
+                if (itemUrl != null) {
+                    return item.applicationId;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Unregisters a server identified by <paramref name="applicationId"/>
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="applicationId">Application ID identifying the server to unregister</param>
+        public static async Task Registry_UnregisterServerAsync(
+                IIoTPlatformTestContext context,
+                string applicationId,
+                CancellationToken ct = default) {
+
+            if (string.IsNullOrEmpty(applicationId)) {
+                throw new ArgumentNullException(nameof(applicationId));
+            }
+
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+            var request = new RestRequest(Method.DELETE);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            request.Resource = string.Format(TestConstants.APIRoutes.RegistryApplicationsWithApplicationIdFormat, applicationId);
+
+            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+            Assert.NotNull(response);
+
+            if (!response.IsSuccessful) {
+                context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "DELETE /registry/v2/application/{applicationId} failed!");
+            }
+        }
+
+        /// <summary>
+        /// Gets endpoints from registry
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        public static async Task Registry_ActivateEndpointAsync(IIoTPlatformTestContext context, CancellationToken ct = default) {
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+
+            Assert.False(string.IsNullOrWhiteSpace(context.OpcUaEndpointId), "Endpoint not set in the test context");
+
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
+                Timeout = TestConstants.DefaultTimeoutInMilliseconds
+            };
+
+            var request = new RestRequest(Method.POST);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            request.Resource = string.Format(TestConstants.APIRoutes.RegistryActivateEndpointsFormat, context.OpcUaEndpointId);
+
+            var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
+            Assert.NotNull(response);
+
+            if (!response.IsSuccessful) {
+                context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
+            }
+
+            Assert.Empty(response.Content);
+
+            while (true) {
+                Assert.False(ct.IsCancellationRequested, "Endpoint was not activated within the expected timeout");
+
+                var endpointList = await Registry_GetEndpointsAsync(context).ConfigureAwait(false);
+                var endpoint = endpointList.FirstOrDefault(e => string.Equals(e.Id, context.OpcUaEndpointId));
+
+                if (string.Equals(endpoint.ActivationState, TestConstants.StateConstants.ActivatedAndConnected)
+                        && string.Equals(endpoint.EndpointState, TestConstants.StateConstants.Ready)) {
+                    return;
+                }
+
+                context.OutputHelper.WriteLine(string.IsNullOrEmpty(endpoint.Url) ? "Endpoint not found" :
+                    $"Endpoint state: {endpoint.EndpointState}, activation: {endpoint.ActivationState}");
+
+                await Task.Delay(TestConstants.DefaultDelayMilliseconds).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Gets endpoints from registry
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        public static async Task<List<(string Id, string Url, string ActivationState, string EndpointState)>> Registry_GetEndpointsAsync(
+                IIoTPlatformTestContext context,
+                CancellationToken ct = default) {
+
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+            var request = new RestRequest(Method.GET);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+            request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
+
+            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+            Assert.NotNull(response);
+            
+            if (!response.IsSuccessful) {
+                context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
+            }
 
             dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
-            int count = json.items.Count;
 
-            Assert.NotEqual(0, count);
+            Assert.True(HasProperty(json, "items"), "GET /registry/v2/endpoints response has no items");
+            Assert.False(json.items == null, "GET /registry/v2/endpoints response items property is null");
+            Assert.NotEqual(0, json.items.Count);
 
             var result = new List<(string Id, string Url, string ActivationState, string EndpointState)>();
 
@@ -772,6 +948,14 @@ namespace IIoTPlatform_E2E_Tests {
 
             return result;
         }
+
+        /// <summary>
+        /// Determines if two strings can be considered the representation of the same URL
+        /// </summary>
+        /// <param name="url1">URL to compare</param>
+        /// <param name="url2">URL to compare to</param>
+        public static bool IsUrlStringsEqual(string url1, string url2) =>
+            string.Equals(url1.TrimEnd('/'), url2.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Prints the exception message and stacktrace for exception (and all inner exceptions) in test output
@@ -790,14 +974,22 @@ namespace IIoTPlatform_E2E_Tests {
             }
         }
 
-        private static async Task<(List<(string NodeId, string NodeClass, bool Children)> results, string continuationToken)> Twin_GetBrowseEndpoint_Internal(
+        /// <summary>
+        /// Calls a GET twin browse with the given <paramref name="endpointId"/>
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
+        /// <param name="nodeId">Id of the parent node or null to browse the root node</param>
+        /// <param name="continuationToken">Continuation token from the previous call, or null</param>
+        /// <param name="ct">Cancellation token</param>
+        private static async Task<(List<(string NodeId, string NodeClass, bool Children)> results, string continuationToken)> Twin_GetBrowseEndpoint_InternalAsync(
                 IIoTPlatformTestContext context,
                 string endpointId,
                 string nodeId = null,
-                string continuationToken = null) {
+                string continuationToken = null,
+                CancellationToken ct = default) {
 
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var accessToken = await GetTokenAsync(context, cts.Token).ConfigureAwait(false);
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
             var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             var request = new RestRequest(Method.GET);
@@ -815,11 +1007,19 @@ namespace IIoTPlatform_E2E_Tests {
                 request.AddQueryParameter("continuationToken", continuationToken);
             }
 
-            var response = await client.ExecuteAsync(request, cts.Token).ConfigureAwait(false);
+            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+            
             Assert.NotNull(response);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            if (!response.IsSuccessful) {
+                context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                Assert.True(response.IsSuccessful, "GET twin/v2/browse/{endpointId} failed!");
+            }
 
             dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
+
+            Assert.True(HasProperty(json, "references"), "GET twin/v2/browse/{endpointId} response has no items");
+            Assert.False(json.references == null, "GET twin/v2/browse/{endpointId} response references property is null");
 
             var result = new List<(string NodeId, string NodeClass, bool Children)>();
 
@@ -836,6 +1036,11 @@ namespace IIoTPlatform_E2E_Tests {
             return (results: result, continuationToken: responseContinuationToken);
         }
 
+        /// <summary>
+        /// Determines if an ExpandoObject has a property
+        /// </summary>
+        /// <param name="expandoObject">ExpandoObject to exemine</param>
+        /// <param name="propertyName">Name of the property</param>
         private static bool HasProperty(object expandoObject, string propertyName) {
             if (!(expandoObject is IDictionary<string, object> dictionary)) {
                 throw new InvalidOperationException("Object is not an ExpandoObject");

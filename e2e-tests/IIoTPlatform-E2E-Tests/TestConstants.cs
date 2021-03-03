@@ -71,6 +71,11 @@ namespace IIoTPlatform_E2E_Tests {
             public const string RegistryApplications = "/registry/v2/applications";
 
             /// <summary>
+            /// Route to applications within registry with application ID
+            /// </summary>
+            public const string RegistryApplicationsWithApplicationIdFormat = "/registry/v2/applications/{0}";
+
+            /// <summary>
             /// Route to endpoints within registry
             /// </summary>
             public const string RegistryEndpoints = "/registry/v2/endpoints";
@@ -275,6 +280,21 @@ namespace IIoTPlatform_E2E_Tests {
             /// The trait value for PublisherMode = standalone
             /// </summary>
             public const string PublisherModeStandaloneTraitValue = "standalone";
+        }
+
+        /// <summary>
+        /// Constants related to state returned in result
+        /// </summary>
+        internal static class StateConstants {
+            /// <summary>
+            /// Endpoint activation state activated and connected
+            /// </summary>
+            public const string ActivatedAndConnected = "ActivatedAndConnected";
+
+            /// <summary>
+            /// Endpoint state ready
+            /// </summary>
+            public const string Ready = "Ready";
         }
     }
 }
