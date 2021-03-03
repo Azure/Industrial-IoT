@@ -67,12 +67,6 @@ if ($projFile) {
         }
     }
 
-    $installLinuxDebugger = @"
-RUN apt-get update && apt-get install -y --no-install-recommends unzip curl procps \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg
-ENV PATH="${PATH}:/root/vsdbg/vsdbg"
-"@
     # Get project's assembly name to create entry point entry in dockerfile
     $assemblyName = $null
     ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
@@ -89,7 +83,6 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-arm32v7"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
-            debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/arm64" = @{
@@ -97,7 +90,6 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine-arm64v8"
             platformTag = "linux-arm64v8"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
-            debugger = $null
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/amd64" = @{
@@ -105,21 +97,18 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
-            debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "windows/amd64:10.0.17763.1457" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1809"
             platformTag = "nanoserver-amd64-1809"
-            debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
         "windows/amd64:10.0.18363.1082" = @{
             runtimeId = "win-x64"
             image = "mcr.microsoft.com/windows/nanoserver:1909"
             platformTag = "nanoserver-amd64-1909"
-            debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
     }
@@ -147,13 +136,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         if ([string]::IsNullOrEmpty($runtimeId)) {
             $runtimeId = "portable"
         }
-
-        $debugger = ""
-        if ($Debug.IsPresent) {
-            if (![string]::IsNullOrEmpty($platformInfo.debugger)) {
-                $debugger = $platformInfo.debugger
-            }
-        }
+        
         $runtimeOnly = ""
         if (![string]::IsNullOrEmpty($platformInfo.runtimeOnly)) {
             $runtimeOnly = $platformInfo.runtimeOnly
@@ -186,8 +169,6 @@ $($exposes)
 $($workdir)
 COPY . .
 $($runtimeOnly)
-
-$($debugger)
 
 $($environmentVars | Out-String)
 
