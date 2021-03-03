@@ -734,13 +734,13 @@ Function New-Deployment() {
         
         $templateParameters.Add("imagesNamespace", $namespace)
         $templateParameters.Add("imagesTag", $script:version)
-        Write-Host "Using $($script:version) $($namespace) images from $($creds.dockerServer)."
 
         $creds = Select-RegistryCredentials
         if ($creds) {
             $templateParameters.Add("dockerServer", $creds.dockerServer)
             $templateParameters.Add("dockerUser", $creds.dockerUser)
             $templateParameters.Add("dockerPassword", $creds.dockerPassword)
+            Write-Host "Using $($script:version) $($namespace) images from $($creds.dockerServer)."
         }
         else {
             # Official release or developer/main branch builds?
