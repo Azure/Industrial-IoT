@@ -178,6 +178,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string OpcOwnCertStorePath = SecurityConfig.ApplicationCertificateStorePathKey;
 
         /// <summary>
+        /// Key for app cert subject name.
+        /// </summary>
+        public const string OpcApplicationCertificateSubjectName = SecurityConfig.ApplicationCertificateSubjectNameKey;
+
+        /// <summary>
+        /// Key for app name.
+        /// </summary>
+        public const string OpcApplicationName = SecurityConfig.ApplicationNameKey;
+
+        /// <summary>
         /// Key for the trusted peer certificates path.
         /// </summary>
         public const string OpcTrustedCertStorePath = SecurityConfig.TrustedPeerCertificatesPathKey;
