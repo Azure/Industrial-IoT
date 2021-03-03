@@ -681,6 +681,7 @@ namespace IIoTPlatform_E2E_Tests {
                 CancellationToken ct = default) {
 
             if (string.IsNullOrEmpty(endpointId)) {
+                context.OutputHelper.WriteLine($"{nameof(endpointId)} is null or empty");
                 throw new ArgumentNullException(nameof(endpointId));
             }
 
@@ -715,6 +716,7 @@ namespace IIoTPlatform_E2E_Tests {
                 CancellationToken ct = default) {
 
             if (string.IsNullOrEmpty(endpointId)) {
+                context.OutputHelper.WriteLine($"{nameof(endpointId)} is null or empty");
                 throw new ArgumentNullException(nameof(endpointId));
             }
 
@@ -751,6 +753,11 @@ namespace IIoTPlatform_E2E_Tests {
                 IIoTPlatformTestContext context,
                 string discoveryUrl,
                 CancellationToken ct = default) {
+
+            if (string.IsNullOrEmpty(discoveryUrl)) {
+                context.OutputHelper.WriteLine($"{nameof(discoveryUrl)} is null or empty");
+                throw new ArgumentNullException(nameof(discoveryUrl));
+            }
 
             var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
@@ -839,6 +846,7 @@ namespace IIoTPlatform_E2E_Tests {
                 CancellationToken ct = default) {
 
             if (string.IsNullOrEmpty(applicationId)) {
+                context.OutputHelper.WriteLine($"{nameof(applicationId)} is null or empty");
                 throw new ArgumentNullException(nameof(applicationId));
             }
 
@@ -955,7 +963,7 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="url1">URL to compare</param>
         /// <param name="url2">URL to compare to</param>
         public static bool IsUrlStringsEqual(string url1, string url2) =>
-            string.Equals(url1.TrimEnd('/'), url2.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+            string.Equals(url1?.TrimEnd('/'), url2?.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Prints the exception message and stacktrace for exception (and all inner exceptions) in test output
