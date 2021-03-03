@@ -85,27 +85,27 @@ if ($namespace.StartsWith("feature/")) {
     # dev feature builds
     $namespace = $namespace.Replace("feature/", "")
 }
-elseif ($namespace.StartsWith("release/")) {
-    # release builds go into the staging registry from where we release to prod
+elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
     $namespace = "public"
     if ([string]::IsNullOrEmpty($Registry)) {
+    	# Release and Preview builds go into staging
         $Registry = "industrialiot"
     }
 }
-$namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
-$namespace = "$($namespace)/"
 
 if ([string]::IsNullOrEmpty($Registry)) {
-    # If not set and preview or feature builds then by default build into dev registry
+    # Feature builds by default build into dev registry
     $Registry = "industrialiotdev"
 }
+
+$namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+$namespace = "$($namespace)/"
 
 Write-Warning "Using $($Registry).azurecr.io."
 
 if ($branchName -eq "master") {
     # latest tag is preview when building from master for backcompat reasons.
     $latestTag = "preview"
-    $namespace = ""
 }
 else {
     $latestTag = "latest"

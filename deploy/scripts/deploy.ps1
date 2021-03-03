@@ -9,7 +9,7 @@
     The type of deployment (minimum, local, services, simulation, app, all), defaults to all.
 
  .PARAMETER version
-    Set to "latest" or another mcr image tag to deploy - if not set deploys current master branch.
+    Set to "latest" or another mcr image tag to deploy - if not set deploys current master branch ("preview").
 
  .PARAMETER resourceGroupName
     Can be the name of an existing or new resource group.
@@ -716,42 +716,61 @@ Function New-Deployment() {
                 $script:version = $script:branchName.Replace("release/", "")
             }
             else {
-                $script:version = "latest"
+                $script:version = "preview"
             }
         }
 
         # see acr-build.ps1 for naming logic
-        $namespace = $script:branchName
-        if ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
-            $namespace = ""
-        }
-        else {
-            if ($namespace.StartsWith("feature/")) {
-                $namespace = $namespace.Replace("feature/", "")
-            }
-            $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
-        }
-        
-        $templateParameters.Add("imagesNamespace", $namespace)
-        $templateParameters.Add("imagesTag", $script:version)
+        $namespace = "public"
+        if (-not $script:branchName.StartsWith("release/")) {
 
-        $creds = Select-RegistryCredentials
+            if ($script:branchName -ne "master") {
+                $namespace = $script:branchName
+                if ($script:branchName.StartsWith("feature/")) {
+                    $namespace = $namespace.Replace("feature/", "")
+                }
+                $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+            }
+
+            # Select registry for preview and developer builds
+            if ([string]::IsNullOrEmpty($script:acrRegistryName)) {
+                $script:acrSubscriptionName = "IOT_GERMANY"
+                if ($script:branchName -eq "master") {
+                    # Get images from staging registry 
+                    $script:acrRegistryName = "industrialiot"
+                }
+                else {
+                    # Get images from developer registry
+                    $script:acrRegistryName = "industrialiotdev"
+                }
+            }
+        }
+	    
+        # Try and get registry credentials
+        try {
+            $creds = Select-RegistryCredentials
+        }
+        catch {
+            $creds = $null
+        }
+
+        # Configure registry
+        $templateParameters.Add("imagesTag", $script:version)
         if ($creds) {
             $templateParameters.Add("dockerServer", $creds.dockerServer)
             $templateParameters.Add("dockerUser", $creds.dockerUser)
             $templateParameters.Add("dockerPassword", $creds.dockerPassword)
-            Write-Host "Using $($script:version) $($namespace) images from $($creds.dockerServer)."
+	        $templateParameters.Add("imagesNamespace", $namespace)
+            Write-Host "Using $($script:version) $($namespace) images from private registry $($creds.dockerServer)."
+        }
+        elseif ([string]::IsNullOrEmpty($script:acrRegistryName)) {
+            $templateParameters.Add("dockerServer", "mcr.microsoft.com")
+            Write-Host "Using $($script:version) images from mcr.microsoft.com."
         }
         else {
-            # Official release or developer/main branch builds?
-            if ($script:branchName.StartsWith("release/")) {
-                $templateParameters.Add("dockerServer", "mcr.microsoft.com")
-                Write-Host "Using $($script:version) images from mcr.microsoft.com."
-            }
-            else {
-                $templateParameters.Add("dockerServer", "industrialiotdev.azurecr.io")
-                Write-Host "Using $($script:version) images from industrialiotdev.azurecr.io."
-            }
+            $templateParameters.Add("dockerServer", "$($script:acrRegistryName).azurecr.io")
+	        $templateParameters.Add("imagesNamespace", $namespace)
+            Write-Host "Using $($script:version) $($namespace) images from public registry $($creds.dockerServer)."
         }
     }
 
