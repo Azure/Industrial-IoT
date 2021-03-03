@@ -23,12 +23,12 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
         }
 
-        [Fact, PriorityOrder(100)]
+        [Fact, PriorityOrder(0)]
         public void A1_SwitchToOrchestratedMode() {
             TestHelper.SwitchToOrchestratedModeAsync(_context).GetAwaiter().GetResult();
         }
 
-        [Fact, PriorityOrder(101)]
+        [Fact, PriorityOrder(1)]
         public void A2_RegisterOPCServer_And_ActivateEndpoint() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -66,7 +66,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             TestHelper.Registry_ActivateEndpointAsync(_context, cts.Token).GetAwaiter().GetResult();
         }
 
-        [Fact, PriorityOrder(102)]
+        [Fact, PriorityOrder(2)]
         public void D1_Discover_OPC_UA_Endpoints() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -76,12 +76,12 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
 
             var endpoint = endpoints.SingleOrDefault(e => string.Equals(_context.OpcUaEndpointId, e.Id));
 
-            Assert.NotNull(endpoint.Id);
+            Assert.False(endpoint.Id == null, "The endpoint was not found");
             Assert.Equal(TestConstants.StateConstants.ActivatedAndConnected, endpoint.ActivationState);
             Assert.Equal(TestConstants.StateConstants.Ready, endpoint.EndpointState);
         }
 
-        [Fact, PriorityOrder(103)]
+        [Fact, PriorityOrder(3)]
         public void T1_Browse_Address_Space() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -91,7 +91,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.NotEmpty(nodes);
         }
 
-        [Fact, PriorityOrder(104)]
+        [Fact, PriorityOrder(4)]
         public void T1_1_BrowseSpecificNode() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -108,7 +108,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.NotEmpty(nodes);
         }
 
-        [Fact, PriorityOrder(105)]
+        [Fact, PriorityOrder(5)]
         public void T1_2_BrowseAllNodesOfTypeObject() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -120,7 +120,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.True(nodes.Count > 150);
         }
 
-        [Fact, PriorityOrder(106)]
+        [Fact, PriorityOrder(6)]
         public void T1_3_BrowseAllNodesOfTypeVariable() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -132,7 +132,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.True(nodes.Count > 150);
         }
 
-        [Fact, PriorityOrder(199)]
+        [Fact, PriorityOrder(99)]
         public void Z_Cleanup() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
