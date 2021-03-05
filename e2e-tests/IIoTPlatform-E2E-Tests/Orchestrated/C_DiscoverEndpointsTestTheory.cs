@@ -20,7 +20,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
     public class C_DiscoverEndpointsTestTheory {
         private readonly ITestOutputHelper _output;
         private readonly IIoTMultipleNodesTestContext _context;
-        private readonly CancellationTokenSource _cancellationToken;
+        private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly RestClient _restClient;
         private readonly List<dynamic> _servers;
 
@@ -28,21 +28,21 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
-            _cancellationToken = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            _cancellationTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             _restClient = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
 
             // Switch to Orchestrated mode
             TestHelper.SwitchToOrchestratedModeAsync(_context).GetAwaiter().GetResult();
 
             // Get OAuth token
-            var token = TestHelper.GetTokenAsync(_context, _cancellationToken.Token).GetAwaiter().GetResult();
+            var token = TestHelper.GetTokenAsync(_context, _cancellationTokenSource.Token).GetAwaiter().GetResult();
             Assert.NotEmpty(token);
 
             // Get info about servers
-            var simulatedOpcServers = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, _cancellationToken.Token).GetAwaiter().GetResult();
+            var simulatedOpcServers = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, _cancellationTokenSource.Token).GetAwaiter().GetResult();
             var urls = simulatedOpcServers.Values.ToList().Select(s => s.EndpointUrl).ToList();
             AddTestOpcServers(urls);
-            dynamic result = TestHelper.WaitForDiscoveryToBeCompletedAsync(_context, _cancellationToken.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
+            dynamic result = TestHelper.WaitForDiscoveryToBeCompletedAsync(_context, _cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
             _servers = result.items;
 
             // Remove servers
@@ -69,11 +69,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             CallRestApi(Method.POST, TestConstants.APIRoutes.RegistryDiscover, body);
 
             // Validate that the endpoint can be found
-            var result = TestHelper.WaitForEndpointDiscoveryToBeCompleted(_context, _cancellationToken.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
+            var result = TestHelper.WaitForEndpointDiscoveryToBeCompleted(_context, _cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
             Assert.Equal(url, ((string)result.items[0].registration.endpointUrl).TrimEnd('/'));
         }
 
-        [Fact, PriorityOrder(2)]
+        [Fact, PriorityOrder(1)]
         public void Test_Discover_OPC_UA_Endpoints_PortRange() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -122,9 +122,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
         }
 
         private void AddTestOpcServers(List<string> endpointUrls) {
-            for (int i = 0; i < endpointUrls.Count; i++) {
+            foreach (var endpointUrl in endpointUrls) {
                 var body = new {
-                    discoveryUrl = endpointUrls[i]
+                    discoveryUrl = endpointUrl
                 };
                 CallRestApi(Method.POST, TestConstants.APIRoutes.RegistryApplications, body);
             }
@@ -142,7 +142,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
         }
 
         private IRestResponse CallRestApi(Method method, string route, object body = null) {
-            var accessToken = TestHelper.GetTokenAsync(_context, _cancellationToken.Token).GetAwaiter().GetResult();
+            var accessToken = TestHelper.GetTokenAsync(_context, _cancellationTokenSource.Token).GetAwaiter().GetResult();
 
             var request = new RestRequest(method);
             request.Resource = route;
@@ -152,7 +152,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
                 request.AddJsonBody(JsonConvert.SerializeObject(body));
             }
 
-            var response = _restClient.ExecuteAsync(request, _cancellationToken.Token).GetAwaiter().GetResult();
+            var response = _restClient.ExecuteAsync(request, _cancellationTokenSource.Token).GetAwaiter().GetResult();
             Assert.True(response.IsSuccessful);
             return response;
         }
