@@ -134,8 +134,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 var sc = await _outer._subscriptionManager.GetOrCreateSubscriptionAsync(
                     _subscriptionInfo).ConfigureAwait(false);
-                sc.OnSubscriptionDataChange += OnSubscriptionDataChangedAsync;
-                sc.OnSubscriptionEventChange += OnSubscriptionEventChangedAsync;
+                sc.OnSubscriptionDataChange += OnSubscriptionChangedAsync;
+                sc.OnSubscriptionEventChange += OnSubscriptionChangedAsync;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
                     _subscriptionInfo.Configuration).ConfigureAwait(false);
                 Subscription = sc;
@@ -194,8 +194,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <inheritdoc/>
             public void Dispose() {
                 if (Subscription != null) {
-                    Subscription.OnSubscriptionDataChange -= OnSubscriptionDataChangedAsync;
-                    Subscription.OnSubscriptionEventChange -= OnSubscriptionEventChangedAsync;
+                    Subscription.OnSubscriptionDataChange -= OnSubscriptionChangedAsync;
+                    Subscription.OnSubscriptionEventChange -= OnSubscriptionChangedAsync;
                     Subscription.Dispose();
                 }
                 _keyframeTimer?.Dispose();
@@ -241,25 +241,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notification"></param>
-            private async void OnSubscriptionDataChangedAsync(object sender,
-                SubscriptionNotificationModel notification) {
-                var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
-                if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0 &&
-                    (sequenceNumber % _keyFrameCount.Value) == 0) {
-                    var snapshot = await Try.Async(() => Subscription.GetSnapshotAsync()).ConfigureAwait(false);
-                    if (snapshot != null) {
-                        notification = snapshot;
-                    }
-                }
-                CallMessageReceiverDelegates(sender, sequenceNumber, notification);
-            }
-
-            /// <summary>
-            /// Handle subscription change messages
-            /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="notification"></param>
-            private async void OnSubscriptionEventChangedAsync(object sender,
+            private async void OnSubscriptionChangedAsync(object sender,
                 SubscriptionNotificationModel notification) {
                 var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
                 if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0 &&
