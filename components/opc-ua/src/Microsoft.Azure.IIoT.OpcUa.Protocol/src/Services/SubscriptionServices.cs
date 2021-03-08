@@ -713,59 +713,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Notifications = notification.ToMonitoredItemNotifications(
                                 subscription?.MonitoredItems)?.ToList()
                     };
-                    // add the heartbeat for monitored items that did not receive a datachange notification
-                    // Try access lock if we cannot continue...
-                    List<MonitoredItemWrapper> currentlyMonitored = null;
-                    if (_lock?.Wait(0) ?? true) {
-                        try {
-                            currentlyMonitored = _currentlyMonitored;
-                        }
-                        finally {
-                            _lock?.Release();
-                        }
-                    }
-
-                    if (currentlyMonitored != null) {
-                        // add the heartbeat for monitored items that did not receive a
-                        // a datachange notification
-                        foreach (var item in currentlyMonitored) {
-                            if (!notification.Events.
-                                Exists(m => m.ClientHandle == item.Item.ClientHandle)) {
-                                if (item.ValidateHeartbeat(publishTime)) {
-                                    var defaultNotification =
-                                        new MonitoredItemNotificationModel {
-                                            Id = item.Item.DisplayName,
-                                            DisplayName = item.Item.DisplayName,
-                                            NodeId = item.Item.StartNodeId,
-                                            AttributeId = item.Item.AttributeId,
-                                            ClientHandle = item.Item.ClientHandle,
-                                            Value = new DataValue(Variant.Null,
-                                                item.Item?.Status?.Error?.StatusCode ??
-                                                StatusCodes.BadMonitoredItemIdInvalid),
-                                            Overflow = false,
-                                            NotificationData = null,
-                                            StringTable = null,
-                                            DiagnosticInfo = null,
-                                        };
-
-                                    var heartbeatValue = item.Item?.LastValue.
-                                        ToMonitoredItemNotification(item.Item, () => defaultNotification);
-                                    if (heartbeatValue != null) {
-                                        heartbeatValue.SequenceNumber = sequenceNumber;
-                                        heartbeatValue.IsHeartbeat = true;
-                                        heartbeatValue.PublishTime = publishTime;
-                                        if (message.Notifications == null) {
-                                            message.Notifications =
-                                                new List<MonitoredItemNotificationModel>();
-                                        }
-                                        message.Notifications.Add(heartbeatValue);
-                                    }
-                                    continue;
-                                }
-                            }
-                            item.ValidateHeartbeat(publishTime);
-                        }
-                    }
 
                     if (message.Notifications?.Any() == true) {
                         OnSubscriptionEventChange?.Invoke(this, message);
