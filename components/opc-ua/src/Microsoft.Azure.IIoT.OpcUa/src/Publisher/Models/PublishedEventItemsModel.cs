@@ -14,6 +14,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Data variables
         /// </summary>
-        public List<PublishedDataSetEventModel> PublishedEvents { get; set; }
+        public List<PublishedDataSetEventModel> PublishedData { get; set; }
     }
 }

@@ -47,9 +47,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 model.PublishedVariables?.PublishedData.First()?.PublishedVariableDisplayName +
                 model.PublishedVariables?.PublishedData.First()?.SamplingInterval +
                 model.PublishedVariables?.PublishedData.First()?.HeartbeatInterval +
-                model.PublishedEvents?.PublishedEvents.First()?.Id +        // TODO: This needs to verified
-                model.PublishedEvents?.PublishedEvents.First()?.EventNotifier +
-                model.PublishedEvents?.PublishedEvents.First()?.BrowsePath;
+                model.PublishedEvents?.PublishedData.First()?.Id +        // TODO: This needs to verified
+                model.PublishedEvents?.PublishedData.First()?.EventNotifier +
+                model.PublishedEvents?.PublishedData.First()?.BrowsePath;
             return id.ToSha1Hash();
         }
 

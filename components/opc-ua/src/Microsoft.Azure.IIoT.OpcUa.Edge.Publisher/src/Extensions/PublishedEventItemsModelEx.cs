@@ -21,12 +21,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <returns></returns>
         public static IEnumerable<MonitoredItemModel> ToMonitoredItems(
             this PublishedEventItemsModel eventItems) {
-            if (eventItems?.PublishedEvents == null) {
+            if (eventItems?.PublishedData == null) {
                 return Enumerable.Empty<MonitoredItemModel>();
             }
 
             var map = new Dictionary<string, MonitoredItemModel>();
-            foreach (var item in eventItems.PublishedEvents) {
+            foreach (var item in eventItems.PublishedData) {
                 if (item == null) {
                     continue;
                 }

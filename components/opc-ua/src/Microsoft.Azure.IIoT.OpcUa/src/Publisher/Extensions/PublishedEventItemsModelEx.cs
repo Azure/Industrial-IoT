@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 return null;
             }
             return new PublishedEventItemsModel {
-                PublishedEvents = model.PublishedEvents?.Select(d => d.Clone()).ToList()
+                PublishedData = model.PublishedData?.Select(d => d.Clone()).ToList()
             };
         }
     }

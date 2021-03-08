@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                                 ResolveDisplayName = legacyCliModel.FetchOpcNodeDisplayName
                                             },
                                             PublishedEvents = new PublishedEventItemsModel {
-                                                PublishedEvents = opcEvents
+                                                PublishedData = opcEvents
                                                     .Select(eventNotifier => new PublishedDataSetEventModel {
                                                         Id = string.IsNullOrEmpty(eventNotifier.DisplayName) ? eventNotifier.Id : eventNotifier.DisplayName,
                                                         EventNotifier = eventNotifier.Id,

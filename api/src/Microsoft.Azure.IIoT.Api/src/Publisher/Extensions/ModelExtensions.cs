@@ -1225,7 +1225,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 return null;
             }
             return new PublishedEventItemsApiModel {
-                PublishedEvents = model.PublishedEvents?
+                PublishedData = model.PublishedData?
                     .Select(d => d.ToApiModel())
                     .ToList()
             };
@@ -1240,7 +1240,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 return null;
             }
             return new PublishedEventItemsModel {
-                PublishedEvents = model.PublishedEvents?
+                PublishedData = model.PublishedData?
                     .Select(d => d.ToServiceModel())
                     .ToList()
             };

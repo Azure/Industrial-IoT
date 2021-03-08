@@ -934,7 +934,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Single(jobs);
 
             Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
-               Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedEvents));
+               Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
         }
 
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();

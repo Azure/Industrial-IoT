@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Published data variables
         /// </summary>
-        [DataMember(Name = "publishedEvents", Order = 0)]
-        public List<PublishedDataSetEventApiModel> PublishedEvents { get; set; }
+        [DataMember(Name = "publishedData", Order = 0)]
+        public List<PublishedDataSetEventApiModel> PublishedData { get; set; }
     }
 }
