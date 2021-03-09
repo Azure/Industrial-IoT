@@ -32,20 +32,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <returns></returns>
         public override BaseMonitoredItemModel Clone() {
             return new DataMonitoredItemModel {
-                Id =Id,
-                TriggerId =TriggerId,
-                StartNodeId =StartNodeId,
-                SamplingInterval =SamplingInterval,
-                QueueSize =QueueSize,
-                DiscardNew =DiscardNew,
-                DataChangeFilter =DataChangeFilter.Clone(),
-                AggregateFilter =AggregateFilter.Clone(),
-                AttributeId =AttributeId,
-                IndexRange =IndexRange,
-                MonitoringMode =MonitoringMode,
-                DisplayName =DisplayName,
-                RelativePath =RelativePath,
-                HeartbeatInterval =HeartbeatInterval
+                Id = Id,
+                TriggerId = TriggerId,
+                StartNodeId = StartNodeId,
+                SamplingInterval = SamplingInterval,
+                QueueSize = QueueSize,
+                DiscardNew = DiscardNew,
+                DataChangeFilter = DataChangeFilter.Clone(),
+                AggregateFilter = AggregateFilter.Clone(),
+                AttributeId = AttributeId,
+                IndexRange = IndexRange,
+                MonitoringMode = MonitoringMode,
+                DisplayName = DisplayName,
+                RelativePath = RelativePath,
+                HeartbeatInterval = HeartbeatInterval
             };
         }
 

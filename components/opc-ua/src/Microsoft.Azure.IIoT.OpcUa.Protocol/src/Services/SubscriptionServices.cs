@@ -412,7 +412,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                         try {
                             toAdd.Create(rawSubscription.Session, codec, activate);
-                            if (toAdd.BaseTemplate is EventMonitoredItemModel) {
+                            if (toAdd.EventTemplate != null) {
                                 toAdd.Item.AttributeId = Attributes.EventNotifier;
                             }
                             toAdd.Item.Notification += OnMonitoredItemChanged;
@@ -1022,13 +1022,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     DiscardOldest = !BaseTemplate.DiscardNew.GetValueOrDefault(false),
                 };
 
-                if (BaseTemplate is DataMonitoredItemModel) {
-                    var model = BaseTemplate as DataMonitoredItemModel;
-                    Item.Filter = model.DataChangeFilter.ToStackModel() ??
-                        ((MonitoringFilter)model.AggregateFilter.ToStackModel(session.MessageContext));
-                } else if (BaseTemplate is EventMonitoredItemModel) {
-                    var model = BaseTemplate as EventMonitoredItemModel;
-                    Item.Filter = codec.Decode(model.EventFilter, true);
+                if (DataTemplate != null) {
+                    Item.Filter = DataTemplate.DataChangeFilter.ToStackModel() ??
+                        ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(session.MessageContext));
+                } else if (EventTemplate != null) {
+                    Item.Filter = codec.Decode(EventTemplate.EventFilter, true);
                 }
             }
 
