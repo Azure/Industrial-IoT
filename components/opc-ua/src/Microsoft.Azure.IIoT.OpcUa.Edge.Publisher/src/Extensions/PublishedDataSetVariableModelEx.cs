@@ -18,17 +18,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="publishedVariable"></param>
         /// <param name="displayName"></param>
         /// <returns></returns>
-        public static MonitoredItemModel ToMonitoredItem(
+        public static DataMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetVariableModel publishedVariable,
             string displayName = null) {
             if (string.IsNullOrEmpty(publishedVariable?.PublishedVariableNodeId)) {
                 return null;
             }
-            return new MonitoredItemModel {
+            return new DataMonitoredItemModel {
                 Id = publishedVariable.Id,
                 DisplayName = displayName ?? publishedVariable.PublishedVariableDisplayName,
                 DataChangeFilter = ToDataChangeFilter(publishedVariable),
-                EventFilter = null,
                 AggregateFilter = null,
                 DiscardNew = publishedVariable.DiscardNew,
                 StartNodeId = publishedVariable.PublishedVariableNodeId,

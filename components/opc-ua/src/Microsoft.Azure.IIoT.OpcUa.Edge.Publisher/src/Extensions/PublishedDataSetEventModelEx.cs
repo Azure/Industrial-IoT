@@ -19,13 +19,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="publishedEvents"></param>
         /// <param name="displayName"></param>
         /// <returns></returns>
-        public static MonitoredItemModel ToMonitoredItem(
+        public static EventMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvents,
             string displayName = null) {
             if (publishedEvents?.SelectedFields == null) {
                 return null;
             }
-            return new MonitoredItemModel {
+            return new EventMonitoredItemModel {
                 Id = publishedEvents.Id,
                 DisplayName = displayName,
                 EventFilter = new EventFilterModel {
@@ -34,7 +34,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                         .ToList(),
                     WhereClause = publishedEvents.Filter.Clone(),
                 },
-                AggregateFilter = null,
                 DiscardNew = publishedEvents.DiscardNew,
                 QueueSize = publishedEvents.QueueSize,
                 TriggerId = publishedEvents.TriggerId,
@@ -42,7 +41,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 StartNodeId = publishedEvents.EventNotifier,
                 RelativePath = publishedEvents.BrowsePath,
                 AttributeId = null,
-                DataChangeFilter = null,
                 IndexRange = null,
                 SamplingInterval = null
             };

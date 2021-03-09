@@ -17,11 +17,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static MonitoredItemModel Clone(this MonitoredItemModel model) {
+        public static DataMonitoredItemModel Clone(this DataMonitoredItemModel model) {
             if (model == null) {
                 return null;
             }
-            return new MonitoredItemModel {
+            return new DataMonitoredItemModel {
                 Id = model.Id,
                 TriggerId = model.TriggerId,
                 StartNodeId = model.StartNodeId,
@@ -29,7 +29,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 QueueSize = model.QueueSize,
                 DiscardNew = model.DiscardNew,
                 DataChangeFilter = model.DataChangeFilter.Clone(),
-                EventFilter = model.EventFilter.Clone(),
                 AggregateFilter = model.AggregateFilter.Clone(),
                 AttributeId = model.AttributeId,
                 IndexRange = model.IndexRange,
@@ -41,12 +40,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         }
 
         /// <summary>
+        /// Clone
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static EventMonitoredItemModel Clone(this EventMonitoredItemModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new EventMonitoredItemModel {
+                Id = model.Id,
+                TriggerId = model.TriggerId,
+                StartNodeId = model.StartNodeId,
+                SamplingInterval = model.SamplingInterval,
+                QueueSize = model.QueueSize,
+                DiscardNew = model.DiscardNew,
+                EventFilter = model.EventFilter.Clone(),
+                AttributeId = model.AttributeId,
+                IndexRange = model.IndexRange,
+                MonitoringMode = model.MonitoringMode,
+                DisplayName = model.DisplayName,
+                RelativePath = model.RelativePath,
+            };
+        }
+
+        /// <summary>
         /// Compare items
         /// </summary>
         /// <param name="model"></param>
         /// <param name="other"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this MonitoredItemModel model, MonitoredItemModel other) {
+        public static bool IsSameAs(this BaseMonitoredItemModel model, BaseMonitoredItemModel other) {
             if (model == null && other == null) {
                 return true;
             }
@@ -68,15 +92,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             if (model.DiscardNew != other.DiscardNew) {
                 return false;
             }
-            if (!model.DataChangeFilter.IsSameAs(other.DataChangeFilter)) {
-                return false;
-            }
-            if (!model.AggregateFilter.IsSameAs(other.AggregateFilter)) {
-                return false;
-            }
-            if (!model.EventFilter.IsSameAs(other.EventFilter)) {
-                return false;
-            }
             if (model.AttributeId != other.AttributeId) {
                 return false;
             }
@@ -92,7 +107,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             if (!model.RelativePath.SequenceEqualsSafe(other.RelativePath)) {
                 return false;
             }
+            return true;
+        }
+
+        /// <summary>
+        /// Compare items
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public static bool IsSameAs(this DataMonitoredItemModel model, DataMonitoredItemModel other) {
+            if (!IsSameAs(model, other as BaseMonitoredItemModel)) {
+                return false;
+            }
+            if (!model.DataChangeFilter.IsSameAs(other.DataChangeFilter)) {
+                return false;
+            }
+            if (!model.AggregateFilter.IsSameAs(other.AggregateFilter)) {
+                return false;
+            }
             if (model.HeartbeatInterval != other.HeartbeatInterval) {
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Compare items
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public static bool IsSameAs(this EventMonitoredItemModel model, EventMonitoredItemModel other) {
+            if (!IsSameAs(model, other as BaseMonitoredItemModel)) {
+                return false;
+            }
+            if (!model.EventFilter.IsSameAs(other.EventFilter)) {
                 return false;
             }
             return true;

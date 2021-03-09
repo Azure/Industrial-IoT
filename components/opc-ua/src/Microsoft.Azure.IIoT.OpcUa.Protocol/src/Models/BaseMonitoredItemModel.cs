@@ -9,9 +9,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using System;
 
     /// <summary>
-    /// Monitored item
+    /// Base monitored item
     /// </summary>
-    public class MonitoredItemModel {
+    public class BaseMonitoredItemModel {
 
         /// <summary>
         /// Identifier for this monitored item
@@ -67,25 +67,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Monitored item that triggers reporting of this item
         /// </summary>
         public string TriggerId { get; set; }
-
-        /// <summary>
-        /// Data change filter
-        /// </summary>
-        public DataChangeFilterModel DataChangeFilter { get; set; }
-
-        /// <summary>
-        /// Event filter
-        /// </summary>
-        public EventFilterModel EventFilter { get; set; }
-
-        /// <summary>
-        /// Aggregate filter
-        /// </summary>
-        public AggregateFilterModel AggregateFilter { get; set; }
-
-        /// <summary>
-        /// heartbeat interval not present if zero
-        /// </summary>
-        public TimeSpan? HeartbeatInterval { get; set; }
     }
 }
