@@ -133,7 +133,7 @@
         },
         "hostingPlanSku": {
             "type": "string",
-            "defaultValue": "B1",
+            "defaultValue": "S1",
             "allowedValues": [
                 "B1",
                 "B2",

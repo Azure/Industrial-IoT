@@ -276,6 +276,12 @@ Function Select-RegistryCredentials() {
 
     if (![string]::IsNullOrEmpty($script:acrSubscriptionName) `
             -and ($context.Subscription.Name -ne $script:acrSubscriptionName)) {
+        $tenantIdArg = @{}
+        if (![string]::IsNullOrEmpty($script:tenantId)) {
+            $tenantIdArg = @{
+                TenantId = $script:tenantId
+            }
+        }
         $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName @tenantIdArg
         if (!$acrSubscription) {
             Write-Warning "Specified container registry subscription $($script:acrSubscriptionName) not found."
@@ -293,13 +299,7 @@ Function Select-RegistryCredentials() {
     if ($containerContext.Length -gt 1) {
         $containerContext = $containerContext[0]
     }
-    if ([string]::IsNullOrEmpty($script:acrRegistryName)) {
-        # use default dev images repository name - see acr-build.ps1
-        $script:acrRegistryName = "industrialiotdev"
-    }
-
     Write-Host "Looking up credentials for $($script:acrRegistryName) registry."
-
     try {
         $registry = Get-AzContainerRegistry -DefaultProfile $containerContext `
         | Where-Object { $_.Name -eq $script:acrRegistryName }
@@ -711,18 +711,10 @@ Function New-Deployment() {
 
     # Select docker images to use
     if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
-        if ([string]::IsNullOrEmpty($script:version)) {
-            if ($script:branchName.StartsWith("release/")) {
-                $script:version = $script:branchName.Replace("release/", "")
-            }
-            else {
-                $script:version = "preview"
-            }
-        }
 
         # see acr-build.ps1 for naming logic
         $namespace = "public"
-        if (-not $script:branchName.StartsWith("release/")) {
+        if (!$script:branchName.StartsWith("release/")) {
 
             if ($script:branchName -ne "master") {
                 $namespace = $script:branchName
@@ -755,8 +747,10 @@ Function New-Deployment() {
         }
 
         # Configure registry
-        $templateParameters.Add("imagesTag", $script:version)
         if ($creds) {
+            if ([string]::IsNullOrEmpty($script:version)) {
+                $script:version = "latest"
+            }
             $templateParameters.Add("dockerServer", $creds.dockerServer)
             $templateParameters.Add("dockerUser", $creds.dockerUser)
             $templateParameters.Add("dockerPassword", $creds.dockerPassword)
@@ -764,14 +758,26 @@ Function New-Deployment() {
             Write-Host "Using $($script:version) $($namespace) images from private registry $($creds.dockerServer)."
         }
         elseif ([string]::IsNullOrEmpty($script:acrRegistryName)) {
+            if ([string]::IsNullOrEmpty($script:version)) {
+                if ($script:branchName.StartsWith("release/")) {
+                    $script:version = $script:branchName.Replace("release/", "")
+                }
+                else {
+                    $script:version = "preview"
+                }
+            } 
             $templateParameters.Add("dockerServer", "mcr.microsoft.com")
             Write-Host "Using $($script:version) images from mcr.microsoft.com."
         }
         else {
+            if ([string]::IsNullOrEmpty($script:version)) {
+                $script:version = "latest"
+            }
             $templateParameters.Add("dockerServer", "$($script:acrRegistryName).azurecr.io")
 	        $templateParameters.Add("imagesNamespace", $namespace)
-            Write-Host "Using $($script:version) $($namespace) images from public registry $($creds.dockerServer)."
+            Write-Host "Using $($script:version) $($namespace) images from $($script:acrRegistryName).azurecr.io."
         }
+        $templateParameters.Add("imagesTag", $script:version)
     }
 
     # Configure simulation

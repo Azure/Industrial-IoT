@@ -1,4 +1,5 @@
 {
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
     "appInsightsId": {
@@ -68,6 +69,5 @@
       "type": "string",
       "value": "[resourceId( 'microsoft.insights/workbooks', parameters('workbookId'))]"
     }
-  },
-  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+  }
 }
