@@ -26,15 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 Configuration = model.Configuration.Clone(),
                 Id = model.Id,
                 MonitoredItems = model.MonitoredItems?
-                    .Select(n => {
-                        if (n is DataMonitoredItemModel modelData) {
-                            return modelData.Clone() as BaseMonitoredItemModel;
-                        } else if (n is EventMonitoredItemModel modelEvent) {
-                            return modelEvent.Clone() as BaseMonitoredItemModel;
-                        } else {
-                            return null;
-                        }
-                    })
+                    .Select(n => n.Clone())
                     .ToList(),
                 ExtensionFields = model.ExtensionFields?
                     .ToDictionary(k => k.Key, v => v.Value),

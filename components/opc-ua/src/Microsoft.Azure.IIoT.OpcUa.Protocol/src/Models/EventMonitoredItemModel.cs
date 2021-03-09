@@ -14,5 +14,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Event filter
         /// </summary>
         public EventFilterModel EventFilter { get; set; }
+
+        /// <summary>
+        /// Clone
+        /// </summary>
+        /// <returns></returns>
+        public override BaseMonitoredItemModel Clone() {
+            return new EventMonitoredItemModel {
+                Id = Id,
+                TriggerId = TriggerId,
+                StartNodeId = StartNodeId,
+                SamplingInterval = SamplingInterval,
+                QueueSize = QueueSize,
+                DiscardNew = DiscardNew,
+                EventFilter = EventFilter.Clone(),
+                AttributeId = AttributeId,
+                IndexRange = IndexRange,
+                MonitoringMode = MonitoringMode,
+                DisplayName = DisplayName,
+                RelativePath = RelativePath,
+            };
+        }
+
+        /// <summary>
+        /// Compare items
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public override bool IsSameAs(BaseMonitoredItemModel other) {
+            var eventMonitoredItemModel = other as EventMonitoredItemModel;
+
+            if (eventMonitoredItemModel == null) {
+                return false;
+            }
+            if (!base.IsSameAs(other)) {
+                return false;
+            }
+            if (!EventFilter.IsSameAs(eventMonitoredItemModel.EventFilter)) {
+                return false;
+            }
+            return true;
+        }
     }
 }

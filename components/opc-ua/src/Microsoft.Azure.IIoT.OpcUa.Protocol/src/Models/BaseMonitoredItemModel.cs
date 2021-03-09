@@ -7,11 +7,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Base monitored item
     /// </summary>
-    public class BaseMonitoredItemModel {
+    public abstract class BaseMonitoredItemModel {
 
         /// <summary>
         /// Identifier for this monitored item
@@ -67,5 +68,53 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Monitored item that triggers reporting of this item
         /// </summary>
         public string TriggerId { get; set; }
+
+        /// <summary>
+        /// Clones this object
+        /// </summary>
+        /// <returns></returns>
+        public abstract BaseMonitoredItemModel Clone();
+
+        /// <summary>
+        /// Compare items
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public virtual bool IsSameAs(BaseMonitoredItemModel other) {
+            if (other == null) {
+                return false;
+            }
+            if (TriggerId != other.TriggerId) {
+                return false;
+            }
+            if (StartNodeId != other.StartNodeId) {
+                return false;
+            }
+            if (SamplingInterval != other.SamplingInterval) {
+                return false;
+            }
+            if (QueueSize != other.QueueSize) {
+                return false;
+            }
+            if (DiscardNew != other.DiscardNew) {
+                return false;
+            }
+            if (AttributeId != other.AttributeId) {
+                return false;
+            }
+            if (IndexRange != other.IndexRange) {
+                return false;
+            }
+            if (MonitoringMode != other.MonitoringMode) {
+                return false;
+            }
+            if (DisplayName != other.DisplayName) {
+                return false;
+            }
+            if (!RelativePath.SequenceEqualsSafe(other.RelativePath)) {
+                return false;
+            }
+            return true;
+        }
     }
 }

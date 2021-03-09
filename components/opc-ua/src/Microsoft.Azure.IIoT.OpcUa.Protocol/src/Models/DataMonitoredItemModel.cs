@@ -25,5 +25,54 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// heartbeat interval not present if zero
         /// </summary>
         public TimeSpan? HeartbeatInterval { get; set; }
+
+        /// <summary>
+        /// Clone
+        /// </summary>
+        /// <returns></returns>
+        public override BaseMonitoredItemModel Clone() {
+            return new DataMonitoredItemModel {
+                Id =Id,
+                TriggerId =TriggerId,
+                StartNodeId =StartNodeId,
+                SamplingInterval =SamplingInterval,
+                QueueSize =QueueSize,
+                DiscardNew =DiscardNew,
+                DataChangeFilter =DataChangeFilter.Clone(),
+                AggregateFilter =AggregateFilter.Clone(),
+                AttributeId =AttributeId,
+                IndexRange =IndexRange,
+                MonitoringMode =MonitoringMode,
+                DisplayName =DisplayName,
+                RelativePath =RelativePath,
+                HeartbeatInterval =HeartbeatInterval
+            };
+        }
+
+        /// <summary>
+        /// Compare items
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public override bool IsSameAs(BaseMonitoredItemModel other) {
+            var dataMonitoredItemModel = other as DataMonitoredItemModel;
+
+            if (dataMonitoredItemModel == null) {
+                return false;
+            }
+            if (!base.IsSameAs(other)) {
+                return false;
+            }
+            if (!DataChangeFilter.IsSameAs(dataMonitoredItemModel.DataChangeFilter)) {
+                return false;
+            }
+            if (!AggregateFilter.IsSameAs(dataMonitoredItemModel.AggregateFilter)) {
+                return false;
+            }
+            if (HeartbeatInterval != dataMonitoredItemModel.HeartbeatInterval) {
+                return false;
+            }
+            return true;
+        }
     }
 }

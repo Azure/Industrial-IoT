@@ -175,17 +175,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 await _lock.WaitAsync().ConfigureAwait(false);
                 try {
                     // set the new set of monitored items
-                    _subscription.MonitoredItems = monitoredItems?.Select(n => {
-                        if (n is DataMonitoredItemModel modelData) {
-                            return modelData.Clone() as BaseMonitoredItemModel;
-                        }
-                        else if (n is EventMonitoredItemModel modelEvent) {
-                            return modelEvent.Clone() as BaseMonitoredItemModel;
-                        }
-                        else {
-                            return null;
-                        }
-                    }).ToList();
+                    _subscription.MonitoredItems = monitoredItems?.Select(n => n.Clone()).ToList();
 
                     // try to get the subscription with the new configuration
                     var session = _outer._sessionManager.GetOrCreateSession(_subscription.Connection, true);
@@ -956,15 +946,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public MonitoredItemWrapper(BaseMonitoredItemModel template, ILogger logger) {
                 _logger = logger?.ForContext<MonitoredItemWrapper>() ??
                     throw new ArgumentNullException(nameof(logger));
-                if (template is DataMonitoredItemModel modelData) {
-                    BaseTemplate = modelData.Clone();
-                }
-                else if (template is EventMonitoredItemModel modelEvent) {
-                    BaseTemplate = modelEvent.Clone();
-                }
-                else {
+                BaseTemplate = template?.Clone() ??
                     throw new ArgumentNullException(nameof(template));
-                }
             }
 
             /// <inheritdoc/>
