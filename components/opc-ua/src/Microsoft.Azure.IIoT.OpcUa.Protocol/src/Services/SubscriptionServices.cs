@@ -408,7 +408,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     foreach (var toAdd in toAddList) {
                         // Create monitored item
                         if (!activate) {
-                            toAdd.BaseTemplate.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                            toAdd.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
                         }
                         try {
                             toAdd.Create(rawSubscription.Session, codec, activate);
@@ -423,11 +423,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                         catch (ServiceResultException sre) {
                             _logger.Warning("Failed to add new monitored item '{item}' due to '{message}'",
-                                toAdd.BaseTemplate.StartNodeId, sre.Message);
+                                toAdd.Template.StartNodeId, sre.Message);
                         }
                         catch (Exception e) {
                             _logger.Error(e, "Failed to add new monitored item '{item}'",
-                                toAdd.BaseTemplate.StartNodeId);
+                                toAdd.Template.StartNodeId);
                             throw;
                         }
                     }
@@ -460,10 +460,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _currentlyMonitored = nowMonitored;
                     if (!activate) {
                         var map = _currentlyMonitored.ToDictionary(
-                            k => k.BaseTemplate.Id ?? k.BaseTemplate.StartNodeId, v => v);
+                            k => k.Template.Id ?? k.Template.StartNodeId, v => v);
                         foreach (var item in _currentlyMonitored.ToList()) {
-                            if (item.BaseTemplate.TriggerId != null &&
-                                map.TryGetValue(item.BaseTemplate.TriggerId, out var trigger)) {
+                            if (item.Template.TriggerId != null &&
+                                map.TryGetValue(item.Template.TriggerId, out var trigger)) {
                                 trigger?.AddTriggerLink(item.ServerId.GetValueOrDefault());
                             }
                         }
@@ -485,7 +485,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 _logger.Warning("Error monitoring node {id} due to {code} in subscription " +
                                     "{subscription}", monitoredItem.Item.StartNodeId,
                                     monitoredItem.Item.Status.Error.StatusCode, rawSubscription.DisplayName);
-                                monitoredItem.BaseTemplate.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                                monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
                                 noErrorFound = false;
                             }
                         }
@@ -507,7 +507,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     foreach (var monitoredItem in _currentlyMonitored) {
                         if (monitoredItem.Item.Status.Error != null &&
                             StatusCode.IsNotGood(monitoredItem.Item.Status.Error.StatusCode)) {
-                            monitoredItem.BaseTemplate.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
+                            monitoredItem.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
                             noErrorFound = false;
                             applyChanges = true;
                         }
@@ -896,17 +896,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Monitored item
             /// </summary>
-            public BaseMonitoredItemModel BaseTemplate { get; }
+            public BaseMonitoredItemModel Template { get; }
 
             /// <summary>
             /// Monitored item as data
             /// </summary>
-            public DataMonitoredItemModel DataTemplate { get { return BaseTemplate as DataMonitoredItemModel; } }
+            public DataMonitoredItemModel DataTemplate { get { return Template as DataMonitoredItemModel; } }
 
             /// <summary>
             /// Monitored item as event
             /// </summary>
-            public EventMonitoredItemModel EventTemplate { get { return BaseTemplate as EventMonitoredItemModel; } }
+            public EventMonitoredItemModel EventTemplate { get { return Template as EventMonitoredItemModel; } }
 
             /// <summary>
             /// Monitored item created from template
@@ -946,7 +946,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public MonitoredItemWrapper(BaseMonitoredItemModel template, ILogger logger) {
                 _logger = logger?.ForContext<MonitoredItemWrapper>() ??
                     throw new ArgumentNullException(nameof(logger));
-                BaseTemplate = template?.Clone() ??
+                Template = template?.Clone() ??
                     throw new ArgumentNullException(nameof(template));
             }
 
@@ -955,19 +955,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (!(obj is MonitoredItemWrapper item)) {
                     return false;
                 }
-                if (BaseTemplate.Id != item.BaseTemplate.Id) {
+                if (Template.Id != item.Template.Id) {
                     return false;
                 }
-                if (!BaseTemplate.RelativePath.SequenceEqualsSafe(item.BaseTemplate.RelativePath)) {
+                if (!Template.RelativePath.SequenceEqualsSafe(item.Template.RelativePath)) {
                     return false;
                 }
-                if (BaseTemplate.StartNodeId != item.BaseTemplate.StartNodeId) {
+                if (Template.StartNodeId != item.Template.StartNodeId) {
                     return false;
                 }
-                if (BaseTemplate.IndexRange != item.BaseTemplate.IndexRange) {
+                if (Template.IndexRange != item.Template.IndexRange) {
                     return false;
                 }
-                if (BaseTemplate.AttributeId != item.BaseTemplate.AttributeId) {
+                if (Template.AttributeId != item.Template.AttributeId) {
                     return false;
                 }
                 return true;
@@ -977,21 +977,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public override int GetHashCode() {
                 var hashCode = 1301977042;
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(BaseTemplate.Id);
+                    EqualityComparer<string>.Default.GetHashCode(Template.Id);
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string[]>.Default.GetHashCode(BaseTemplate.RelativePath);
+                    EqualityComparer<string[]>.Default.GetHashCode(Template.RelativePath);
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(BaseTemplate.StartNodeId);
+                    EqualityComparer<string>.Default.GetHashCode(Template.StartNodeId);
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(BaseTemplate.IndexRange);
+                    EqualityComparer<string>.Default.GetHashCode(Template.IndexRange);
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<NodeAttribute?>.Default.GetHashCode(BaseTemplate.AttributeId);
+                    EqualityComparer<NodeAttribute?>.Default.GetHashCode(Template.AttributeId);
                 return hashCode;
             }
 
             /// <inheritdoc/>
             public override string ToString() {
-                return $"Item {BaseTemplate.Id ?? "<unknown>"}{ServerId}: '{BaseTemplate.StartNodeId}'" +
+                return $"Item {Template.Id ?? "<unknown>"}{ServerId}: '{Template.StartNodeId}'" +
                     $" - {(Item?.Status?.Created == true ? "" : "not ")}created";
             }
 
@@ -1005,21 +1005,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             internal void Create(Session session, IVariantEncoder codec, bool activate) {
                 Item = new MonitoredItem {
                     Handle = this,
-                    DisplayName = BaseTemplate.DisplayName,
-                    AttributeId = (uint)BaseTemplate.AttributeId.GetValueOrDefault((NodeAttribute)Attributes.Value),
-                    IndexRange = BaseTemplate.IndexRange,
-                    RelativePath = BaseTemplate.RelativePath?
+                    DisplayName = Template.DisplayName,
+                    AttributeId = (uint)Template.AttributeId.GetValueOrDefault((NodeAttribute)Attributes.Value),
+                    IndexRange = Template.IndexRange,
+                    RelativePath = Template.RelativePath?
                                 .ToRelativePath(session.MessageContext)?
                                 .Format(session.NodeCache.TypeTree),
                     MonitoringMode = activate
-                        ? BaseTemplate.MonitoringMode.ToStackType().
+                        ? Template.MonitoringMode.ToStackType().
                             GetValueOrDefault(Opc.Ua.MonitoringMode.Reporting)
                         : Opc.Ua.MonitoringMode.Disabled,
-                    StartNodeId = BaseTemplate.StartNodeId.ToNodeId(session.MessageContext),
-                    QueueSize = BaseTemplate.QueueSize.GetValueOrDefault(1),
-                    SamplingInterval = (int)BaseTemplate.SamplingInterval.
+                    StartNodeId = Template.StartNodeId.ToNodeId(session.MessageContext),
+                    QueueSize = Template.QueueSize.GetValueOrDefault(1),
+                    SamplingInterval = (int)Template.SamplingInterval.
                         GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
-                    DiscardOldest = !BaseTemplate.DiscardNew.GetValueOrDefault(false),
+                    DiscardOldest = !Template.DiscardNew.GetValueOrDefault(false),
                 };
 
                 if (DataTemplate != null) {
@@ -1051,47 +1051,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 var changes = false;
-                if (BaseTemplate.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1)) !=
-                    model.BaseTemplate.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1))) {
+                if (Template.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1)) !=
+                    model.Template.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1))) {
                     _logger.Debug("{item}: Changing sampling interval from {old} to {new}",
-                        this, BaseTemplate.SamplingInterval.GetValueOrDefault(
+                        this, Template.SamplingInterval.GetValueOrDefault(
                             TimeSpan.FromSeconds(1)).TotalMilliseconds,
-                        model.BaseTemplate.SamplingInterval.GetValueOrDefault(
+                        model.Template.SamplingInterval.GetValueOrDefault(
                             TimeSpan.FromSeconds(1)).TotalMilliseconds);
-                    BaseTemplate.SamplingInterval = model.BaseTemplate.SamplingInterval;
+                    Template.SamplingInterval = model.Template.SamplingInterval;
                     Item.SamplingInterval =
-                        (int)BaseTemplate.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
+                        (int)Template.SamplingInterval.GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
                     changes = true;
                 }
-                if (BaseTemplate.DiscardNew.GetValueOrDefault(false) !=
-                        model.BaseTemplate.DiscardNew.GetValueOrDefault()) {
+                if (Template.DiscardNew.GetValueOrDefault(false) !=
+                        model.Template.DiscardNew.GetValueOrDefault()) {
                     _logger.Debug("{item}: Changing discard new mode from {old} to {new}",
-                        this, BaseTemplate.DiscardNew.GetValueOrDefault(false),
-                        model.BaseTemplate.DiscardNew.GetValueOrDefault(false));
-                    BaseTemplate.DiscardNew = model.BaseTemplate.DiscardNew;
-                    Item.DiscardOldest = !BaseTemplate.DiscardNew.GetValueOrDefault(false);
+                        this, Template.DiscardNew.GetValueOrDefault(false),
+                        model.Template.DiscardNew.GetValueOrDefault(false));
+                    Template.DiscardNew = model.Template.DiscardNew;
+                    Item.DiscardOldest = !Template.DiscardNew.GetValueOrDefault(false);
                     changes = true;
                 }
-                if (BaseTemplate.QueueSize.GetValueOrDefault(1) !=
-                    model.BaseTemplate.QueueSize.GetValueOrDefault(1)) {
+                if (Template.QueueSize.GetValueOrDefault(1) !=
+                    model.Template.QueueSize.GetValueOrDefault(1)) {
                     _logger.Debug("{item}: Changing queue size from {old} to {new}",
-                        this, BaseTemplate.QueueSize.GetValueOrDefault(1),
-                        model.BaseTemplate.QueueSize.GetValueOrDefault(1));
-                    BaseTemplate.QueueSize = model.BaseTemplate.QueueSize;
-                    Item.QueueSize = BaseTemplate.QueueSize.GetValueOrDefault(1);
+                        this, Template.QueueSize.GetValueOrDefault(1),
+                        model.Template.QueueSize.GetValueOrDefault(1));
+                    Template.QueueSize = model.Template.QueueSize;
+                    Item.QueueSize = Template.QueueSize.GetValueOrDefault(1);
                     changes = true;
                 }
-                if (BaseTemplate.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting) !=
-                    model.BaseTemplate.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting)) {
+                if (Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting) !=
+                    model.Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting)) {
                     _logger.Debug("{item}: Changing monitoring mode from {old} to {new}",
-                        this, BaseTemplate.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting),
-                        model.BaseTemplate.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting));
-                    BaseTemplate.MonitoringMode = model.BaseTemplate.MonitoringMode;
-                    _modeChange = BaseTemplate.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting);
+                        this, Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting),
+                        model.Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting));
+                    Template.MonitoringMode = model.Template.MonitoringMode;
+                    _modeChange = Template.MonitoringMode.GetValueOrDefault(Publisher.Models.MonitoringMode.Reporting);
                 }
-                if (BaseTemplate.DisplayName != model.BaseTemplate.DisplayName) {
-                    BaseTemplate.DisplayName = model.BaseTemplate.DisplayName;
-                    Item.DisplayName = BaseTemplate.DisplayName;
+                if (Template.DisplayName != model.Template.DisplayName) {
+                    Template.DisplayName = model.Template.DisplayName;
+                    Item.DisplayName = Template.DisplayName;
                     changes = true;
                 }
 
