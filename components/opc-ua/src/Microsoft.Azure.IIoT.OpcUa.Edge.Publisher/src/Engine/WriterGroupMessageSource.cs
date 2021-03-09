@@ -134,7 +134,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 var sc = await _outer._subscriptionManager.GetOrCreateSubscriptionAsync(
                     _subscriptionInfo).ConfigureAwait(false);
-                sc.OnSubscriptionChange += OnSubscriptionChangedAsync;
+                sc.OnSubscriptionDataChange += OnSubscriptionChangedAsync;
+                sc.OnSubscriptionEventChange += OnSubscriptionChangedAsync;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
                     _subscriptionInfo.Configuration).ConfigureAwait(false);
                 Subscription = sc;
@@ -193,7 +194,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <inheritdoc/>
             public void Dispose() {
                 if (Subscription != null) {
-                    Subscription.OnSubscriptionChange -= OnSubscriptionChangedAsync;
+                    Subscription.OnSubscriptionDataChange -= OnSubscriptionChangedAsync;
+                    Subscription.OnSubscriptionEventChange -= OnSubscriptionChangedAsync;
                     Subscription.Dispose();
                 }
                 _keyframeTimer?.Dispose();
