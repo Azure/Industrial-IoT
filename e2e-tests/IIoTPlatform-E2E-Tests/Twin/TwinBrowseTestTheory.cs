@@ -14,6 +14,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
 
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Multiple Nodes Test Collection")]
+    [Trait(TestConstants.TraitConstants.TwinModeTraitName, TestConstants.TraitConstants.DefaultTraitValue)]
     public class TwinBrowseTestTheory {
         private readonly IIoTMultipleNodesTestContext _context;
 

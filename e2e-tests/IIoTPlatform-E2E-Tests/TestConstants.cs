@@ -285,6 +285,21 @@ namespace IIoTPlatform_E2E_Tests {
             /// The trait value for PublisherMode = standalone
             /// </summary>
             public const string PublisherModeStandaloneTraitValue = "standalone";
+
+            /// <summary>
+            /// The trait name of the Twin Mode
+            /// </summary>
+            public const string TwinModeTraitName = "TwinMode";
+
+            /// <summary>
+            /// The trait name of the Discoverer Mode
+            /// </summary>
+            public const string DiscovererModeTraitName = "DiscovererMode";
+
+            /// <summary>
+            /// The trait value for default trait
+            /// </summary>
+            public const string DefaultTraitValue = "default";
         }
 
         /// <summary>
