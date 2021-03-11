@@ -1,10 +1,10 @@
 <#
  .SYNOPSIS
-    Build docker container for a mcr.json definition in the tree.
+    Build docker container for a container.json definition in the tree.
 
  .PARAMETER Path
     The folder to build the docker files from which also contains
-    the mcr.json file.  
+    the container.json file.
 
  .PARAMETER ImageName
     The name of the image.
@@ -38,6 +38,9 @@ $dockerversion = &docker @("version") 2>&1 | %{ "$_" } `
     | ConvertFrom-Csv -Delimiter ':' -Header @("Key", "Value") `
     | Where-Object { $_.Key -eq "OS/Arch" } `
     | ForEach-Object { $platform = $_.Value }
+if ($LastExitCode -ne 0) {
+    throw "docker version failed with $($LastExitCode)."
+}
 
 if ([string]::IsNullOrEmpty($platform)) {
     $platform = "linux/amd64"
@@ -71,5 +74,5 @@ $argumentList = @("build",
 $argumentList += $buildContext
 & docker $argumentList 2>&1 | %{ "$_" }
 if ($LastExitCode -ne 0) {
-    throw "Error: 'docker $($args)' failed with $($LastExitCode)."
+    throw "Error building $($ImageName): 'docker $($args)' failed with $($LastExitCode)."
 }

@@ -1,19 +1,11 @@
 <#
  .SYNOPSIS
-    Builds multiarch containers from the mcr.json file in the path.
+    Builds multiarch containers from the container.json file in the path.
 
  .DESCRIPTION
     The script requires az to be installed and already logged on to a 
     subscription.  This means it should be run in a azcliv2 task in the
     azure pipeline or "az login" must have been performed already.
-
-    If a csproj file exists in the same folder as the csproj file
-    it it publishes it and builds container images with the output 
-    as content of the images.  
-    
-    If there is no project file it finds all the dockerfiles and builds each 
-    one. It traverses back up to the closest .dockerignore file. This folder 
-    becomes the context of the build.
 
  .PARAMETER Path
     The folder to build the docker files from
@@ -45,14 +37,82 @@ if (!(Test-Path -Path $Path -PathType Container)) {
 }
 $Path = Resolve-Path -LiteralPath $Path
 
-# Get build root - this is the top most folder with .dockerignore
-$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
-# Get meta data
-$metadata = Get-Content -Raw -Path (join-path $Path "mcr.json") `
-    | ConvertFrom-Json
+# Try to build all code and create dockerfile definitions to build using docker.
+$definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
+    -Path $Path -Debug:$Debug
+if ($definitions.Count -eq 0) {
+    Write-Host "Nothing to build."
+    return
+}
+
+# Try get branch name
+$branchName = $env:BUILD_SOURCEBRANCH
+if (![string]::IsNullOrEmpty($branchName)) {
+    if ($branchName.StartsWith("refs/heads/")) {
+        $branchName = $branchName.Replace("refs/heads/", "")
+    }
+    else {
+        Write-Warning "'$($branchName)' is not a branch."
+        $branchName = $null
+    }
+}
+if ([string]::IsNullOrEmpty($branchName)) {
+    try {
+        $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
+        $branchName = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+        if ($LastExitCode -ne 0) {
+            throw "git $($argumentList) failed with $($LastExitCode)."
+        }
+    }
+    catch {
+        Write-Warning $_.Exception
+        $branchName = $null
+    }
+}
+
+if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
+    Write-Warning "Not building from a branch - skip image build."
+    return
+}
+
+if ([string]::IsNullOrEmpty($Registry)) {
+    $Registry = $env.BUILD_REGISTRY
+}
+
+# Set namespace name based on branch name
+$namespace = $branchName
+if ($namespace.StartsWith("feature/")) {
+    # dev feature builds
+    $namespace = $namespace.Replace("feature/", "")
+}
+elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
+    $namespace = "public"
+    if ([string]::IsNullOrEmpty($Registry)) {
+    	# Release and Preview builds go into staging
+        $Registry = "industrialiot"
+    }
+}
+
+if ([string]::IsNullOrEmpty($Registry)) {
+    # Feature builds by default build into dev registry
+    $Registry = "industrialiotdev"
+}
+
+$namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+$namespace = "$($namespace)/"
+
+Write-Warning "Using $($Registry).azurecr.io."
+
+if ($branchName -eq "master") {
+    # latest tag is preview when building from master for backcompat reasons.
+    $latestTag = "preview"
+}
+else {
+    $latestTag = "latest"
+}
 
 # get and set build information from gitversion, git or version content
-$sourceTag = $env:GITVERSION_MajorMinorPatch
+$sourceTag = $env:Version_Prefix
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
         $version = & (Join-Path $PSScriptRoot "get-version.ps1")
@@ -71,7 +131,10 @@ else {
         # Try get current tag
         try {
             $argumentList = @("tag", "--points-at", $env:BUILD_SOURCEVERSION)
-            $sourceTag = (& "git" $argumentList 2>&1 | %{ "$_" });
+            $sourceTag = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+            if ($LastExitCode -ne 0) {
+                throw "git $($argumentList) failed with $($LastExitCode)."
+            }
         }
         catch {
             Write-Error "Error reading tag from $($env:BUILD_SOURCEVERSION)"
@@ -79,52 +142,7 @@ else {
         }
     }
     if ([string]::IsNullOrEmpty($sourceTag)) {
-        $sourceTag = "latest"
-    }
-}
-
-$maxBranchNameLength = 24
-
-# Try get branch name
-$branchName = $env:BUILD_SOURCEBRANCH
-$isDeveloperBuild = [string]::IsNullOrEmpty($env:RELEASE_BUILD)
-if (![string]::IsNullOrEmpty($branchName)) {
-    if ($branchName.StartsWith("refs/heads/")) {
-        $branchName = $branchName.Replace("refs/heads/", "").Replace("feature/", "")
-        $branchName = $branchName.Substring(0, [Math]::Min($branchName.Length, $maxBranchNameLength))
-    }
-    else {
-        Write-Warning "Error - '$($branchName)' not recognized as branch."
-        $branchName = $null
-    }
-}
-if ([string]::IsNullOrEmpty($branchName)) {
-    try {
-        $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
-        $branchName = (& "git" $argumentList 2>&1 | %{ "$_" });
-        $branchName = $branchName.Substring(0, [Math]::Min($branchName.Length, $maxBranchNameLength))
-    }
-    catch {
-        Write-Warning $_.Exception
-        $branchName = $null
-    }
-}
-if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-    Write-Warning "Error - Branch '$($branchName)' invalid - using default."
-    $branchName = "deletemesoon"
-}
-
-# Check and set registry
-$namespacePrefix = ""
-if ([string]::IsNullOrEmpty($Registry)) {
-    $Registry = $env.BUILD_REGISTRY
-    if ([string]::IsNullOrEmpty($Registry)) {
-        $Registry = "industrialiot"
-        if ($isDeveloperBuild -eq $true) {
-            $Registry = "industrialiotdev"
-            $namespacePrefix = ""
-        }
-        Write-Warning "No registry specified - using $($Registry).azurecr.io."
+        throw "Failed getting version from get-version.ps1"
     }
 }
 
@@ -132,31 +150,39 @@ if ([string]::IsNullOrEmpty($Registry)) {
 if (![string]::IsNullOrEmpty($Subscription)) {
     Write-Debug "Setting subscription to $($Subscription)"
     $argumentList = @("account", "set", "--subscription", $Subscription)
-    & "az" $argumentList 2>&1 | %{ Write-Host "$_" }
+    & "az" $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
+    if ($LastExitCode -ne 0) {
+        throw "az $($argumentList) failed with $($LastExitCode)."
+    }
 }
 
 # get registry information
 $argumentList = @("acr", "show", "--name", $Registry)
-$RegistryInfo = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+$RegistryInfo = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
+if ($LastExitCode -ne 0) {
+    throw "az $($argumentList) failed with $($LastExitCode)."
+}
 $resourceGroup = $RegistryInfo.resourceGroup
 Write-Debug "Using resource group $($resourceGroup)"
 # get credentials
 $argumentList = @("acr", "credential", "show", "--name", $Registry)
-$credentials = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+$credentials = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
+if ($LastExitCode -ne 0) {
+    throw "az $($argumentList) failed with $($LastExitCode)."
+}
 $user = $credentials.username
 $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"
+
+# Get build root - this is the top most folder with .dockerignore
+$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
+# Get meta data
+$metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
+| ConvertFrom-Json
+
+
 # Set image name and namespace in acr based on branch and source tag
 $imageName = $metadata.name
-# Set namespace name
-if ($isDeveloperBuild -eq $true) {
-    $namespace = "$($namespacePrefix)$($branchName)/"
-    Write-Host "Pushing '$($sourceTag)' developer build for $($branchName)."
-}
-else {
-    $namespace = "public/"
-    Write-Host "Pushing release build '$($sourceTag)' to public."
-}
 
 $tagPostfix = ""
 $tagPrefix = ""
@@ -167,36 +193,14 @@ if (![string]::IsNullOrEmpty($metadata.tag)) {
     $tagPrefix = "$($metadata.tag)-"
 }
 
-# Create manifest file
-$tags = @()
-$versionParts = $sourceTag.Split('.')
-if ($versionParts.Count -gt 0) {
-    $versionTag = $versionParts[0]
-    $tags += "$($tagPrefix)$($versionTag)$($tagPostfix)"
-    for ($i = 1; $i -lt $versionParts.Count; $i++) {
-        $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
-        $tags += "$($tagPrefix)$($versionTag)$($tagPostfix)"
-    }
-    $tagList = ("'{0}'" -f ($tags -join "', '"))
-}
-
-$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)latest$($tagPostfix)"
-
+$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($tagPostfix)"
 Write-Host "Full image name: $($fullImageName)"
 
 $manifest = @" 
 image: $($fullImageName)
-tags: [$($tagList)]
+tags: [$($tagPrefix)$($latestTag)$($tagPostfix)]
 manifests:
 "@
-
-# Source definitions
-$definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
-    -Path $Path -Debug:$Debug
-if ($definitions.Count -eq 0) {
-    Write-Host "Nothing to build."
-    return
-}
 
 Write-Host "Building $($definitions.Count) images in $($Path) in $($buildRoot)"
 Write-Host " and pushing to $($Registry)/$($namespace)$($imageName)..."
@@ -211,13 +215,6 @@ $definitions | ForEach-Object {
     $buildContext = $_.buildContext
     $platform = $_.platform.ToLower()
     $platformTag = $_.platformTag.ToLower()
-
-    if ($platform -eq "linux/arm32v7") {
-        $platform = "linux/arm/v7"
-    }
-    if ($platformTag -eq "linux-arm-v7") {
-        $platformTag = "linux-arm32v7"
-    }
 
     $os = ""
     $osVersion = ""
@@ -234,36 +231,15 @@ $definitions | ForEach-Object {
         $architecture = ("architecture: {0}" -f $osArchArr[1])
         $variant = ""
         if ($osArchArr.Count -gt 2) {
-            # Backcompat for when release version was used as windows variant
-            $windowsVariantToOsVersionsTable = @{
-                "1803" = "10.0.17134.1305"
-                "1809" = "10.0.17763.1457"
-                "1903" = "10.0.18362.1082"
-                "1909" = "10.0.18363.1082"
-                "2004" = "10.0.19041.508"
-            }
-            if ($windowsVariantToOsVersionsTable.ContainsKey($osArchArr[2])) {
-                $osVersion = $windowsVariantToOsVersionsTable.Item($osArchArr[2])
-                $osVersion = ("osversion: {0}" -f $osVersion)
-            }
-            else {
-                $variant = ("variant: {0}" -f $osArchArr[2])
-            }
+            $variant = ("variant: {0}" -f $osArchArr[2])
         }
     }
 
     $image = "$($namespace)$($imageName):$($tagPrefix)$($sourceTag)-$($platformTag)$($tagPostfix)"
     Write-Host "Start build job for $($image)"
 
-    # BUGBUG
-    # BUGBUG : ACR fails with arm but it is likely 
-    # BUGBUG : that win-arm does not work now either.
-    # BUGBUG
-    if ($platform -eq "windows/arm") {
-        $platform = "windows/amd64"
-    }
-    # BUGBUG
-    # BUGBUG
+    # acr does not support arm64 as platform
+    $platform = $platform.Replace("arm64", "arm")
 
     # Create acr command line 
     $argumentList = @("acr", "build", "--verbose",
@@ -273,20 +249,26 @@ $definitions | ForEach-Object {
         "--file", $dockerfile,
         "--image", $image
     )
-
     $argumentList += $buildContext
-    $jobs += Start-Job -Name $platform -ArgumentList $argumentList `
-        -ScriptBlock {
-            Write-Host "az $($args)"
-            & az $args 2>&1 | %{ "$_" }
+
+    $jobs += Start-Job -Name $image -ArgumentList $argumentList -ScriptBlock {
+        $argumentList = $args
+        Write-Host "Building ... az $($argumentList | Out-String) for $($image)..."
+        & az $argumentList 2>&1 | ForEach-Object { "$_" }
+        if ($LastExitCode -ne 0) {
+            Write-Warning "az $($argumentList | Out-String) failed for $($image) with $($LastExitCode) - 2nd attempt..."
+            & az $argumentList 2>&1 | ForEach-Object { "$_" }
             if ($LastExitCode -ne 0) {
-                throw "Error: 'az $($args)' failed with $($LastExitCode)."
+                throw "Error: 'az $($argumentList | Out-String)' 2nd attempt failed for $($image) with $($LastExitCode)."
             }
         }
+        Write-Host "... az $($argumentList | Out-String) completed for $($image)."
+    }
+    
     # Append to manifest
     if (![string]::IsNullOrEmpty($os)) {
         $manifest +=
-@"
+        @"
 
   - 
     image: $($Registry).azurecr.io/$($image)
@@ -299,11 +281,13 @@ $definitions | ForEach-Object {
     }
 }
 
-# Wait until all jobs are completed
-Receive-Job -Job $jobs -WriteEvents -Wait | Out-Host
-$jobs | Out-Host
-$jobs | Where-Object { $_.State -ne "Completed" } | ForEach-Object {
-    throw "ERROR: Building $($_.Name). resulted in $($_.State)."
+if ($jobs.Count -ne 0) {
+    # Wait until all jobs are completed
+    Receive-Job -Job $jobs -WriteEvents -Wait | Out-Host
+    $jobs | Out-Host
+    $jobs | Where-Object { $_.State -ne "Completed" } | ForEach-Object {
+        throw "ERROR: Building $($_.Name). resulted in $($_.State)."
+    }
 }
 Write-Host "All build jobs completed successfully."
 Write-Host ""
@@ -318,22 +302,28 @@ else {
     $manifestTool = "manifest-tool-linux-amd64"
 }
 $manifestToolPath = Join-Path $PSScriptRoot $manifestTool
+while ($true) {
+    try {
+        # Download and verify manifest tool
+        $wc = New-Object System.Net.WebClient
+        $url += $manifestTool
+        Write-Host "Downloading $($manifestTool)..."
+        $wc.DownloadFile($url, $manifestToolPath)
+
+        if (Test-Path $manifestToolPath) {
+            break
+        }
+    }
+    catch {
+        Write-Warning "Failed to download $($manifestTool) - try again..."
+        Start-Sleep -s 3
+    }
+}
+
 try {
-    # Download and verify manifest tool
-    $wc = New-Object System.Net.WebClient
-    $url += $manifestTool
-    Write-Host "Downloading $($manifestTool)..."
-    $wc.DownloadFile($url, $manifestToolPath)
-    Write-Host "Downloading $($manifestTool).asc..."
-    $url = $url + ".asc"
-    $wc.DownloadFile($url, "$($manifestToolPath).asc")
-
-    # TODO: validate 0F386284C03A1162
-
     Write-Host "Building and pushing manifest file:"
-    Write-Host ""
+    Write-Host
     $manifest | Out-Host
-
     $manifest | Out-File -Encoding ascii -FilePath $manifestFile.FullName
     $argumentList = @( 
         "--username", $user,
@@ -341,26 +331,20 @@ try {
         "push",
         "from-spec", $manifestFile.FullName
     )
-
-    (& $manifestToolPath $argumentList) | Out-Host
-    if ($LastExitCode -ne 0) {
-        throw "$($manifestToolPath) failed with $($LastExitCode)."
+    while ($true) {
+        (& $manifestToolPath $argumentList) | Out-Host
+        if ($LastExitCode -eq 0) {
+            break   
+        }
+        Write-Warning "Manifest push failed - try again."
+        Start-Sleep -s 2
     }
-
-    Write-Host ""
     Write-Host "Manifest pushed successfully."
 }
 catch {
-    if ($isDeveloperBuild -eq $true) {
-        Write-Error "Could not push manifest"
-        Write-Error $_.Exception.Message
-    }
-    else {
-        throw $_.Exception
-    }
+    throw $_.Exception
 }
 finally {
     Remove-Item -Force -Path $manifestFile.FullName
     Remove-Item -Force -Path $manifestToolPath
-    Remove-Item -Force -Path "$($manifestToolPath).asc"
 }
