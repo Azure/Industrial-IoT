@@ -42,11 +42,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 model.Connection?.User?.Type.ToString() +
                 model.Connection?.User?.Value.ToJson() +
                 model.SubscriptionSettings?.PublishingInterval.ToString() +
-                model.PublishedVariables.PublishedData.First()?.Id +
-                model.PublishedVariables.PublishedData.First()?.PublishedVariableNodeId +
-                model.PublishedVariables.PublishedData.First()?.PublishedVariableDisplayName +
-                model.PublishedVariables.PublishedData.First()?.SamplingInterval +
-                model.PublishedVariables.PublishedData.First()?.HeartbeatInterval;
+                model.PublishedVariables.PublishedData.FirstOrDefault()?.Id +
+                model.PublishedVariables.PublishedData.FirstOrDefault()?.PublishedVariableNodeId +
+                model.PublishedVariables.PublishedData.FirstOrDefault()?.PublishedVariableDisplayName +
+                model.PublishedVariables.PublishedData.FirstOrDefault()?.SamplingInterval +
+                model.PublishedVariables.PublishedData.FirstOrDefault()?.HeartbeatInterval +
+                model.PublishedEvents.PublishedData.FirstOrDefault()?.Id +
+                model.PublishedEvents.PublishedData.FirstOrDefault()?.EventNotifier;
             return id.ToSha1Hash();
         }
     }
