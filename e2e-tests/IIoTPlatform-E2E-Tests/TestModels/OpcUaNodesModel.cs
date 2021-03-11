@@ -9,22 +9,22 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
     /// Describing an OPC UA node to register
     /// </summary>
     public class OpcUaNodesModel {
-        
+
         /// <summary>
         /// Node Identifier
         /// </summary>
         public string Id { get; set; }
-        
+
         /// <summary>
         /// Expanded Node identifier
         /// </summary>
         public string ExpandedNodeId { get; set; }
-        
+
         /// <summary>
         /// Sampling interval
         /// </summary>
         public uint OpcSamplingInterval { get; set; }
-        
+
         /// <summary>
         /// Publishing interval
         /// </summary>
@@ -39,7 +39,7 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
         /// Heartbeat
         /// </summary>
         public uint? HeartbeatInterval { get; set; }
-        
+
         /// <summary>
         /// Skip first value
         /// </summary>

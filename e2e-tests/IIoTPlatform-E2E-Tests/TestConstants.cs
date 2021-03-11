@@ -76,6 +76,11 @@ namespace IIoTPlatform_E2E_Tests {
             public const string RegistryApplicationsWithApplicationIdFormat = "/registry/v2/applications/{0}";
 
             /// <summary>
+            /// Route for discovery within registry
+            /// </summary>
+            public const string RegistryDiscover = "/registry/v2/applications/discover";
+
+            /// <summary>
             /// Route to endpoints within registry
             /// </summary>
             public const string RegistryEndpoints = "/registry/v2/endpoints";

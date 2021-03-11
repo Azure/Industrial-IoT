@@ -54,9 +54,22 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _context.LoadSimulatedPublishedNodes(cts.Token).GetAwaiter().GetResult();
             var testPlc = _context.SimulatedPublishedNodes.Skip(2).First().Value;
             var nodesToPublish = _context.GetEntryModelWithoutNodes(testPlc);
-            _context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, nodesToPublish);
 
-            nodesToPublish.OpcNodes = testPlc.OpcNodes.Take(250).ToArray();
+            // We want to take one of the slow nodes that updates each 10 seconds.
+            // To make sure that we will not have missing values because of timing issues,
+            // we will set publishing and sampling intervals to a lower value than the publishing
+            // interval of the simulated OPC PLC. This will eliminate false-positives.
+            nodesToPublish.OpcNodes = testPlc.OpcNodes
+                .Take(250)
+                .Select(opcNode => {
+                    var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
+                    opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
+                    opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
+                    return opcNode;
+                })
+                .ToArray();
+
+            _context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, nodesToPublish);
 
             TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { nodesToPublish }, _context, cts.Token).GetAwaiter().GetResult();
         }
@@ -75,7 +88,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             //wait some time till the updated pn.json is reflected
-            Task.Delay(3 * 60 * 1000, cts.Token).GetAwaiter().GetResult(); //wait some time till the updated pn.json is reflected
+            Task.Delay(3 * 60 * 1000, cts.Token).GetAwaiter().GetResult();
 
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             TestHelper.StartMonitoringIncomingMessagesAsync(_context, 250, 10_000, 90_000_000, cts.Token).GetAwaiter().GetResult();
@@ -84,6 +97,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Task.Delay(90 * 1000, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
             Assert.True((int)json.totalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True((uint)json.droppedValueCount == 0, "Dropped messages detected");
+            Assert.True((uint)json.duplicateValueCount == 0, "Duplicate values detected");
 
             // check that every published node is sending data
             if (_context.ConsumedOpcUaNodes != null) {
