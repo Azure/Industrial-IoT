@@ -1,3 +1,14 @@
+pr:
+  autoCancel: true
+  branches:
+    include:
+    - '*'
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    - release/*
 stages:
 - stage: build
   displayName: 'Build and Test Code'
@@ -6,6 +17,7 @@ stages:
   - template: tools/templates/sdl.yml
 - stage: pack
   displayName: 'Package and Sign Nuget'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   dependsOn:
   - build
   jobs:
@@ -13,7 +25,8 @@ stages:
     parameters:
       sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
 - stage: iiot_deployment
-  displayName: 'Publish Microsoft.Azure.IIoT.Deployment'
+  displayName: 'Build Installer'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   dependsOn:
   - build
   jobs:
@@ -23,11 +36,16 @@ stages:
   - template: tools/templates/iiot_deployment_linux.yml
   - template: tools/templates/iiot_deployment_mac.yml
 - stage: images
-  displayName: 'Create and Push Images'
+  displayName: 'Build Images'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   dependsOn:
-  - pack
-  - iiot_deployment
+  - build
   jobs:
   - template: tools/templates/acrbuild.yml
-    parameters:
-      useNugets: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+- stage: coverage 
+  displayName: 'Code Coverage'
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  dependsOn:
+  - build
+  jobs:
+  - template: tools/templates/cc.yml

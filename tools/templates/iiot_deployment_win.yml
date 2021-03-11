@@ -20,20 +20,9 @@ jobs:
       version: 2.1.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
-  - task: PowerShell@2
-    displayName: Versioning
-    name: setVersionInfo
-    inputs:
-      targetType: filePath
-      filePath: ./tools/scripts/set-version.ps1
-  - task: DotNetCoreCLI@2
-    displayName: Publish
-    inputs:
-      command: publish
-      publishWebProjects: false
-      projects: 'deploy/src/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.csproj'
-      arguments: '--runtime ${{ parameters.runtime }} --configuration Release -p:PublishSingleFile=true --self-contained --output $(Build.ArtifactStagingDirectory)/${{ parameters.runtime }}'
-      zipAfterPublish: false
+  - template: build_iiot_deployment.yml
+    parameters:
+      runtime: ${{ parameters.runtime }}
   - task: AntiMalware@3
     displayName: 'Run Virus scan'
     inputs:
@@ -44,55 +33,55 @@ jobs:
       SupportLogOnError: false
       TreatSignatureUpdateFailureAs: 'Warning'
       SignatureFreshness: 'UpToDate'
-      TreatStaleSignatureAs: 'Error'
-  - ${{ if eq(parameters.sign, 'True') }}:
-    - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-      displayName: 'Executable Signing'
-      inputs:
-        ConnectedServiceName: 'Code Signing Certificate'
-        FolderPath: '$(Build.ArtifactStagingDirectory)'
-        Pattern: '**/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.exe'
-        UseMinimatch: true
-        signConfigType: inlineSignParams
-        inlineOperation: |
-          [{
-              "keyCode": "CP-230012",
-              "operationSetCode": "SigntoolSign",
-              "parameters": [
-              {
-                  "parameterName": "OpusName",
-                  "parameterValue": "Microsoft"
-              },
-              {
-                  "parameterName": "OpusInfo",
-                  "parameterValue": "http://www.microsoft.com"
-              },
-              {
-                  "parameterName": "FileDigest",
-                  "parameterValue": "/fd \"SHA256\""
-              },
-              {
-                  "parameterName": "PageHash",
-                  "parameterValue": "/NPH"
-              },
-              {
-                  "parameterName": "TimeStamp",
-                  "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-              }
-              ],
-              "toolName": "sign",
-              "toolVersion": "1.0"
-          },
-          {
-              "keyCode": "CP-230012",
-              "operationSetCode": "SigntoolVerify",
-              "parameters": [ ],
-              "toolName": "sign",
-              "toolVersion": "1.0"
-          }]
-        MaxConcurrency: 1
-        MaxRetryAttempts: 50
-        VerboseLogin: true
+      TreatStaleSignatureAs: 'Warning'
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'Executable Signing'
+    condition: and(succeeded(), eq('${{ parameters.sign }}', 'True'))
+    inputs:
+      ConnectedServiceName: 'Code Signing Certificate'
+      FolderPath: '$(Build.ArtifactStagingDirectory)'
+      Pattern: '**/Microsoft.Azure.IIoT.Deployment/Microsoft.Azure.IIoT.Deployment.exe'
+      UseMinimatch: true
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [{
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolSign",
+            "parameters": [
+            {
+                "parameterName": "OpusName",
+                "parameterValue": "Microsoft"
+            },
+            {
+                "parameterName": "OpusInfo",
+                "parameterValue": "http://www.microsoft.com"
+            },
+            {
+                "parameterName": "FileDigest",
+                "parameterValue": "/fd \"SHA256\""
+            },
+            {
+                "parameterName": "PageHash",
+                "parameterValue": "/NPH"
+            },
+            {
+                "parameterName": "TimeStamp",
+                "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            }
+            ],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        },
+        {
+            "keyCode": "CP-230012",
+            "operationSetCode": "SigntoolVerify",
+            "parameters": [ ],
+            "toolName": "sign",
+            "toolVersion": "1.0"
+        }]
+      MaxConcurrency: 1
+      MaxRetryAttempts: 50
+      VerboseLogin: true
   - task: CmdLine@2
     displayName: 'Generate MD5 Checksum'
     inputs:
@@ -104,4 +93,19 @@ jobs:
     displayName: 'Publish Artifacts'
     inputs:
       path: $(Build.ArtifactStagingDirectory)/
-      artifact: iiot_deployment_release_$(setVersionInfo.Version_Full)_${{ parameters.runtime }}
+      artifact: iiot_deployment_release_$(setVersionInfo.Version_Prefix)_${{ parameters.runtime }}
+  - task: AzureCLI@2
+    displayName: 'Copy to Blob'
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/'))
+    inputs:
+      azureSubscription: azureiiot-storage
+      scriptType: pscore
+      workingDirectory: $(Build.ArtifactStagingDirectory)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment
+      scriptLocation: inlineScript
+      inlineScript: |
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.exe --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.exe
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.pdb --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.pdb
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.md5 --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.md5
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.exe --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.exe
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.pdb --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.pdb
+        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.md5 --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.md5
