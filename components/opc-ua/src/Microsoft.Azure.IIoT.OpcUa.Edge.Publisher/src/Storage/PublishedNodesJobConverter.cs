@@ -407,13 +407,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             /// The SelectClauses used to select the fields which should be published for an event.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public List<SelectClauseModel> SelectClauses;
+            public List<SelectClauseModel> SelectClauses { get; set; }
 
             /// <summary>
             /// The WhereClause to specify which events are of interest.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public List<WhereClauseElementModel> WhereClauses;
+            public List<WhereClauseElementModel> WhereClauses { get; set; }
         }
 
         /// <summary>
@@ -495,25 +495,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             /// The NodeId of the SimpleAttributeOperand.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string TypeId;
+            public string TypeId { get; set; }
 
             /// <summary>
             /// A list of QualifiedName's describing the field to be published.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public List<string> BrowsePaths;
+            public List<string> BrowsePaths { get; set; }
 
             /// <summary>
             /// The Attribute of the identified node to be published. This is Value by default.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string AttributeId;
+            public string AttributeId { get; set; }
 
             /// <summary>
             /// The index range of the node values to be published.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string IndexRange;
+            public string IndexRange { get; set; }
         }
 
         /// <summary> WhereClauseElementModel </summary>
@@ -523,13 +523,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             /// The Operator of the WhereClauseElement.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string Operator;
+            public string Operator { get; set; }
 
             /// <summary>
             /// The Operands of the WhereClauseElement.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public List<WhereClauseOperandModel> Operands;
+            public List<WhereClauseOperandModel> Operands { get; set; }
         }
 
         /// <summary> WhereClauseOperandModel </summary>
@@ -539,25 +539,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             /// Holds an element value.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public uint? Element;
+            public uint? Element { get; set; }
 
             /// <summary>
             /// Holds an Literal value.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string Literal;
+            public string Literal { get; set; }
 
             /// <summary>
             /// Holds an AttributeOperand value.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public FilterAttributeModel Attribute;
+            public FilterAttributeModel Attribute { get; set; }
 
             /// <summary>
             /// Holds an SimpleAttributeOperand value.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public FilterSimpleAttributeModel SimpleAttribute;
+            public FilterSimpleAttributeModel SimpleAttribute { get; set; }
         }
 
         /// <summary>
@@ -569,25 +569,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             /// The TypeId of the SimpleAttributeOperand.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string TypeId;
+            public string TypeId { get; set; }
 
             /// <summary>
             /// The browse path as a list of QualifiedName's of the SimpleAttributeOperand.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public List<string> BrowsePaths;
+            public List<string> BrowsePaths { get; set; }
 
             /// <summary>
             /// The AttributeId of the SimpleAttributeOperand.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string AttributeId;
+            public string AttributeId { get; set; }
 
             /// <summary>
             /// The IndexRange of the SimpleAttributeOperand.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string IndexRange;
+            public string IndexRange { get; set; }
         }
 
         /// <summary>
@@ -599,32 +599,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             /// The NodeId of the AttributeOperand.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string NodeId;
+            public string NodeId { get; set; }
 
             /// <summary>
             /// The Alias of the AttributeOperand.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string Alias;
+            public string Alias { get; set; }
 
             /// <summary>
             /// A RelativePath describing the browse path from NodeId of the AttributeOperand.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string BrowsePath;
+            public string BrowsePath { get; set; }
 
             /// <summary>
             /// The AttibuteId of the AttributeOperand.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string AttributeId;
-
+            public string AttributeId { get; set; }
 
             /// <summary>
             /// The IndexRange of the AttributeOperand.
             /// </summary>
             [DataMember(EmitDefaultValue = false)]
-            public string IndexRange;
+            public string IndexRange { get; set; }
         }
 
         private readonly IEngineConfiguration _config;
