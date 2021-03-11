@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace IIoTPlatform_E2E_Tests.Orchestrated {
+namespace IIoTPlatform_E2E_Tests.Twin {
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using System;
     using System.Collections.Generic;
@@ -14,42 +14,36 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
 
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Multiple Nodes Test Collection")]
-    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeOrchestratedTraitValue)]
-    public class T_TwinBrowseOrchestratedTestTheory {
+    public class TwinBrowseTestTheory {
         private readonly IIoTMultipleNodesTestContext _context;
 
-        public T_TwinBrowseOrchestratedTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output) {
+        public TwinBrowseTestTheory(IIoTMultipleNodesTestContext context, ITestOutputHelper output) {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
         }
 
-        [Fact, PriorityOrder(0)]
-        public void A1_SwitchToOrchestratedMode() {
-            TestHelper.SwitchToOrchestratedModeAsync(_context).GetAwaiter().GetResult();
-        }
-
         [Fact, PriorityOrder(1)]
-        public void A2_RegisterOPCServer_And_ActivateEndpoint() {
+        public void A2_1_RegisterOPCServer_And_ActivateEndpoint() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // We will wait for microservices of IIoT platform to be healthy and modules to be deployed.
             TestHelper.WaitForServicesAsync(_context, cts.Token).GetAwaiter().GetResult();
             _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, cts.Token).GetAwaiter().GetResult();
 
-            var simulatedOpcServer = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();
-            var testPlc = simulatedOpcServer.Values.First();
+            var simulatedOpcPlcs = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();
+            var testPlc = simulatedOpcPlcs.Values.First();
 
             TestHelper.Registry_RegisterServerAsync(_context, testPlc.EndpointUrl, cts.Token).GetAwaiter().GetResult();
 
             _context.ConsumedOpcUaNodes[testPlc.EndpointUrl] = _context.GetEntryModelWithoutNodes(testPlc);
             dynamic json = TestHelper.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
 
-            var numberOfItems = (int)json.items.Count;
-            bool found = false;
+            int numberOfItems = json.items.Count;
+            var found = false;
 
-            for (int indexOfTestPlc = 0; indexOfTestPlc < numberOfItems; indexOfTestPlc++) {
+            for (var indexOfTestPlc = 0; indexOfTestPlc < numberOfItems; indexOfTestPlc++) {
 
-                var endpoint = ((string)json.items[indexOfTestPlc].discoveryUrls[0]).TrimEnd('/');
+                string endpoint = json.items[indexOfTestPlc].discoveryUrls[0].TrimEnd('/');
                 if (TestHelper.IsUrlStringsEqual(endpoint, testPlc.EndpointUrl)) {
                     found = true;
                     break;
@@ -63,32 +57,40 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
                 Assert.False(string.IsNullOrWhiteSpace(_context.OpcUaEndpointId), "The endpoint was not set");
             }
 
-            TestHelper.Registry_ActivateEndpointAsync(_context, cts.Token).GetAwaiter().GetResult();
+            _context.DiscoveryUrl = testPlc.EndpointUrl;
+
+            TestHelper.Registry_ActivateEndpointAsync(_context, _context.OpcUaEndpointId, cts.Token).GetAwaiter().GetResult();
         }
 
         [Fact, PriorityOrder(2)]
-        public void D1_Discover_OPC_UA_Endpoints() {
+        public void A2_2_CheckEndpointActivation() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             var endpoints = TestHelper.Registry_GetEndpointsAsync(_context, cts.Token).GetAwaiter().GetResult();
 
             Assert.NotEmpty(endpoints);
 
-            var endpoint = endpoints.SingleOrDefault(e => string.Equals(_context.OpcUaEndpointId, e.Id));
+            var (id, url, activationState, endpointState) = endpoints.SingleOrDefault(e => string.Equals(_context.OpcUaEndpointId, e.Id));
 
-            Assert.False(endpoint.Id == null, "The endpoint was not found");
-            Assert.Equal(TestConstants.StateConstants.ActivatedAndConnected, endpoint.ActivationState);
-            Assert.Equal(TestConstants.StateConstants.Ready, endpoint.EndpointState);
+            Assert.False(id == null, "The endpoint was not found");
+            Assert.Equal(TestConstants.StateConstants.ActivatedAndConnected, activationState);
+            Assert.Equal(TestConstants.StateConstants.Ready, endpointState);
         }
 
         [Fact, PriorityOrder(3)]
-        public void T1_Browse_Address_Space() {
+        public void T1_0_Browse_Address_Space() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             var nodes = TestHelper.Twin_GetBrowseEndpointAsync(_context, _context.OpcUaEndpointId, null, cts.Token).GetAwaiter().GetResult();
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
+
+            Assert.Contains(nodes, n => string.Equals("i=85", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=86", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=87", n.NodeId));
+
+            Assert.Equal(3, nodes.Count);
         }
 
         [Fact, PriorityOrder(4)]
@@ -100,12 +102,18 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
 
-            var nodeId = nodes.First().NodeId;
+            const string nodeId = "i=85";
+
+            Assert.Contains(nodes, n => string.Equals(nodeId, n.NodeId));
 
             nodes = TestHelper.Twin_GetBrowseEndpointAsync(_context, _context.OpcUaEndpointId, nodeId).GetAwaiter().GetResult();
 
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
+
+            Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/Boiler#i=15070", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=OpcPlc", n.NodeId));
         }
 
         [Fact, PriorityOrder(5)]
@@ -118,6 +126,13 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.NotEmpty(nodes);
 
             Assert.True(nodes.Count > 150);
+
+            Assert.Contains(nodes, n => string.Equals("i=85", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=2253", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/Boiler#i=15070", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=OpcPlc", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=86", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=87", n.NodeId));
         }
 
         [Fact, PriorityOrder(6)]
@@ -129,7 +144,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             Assert.NotNull(nodes);
             Assert.NotEmpty(nodes);
 
-            Assert.True(nodes.Count > 150);
+            Assert.True(nodes.Count > 2000);
+
+            Assert.Contains(nodes, n => string.Equals("i=2254", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("i=11312", n.NodeId));
+            Assert.Contains(nodes, n => string.Equals("http://microsoft.com/Opc/OpcPlc/#s=SlowUInt1", n.NodeId));
         }
 
         [Fact, PriorityOrder(99)]
@@ -141,11 +160,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
                 return;
             }
 
-            var applicationId = TestHelper.Registry_GetApplicationIdAsync(_context, cts.Token).GetAwaiter().GetResult();
-
-            Assert.NotNull(applicationId);
-
-            TestHelper.Registry_UnregisterServerAsync(_context, applicationId, cts.Token).GetAwaiter().GetResult();
+            TestHelper.Registry_UnregisterServerAsync(_context, _context.DiscoveryUrl, cts.Token).GetAwaiter().GetResult();
             _context.OutputHelper.WriteLine("Server endpoint unregistered");
         }
 
@@ -154,10 +169,10 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             var testPlc = _context.ConsumedOpcUaNodes.First().Value;
             var json = TestHelper.WaitForEndpointDiscoveryToBeCompleted(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
 
-            var numberOfItems = (int)json.items.Count;
+            int numberOfItems = json.items.Count;
             _context.OpcUaEndpointId = null;
 
-            for (int indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++) {
+            for (var indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++) {
 
                 var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpointUrl).TrimEnd('/');
                 if (endpoint == testPlc.EndpointUrl) {
