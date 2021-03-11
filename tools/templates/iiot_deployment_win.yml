@@ -12,14 +12,14 @@ jobs:
   pool:
     name: ${{ parameters.poolName }}
   steps:
-  # .Net Core 3.0 installation causes problems for executable signing task.
-  # - task: UseDotNet@2
-  #   displayName: 'Install .NET Core SDK'
-  #   inputs:
-  #     packageType: sdk
-  #     version: 3.0.x
-  #     includePreviewVersions: false
-  #     installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for signing'
+    condition: ${{ eq(parameters.sign, 'True') }}
+    inputs:
+      packageType: sdk
+      version: 2.1.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2
     displayName: Versioning
     name: setVersionInfo

@@ -7,17 +7,22 @@ jobs:
 - job: nuget
   displayName: Pack Nugets
   pool:
-    name: Hosted Windows 2019 with VS2019
+    vmImage: 'windows-2019'
   steps:
-  # # This step will rely on existing setup of .Net Core for now.
-  # # Once we move all projects to .Net Core 3, we will uncomment this.
-  # - task: UseDotNet@2
-  #   displayName: 'Install .NET Core SDK'
-  #   inputs:
-  #     packageType: sdk
-  #     version: 3.0.x
-  #     includePreviewVersions: false
-  #     installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for signing'
+    inputs:
+      packageType: sdk
+      version: 2.1.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: UseDotNet@2
+    displayName: 'Install .NET Core SDK for building'
+    inputs:
+      packageType: sdk
+      version: 3.1.x
+      includePreviewVersions: false
+      installationPath: $(Agent.ToolsDirectory)/dotnet
   - task: PowerShell@2
     displayName: Versioning
     inputs:
@@ -134,7 +139,7 @@ jobs:
     displayName: 'Publish Artifact'
     inputs:
       path: $(Build.ArtifactStagingDirectory)
-      artifact: 'release_$(NBGV_SemVer1)'
+      artifact: 'release__$(NBGV_NugetPackageVersion)'
   - task: NuGetCommand@2
     displayName: Push
     inputs:
