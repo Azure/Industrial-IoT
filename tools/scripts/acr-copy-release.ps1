@@ -18,46 +18,27 @@
  .PARAMETER Subscription
     The subscription to use 
 
- .PARAMETER BuildVersion
+ .PARAMETER ReleaseVersion
     The build version for the development image that is being released.
 
- .PARAMETER ReleaseVersion
-    The version to release e.g. 2.7.206. This will be the release tag for the release images.
+ .PARAMETER IsLatest
+    Release as latest image
 #>
 
 Param(
     [string] $BuildRegistry = "industrialiot",
     [string] $ReleaseRegistry = "industrialiotprod",
     [string] $Subscription = "IOT_GERMANY",
-    [Parameter(Mandatory = $true)]
-    [string] $BuildVersion,
-    [Parameter(Mandatory = $true)]
-    [string] $ReleaseVersion
+    [Parameter(Mandatory = $true)] [string] $ReleaseVersion,
+    [switch] $IsLatest,
+    [switch] $IsMajorUpdate
 )
 
-# Default platform definitions - keep in sync with docker-source.ps1
-$platforms = @{
-    "linux/arm" = @{
-        platformTag = "linux-arm32v7"
-    }
-    "linux/arm64" = @{
-        platformTag = "linux-arm64v8"
-    }
-    "linux/amd64" = @{
-        platformTag = "linux-amd64"
-    }
-    "windows/amd64:10.0.17763.1457" = @{
-        platformTag = "nanoserver-amd64-1809"
-    }
-    "windows/amd64:10.0.18363.1082" = @{
-        platformTag = "nanoserver-amd64-1909"
-    }
-}
-
 # set default subscription
-if (![string]::IsNullOrEmpty($Subscription)) {
-    Write-Debug "Setting subscription to $($Subscription)"
-    $argumentList = @("account", "set", "--subscription", $Subscription)
+if (![string]::IsNullOrEmpty($script:Subscription)) {
+    Write-Debug "Setting subscription to $($script:Subscription)"
+    $argumentList = @("account", "set", 
+        "--subscription", $script:Subscription, "-ojson")
     & "az" $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
@@ -65,98 +46,107 @@ if (![string]::IsNullOrEmpty($Subscription)) {
 }
 
 # get build registry credentials
-$argumentList = @("acr", "credential", "show", "--name", $BuildRegistry)
-$sourceCredentials = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
+$argumentList = @("acr", "credential", "show", 
+    "--name", $script:BuildRegistry, "-ojson")
+$result = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" })
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
 }
+$sourceCredentials = $result | ConvertFrom-Json
 $sourceUser = $sourceCredentials.username
 $sourcePassword = $sourceCredentials.passwords[0].value
-Write-Host "Using Source User name $($sourceUser) and password ****"
+Write-Host "Using Source Registry User name $($sourceUser) and password ****"
 
-# Copy images from Build ACR to Release ACR
-$BuildRoot = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "*.sln"
-# Traverse from build root and find all container.json metadata files for images to release
-Get-ChildItem $BuildRoot -Recurse -Include "container.json" | ForEach-Object {
+# Get repositories in source
+$argumentList = @("acr", "repository", "list",
+    "--name", $script:BuildRegistry, "-ojson")
+$result = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" })
+if ($LastExitCode -ne 0) {
+    throw "az $($argumentList) failed with $($LastExitCode)."
+}
+$BuildRepositories = $result | ConvertFrom-Json
 
-    $metadata = Get-Content -Raw -Path $_.FullName | ConvertFrom-Json
+# In each repo - check whether a release tag exists
+$jobs = @()
+foreach ($Repository in $BuildRepositories) {
 
-    # Identify release image
-    $imageName = $metadata.name
-    $tagPrefix = ""
+    $BuildTag = "$($Repository):$($script:ReleaseVersion)"
 
-    if (![string]::IsNullOrEmpty($metadata.tag)) {
-        $tagPrefix = "$($metadata.tag)-"
+    $argumentList = @("acr", "repository", "show", 
+        "--name", $script:BuildRegistry,
+        "-t", $BuildTag,
+        "-ojson"
+    )
+    $result = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" })
+    if ($LastExitCode -ne 0) {
+        Write-Host "Image $BuildTag not found..."
+        continue
+    }
+    $Image = $result | ConvertFrom-Json
+    if ([string]::IsNullOrEmpty($Image.digest)) {
+        Write-Host "Image $BuildTag not found..."
+        continue
     }
 
-    Write-Host "Looking at imageName $($imageName)"
+    $ReleaseTags = @()
+    if ($script:IsLatest.IsPresent) {
+        $ReleaseTags += "latest"
+    }
 
-    # Create base image tags list
-    # Example: if release version is 2.7.1, then base image tags are "2", "2.7", "2.7.1", "latest"
-    $baseImageTags = @("latest")
+    # Example: if release version is 2.7.1, then base image tags are "2", "2.7", "2.7.1"
     $versionParts = $script:ReleaseVersion.Split('.')
     if ($versionParts.Count -gt 0) {
         $versionTag = $versionParts[0]
-        $baseImageTags += "$($tagPrefix)$($versionTag)"
+        if ($script:IsMajorUpdate.IsPresent -or $script:IsLatest.IsPresent) {
+            $ReleaseTags += $versionTag
+        }
         for ($i = 1; $i -lt ($versionParts.Count); $i++) {
             $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
-            $baseImageTags += "$($tagPrefix)$($versionTag)"
+            $ReleaseTags += $versionTag
         }
     }
 
-    $imageTagsMap = @{
-        "$($tagPrefix)$($BuildVersion)" = $baseImageTags
+    # Create acr command line 
+    # --force is needed to replace existing tags like "latest" with new images
+    $FullImageName = "$($script:BuildRegistry).azurecr.io/$($BuildTag)" 
+    $argumentList = @("acr", "import", "-ojson", "--force",
+        "--name", $script:ReleaseRegistry,
+        "--source", $FullImageName
+        "--username", $sourceUser,
+        "--password", $sourcePassword
+    )
+    # add the output / release image tags
+    foreach ($ReleaseTag in $ReleaseTags) {
+        $argumentList += "--image"
+        $argumentList += "$($Repository):$($ReleaseTag)"
     }
-    # Add platform specific tags to the tags list to copy
-    $platforms.Keys | ForEach-Object {
-        $platformInfo = $platforms.Item($_)
-        $platformTag = $platformInfo.platformTag.ToLower()
-        $imageTagsMap.Add("$($tagPrefix)$($BuildVersion)-$($platformTag)", @("$($tagPrefix)$($ReleaseVersion)-$($platformTag)"))
-    }
-
-    $jobs = @()
-    # Copy images from Build ACR to Release ACR
-    foreach ($sourceTag in $imageTagsMap.Keys) {
-        $FullImageName = "$($BuildRegistry).azurecr.io/public/$($imageName):$($sourceTag)"
-
-        $targetImageArgs = @()
-        foreach ($targetTag in $imageTagsMap.Item($sourceTag)) {
-            $targetImageArgs += "--image"
-            $targetImageArgs += "public/$($imageName):$($targetTag)"
-        }
-        # Create acr command line 
-        # --force is needed to replace existing tags like "latest" with new images
-        $argumentList = @("acr", "import", "--force",
-            "--name", $ReleaseRegistry,
-            "--source", $FullImageName) + $targetImageArgs +
-            @("--username", $sourceUser,
-            "--password", $sourcePassword)
-
-        $jobs += Start-Job -Name $FullImageName -ArgumentList @($argumentList, $FullImageName) -ScriptBlock {
-            $argumentList = $args[0]
-            $FullImageName = $args[1]
-            Write-Host "Copying image $($FullImageName)"
-            & az $argumentList 2>&1 | ForEach-Object { "$_" }
+    
+    $ConsoleOutput = "Copying $FullImageName $($Image.digest) to release $script:ReleaseRegistry"
+    Write-Host "Starting Job $ConsoleOutput..."
+    $jobs += Start-Job -Name $FullImageName -ArgumentList @($argumentList, $ConsoleOutput) -ScriptBlock {
+        $argumentList = $args[0]
+        $ConsoleOutput = $args[1]
+        Write-Host "$($ConsoleOutput)..."
+        & az $argumentList 2>&1 | ForEach-Object { "$_" }
+        if ($LastExitCode -ne 0) {
+            Write-Warning "$($ConsoleOutput) failed with $($LastExitCode) - 2nd attempt..."
+            & "az" $argumentList 2>&1 | ForEach-Object { "$_" }
             if ($LastExitCode -ne 0) {
-                Write-Warning "Copy image failed for $($FullImageName) with $($LastExitCode) - 2nd attempt..."
-                & az $argumentList 2>&1 | ForEach-Object { "$_" }
-                if ($LastExitCode -ne 0) {
-                    throw "Error: CopyImage- 2nd attempt failed for $($FullImageName) with $($LastExitCode)."
-                }
+                throw "Error: $($ConsoleOutput) - 2nd attempt failed with $($LastExitCode)."
             }
-            Write-Host "Copy image completed for $($FullImageName)."
         }
-    }  
-    # Wait for copy jobs to finish for this repo.
-    if ($jobs.Count -ne 0) {
-        Write-Host "Waiting for copy jobs to finish for $($imageName)."
-        # Wait until all jobs are completed
-        Receive-Job -Job $jobs -WriteEvents -Wait | Out-Host
-        $jobs | Out-Host
-        $jobs | Where-Object { $_.State -ne "Completed" } | ForEach-Object {
-            throw "ERROR: Copying $($_.Name). resulted in $($_.State)."
-        }
+        Write-Host "$($ConsoleOutput) completed."
     }
-    Write-Host "All copy jobs completed successfully for $($imageName)."  
 }
-Write-Host ""
+
+# Wait for copy jobs to finish for this repo.
+if ($jobs.Count -ne 0) {
+    Write-Host "Waiting for copy jobs to finish for $($script:ReleaseRegistry)."
+    # Wait until all jobs are completed
+    Receive-Job -Job $jobs -WriteEvents -Wait | Out-Host
+    $jobs | Out-Host
+    $jobs | Where-Object { $_.State -ne "Completed" } | ForEach-Object {
+        throw "ERROR: Copying $($_.Name). resulted in $($_.State)."
+    }
+}
+Write-Host "All copy jobs completed successfully for $($script:ReleaseRegistry)."  

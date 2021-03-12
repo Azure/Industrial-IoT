@@ -20,38 +20,35 @@ Param(
 )
 
 # Check and set registry
-if ([string]::IsNullOrEmpty($Registry)) {
-    $Registry = $env.BUILD_REGISTRY
-    if ([string]::IsNullOrEmpty($Registry)) {
-        $Registry = "industrialiotdev"
-        Write-Warning "No registry specified - using $($Registry).azurecr.io."
+if ([string]::IsNullOrEmpty($script:Registry)) {
+    $script:Registry = $env.BUILD_REGISTRY
+    if ([string]::IsNullOrEmpty($script:Registry)) {
+        $script:Registry = "industrialiotdev"
+        Write-Warning "No registry specified - using $($script:Registry).azurecr.io."
     }
 }
 
 # set default subscription
-if (![string]::IsNullOrEmpty($Subscription)) {
-    Write-Debug "Setting subscription to $($Subscription)"
-    $argumentList = @("account", "set", "--subscription", $Subscription)
-    & "az" $argumentList 2`>`&1 | %{ "$_" }
+if (![string]::IsNullOrEmpty($script:Subscription)) {
+    Write-Debug "Setting subscription to $($script:Subscription)"
+    $argumentList = @("account", "set", "--subscription", $script:Subscription, "-ojson")
+    & "az" $argumentList 2`>`&1 | ForEach-Object { "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
     }
 }
 
 # get list of repositories
-$argumentList = @("acr", "repository", "list", "--name", $Registry)
-$repositories = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
+$argumentList = @("acr", "repository", "list", "--name", $script:Registry, "-ojson")
+$repositories = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 $repositories | ForEach-Object {
     $repository = $_
     
-    if (!$repository.StartsWith("public/")) {
-        Write-Warning "Deleting $($repository)"
-        $argumentList = @("acr", "repository", "delete", 
-            "--yes",
-            "--name", $Registry,
-            "--repository", $repository
-        )
-        (& "az" $argumentList 2>&1 | %{ "$_" }) | Out-Host
-    }
+    Write-Warning "Deleting $($repository)"
+    $argumentList = @("acr", "repository", "delete", "--yes", "-ojson",
+        "--name", $Registry,
+        "--repository", $repository
+    )
+    (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | Out-Host
 }
 
