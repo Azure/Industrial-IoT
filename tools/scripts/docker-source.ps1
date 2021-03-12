@@ -25,7 +25,7 @@ if (!(Test-Path -Path $Path -PathType Container)) {
 }
 $Path = Resolve-Path -LiteralPath $Path
 $configuration = "Release"
-if ($Debug.IsPresent) {
+if ($script:Debug.IsPresent) {
     $configuration = "Debug"
 }
 $metadata = Get-Content -Raw -Path (Join-Path $Path "container.json") `
@@ -38,7 +38,7 @@ $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
 if ($projFile) {
 
     $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
-    $runtimes = @("linux-arm", "linux-arm64", "linux-x64", "win-x64", "")
+    $runtimes = @("linux-arm", "alpine-arm64", "alpine-x64", "win-x64", "")
     if (![string]::IsNullOrEmpty($metadata.base)) {
         # Shortcut - only build portable
         $runtimes = @("")
@@ -86,14 +86,14 @@ if ($projFile) {
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/arm64" = @{
-            runtimeId = "linux-arm64"
+            runtimeId = "alpine-arm64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine-arm64v8"
             platformTag = "linux-arm64v8"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/amd64" = @{
-            runtimeId = "linux-x64"
+            runtimeId = "alpine-x64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
