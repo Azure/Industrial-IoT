@@ -11,12 +11,20 @@
     The name of the registry
 
  .PARAMETER Subscription
-    The subscription to use - otherwise uses default
+    The subscription to use - otherwise uses default.
+
+ .PARAMETER Cleanup
+    First cleanup manifests that are not tagged and vulnerable.
+
+ .PARAMETER All
+    Include also vulnerabilities that are not patchable.
 #>
 
 Param(
     [string] $Registry = "industrialiotprod",
-    [string] $Subscription = "IOT_GERMANY"
+    [string] $Subscription = "IOT_GERMANY",
+    [switch] $Cleanup,
+    [switch] $All
 )
 
 # set default subscription
@@ -67,9 +75,25 @@ foreach ($vulnerability in $vulnerabilities) {
         $defunct.Add($imageId, "$imageId does not exist in $script:Registry...")
         continue
     }
-    $realVulnerabilities += $vulnerability
+
+    $image = $result | ConvertFrom-Json
+    if ($script:All.IsPresent -or $vulnerability.additionalData.patchable) {
+        # get the tags linking to the image
+        $imageParts = $imageId.Split('@')
+        $repository = $imageParts[0]
+        $digest = $imageParts[1]
+        $argumentList = @("acr", "repository", "show-manifests", "-ojson", "--detail",
+            "--name", $script:Registry,
+            "--repository", $repository,
+            "--query", """[?digest=='$($digest)'].tags"""
+        )
+        $tags = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertTo-Json
+        
+        Add-Member -in $image -MemberType NoteProperty -name "tags" -value $tags
+        Add-Member -in $vulnerability -MemberType NoteProperty -name "image" -value $image
+        $realVulnerabilities += $vulnerability
+    }
 }
 
-Write-Warning "$($realVulnerabilities | ConvertTo-Json)"
 return $realVulnerabilities
 
