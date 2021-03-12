@@ -25,7 +25,7 @@ if (!(Test-Path -Path $Path -PathType Container)) {
 }
 $Path = Resolve-Path -LiteralPath $Path
 $configuration = "Release"
-if ($script:Debug.IsPresent) {
+if ($Debug.IsPresent) {
     $configuration = "Debug"
 }
 $metadata = Get-Content -Raw -Path (Join-Path $Path "container.json") `
@@ -38,7 +38,7 @@ $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
 if ($projFile) {
 
     $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
-    $runtimes = @("linux-arm", "alpine-arm64", "alpine-x64", "win-x64", "")
+    $runtimes = @("linux-arm", "linux-arm64", "linux-x64", "win-x64", "")
     if (![string]::IsNullOrEmpty($metadata.base)) {
         # Shortcut - only build portable
         $runtimes = @("")
@@ -67,6 +67,12 @@ if ($projFile) {
         }
     }
 
+    $installLinuxDebugger = @"
+RUN apt-get update && apt-get install -y --no-install-recommends unzip curl procps \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg
+ENV PATH="${PATH}:/root/vsdbg/vsdbg"
+"@
     # Get project's assembly name to create entry point entry in dockerfile
     $assemblyName = $null
     ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
@@ -83,32 +89,37 @@ if ($projFile) {
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-arm32v7"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
+            debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/arm64" = @{
-            runtimeId = "alpine-arm64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine-arm64v8"
+            runtimeId = "linux-arm64"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-arm64v8"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
+            debugger = $null
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/amd64" = @{
-            runtimeId = "alpine-x64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine"
+            runtimeId = "linux-x64"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
+            debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "windows/amd64:10.0.17763.1457" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1809"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.17763.1457-amd64"
             platformTag = "nanoserver-amd64-1809"
+            debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
         "windows/amd64:10.0.18363.1082" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1909"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.18363.1082-amd64"
             platformTag = "nanoserver-amd64-1909"
+            debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
     }
@@ -136,7 +147,13 @@ if ($projFile) {
         if ([string]::IsNullOrEmpty($runtimeId)) {
             $runtimeId = "portable"
         }
-        
+
+        $debugger = ""
+        if ($Debug.IsPresent) {
+            if (![string]::IsNullOrEmpty($platformInfo.debugger)) {
+                $debugger = $platformInfo.debugger
+            }
+        }
         $runtimeOnly = ""
         if (![string]::IsNullOrEmpty($platformInfo.runtimeOnly)) {
             $runtimeOnly = $platformInfo.runtimeOnly
@@ -169,6 +186,8 @@ $($exposes)
 $($workdir)
 COPY . .
 $($runtimeOnly)
+
+$($debugger)
 
 $($environmentVars | Out-String)
 

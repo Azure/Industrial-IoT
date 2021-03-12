@@ -75,43 +75,28 @@ if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
     return
 }
 
-if ([string]::IsNullOrEmpty($Registry)) {
-    $Registry = $env.BUILD_REGISTRY
-}
-
 # Set namespace name based on branch name
+$releaseBuild = $false
 $namespace = $branchName
 if ($namespace.StartsWith("feature/")) {
-    # dev feature builds
     $namespace = $namespace.Replace("feature/", "")
 }
 elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
     $namespace = "public"
-    if ([string]::IsNullOrEmpty($Registry)) {
-    	# Release and Preview builds go into staging
-        $Registry = "industrialiot"
-    }
+    $releaseBuild = $true
 }
-
-if ([string]::IsNullOrEmpty($Registry)) {
-    # Feature builds by default build into dev registry
-    $Registry = "industrialiotdev"
-}
-
 $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
 $namespace = "$($namespace)/"
 
-Write-Warning "Using $($Registry).azurecr.io."
-
-if ($branchName -eq "master") {
-    # latest tag is preview when building from master for backcompat reasons.
-    $latestTag = "preview"
-}
-else {
-    $latestTag = "latest"
+if (![string]::IsNullOrEmpty($Registry) -and ($Registry -ne "industrialiot")) {
+    # if we build from release or from master and registry is provided we leave namespace empty
+    if ($releaseBuild) {
+        $namespace = ""
+    }
 }
 
 # get and set build information from gitversion, git or version content
+$latestTag = "latest"
 $sourceTag = $env:Version_Prefix
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
@@ -153,6 +138,22 @@ if (![string]::IsNullOrEmpty($Subscription)) {
     & "az" $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
+    }
+}
+
+# Check and set registry
+if ([string]::IsNullOrEmpty($Registry)) {
+    $Registry = $env.BUILD_REGISTRY
+    if ([string]::IsNullOrEmpty($Registry)) {
+        if ($releaseBuild) {
+            # Make sure we do not override latest in release builds - this is done manually later.
+            $latestTag = "preview"
+            $Registry = "industrialiot"
+        }
+        else {
+            $Registry = "industrialiotdev"
+        }
+        Write-Warning "No registry specified - using $($Registry).azurecr.io."
     }
 }
 
