@@ -74,7 +74,7 @@ foreach ($repository in $repositories) {
             "--username", $dockerUser,
             "--registry", $script:Registry,
             "--filter", """$($repository):.*""",
-            "--ago", "180d",
+            "--ago", "2y",
             "--untagged"
         )
         if (-not $script:Yes.IsPresent) {
