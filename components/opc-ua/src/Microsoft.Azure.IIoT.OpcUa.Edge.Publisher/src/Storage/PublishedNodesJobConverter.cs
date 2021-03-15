@@ -20,9 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Models.Data;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Models.Events;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Data;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
 
     /// <summary>
     /// Published nodes
@@ -113,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                      node1.OpcSamplingInterval != node2.OpcSamplingInterval) {
                                      return false;
                                  }
-                                 return a.Id == b.Id && a.DisplayName == b.DisplayName;
+                                 return a.Id == b.Id && a.DisplayName == b.DisplayName && a.DataSetFieldId == b.DataSetFieldId;
                              })
                             .Batch(1000))
                         .Select(opcBaseNodes => new PublishedDataSetSourceModel {
@@ -128,14 +127,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         .Select(node => new PublishedDataSetVariableModel {
                                             // this is the monitored item id, not the nodeId!
                                             // Use the display name if any otherwisw the nodeId
-                                            Id = string.IsNullOrEmpty(node.DisplayName)
-                                                ? node.Id : node.DisplayName,
+                                            Id = string.IsNullOrEmpty(node.DisplayName) ?
+                                                string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
                                             PublishedVariableNodeId = node.Id,
                                             PublishedVariableDisplayName = node.DisplayName,
                                             SamplingInterval = node.OpcSamplingIntervalTimespan ??
                                                 legacyCliModel.DefaultSamplingInterval,
-                                            HeartbeatInterval = node.HeartbeatInterval.HasValue ?
-                                                TimeSpan.FromSeconds(node.HeartbeatInterval.Value) :
+                                            HeartbeatInterval = node.HeartbeatIntervalTimespan.HasValue ?
+                                                node.HeartbeatIntervalTimespan.Value :
                                                 legacyCliModel.DefaultHeartbeatInterval,
                                             QueueSize = legacyCliModel.DefaultQueueSize,
                                             // TODO: skip first?
@@ -249,7 +248,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     else {
                         for (var i = 0; i < scaleTestCount; i++) {
                             yield return new OpcDataNodeModel {
-                                Id = node.Id,
+                                Id = string.IsNullOrEmpty(node.DisplayName) ?
+                                                string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
                                 DisplayName = string.IsNullOrEmpty(node.DisplayName) ?
                                     $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
                                 DataSetFieldId = node.DataSetFieldId,
@@ -275,9 +275,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     else {
                         for (var i = 0; i < scaleTestCount; i++) {
                             yield return new OpcEventNodeModel {
-                                Id = node.Id,
+                                Id = string.IsNullOrEmpty(node.DisplayName) ?
+                                                string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
                                 DisplayName = string.IsNullOrEmpty(node.DisplayName) ?
                                     $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
+                                DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
                                 OpcPublishingInterval = node.OpcPublishingInterval,
                                 OpcPublishingIntervalTimespan = node.OpcPublishingIntervalTimespan,

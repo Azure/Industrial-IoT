@@ -1,4 +1,4 @@
-﻿namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Models.Events {
+﻿namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
     using System.Runtime.Serialization;
 
     /// <summary>

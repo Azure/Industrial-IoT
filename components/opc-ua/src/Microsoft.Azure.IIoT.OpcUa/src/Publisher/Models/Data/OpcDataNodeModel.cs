@@ -1,4 +1,4 @@
-﻿namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Models.Data {
+﻿namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Data {
     using System;
     using System.Runtime.Serialization;
 
@@ -24,22 +24,19 @@
                 (int)value.Value.TotalMilliseconds : (int?)null;
         }
 
-        /// <summary> 
-        /// Heartbeat 
-        /// </summary>
+
+        /// <summary> Heartbeat </summary>
         [DataMember(EmitDefaultValue = false)]
-        public int? HeartbeatInterval { get; set; }
+        public int? HeartbeatInterval {
+            get => HeartbeatIntervalTimespan.HasValue ? (int)HeartbeatIntervalTimespan.Value.TotalSeconds : default(int?);
+            set => HeartbeatIntervalTimespan = value.HasValue ? TimeSpan.FromSeconds(value.Value) : default(TimeSpan?);
+        }
 
         /// <summary>
         /// Heartbeat interval as TimeSpan.
         /// </summary>
-        [IgnoreDataMember]
-        public TimeSpan? HeartbeatIntervalTimespan {
-            get => HeartbeatInterval.HasValue ?
-                TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
-            set => HeartbeatInterval = value != null ?
-                (int)value.Value.TotalSeconds : (int?)null;
-        }
+        [DataMember(EmitDefaultValue = false)]
+        public TimeSpan? HeartbeatIntervalTimespan { get; set; }
 
         /// <summary> 
         /// Skip first value 

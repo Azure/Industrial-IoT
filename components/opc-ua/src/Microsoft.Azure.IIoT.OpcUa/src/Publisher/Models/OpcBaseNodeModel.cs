@@ -1,4 +1,4 @@
-﻿namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Models {
+﻿namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     using System;
     using System.Runtime.Serialization;
 
@@ -35,6 +35,12 @@
             set => OpcPublishingInterval = value != null ?
                 (int)value.Value.TotalMilliseconds : (int?)null;
         }
+
+        /// <summary> 
+        /// DataSetFieldId 
+        /// </summary>
+        [DataMember(EmitDefaultValue = false)]
+        public string DataSetFieldId { get; set; }
 
         /// <summary> 
         /// Display name 

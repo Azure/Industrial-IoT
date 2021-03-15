@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Data;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -58,8 +60,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember]
         public string OpcAuthenticationPassword { get; set; }
 
-        /// <summary> Nodes defined in the collection. </summary>
+        /// <summary> Data Nodes defined in the collection. </summary>
         [DataMember(EmitDefaultValue = false)]
-        public List<OpcNodeModel> OpcNodes { get; set; }
+        public List<OpcDataNodeModel> OpcNodes { get; set; }
+
+        /// <summary> Event Nodes defined in the collection. </summary>
+        [DataMember(EmitDefaultValue = false)]
+        public List<OpcEventNodeModel> OpcEvents { get; set; }
     }
 }
