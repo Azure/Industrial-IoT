@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Published data items
+    /// Published event items
     /// </summary>
     public class PublishedEventItemsModel {
 
