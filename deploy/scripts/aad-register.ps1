@@ -224,6 +224,7 @@ Function New-ADApplications() {
                     -TenantId $tenantId `
                 }
             catch {
+                Write-Host "Failed collecting user credentials while registering $($applicationDisplayName): $($_.Exception.Message)"
             }
         }
 
@@ -246,6 +247,7 @@ Function New-ADApplications() {
                     $user = (Get-AzureADUser -SearchString $creds.Account.Id)[0]
                 }
                 catch {
+                    Write-Host "Failed getting user principal for $($creds.Account.Id) while searching by account ID."
                 }
             }
         }
