@@ -981,7 +981,7 @@ Function New-Deployment() {
             $replyUrls = New-Object System.Collections.Generic.List[System.String]
             if ($aadAddReplyUrls) {
                 # retrieve existing urls
-                $app = Get-AzADApplication -ApplicationId $aadConfig.WebAppId
+                $app = Get-AzADApplication -ApplicationId $script:aadConfig.WebAppId
                 if ($app.ReplyUrls -and ($app.ReplyUrls.Count -ne 0)) {
                     $replyUrls = $app.ReplyUrls;
                 }
@@ -1030,7 +1030,7 @@ Function New-Deployment() {
             if ($aadAddReplyUrls) {
                 # register reply urls in web application registration
                 Write-Host
-                Write-Host "Registering reply urls for $($aadConfig.WebAppId)..."
+                Write-Host "Registering reply urls for $($script:aadConfig.WebAppId)..."
 
                 try {
                     # assumes we are still connected
@@ -1040,18 +1040,18 @@ Function New-Deployment() {
                     # TODO
                     #    & (Join-Path $script:ScriptDir "aad-update.ps1") `
                     #        $context `
-                    #        -ObjectId $aadConfig.WebAppPrincipalId -ReplyUrls $replyUrls
-                    Update-AzADApplication -ApplicationId $aadConfig.WebAppId -ReplyUrl $replyUrls `
+                    #        -ObjectId $script:aadConfig.WebAppPrincipalId -ReplyUrls $replyUrls
+                    Update-AzADApplication -ApplicationId $script:aadConfig.WebAppId -ReplyUrl $replyUrls `
                         | Out-Null
 
-                    Write-Host "Reply urls registered in web app $($aadConfig.WebAppId)..."
+                    Write-Host "Reply urls registered in web app $($script:aadConfig.WebAppId)..."
                     Write-Host
                 }
                 catch {
                     Write-Host $_.Exception.Message
                     Write-Host
                     Write-Host "Registering reply urls failed. Please add the following urls to"
-                    Write-Host "the web app '$($aadConfig.WebAppId)' manually:"
+                    Write-Host "the web app '$($script:aadConfig.WebAppId)' manually:"
                     $replyUrls | ForEach-Object { Write-Host $_ }
                 }
             }
