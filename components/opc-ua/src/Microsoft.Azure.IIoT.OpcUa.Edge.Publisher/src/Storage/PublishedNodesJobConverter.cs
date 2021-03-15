@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
@@ -18,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Models.Data;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Models.Events;
@@ -55,6 +57,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             _logger.Debug("Reading published nodes file ({elapsed}", sw.Elapsed);
             var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(
                 publishedNodesFile);
+            if (items == null) {
+                throw new SerializerException("Published nodes files, missformed");
+            }
             _logger.Information(
                 "Read {count} items from published nodes file in {elapsed}",
                 items.Count, sw.Elapsed);
@@ -76,10 +81,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 return Enumerable.Empty<WriterGroupJobModel>();
             }
             try {
-                return items
+                var result = items
                     // Group by connection
                     .GroupBy(item => new ConnectionModel {
                         OperationTimeout = legacyCliModel.OperationTimeout,
+                        Id = item.DataSetWriterId,
+                        Group = item.DataSetWriterGroup,
                         Endpoint = new EndpointModel {
                             Url = item.EndpointUrl.OriginalString,
                             SecurityMode = item.UseSecurity == false &&
@@ -87,7 +94,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     SecurityMode.None : SecurityMode.Best
                         },
                         User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
-                                null : ToUserNamePasswordCredentialAsync(item).Result
+                                null : ToUserNamePasswordCredentialAsync(item).Result,
+
                     },
                         // Select and batch nodes into published data set sources
                         item => GetNodeModels(item, legacyCliModel.ScaleTestCount.GetValueOrDefault(1)),
@@ -167,11 +175,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         },
                         WriterGroup = new WriterGroupModel {
                             MessageType = legacyCliModel.MessageEncoding,
-                            WriterGroupId = $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
-                                $"{new ConnectionIdentifier(dataSetSourceBatches.First().Connection)}",
+                            WriterGroupId = !string.IsNullOrEmpty(dataSetSourceBatches.First().Connection.Group)
+                                ? $"{dataSetSourceBatches.First().Connection.Group}"
+                                : $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
+                                    $"{new ConnectionIdentifier(dataSetSourceBatches.First().Connection)}",
                             DataSetWriters = dataSetSourceBatches.Select(dataSetSource => new DataSetWriterModel {
-                                DataSetWriterId = $"{dataSetSource.Connection.Endpoint.Url}_" +
-                                    $"{dataSetSource.GetHashSafe()}",
+                                DataSetWriterId = !string.IsNullOrEmpty(dataSetSource.Connection.Id)
+                                    ? $"{dataSetSource.Connection.Id}"
+                                    : $"{dataSetSource.Connection.Endpoint.Url}_" +
+                                        $"{dataSetSource.GetHashSafe()}",
                                 DataSet = new PublishedDataSetModel {
                                     DataSetSource = dataSetSource.Clone(),
                                 },
@@ -208,6 +220,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             }
                         }
                     }).ToList();
+                return result;
             }
             catch (Exception ex){
                 _logger.Error(ex, "failed to convert the published nodes.");
@@ -230,6 +243,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         node.Id = node.ExpandedNodeId;
                     }
                     if (scaleTestCount == 1) {
+                        node.OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval;
                         yield return node;
                     }
                     else {
@@ -238,14 +252,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 Id = node.Id,
                                 DisplayName = string.IsNullOrEmpty(node.DisplayName) ?
                                     $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
+                                DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
-                                HeartbeatInterval = node.HeartbeatInterval,
                                 HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
-                                OpcPublishingInterval = node.OpcPublishingInterval,
-                                OpcPublishingIntervalTimespan = node.OpcPublishingIntervalTimespan,
+                                OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval,
                                 OpcSamplingInterval = node.OpcSamplingInterval,
-                                OpcSamplingIntervalTimespan = node.OpcSamplingIntervalTimespan,
-                                SkipFirst = node.SkipFirst
+                                SkipFirst = node.SkipFirst,
                             };
                         }
                     }
