@@ -1,5 +1,5 @@
 ﻿namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
-    using System.Collections.Generic;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -7,16 +7,10 @@
     /// </summary>
     [DataContract]
     public class OpcEventNodeModel : OpcBaseNodeModel {
-        /// <summary>
-        /// The SelectClauses used to select the fields which should be published for an event.
+        /// <summary> 
+        /// EventFilter containing the select and where clauses
         /// </summary>
         [DataMember(EmitDefaultValue = false)]
-        public List<SelectClauseModel> SelectClauses { get; set; }
-
-        /// <summary>
-        /// The WhereClause to specify which events are of interest.
-        /// </summary>
-        [DataMember(EmitDefaultValue = false)]
-        public List<WhereClauseElementModel> WhereClauses { get; set; }
+        public EventFilterModel EventFilter { get; set; }
     }
 }

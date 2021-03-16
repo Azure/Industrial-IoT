@@ -147,18 +147,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         .Select(eventNotifier => new PublishedDataSetEventModel {
                                             Id = string.IsNullOrEmpty(eventNotifier.DisplayName) ? eventNotifier.Id : eventNotifier.DisplayName,
                                             EventNotifier = eventNotifier.Id,
-                                            SelectedFields = eventNotifier.SelectClauses.Select(selectedField => new SimpleAttributeOperandModel {
-                                                NodeId = selectedField.TypeId,
-                                                BrowsePath = selectedField.BrowsePaths.ToArray()
+                                            SelectedFields = eventNotifier.EventFilter.SelectClauses.Select(selectedField => new SimpleAttributeOperandModel {
+                                                NodeId = selectedField.NodeId,
+                                                BrowsePath = selectedField.BrowsePath
                                             }).ToList(),
-                                            Filter = new ContentFilterModel {
-                                                Elements = eventNotifier.WhereClauses.Select(whereClause => new ContentFilterElementModel {
-                                                    FilterOperator = Enum.Parse<FilterOperatorType>(whereClause.Operator),
-                                                    FilterOperands = whereClause.Operands.Select(filterOperand => new FilterOperandModel {
-                                                        Value = filterOperand.Literal
-                                                    }).ToList()
-                                                }).ToList()
-                                            },
+                                            Filter = eventNotifier.EventFilter.WhereClause,
                                             QueueSize = legacyCliModel.DefaultQueueSize,
                                         }).ToList()
                             }
@@ -283,8 +276,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 ExpandedNodeId = node.ExpandedNodeId,
                                 OpcPublishingInterval = node.OpcPublishingInterval,
                                 OpcPublishingIntervalTimespan = node.OpcPublishingIntervalTimespan,
-                                SelectClauses = node.SelectClauses,
-                                WhereClauses = node.WhereClauses
+                                EventFilter = node.EventFilter,
                             };
                         }
                     }
