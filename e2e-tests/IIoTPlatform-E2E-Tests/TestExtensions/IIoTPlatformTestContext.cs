@@ -43,6 +43,11 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public ITestOutputHelper? OutputHelper { get; set; }
 
         /// <summary>
+        /// Gets or sets the discovery url
+        /// </summary>
+        public string DiscoveryUrl { get; set; }
+
+        /// <summary>
         /// IoT Device Configuration
         /// </summary>
         public IDeviceConfig DeviceConfig { get { return this; } }
