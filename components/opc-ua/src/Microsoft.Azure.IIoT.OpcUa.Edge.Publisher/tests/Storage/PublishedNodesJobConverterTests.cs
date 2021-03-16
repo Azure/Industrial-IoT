@@ -1262,27 +1262,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         ""OpcEvents"": [
            {
                 ""Id"": ""i=2258"",
-                ""SelectClauses"": [
-                    {
-                        ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
-                        ""EventId""
-                        ]
-                    }
-                ],
-               ""WhereClauses"": [
-                    {
-                        ""Operator"": ""OfType"",
-                        ""Operands"": [
+                ""EventFilter"": {
+                    ""SelectClauses"": [
+                        {
+                            ""TypeId"": ""i=2041"",
+                            ""BrowsePaths"": [
+                            ""EventId""
+                            ]
+                        }
+                    ],
+                   ""WhereClause"": {
+                        ""Elements"": [
                             {
-                                ""Attribute"": {
-                                    ""NodeId"": ""ns=2;i=235"",
-                                    ""BrowsePath"": """"
+                                ""Operator"": ""OfType"",
+                                ""Operands"": [
+                                    {
+                                        ""Attribute"": {
+                                            ""NodeId"": ""ns=2;i=235"",
+                                            ""BrowsePath"": """"
+                                            }
                                     }
+                                ]
                             }
                         ]
                     }
-                ]
+                }
             }
         ]
     }
@@ -1337,27 +1341,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 ""OpcPublishingInterval"": 5000,
                 ""Heartbeat"": 3600,
                 ""SkipFirst"": true,
-                ""SelectClauses"": [
-                    {
-                        ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
-                        ""EventId""
-                        ]
-                    }
-                ],
-               ""WhereClauses"": [
-                    {
-                        ""Operator"": ""OfType"",
-                        ""Operands"": [
+                ""EventFilter"": {
+                    ""SelectClauses"": [
+                        {
+                            ""TypeId"": ""i=2041"",
+                            ""BrowsePaths"": [
+                            ""EventId""
+                            ]
+                        }
+                    ],
+                   ""WhereClause"": {
+                        ""Elements"": [
                             {
-                                ""Attribute"": {
-                                    ""NodeId"": ""ns=2;i=235"",
-                                    ""BrowsePath"": """"
+                                ""Operator"": ""OfType"",
+                                ""Operands"": [
+                                    {
+                                        ""Attribute"": {
+                                            ""NodeId"": ""ns=2;i=235"",
+                                            ""BrowsePath"": """"
+                                            }
                                     }
+                                ]
                             }
                         ]
                     }
-                ]
+                }
             }
         ]
     },
@@ -1389,7 +1397,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             var pn = @"
 [
-  {
+    {
     ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
     ""UseSecurity"": false,
     ""OpcEvents"": [
@@ -1399,87 +1407,91 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         ""OpcPublishingInterval"": 5000,
         ""Heartbeat"": 3600,
         ""SkipFirst"": true,
-	""SelectClauses"": [
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""EventId""
-	    ] 
-	  },
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""EventType""
-	    ] 
-	  },
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""SourceNode""
-	    ] 
-	  },
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""SourceName""
-	    ] 
-	  },
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""Time""
-	    ] 
-	  },
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""ReceiveTime""
-	    ] 
-	  },
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""LocalTime""
-	    ] 
-	  },
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""Message""
-	    ] 
-	  },
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""Severity""
-	    ] 
-	  },
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""2:CycleId""
-	    ] 
-	  },
-	  {
-	    ""TypeId"": ""i=2041"",
-            ""BrowsePaths"": [
-	      ""2:CurrentStep""
-	    ] 
-	  }
-	],
-	""WhereClauses"": [
-	  {
-	    ""Operator"": ""OfType"",
-	    ""Operands"": [
-	      {
-                ""Literal"": ""ns=2;i=235""
+        ""EventFilter"": {
+	        ""SelectClauses"": [
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""EventId""
+	            ] 
+	          },
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""EventType""
+	            ] 
+	          },
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""SourceNode""
+	            ] 
+	          },
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""SourceName""
+	            ] 
+	          },
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""Time""
+	            ] 
+	          },
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""ReceiveTime""
+	            ] 
+	          },
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""LocalTime""
+	            ] 
+	          },
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""Message""
+	            ] 
+	          },
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""Severity""
+	            ] 
+	          },
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""2:CycleId""
+	            ] 
+	          },
+	          {
+	            ""TypeId"": ""i=2041"",
+                    ""BrowsePaths"": [
+	              ""2:CurrentStep""
+	            ] 
+	          }
+	        ],
+	        ""WhereClause"": {
+                ""Elements"": [
+	              {
+	                ""Operator"": ""OfType"",
+	                ""Operands"": [
+	                  {
+                            ""Literal"": ""ns=2;i=235""
+                          }
+	                ]
+                      }
+                    ]
+                }
               }
-	    ]
-          }
+            }
         ]
-      }
-    ]
-  }
+    }
 ]
 ";
 
