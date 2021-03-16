@@ -3,17 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using System.Collections.Generic;
+namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
+    using System.Runtime.Serialization;
 
     /// <summary>
-    /// Published event items
+    /// Node id serialized as object
     /// </summary>
-    public class PublishedEventItemsModel {
+    [DataContract]
+    public class NodeIdModel {
 
-        /// <summary>
-        /// Event variables
-        /// </summary>
-        public List<PublishedDataSetEventModel> PublishedData { get; set; }
+        /// <summary> Identifier </summary>
+        [DataMember(EmitDefaultValue = false)]
+        public string Identifier { get; set; }
     }
 }
