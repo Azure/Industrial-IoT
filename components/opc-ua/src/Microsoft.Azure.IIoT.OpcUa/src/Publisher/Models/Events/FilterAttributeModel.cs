@@ -2,7 +2,7 @@
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Class to describe the AttributeOperand.
+    /// Class to describe the FilterAttributeModel
     /// </summary>
     [DataContract]
     public class FilterAttributeModel {
