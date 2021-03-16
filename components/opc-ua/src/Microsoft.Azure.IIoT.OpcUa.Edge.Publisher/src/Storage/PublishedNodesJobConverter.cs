@@ -147,11 +147,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         .Select(eventNotifier => new PublishedDataSetEventModel {
                                             Id = string.IsNullOrEmpty(eventNotifier.DisplayName) ? eventNotifier.Id : eventNotifier.DisplayName,
                                             EventNotifier = eventNotifier.Id,
-                                            SelectedFields = eventNotifier.EventFilter.SelectClauses.Select(selectedField => new SimpleAttributeOperandModel {
-                                                NodeId = selectedField.NodeId,
-                                                BrowsePath = selectedField.BrowsePath
-                                            }).ToList(),
-                                            Filter = eventNotifier.EventFilter.WhereClause,
+                                            SelectClauses = eventNotifier.SelectClauses,
+                                            WhereClause = eventNotifier.WhereClause,
                                             QueueSize = legacyCliModel.DefaultQueueSize,
                                         }).ToList()
                             }
@@ -276,7 +273,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
                                 OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval,
-                                EventFilter = node.EventFilter,
+                                SelectClauses = node.SelectClauses.Select(x => x.Clone()).ToList(),
+                                WhereClause = node.WhereClause.Clone(),
                             };
                         }
                     }

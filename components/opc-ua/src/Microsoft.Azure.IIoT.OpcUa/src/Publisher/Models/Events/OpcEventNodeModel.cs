@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -7,10 +8,16 @@
     /// </summary>
     [DataContract]
     public class OpcEventNodeModel : OpcBaseNodeModel {
-        /// <summary> 
-        /// EventFilter containing the select and where clauses
+        /// <summary>
+        /// Select clauses
         /// </summary>
         [DataMember(EmitDefaultValue = false)]
-        public EventFilterModel EventFilter { get; set; }
+        public List<SimpleAttributeOperandModel> SelectClauses { get; set; }
+
+        /// <summary>
+        /// Where clause
+        /// </summary>
+        [DataMember(EmitDefaultValue = false)]
+        public ContentFilterModel WhereClause { get; set; }
     }
 }

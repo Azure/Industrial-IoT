@@ -1295,11 +1295,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DiscardNew = model.DiscardNew,
                 EventNotifier = model.EventNotifier,
                 BrowsePath = model.BrowsePath,
-                Filter = model.Filter.ToApiModel(),
+                WhereClause = model.WhereClause.ToApiModel(),
                 QueueSize = model.QueueSize,
                 MonitoringMode = (Models.MonitoringMode?)model.MonitoringMode,
                 TriggerId = model.TriggerId,
-                SelectedFields = model.SelectedFields?
+                SelectClauses = model.SelectClauses?
                     .Select(f => f.ToApiModel())
                     .ToList()
             };
@@ -1318,11 +1318,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 DiscardNew = model.DiscardNew,
                 EventNotifier = model.EventNotifier,
                 BrowsePath = model.BrowsePath,
-                Filter = model.Filter.ToServiceModel(),
+                WhereClause = model.WhereClause.ToServiceModel(),
                 QueueSize = model.QueueSize,
                 MonitoringMode = (OpcUa.Publisher.Models.MonitoringMode?)model.MonitoringMode,
                 TriggerId = model.TriggerId,
-                SelectedFields = model.SelectedFields?
+                SelectClauses = model.SelectClauses?
                     .Select(f => f.ToServiceModel())
                     .ToList()
             };
