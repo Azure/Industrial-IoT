@@ -24,7 +24,6 @@
                 (int)value.Value.TotalMilliseconds : (int?)null;
         }
 
-
         /// <summary> Heartbeat </summary>
         [DataMember(EmitDefaultValue = false)]
         public int? HeartbeatInterval {
