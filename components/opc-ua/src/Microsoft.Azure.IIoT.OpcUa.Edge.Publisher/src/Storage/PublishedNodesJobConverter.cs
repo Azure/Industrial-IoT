@@ -263,6 +263,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         node.Id = node.ExpandedNodeId;
                     }
                     if (scaleTestCount == 1) {
+                        node.OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval;
                         yield return node;
                     }
                     else {
@@ -274,8 +275,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
                                 DataSetFieldId = node.DataSetFieldId,
                                 ExpandedNodeId = node.ExpandedNodeId,
-                                OpcPublishingInterval = node.OpcPublishingInterval,
-                                OpcPublishingIntervalTimespan = node.OpcPublishingIntervalTimespan,
+                                OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval,
                                 EventFilter = node.EventFilter,
                             };
                         }
