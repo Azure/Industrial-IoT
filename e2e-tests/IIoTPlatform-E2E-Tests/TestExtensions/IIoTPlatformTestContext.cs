@@ -90,7 +90,18 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <inheritdoc />
         public void Dispose()
         {
-            RegistryHelper.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Override for disposing
+        /// </summary>
+        /// <param name="disposing">Indicates if called from <see cref="Dispose"/></param>
+        protected virtual void Dispose(bool disposing) {
+            if (disposing) {
+                RegistryHelper.Dispose();
+            }
         }
 
         /// <summary>

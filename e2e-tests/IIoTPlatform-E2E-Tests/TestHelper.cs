@@ -783,8 +783,8 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.NotNull(response);
 
             if (!response.IsSuccessful) {
-                context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
-                context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                 Assert.True(response.IsSuccessful, "GET /registry/v2/application failed!");
             }
 
@@ -838,8 +838,8 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.NotNull(response);
 
             if (!response.IsSuccessful) {
-                context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
-                context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                 Assert.True(response.IsSuccessful, "DELETE /registry/v2/application/{applicationId} failed!");
             }
         }
@@ -866,8 +866,8 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.NotNull(response);
 
             if (!response.IsSuccessful) {
-                context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
-                context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                 Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
             }
 
@@ -884,7 +884,7 @@ namespace IIoTPlatform_E2E_Tests {
                     return;
                 }
 
-                context.OutputHelper.WriteLine(string.IsNullOrEmpty(endpoint.Url) ? "Endpoint not found" :
+                context.OutputHelper?.WriteLine(string.IsNullOrEmpty(endpoint.Url) ? "Endpoint not found" :
                     $"Endpoint state: {endpoint.EndpointState}, activation: {endpoint.ActivationState}");
 
                 await Task.Delay(TestConstants.DefaultDelayMilliseconds).ConfigureAwait(false);
@@ -919,12 +919,50 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
+        /// Waits for the discovery to be completed and then gets the Endpoint ID
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="requestedEndpointUrl">Endpoint URL to get the ID for</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        public static async Task<string> GetOpcUaEndpointId(
+                IIoTPlatformTestContext context,
+                string requestedEndpointUrl,
+                CancellationToken ct) {
+            var json = await WaitForEndpointDiscoveryToBeCompleted(context, ct, new List<string> { requestedEndpointUrl });
+
+            int numberOfItems = json.items.Count;
+
+            for (var indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++) {
+
+                var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpointUrl).TrimEnd('/');
+                if (endpoint == requestedEndpointUrl) {
+                    return (string)json.items[indexOfOpcUaEndpoint].registration.id;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Determines if two strings can be considered the representation of the same URL
         /// </summary>
         /// <param name="url1">URL to compare</param>
         /// <param name="url2">URL to compare to</param>
         public static bool IsUrlStringsEqual(string url1, string url2) =>
             string.Equals(url1?.TrimEnd('/'), url2?.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Determines if an ExpandoObject has a property
+        /// </summary>
+        /// <param name="expandoObject">ExpandoObject to exemine</param>
+        /// <param name="propertyName">Name of the property</param>
+        public static bool HasProperty(object expandoObject, string propertyName) {
+            if (!(expandoObject is IDictionary<string, object> dictionary)) {
+                throw new InvalidOperationException("Object is not an ExpandoObject");
+            }
+            return dictionary.ContainsKey(propertyName);
+        }
 
         /// <summary>
         /// Gets endpoints from registry
@@ -943,8 +981,8 @@ namespace IIoTPlatform_E2E_Tests {
             Assert.NotNull(response);
 
             if (!response.IsSuccessful) {
-                context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
-                context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
                 Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
             }
 
@@ -1065,18 +1103,6 @@ namespace IIoTPlatform_E2E_Tests {
                         ct).ConfigureAwait(false);
                 }
             }
-        }
-
-        /// <summary>
-        /// Determines if an ExpandoObject has a property
-        /// </summary>
-        /// <param name="expandoObject">ExpandoObject to exemine</param>
-        /// <param name="propertyName">Name of the property</param>
-        private static bool HasProperty(object expandoObject, string propertyName) {
-            if (!(expandoObject is IDictionary<string, object> dictionary)) {
-                throw new InvalidOperationException("Object is not an ExpandoObject");
-            }
-            return dictionary.ContainsKey(propertyName);
         }
     }
 }
