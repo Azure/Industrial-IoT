@@ -114,10 +114,10 @@ If you need additional reply URLs, you may add them manually as this does not re
 - After about 1 min, click the link to manage the directory, or click on your account profile at the top right of the Azure Portal -> Switch directory, then select it from *All Directories*
 - Copy the Tenant ID
 
-Start the deployment
+Start the deployment with as many details about the environment as you can provide. You can use the following template to provide targeted details about how you would like the deployment to occur, supplying at least the `-authTenantID` parameter ... 
 
    ```pwsh
-   ./deploy -authTenantId <NEW_AAD_TENANT_ID>`
+   ./deploy.cmd -authTenantId {tenant_id_for_custom_AAD_instance} -subscriptionName {subscription_name} -tenantId {subscription_tenant_id} -SubscriptionId {subscription_id} -type {e.g. 'all'} -version {e.g. 'latest'} -applicationName {application_name} -resourceGroupName {resource_group_name} -resourceGroupLocation {resource_group_location} 
    ```
 
 ### Missing Script dependencies
