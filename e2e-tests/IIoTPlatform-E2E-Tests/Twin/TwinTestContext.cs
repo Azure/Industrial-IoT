@@ -21,7 +21,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         }
 
         /// <summary>
-        /// Disposes of resources.
+        /// Disposes resources.
         /// Used for cleanup executed once after all tests of the collection were executed.
         /// </summary>
         protected override void Dispose(bool disposing) {
@@ -29,6 +29,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
                 return;
             }
 
+            // OutputHelper cannot be used outside of test calls, we get rid of it before a helper method would use it
             OutputHelper = null;
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
