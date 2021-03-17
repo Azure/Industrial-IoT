@@ -48,7 +48,6 @@ The following factory setups are provided for reference. A slow node changes eve
 - Click on *Load file*, select the template and click on *Save*
 3. On the IoT Hub's blade, add an IoT Edge device
 4. Click on the new IoT Edge device, then *Set Modules -> Add Marketplace Module* and add the following:
-  - OPC Twin
   - OPC Publisher
 5. Set the container options for the OPC Publisher. The `si` value sets publishing of messages to the IoT Hub to every 10 s. The option `mm` sets the messaging mode and `me` the encoding.   
 ```
