@@ -149,7 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                             EventNotifier = eventNotifier.Id,
                                             SelectClauses = eventNotifier.SelectClauses,
                                             WhereClause = eventNotifier.WhereClause,
-                                            QueueSize = legacyCliModel.DefaultQueueSize,
+                                            QueueSize = 0,
                                         }).ToList()
                             }
                         }))
