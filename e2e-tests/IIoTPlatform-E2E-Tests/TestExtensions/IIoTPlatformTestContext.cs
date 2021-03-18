@@ -45,7 +45,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// <summary>
         /// Gets or sets the discovery url
         /// </summary>
-        public string DiscoveryUrl { get; set; }
+        public string? DiscoveryUrl { get; set; }
 
         /// <summary>
         /// IoT Device Configuration
