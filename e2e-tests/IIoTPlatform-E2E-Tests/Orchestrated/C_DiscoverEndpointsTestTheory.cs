@@ -42,7 +42,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             var simulatedOpcServers = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, _cancellationTokenSource.Token).GetAwaiter().GetResult();
             var urls = simulatedOpcServers.Values.ToList().Select(s => s.EndpointUrl).ToList();
             AddTestOpcServers(urls);
-            dynamic result = TestHelper.WaitForDiscoveryToBeCompletedAsync(_context, _cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
+            dynamic result = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, _cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
             _servers = result.items;
 
             // Remove servers
@@ -69,7 +69,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             CallRestApi(Method.POST, TestConstants.APIRoutes.RegistryDiscover, body);
 
             // Validate that the endpoint can be found
-            var result = TestHelper.WaitForEndpointDiscoveryToBeCompleted(_context, _cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
+            var result = TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(_context, _cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
             Assert.Equal(url, ((string)result.items[0].registration.endpointUrl).TrimEnd('/'));
 
             // Validate that the certificate can be returned
@@ -97,7 +97,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             var reponse = CallRestApi(Method.POST, TestConstants.APIRoutes.RegistryDiscover, body);
 
             // Validate that all endpoints are found
-            var result = TestHelper.WaitForEndpointDiscoveryToBeCompleted(_context, cts.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
+            var result = TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(_context, cts.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
             foreach (var item in result.items) {
                 Assert.Contains(((string)item.registration.endpointUrl).TrimEnd('/'), urls);
             }
@@ -112,7 +112,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
 
             // Discover all servers
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            dynamic result = TestHelper.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, requestedEndpointUrls: endpointUrls).GetAwaiter().GetResult();
+            dynamic result = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, requestedEndpointUrls: endpointUrls).GetAwaiter().GetResult();
 
             // Validate that all servers are discovered
             var applicationIds = new List<string>(endpointUrls.Count);
