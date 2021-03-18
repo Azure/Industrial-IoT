@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     using System.Linq;
     using System.Text;
     using Xunit;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
     /// Test
@@ -1260,32 +1261,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcEvents"": [
-           {
+            {
                 ""Id"": ""i=2258"",
-                ""EventFilter"": {
-                    ""SelectClauses"": [
-                        {
-                            ""TypeId"": ""i=2041"",
-                            ""BrowsePaths"": [
+                ""SelectClauses"": [
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
                             ""EventId""
+                        ],
+                        ""AttributeId"": ""BrowseName"",
+                        ""IndexRange"": ""5:20""
+                    }
+                ],
+                ""WhereClause"": {
+                    ""Elements"": [
+                        {
+                            ""Operator"": ""OfType"",
+                            ""Operands"": [
+                                {
+                                    ""Attribute"": {
+                                        ""NodeId"": ""ns=2;i=235"",
+                                        ""BrowsePath"": """"
+                                    }
+                                }
                             ]
                         }
-                    ],
-                   ""WhereClause"": {
-                        ""Elements"": [
-                            {
-                                ""Operator"": ""OfType"",
-                                ""Operands"": [
-                                    {
-                                        ""Attribute"": {
-                                            ""NodeId"": ""ns=2;i=235"",
-                                            ""BrowsePath"": """"
-                                            }
-                                    }
-                                ]
-                            }
-                        ]
-                    }
+                    ]
                 }
             }
         ]
@@ -1297,15 +1298,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var jobs = converter.Read(new StringReader(pn.ToString()), new LegacyCliModel()).ToList();
 
             Assert.Single(jobs);
-            Assert.Single(jobs.Single().WriterGroup.DataSetWriters);
-            Assert.Single(jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedEvents.PublishedData);
-            Assert.NotNull(jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedVariables);
-            Assert.NotNull(jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedEvents);
-            Assert.Empty(jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedVariables.PublishedData);
-            Assert.Single(jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.NotNull(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables);
+            Assert.NotNull(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents);
+            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
-            var model = jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedEvents.PublishedData.Single();
+            var model = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
             Assert.Equal("i=2258", model.Id);
+            Assert.Equal("i=2258", model.EventNotifier);
+            Assert.Single(model.SelectClauses);
+            Assert.Equal("i=2041", model.SelectClauses[0].TypeDefinitionId);
+            Assert.Single(model.SelectClauses[0].BrowsePath);
+            Assert.Equal("EventId", model.SelectClauses[0].BrowsePath[0]);
+            Assert.NotNull(model.SelectClauses[0].AttributeId);
+            Assert.Equal(NodeAttribute.BrowseName, model.SelectClauses[0].AttributeId.Value);
+            Assert.Equal("5:20", model.SelectClauses[0].IndexRange);
+
+
+            Assert.NotNull(model.WhereClause);
+            Assert.Single(model.WhereClause.Elements);
 
             // TODO: ...
         }

@@ -257,7 +257,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 return null;
             }
             return new SimpleAttributeOperand {
-                TypeDefinitionId = model.NodeId.ToNodeId(context),
+                TypeDefinitionId = model.TypeDefinitionId.ToNodeId(context),
                 AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
                 BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
                     Enumerable.Empty<QualifiedName>() :
@@ -278,7 +278,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 return null;
             }
             return new SimpleAttributeOperandModel {
-                NodeId = model.TypeDefinitionId.AsString(context),
+                TypeDefinitionId = model.TypeDefinitionId.AsString(context),
                 AttributeId = (NodeAttribute)model.AttributeId,
                 BrowsePath = model.BrowsePath?.Select(p => p.AsString(context)).ToArray(),
                 IndexRange = model.IndexRange
