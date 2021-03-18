@@ -45,13 +45,12 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
 
         private void GetServersInformation() {
             // Add servers
-            var cancellationTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var simulatedOpcServers = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(this, cancellationTokenSource.Token).GetAwaiter().GetResult();
+            var simulatedOpcServers = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(this).GetAwaiter().GetResult();
             var urls = simulatedOpcServers.Values.ToList().Select(s => s.EndpointUrl).ToList();
             AddTestOpcServers(urls);
 
             // Get info about servers
-            dynamic result = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
+            dynamic result = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, requestedEndpointUrls: urls).GetAwaiter().GetResult();
             ServersInfo = result.items;
 
             // Remove servers
