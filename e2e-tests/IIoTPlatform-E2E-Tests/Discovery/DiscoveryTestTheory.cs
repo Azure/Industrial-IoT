@@ -36,7 +36,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
         [Fact, PriorityOrder(0)]
         public void Test_Discover_OPC_UA_Endpoints_IpAddress() {
             // Add 1 server
-            var server = _context._servers[0];
+            var server = _context.ServersInfo[0];
             string url = Convert.ToString(server.discoveryUrls[0]).TrimEnd('/');
             var urls = new List<string> { url };
             AddTestOpcServers(urls);
@@ -61,7 +61,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // Add 5 servers
-            var urls = _context._servers.SelectMany(s => (List<object>)s.discoveryUrls).Take(5).OfType<string>().ToList();
+            var urls = _context.ServersInfo.SelectMany(s => (List<object>)s.discoveryUrls).Take(5).OfType<string>().ToList();
             urls = urls.Select(u => u.TrimEnd('/')).ToList();
             AddTestOpcServers(urls);
 
@@ -83,7 +83,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
         [Fact, PriorityOrder(2)]
         public void Test_Discover_All_OPC_UA_Endpoints() {
             // Add 5 servers
-            var endpointUrls = _context._servers.SelectMany(s => (List<object>)s.discoveryUrls).Take(5).OfType<string>().ToList();
+            var endpointUrls = _context.ServersInfo.SelectMany(s => (List<object>)s.discoveryUrls).Take(5).OfType<string>().ToList();
             endpointUrls = endpointUrls.Select(u => u.TrimEnd('/')).ToList();
             AddTestOpcServers(endpointUrls);
 

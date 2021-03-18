@@ -16,10 +16,13 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
         /// Used for preparation executed once before any tests of the collection are started.
         /// </summary>
         public DiscoveryTestContext() : base() {
-            PrepareTestEnvironment();
+            GetServersInformation();
         }
 
-        public List<dynamic> _servers;
+        /// <summary>
+        /// Gets or sets the servers info
+        /// </summary>
+        public List<dynamic> ServersInfo;
 
         /// <summary>
         /// Disposes resources.
@@ -34,21 +37,23 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             OutputHelper = null;
 
             // Remove servers
-            var applicationIds = _servers.Select(s => s.applicationId?.ToString());
+            var applicationIds = ServersInfo.Select(s => s.applicationId?.ToString());
             RemoveAllApplications(applicationIds.OfType<string>().ToList());        
         }
 
-        private void PrepareTestEnvironment() {
-            // Get info about servers
+        private void GetServersInformation() {
+            // Add servers
             var cancellationTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var simulatedOpcServers = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(this, cancellationTokenSource.Token).GetAwaiter().GetResult();
             var urls = simulatedOpcServers.Values.ToList().Select(s => s.EndpointUrl).ToList();
             AddTestOpcServers(urls);
+
+            // Get info about servers
             dynamic result = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
-            _servers = result.items;
+            ServersInfo = result.items;
 
             // Remove servers
-            var applicationIds = _servers.Select(s => s.applicationId?.ToString());
+            var applicationIds = ServersInfo.Select(s => s.applicationId?.ToString());
             RemoveAllApplications(applicationIds.OfType<string>().ToList());
         }
 
