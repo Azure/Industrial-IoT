@@ -10,9 +10,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using System;
 
     /// <summary>
-    /// Published data items extensions
+    /// Published event items extensions
     /// </summary>
-    public static class PublishedDataItemsModelEx {
+    public static class PublishedEventItemsModelEx {
 
         /// <summary>
         /// Convert to monitored items including heartbeat handling.
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="dataItems"></param>
         /// <returns></returns>
         public static IEnumerable<MonitoredItemModel> ToMonitoredItems(
-            this PublishedDataItemsModel dataItems) {
+            this PublishedEventItemsModel dataItems) {
             if (dataItems?.PublishedData == null) {
                 return Enumerable.Empty<MonitoredItemModel>();
             }
