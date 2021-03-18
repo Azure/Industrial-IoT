@@ -137,8 +137,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                                 node.HeartbeatIntervalTimespan.Value :
                                                 legacyCliModel.DefaultHeartbeatInterval,
                                             QueueSize = legacyCliModel.DefaultQueueSize,
-                                            // TODO: skip first?
-                                            // SkipFirst = opcNode.SkipFirst,
                                         }).ToList()
                             },
                             PublishedEvents = new PublishedEventItemsModel {

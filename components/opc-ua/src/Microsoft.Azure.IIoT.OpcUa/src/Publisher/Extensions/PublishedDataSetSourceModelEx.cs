@@ -36,17 +36,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <returns></returns>
         public static string GetHashSafe(this PublishedDataSetSourceModel model) {
+            var publishedData = model.PublishedVariables.PublishedData.FirstOrDefault();
             var id =  model.Connection?.Endpoint?.Url +
                 model.Connection?.Endpoint?.SecurityMode.ToString() +
                 model.Connection?.Endpoint?.SecurityPolicy + 
                 model.Connection?.User?.Type.ToString() +
                 model.Connection?.User?.Value.ToJson() +
                 model.SubscriptionSettings?.PublishingInterval.ToString() +
-                model.PublishedVariables.PublishedData.FirstOrDefault()?.Id +
-                model.PublishedVariables.PublishedData.FirstOrDefault()?.PublishedVariableNodeId +
-                model.PublishedVariables.PublishedData.FirstOrDefault()?.PublishedVariableDisplayName +
-                model.PublishedVariables.PublishedData.FirstOrDefault()?.SamplingInterval +
-                model.PublishedVariables.PublishedData.FirstOrDefault()?.HeartbeatInterval +
+                publishedData?.Id +
+                publishedData?.PublishedVariableNodeId +
+                publishedData?.PublishedVariableDisplayName +
+                publishedData?.SamplingInterval +
+                publishedData?.HeartbeatInterval +
                 model.PublishedEvents.PublishedData.FirstOrDefault()?.Id +
                 model.PublishedEvents.PublishedData.FirstOrDefault()?.EventNotifier;
             return id.ToSha1Hash();
