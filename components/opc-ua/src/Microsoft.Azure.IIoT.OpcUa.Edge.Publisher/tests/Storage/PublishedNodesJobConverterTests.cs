@@ -1255,7 +1255,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcFullEventTest() {
+        public void PnPlcJobWithAllEventPropertiesTest() {
             var pn = new StringBuilder(@"
 [
     {
@@ -1348,9 +1348,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     {
         ""EndpointUrl"": ""opc.tcp://localhost1:50000"",
         ""NodeId"": {
-                ""Identifier"": ""i=2258""
+            ""Identifier"": ""i=2258""
         }
-        },
+    },
     {
         ""EndpointUrl"": ""opc.tcp://localhost2:50000"",
         ""NodeId"": {
@@ -1364,37 +1364,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
             }
         ],
-       ""OpcEvents"": [
-           {
+        ""OpcEvents"": [
+            {
                 ""Id"": ""i=2253"",
                 ""OpcSamplingInterval"": 2000,
                 ""OpcPublishingInterval"": 5000,
                 ""Heartbeat"": 3600,
                 ""SkipFirst"": true,
-                ""EventFilter"": {
-                    ""SelectClauses"": [
-                        {
-                            ""TypeId"": ""i=2041"",
-                            ""BrowsePaths"": [
+                ""SelectClauses"": [
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
                             ""EventId""
-                            ]
-                        }
-                    ],
-                   ""WhereClause"": {
-                        ""Elements"": [
-                            {
-                                ""Operator"": ""OfType"",
-                                ""Operands"": [
-                                    {
-                                        ""Attribute"": {
-                                            ""NodeId"": ""ns=2;i=235"",
-                                            ""BrowsePath"": """"
-                                            }
-                                    }
-                                ]
-                            }
                         ]
                     }
+                ],
+                ""WhereClause"": {
+                    ""Elements"": [
+                        {
+                            ""FilterOperator"": ""OfType"",
+                            ""FilterOperands"": [
+                                {
+                                    ""Value"": ""ns=2;i=235""
+                                }
+                            ]
+                        }
+                    ]
                 }
             }
         ]
@@ -1428,97 +1423,95 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-    ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
-    ""UseSecurity"": false,
-    ""OpcEvents"": [
-      {
-        ""Id"": ""i=2253"",
-        ""OpcSamplingInterval"": 2000,
-        ""OpcPublishingInterval"": 5000,
-        ""Heartbeat"": 3600,
-        ""SkipFirst"": true,
-        ""EventFilter"": {
-	        ""SelectClauses"": [
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""EventId""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""EventType""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""SourceNode""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""SourceName""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""Time""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""ReceiveTime""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""LocalTime""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""Message""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""Severity""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""2:CycleId""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""2:CurrentStep""
-	            ] 
-	          }
-	        ],
-	        ""WhereClause"": {
-                ""Elements"": [
-	              {
-	                ""Operator"": ""OfType"",
-	                ""Operands"": [
-	                  {
-                            ""Literal"": ""ns=2;i=235""
-                          }
-	                ]
-                      }
+        ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
+        ""UseSecurity"": false,
+        ""OpcEvents"": [
+            {
+                ""Id"": ""i=2253"",
+                ""OpcSamplingInterval"": 2000,
+                ""OpcPublishingInterval"": 5000,
+                ""Heartbeat"": 3600,
+                ""SkipFirst"": true,
+                ""SelectClauses"": [
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""EventId""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""EventType""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""SourceNode""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""SourceName""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""Time""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""ReceiveTime""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""LocalTime""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""Message""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""Severity""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""2:CycleId""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePaths"": [
+                            ""2:CurrentStep""
+                        ]
+                    }
+                ],
+                ""WhereClause"": {
+                    ""Elements"": [
+                        {
+                            ""FilterOperator"": ""OfType"",
+                            ""FilterOperands"": [
+                                {
+                                    ""Value"": ""ns=2;i=235""
+                                }
+                            ]
+                        }
                     ]
                 }
-              }
             }
         ]
     }
