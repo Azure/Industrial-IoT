@@ -292,9 +292,9 @@ namespace IIoTPlatform_E2E_Tests {
             public const string TwinModeTraitName = "TwinMode";
 
             /// <summary>
-            /// The trait name of the Discoverer Mode
+            /// The trait name of the Discovery Mode
             /// </summary>
-            public const string DiscovererModeTraitName = "DiscovererMode";
+            public const string DiscoveryModeTraitName = "DiscoveryMode";
 
             /// <summary>
             /// The trait value for default trait
