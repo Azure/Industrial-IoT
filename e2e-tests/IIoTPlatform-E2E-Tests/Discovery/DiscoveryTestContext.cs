@@ -6,7 +6,6 @@
 namespace IIoTPlatform_E2E_Tests.Discovery {
     using IIoTPlatform_E2E_Tests.TestExtensions;
     using RestSharp;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -45,7 +44,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             var simulatedOpcServers = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(this, cancellationTokenSource.Token).GetAwaiter().GetResult();
             var urls = simulatedOpcServers.Values.ToList().Select(s => s.EndpointUrl).ToList();
             AddTestOpcServers(urls);
-            dynamic result = TestHelper.WaitForDiscoveryToBeCompletedAsync(this, cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
+            dynamic result = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
             _servers = result.items;
 
             // Remove servers
