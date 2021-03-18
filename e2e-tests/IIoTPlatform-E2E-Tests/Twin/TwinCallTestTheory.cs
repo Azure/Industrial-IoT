@@ -25,7 +25,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         [Fact, PriorityOrder(1)]
         public void Twin_Call_GetMethodMetadata() {
             var methodId = "i=13358"; // CreateFile
-            var methodMetadata = TestHelper.Twin_GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
+            var methodMetadata = TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
 
             Assert.Equal(methodMetadata.objectId, "i=13354");
             Assert.Equal(methodMetadata.inputArguments.Count, 2);
@@ -51,8 +51,8 @@ namespace IIoTPlatform_E2E_Tests.Twin {
                 new {dataType = "String", value = "TestFile"},
                 new {dataType = "Boolean", value = "false"}
             };
-            var methodMetadata = TestHelper.Twin_GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
-            var response = TestHelper.Twin_CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, arguments).GetAwaiter().GetResult();
+            var methodMetadata = TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
+            var response = TestHelper.Twin.CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, arguments).GetAwaiter().GetResult();
             Assert.Equal("BadNotImplemented", GetErrorMessage(response));
 
             // ConditionRefresh method - wrong arguments
@@ -61,14 +61,14 @@ namespace IIoTPlatform_E2E_Tests.Twin {
                 new {dataType = "IntegerId", value = "0"}
             };
 
-            methodMetadata = TestHelper.Twin_GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
-            response = TestHelper.Twin_CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, arguments).GetAwaiter().GetResult();
+            methodMetadata = TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
+            response = TestHelper.Twin.CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, arguments).GetAwaiter().GetResult();
             Assert.True(GetErrorMessage(response).Contains("Cannot refresh conditions for a subscription that does not exist"));
 
             // HeaterOn method - no arguments expected
             methodId = "http://microsoft.com/Opc/OpcPlc/Boiler#s=HeaterOn";
-            methodMetadata = TestHelper.Twin_GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
-            response = TestHelper.Twin_CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, new List<object>()).GetAwaiter().GetResult();
+            methodMetadata = TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
+            response = TestHelper.Twin.CallMethodAsync(_context, _context.OpcUaEndpointId, methodId, methodMetadata.objectId, new List<object>()).GetAwaiter().GetResult();
             Assert.Null(GetErrorMessage(response));
         }
 

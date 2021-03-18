@@ -84,7 +84,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             // check that Application was registered
             cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            dynamic json = TestHelper.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl}).GetAwaiter().GetResult();
+            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl}).GetAwaiter().GetResult();
             bool found = false;
             for(int indexOfTestPlc = 0; indexOfTestPlc < (int)json.items.Count; indexOfTestPlc++) {
 
@@ -151,7 +151,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             try {
                 do {
                     found = false;
-                    json = TestHelper.WaitForEndpointToBeActivatedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
+                    json = TestHelper.Registry.WaitForEndpointToBeActivatedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
 
                     for (int indexOfTestPlc = 0; indexOfTestPlc < (int)json.items.Count; indexOfTestPlc++) {
                         var endpoint = ((string)json.items[indexOfTestPlc].registration.endpointUrl).TrimEnd('/');

@@ -96,7 +96,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var simulatedOpcServer = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();
             var testPlc = simulatedOpcServer.Values.First();
             _context.ConsumedOpcUaNodes[testPlc.EndpointUrl] = _context.GetEntryModelWithoutNodes(testPlc);
-            dynamic json = TestHelper.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
+            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
 
             var numberOfItems = (int)json.items.Count;
             bool found = false;
@@ -116,7 +116,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
         public void Test_GetEndpoints_Expect_OneWithMultipleAuthentication() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var testPlc = _context.ConsumedOpcUaNodes.First().Value;
-            var json = TestHelper.WaitForEndpointDiscoveryToBeCompleted(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
+            var json = TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
 
             var numberOfItems = (int)json.items.Count;
             bool found = false;
@@ -182,7 +182,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var testPlc = _context.ConsumedOpcUaNodes.First().Value;
-            var json = TestHelper.WaitForEndpointToBeActivatedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
+            var json = TestHelper.Registry.WaitForEndpointToBeActivatedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
 
             var numberOfItems = (int)json.items.Count;
             bool found = false;
