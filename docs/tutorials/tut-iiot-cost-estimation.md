@@ -40,15 +40,14 @@ The following factory setups are provided for reference. A slow node changes eve
 | Large        |   75 |      3,750 |        750 |        1,125 | >= B4ms | 1 * S3  |
 
 ## Simulation
-1. Deploy IoT Hub or [minimal configuration](../../deploy/templates/azuredeploy.minimum.json) to a resource group called `rg-iiot`, use the reference above to roughly size the hub
-2. To deploy the ARM template on the Azure Portal:
+1. Deploy IoT Hub or [![Deploy minimal configuration to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FIndustrial-IoT%2Fmaster%2Fdeploy%2Ftemplates%2Fazuredeploy.minimum.json) to a resource group called `rg-iiot`, use the reference above to roughly size the hub
+2. To deploy the [ARM template](../../deploy/templates/azuredeploy.minimum.json) manually on the Azure Portal:
 - Create the resource group and select it
 - Click on *Add* and select *Template deployment (deploy using custom templates)*
 - Click on *Build your own template in the editor*
 - Click on *Load file*, select the template and click on *Save*
 3. On the IoT Hub's blade, add an IoT Edge device
 4. Click on the new IoT Edge device, then *Set Modules -> Add Marketplace Module* and add the following:
-  - OPC Twin
   - OPC Publisher
 5. Set the container options for the OPC Publisher. The `si` value sets publishing of messages to the IoT Hub to every 10 s. The option `mm` sets the messaging mode and `me` the encoding.   
 ```
@@ -72,7 +71,7 @@ The following factory setups are provided for reference. A slow node changes eve
 ```
 6. Copy the *Primary Connection String*
 
-7. Deploy the factory simulation [azuredeploy.aci.simulation.json](./azuredeploy.aci.simulation.json) to a resource group called `rg-plcs`
+7. Deploy the factory simulation [![Deploy factory simulation to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FIndustrial-IoT%2Fmaster%2Fdocs%2Ftutorials%2Fazuredeploy.aci.simulation.json) ([ARM template](./azuredeploy.aci.simulation.json)) to a resource group called `rg-plcs`
 - The simulated factory uses Azure Container Instances (ACI) to simulate the PLCs, which are currently limited to 100 units per Azure region
 - Configure the number of slow and fast nodes, the change rate and data types (e.g. uint)
 - Paste the IoT Edge *Primary Connection String*
