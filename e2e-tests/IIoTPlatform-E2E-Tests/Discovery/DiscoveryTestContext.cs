@@ -38,7 +38,9 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
 
             // Remove servers
             var applicationIds = ServersInfo.Select(s => s.applicationId?.ToString());
-            RemoveAllApplications(applicationIds.OfType<string>().ToList());        
+            RemoveAllApplications(applicationIds.OfType<string>().ToList());
+
+            base.Dispose(true);
         }
 
         private void GetServersInformation() {
