@@ -695,6 +695,72 @@ namespace IIoTPlatform_E2E_Tests {
             return result;
         }
 
+        public static async Task<dynamic> Twin_GetMethodMetadataAsync(
+            IIoTPlatformTestContext context,
+                string endpointId,
+                string methodId = null,
+                CancellationToken ct = default) {
+
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+            var request = new RestRequest(Method.POST);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+
+            request.Resource = $"twin/v2/call/{endpointId}/metadata";
+
+            var body = new {
+                methodId,
+                header = new {
+                    diagnostics = new {
+                        level = "Verbose"
+                    }
+                }
+            };
+
+            request.AddJsonBody(JsonConvert.SerializeObject(body));
+
+            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+            dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
+
+            return json;
+        }
+
+        public static async Task<dynamic> Twin_CallMethodAsync(
+            IIoTPlatformTestContext context,
+                string endpointId,
+                string methodId,
+                string objectId,
+                List<object> arguments,
+                CancellationToken ct = default) {
+
+            var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+            var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+            var request = new RestRequest(Method.POST);
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+
+            request.Resource = $"twin/v2/call/{endpointId}";
+
+            var body = new {
+                methodId,
+                objectId,
+                arguments,
+                header = new {
+                    diagnostics = new {
+                        level = "Verbose"
+                    }
+                }
+            };
+
+            request.AddJsonBody(JsonConvert.SerializeObject(body));
+
+            var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+            dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
+
+            return json;
+        }
+
         /// <summary>
         /// Equivalent to recursive calling GetSetOfUniqueNodesAsync to get the whole hierarchy of nodes
         /// </summary>
