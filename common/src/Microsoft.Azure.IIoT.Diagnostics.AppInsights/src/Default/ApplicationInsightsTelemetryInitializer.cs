@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default {
         /// Constructor
         /// </summary>
         /// <param name="processIdentity"></param>
-        public ApplicationInsightsTelemetryInitializer(IProcessIdentity processIdentity) {
+        public ApplicationInsightsTelemetryInitializer(IProcessIdentity processIdentity = null) {
             _processIdentity = processIdentity;
         }
 
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics.AppInsights.Default {
         public void Initialize(ITelemetry telemetry) {
             if (string.IsNullOrEmpty(telemetry.Context.Cloud.RoleName)) {
                 //set custom role name here
-                telemetry.Context.Cloud.RoleName = _processIdentity.Name;
+                telemetry.Context.Cloud.RoleName = _processIdentity?.Name;
             }
         }
     }
