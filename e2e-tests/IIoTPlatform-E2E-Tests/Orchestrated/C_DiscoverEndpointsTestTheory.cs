@@ -71,6 +71,12 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated {
             // Validate that the endpoint can be found
             var result = TestHelper.WaitForEndpointDiscoveryToBeCompleted(_context, _cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
             Assert.Equal(url, ((string)result.items[0].registration.endpointUrl).TrimEnd('/'));
+
+            // Validate that the certificate can be returned
+            var endpoint = result.items[0].registration.endpoint;
+            Assert.Equal("SignAndEncrypt", endpoint.securityMode.ToString());
+            Assert.Equal("http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256", endpoint.securityPolicy.ToString());
+            Assert.Equal(40, endpoint.certificate.ToString().Length);
         }
 
         [Fact, PriorityOrder(1)]
