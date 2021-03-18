@@ -1255,7 +1255,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcEventTest() {
+        public void PnPlcFullEventTest() {
             var pn = new StringBuilder(@"
 [
     {
@@ -1276,13 +1276,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 ""WhereClause"": {
                     ""Elements"": [
                         {
-                            ""Operator"": ""OfType"",
-                            ""Operands"": [
+                            ""FilterOperator"": ""OfType"",
+                            ""FilterOperands"": [
                                 {
-                                    ""Attribute"": {
-                                        ""NodeId"": ""ns=2;i=235"",
-                                        ""BrowsePath"": """"
-                                    }
+                                    ""NodeId"": ""i=2041"",
+                                    ""BrowsePath"": [
+                                        ""EventId""
+                                    ],
+                                    ""AttributeId"": ""BrowseName"",
+                                    ""Value"": ""ns=2;i=235"",
+                                    ""IndexRange"": ""5:20"",
+                                    ""Index"": 10,
+                                    ""Alias"": ""Test"",
                                 }
                             ]
                         }
@@ -1297,6 +1302,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn.ToString()), new LegacyCliModel()).ToList();
 
+            // Check jobs
             Assert.Single(jobs);
             Assert.Single(jobs[0].WriterGroup.DataSetWriters);
             Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
@@ -1305,22 +1311,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
             Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
+            // Check model
             var model = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
             Assert.Equal("i=2258", model.Id);
             Assert.Equal("i=2258", model.EventNotifier);
+
+            // Check select clauses
             Assert.Single(model.SelectClauses);
             Assert.Equal("i=2041", model.SelectClauses[0].TypeDefinitionId);
             Assert.Single(model.SelectClauses[0].BrowsePath);
             Assert.Equal("EventId", model.SelectClauses[0].BrowsePath[0]);
-            Assert.NotNull(model.SelectClauses[0].AttributeId);
             Assert.Equal(NodeAttribute.BrowseName, model.SelectClauses[0].AttributeId.Value);
             Assert.Equal("5:20", model.SelectClauses[0].IndexRange);
-
-
             Assert.NotNull(model.WhereClause);
             Assert.Single(model.WhereClause.Elements);
+            Assert.Equal(FilterOperatorType.OfType, model.WhereClause.Elements[0].FilterOperator);
+            Assert.Single(model.WhereClause.Elements[0].FilterOperands);
+            Assert.Equal("i=2041", model.WhereClause.Elements[0].FilterOperands[0].NodeId);
+            Assert.Equal("ns=2;i=235", model.WhereClause.Elements[0].FilterOperands[0].Value);
 
-            // TODO: ...
+            // Check where clause
+            Assert.Single(model.WhereClause.Elements[0].FilterOperands[0].BrowsePath);
+            Assert.Equal("EventId", model.WhereClause.Elements[0].FilterOperands[0].BrowsePath[0]);
+            Assert.Equal(NodeAttribute.BrowseName, model.WhereClause.Elements[0].FilterOperands[0].AttributeId.Value);
+            Assert.Equal("5:20", model.WhereClause.Elements[0].FilterOperands[0].IndexRange);
+            Assert.NotNull(model.WhereClause.Elements[0].FilterOperands[0].Index);
+            Assert.Equal((uint)10, model.WhereClause.Elements[0].FilterOperands[0].Index.Value);
+            Assert.Equal("Test", model.WhereClause.Elements[0].FilterOperands[0].Alias);
         }
 
         [Fact]
