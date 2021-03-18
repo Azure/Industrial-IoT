@@ -24,8 +24,6 @@ jobs:
     inputs:
       command: restore 
       projects: 'Industrial-IoT.sln'
-      feedsToUse: 'config'
-      nugetConfigPath: './NuGet.Config'
   - task: MSBuild@1
     displayName: Build
     inputs:
