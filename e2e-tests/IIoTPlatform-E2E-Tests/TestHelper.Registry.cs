@@ -248,7 +248,7 @@ namespace IIoTPlatform_E2E_Tests {
                 while (true) {
                     Assert.False(ct.IsCancellationRequested, "Endpoint was not activated within the expected timeout");
 
-                    var endpointList = await Registry_GetEndpointsAsync(context, ct).ConfigureAwait(false);
+                    var endpointList = await GetEndpointsAsync(context, ct).ConfigureAwait(false);
                     var endpoint = endpointList.FirstOrDefault(e => string.Equals(e.Id, endpointId));
 
                     if (string.Equals(endpoint.ActivationState, TestConstants.StateConstants.ActivatedAndConnected)
@@ -268,7 +268,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// </summary>
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
             /// <param name="ct">Cancellation token</param>
-            public static async Task<List<(string Id, string Url, string ActivationState, string EndpointState)>> Registry_GetEndpointsAsync(
+            public static async Task<List<(string Id, string Url, string ActivationState, string EndpointState)>> GetEndpointsAsync(
                     IIoTPlatformTestContext context,
                     CancellationToken ct = default) {
                 dynamic json = await GetEndpointInternalAsync(context, ct).ConfigureAwait(false);

@@ -11,7 +11,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
     using Xunit;
 
     public class TwinTestContext : IIoTPlatformTestContext {
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TwinTestContext"/> class.
         /// Used for preparation executed once before any tests of the collection are started.
@@ -88,7 +88,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         private void CheckEndpointActivation() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            var endpoints = TestHelper.Registry.Registry_GetEndpointsAsync(this, cts.Token).GetAwaiter().GetResult();
+            var endpoints = TestHelper.Registry.GetEndpointsAsync(this, cts.Token).GetAwaiter().GetResult();
 
             Assert.NotEmpty(endpoints);
 
