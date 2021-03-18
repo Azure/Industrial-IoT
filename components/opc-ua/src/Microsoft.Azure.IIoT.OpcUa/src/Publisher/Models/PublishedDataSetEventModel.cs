@@ -30,12 +30,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Fields to select
         /// </summary>
-        public List<SimpleAttributeOperandModel> SelectedFields { get; set; }
+        public List<SimpleAttributeOperandModel> SelectClauses { get; set; }
 
         /// <summary>
         /// Filter to use
         /// </summary>
-        public ContentFilterModel Filter { get; set; }
+        public ContentFilterModel WhereClause { get; set; }
 
         /// <summary>
         /// Queue size (Publisher extension)

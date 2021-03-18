@@ -143,7 +143,7 @@ if (![string]::IsNullOrEmpty($Subscription)) {
 
 # Check and set registry
 if ([string]::IsNullOrEmpty($Registry)) {
-    $Registry = $env.BUILD_REGISTRY
+    $Registry = $env:BUILD_REGISTRY
     if ([string]::IsNullOrEmpty($Registry)) {
         if ($releaseBuild) {
             # Make sure we do not override latest in release builds - this is done manually later.

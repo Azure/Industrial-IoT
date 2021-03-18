@@ -22,17 +22,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public static MonitoredItemModel ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvent,
             string displayName = null) {
-            if (publishedEvent?.SelectedFields == null) {
+            if (publishedEvent?.SelectClauses == null) {
                 return null;
             }
             return new MonitoredItemModel {
                 Id = publishedEvent.Id,
                 DisplayName = displayName,
                 EventFilter = new EventFilterModel {
-                    SelectClauses = publishedEvent.SelectedFields?
+                    SelectClauses = publishedEvent.SelectClauses?
                         .Select(s => s.Clone())
                         .ToList(),
-                    WhereClause = publishedEvent.Filter.Clone(),
+                    WhereClause = publishedEvent.WhereClause.Clone(),
                 },
                 AggregateFilter = null,
                 DiscardNew = publishedEvent.DiscardNew,

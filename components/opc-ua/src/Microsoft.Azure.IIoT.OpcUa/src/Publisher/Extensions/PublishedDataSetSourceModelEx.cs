@@ -36,19 +36,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <returns></returns>
         public static string GetHashSafe(this PublishedDataSetSourceModel model) {
+            var publishedVariableData = model.PublishedVariables.PublishedData.FirstOrDefault();
+            var publishedEventData = model.PublishedEvents.PublishedData.FirstOrDefault();
             var id =  model.Connection?.Endpoint?.Url +
                 model.Connection?.Endpoint?.SecurityMode.ToString() +
                 model.Connection?.Endpoint?.SecurityPolicy + 
                 model.Connection?.User?.Type.ToString() +
                 model.Connection?.User?.Value.ToJson() +
                 model.SubscriptionSettings?.PublishingInterval.ToString() +
-                model.PublishedVariables.PublishedData.FirstOrDefault()?.Id +
-                model.PublishedVariables.PublishedData.FirstOrDefault()?.PublishedVariableNodeId +
-                model.PublishedVariables.PublishedData.FirstOrDefault()?.PublishedVariableDisplayName +
-                model.PublishedVariables.PublishedData.FirstOrDefault()?.SamplingInterval +
-                model.PublishedVariables.PublishedData.FirstOrDefault()?.HeartbeatInterval +
-                model.PublishedEvents.PublishedData.FirstOrDefault()?.Id +
-                model.PublishedEvents.PublishedData.FirstOrDefault()?.EventNotifier;
+                publishedVariableData?.Id +
+                publishedVariableData?.PublishedVariableNodeId +
+                publishedVariableData?.PublishedVariableDisplayName +
+                publishedVariableData?.SamplingInterval +
+                publishedVariableData?.HeartbeatInterval +
+                publishedEventData?.Id +
+                publishedEventData?.EventNotifier;
             return id.ToSha1Hash();
         }
     }

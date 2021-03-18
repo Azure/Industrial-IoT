@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     using System.Linq;
     using System.Text;
     using Xunit;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
     /// Test
@@ -1254,38 +1255,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcEventTest() {
+        public void PnPlcJobWithAllEventPropertiesTest() {
             var pn = new StringBuilder(@"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcEvents"": [
-           {
+            {
                 ""Id"": ""i=2258"",
-                ""EventFilter"": {
-                    ""SelectClauses"": [
-                        {
-                            ""TypeId"": ""i=2041"",
-                            ""BrowsePaths"": [
+                ""SelectClauses"": [
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
                             ""EventId""
+                        ],
+                        ""AttributeId"": ""BrowseName"",
+                        ""IndexRange"": ""5:20""
+                    }
+                ],
+                ""WhereClause"": {
+                    ""Elements"": [
+                        {
+                            ""FilterOperator"": ""OfType"",
+                            ""FilterOperands"": [
+                                {
+                                    ""NodeId"": ""i=2041"",
+                                    ""BrowsePath"": [
+                                        ""EventId""
+                                    ],
+                                    ""AttributeId"": ""BrowseName"",
+                                    ""Value"": ""ns=2;i=235"",
+                                    ""IndexRange"": ""5:20"",
+                                    ""Index"": 10,
+                                    ""Alias"": ""Test"",
+                                }
                             ]
                         }
-                    ],
-                   ""WhereClause"": {
-                        ""Elements"": [
-                            {
-                                ""Operator"": ""OfType"",
-                                ""Operands"": [
-                                    {
-                                        ""Attribute"": {
-                                            ""NodeId"": ""ns=2;i=235"",
-                                            ""BrowsePath"": """"
-                                            }
-                                    }
-                                ]
-                            }
-                        ]
-                    }
+                    ]
                 }
             }
         ]
@@ -1296,31 +1302,54 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
             var jobs = converter.Read(new StringReader(pn.ToString()), new LegacyCliModel()).ToList();
 
+            // Check jobs
             Assert.Single(jobs);
-            Assert.Single(jobs.Single().WriterGroup.DataSetWriters);
-            Assert.Single(jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedEvents.PublishedData);
-            Assert.NotNull(jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedVariables);
-            Assert.NotNull(jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedEvents);
-            Assert.Empty(jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedVariables.PublishedData);
-            Assert.Single(jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.NotNull(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables);
+            Assert.NotNull(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents);
+            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
-            var model = jobs.Single().WriterGroup.DataSetWriters.Single().DataSet.DataSetSource.PublishedEvents.PublishedData.Single();
+            // Check model
+            var model = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
             Assert.Equal("i=2258", model.Id);
+            Assert.Equal("i=2258", model.EventNotifier);
 
-            // TODO: ...
+            // Check select clauses
+            Assert.Single(model.SelectClauses);
+            Assert.Equal("i=2041", model.SelectClauses[0].TypeDefinitionId);
+            Assert.Single(model.SelectClauses[0].BrowsePath);
+            Assert.Equal("EventId", model.SelectClauses[0].BrowsePath[0]);
+            Assert.Equal(NodeAttribute.BrowseName, model.SelectClauses[0].AttributeId.Value);
+            Assert.Equal("5:20", model.SelectClauses[0].IndexRange);
+            Assert.NotNull(model.WhereClause);
+            Assert.Single(model.WhereClause.Elements);
+            Assert.Equal(FilterOperatorType.OfType, model.WhereClause.Elements[0].FilterOperator);
+            Assert.Single(model.WhereClause.Elements[0].FilterOperands);
+            Assert.Equal("i=2041", model.WhereClause.Elements[0].FilterOperands[0].NodeId);
+            Assert.Equal("ns=2;i=235", model.WhereClause.Elements[0].FilterOperands[0].Value);
+
+            // Check where clause
+            Assert.Single(model.WhereClause.Elements[0].FilterOperands[0].BrowsePath);
+            Assert.Equal("EventId", model.WhereClause.Elements[0].FilterOperands[0].BrowsePath[0]);
+            Assert.Equal(NodeAttribute.BrowseName, model.WhereClause.Elements[0].FilterOperands[0].AttributeId.Value);
+            Assert.Equal("5:20", model.WhereClause.Elements[0].FilterOperands[0].IndexRange);
+            Assert.NotNull(model.WhereClause.Elements[0].FilterOperands[0].Index);
+            Assert.Equal((uint)10, model.WhereClause.Elements[0].FilterOperands[0].Index.Value);
+            Assert.Equal("Test", model.WhereClause.Elements[0].FilterOperands[0].Alias);
         }
 
         [Fact]
         public void PnPlcMultiJob1TestWithEvents() {
-
             var pn = @"
 [
     {
         ""EndpointUrl"": ""opc.tcp://localhost1:50000"",
         ""NodeId"": {
-                ""Identifier"": ""i=2258""
+            ""Identifier"": ""i=2258""
         }
-        },
+    },
     {
         ""EndpointUrl"": ""opc.tcp://localhost2:50000"",
         ""NodeId"": {
@@ -1334,37 +1363,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
             }
         ],
-       ""OpcEvents"": [
-           {
+        ""OpcEvents"": [
+            {
                 ""Id"": ""i=2253"",
                 ""OpcSamplingInterval"": 2000,
                 ""OpcPublishingInterval"": 5000,
                 ""Heartbeat"": 3600,
                 ""SkipFirst"": true,
-                ""EventFilter"": {
-                    ""SelectClauses"": [
-                        {
-                            ""TypeId"": ""i=2041"",
-                            ""BrowsePaths"": [
+                ""SelectClauses"": [
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
                             ""EventId""
-                            ]
-                        }
-                    ],
-                   ""WhereClause"": {
-                        ""Elements"": [
-                            {
-                                ""Operator"": ""OfType"",
-                                ""Operands"": [
-                                    {
-                                        ""Attribute"": {
-                                            ""NodeId"": ""ns=2;i=235"",
-                                            ""BrowsePath"": """"
-                                            }
-                                    }
-                                ]
-                            }
                         ]
                     }
+                ],
+                ""WhereClause"": {
+                    ""Elements"": [
+                        {
+                            ""FilterOperator"": ""OfType"",
+                            ""FilterOperands"": [
+                                {
+                                    ""Value"": ""ns=2;i=235""
+                                }
+                            ]
+                        }
+                    ]
                 }
             }
         ]
@@ -1386,10 +1410,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ]
 ";
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel()).ToList();
 
-            Assert.NotEmpty(jobs);
-
+            Assert.Equal(4, jobs.Count);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
+            Assert.Single(jobs[1].WriterGroup.DataSetWriters);
+            Assert.Equal(2, jobs[2].WriterGroup.DataSetWriters.Count);
+            Assert.Single(jobs[3].WriterGroup.DataSetWriters);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.Single(jobs[1].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Empty(jobs[1].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.Single(jobs[2].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Empty(jobs[2].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.Empty(jobs[2].WriterGroup.DataSetWriters[1].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(jobs[2].WriterGroup.DataSetWriters[1].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.NotEmpty(jobs[3].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Empty(jobs[3].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
         }
 
         [Fact]
@@ -1398,97 +1435,95 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             var pn = @"
 [
     {
-    ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
-    ""UseSecurity"": false,
-    ""OpcEvents"": [
-      {
-        ""Id"": ""i=2253"",
-        ""OpcSamplingInterval"": 2000,
-        ""OpcPublishingInterval"": 5000,
-        ""Heartbeat"": 3600,
-        ""SkipFirst"": true,
-        ""EventFilter"": {
-	        ""SelectClauses"": [
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""EventId""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""EventType""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""SourceNode""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""SourceName""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""Time""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""ReceiveTime""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""LocalTime""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""Message""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""Severity""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""2:CycleId""
-	            ] 
-	          },
-	          {
-	            ""TypeId"": ""i=2041"",
-                    ""BrowsePaths"": [
-	              ""2:CurrentStep""
-	            ] 
-	          }
-	        ],
-	        ""WhereClause"": {
-                ""Elements"": [
-	              {
-	                ""Operator"": ""OfType"",
-	                ""Operands"": [
-	                  {
-                            ""Literal"": ""ns=2;i=235""
-                          }
-	                ]
-                      }
+        ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
+        ""UseSecurity"": false,
+        ""OpcEvents"": [
+            {
+                ""Id"": ""i=2253"",
+                ""OpcSamplingInterval"": 2000,
+                ""OpcPublishingInterval"": 5000,
+                ""Heartbeat"": 3600,
+                ""SkipFirst"": true,
+                ""SelectClauses"": [
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""EventId""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""EventType""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""SourceNode""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""SourceName""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""Time""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""ReceiveTime""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""LocalTime""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""Message""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""Severity""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""2:CycleId""
+                        ]
+                    },
+                    {
+                        ""TypeId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""2:CurrentStep""
+                        ]
+                    }
+                ],
+                ""WhereClause"": {
+                    ""Elements"": [
+                        {
+                            ""FilterOperator"": ""OfType"",
+                            ""FilterOperands"": [
+                                {
+                                    ""Value"": ""ns=2;i=235""
+                                }
+                            ]
+                        }
                     ]
                 }
-              }
             }
         ]
     }
