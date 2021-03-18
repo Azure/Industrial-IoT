@@ -1373,7 +1373,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 ""SelectClauses"": [
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""EventId""
                         ]
                     }
@@ -1447,67 +1447,67 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 ""SelectClauses"": [
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""EventId""
                         ]
                     },
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""EventType""
                         ]
                     },
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""SourceNode""
                         ]
                     },
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""SourceName""
                         ]
                     },
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""Time""
                         ]
                     },
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""ReceiveTime""
                         ]
                     },
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""LocalTime""
                         ]
                     },
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""Message""
                         ]
                     },
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""Severity""
                         ]
                     },
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""2:CycleId""
                         ]
                     },
                     {
                         ""TypeId"": ""i=2041"",
-                        ""BrowsePaths"": [
+                        ""BrowsePath"": [
                             ""2:CurrentStep""
                         ]
                     }
