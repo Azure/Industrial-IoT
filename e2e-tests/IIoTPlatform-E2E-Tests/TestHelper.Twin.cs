@@ -223,6 +223,79 @@ namespace IIoTPlatform_E2E_Tests {
             }
 
             /// <summary>
+            /// Reads node attributes
+            /// </summary>
+            /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+            /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
+            /// <param name="attributes">Attributes to be read</param>
+            /// <param name="ct">Cancellation token</param>
+            public static async Task<dynamic> ReadNodeAttributesAsync(
+                    IIoTPlatformTestContext context,
+                    string endpointId,
+                    List<object> attributes,
+                    CancellationToken ct = default) {
+
+                var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+                var request = new RestRequest(Method.POST);
+                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                request.Resource = $"twin/v2/read/{endpointId}/attributes";
+
+                var body = new { attributes };
+
+                request.AddJsonBody(JsonConvert.SerializeObject(body));
+
+                var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+
+                Assert.NotNull(response);
+                if (!response.IsSuccessful) {
+                    context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                    context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                    Assert.True(response.IsSuccessful, "GET twin/v2/browse/{endpointId} failed!");
+                }
+
+                var json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter()); 
+                return json;
+            }
+
+            /// <summary>
+            /// Writes node attributes
+            /// </summary>
+            /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+            /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
+            /// <param name="attributes">Attributes to be written</param>
+            /// <param name="ct">Cancellation token</param>
+            public static async Task<dynamic> WriteNodeAttributesAsync(
+                    IIoTPlatformTestContext context,
+                    string endpointId,
+                    List<object> attributes,
+                    CancellationToken ct = default) {
+
+                var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+                var request = new RestRequest(Method.POST);
+                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                request.Resource = $"twin/v2/write/{endpointId}/attributes";
+
+                var body = new { attributes };
+
+                request.AddJsonBody(JsonConvert.SerializeObject(body));
+
+                var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+
+                Assert.NotNull(response);
+                if (!response.IsSuccessful) {
+                    context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
+                    context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                    Assert.True(response.IsSuccessful, "GET twin/v2/browse/{endpointId} failed!");
+                }
+
+                return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
+            }
+
+            /// <summary>
             /// Calls a method
             /// </summary>
             /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
