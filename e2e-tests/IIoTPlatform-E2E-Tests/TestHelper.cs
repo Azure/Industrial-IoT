@@ -157,15 +157,16 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="route">Route for the url</param>
         /// <param name="body">Body for the request</param>
         /// <param name="queryParameters">Additional query parameters</param>
+        /// /// <param name="ct">Cancellation token</param>
         public static IRestResponse CallRestApi(
             IIoTPlatformTestContext context,
             Method method,
             string route,
             object body = null,
-            Dictionary<string, string> queryParameters = null
+            Dictionary<string, string> queryParameters = null,
+            CancellationToken ct = default
         ) {
-            var cancellationTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var accessToken = GetTokenAsync(context, cancellationTokenSource.Token).GetAwaiter().GetResult();
+            var accessToken = GetTokenAsync(context, ct).GetAwaiter().GetResult();
 
             var request = new RestRequest(method);
             request.Resource = route;
@@ -182,7 +183,7 @@ namespace IIoTPlatform_E2E_Tests {
             }
 
             var restClient = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
-            var response = restClient.ExecuteAsync(request, cancellationTokenSource.Token).GetAwaiter().GetResult();
+            var response = restClient.ExecuteAsync(request, ct).GetAwaiter().GetResult();
             return response;
         }
 
