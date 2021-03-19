@@ -16,8 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Type definition node id if operand is
         /// simple or full attribute operand.
         /// </summary>
-        [DataMember(Name = "nodeId", Order = 0)]
-        public string NodeId { get; set; }
+        [DataMember(Name = "typeDefinitionId", Order = 0)]
+        public string TypeDefinitionId { get; set; }
 
         /// <summary>
         /// Browse path of attribute operand

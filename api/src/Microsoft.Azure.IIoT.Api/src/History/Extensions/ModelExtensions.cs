@@ -1160,7 +1160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
                 return null;
             }
             return new SimpleAttributeOperandModel {
-                NodeId = model.NodeId,
+                TypeDefinitionId = model.TypeDefinitionId,
                 AttributeId = (OpcUa.Core.Models.NodeAttribute?)model.AttributeId,
                 BrowsePath = model.BrowsePath,
                 IndexRange = model.IndexRange
@@ -1176,7 +1176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
                 return null;
             }
             return new SimpleAttributeOperandApiModel {
-                NodeId = model.NodeId,
+                TypeDefinitionId = model.TypeDefinitionId,
                 AttributeId = (Core.Models.NodeAttribute?)model.AttributeId,
                 BrowsePath = model.BrowsePath,
                 IndexRange = model.IndexRange

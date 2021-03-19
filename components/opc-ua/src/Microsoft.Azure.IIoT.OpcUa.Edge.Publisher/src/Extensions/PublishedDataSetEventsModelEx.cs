@@ -16,31 +16,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Convert to monitored item
         /// </summary>
-        /// <param name="publishedEvents"></param>
+        /// <param name="publishedEvent"></param>
         /// <param name="displayName"></param>
         /// <returns></returns>
         public static MonitoredItemModel ToMonitoredItem(
-            this PublishedDataSetEventsModel publishedEvents,
+            this PublishedDataSetEventModel publishedEvent,
             string displayName = null) {
-            if (publishedEvents?.SelectedFields == null) {
+            if (publishedEvent?.SelectClauses == null) {
                 return null;
             }
             return new MonitoredItemModel {
-                Id = publishedEvents.Id,
+                Id = publishedEvent.Id,
                 DisplayName = displayName,
                 EventFilter = new EventFilterModel {
-                    SelectClauses = publishedEvents.SelectedFields?
+                    SelectClauses = publishedEvent.SelectClauses?
                         .Select(s => s.Clone())
                         .ToList(),
-                    WhereClause = publishedEvents.Filter.Clone(),
+                    WhereClause = publishedEvent.WhereClause.Clone(),
                 },
                 AggregateFilter = null,
-                DiscardNew = publishedEvents.DiscardNew,
-                QueueSize = publishedEvents.QueueSize,
-                TriggerId = publishedEvents.TriggerId,
-                MonitoringMode = publishedEvents.MonitoringMode,
-                StartNodeId = publishedEvents.EventNotifier,
-                RelativePath = publishedEvents.BrowsePath,
+                DiscardNew = publishedEvent.DiscardNew,
+                QueueSize = publishedEvent.QueueSize,
+                TriggerId = publishedEvent.TriggerId,
+                MonitoringMode = publishedEvent.MonitoringMode,
+                StartNodeId = publishedEvent.EventNotifier,
+                RelativePath = publishedEvent.BrowsePath,
                 AttributeId = null,
                 DataChangeFilter = null,
                 IndexRange = null,

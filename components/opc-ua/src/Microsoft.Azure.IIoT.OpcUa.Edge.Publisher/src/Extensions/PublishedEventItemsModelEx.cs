@@ -10,23 +10,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using System;
 
     /// <summary>
-    /// Published data items extensions
+    /// Published event items extensions
     /// </summary>
-    public static class PublishedDataItemsModelEx {
+    public static class PublishedEventItemsModelEx {
 
         /// <summary>
-        /// Convert to monitored items including heartbeat handling.
+        /// Convert to monitored items
         /// </summary>
-        /// <param name="dataItems"></param>
+        /// <param name="eventItems"></param>
         /// <returns></returns>
         public static IEnumerable<MonitoredItemModel> ToMonitoredItems(
-            this PublishedDataItemsModel dataItems) {
-            if (dataItems?.PublishedData == null) {
+            this PublishedEventItemsModel eventItems) {
+            if (eventItems?.PublishedData == null) {
                 return Enumerable.Empty<MonitoredItemModel>();
             }
 
             var map = new Dictionary<string, MonitoredItemModel>();
-            foreach (var item in dataItems.PublishedData) {
+            foreach (var item in eventItems.PublishedData) {
                 if (item == null) {
                     continue;
                 }

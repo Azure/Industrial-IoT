@@ -17,20 +17,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static PublishedDataSetEventsModel Clone(this PublishedDataSetEventsModel model) {
+        public static PublishedDataSetEventModel Clone(this PublishedDataSetEventModel model) {
             if (model == null) {
                 return null;
             }
-            return new PublishedDataSetEventsModel {
+            return new PublishedDataSetEventModel {
                 Id = model.Id,
                 MonitoringMode = model.MonitoringMode,
                 TriggerId = model.TriggerId,
                 DiscardNew = model.DiscardNew,
                 EventNotifier = model.EventNotifier,
-                Filter = model.Filter.Clone(),
+                WhereClause = model.WhereClause.Clone(),
                 QueueSize = model.QueueSize,
                 BrowsePath = model.BrowsePath,
-                SelectedFields = model.SelectedFields?
+                SelectClauses = model.SelectClauses?
                     .Select(f => f.Clone())
                     .ToList()
             };
