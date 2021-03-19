@@ -59,7 +59,7 @@ steps:
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-    arguments: '--configuration Release --filter PublisherMode=${{ parameters.PublisherMode }}|TwinMode=default|DiscovererMode=default --verbosity=normal'
+    arguments: '--configuration Release --filter PublisherMode=${{ parameters.PublisherMode }}|TwinMode=default|DiscoveryMode=default --verbosity=normal'
   env:
     PCS_SERVICE_URL: '$(pcs-service-url)'
     PCS_AUTH_TENANT: '$(pcs-auth-tenant)'

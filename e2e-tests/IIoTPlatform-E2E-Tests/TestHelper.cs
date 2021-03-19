@@ -150,6 +150,44 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
+        /// Call rest API
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="method">REST method (Get, Post, Delete...)</param>
+        /// <param name="route">Route for the url</param>
+        /// <param name="body">Body for the request</param>
+        /// <param name="queryParameters">Additional query parameters</param>
+        /// /// <param name="ct">Cancellation token</param>
+        public static IRestResponse CallRestApi(
+            IIoTPlatformTestContext context,
+            Method method,
+            string route,
+            object body = null,
+            Dictionary<string, string> queryParameters = null,
+            CancellationToken ct = default
+        ) {
+            var accessToken = GetTokenAsync(context, ct).GetAwaiter().GetResult();
+
+            var request = new RestRequest(method);
+            request.Resource = route;
+            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+
+            if (body != null) {
+                request.AddJsonBody(JsonConvert.SerializeObject(body));
+            }
+
+            if (queryParameters != null) {
+                foreach (var param in queryParameters) {
+                    request.AddQueryParameter(param.Key, param.Value);
+                }
+            }
+
+            var restClient = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+            var response = restClient.ExecuteAsync(request, ct).GetAwaiter().GetResult();
+            return response;
+        }
+
+        /// <summary>
         /// transfer the content of published_nodes.json file into the OPC Publisher edge module
         /// </summary>
         /// <param name="entries">Entries for published_nodes.json</param>
