@@ -126,49 +126,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             }
             Assert.True(found, "Could not find endpoints of OPC Application");
 
-            // Activate OPC UA Endpoint
+            // Activate OPC UA Endpoint and wait until it's activated
             cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
-            request = new RestRequest(Method.POST);
-            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-            request.Resource = string.Format(TestConstants.APIRoutes.RegistryActivateEndpointsFormat, _context.OpcUaEndpointId);
-
-            response = client.ExecuteAsync(request, cts.Token).GetAwaiter().GetResult();
-            Assert.NotNull(response);
-
-            if (!response.IsSuccessful) {
-                _output.WriteLine($"StatusCode: {response.StatusCode}");
-                _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
-            }
-
-            Assert.Empty(response.Content);
-
-            // wait until OPC UA Endpoint is activated
-            cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            cts.Token.ThrowIfCancellationRequested();
-            string endpointState = string.Empty;
-            try {
-                do {
-                    found = false;
-                    json = TestHelper.Registry.WaitForEndpointToBeActivatedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
-
-                    for (int indexOfTestPlc = 0; indexOfTestPlc < (int)json.items.Count; indexOfTestPlc++) {
-                        var endpoint = ((string)json.items[indexOfTestPlc].registration.endpointUrl).TrimEnd('/');
-                        if (endpoint == testPlc.EndpointUrl) {
-                            found = true;
-                            endpointState = (string)json.items[indexOfTestPlc].endpointState;
-                            break;
-                        }
-                    }
-                } while (endpointState != "Ready");
-            }
-            catch (Exception) {
-                _context.OutputHelper?.WriteLine("Error: OPC UA endpoint couldn't be activated");
-                throw;
-            }
-
-            Assert.True(found, "OPC UA Endpoint couldn't be activated");
+            TestHelper.Registry.ActivateEndpointAsync(_context, _context.OpcUaEndpointId, cts.Token).GetAwaiter().GetResult();
         }
 
         [Fact, PriorityOrder(52)]
