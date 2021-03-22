@@ -685,6 +685,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         return;
                     }
 
+                    if (notification.Events.Count == 0) {
+                        _logger.Warning(
+                            "EventChange for subscription: {Subscription} having no events",
+                            subscription.DisplayName);
+                        return;
+                    }
+
                     if (_currentlyMonitored == null) {
                         _logger.Information(
                             "EventChange for subscription: {Subscription} having no monitored items yet",
@@ -693,11 +700,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     // check if notification is a keep alive
-                    var isKeepAlive = notification?.Events?.Count == 1 &&
-                                      notification?.Events?.First().ClientHandle == 0 &&
-                                      notification?.Events?.First().Message?.NotificationData?.Count == 0;
-                    var sequenceNumber = notification?.Events?.First().Message?.SequenceNumber;
-                    var publishTime = (notification?.Events?.First().Message?.PublishTime).
+                    var isKeepAlive = notification.Events.First().ClientHandle == 0 &&
+                                      notification.Events.First().Message?.NotificationData?.Count == 0;
+                    var sequenceNumber = notification.Events.First().Message?.SequenceNumber;
+                    var publishTime = (notification.Events.First().Message?.PublishTime).
                         GetValueOrDefault(DateTime.UtcNow);
 
                     _logger.Debug("Event for subscription: {Subscription}, sequence#: " +
@@ -715,7 +721,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     };
 
                     if (message.Notifications?.Any() == true) {
-                        OnSubscriptionEventChange?.Invoke(this, message);
+                        OnSubscriptionEventChange.Invoke(this, message);
                     }
                 }
                 catch (Exception e) {
@@ -825,7 +831,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     if (message.Notifications?.Any() == true) {
-                        OnSubscriptionDataChange?.Invoke(this, message);
+                        OnSubscriptionDataChange.Invoke(this, message);
                     }
                 }
                 catch (Exception e) {
