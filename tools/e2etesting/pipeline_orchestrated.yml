@@ -43,7 +43,7 @@ stages:
     steps:
     - template: steps/deploytestresources.yml
 
-- stage: runtests
+- stage: runtestspublisher
   displayName: "Execute publisher tests"
   dependsOn: deploy
   condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
@@ -57,7 +57,7 @@ stages:
         ModeName: PublisherMode
         ModeValue: orchestrated
 
-- stage: runtests
+- stage: runteststwin
   displayName: "Execute twin tests"
   dependsOn: deploy
   condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
@@ -71,7 +71,7 @@ stages:
         ModeName: TwinMode
         ModeValue: default
 
-- stage: runtests
+- stage: runtestsdiscovery
   displayName: "Execute discovery tests"
   dependsOn: deploy
   condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
