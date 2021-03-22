@@ -47,14 +47,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <returns></returns>
         public static IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
             this EventNotificationList notification, IEnumerable<MonitoredItem> monitoredItems) {
+            if (notification == null) {
+                yield return null;
+            }
+
             for (var i = 0; i < notification.Events.Count; i++) {
                 var monitoredItem = monitoredItems.SingleOrDefault(
-                        m => m.ClientHandle == notification?.Events[i]?.ClientHandle);
+                        m => m.ClientHandle == notification.Events[i].ClientHandle);
                 if (monitoredItem == null) {
                     continue;
                 }
 
-                var message = notification?.Events[i]?
+                var message = notification.Events[i]
                     .ToMonitoredItemNotification(monitoredItem);
                 if (message == null) {
                     continue;
