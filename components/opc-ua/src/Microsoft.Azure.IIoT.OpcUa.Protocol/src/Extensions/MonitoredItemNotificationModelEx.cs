@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <returns></returns>
         public static IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
             this EventNotificationList notification, IEnumerable<MonitoredItem> monitoredItems) {
-            if (notification == null) {
+            if (notification == null || notification.Events == null) {
                 yield return null;
             }
 

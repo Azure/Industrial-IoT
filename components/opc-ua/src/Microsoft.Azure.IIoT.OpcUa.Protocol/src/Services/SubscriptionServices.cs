@@ -678,6 +678,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (OnSubscriptionEventChange == null) {
                         return;
                     }
+
+                    if (subscription == null) {
+                        _logger.Warning(
+                            "EventChange for subscription: Subscription is null");
+                        return;
+                    }
+
                     if (notification == null) {
                         _logger.Warning(
                             "EventChange for subscription: {Subscription} having empty notification",
