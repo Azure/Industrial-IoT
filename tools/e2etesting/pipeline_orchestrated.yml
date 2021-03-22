@@ -85,9 +85,9 @@ stages:
         ModeName: DiscoveryMode
         ModeValue: default
 
-- stage: runtestsdiscovery
+- stage: cleanup
   displayName: Cleanup resources
-  dependsOn: runtests
+  dependsOn: runtestsdiscovery
   condition: and(not(canceled()), eq(variables['Cleanup'], true))
   jobs:
   - job: cleanup
