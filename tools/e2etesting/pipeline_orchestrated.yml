@@ -44,7 +44,7 @@ stages:
     - template: steps/deploytestresources.yml
 
 - stage: runtests
-  displayName: "Execute tests"
+  displayName: "Execute publisher tests"
   dependsOn: deploy
   condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
   jobs:
@@ -54,7 +54,36 @@ stages:
     steps:
     - template: steps/runtests.yml
       parameters:
-        PublisherMode: 'orchestrated'
+        ModeName: PublisherMode
+        ModeValue: orchestrated
+
+- stage: runtests
+  displayName: "Execute twin tests"
+  dependsOn: deploy
+  condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
+  jobs:
+  - job: runtests
+    timeoutInMinutes: 120
+    displayName: 'Run End 2 End Tests'
+    steps:
+    - template: steps/runtests.yml
+      parameters:
+        ModeName: TwinMode
+        ModeValue: default
+
+- stage: runtests
+  displayName: "Execute discovery tests"
+  dependsOn: deploy
+  condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
+  jobs:
+  - job: runtests
+    timeoutInMinutes: 120
+    displayName: 'Run End 2 End Tests'
+    steps:
+    - template: steps/runtests.yml
+      parameters:
+        ModeName: DiscoveryMode
+        ModeValue: default
 
 - stage: cleanup
   displayName: Cleanup resources

@@ -1,5 +1,7 @@
 parameters:
-- name: PublisherMode
+- name: ModeName
+  type: string
+- name: ModeValue
   type: string
 
 steps:
@@ -47,19 +49,19 @@ steps:
 
 - task: AzureKeyVault@1
   displayName: 'Retrieve KeyVault secrets for API tests'
-  condition: eq( '${{ parameters.PublisherMode }}', 'orchestrated')
+  condition: ne( '${{ parameters.ModeValue }}', 'orchestrated')
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
     SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
 - task: DotNetCoreCLI@2
-  displayName: 'Executing xUnit tests (with PublisherMode=${{ parameters.PublisherMode }})'
+  displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
   timeoutInMinutes: 90
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
-    arguments: '--configuration Release --filter PublisherMode=${{ parameters.PublisherMode }}|TwinMode=default|DiscoveryMode=default --verbosity=normal'
+    arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal'
   env:
     PCS_SERVICE_URL: '$(pcs-service-url)'
     PCS_AUTH_TENANT: '$(pcs-auth-tenant)'
