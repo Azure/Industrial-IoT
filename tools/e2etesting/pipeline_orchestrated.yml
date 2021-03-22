@@ -73,10 +73,10 @@ stages:
 
 - stage: runtestsdiscovery
   displayName: "Execute discovery tests"
-  dependsOn: deploy
+  dependsOn: runteststwin
   condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
   jobs:
-  - job: runteststwin
+  - job: runtests
     timeoutInMinutes: 120
     displayName: 'Run End 2 End Tests'
     steps:
