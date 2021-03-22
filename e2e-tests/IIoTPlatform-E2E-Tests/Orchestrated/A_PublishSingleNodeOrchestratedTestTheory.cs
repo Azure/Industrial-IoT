@@ -146,7 +146,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             Assert.True(found, "OPC UA Endpoint not found");
         }
 
-            [Fact, PriorityOrder(6)]
+        [Fact, PriorityOrder(6)]
         public void Test_ActivateEndpoint_Expect_Success() {
 
             // used if running test cases separately (during development)
@@ -155,26 +155,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
                 Assert.False(string.IsNullOrWhiteSpace(_context.OpcUaEndpointId));
             }
 
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var accessToken = TestHelper.GetTokenAsync(_context, cts.Token).GetAwaiter().GetResult();
-            var client = new RestClient(_context.IIoTPlatformConfigHubConfig.BaseUrl) {
-                Timeout = TestConstants.DefaultTimeoutInMilliseconds
-            };
-
-            var request = new RestRequest(Method.POST);
-            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-            request.Resource = string.Format(TestConstants.APIRoutes.RegistryActivateEndpointsFormat, _context.OpcUaEndpointId);
-
-            var response = client.ExecuteAsync(request, cts.Token).GetAwaiter().GetResult();
-            Assert.NotNull(response);
-
-            if (!response.IsSuccessful) {
-                _output.WriteLine($"StatusCode: {response.StatusCode}");
-                _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
-            }
-
-            Assert.Empty(response.Content);
+            TestHelper.Registry.ActivateEndpointAsync(_context, _context.OpcUaEndpointId).GetAwaiter().GetResult();
         }
 
         [Fact, PriorityOrder(7)]
