@@ -718,13 +718,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
 
                     var message = new SubscriptionNotificationModel {
-                        ServiceMessageContext = subscription?.Session?.MessageContext,
-                        ApplicationUri = subscription?.Session?.Endpoint?.Server?.ApplicationUri,
-                        EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
+                        ServiceMessageContext = subscription.Session?.MessageContext,
+                        ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
+                        EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
                         SubscriptionId = Id,
                         Timestamp = publishTime,
                         Notifications = notification.ToMonitoredItemNotifications(
-                                subscription?.MonitoredItems)?.ToList()
+                                subscription.MonitoredItems)?.ToList()
                     };
 
                     if (message.Notifications?.Any() == true) {
