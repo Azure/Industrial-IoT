@@ -43,6 +43,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Convert to monitored item notifications
         /// </summary>
         /// <param name="notification"></param>
+        /// <param name="monitoredItems"></param>
+        /// <returns></returns>
+        public static IEnumerable<MonitoredItemNotificationModel> ToMonitoredItemNotifications(
+            this EventNotificationList notification, IEnumerable<MonitoredItem> monitoredItems) {
+            if (notification != null && notification.Events != null) {
+                for (var i = 0; i < notification.Events.Count; i++) {
+                    var monitoredItem = monitoredItems.SingleOrDefault(
+                            m => m.ClientHandle == notification.Events[i].ClientHandle);
+                    if (monitoredItem == null) {
+                        continue;
+                    }
+
+                    var message = notification.Events[i]
+                        .ToMonitoredItemNotification(monitoredItem);
+                    if (message == null) {
+                        continue;
+                    }
+                    yield return message;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Convert to monitored item notifications
+        /// </summary>
+        /// <param name="notification"></param>
         /// <param name="monitoredItem"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
@@ -129,7 +155,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     ? null
                     : eventFieldList.Message.StringTable,
                 IsHeartbeat = false
-                
+
             };
         }
 

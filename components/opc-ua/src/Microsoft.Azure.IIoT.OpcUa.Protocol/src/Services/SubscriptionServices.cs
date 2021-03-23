@@ -83,7 +83,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public ConnectionModel Connection => _subscription.Connection;
 
             /// <inheritdoc/>
-            public event EventHandler<SubscriptionNotificationModel> OnSubscriptionChange;
+            public event EventHandler<SubscriptionNotificationModel> OnSubscriptionDataChange;
+
+            /// <inheritdoc/>
+            public event EventHandler<SubscriptionNotificationModel> OnSubscriptionEventChange;
 
             /// <inheritdoc/>
             public event EventHandler<SubscriptionNotificationModel> OnMonitoredItemChange;
@@ -409,6 +412,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                         try {
                             toAdd.Create(rawSubscription.Session, codec, activate);
+                            if (toAdd.Template.EventFilter?.SelectClauses?.Count > 0) {
+                                toAdd.Item.AttributeId = Attributes.EventNotifier;
+                            }
                             toAdd.Item.Notification += OnMonitoredItemChanged;
                             nowMonitored.Add(toAdd);
                             count++;
@@ -579,6 +585,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         PublishingEnabled = activate, // false on initialization
                         KeepAliveCount = revisedKeepAliveCount,
                         FastDataChangeCallback = OnSubscriptionDataChanged,
+                        FastEventCallback = OnSubscriptionEventChanged,
                         PublishingInterval = (int)_subscription.Configuration.PublishingInterval
                             .GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
                         MaxNotificationsPerPublish = _subscription.Configuration.MaxNotificationsPerPublish
@@ -666,6 +673,69 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return subscription;
             }
 
+            private void OnSubscriptionEventChanged(Subscription subscription, EventNotificationList notification, IList<string> stringTable) {
+                try {
+                    if (OnSubscriptionEventChange == null) {
+                        return;
+                    }
+
+                    if (subscription == null) {
+                        _logger.Warning(
+                            "EventChange for subscription: Subscription is null");
+                        return;
+                    }
+
+                    if (notification == null) {
+                        _logger.Warning(
+                            "EventChange for subscription: {Subscription} having empty notification",
+                            subscription.DisplayName);
+                        return;
+                    }
+
+                    if (notification.Events.Count == 0) {
+                        _logger.Warning(
+                            "EventChange for subscription: {Subscription} having no events",
+                            subscription.DisplayName);
+                        return;
+                    }
+
+                    if (_currentlyMonitored == null) {
+                        _logger.Information(
+                            "EventChange for subscription: {Subscription} having no monitored items yet",
+                            subscription.DisplayName);
+                        return;
+                    }
+
+                    // check if notification is a keep alive
+                    var isKeepAlive = notification.Events.First().ClientHandle == 0 &&
+                                      notification.Events.First().Message?.NotificationData?.Count == 0;
+                    var sequenceNumber = notification.Events.First().Message?.SequenceNumber;
+                    var publishTime = (notification.Events.First().Message?.PublishTime).
+                        GetValueOrDefault(DateTime.UtcNow);
+
+                    _logger.Debug("Event for subscription: {Subscription}, sequence#: " +
+                        "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
+                        subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
+
+                    var message = new SubscriptionNotificationModel {
+                        ServiceMessageContext = subscription.Session?.MessageContext,
+                        ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
+                        EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
+                        SubscriptionId = Id,
+                        Timestamp = publishTime,
+                        Notifications = notification.ToMonitoredItemNotifications(
+                                subscription.MonitoredItems)?.ToList()
+                    };
+
+                    if (message.Notifications?.Any() == true) {
+                        OnSubscriptionEventChange.Invoke(this, message);
+                    }
+                }
+                catch (Exception e) {
+                    _logger.Warning(e, "Exception processing subscription notification");
+                }
+            }
+
             /// <summary>
             /// Subscription data changed
             /// </summary>
@@ -675,7 +745,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private void OnSubscriptionDataChanged(Subscription subscription,
                 DataChangeNotification notification, IList<string> stringTable) {
                 try {
-                    if (OnSubscriptionChange == null) {
+                    if (OnSubscriptionDataChange == null) {
                         return;
                     }
                     if (notification == null) {
@@ -768,7 +838,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     if (message.Notifications?.Any() == true) {
-                        OnSubscriptionChange?.Invoke(this, message);
+                        OnSubscriptionDataChange.Invoke(this, message);
                     }
                 }
                 catch (Exception e) {
