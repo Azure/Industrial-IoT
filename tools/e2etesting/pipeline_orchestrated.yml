@@ -44,7 +44,7 @@ stages:
     - template: steps/deploytestresources.yml
 
 - stage: runtests
-  displayName: "Execute publisher tests"
+  displayName: "Execute tests"
   dependsOn: deploy
   condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
   jobs:
