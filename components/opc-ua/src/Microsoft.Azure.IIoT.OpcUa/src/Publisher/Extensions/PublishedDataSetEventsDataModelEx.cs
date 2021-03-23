@@ -27,10 +27,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 TriggerId = model.TriggerId,
                 DiscardNew = model.DiscardNew,
                 EventNotifier = model.EventNotifier,
-                Filter = model.Filter.Clone(),
+                WhereClause = model.WhereClause.Clone(),
                 QueueSize = model.QueueSize,
                 BrowsePath = model.BrowsePath,
-                SelectedFields = model.SelectedFields?
+                SelectClauses = model.SelectClauses?
                     .Select(f => f.Clone())
                     .ToList()
             };

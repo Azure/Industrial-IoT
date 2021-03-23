@@ -10,12 +10,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using System;
 
     /// <summary>
-    /// Published data items extensions
+    /// Published event items extensions
     /// </summary>
     public static class PublishedEventItemsModelEx {
 
         /// <summary>
-        /// Convert to monitored items including heartbeat handling.
+        /// Convert to monitored items
         /// </summary>
         /// <param name="eventItems"></param>
         /// <returns></returns>
