@@ -1250,37 +1250,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public static PublishedEventItemsApiModel ToApiModel(
-            this PublishedEventItemsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new PublishedEventItemsApiModel {
-                PublishedData = model.PublishedData?
-                    .Select(d => d.ToApiModel())
-                    .ToList()
-            };
-        }
-
-        /// <summary>
-        /// Create service model from api model
-        /// </summary>
-        public static PublishedEventItemsModel ToServiceModel(
-            this PublishedEventItemsApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new PublishedEventItemsModel {
-                PublishedData = model.PublishedData?
-                    .Select(d => d.ToServiceModel())
-                    .ToList()
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
         public static PublishedDataSetApiModel ToApiModel(
             this PublishedDataSetModel model) {
             if (model == null) {

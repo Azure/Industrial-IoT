@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Data;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
+    using System.Diagnostics;
 
     /// <summary>
     /// Published nodes
@@ -285,47 +286,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             }
         }
 
-        /// <summary>
-        /// Get the node models from entry
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="scaleTestCount"></param>
-        /// <returns></returns>
-        private IEnumerable<OpcEventModel> GetEventModels(PublishedNodesEntryModel item,
-            int scaleTestCount = 1) {
-            if (item.OpcEvents != null) {
-                foreach (var node in item.OpcEvents) {
-                    if (string.IsNullOrEmpty(node.Id)) {
-                        node.Id = node.ExpandedNodeId;
-                    }
-                    if (scaleTestCount == 1) {
-                        yield return node;
-                    }
-                    else {
-                        for (var i = 0; i < scaleTestCount; i++) {
-                            yield return new OpcEventModel {
-                                Id = node.Id,
-                                DisplayName = string.IsNullOrEmpty(node.DisplayName) ?
-                                    $"{node.Id}_{i}" : $"{node.DisplayName}_{i}",
-                                ExpandedNodeId = node.ExpandedNodeId,
-                                HeartbeatInterval = node.HeartbeatInterval,
-                                HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
-                                OpcPublishingInterval = node.OpcPublishingInterval,
-                                OpcPublishingIntervalTimespan = node.OpcPublishingIntervalTimespan,
-                                OpcSamplingInterval = node.OpcSamplingInterval,
-                                OpcSamplingIntervalTimespan = node.OpcSamplingIntervalTimespan,
-                                SkipFirst = node.SkipFirst
-                            };
-                        }
-                    }
-                }
-                if (item.NodeId?.Identifier != null) {
-                    yield return new OpcEventModel {
-                        Id = item.NodeId.Identifier,
-                    };
-                }
-            }
-        }
         /// <summary>
         /// Extract publishing interval from nodes
         /// </summary>
