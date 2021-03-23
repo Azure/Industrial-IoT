@@ -1377,7 +1377,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new PublishedDataSetSourceApiModel {
                 Connection = model.Connection.ToApiModel(),
-                PublishedEvents = model.PublishedEvents.ToApiModel(), 
+                PublishedEvents = model.PublishedEvents.ToApiModel(),
                 PublishedVariables = model.PublishedVariables.ToApiModel(),
                 SubscriptionSettings = model.SubscriptionSettings.ToApiModel()
             };
@@ -1393,7 +1393,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             }
             return new PublishedDataSetSourceModel {
                 Connection = model.Connection.ToServiceModel(),
-                PublishedEvents = model.PublishedEvents.ToServiceModel(), 
+                PublishedEvents = model.PublishedEvents.ToServiceModel(),
                 PublishedVariables = model.PublishedVariables.ToServiceModel(),
                 SubscriptionSettings = model.SubscriptionSettings.ToServiceModel()
             };
