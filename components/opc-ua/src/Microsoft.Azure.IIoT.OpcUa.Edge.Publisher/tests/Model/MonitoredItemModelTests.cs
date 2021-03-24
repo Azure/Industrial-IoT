@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
 
             // Should be equal
             Assert.IsType<DataMonitoredItemModel>(clone);
-            Assert.True(MonitoredItemModelTestHelper.IsSameAs(_dataModel, clone as DataMonitoredItemModel));
+            Assert.True(clone.Equals(_dataModel));
         }
 
         [Fact]
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
 
             // Should be equal
             Assert.IsType<DataMonitoredItemModel>(clone);
-            Assert.True(clone.IsSameAs(_dataModel));
+            Assert.True(clone.Equals(_dataModel));
         }
 
         [Fact]
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
 
             // Should not be equal
             Assert.IsType<DataMonitoredItemModel>(clone);
-            Assert.False(clone.IsSameAs(_dataModel));
+            Assert.False(clone.Equals(_dataModel));
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
 
             // Should be equal
             Assert.IsType<EventMonitoredItemModel>(clone);
-            Assert.True(MonitoredItemModelTestHelper.IsSameAs(_eventModel, clone as EventMonitoredItemModel));
+            Assert.True(clone.Equals(_eventModel));
         }
 
         [Fact]
@@ -110,7 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
 
             // Should be equal
             Assert.IsType<EventMonitoredItemModel>(clone);
-            Assert.True(clone.IsSameAs(_eventModel));
+            Assert.True(clone.Equals(_eventModel));
         }
 
         [Fact]
@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
 
             // Should not be equal
             Assert.IsType<EventMonitoredItemModel>(clone);
-            Assert.False(clone.IsSameAs(_eventModel));
+            Assert.False(clone.Equals(_eventModel));
         }
     }
 }

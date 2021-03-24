@@ -76,45 +76,44 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public abstract BaseMonitoredItemModel Clone();
 
         /// <summary>
-        /// Compare items
+        /// Equals function
         /// </summary>
-        /// <param name="other"></param>
+        /// <param name="obj"></param>
         /// <returns></returns>
-        public virtual bool IsSameAs(BaseMonitoredItemModel other) {
-            if (other == null) {
-                return false;
-            }
-            if (TriggerId != other.TriggerId) {
-                return false;
-            }
-            if (StartNodeId != other.StartNodeId) {
-                return false;
-            }
-            if (SamplingInterval != other.SamplingInterval) {
-                return false;
-            }
-            if (QueueSize != other.QueueSize) {
-                return false;
-            }
-            if (DiscardNew != other.DiscardNew) {
-                return false;
-            }
-            if (AttributeId != other.AttributeId) {
-                return false;
-            }
-            if (IndexRange != other.IndexRange) {
-                return false;
-            }
-            if (MonitoringMode != other.MonitoringMode) {
-                return false;
-            }
-            if (DisplayName != other.DisplayName) {
-                return false;
-            }
-            if (!RelativePath.SequenceEqualsSafe(other.RelativePath)) {
-                return false;
-            }
-            return true;
+        public override bool Equals(object obj) {
+            return obj is BaseMonitoredItemModel model &&
+                   Id == model.Id &&
+                   DisplayName == model.DisplayName &&
+                   StartNodeId == model.StartNodeId &&
+                   EqualityComparer<string[]>.Default.Equals(RelativePath, model.RelativePath) &&
+                   AttributeId == model.AttributeId &&
+                   IndexRange == model.IndexRange &&
+                   EqualityComparer<TimeSpan?>.Default.Equals(SamplingInterval, model.SamplingInterval) &&
+                   QueueSize == model.QueueSize &&
+                   DiscardNew == model.DiscardNew &&
+                   MonitoringMode == model.MonitoringMode &&
+                   TriggerId == model.TriggerId;
+        }
+
+        /// <summary>
+        /// Calculate hash code
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode() {
+            var hash = new HashCode();
+            hash.Add(base.GetHashCode());
+            hash.Add(Id);
+            hash.Add(DisplayName);
+            hash.Add(StartNodeId);
+            hash.Add(RelativePath);
+            hash.Add(AttributeId);
+            hash.Add(IndexRange);
+            hash.Add(SamplingInterval);
+            hash.Add(QueueSize);
+            hash.Add(DiscardNew);
+            hash.Add(MonitoringMode);
+            hash.Add(TriggerId);
+            return hash.ToHashCode();
         }
     }
 }

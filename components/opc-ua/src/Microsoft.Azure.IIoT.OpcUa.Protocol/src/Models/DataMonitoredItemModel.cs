@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Data monitored item
@@ -50,27 +51,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         }
 
         /// <summary>
-        /// Compare items
+        /// Equals function
         /// </summary>
-        /// <param name="other"></param>
+        /// <param name="obj"></param>
         /// <returns></returns>
-        public override bool IsSameAs(BaseMonitoredItemModel other) {
-            if (!(other is DataMonitoredItemModel dataMonitoredItemModel)) {
-                return false;
-            }
-            if (!base.IsSameAs(other)) {
-                return false;
-            }
-            if (!DataChangeFilter.IsSameAs(dataMonitoredItemModel.DataChangeFilter)) {
-                return false;
-            }
-            if (!AggregateFilter.IsSameAs(dataMonitoredItemModel.AggregateFilter)) {
-                return false;
-            }
-            if (HeartbeatInterval != dataMonitoredItemModel.HeartbeatInterval) {
-                return false;
-            }
-            return true;
+        public override bool Equals(object obj) {
+            return obj is DataMonitoredItemModel model &&
+                base.Equals(obj) &&
+                DataChangeFilter.IsSameAs(model.DataChangeFilter) &&
+                AggregateFilter.IsSameAs(model.AggregateFilter) &&
+                EqualityComparer<TimeSpan?>.Default.Equals(HeartbeatInterval, model.HeartbeatInterval);
         }
+
+        /// <summary>
+        /// Calculate hash code
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode() {
+            var hash = new HashCode();
+            hash.Add(base.GetHashCode());
+            hash.Add(DataChangeFilter);
+            hash.Add(AggregateFilter);
+            hash.Add(HeartbeatInterval);
+            return hash.ToHashCode();
+        }
+
+        /// <summary>
+        /// operator==
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public static bool operator ==(DataMonitoredItemModel left, DataMonitoredItemModel right) => EqualityComparer<DataMonitoredItemModel>.Default.Equals(left, right);
+
+        /// <summary>
+        /// operator!=
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public static bool operator !=(DataMonitoredItemModel left, DataMonitoredItemModel right) => !(left == right);
     }
 }
