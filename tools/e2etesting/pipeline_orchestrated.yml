@@ -49,7 +49,7 @@ stages:
   condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
   jobs:
   - job: runtestspublisher
-    timeoutInMinutes: 45
+    timeoutInMinutes: 60
     displayName: 'Execute publisher tests'
     steps:
     - template: steps/runtests.yml
@@ -58,7 +58,7 @@ stages:
         ModeValue: orchestrated
   - job: runteststwin
     dependsOn: runtestspublisher
-    timeoutInMinutes: 45
+    timeoutInMinutes: 60
     displayName: 'Execute twin tests'
     steps:
     - template: steps/runtests.yml
@@ -67,7 +67,7 @@ stages:
         ModeValue: default
   - job: runtestsdiscovery
     dependsOn: runteststwin
-    timeoutInMinutes: 45
+    timeoutInMinutes: 60
     displayName: 'Execute discovery tests'
     steps:
     - template: steps/runtests.yml
