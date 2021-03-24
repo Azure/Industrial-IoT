@@ -162,7 +162,7 @@ namespace IIoTPlatform_E2E_Tests {
                     string nodeId = null,
                     CancellationToken ct = default) {
 
-                var currentNodes = await Twin.GetBrowseEndpointAsync(context, endpointId, nodeId).ConfigureAwait(false);
+                var currentNodes = await GetBrowseEndpointAsync(context, endpointId, nodeId).ConfigureAwait(false);
 
                 foreach (var node in currentNodes) {
                     ct.ThrowIfCancellationRequested();
@@ -378,6 +378,91 @@ namespace IIoTPlatform_E2E_Tests {
                 }
 
                 return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
+            }
+
+            /// <summary>
+            /// Reads the value of a node
+            /// </summary>
+            /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+            /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
+            /// <param name="nodeId">Id of the node to read the value of</param>
+            /// <param name="ct">Cancellation token</param>
+            public static async Task<(dynamic Value, string DataType)> ReadNodeValue(
+                    IIoTPlatformTestContext context,
+                    string endpointId,
+                    string nodeId,
+                    CancellationToken ct = default)
+            {
+                var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+                var request = new RestRequest(Method.POST);
+                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                request.Resource = $"twin/v2/read/{endpointId}";
+
+                var body = new { nodeId };
+
+                request.AddJsonBody(JsonConvert.SerializeObject(body));
+
+                var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+                Assert.NotNull(response);
+
+                if (!response.IsSuccessful)
+                {
+                    context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                    context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                    Assert.True(response.IsSuccessful, "POST twin/v2/read failed!");
+                }
+
+                dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
+
+                Assert.True(TestHelper.HasProperty(json, "dataType"), "'dataType' was not found in the response body");
+
+                if (TestHelper.HasProperty(json, "value"))
+                {
+                    return (Value: json.value, DataType: json.dataType);
+                }
+
+                return (Value: default, DataType: json.dataType);
+            }
+
+            /// <summary>
+            /// Reads the value of a node
+            /// </summary>
+            /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+            /// <param name="endpointId">Id of the endpoint as returned by <see cref="Registry_GetEndpoints(IIoTPlatformTestContext)"/></param>
+            /// <param name="nodeId">Id of the node to read the value of</param>
+            /// <param name="ct">Cancellation token</param>
+            public static async Task WriteNodeValue(
+                    IIoTPlatformTestContext context,
+                    string endpointId,
+                    string nodeId,
+                    dynamic value,
+                    string dataType,
+                    CancellationToken ct = default)
+            {
+                var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
+
+                var request = new RestRequest(Method.POST);
+                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                request.Resource = $"twin/v2/write/{endpointId}";
+
+                var body = new { nodeId, value, dataType };
+
+                request.AddJsonBody(JsonConvert.SerializeObject(body));
+
+                var response = await client.ExecuteAsync(request, ct).ConfigureAwait(false);
+                Assert.NotNull(response);
+
+                if (!response.IsSuccessful)
+                {
+                    context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
+                    context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
+                    Assert.True(response.IsSuccessful, "POST twin/v2/read failed!");
+                }
             }
         }
     }

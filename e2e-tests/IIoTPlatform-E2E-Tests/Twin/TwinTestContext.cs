@@ -32,14 +32,13 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             // OutputHelper cannot be used outside of test calls, we get rid of it before a helper method would use it
             OutputHelper = null;
 
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
-            if (string.IsNullOrWhiteSpace(OpcUaEndpointId)) {
-                // no endpoint registered by this context
-                return;
+            if (!string.IsNullOrWhiteSpace(OpcUaEndpointId)) {
+                TestHelper.Registry.UnregisterServerAsync(this, DiscoveryUrl, cts.Token).GetAwaiter().GetResult();
             }
 
-            TestHelper.Registry.UnregisterServerAsync(this, DiscoveryUrl, cts.Token).GetAwaiter().GetResult();
+            base.Dispose(true);
         }
 
         private void PrepareTestEnvironment() {
@@ -48,7 +47,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         }
 
         private void RegisterOPCServerAndActivateEndpoint() {
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // We will wait for microservices of IIoT platform to be healthy and modules to be deployed.
             TestHelper.WaitForServicesAsync(this, cts.Token).GetAwaiter().GetResult();
@@ -86,13 +85,13 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         }
 
         private void CheckEndpointActivation() {
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             var endpoints = TestHelper.Registry.GetEndpointsAsync(this, cts.Token).GetAwaiter().GetResult();
 
             Assert.NotEmpty(endpoints);
 
-            var (id, url, activationState, endpointState) = endpoints.SingleOrDefault(e => string.Equals(OpcUaEndpointId, e.Id));
+            var (id, _, activationState, endpointState) = endpoints.SingleOrDefault(e => string.Equals(OpcUaEndpointId, e.Id));
 
             Assert.False(id == null, "The endpoint was not found");
             Assert.Equal(TestConstants.StateConstants.ActivatedAndConnected, activationState);
