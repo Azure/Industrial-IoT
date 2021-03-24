@@ -49,7 +49,7 @@ steps:
 
 - task: AzureKeyVault@1
   displayName: 'Retrieve KeyVault secrets for API tests'
-  condition: ne( '${{ parameters.ModeValue }}', 'orchestrated')
+  condition: ne( '${{ parameters.ModeValue }}', 'standalone')
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
