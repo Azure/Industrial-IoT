@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
-    /// Data monitored item
+    /// Event monitored item
     /// </summary>
     public class EventMonitoredItemModel : BaseMonitoredItemModel {
         /// <summary>
@@ -42,9 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="other"></param>
         /// <returns></returns>
         public override bool IsSameAs(BaseMonitoredItemModel other) {
-            var eventMonitoredItemModel = other as EventMonitoredItemModel;
-
-            if (eventMonitoredItemModel == null) {
+            if (!(other is EventMonitoredItemModel eventMonitoredItemModel)) {
                 return false;
             }
             if (!base.IsSameAs(other)) {

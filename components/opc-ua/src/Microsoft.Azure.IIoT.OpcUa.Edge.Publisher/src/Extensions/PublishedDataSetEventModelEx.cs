@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Linq;
+    using System;
 
     /// <summary>
     /// Published data set events extensions
@@ -42,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 RelativePath = publishedEvent.BrowsePath,
                 AttributeId = null,
                 IndexRange = null,
-                SamplingInterval = null
+                SamplingInterval = TimeSpan.Zero
             };
         }
     }

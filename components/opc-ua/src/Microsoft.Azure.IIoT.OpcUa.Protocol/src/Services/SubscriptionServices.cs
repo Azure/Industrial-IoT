@@ -532,7 +532,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (results != null) {
                             _logger.Information("Failed to set monitoring for {count} nodes in subscription " +
                                 "{subscription}",
-                                results.Count(r => (r == null) ? false : StatusCode.IsNotGood(r.StatusCode)),
+                                results.Count(r => r != null && StatusCode.IsNotGood(r.StatusCode)),
                                 rawSubscription.DisplayName);
                         }
                     }
@@ -570,8 +570,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var revisedKeepAliveCount = _subscription.Configuration.KeepAliveCount
                     .GetValueOrDefault(session.DefaultSubscription.KeepAliveCount);
                 _subscription.MonitoredItems?.ForEach(m => {
-                    var dataModel = m as DataMonitoredItemModel;
-                    if (dataModel != null && dataModel.HeartbeatInterval != null && dataModel.HeartbeatInterval != TimeSpan.Zero) {
+                    if (m is DataMonitoredItemModel dataModel && dataModel.HeartbeatInterval != null && dataModel.HeartbeatInterval != TimeSpan.Zero) {
                         var itemKeepAliveCount = (uint)dataModel.HeartbeatInterval.Value.TotalMilliseconds /
                             (uint)_subscription.Configuration.PublishingInterval.Value.TotalMilliseconds;
                         revisedKeepAliveCount = GreatCommonDivisor(revisedKeepAliveCount, itemKeepAliveCount);

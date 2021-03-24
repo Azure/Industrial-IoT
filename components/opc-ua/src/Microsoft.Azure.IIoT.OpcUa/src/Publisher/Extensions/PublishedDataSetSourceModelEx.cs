@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public static string GetHashSafe(this PublishedDataSetSourceModel model) {
             var publishedVariableData = model.PublishedVariables.PublishedData.FirstOrDefault();
             var publishedEventData = model.PublishedEvents.PublishedData.FirstOrDefault();
-            var id =  model.Connection?.Endpoint?.Url +
+            var id = model.Connection?.Endpoint?.Url +
                 model.Connection?.Endpoint?.SecurityMode.ToString() +
                 model.Connection?.Endpoint?.SecurityPolicy +
                 model.Connection?.User?.Type.ToString() +
@@ -50,8 +50,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 publishedVariableData?.SamplingInterval +
                 publishedVariableData?.HeartbeatInterval +
                 publishedEventData?.Id +
-                publishedEventData?.EventNotifier +
-                publishedEventData?.BrowsePath;
+                publishedEventData?.EventNotifier;
+            if (publishedEventData.BrowsePath != null) {
+                foreach (var browsePath in publishedEventData.BrowsePath) {
+                    id += browsePath;
+                }
+            }
             return id.ToSha1Hash();
         }
     }

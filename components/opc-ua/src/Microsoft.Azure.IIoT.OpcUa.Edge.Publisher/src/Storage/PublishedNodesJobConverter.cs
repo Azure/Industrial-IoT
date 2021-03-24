@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <param name="items"></param>
         /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
-        internal IEnumerable<WriterGroupJobModel> ToWriterGroupJobs(
+        private IEnumerable<WriterGroupJobModel> ToWriterGroupJobs(
              IEnumerable<PublishedNodesEntryModel> items, LegacyCliModel legacyCliModel) {
             if (items == null) {
                 return Enumerable.Empty<WriterGroupJobModel>();
@@ -126,16 +126,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         .OfType<OpcDataNodeModel>()
                                         .Select(node => new PublishedDataSetVariableModel {
                                             // this is the monitored item id, not the nodeId!
-                                            // Use the display name if any otherwisw the nodeId
+                                            // Use the display name if any otherwise the nodeId
                                             Id = string.IsNullOrEmpty(node.DisplayName) ?
                                                 string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
                                             PublishedVariableNodeId = node.Id,
                                             PublishedVariableDisplayName = node.DisplayName,
                                             SamplingInterval = node.OpcSamplingIntervalTimespan ??
                                                 legacyCliModel.DefaultSamplingInterval,
-                                            HeartbeatInterval = node.HeartbeatIntervalTimespan.HasValue ?
-                                                node.HeartbeatIntervalTimespan.Value :
-                                                legacyCliModel.DefaultHeartbeatInterval,
+                                            HeartbeatInterval = node.HeartbeatIntervalTimespan ?? legacyCliModel.DefaultHeartbeatInterval,
                                             QueueSize = legacyCliModel.DefaultQueueSize,
                                         }).ToList()
                             },
