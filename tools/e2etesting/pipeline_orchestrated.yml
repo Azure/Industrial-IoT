@@ -57,6 +57,7 @@ stages:
         ModeName: PublisherMode
         ModeValue: orchestrated
   - job: runteststwin
+    dependsOn: runtestspublisher
     timeoutInMinutes: 45
     displayName: 'Execute twin tests'
     steps:
@@ -65,6 +66,7 @@ stages:
         ModeName: TwinMode
         ModeValue: default
   - job: runtestsdiscovery
+    dependsOn: runteststwin
     timeoutInMinutes: 45
     displayName: 'Execute discovery tests'
     steps:
