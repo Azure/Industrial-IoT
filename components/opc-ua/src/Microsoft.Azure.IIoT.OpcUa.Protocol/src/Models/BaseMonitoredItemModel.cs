@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Equals function
         /// </summary>
         /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <returns>If the objects are equal</returns>
         public override bool Equals(object obj) {
             return obj is BaseMonitoredItemModel model &&
                    Id == model.Id &&
@@ -98,7 +98,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Calculate hash code
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The hash code</returns>
         public override int GetHashCode() {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());

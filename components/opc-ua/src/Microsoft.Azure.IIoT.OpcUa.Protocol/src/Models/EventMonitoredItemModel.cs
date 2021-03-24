@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Clone
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A copy of this object</returns>
         public override BaseMonitoredItemModel Clone() {
             return new EventMonitoredItemModel {
                 Id = Id,
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Equals function
         /// </summary>
         /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <returns>If the objects are equal</returns>
         public override bool Equals(object obj) {
             return obj is EventMonitoredItemModel model &&
                    base.Equals(obj) &&
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Calculate hash code
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The hash code</returns>
         public override int GetHashCode() {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// </summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
-        /// <returns></returns>
+        /// <returns>If the objects are equal</returns>
         public static bool operator ==(EventMonitoredItemModel left, EventMonitoredItemModel right) => EqualityComparer<EventMonitoredItemModel>.Default.Equals(left, right);
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// </summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
-        /// <returns></returns>
+        /// <returns>If the objects are not equal</returns>
         public static bool operator !=(EventMonitoredItemModel left, EventMonitoredItemModel right) => !(left == right);
     }
 }
