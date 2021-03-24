@@ -55,9 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="other"></param>
         /// <returns></returns>
         public override bool IsSameAs(BaseMonitoredItemModel other) {
-            var dataMonitoredItemModel = other as DataMonitoredItemModel;
-
-            if (dataMonitoredItemModel == null) {
+            if (!(other is DataMonitoredItemModel dataMonitoredItemModel)) {
                 return false;
             }
             if (!base.IsSameAs(other)) {
