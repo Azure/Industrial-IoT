@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Linq;
+    using System.Text;
 
     /// <summary>
     /// Dataset source extensions
@@ -38,20 +39,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public static string GetHashSafe(this PublishedDataSetSourceModel model) {
             var publishedVariableData = model.PublishedVariables.PublishedData.FirstOrDefault();
             var publishedEventData = model.PublishedEvents.PublishedData.FirstOrDefault();
-            var id =  model.Connection?.Endpoint?.Url +
-                model.Connection?.Endpoint?.SecurityMode.ToString() +
-                model.Connection?.Endpoint?.SecurityPolicy + 
-                model.Connection?.User?.Type.ToString() +
-                model.Connection?.User?.Value.ToJson() +
-                model.SubscriptionSettings?.PublishingInterval.ToString() +
-                publishedVariableData?.Id +
-                publishedVariableData?.PublishedVariableNodeId +
-                publishedVariableData?.PublishedVariableDisplayName +
-                publishedVariableData?.SamplingInterval +
-                publishedVariableData?.HeartbeatInterval +
-                publishedEventData?.Id +
-                publishedEventData?.EventNotifier;
-            return id.ToSha1Hash();
+            var sb = new StringBuilder();
+            sb.Append(model.Connection?.Endpoint?.Url);
+            sb.Append(model.Connection?.Endpoint?.SecurityMode.ToString());
+            sb.Append(model.Connection?.Endpoint?.SecurityPolicy);
+            sb.Append(model.Connection?.User?.Type.ToString());
+            sb.Append(model.Connection?.User?.Value.ToJson());
+            sb.Append(model.SubscriptionSettings?.PublishingInterval.ToString());
+            sb.Append(publishedVariableData?.Id);
+            sb.Append(publishedVariableData?.PublishedVariableNodeId);
+            sb.Append(publishedVariableData?.PublishedVariableDisplayName);
+            sb.Append(publishedVariableData?.SamplingInterval);
+            sb.Append(publishedVariableData?.HeartbeatInterval);
+            sb.Append(publishedEventData?.Id);
+            sb.Append(publishedEventData?.EventNotifier);
+            if (publishedEventData?.BrowsePath != null) {
+                foreach (var browsePath in publishedEventData.BrowsePath) {
+                    sb.Append(browsePath);
+                }
+            }
+            return sb.ToString().ToSha1Hash();
         }
     }
 }

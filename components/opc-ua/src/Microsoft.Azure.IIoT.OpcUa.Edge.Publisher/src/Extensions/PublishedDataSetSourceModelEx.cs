@@ -39,9 +39,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// </summary>
         /// <param name="dataSetSource"></param>
         /// <returns></returns>
-        public static List<MonitoredItemModel> ToMonitoredItems(
+        public static List<BaseMonitoredItemModel> ToMonitoredItems(
             this PublishedDataSetSourceModel dataSetSource) {
-            var monitoredItems = Enumerable.Empty<MonitoredItemModel>();
+            var monitoredItems = Enumerable.Empty<BaseMonitoredItemModel>();
             if (dataSetSource.PublishedVariables?.PublishedData != null) {
                 monitoredItems = monitoredItems
                     .Concat(dataSetSource.PublishedVariables.ToMonitoredItems());

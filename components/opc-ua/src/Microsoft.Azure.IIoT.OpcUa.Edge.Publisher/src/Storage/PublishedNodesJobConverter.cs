@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -22,6 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Data;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
+    using System.Diagnostics;
 
     /// <summary>
     /// Published nodes
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
         private IEnumerable<WriterGroupJobModel> ToWriterGroupJobs(
-            IEnumerable<PublishedNodesEntryModel> items, LegacyCliModel legacyCliModel) {
+             IEnumerable<PublishedNodesEntryModel> items, LegacyCliModel legacyCliModel) {
             if (items == null) {
                 return Enumerable.Empty<WriterGroupJobModel>();
             }
@@ -126,16 +126,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                         .OfType<OpcDataNodeModel>()
                                         .Select(node => new PublishedDataSetVariableModel {
                                             // this is the monitored item id, not the nodeId!
-                                            // Use the display name if any otherwisw the nodeId
+                                            // Use the display name if any otherwise the nodeId
                                             Id = string.IsNullOrEmpty(node.DisplayName) ?
                                                 string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
                                             PublishedVariableNodeId = node.Id,
                                             PublishedVariableDisplayName = node.DisplayName,
                                             SamplingInterval = node.OpcSamplingIntervalTimespan ??
                                                 legacyCliModel.DefaultSamplingInterval,
-                                            HeartbeatInterval = node.HeartbeatIntervalTimespan.HasValue ?
-                                                node.HeartbeatIntervalTimespan.Value :
-                                                legacyCliModel.DefaultHeartbeatInterval,
+                                            HeartbeatInterval = node.HeartbeatIntervalTimespan ?? legacyCliModel.DefaultHeartbeatInterval,
                                             QueueSize = legacyCliModel.DefaultQueueSize,
                                         }).ToList()
                             },
@@ -209,10 +207,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     }).ToList();
                 return result;
             }
-            catch (Exception ex){
+            catch (Exception ex) {
                 _logger.Error(ex, "failed to convert the published nodes.");
             }
-            return  Enumerable.Empty<WriterGroupJobModel>();
+            return Enumerable.Empty<WriterGroupJobModel>();
         }
 
         /// <summary>

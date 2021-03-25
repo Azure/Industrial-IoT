@@ -7,11 +7,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Linq;
+    using System;
 
     /// <summary>
     /// Published data set events extensions
     /// </summary>
-    public static class PublishedDataSetEventsModelEx {
+    public static class PublishedDataSetEventModelEx {
 
         /// <summary>
         /// Convert to monitored item
@@ -19,13 +20,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="publishedEvent"></param>
         /// <param name="displayName"></param>
         /// <returns></returns>
-        public static MonitoredItemModel ToMonitoredItem(
+        public static EventMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvent,
             string displayName = null) {
             if (publishedEvent?.SelectClauses == null) {
                 return null;
             }
-            return new MonitoredItemModel {
+            return new EventMonitoredItemModel {
                 Id = publishedEvent.Id,
                 DisplayName = displayName,
                 EventFilter = new EventFilterModel {
@@ -34,7 +35,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                         .ToList(),
                     WhereClause = publishedEvent.WhereClause.Clone(),
                 },
-                AggregateFilter = null,
                 DiscardNew = publishedEvent.DiscardNew,
                 QueueSize = publishedEvent.QueueSize,
                 TriggerId = publishedEvent.TriggerId,
@@ -42,9 +42,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 StartNodeId = publishedEvent.EventNotifier,
                 RelativePath = publishedEvent.BrowsePath,
                 AttributeId = null,
-                DataChangeFilter = null,
                 IndexRange = null,
-                SamplingInterval = null
+                SamplingInterval = TimeSpan.Zero
             };
         }
     }

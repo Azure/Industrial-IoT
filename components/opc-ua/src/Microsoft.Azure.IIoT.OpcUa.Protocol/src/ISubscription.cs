@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="monitoredItems"></param>
         /// <param name="configuration"></param>
         /// <returns>enabled</returns>
-        Task ApplyAsync(IEnumerable<MonitoredItemModel> monitoredItems,
+        Task ApplyAsync(IEnumerable<BaseMonitoredItemModel> monitoredItems,
             SubscriptionConfigurationModel configuration);
 
         /// <summary>
