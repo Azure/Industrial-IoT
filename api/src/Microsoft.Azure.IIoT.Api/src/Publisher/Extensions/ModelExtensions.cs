@@ -1341,7 +1341,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 return null;
             }
             return new PendingAlarmApiModel {
-                Enabled = model.Enabled,
+                IsEnabled = model.IsEnabled,
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval
             };
@@ -1356,7 +1356,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 return null;
             }
             return new PendingAlarmModel {
-                Enabled = model.Enabled,
+                IsEnabled = model.IsEnabled,
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval
             };

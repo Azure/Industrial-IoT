@@ -1040,12 +1040,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 else if (EventTemplate != null) {
                     var eventFilter = codec.Decode(EventTemplate.EventFilter, true);
-                    if (EventTemplate.PendingAlarm != null && EventTemplate.PendingAlarm.Enabled) {
-                        eventFilter.SelectClauses.Add(new SimpleAttributeOperand() {
-                            BrowsePath = new QualifiedNameCollection(),
-                            TypeDefinitionId = ObjectTypeIds.ConditionType,
-                            AttributeId = Attributes.NodeId
-                        });
+                    if (EventTemplate.PendingAlarm != null && EventTemplate.PendingAlarm.IsEnabled) {
+                        if (!eventFilter.SelectClauses
+                            .Where(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId)
+                            .Any()) {
+                            eventFilter.SelectClauses.Add(new SimpleAttributeOperand() {
+                                BrowsePath = new QualifiedNameCollection(),
+                                TypeDefinitionId = ObjectTypeIds.ConditionType,
+                                AttributeId = Attributes.NodeId
+                            });
+                        }
                     }
                     Item.Filter = eventFilter;
                 }

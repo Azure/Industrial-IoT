@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Is pending alarm enabled?
         /// </summary>
         [DataMember(Name = "enabled", Order = 0)]
-        public bool Enabled { get; set; } = false;
+        public bool IsEnabled { get; set; } = false;
 
         /// <summary>
         /// Update interval for pending alarm

@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     sb.Append(browsePath);
                 }
             }
-            sb.Append(publishedEventData?.PendingAlarm?.Enabled);
+            sb.Append(publishedEventData?.PendingAlarm?.IsEnabled);
             sb.Append(publishedEventData?.PendingAlarm?.UpdateInterval);
             sb.Append(publishedEventData?.PendingAlarm?.SnapshotInterval);
             return sb.ToString().ToSha1Hash();

@@ -12,7 +12,7 @@
         /// Is pending alarms enabled for this event node?
         /// </summary>
         [DataMember(EmitDefaultValue = true)]
-        public bool Enabled { get; set; } = false;
+        public bool IsEnabled { get; set; } = false;
 
         /// <summary>
         /// Time interval for sending pending interval updates
@@ -54,7 +54,7 @@
         /// <returns></returns>
         public PendingAlarmModel Clone() {
             return new PendingAlarmModel {
-                Enabled = Enabled,
+                IsEnabled = IsEnabled,
                 UpdateInterval = UpdateInterval,
                 SnapshotInterval = SnapshotInterval
             };
@@ -67,7 +67,7 @@
         /// <returns>True if objects are equal</returns>
         public override bool Equals(object obj) {
             return obj is PendingAlarmModel model &&
-                   Enabled == model.Enabled &&
+                   IsEnabled == model.IsEnabled &&
                    UpdateInterval == model.UpdateInterval &&
                    SnapshotInterval == model.SnapshotInterval;
         }
@@ -77,7 +77,7 @@
         /// </summary>
         /// <returns>Return the hash code for this object</returns>
         public override int GetHashCode() {
-            return HashCode.Combine(Enabled, UpdateInterval, SnapshotInterval);
+            return HashCode.Combine(IsEnabled, UpdateInterval, SnapshotInterval);
         }
 
         /// <summary>
