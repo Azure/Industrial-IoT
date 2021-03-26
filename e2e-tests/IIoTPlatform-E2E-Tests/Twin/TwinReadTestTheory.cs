@@ -23,7 +23,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         }
 
         [Fact, PriorityOrder(0)]
-        public void Twin_Read_ReadAttributes() {
+        public void ReadAttributes() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             var attributes = new List<object> {

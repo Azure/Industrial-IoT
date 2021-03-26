@@ -23,7 +23,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         }
 
         [Fact, PriorityOrder(1)]
-        public void Twin_Call_GetMethodMetadata() {
+        public void GetMethodMetadata() {
             var methodId = "i=13358"; // CreateFile
             var methodMetadata = TestHelper.Twin.GetMethodMetadataAsync(_context, _context.OpcUaEndpointId, methodId).GetAwaiter().GetResult();
 
@@ -44,7 +44,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
 
 
         [Fact, PriorityOrder(2)]
-        public void Twin_Call_CallMethod() {
+        public void CallMethod() {
             // CreateFile method - not implemented
             var methodId = "i=13358";
             var arguments = new List<object> {

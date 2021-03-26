@@ -23,7 +23,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         }
 
         [Fact, PriorityOrder(0)]
-        public void Twin_Write_WriteAttributes() {
+        public void WriteAttributes() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // The attribute that will be overwritten

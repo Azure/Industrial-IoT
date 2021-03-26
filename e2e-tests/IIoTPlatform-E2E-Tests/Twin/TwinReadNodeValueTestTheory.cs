@@ -38,7 +38,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         [InlineData("UInt16", "i=13853", true)]
         [InlineData("UInt32", "http://microsoft.com/Opc/OpcPlc/#s=SlowUInt1", true)]
         [InlineData("UInt64", "i=13850", true)]
-        public void T2_1_ReadNodeValue_BasicDataType(string expectedDataType, string nodeId, bool expectValue) {
+        public void BasicDataType(string expectedDataType, string nodeId, bool expectValue) {
             using var cts = new CancellationTokenSource(TestConstants.DefaultTimeoutInMilliseconds);
 
             var (value, dataType) = TestHelper.Twin.ReadNodeValue(_context, _context.OpcUaEndpointId, nodeId, cts.Token).GetAwaiter().GetResult();
@@ -51,7 +51,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         }
 
         [Fact, PriorityOrder(2)]
-        public void T2_2_ReadNodeValue_ComplexDataType() {
+        public void ComplexDataType() {
             const string expectedDataType = "ExtensionObject";
             const string nodeId = "http://microsoft.com/Opc/OpcPlc/Boiler#i=15003";
 

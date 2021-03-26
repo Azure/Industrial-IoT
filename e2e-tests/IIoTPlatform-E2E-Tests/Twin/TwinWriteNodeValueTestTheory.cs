@@ -21,8 +21,8 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             _context.OutputHelper = output ?? throw new ArgumentNullException(nameof(output));
         }
 
-        [Fact, PriorityOrder(1)]
-        public void T3_1_WriteNodeValue_BasicDataType() {
+        [Fact, PriorityOrder(0)]
+        public void BasicDataType() {
             const string expectedDataType = "Boolean";
             const string nodeId = "i=2025";
 
