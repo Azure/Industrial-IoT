@@ -32,7 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 BrowsePath = model.BrowsePath,
                 SelectClauses = model.SelectClauses?
                     .Select(f => f.Clone())
-                    .ToList()
+                    .ToList(),
+                PendingAlarm = model.PendingAlarm?.Clone() ?? null
             };
         }
     }

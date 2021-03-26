@@ -928,7 +928,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Last published time
             /// </summary>
-            public DateTime NextHeartbeat {get; private set; }
+            public DateTime NextHeartbeat { get; private set; }
 
             /// <summary>
             /// validates if a heartbeat is required.
@@ -1037,8 +1037,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (DataTemplate != null) {
                     Item.Filter = DataTemplate.DataChangeFilter.ToStackModel() ??
                         ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(session.MessageContext));
-                } else if (EventTemplate != null) {
-                    Item.Filter = codec.Decode(EventTemplate.EventFilter, true);
+                }
+                else if (EventTemplate != null) {
+                    var eventFilter = codec.Decode(EventTemplate.EventFilter, true);
+                    if (EventTemplate.PendingAlarm != null && EventTemplate.PendingAlarm.Enabled) {
+                        eventFilter.SelectClauses.Add(new SimpleAttributeOperand() {
+                            BrowsePath = new QualifiedNameCollection(),
+                            TypeDefinitionId = ObjectTypeIds.ConditionType,
+                            AttributeId = Attributes.NodeId
+                        });
+                    }
+                    Item.Filter = eventFilter;
                 }
             }
 
