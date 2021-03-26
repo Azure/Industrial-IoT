@@ -51,7 +51,7 @@ For more information see the [detailed instructions](docs/deploy/howto-deploy-al
 
 Please report any security related issues by following our [security process](security.md).
 
-If you are an Azure customer, please create an Azure Support Request. More information can be found [here](https://azure.microsoft.com/en-us/support/create-ticket/). (Azure Support SLA applies).
+If you are an Azure customer, please create an Azure Support Request. More information can be found [here](https://azure.microsoft.com/en-us/support/create-ticket/). (Azure Support SLA apply).
 
 Otherwise, please report bugs, feature requests, or suggestions as [GitHub issues](https://github.com/Azure/Industrial-IoT/issues). (No SLA available).
 
