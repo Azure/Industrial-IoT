@@ -47,7 +47,7 @@ For more information see the [detailed instructions](docs/deploy/howto-deploy-al
 - [Documentation and tutorials](https://azure.github.io/Industrial-IoT/).
 - [Releases of the platform](https://github.com/Azure/Industrial-IoT/releases).
 
-## Get suport
+## Get support
 
 Please report any security related issues by following our [security process](security.md).
 
