@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Pending alarm settings
         /// </summary>
-        public PendingAlarmModel PendingAlarm { get; set; }
+        public PendingAlarmsOptionsModel PendingAlarms { get; set; }
 
         /// <summary>
         /// Clone
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 MonitoringMode = MonitoringMode,
                 DisplayName = DisplayName,
                 RelativePath = RelativePath,
-                PendingAlarm = PendingAlarm?.Clone() ?? null
+                PendingAlarms = PendingAlarms?.Clone() ?? null
             };
         }
 
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             return obj is EventMonitoredItemModel model &&
                    base.Equals(obj) &&
                    EventFilter.IsSameAs(model.EventFilter) &&
-                   PendingAlarm == model.PendingAlarm;
+                   PendingAlarms == model.PendingAlarms;
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             var hash = new HashCode();
             hash.Add(base.GetHashCode());
             hash.Add(EventFilter);
-            hash.Add(PendingAlarm);
+            hash.Add(PendingAlarms);
             return hash.ToHashCode();
         }
 

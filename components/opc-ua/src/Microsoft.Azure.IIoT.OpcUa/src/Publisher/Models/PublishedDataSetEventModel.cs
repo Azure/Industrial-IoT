@@ -62,6 +62,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Pending alarm settings
         /// </summary>
-        public PendingAlarmModel PendingAlarm { get; set; }
+        public PendingAlarmsOptionsModel PendingAlarms { get; set; }
     }
 }

@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 AttributeId = null,
                 IndexRange = null,
                 SamplingInterval = TimeSpan.Zero,
-                PendingAlarm = publishedEvent.PendingAlarm?.Clone() ?? null,
+                PendingAlarms = publishedEvent.PendingAlarms?.Clone() ?? null,
             };
         }
     }

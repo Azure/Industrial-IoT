@@ -1040,7 +1040,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 else if (EventTemplate != null) {
                     var eventFilter = codec.Decode(EventTemplate.EventFilter, true);
-                    if (EventTemplate.PendingAlarm != null && EventTemplate.PendingAlarm.IsEnabled) {
+                    if (EventTemplate.PendingAlarms != null && EventTemplate.PendingAlarms.IsEnabled) {
                         if (!eventFilter.SelectClauses
                             .Where(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId)
                             .Any()) {

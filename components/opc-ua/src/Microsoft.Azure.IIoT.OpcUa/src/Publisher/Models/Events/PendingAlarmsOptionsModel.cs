@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
     /// Settings for pending alarms feature
     /// </summary>
     [DataContract]
-    public class PendingAlarmModel {
+    public class PendingAlarmsOptionsModel {
         /// <summary>
         /// Is pending alarms enabled for this event node?
         /// </summary>
@@ -53,8 +53,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// Clone
         /// </summary>
         /// <returns></returns>
-        public PendingAlarmModel Clone() {
-            return new PendingAlarmModel {
+        public PendingAlarmsOptionsModel Clone() {
+            return new PendingAlarmsOptionsModel {
                 IsEnabled = IsEnabled,
                 UpdateInterval = UpdateInterval,
                 SnapshotInterval = SnapshotInterval
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// <param name="obj"></param>
         /// <returns>True if objects are equal</returns>
         public override bool Equals(object obj) {
-            return obj is PendingAlarmModel model &&
+            return obj is PendingAlarmsOptionsModel model &&
                    IsEnabled == model.IsEnabled &&
                    UpdateInterval == model.UpdateInterval &&
                    SnapshotInterval == model.SnapshotInterval;
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns>If the objects are equal</returns>
-        public static bool operator ==(PendingAlarmModel left, PendingAlarmModel right) => EqualityComparer<PendingAlarmModel>.Default.Equals(left, right);
+        public static bool operator ==(PendingAlarmsOptionsModel left, PendingAlarmsOptionsModel right) => EqualityComparer<PendingAlarmsOptionsModel>.Default.Equals(left, right);
 
         /// <summary>
         /// operator!=
@@ -95,6 +95,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// <param name="left"></param>
         /// <param name="right"></param>
         /// <returns>If the objects are not equal</returns>
-        public static bool operator !=(PendingAlarmModel left, PendingAlarmModel right) => !(left == right);
+        public static bool operator !=(PendingAlarmsOptionsModel left, PendingAlarmsOptionsModel right) => !(left == right);
     }
 }

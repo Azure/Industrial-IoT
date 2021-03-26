@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Pending alarm settings
         /// </summary>
-        [DataMember(Name = "pendingAlarm", Order = 9)]
-        public PendingAlarmApiModel PendingAlarm { get; set; }
+        [DataMember(Name = "pendingAlarms", Order = 9)]
+        public PendingAlarmsOptionsApiModel PendingAlarms { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
     /// Simple attribute operand model
     /// </summary>
     [DataContract]
-    public class PendingAlarmApiModel {
+    public class PendingAlarmsOptionsApiModel {
 
         /// <summary>
         /// Is pending alarm enabled?

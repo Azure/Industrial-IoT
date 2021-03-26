@@ -1303,7 +1303,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 SelectClauses = model.SelectClauses?
                     .Select(f => f.ToApiModel())
                     .ToList(),
-                PendingAlarm = model.PendingAlarm.ToApiModel()
+                PendingAlarms = model.PendingAlarms.ToApiModel()
             };
         }
 
@@ -1327,7 +1327,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 SelectClauses = model.SelectClauses?
                     .Select(f => f.ToServiceModel())
                     .ToList(),
-                PendingAlarm = model.PendingAlarm.ToServiceModel(),
+                PendingAlarms = model.PendingAlarms.ToServiceModel(),
             };
         }
 
@@ -1335,12 +1335,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Create api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public static PendingAlarmApiModel ToApiModel(
-            this PendingAlarmModel model) {
+        public static PendingAlarmsOptionsApiModel ToApiModel(
+            this PendingAlarmsOptionsModel model) {
             if (model == null) {
                 return null;
             }
-            return new PendingAlarmApiModel {
+            return new PendingAlarmsOptionsApiModel {
                 IsEnabled = model.IsEnabled,
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval
@@ -1350,12 +1350,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Create service model from api model
         /// </summary>
-        public static PendingAlarmModel ToServiceModel(
-            this PendingAlarmApiModel model) {
+        public static PendingAlarmsOptionsModel ToServiceModel(
+            this PendingAlarmsOptionsApiModel model) {
             if (model == null) {
                 return null;
             }
-            return new PendingAlarmModel {
+            return new PendingAlarmsOptionsModel {
                 IsEnabled = model.IsEnabled,
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval

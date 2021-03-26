@@ -29,6 +29,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// Settings for pending alarms
         /// </summary>
         [DataMember(EmitDefaultValue = false)]
-        public PendingAlarmModel PendingAlarm { get; set; }
+        public PendingAlarmsOptionsModel PendingAlarms { get; set; }
     }
 }
