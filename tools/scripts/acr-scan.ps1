@@ -1,20 +1,19 @@
 <#
  .SYNOPSIS
-    Gets relevant scan results from ACR registry
+    Returns relevant scan results for a ACR registry.
 
  .DESCRIPTION
-    The script requires az to be installed and already logged on to a 
-    subscription.  This means it should be run in a azcliv2 task in the
-    azure pipeline or "az login" must have been performed already.
+    Returns relevant scan results for a ACR registry
+    which can be further processed by another script
+    or converted to json by piping it to ConvertTo-Json
+    commandlet. The script requires az (AzureCLI) to 
+    be installed and you must be logged in (az login)
 
  .PARAMETER Registry
     The name of the registry
 
  .PARAMETER Subscription
     The subscription to use - otherwise uses default.
-
- .PARAMETER Cleanup
-    First cleanup manifests that are not tagged and vulnerable.
 
  .PARAMETER All
     Include also vulnerabilities that are not patchable.
@@ -23,7 +22,6 @@
 Param(
     [string] $Registry = "industrialiotprod",
     [string] $Subscription = "IOT_GERMANY",
-    [switch] $Cleanup,
     [switch] $All
 )
 
