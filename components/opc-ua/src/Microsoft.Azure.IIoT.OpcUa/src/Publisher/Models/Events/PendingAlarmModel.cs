@@ -27,8 +27,6 @@
         public TimeSpan? UpdateIntervalTimespan {
             get => UpdateInterval.HasValue ?
                 TimeSpan.FromMilliseconds(UpdateInterval.Value) : (TimeSpan?)null;
-            set => UpdateInterval = value != null ?
-                (int)value.Value.TotalMilliseconds : (int?)null;
         }
 
         /// <summary>
@@ -44,8 +42,6 @@
         public TimeSpan? SnapshotIntervalTimespan {
             get => SnapshotInterval.HasValue ?
                 TimeSpan.FromMilliseconds(SnapshotInterval.Value) : (TimeSpan?)null;
-            set => SnapshotInterval = value != null ?
-                (int)value.Value.TotalMilliseconds : (int?)null;
         }
 
         /// <summary>
