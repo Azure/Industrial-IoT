@@ -146,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                             SelectClauses = eventNotifier.SelectClauses,
                                             WhereClause = eventNotifier.WhereClause,
                                             QueueSize = 0,
-                                            PendingAlarm = eventNotifier.PendingAlarm,
+                                            PendingAlarm = eventNotifier.PendingAlarm?.Clone() ?? null,
                                         }).ToList()
                             }
                         }))
@@ -272,7 +272,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 OpcPublishingInterval = item.DataSetPublishingInterval.HasValue ? item.DataSetPublishingInterval : node.OpcPublishingInterval,
                                 SelectClauses = node.SelectClauses.Select(x => x.Clone()).ToList(),
                                 WhereClause = node.WhereClause.Clone(),
-                                PendingAlarm = node.PendingAlarm.Clone(),
+                                PendingAlarm = node.PendingAlarm?.Clone() ?? null,
                             };
                         }
                     }
