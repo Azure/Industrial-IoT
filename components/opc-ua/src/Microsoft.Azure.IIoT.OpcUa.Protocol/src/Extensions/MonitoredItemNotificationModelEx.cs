@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Encoders;
@@ -171,6 +172,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             if (eventFields == null) {
                 return new DataValue(StatusCodes.BadNoData);
             }
+
             return new DataValue {
                 ServerPicoseconds = 0,
                 ServerTimestamp = eventFields.GetEventValue<DateTime>(
@@ -183,7 +185,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 Value = new EncodeableDictionary {
                     Fields = new KeyValuePairCollection(eventFields.EventFields
                         .Select((value, i) => new Opc.Ua.KeyValuePair {
-                            Key = monitoredItem.GetFieldName(i),
+                            Key = SubscriptionServices.GetFieldDisplayName(monitoredItem, i),
                             Value = value
                         }))
                 }

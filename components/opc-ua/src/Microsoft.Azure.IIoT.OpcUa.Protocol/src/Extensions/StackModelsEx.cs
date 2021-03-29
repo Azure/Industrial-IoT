@@ -262,7 +262,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
                     Enumerable.Empty<QualifiedName>() :
                     model.BrowsePath?.Select(n => n.ToQualifiedName(context))),
-                IndexRange = model.IndexRange
+                IndexRange = model.IndexRange,
             };
         }
 
