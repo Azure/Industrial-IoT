@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher": {
-      "commandName": "Project",
-      "commandLineArgs": "--mm PubSub --pf=c:\\\\users\\\\pbrynt\\\\appdata\\\\local\\\\opcpublisher\\\\publishednodes_both.json --dc=HostName=pb-skf-iothub.azure-devices.net;DeviceId=Device2;SharedAccessKey=5u0sHt+26h8bSA6WPdr4SJVafSFNSF5a8j13wWD7MpA="
-    }
-  }
-}
