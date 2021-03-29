@@ -46,7 +46,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             Assert.Equal(expectedDataType, dataType);
 
             if (expectValue) {
-                Assert.True(value != null, "'value' was not found in the response body");
+                Assert.NotNull(value);
             }
         }
 

@@ -97,7 +97,7 @@ namespace IIoTPlatform_E2E_Tests {
                 if (!response.IsSuccessful) {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "GET twin/v2/browse/{endpointId} failed!");
+                    throw new Xunit.Sdk.XunitException("GET twin/v2/browse/{endpointId} failed!");
                 }
 
                 dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
@@ -252,10 +252,10 @@ namespace IIoTPlatform_E2E_Tests {
                 if (!response.IsSuccessful) {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "GET twin/v2/browse/{endpointId} failed!");
+                    throw new Xunit.Sdk.XunitException("GET twin/v2/browse/{endpointId} failed!");
                 }
 
-                var json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter()); 
+                var json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                 return json;
             }
 
@@ -289,7 +289,7 @@ namespace IIoTPlatform_E2E_Tests {
                 if (!response.IsSuccessful) {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "GET twin/v2/browse/{endpointId} failed!");
+                    throw new Xunit.Sdk.XunitException("GET twin/v2/browse/{endpointId} failed!");
                 }
 
                 return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
@@ -374,7 +374,7 @@ namespace IIoTPlatform_E2E_Tests {
                 if (!response.IsSuccessful) {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "GET twin/v2/browse/{endpointId} failed!");
+                    throw new Xunit.Sdk.XunitException("GET twin/v2/browse/{endpointId} failed!");
                 }
 
                 return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
@@ -412,7 +412,7 @@ namespace IIoTPlatform_E2E_Tests {
                 {
                     context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "POST twin/v2/read failed!");
+                    throw new Xunit.Sdk.XunitException("POST twin/v2/read failed!");
                 }
 
                 dynamic json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
@@ -461,7 +461,7 @@ namespace IIoTPlatform_E2E_Tests {
                 {
                     context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "POST twin/v2/read failed!");
+                    throw new Xunit.Sdk.XunitException("POST twin/v2/read failed!");
                 }
             }
         }
