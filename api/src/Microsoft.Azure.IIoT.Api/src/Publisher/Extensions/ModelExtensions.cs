@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Auth.Models;
     using System.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
 
     /// <summary>
     /// Api model extensions
@@ -1301,7 +1302,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 TriggerId = model.TriggerId,
                 SelectClauses = model.SelectClauses?
                     .Select(f => f.ToApiModel())
-                    .ToList()
+                    .ToList(),
+                PendingAlarms = model.PendingAlarms.ToApiModel()
             };
         }
 
@@ -1324,10 +1326,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 TriggerId = model.TriggerId,
                 SelectClauses = model.SelectClauses?
                     .Select(f => f.ToServiceModel())
-                    .ToList()
+                    .ToList(),
+                PendingAlarms = model.PendingAlarms.ToServiceModel(),
             };
         }
 
+        /// <summary>
+        /// Create api model from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static PendingAlarmsOptionsApiModel ToApiModel(
+            this PendingAlarmsOptionsModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PendingAlarmsOptionsApiModel {
+                IsEnabled = model.IsEnabled,
+                UpdateInterval = model.UpdateInterval,
+                SnapshotInterval = model.SnapshotInterval
+            };
+        }
+
+        /// <summary>
+        /// Create service model from api model
+        /// </summary>
+        public static PendingAlarmsOptionsModel ToServiceModel(
+            this PendingAlarmsOptionsApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PendingAlarmsOptionsModel {
+                IsEnabled = model.IsEnabled,
+                UpdateInterval = model.UpdateInterval,
+                SnapshotInterval = model.SnapshotInterval
+            };
+        }
 
         /// <summary>
         /// Create api model from service model
