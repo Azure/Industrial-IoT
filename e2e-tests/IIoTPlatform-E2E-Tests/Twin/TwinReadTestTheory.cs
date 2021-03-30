@@ -23,18 +23,18 @@ namespace IIoTPlatform_E2E_Tests.Twin {
         }
 
         [Fact, PriorityOrder(0)]
-        public void Twin_Read_ReadAttributes() {
+        public void ReadAttributes() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             var attributes = new List<object> {
                 new {
                     nodeId = "http://microsoft.com/Opc/OpcPlc/#s=FastUInt1",
                     attribute = "DisplayName"
-                },     
+                },
                 new {
                     nodeId = "i=2253",
-                    attribute = "BrowseName" 
-                }  
+                    attribute = "BrowseName"
+                }
             };
 
             var response = TestHelper.Twin.ReadNodeAttributesAsync(_context, _context.OpcUaEndpointId, attributes, cts.Token).GetAwaiter().GetResult();
