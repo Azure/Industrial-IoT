@@ -68,11 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="index"></param>
         /// <returns>The display name, if defined</returns>
         public static string GetFieldDisplayName(MonitoredItem monitoredItem, int index) {
-            if (!(monitoredItem.Handle is MonitoredItemWrapper wrapper)) {
-                return null;
-            }
-
-            return wrapper.GetFieldDisplayName(index);
+            return (monitoredItem.Handle as MonitoredItemWrapper)?.GetFieldDisplayName(index);
         }
 
         /// <summary>
@@ -1171,7 +1167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return Item.MonitoringMode == change ? null : change;
             }
 
-            public string GetFieldDisplayName(int index) {
+            internal string GetFieldDisplayName(int index) {
                 var fieldName = EventTemplate?.EventFilter?.SelectClauses?[index]?.DisplayName;
                 if (fieldName == null) {
                     fieldName = Item.GetFieldName(index);
