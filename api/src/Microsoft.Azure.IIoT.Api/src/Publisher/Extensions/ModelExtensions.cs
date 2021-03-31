@@ -1544,7 +1544,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 TypeDefinitionId = model.TypeDefinitionId,
                 AttributeId = (Core.Models.NodeAttribute?)model.AttributeId,
                 BrowsePath = model.BrowsePath,
-                IndexRange = model.IndexRange
+                IndexRange = model.IndexRange,
+                DisplayName = model.DisplayName
             };
         }
 
@@ -1560,7 +1561,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 TypeDefinitionId = model.TypeDefinitionId,
                 AttributeId = (OpcUa.Core.Models.NodeAttribute?)model.AttributeId,
                 BrowsePath = model.BrowsePath,
-                IndexRange = model.IndexRange
+                IndexRange = model.IndexRange,
+                DisplayName = model.DisplayName
             };
         }
 

@@ -61,7 +61,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Model {
                         AttributeId = NodeAttribute.DataType,
                         BrowsePath = new string[] { "EventBrowsePath "},
                         IndexRange = "SelectClauseIndexRange",
-                        TypeDefinitionId = "SelectClauseTypeDefinitionId"
+                        TypeDefinitionId = "SelectClauseTypeDefinitionId",
+                        DisplayName = "SelectClauseDisplayName",
                     }
                 }
             }

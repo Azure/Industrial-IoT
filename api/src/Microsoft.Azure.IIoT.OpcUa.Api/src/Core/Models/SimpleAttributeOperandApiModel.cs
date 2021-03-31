@@ -39,5 +39,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         [DataMember(Name = "indexRange", Order = 3,
             EmitDefaultValue = false)]
         public string IndexRange { get; set; }
+
+        /// <summary>
+        /// Optional display name
+        /// </summary>
+        [DataMember(Name = "displayName", Order = 4,
+            EmitDefaultValue = false)]
+        public string DisplayName { get; set; }
     }
 }

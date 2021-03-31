@@ -62,6 +62,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
+        /// Function to retrieve display name for a field in the select clause
+        /// </summary>
+        /// <param name="monitoredItem"></param>
+        /// <param name="index"></param>
+        /// <returns>The display name, if defined</returns>
+        public static string GetFieldDisplayName(MonitoredItem monitoredItem, int index) {
+            return (monitoredItem.Handle as MonitoredItemWrapper)?.GetFieldDisplayName(index);
+        }
+
+        /// <summary>
         /// Subscription implementation
         /// </summary>
         internal sealed class SubscriptionWrapper : ISubscription {
@@ -1017,7 +1027,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             internal void Create(Session session, IVariantEncoder codec, bool activate) {
                 Item = new MonitoredItem {
                     Handle = this,
-                    DisplayName = Template.DisplayName,
+                    DisplayName = Template.DisplayName ?? Template.Id,
                     AttributeId = (uint)Template.AttributeId.GetValueOrDefault((NodeAttribute)Attributes.Value),
                     IndexRange = Template.IndexRange,
                     RelativePath = Template.RelativePath?
@@ -1155,6 +1165,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var change = _modeChange.ToStackType();
                 _modeChange = null;
                 return Item.MonitoringMode == change ? null : change;
+            }
+
+            internal string GetFieldDisplayName(int index) {
+                var fieldName = EventTemplate?.EventFilter?.SelectClauses?[index]?.DisplayName;
+                if (fieldName == null) {
+                    fieldName = Item.GetFieldName(index);
+                    if (!string.IsNullOrEmpty(fieldName) && fieldName[0] == '/') {
+                        fieldName = fieldName[1..];
+                    }
+                }
+
+                return fieldName;
             }
 
             private HashSet<uint> _newTriggers = new HashSet<uint>();
