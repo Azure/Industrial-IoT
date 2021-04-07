@@ -129,6 +129,7 @@ $edgeParameters = @{
     "deviceConnectionString" = [string]$edgeDeviceConnectionString
     "authenticationType" = "sshPublicKey"
     "adminPasswordOrKey" = [string]$sshPublicKey
+    "allowSsh" = $true
     "vmSize" = [string]$EdgeVmSize
 }
 
