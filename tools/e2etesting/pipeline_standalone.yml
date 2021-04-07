@@ -49,7 +49,8 @@ stages:
     steps:
     - template: steps/runtests.yml
       parameters:
-        PublisherMode: 'standalone'
+        ModeName: PublisherMode
+        ModeValue: standalone
 
 - stage: cleanup
   displayName: Cleanup resources
