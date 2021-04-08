@@ -3,36 +3,27 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-
 namespace IIoTPlatform_E2E_Tests.Config {
+
     /// <summary>
-    /// Container registry client configuration
+    /// IoT Edge configuration
     /// </summary>
-    public interface IContainerRegistryConfig {
+    public interface IIoTEdgeConfig {
 
         /// <summary>
-        /// Server url
+        /// IoT Edge version
         /// </summary>
-        string ContainerRegistryServer { get; }
+        string EdgeVersion { get; }
 
         /// <summary>
-        /// Namespace
+        /// The flag whether the nested edge is enabled or not
         /// </summary>
-        string ImagesNamespace { get; }
+        string NestedEdgeFlag { get; }
 
         /// <summary>
-        /// User
+        /// Nested edge SSH connection
         /// </summary>
-        string ContainerRegistryUser { get; }
-
-        /// <summary>
-        /// Password
-        /// </summary>
-        string ContainerRegistryPassword { get; }
-
-        /// <summary>
-        /// Version
-        /// </summary>
-        string ImagesTag { get; }
+        string[] NestedEdgeSshConnections { get; }
     }
 }
+

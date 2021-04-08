@@ -187,6 +187,21 @@ namespace IIoTPlatform_E2E_Tests {
             public const string PLC_SIMULATION_URLS = "PLC_SIMULATION_URLS";
 
             /// <summary>
+            /// IoTEdge version
+            /// </summary>
+            public const string IOT_EDGE_VERSION = "IOT_EDGE_VERSION";
+
+            /// <summary>
+            /// Nested edge flag
+            /// </summary>
+            public const string NESTED_EDGE_FLAG = "NESTED_EDGE_FLAG";
+
+            /// <summary>
+            /// Nested edge ssh connections
+            /// </summary>
+            public const string NESTED_EDGE_SSH_CONNECTIONS = "NESTED_EDGE_SSH_CONNECTIONS";
+
+            /// <summary>
             /// Device identity of edge device at IoT Hub
             /// </summary>
             public const string IOT_EDGE_DEVICE_ID = "IOT_EDGE_DEVICE_ID";
@@ -264,12 +279,7 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// Images tag
             /// </summary>
-            public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG"; 
-
-            /// <summary>
-            /// IoTEdge version
-            /// </summary>
-            public const string IOT_EDGE_VERSION = "IOT_EDGE_VERSION";
+            public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG";
         }
 
         /// <summary>
