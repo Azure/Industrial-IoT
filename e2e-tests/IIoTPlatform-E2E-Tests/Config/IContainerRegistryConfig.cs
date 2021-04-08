@@ -34,5 +34,10 @@ namespace IIoTPlatform_E2E_Tests.Config {
         /// Version
         /// </summary>
         string ImagesTag { get; }
+
+        /// <summary>
+        /// Edge version
+        /// </summary>
+        string EdgeVersion { get; }
     }
 }

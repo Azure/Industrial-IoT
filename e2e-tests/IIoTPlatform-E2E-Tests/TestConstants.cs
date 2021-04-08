@@ -264,7 +264,12 @@ namespace IIoTPlatform_E2E_Tests {
             /// <summary>
             /// Images tag
             /// </summary>
-            public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG";
+            public const string PCS_IMAGES_TAG = "PCS_IMAGES_TAG"; 
+
+            /// <summary>
+            /// IoTEdge version
+            /// </summary>
+            public const string IOT_EDGE_VERSION = "IOT_EDGE_VERSION";
         }
 
         /// <summary>

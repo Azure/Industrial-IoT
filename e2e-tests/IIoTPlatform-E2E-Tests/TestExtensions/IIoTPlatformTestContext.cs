@@ -200,5 +200,8 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         string IContainerRegistryConfig.ImagesTag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IMAGES_TAG,
             () => "latest" );
+
+        string IContainerRegistryConfig.EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
+            () => "latest");
     }
 }
