@@ -1,0 +1,123 @@
+{
+  "modulesContent": {
+    "$edgeAgent": {
+      "properties.desired": {
+        "schemaVersion": "1.0",
+        "runtime": {
+          "type": "docker",
+          "settings": {
+            "minDockerVersion": "v1.25",
+            "loggingOptions": "",
+            "registryCredentials": {}
+          }
+        },
+        "systemModules": {
+          "edgeAgent": {
+            "type": "docker",
+            "settings": {
+              "image": "$upstream:443/azureiotedge-agent:1.2.0-rc4",
+              "createOptions": "{\"HostConfig\": {\"PortBindings\": {\"9600/tcp\": [{\"HostPort\": \"9602\"}]}},\"ExposedPorts\": {\"9600/tcp\": {}}}"
+            },
+            "env": {
+              "httpSettings:enabled": {
+                "value": true
+            }
+          },
+          "edgeHub": {
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "$upstream:443/azureiotedge-hub:1.2.0-rc4",
+              "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}],\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"9600/tcp\":[{\"HostPort\":\"9601\"}]}},\"ExposedPorts\":{\"5671/tcp\":{},\"8883/tcp\":{},\"9600/tcp\":{}}}"
+            },
+            "env": {
+              "experimentalFeatures:enabled": {
+                "value": true
+              },
+              "experimentalFeatures:nestedEdgeEnabled": {
+                "value": true
+              },
+              "httpSettings:enabled": {
+                "value": true
+              }
+            }
+          }
+        },
+        "modules": {
+          "discovery": {
+            "settings": {
+              "image": "$upstream:443/discovery:2.7.206",
+              "createOptions": "{\"Hostname\":\"discovery\",\"Cmd\":[\"PkiRootPath=/mount/pki\"],\"HostConfig\":{\"Binds\":[\"/mount:/mount\"]}}"
+            },
+            "type": "docker",
+            "version": "1.0",
+            "status": "running",
+            "restartPolicy": "always"
+          },
+          "opcpublisher": {
+            "settings": {
+              "image": "$upstream:443/opc-publisher:2.7.206",
+              "createOptions": "{\"Hostname\":\"opcpublisher\",\"Cmd\":[\"PkiRootPath=/mount/pki\",\"--pf=/mount/published_nodes.json\",\"--lf=/mount/publisher.log\",\"--mm=Samples\",\"--me=Json\",\"--fm=true\",\"--fd=false\",\"--bs=100\",\"--BatchTriggerInterval=00:00:00.500\",\"--di=20\",\"--sc=1\",\"--aa\"],\"HostConfig\":{\"PortBindings\":{\"9702/tcp\":[{\"HostPort\":\"9702\"}]},\"Binds\":[\"/mount:/mount\"]},\"ExposedPorts\": {\"9702/tcp\": {}}}"
+            },
+            "type": "docker",
+            "version": "1.0",
+            "status": "running",
+            "restartPolicy": "always"
+          },
+          "twin": {
+            "settings": {
+              "image": "$upstream:443/opc-twin:2.7.206",
+              "createOptions": "{\"Hostname\":\"twin\",\"Cmd\":[\"PkiRootPath=/mount/pki\"],\"HostConfig\":{\"Binds\":[\"/mount:/mount\"]}}"
+            },
+            "type": "docker",
+            "version": "1.0",
+            "status": "running",
+            "restartPolicy": "always"
+          },
+          "monitor": {
+            "settings": {
+              "image": "$upstream:443/ciprod:latest",
+              "createOptions": ""
+            },
+            "env": {
+              "UploadTarget": {
+                "value": "AzureMonitor"
+              },
+              "LogAnalyticsWorkspaceId": {
+                "value": "$WORKSPACE_ID"
+              },
+              "LogAnalyticsSharedKey": {
+                "value": "$WORKSPACE_KEY"
+              },
+              "HubResourceID": {
+                "value": "$IOT_HUB_RESOURCE_ID"
+              },
+              "MetricsEndpointsCSV": {
+                "value": "http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://opcpublisher:9702/metrics"
+              }
+            },
+            "type": "docker",
+            "version": "1.0",
+            "status": "running",
+            "restartPolicy": "always"
+          }
+        }
+      }
+    },
+    "$edgeHub": {
+      "properties.desired": {
+        "schemaVersion": "1.1",
+        "routes": {
+          "discoveryToUpstream": "FROM /messages/modules/discovery/* INTO $upstream",
+          "twinToUpstream": "FROM /messages/modules/twin/* INTO $upstream",
+          "publisherToUpstream": "FROM /messages/modules/opcpublisher/* INTO $upstream",
+          "leafToUpstream": "FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO $upstream"
+        },
+        "storeAndForwardConfiguration": {
+          "timeToLiveSecs": 7200
+        }
+      }
+    }
+  }
+}

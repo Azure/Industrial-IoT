@@ -1,0 +1,67 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+packages:
+  - squid3
+  - squid3-client
+  - curl
+write_files:
+  - path: /etc/squid/squid.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # Turn on debug options to allow for monitoring blocked domains
+      debug_options ALL,1 33,2
+
+      dns_v4_first on
+
+      # Squid normally listens to port 3128
+      http_port 3128
+
+      # Setup Most local Network Ranges
+      acl localnet src 10.0.0.0/8  # Possible internal network
+      acl localnet src 172.16.0.0/12 # Possible internal network
+      acl localnet src 192.168.0.0/16 # Possible internal network
+      acl localhost src 127.0.0.1/32 ::1
+
+      acl SSL_ports port 443
+      acl CONNECT method CONNECT
+      acl Safe_ports port 443
+      acl Safe_ports port 80
+
+      acl manager url_regex -i ^cache_object:// +i ^https?://[^/]+/squid-internal-mgr/
+
+      acl whitelist dstdomain "/etc/squid/whitelist.txt"
+
+      http_access allow manager localhost
+      http_access deny manager
+      http_access deny !Safe_ports
+
+      http_access deny !whitelist
+
+      http_access allow localhost
+      http_access allow localnet
+
+      http_access deny all
+  - path: /etc/squid/whitelist.txt
+    owner: root:root
+    permissions: '0644'
+    content: |
+      .ubuntu.com
+      .packages.microsoft.com
+      .docker.io
+      .cloudflare.docker.com
+      .mcr.microsoft.com
+      .azurecr.io
+      .blob.core.windows.net
+      .azure-devices.net
+      .global.azure-devices-provisioning.net
+      .cdn.mscr.io
+runcmd:
+  - |
+      set -x
+      (
+        sudo systemctl daemon-reload
+        sudo systemctl restart squid
+      ) &

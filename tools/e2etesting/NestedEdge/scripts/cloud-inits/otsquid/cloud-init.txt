@@ -1,0 +1,39 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+packages:
+  - squid3
+  - squid3-client
+  - curl
+write_files:
+  - path: /etc/squid/squid.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # Turn on debug options to allow for monitoring blocked domains
+      debug_options ALL,1 33,2
+
+      dns_v4_first on
+
+      # Squid normally listens to port 3128
+      http_port 3128
+
+      # allow all requests
+      http_access allow all
+
+  - path: /etc/squid/whitelist.txt
+    owner: root:root
+    permissions: '0644'
+    content: |
+      .com
+      .io
+      .net
+      .io
+runcmd:
+  - |
+      set -x
+      (
+        sudo systemctl daemon-reload
+        sudo systemctl restart squid
+      ) &
