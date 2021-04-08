@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.Deploy {
+    using System;
     using System.Collections.Generic;
     using Newtonsoft.Json;
     using TestExtensions;
@@ -24,7 +25,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         protected override int Priority => 0;
 
         /// <inheritdoc />
-        protected override string DeploymentName => kDeploymentName;
+        protected override string DeploymentName => kDeploymentName + $"{DateTime.UtcNow.Ticks}";
 
         /// <inheritdoc />
         protected override string TargetCondition => kTargetCondition;
