@@ -29,17 +29,17 @@ namespace Opc.Ua.Encoders {
             nameof(EncodeableDictionary) + "_Encoding_DefaultJson";
 
         /// <summary>
-        /// Initializes the collection with default values.
+        /// Initializes the dictionary with default values.
         /// </summary>
         public EncodeableDictionary() { }
 
         /// <summary>
-        /// Initializes the collection with an initial capacity.
+        /// Initializes the dictionary with an initial capacity.
         /// </summary>
         public EncodeableDictionary(int capacity) : base(capacity) { }
 
         /// <summary>
-        /// Initializes the collection with another collection.
+        /// Initializes the dictionary with another collection.
         /// </summary>
         public EncodeableDictionary(IEnumerable<KeyDataValuePair> collection) : base(collection) { }
 
