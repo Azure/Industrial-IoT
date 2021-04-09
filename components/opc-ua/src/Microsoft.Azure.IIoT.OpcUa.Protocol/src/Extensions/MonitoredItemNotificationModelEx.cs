@@ -182,13 +182,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     BrowseNames.ReceiveTime, monitoredItem),
                 StatusCode = eventFields.GetEventValue<StatusCode>(
                     BrowseNames.StatusCode, monitoredItem),
-                Value = new EncodeableDictionary {
-                    Fields = new KeyValuePairCollection(eventFields.EventFields
-                        .Select((value, i) => new Opc.Ua.KeyValuePair {
-                            Key = SubscriptionServices.GetFieldDisplayName(monitoredItem, i),
-                            Value = value
-                        }))
-                }
+                Value = new EncodeableDictionary(eventFields.EventFields
+                    .Select((value, i) => new KeyDataValuePair {
+                        Key = SubscriptionServices.GetFieldDisplayName(monitoredItem, i),
+                        Value = new DataValue(value)
+                    }))
             };
         }
 
