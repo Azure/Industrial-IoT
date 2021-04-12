@@ -772,6 +772,20 @@
             }
           },
           {
+            "name": "Allow_extern_OPC_UA",
+            "properties": {
+              "description": "Allow extern OPCUA",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "50000",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 205,
+              "direction": "Outbound"
+            }
+          },
+          {
             "name": "Allow_Outbound_To_OT_DMZ",
             "properties": {
               "description": "Allow Outbound to OT_DMZ",
