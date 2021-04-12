@@ -468,6 +468,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 if (applyChanges) {
                     rawSubscription.ApplyChanges();
+                    rawSubscription.ConditionRefresh();
                     _currentlyMonitored = nowMonitored;
                     if (!activate) {
                         var map = _currentlyMonitored.ToDictionary(
