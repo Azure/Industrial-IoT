@@ -36,7 +36,7 @@ stages:
     pool:
       name: '$(AgentPool)'
     steps:
-    - template: steps/deploytestresources.yml
+    - template: steps/deploynestededgeresources.yml
 
 - stage: runtests
   displayName: "Execute tests"

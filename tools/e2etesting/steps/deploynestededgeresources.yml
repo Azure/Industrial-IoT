@@ -1,0 +1,74 @@
+steps:
+- task: DownloadPipelineArtifact@2
+  inputs:
+    artifact: 'testartifacts'
+    path: $(BasePath)
+
+    steps:
+
+- task: CmdLine@2
+  displayName: "Upgrade azure-cli"
+  inputs:
+    script: |
+      pip install azure-cli --upgrade
+
+- task: AzureCLI@2
+  displayName: "Install azure-iot extension"
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az extension add --name azure-iot --yes'
+      
+- task: AzurePowerShell@5
+  displayName: "Prepare for nested edge deployment"
+  timeoutInMinutes: 30
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\NestedEdge\PreNestedEdgeDeployment.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+
+- task: AzureCLI@2
+  displayName: "Deploy nested edge"
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    scriptType: 'bash'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(BasePath)\NestedEdge\install.sh'
+    arguments: '-rg=$(ResourceGroupName) -hubrg=$(ResourceGroupName) -hubname=$(iothub) -sshPublicKeyPath="D:/a/1/s/.ssh/id_rsa.pub'
+    workingDirectory: '$(BasePath)\NestedEdge'
+
+- task: AzurePowerShell@5
+  displayName: "Post nested edge deployment"
+  timeoutInMinutes: 30
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\NestedEdge\PostNestedEdgeDeployment.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+- task: AzurePowerShell@5
+  displayName: "Deploy containers with simulated PLCs"
+  timeoutInMinutes: 90
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DeployPLCs.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+- task: AzurePowerShell@5
+  displayName: "Deploy TestEventProcessor"
+  timeoutInMinutes: 90
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -PackageDirectory "$(BasePath)\TestEventProcessor"
