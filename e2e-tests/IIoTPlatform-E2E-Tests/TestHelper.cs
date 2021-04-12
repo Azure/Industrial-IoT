@@ -204,10 +204,20 @@ namespace IIoTPlatform_E2E_Tests {
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
             context.OutputHelper?.WriteLine(json);
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
-            using var client = CreateScpClientAndConnect(context);
+            using var scpClient = CreateScpClientAndConnect(context);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-            client.Upload(stream, TestConstants.PublishedNodesFullName);
+            scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
+            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
+                using var sshCient = CreateSshClientAndConnect(context);
+                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
+                    if (edge != string.Empty) {
+                        var command = $"scp {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFullName}";
+                        var terminal = sshCient.RunCommand(command);
+                    }                 
+                }             
+            }
+            
             await SwitchToStandaloneModeAsync(context, ct);
         }
 
