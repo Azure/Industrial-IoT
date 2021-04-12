@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 #TODO2: Document default settings for the optional flags.
 
@@ -29,7 +29,7 @@ function show_help() {
 iotHubResourceGroup=""
 iotHubName=""
 configFilePath="./config.txt"
-location="eastus"
+location="westeurope"
 resourceGroupPrefix="iotedge4iiot"
 vmSize="Standard_B1ms" #"Standard_D3_v2"
 sshPublicKeyPath="$(readlink -f ~/.ssh/id_rsa.pub)"
