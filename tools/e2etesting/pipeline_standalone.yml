@@ -4,7 +4,7 @@ trigger: none
 pr: none
 
 pool:
-  name: '$(AgentPool)'
+  vmImage: 'windows-latest'
 
 variables:
 - template: steps/variables.yml
@@ -33,8 +33,6 @@ stages:
     condition: and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded'))
     dependsOn: deploystandalone
     displayName: 'Deploy Test Resources'
-    pool:
-      name: '$(AgentPool)'
     steps:
     - template: steps/deploynestededgeresources.yml
 
