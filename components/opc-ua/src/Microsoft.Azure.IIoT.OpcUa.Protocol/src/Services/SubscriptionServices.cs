@@ -291,6 +291,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 var unresolvedMonitoredItems = _subscription.MonitoredItems
+                    .OfType<DataMonitoredItemModel>()
                     .Where(mi => string.IsNullOrEmpty(mi.DisplayName));
                 if (!unresolvedMonitoredItems.Any()) {
                     return;

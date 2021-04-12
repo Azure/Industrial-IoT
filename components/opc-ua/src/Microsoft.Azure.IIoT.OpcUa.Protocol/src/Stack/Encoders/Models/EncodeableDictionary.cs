@@ -5,16 +5,12 @@
 
 namespace Opc.Ua.Encoders {
     using Opc.Ua;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Encodeable dictionary carrying field names and values
     /// </summary>
-    public class EncodeableDictionary : IEncodeable {
-
-        /// <summary>
-        /// Event fields
-        /// </summary>
-        public KeyValuePairCollection Fields { get; set; }
+    public class EncodeableDictionary : List<KeyDataValuePair>, IEncodeable {
 
         /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
@@ -33,22 +29,30 @@ namespace Opc.Ua.Encoders {
             nameof(EncodeableDictionary) + "_Encoding_DefaultJson";
 
         /// <summary>
-        /// Create
+        /// Initializes the dictionary with default values.
         /// </summary>
-        public EncodeableDictionary() {
-            Fields = new KeyValuePairCollection();
-        }
+        public EncodeableDictionary() { }
+
+        /// <summary>
+        /// Initializes the dictionary with an initial capacity.
+        /// </summary>
+        public EncodeableDictionary(int capacity) : base(capacity) { }
+
+        /// <summary>
+        /// Initializes the dictionary with another collection.
+        /// </summary>
+        public EncodeableDictionary(IEnumerable<KeyDataValuePair> collection) : base(collection) { }
 
         /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder) {
-            //  todo: check if "EventFields" is appropriate
-            encoder.WriteEncodeableArray("EventFields", Fields.ToArray(), typeof(KeyValuePair));
+            foreach (var entry in this) {
+                encoder.WriteDataValue(entry.Key, entry.Value);
+            }
         }
 
         /// <inheritdoc/>
         public virtual void Decode(IDecoder decoder) {
-            Fields = (KeyValuePairCollection)decoder.ReadEncodeableArray(
-                "EventFields", typeof(KeyValuePair));
+            // No operation. Cannot decode without known keys.
         }
 
         /// <inheritdoc/>
@@ -56,10 +60,10 @@ namespace Opc.Ua.Encoders {
             if (this == encodeable) {
                 return true;
             }
-            if (!(encodeable is EncodeableDictionary eventFieldList)) {
+            if (!(encodeable is EncodeableDictionary encodableDictionary)) {
                 return false;
             }
-            if (!Utils.IsEqual(Fields, eventFieldList.Fields)) {
+            if (!Utils.IsEqual(this, encodableDictionary)) {
                 return false;
             }
             return true;
