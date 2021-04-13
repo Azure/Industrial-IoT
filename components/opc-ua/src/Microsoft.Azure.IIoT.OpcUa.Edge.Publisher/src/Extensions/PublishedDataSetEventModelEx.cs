@@ -27,9 +27,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 return null;
             }
 
-            if (publishedEvent.SelectClauses == null && string.IsNullOrEmpty(publishedEvent.EventTypeDefinitionId)) {
-                return null;
-            }
             return new EventMonitoredItemModel {
                 Id = publishedEvent.Id,
                 DisplayName = displayName,
