@@ -212,8 +212,12 @@ namespace IIoTPlatform_E2E_Tests {
                 using var sshCient = CreateSshClientAndConnect(context);
                 foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
                     if (edge != string.Empty) {
-                        var command = $"scp {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFullName}";
+                        // Copy file to the edge vm
+                        var command = $"scp {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
                         var terminal = sshCient.RunCommand(command);
+                        // Move file to the target folder with sudo permissions 
+                        command = $"ssh {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
+                        terminal = sshCient.RunCommand(command);
                     }                 
                 }             
             }
@@ -401,6 +405,8 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddJsonBody(body);
 
             var response = await client.ExecuteAsync(request, ct);
+            Assert.True(response.IsSuccessful, $"Response status code: {response.StatusCode}");
+
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
         }
