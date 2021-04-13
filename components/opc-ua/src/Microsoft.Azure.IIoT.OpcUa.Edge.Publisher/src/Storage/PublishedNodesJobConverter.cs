@@ -147,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                             WhereClause = eventNotifier.WhereClause,
                                             QueueSize = 0,
                                             PendingAlarms = eventNotifier.PendingAlarms?.Clone() ?? null,
-                                            EventTypeDefinitionId = eventNotifier.EventTypeDefinitionId,
+                                            TypeDefinitionId = eventNotifier.TypeDefinitionId,
                                         }).ToList()
                             }
                         }))

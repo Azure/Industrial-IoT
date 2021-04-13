@@ -67,6 +67,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Simple event Type id
         /// </summary>
-        public string EventTypeDefinitionId { get; set; }
+        public string TypeDefinitionId { get; set; }
     }
 }

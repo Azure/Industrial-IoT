@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Simple event Type id
         /// </summary>
-        [DataMember(Name = "eventTypeDefinitionId", Order = 10)]
-        public string EventTypeDefinitionId { get; set; }
+        [DataMember(Name = "typeDefinitionId", Order = 10)]
+        public string TypeDefinitionId { get; set; }
     }
 }

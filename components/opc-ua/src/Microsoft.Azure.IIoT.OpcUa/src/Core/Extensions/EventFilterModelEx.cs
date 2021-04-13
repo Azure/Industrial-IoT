@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                     .Select(a => a.Clone())
                     .ToList(),
                 WhereClause = model.WhereClause.Clone(),
-                EventTypeDefinitionId = model.EventTypeDefinitionId
+                TypeDefinitionId = model.TypeDefinitionId
             };
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             if (!model.WhereClause.IsSameAs(other.WhereClause)) {
                 return false;
             }
-            if (model.EventTypeDefinitionId != other.EventTypeDefinitionId) {
+            if (model.TypeDefinitionId != other.TypeDefinitionId) {
                 return false;                
             }
 

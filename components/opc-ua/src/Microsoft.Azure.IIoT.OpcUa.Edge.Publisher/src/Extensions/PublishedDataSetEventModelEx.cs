@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                         .Select(s => s.Clone())
                         .ToList(),
                     WhereClause = publishedEvent.WhereClause?.Clone(),
-                    EventTypeDefinitionId = publishedEvent.EventTypeDefinitionId,
+                    TypeDefinitionId = publishedEvent.TypeDefinitionId,
                 },
                 DiscardNew = publishedEvent.DiscardNew,
                 QueueSize = publishedEvent.QueueSize,

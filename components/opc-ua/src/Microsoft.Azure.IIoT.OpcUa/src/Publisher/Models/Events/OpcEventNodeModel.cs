@@ -35,6 +35,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// Simple event Type id
         /// </summary>
         [DataMember(EmitDefaultValue = false)]
-        public string EventTypeDefinitionId { get; set; }
+        public string TypeDefinitionId { get; set; }
     }
 }

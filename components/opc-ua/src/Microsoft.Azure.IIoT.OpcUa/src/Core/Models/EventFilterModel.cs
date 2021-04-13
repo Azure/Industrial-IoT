@@ -24,6 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// <summary>
         /// Simple event type Id
         /// </summary>
-        public string EventTypeDefinitionId { get; set; }
+        public string TypeDefinitionId { get; set; }
     }
 }

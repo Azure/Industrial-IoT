@@ -1051,7 +1051,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(session.MessageContext));
                 }
                 else if (EventTemplate != null) {
-                    var eventFilter = !string.IsNullOrEmpty(EventTemplate.EventFilter.EventTypeDefinitionId) ?
+                    var eventFilter = !string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId) ?
                         GetSimpleEventFilter(session) :
                         codec.Decode(EventTemplate.EventFilter, true);
                     if (EventTemplate.PendingAlarms != null && EventTemplate.PendingAlarms.IsEnabled) {
@@ -1184,8 +1184,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             internal EventFilter GetSimpleEventFilter(Session session) {
-                var eventTypeDefinitionId = NodeId.Parse(EventTemplate.EventFilter.EventTypeDefinitionId);
-                var fields = ClientUtils.CollectInstanceDeclarationsForType(session, eventTypeDefinitionId);
+                var TypeDefinitionId = NodeId.Parse(EventTemplate.EventFilter.TypeDefinitionId);
+                var fields = ClientUtils.CollectInstanceDeclarationsForType(session, TypeDefinitionId);
 
                 var eventFilter = new EventFilter();
                 foreach (var field in fields) {
@@ -1196,7 +1196,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     });
                 }
                 eventFilter.WhereClause = new ContentFilter();
-                eventFilter.WhereClause.Push(FilterOperator.OfType, eventTypeDefinitionId);
+                eventFilter.WhereClause.Push(FilterOperator.OfType, TypeDefinitionId);
 
                 return eventFilter;
             }

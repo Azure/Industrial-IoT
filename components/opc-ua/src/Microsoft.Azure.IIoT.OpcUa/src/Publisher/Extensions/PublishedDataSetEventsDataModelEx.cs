@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     .Select(f => f.Clone())
                     .ToList(),
                 PendingAlarms = model.PendingAlarms?.Clone() ?? null,
-                EventTypeDefinitionId = model.EventTypeDefinitionId
+                TypeDefinitionId = model.TypeDefinitionId
             };
         }
     }
