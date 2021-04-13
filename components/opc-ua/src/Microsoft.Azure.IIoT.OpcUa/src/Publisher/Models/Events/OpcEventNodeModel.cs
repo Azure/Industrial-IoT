@@ -30,5 +30,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// </summary>
         [DataMember(EmitDefaultValue = false)]
         public PendingAlarmsOptionsModel PendingAlarms { get; set; }
+
+        /// <summary>
+        /// Simple event Type id
+        /// </summary>
+        [DataMember(EmitDefaultValue = false)]
+        public string EventTypeDefinitionId { get; set; }
     }
 }

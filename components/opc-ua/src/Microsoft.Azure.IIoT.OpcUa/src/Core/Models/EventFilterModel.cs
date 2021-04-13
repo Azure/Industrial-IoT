@@ -20,5 +20,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// Where clause
         /// </summary>
         public ContentFilterModel WhereClause { get; set; }
+
+        /// <summary>
+        /// Simple event type Id
+        /// </summary>
+        public string EventTypeDefinitionId { get; set; }
     }
 }

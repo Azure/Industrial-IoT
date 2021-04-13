@@ -1303,7 +1303,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 SelectClauses = model.SelectClauses?
                     .Select(f => f.ToApiModel())
                     .ToList(),
-                PendingAlarms = model.PendingAlarms.ToApiModel()
+                PendingAlarms = model.PendingAlarms.ToApiModel(),
+                EventTypeDefinitionId = model.EventTypeDefinitionId,
             };
         }
 
@@ -1328,6 +1329,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                     .Select(f => f.ToServiceModel())
                     .ToList(),
                 PendingAlarms = model.PendingAlarms.ToServiceModel(),
+                EventTypeDefinitionId = model.EventTypeDefinitionId,
             };
         }
 
