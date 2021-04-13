@@ -1052,8 +1052,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 else if (EventTemplate != null) {
                     var eventFilter = codec.Decode(EventTemplate.EventFilter, true);
 
-                    // TODO: If we got flag?
-
                     // Add SourceTimestamp and ServerTimestamp select clauses.
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
                         eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "Time");
