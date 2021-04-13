@@ -1052,7 +1052,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 else if (EventTemplate != null) {
                     var eventFilter = codec.Decode(EventTemplate.EventFilter, true);
-                    if (EventTemplate.PendingAlarms != null && EventTemplate.PendingAlarms.IsEnabled) {
+
+                    // Add SourceTimestamp and ServerTimestamp select clauses.
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
+                        eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "Time");
+                    }
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "ReceiveTime")) {
+                        eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "ReceiveTime");
+                    }
+
+                    if (EventTemplate.PendingAlarms?.IsEnabled == true) {
                         if (!eventFilter.SelectClauses
                             .Where(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId)
                             .Any()) {
@@ -1170,7 +1179,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             internal string GetFieldDisplayName(int index) {
-                var fieldName = EventTemplate?.EventFilter?.SelectClauses?[index]?.DisplayName;
+                var fieldName = EventTemplate?.EventFilter?.SelectClauses?.ElementAtOrDefault(index)?.DisplayName;
                 if (fieldName == null) {
                     fieldName = Item.GetFieldName(index);
                     if (!string.IsNullOrEmpty(fieldName) && fieldName[0] == '/') {
