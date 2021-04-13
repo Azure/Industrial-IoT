@@ -171,6 +171,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 ClientBase.ValidateResponse(results, nodesToBrowse);
                 ClientBase.ValidateDiagnosticInfos(diagnosticInfos, nodesToBrowse);
 
+                var deadline = DateTime.Now + TimeSpan.FromSeconds(60);
+                bool timedOut = false;
+
                 do {
                     // check for error.
                     if (StatusCode.IsBad(results[0].StatusCode)) {
@@ -200,8 +203,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     ClientBase.ValidateResponse(results, continuationPoints);
                     ClientBase.ValidateDiagnosticInfos(diagnosticInfos, continuationPoints);
+
+                    timedOut = DateTime.Now > deadline;
                 }
-                while (true);
+                while (!timedOut);
+
+                if (timedOut) {
+                    throw new TimeoutException("Timed out whilte browsing for instance declarations");
+                }
 
                 //return complete list.
                 return references;
@@ -309,7 +318,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             BrowsePathResultCollection results;
             DiagnosticInfoCollection diagnosticInfos;
 
-            ResponseHeader responseHeader = session.TranslateBrowsePathsToNodeIds(
+            session.TranslateBrowsePathsToNodeIds(
                 null,
                 browsePaths,
                 out results,
