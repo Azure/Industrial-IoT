@@ -1056,18 +1056,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         GetSimpleEventFilter(session) :
                         codec.Decode(EventTemplate.EventFilter, true);
 
-                        // Add SourceTimestamp and ServerTimestamp select clauses.
-                        if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time"))
-                        {
-                            eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "Time");
-                        }
-                        if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "ReceiveTime"))
-                        {
-                            eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "ReceiveTime");
-                        }
+                    // Add SourceTimestamp and ServerTimestamp select clauses.
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
+                        eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "Time");
+                    }
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "ReceiveTime")) {
+                        eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "ReceiveTime");
+                    }
 
-                    if (EventTemplate.PendingAlarms?.IsEnabled == true)
-                    {
+                    if (EventTemplate.PendingAlarms?.IsEnabled == true) {
                         if (!eventFilter.SelectClauses
                             .Where(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId)
                             .Any()) {
