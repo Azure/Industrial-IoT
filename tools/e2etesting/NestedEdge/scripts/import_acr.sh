@@ -88,7 +88,7 @@ az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-hu
 echo "diagnostics..."
 az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-diagnostics:1.2.0-rc4 --image azureiotedge-diagnostics:1.2.0-rc4
 echo "monitor..."
-az acr import --name acrqq4mbi.azurecr.io --force --source mcr.microsoft.com/azuremonitor/containerinsights/ciprod:iot-0.1.3.3 --image ciprod:latest
+az acr import --name $acrName --force --source mcr.microsoft.com/azuremonitor/containerinsights/ciprod:iot-0.1.3.3 --image ciprod:latest
 echo "API proxy..."
 az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-api-proxy:latest --image azureiotedge-api-proxy:latest
 echo "IIoT - OpcPlc server ..."

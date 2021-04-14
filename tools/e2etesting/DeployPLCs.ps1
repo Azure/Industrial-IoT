@@ -1,8 +1,8 @@
 Param(
     [string]
-    $ResourceGroupName,
+    $ResourceGroupName = "nested-edge-test",
     [int]
-    $NumberOfSimulations = 18,
+    $NumberOfSimulations = 2,
     [Guid]
     $TenantId,
     [int]
@@ -24,7 +24,11 @@ Param(
     [Double]
     $MemoryInGb = 0.5,
     [int]
-    $CpuCount = 1
+    $CpuCount = 1,
+    [string]
+    $VNet = "/subscriptions/9dd2b4d0-3dad-4aeb-85d8-c3addb78127a/resourceGroups/nested-edge-cx-RG-network/providers/Microsoft.Network/virtualNetworks/PurdueNetwork",
+    [string]
+    $SubNet = "3-L2-OT-AreaSupervisoryControl"
 )
 
 # Stop execution when an error occurs.
@@ -106,7 +110,7 @@ if ($aciNamesToCreate.Length -gt 0) {
         $script = {
             Param($Name)
             $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
-            $aci = New-AzContainerGroup -ResourceGroupName $using:ResourceGroupName -Name $Name -Image $using:PLCImage -OsType Linux -Command $aciCommand -Port @(50000,80) -Cpu $using:CpuCount -MemoryInGB $using:MemoryInGb -IpAddressType Public -DnsNameLabel $Name
+            $aci = az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:VNet --subnet $using:SubNet
         }
 
         $job = Start-Job -Scriptblock $script -ArgumentList $aciNameToCreate
@@ -147,7 +151,7 @@ $containerInstances = Get-AzContainerGroup -ResourceGroupName $ResourceGroupName
 
 $plcSimNames = ""
 foreach ($ci in $containerInstances) {
-    $plcSimNames += $ci.Fqdn + ";"
+    $plcSimNames += $ci.IpAddress + ";"
 }
 
 Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
