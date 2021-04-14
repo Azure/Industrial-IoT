@@ -21,6 +21,7 @@
             "env": {
               "httpSettings:enabled": {
                 "value": true
+              }
             }
           },
           "edgeHub": {
