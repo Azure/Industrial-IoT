@@ -4,7 +4,7 @@ trigger: none
 pr: none
 
 pool:
-  name: '$(AgentPool)'
+  vmImage: 'windows-latest'
 
 variables:
 - template: steps/variables.yml
@@ -33,10 +33,17 @@ stages:
     condition: and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded'))
     dependsOn: deploystandalone
     displayName: 'Deploy Test Resources'
-    pool:
-      name: '$(AgentPool)'
     steps:
     - template: steps/deploytestresources.yml
+
+  - job: deploynestedtestresources
+    pool:
+      vmImage: 'ubuntu-latest'
+    condition: and(not(canceled()), eq(dependencies.deploytestresources.result, 'Succeeded'))
+    dependsOn: deploytestresources
+    displayName: 'Deploy Nested Edge Test Resources'
+    steps:
+    - template: steps/deploynestededgeresources.yml
 
 - stage: runtests
   displayName: "Execute tests"

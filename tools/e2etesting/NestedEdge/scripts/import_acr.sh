@@ -88,13 +88,14 @@ az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-hu
 echo "diagnostics..."
 az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-diagnostics:1.2.0-rc4 --image azureiotedge-diagnostics:1.2.0-rc4
 echo "monitor..."
-az acr import --name acrqq4mbi.azurecr.io --force --source mcr.microsoft.com/azuremonitor/containerinsights/ciprod:iot-0.1.3.3 --image ciprod:latest
+az acr import --name $acrName --force --source mcr.microsoft.com/azuremonitor/containerinsights/ciprod:iot-0.1.3.3 --image ciprod:latest
 echo "API proxy..."
 az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-api-proxy:latest --image azureiotedge-api-proxy:latest
 echo "IIoT - OpcPlc server ..."
 az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-plc:latest --image opc-plc:latest
 echo "IoT - OPC Publisher..."
 az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-publisher:2.7.206 --image opc-publisher:2.7.206
+az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-publisher:2.7.206 --image iotedge/opc-publisher:2.7.206
 echo "IIoT - Twin..."
 az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-twin:2.7.206 --image opc-twin:2.7.206
 echo "IIoT - Discovery ..."
