@@ -25,6 +25,7 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -KeysPath "$(System.DefaultWorkingDirectory)"
+      
 - task: AzureCLI@2
   displayName: "Deploy nested edge"
   inputs:
