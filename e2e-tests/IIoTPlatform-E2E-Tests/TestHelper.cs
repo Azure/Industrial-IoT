@@ -198,8 +198,6 @@ namespace IIoTPlatform_E2E_Tests {
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
-            DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
-
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
             context.OutputHelper?.WriteLine(json);
@@ -344,6 +342,16 @@ namespace IIoTPlatform_E2E_Tests {
                 isSuccessful = true;
             }
             Assert.True(isSuccessful, "Delete file was not successful");
+
+            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
+                using var sshCient = CreateSshClientAndConnect(context);
+                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
+                    if (edge != string.Empty) {
+                        var command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo rm {fileName}'";
+                        sshCient.RunCommand(command);
+                    }
+                }
+            }
         }
 
         /// <summary>
