@@ -170,18 +170,9 @@ jumpboxSSH="ssh $jumpBoxUser@$jumpBoxFullyQualifiedName"
 
 # Creating SSH key pair to connect from the jump box to VMs within the Purdue network
 runCommandOutput=$(az vm run-command invoke -g ${jumpboxResourceGroupName} -n jumpbox --command-id RunShellScript --scripts "sudo -u jbadmin ssh-keygen -m PEM -t rsa -b 4096 -f /home/jbadmin/.ssh/id_rsa -q -N "\"\"" && sudo -u jbadmin cat /home/jbadmin/.ssh/id_rsa.pub" --query "value[].message" -o tsv)
-#jbSshPublicKey=$(echo ${runCommandOutput} | grep -o -P '(?<=\[stdout\]\ ).*(?=\ \[stderr\])')
-#rm ${scriptFolder}/.jbSshPublicKey 2> /dev/null
-#echo "$jbSshPublicKey" >> "${scriptFolder}/.jbSshPublicKey"
-
-regex=$'(ssh-rsa[^\n]*)'
-if [[ $runCommandOutput =~ $regex ]]; then
-  jbSshPublicKey="${BASH_REMATCH[1]}"
-  echo "Match ${jbSshPublicKey}"
-else
-  echo "no match found"
-fi
-echo "$jbSshPublicKey" >> "/d/a/1/s/.ssh/jbSshPublicKey"
+jbSshPublicKey=$(echo ${runCommandOutput} | grep -o -P '(?<=\[stdout\]\ ).*(?=\ \[stderr\])')
+rm ${scriptFolder}/.jbSshPublicKey 2> /dev/null
+echo "$jbSshPublicKey" >> "${scriptFolder}/.jbSshPublicKey"
 
 echo "Jump box created. Key values:"
 echo ""

@@ -1,6 +1,8 @@
 Param(
     [string]
     $ResourceGroupName,
+    [string]
+    $KeysPath,
     [Guid]
     $TenantId
 )
@@ -75,11 +77,7 @@ $acrEnv = $acrEnv -replace 'YOUR_ACR_PASSWORD', $creds.Password
 $acrEnv | Out-File $acrFile
 
 ## Generate SSH keys
-$KeysPath = $env:System_DefaultWorkingDirectory + "\.ssh"
-
-if(!(Test-Path $KeysPath)) {
-    New-Item -ItemType Directory -Force -Path $KeysPath > $null
-}
+Write-Host "Keys path: $KeysPath"
 
 $privateKeyFilePath = Join-Path $KeysPath "id_rsa"
 $publicKeyFilePath = $privateKeyFilePath + ".pub"

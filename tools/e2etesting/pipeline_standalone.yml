@@ -34,7 +34,16 @@ stages:
     dependsOn: deploystandalone
     displayName: 'Deploy Test Resources'
     steps:
-    - template: steps/deploynestededgeresources.yml
+    - template: steps/deploytestresources.yml
+
+  - job: deploynestedtestresources
+    pool:
+      vmImage: 'ubuntu-latest'
+    condition: and(not(canceled()), eq(dependencies.deploytestresources.result, 'Succeeded'))
+    dependsOn: deploytestresources
+    displayName: 'Deploy Nested Edge Test Resources'
+    steps:
+  - template: steps/deploynestededgeresources.yml
 
 - stage: runtests
   displayName: "Execute tests"
