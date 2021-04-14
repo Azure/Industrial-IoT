@@ -1,0 +1,48 @@
+steps:
+- task: DownloadPipelineArtifact@2
+  inputs:
+    artifact: 'testartifacts'
+    path: $(BasePath)
+
+- task: AzureCLI@2
+  displayName: "Set permissions for scripts"
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/tools/e2etesting/NestedEdge'
+    inlineScript: | 
+      find  -name '*.sh' -print0 | xargs -0 chmod +x
+      
+- task: AzurePowerShell@5
+  displayName: "Prepare for nested edge deployment"
+  timeoutInMinutes: 30
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(System.DefaultWorkingDirectory)/tools/e2etesting/NestedEdge/PreNestedEdgeDeployment.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -KeysPath "$(System.DefaultWorkingDirectory)"
+      
+- task: AzureCLI@2
+  displayName: "Deploy nested edge"
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    scriptType: 'bash'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(System.DefaultWorkingDirectory)/tools/e2etesting/NestedEdge/install.sh'
+    arguments: '-rg=$(ResourceGroupName) -l="$(Region)" -hubrg=$(ResourceGroupName) -hubname=$(iothub) -sshPublicKeyPath="$(System.DefaultWorkingDirectory)/id_rsa.pub'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/tools/e2etesting/NestedEdge'
+
+- task: AzurePowerShell@5
+  displayName: "Post nested edge deployment"
+  timeoutInMinutes: 30
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(System.DefaultWorkingDirectory)/tools/e2etesting/NestedEdge/PostNestedEdgeDeployment.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"

@@ -1,8 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 #TODO2: Document default settings for the optional flags.
 
 #TODO2: clean up all the echos ..way to many with confusing titles. Maybe add verbose flag?
+
+# Install azure-iot extension that is needed in the nested scripts
+az extension add --name azure-iot --yes
 
 function show_help() {
    # Display Help
@@ -18,7 +21,7 @@ function show_help() {
    echo "-h                     Print this help."
    echo "-c                     Path to configuration file with IIOT assets and IoT Edge VMs information. Default: ./config.txt."
    echo "-s                     Azure subscription ID to use to deploy resources. Default: use current subscription of Azure CLI."
-   echo "-l                     Azure region to deploy resources to. Default: eastus."
+   echo "-l                     Azure region to deploy resources to. Default: westeurope."
    echo "-rg                    Prefix used for all new Azure Resource Groups created by this script. Default: iotedge4iiot."
    echo "-vmSize                Size of the Azure VMs to deploy. Default: Standard_B1ms."
    echo "-sshPublicKeyPath      Path to the SSH public key that should be used to connect to the jump box, which is the entry point to the Purdue network. Default: ~/.ssh/id_rsa.pub"
@@ -29,7 +32,7 @@ function show_help() {
 iotHubResourceGroup=""
 iotHubName=""
 configFilePath="./config.txt"
-location="eastus"
+location="westeurope"
 resourceGroupPrefix="iotedge4iiot"
 vmSize="Standard_B1ms" #"Standard_D3_v2"
 sshPublicKeyPath="$(readlink -f ~/.ssh/id_rsa.pub)"

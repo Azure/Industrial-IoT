@@ -86,3 +86,5 @@ steps:
     PCS_CONTAINER_REGISTRY_PASSWORD: "$(ContainerRegistryPassword)"
     PCS_IMAGES_NAMESPACE: "$(ImageNamespace)"
     IOT_EDGE_VERSION: "$(EdgeVersion)"
+    NESTED_EDGE_FLAG: "$(NestedEdgeFlag)"
+    NESTED_EDGE_SSH_CONNECTIONS: "$(NestedEdgeSshConnection)"

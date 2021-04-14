@@ -14,10 +14,10 @@
 # - Case matters and make sure to keep an empty line at the end of the file.
 
 # IoT Edge and IIOT assets topology
-7-L5-IT-EnterpriseNetwork: L5-edge
-6-L4-IT-SiteLogistics: L4-edge(L5-edge)
-4-L3-OT-SiteOperations: L3-edge(L4-edge)
-3-L2-OT-AreaSupervisoryControl: L2-OPC-UA-server(OPC-UA)
+7-L5-IT-EnterpriseNetwork: L5-1-edge
+6-L4-IT-SiteLogistics: L4-1-edge(L5-1-edge)
+4-L3-OT-SiteOperations: L3-1-edge(L4-1-edge)
+3-L2-OT-AreaSupervisoryControl:
 2-L1-OT-BasicControl:
 1-L0-OT-Process:
 

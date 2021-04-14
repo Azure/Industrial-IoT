@@ -72,13 +72,8 @@ if (!$testSuffix) {
 }
 
 ## Check if KeyVault exists
-$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
-
-if ($keyVault.Count -ne 1) {
-    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
-} 
-
-Write-Host "Key Vault: $($keyVault.VaultName)"
+$keyVault = "e2etestingkeyVault" + $testSuffix
+Write-Host "Key Vault Name: $($keyVault)"
 
 ## Ensure Azure Container Instances ##
 
@@ -155,7 +150,7 @@ foreach ($ci in $containerInstances) {
 }
 
 Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'plc-simulation-urls' -SecretValue (ConvertTo-SecureString $plcSimNames -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault -Name 'plc-simulation-urls' -SecretValue (ConvertTo-SecureString $plcSimNames -AsPlainText -Force) | Out-Null
 
 Write-Host "Deployment finished."
 

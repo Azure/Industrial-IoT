@@ -95,6 +95,7 @@ echo "IIoT - OpcPlc server ..."
 az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-plc:latest --image opc-plc:latest
 echo "IoT - OPC Publisher..."
 az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-publisher:2.7.206 --image opc-publisher:2.7.206
+az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-publisher:2.7.206 --image iotedge/opc-publisher:2.7.206
 echo "IIoT - Twin..."
 az acr import --name $acrName --force --source mcr.microsoft.com/iotedge/opc-twin:2.7.206 --image opc-twin:2.7.206
 echo "IIoT - Discovery ..."
