@@ -1,8 +1,8 @@
 Param(
     [string]
-    $ResourceGroupName = "nested-edge-test",
+    $ResourceGroupName,
     [int]
-    $NumberOfSimulations = 2,
+    $NumberOfSimulations = 18,
     [Guid]
     $TenantId,
     [int]
@@ -26,9 +26,9 @@ Param(
     [int]
     $CpuCount = 1,
     [string]
-    $VNet = "/subscriptions/9dd2b4d0-3dad-4aeb-85d8-c3addb78127a/resourceGroups/nested-edge-cx-RG-network/providers/Microsoft.Network/virtualNetworks/PurdueNetwork",
+    $VNet,
     [string]
-    $SubNet = "3-L2-OT-AreaSupervisoryControl"
+    $SubNet
 )
 
 # Stop execution when an error occurs.
@@ -101,11 +101,19 @@ $jobs = @()
 if ($aciNamesToCreate.Length -gt 0) {
     foreach ($aciNameToCreate in $aciNamesToCreate) {
         Write-Host "Creating ACI $($aciNameToCreate)..."
-
-        $script = {
-            Param($Name)
-            $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
-            $aci = az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:VNet --subnet $using:SubNet
+        if (($VNet -eq "") -and ($SubNet -eq "")) {
+            $script = {
+                Param($Name)
+                $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
+                $aci = az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name
+            }
+        }
+        else{
+            $script = {
+                Param($Name)
+                $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
+                $aci = az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:VNet --subnet $using:SubNet
+            }            
         }
 
         $job = Start-Job -Scriptblock $script -ArgumentList $aciNameToCreate
