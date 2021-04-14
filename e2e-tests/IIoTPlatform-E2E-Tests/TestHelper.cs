@@ -198,8 +198,6 @@ namespace IIoTPlatform_E2E_Tests {
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
-            DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
-
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
             context.OutputHelper?.WriteLine(json);
