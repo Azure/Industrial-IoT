@@ -91,33 +91,6 @@
                 "value": "443"
               }
             }
-          },
-          "monitor": {
-            "settings": {
-              "image": "$upstream:443/ciprod:latest",
-              "createOptions": ""
-            },
-            "env": {
-              "UploadTarget": {
-                "value": "AzureMonitor"
-              },
-              "LogAnalyticsWorkspaceId": {
-                "value": "cd15be43-32a2-4808-a031-bb30c10c0f6c"
-              },
-              "LogAnalyticsSharedKey": {
-                "value": "WLhJcAty+0LFt/ZXdABelctg3GbhLEYGVLIXIlctVqCUmGm8IVrYmhghfJ/kGxs4lZaw1f8WKSjRJnzv9jCRZQ=="
-              },
-              "HubResourceID": {
-                "value": "/subscriptions/9dd2b4d0-3dad-4aeb-85d8-c3addb78127a/resourceGroups/crpogace_publisher_test/providers/Microsoft.Devices/IotHubs/iothub-v3m2qo"
-              },
-              "MetricsEndpointsCSV": {
-                "value": "http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://opcpublisher:9702/metrics"
-              }
-            },
-            "type": "docker",
-            "version": "1.0",
-            "status": "running",
-            "restartPolicy": "always"
           }
         }
       }
