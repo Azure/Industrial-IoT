@@ -1053,7 +1053,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 else if (EventTemplate != null) {
 
                     var eventFilter = !string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId) ?
-                        GetSimpleEventFilter(session) :
+                        GetSimpleEventFilter(session.NodeCache) :
                         codec.Decode(EventTemplate.EventFilter, true);
 
                     // Add SourceTimestamp and ServerTimestamp select clauses.
@@ -1193,20 +1193,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return fieldName;
             }
 
-            internal EventFilter GetSimpleEventFilter(Session session) {
-                var TypeDefinitionId = NodeId.Parse(EventTemplate.EventFilter.TypeDefinitionId);
-                var fields = ClientUtils.CollectInstanceDeclarationsForType(session, TypeDefinitionId);
+            internal EventFilter GetSimpleEventFilter(NodeCache nodeCache) {
+                var typeDefinitionId = NodeId.Parse(EventTemplate.EventFilter.TypeDefinitionId);
+                var nodes = new List<Node>();
+                ExpandedNodeId superType = null;
+                nodes.Insert(0, nodeCache.FetchNode(typeDefinitionId));
+                do {
+                    superType = nodes[0].GetSuperType(nodeCache.TypeTree);
+                    if (superType != null) {
+                        nodes.Insert(0, nodeCache.FetchNode(superType));
+                    }
+                }
+                while (superType != null);
+
+                var propertyNames = new List<QualifiedName>();
+                foreach (var node in nodes) {
+                    foreach (var reference in node.ReferenceTable) {
+                        if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty) {
+                            propertyNames.Add(nodeCache.FetchNode(reference.TargetId).BrowseName);
+                        }
+                    }
+                }
 
                 var eventFilter = new EventFilter();
-                foreach (var field in fields) {
-                    eventFilter.SelectClauses.Add(new SimpleAttributeOperand() {
+                foreach (var propertyName in propertyNames) {
+                    var selectClause = new SimpleAttributeOperand() {
                         TypeDefinitionId = ObjectTypeIds.BaseEventType,
-                        BrowsePath = field.BrowsePath,
-                        AttributeId = (field.NodeClass == Opc.Ua.NodeClass.Variable) ? Attributes.Value : Attributes.NodeId
-                    });
+                        AttributeId = Attributes.Value
+                    };
+                    selectClause.BrowsePath.Add(propertyName);
+                    eventFilter.SelectClauses.Add(selectClause);
                 }
                 eventFilter.WhereClause = new ContentFilter();
-                eventFilter.WhereClause.Push(FilterOperator.OfType, TypeDefinitionId);
+                eventFilter.WhereClause.Push(FilterOperator.OfType, typeDefinitionId);
 
                 return eventFilter;
             }
