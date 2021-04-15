@@ -96,33 +96,6 @@
                 "value": "dockerContainerRegistry:5000"
               }
             }
-          },
-          "monitor": {
-            "settings": {
-              "image": "$ACR_ADDRESS/ciprod:latest",
-              "createOptions": ""
-            },
-            "env": {
-              "UploadTarget": {
-                "value": "AzureMonitor"
-              },
-              "LogAnalyticsWorkspaceId": {
-                "value": "$WORKSPACE_ID"
-              },
-              "LogAnalyticsSharedKey": {
-                "value": "$WORKSPACE_KEY"
-              },
-              "HubResourceID": {
-                "value": "$IOT_HUB_RESOURCE_ID"
-              },
-              "MetricsEndpointsCSV": {
-                "value": "http://edgehub:9600/metrics,http://edgeagent:9600/metrics"
-              }
-            },
-            "type": "docker",
-            "version": "1.0",
-            "status": "running",
-            "restartPolicy": "always"
           }
         }
       }

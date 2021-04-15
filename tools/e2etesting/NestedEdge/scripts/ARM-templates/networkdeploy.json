@@ -58,8 +58,8 @@
     "PortHttps": "443",
     "PortProxy": "3128",
     "PortAmqps": "5671",
-    "PortOPC1": "54845",
-    "PortOPC2": "54855",
+    "PortOPC1": "50000",
+    "PortOPC2": "50001",
     "PortGrafana": "3000"
   },
   "resources": [
