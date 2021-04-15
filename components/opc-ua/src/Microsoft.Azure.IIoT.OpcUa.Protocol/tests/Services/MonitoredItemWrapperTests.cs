@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
     public class MonitoredItemWrapperTests {
         [Fact]
-        public void SetDefaultBaseValuesWhenPropertiesInBaseTemplateAreNull() {
+        public void SetDefaultBaseValuesWhenPropertiesAreNullInBaseTemplate() {
             var template = new DataMonitoredItemModel {
                 AttributeId = null,
                 MonitoringMode = null,
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         [Fact]
-        public void SetBaseIdValuesWhenPropertiesInBaseTemplateAreSet() {
+        public void SetBaseIdValuesWhenPropertiesAreSetInBaseTemplate() {
             var template = new DataMonitoredItemModel {
                 Id = "i=2258",
                 DisplayName = "DisplayName",
@@ -60,6 +60,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(10000, monitoredItemWrapper.Item.SamplingInterval);
             Assert.False(monitoredItemWrapper.Item.DiscardOldest);
             Assert.Equal(monitoredItemWrapper, monitoredItemWrapper.Item.Handle);
+        }
+
+        [Fact]
+        public void SetDataChangeFilterWhenBaseTemplateIsDataTemplate() {
+            var template = new DataMonitoredItemModel {
+                DataChangeFilter = new DataChangeFilterModel {
+                    DataChangeTrigger = Publisher.Models.DataChangeTriggerType.StatusValue,
+                    DeadBandType = Publisher.Models.DeadbandType.Percent,
+                    DeadBandValue = 10.0
+                }
+            };
+            var monitoredItemWrapper = Create(template);
+
+            Assert.NotNull(monitoredItemWrapper.Item.Filter);
+            Assert.IsType<DataChangeFilter>(monitoredItemWrapper.Item.Filter);
+            
+            var dataChangeFilter = (DataChangeFilter)monitoredItemWrapper.Item.Filter;
+            Assert.Equal(DataChangeTrigger.StatusValue, dataChangeFilter.Trigger);
+            Assert.Equal((uint)DeadbandType.Percent, dataChangeFilter.DeadbandType);
+            Assert.Equal(10.0, dataChangeFilter.DeadbandValue);
         }
 
         [Fact]
@@ -123,7 +143,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         [Fact]
-        public void AddConditionTypeSelectClausesWhenPendingAlarmsInEventTemplateIsSet() {
+        public void AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplate() {
             var template = new EventMonitoredItemModel {
                 PendingAlarms = new PendingAlarmsOptionsModel {
                     IsEnabled = true
