@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
     public class MonitoredItemWrapperTests {
         [Fact]
-        public void SetDefaultBaseValuesWhenPropertiesAreNullInBaseTemplate() {
+        public void SetDefaultValuesWhenPropertiesAreNullInBaseTemplate() {
             var template = new DataMonitoredItemModel {
                 AttributeId = null,
                 MonitoringMode = null,
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         [Fact]
-        public void SetBaseIdValuesWhenPropertiesAreSetInBaseTemplate() {
+        public void SetBaseValuesWhenPropertiesAreSetInBaseTemplate() {
             var template = new DataMonitoredItemModel {
                 Id = "i=2258",
                 DisplayName = "DisplayName",
