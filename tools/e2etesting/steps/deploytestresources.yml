@@ -4,17 +4,18 @@ steps:
     artifact: 'testartifacts'
     path: $(BasePath)
 
-- task: AzurePowerShell@5
+- task: AzureCLI@2
   displayName: "Deploy containers with simulated PLCs"
   timeoutInMinutes: 90
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
-    scriptType: filePath
+    scriptType: 'ps'
     scriptPath: '$(BasePath)\DeployPLCs.ps1'
-    scriptArguments: >
+    arguments: >
       -ResourceGroupName "$(ResourceGroupName)"
-
+      -NestedEdgeFlag $true
+      
 # - task: AzurePowerShell@5
 #   displayName: "Deploy VM with IoT Edge Runtime"
 #   timeoutInMinutes: 90
@@ -37,4 +38,4 @@ steps:
     scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
-      -PackageDirectory "$(BasePath)\TestEventProcessor"
+      -PackageDirectory "$(BasePath)\TestEventProcessor"  
