@@ -29,21 +29,21 @@ stages:
     steps:
     - template: steps/deploystandalone.yml
 
-  - job: deploytestresources
-    condition: and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded'))
-    dependsOn: deploystandalone
-    displayName: 'Deploy Test Resources'
-    steps:
-    - template: steps/deploytestresources.yml
-
   - job: deploynestedtestresources
     pool:
       vmImage: 'ubuntu-latest'
-    condition: and(not(canceled()), eq(dependencies.deploytestresources.result, 'Succeeded'))
-    dependsOn: deploytestresources
+    condition: and(not(canceled()), eq(dependencies.deploystandalone.result, 'Succeeded'))
+    dependsOn: deploystandalone
     displayName: 'Deploy Nested Edge Test Resources'
     steps:
     - template: steps/deploynestededgeresources.yml
+
+  - job: deploytestresources
+    condition: and(not(canceled()), eq(dependencies.deploynestedtestresources.result, 'Succeeded'))
+    dependsOn: deploynestedtestresources
+    displayName: 'Deploy Test Resources'
+    steps:
+    - template: steps/deploytestresources.yml
 
 - stage: runtests
   displayName: "Execute tests"
@@ -70,4 +70,3 @@ stages:
     - template: steps/cleanup.yml
       parameters:
         CleanupAppRegistrations: false
-  
