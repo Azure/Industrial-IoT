@@ -1053,7 +1053,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 else if (EventTemplate != null) {
 
                     var eventFilter = !string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId) ?
-                        GetSimpleEventFilter(session.NodeCache) :
+                        GetSimpleEventFilter(session.NodeCache, session.MessageContext) :
                         codec.Decode(EventTemplate.EventFilter, true);
 
                     // Add SourceTimestamp and ServerTimestamp select clauses.
@@ -1193,8 +1193,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return fieldName;
             }
 
-            internal EventFilter GetSimpleEventFilter(NodeCache nodeCache) {
-                var typeDefinitionId = NodeId.Parse(EventTemplate.EventFilter.TypeDefinitionId);
+            internal EventFilter GetSimpleEventFilter(NodeCache nodeCache, ServiceMessageContext context) {
+                var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(context);
                 var nodes = new List<Node>();
                 ExpandedNodeId superType = null;
                 nodes.Insert(0, nodeCache.FetchNode(typeDefinitionId));
