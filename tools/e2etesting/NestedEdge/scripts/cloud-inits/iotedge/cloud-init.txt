@@ -38,9 +38,9 @@ runcmd:
         done
 
         # Install IoT Edge
-        sudo wget -O aziot-identity-service_1.2.0-rc4_ubuntu-18.04_amd64.deb "https://raw.githubusercontent.com/Azure-Samples/iot-edge-for-iiot/master/scripts/assets/aziot-identity-service_1.2.0-rc4_ubuntu-18.04_amd64.deb"
-        sudo wget -O aziot-edge_1.2.0.rc4-1_ubuntu18.04_amd64.deb "https://raw.githubusercontent.com/Azure-Samples/iot-edge-for-iiot/master/scripts/assets/aziot-edge_1.2.0.rc4-1_ubuntu18.04_amd64.deb"
-        sudo dpkg -i aziot-identity-service_1.2.0-rc4_ubuntu-18.04_amd64.deb
-        sudo dpkg -i aziot-edge_1.2.0.rc4-1_ubuntu18.04_amd64.deb
+        sudo wget -O aziot-identity-service_1.2.0-1_ubuntu18.04_amd64.deb "https://github.com/Azure/azure-iotedge/releases/download/1.2.0/aziot-identity-service_1.2.0-1_ubuntu18.04_amd64.deb"
+        sudo wget -O aziot-edge_1.2.0-1_ubuntu18.04_amd64.deb "https://github.com/Azure/azure-iotedge/releases/download/1.2.0/aziot-edge_1.2.0-1_ubuntu18.04_amd64.deb"
+        sudo dpkg -i aziot-identity-service_1.2.0-1_ubuntu18.04_amd64.deb
+        sudo dpkg -i aziot-edge_1.2.0-1_ubuntu18.04_amd64.deb
         sudo cp /etc/aziot/config.toml.edge.template /etc/aziot/config.toml
       ) &

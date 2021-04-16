@@ -82,11 +82,11 @@ acrName="${ACR_ADDRESS/.azurecr.io/}"
 echo "Importing container images to ACR ${acrName}"
 echo ""
 echo "edgeAgent..."
-az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-agent:1.2.0-rc4 --image azureiotedge-agent:1.2.0-rc4
+az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-agent:1.2.0 --image azureiotedge-agent:1.2.0
 echo "edgeHub..."
-az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-hub:1.2.0-rc4 --image azureiotedge-hub:1.2.0-rc4
+az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-hub:1.2.0 --image azureiotedge-hub:1.2.0
 echo "diagnostics..."
-az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-diagnostics:1.2.0-rc4 --image azureiotedge-diagnostics:1.2.0-rc4
+az acr import --name $acrName --force --source mcr.microsoft.com/azureiotedge-diagnostics:1.2.0 --image azureiotedge-diagnostics:1.2.0
 echo "monitor..."
 az acr import --name $acrName --force --source mcr.microsoft.com/azuremonitor/containerinsights/ciprod:iot-0.1.3.3 --image ciprod:latest
 echo "API proxy..."

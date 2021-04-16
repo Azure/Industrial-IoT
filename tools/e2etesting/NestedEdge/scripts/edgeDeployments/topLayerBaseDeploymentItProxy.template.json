@@ -21,7 +21,7 @@
           "edgeAgent": {
             "type": "docker",
             "settings": {
-              "image": "$ACR_ADDRESS/azureiotedge-agent:1.2.0-rc4",
+              "image": "$ACR_ADDRESS/azureiotedge-agent:1.2.0",
               "createOptions": "{\"HostConfig\": {\"PortBindings\": {\"9600/tcp\": [{\"HostPort\": \"9602\"}]}},\"ExposedPorts\": {\"9600/tcp\": {}}}"
             },
             "env": {
@@ -36,7 +36,7 @@
             "restartPolicy": "always",
             "startupOrder": 1,
             "settings": {
-              "image": "$ACR_ADDRESS/azureiotedge-hub:1.2.0-rc4",
+              "image": "$ACR_ADDRESS/azureiotedge-hub:1.2.0",
               "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}],\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"9600/tcp\":[{\"HostPort\":\"9601\"}]}},\"ExposedPorts\":{\"5671/tcp\":{},\"8883/tcp\":{},\"9600/tcp\":{}}}"
             },
             "env": {

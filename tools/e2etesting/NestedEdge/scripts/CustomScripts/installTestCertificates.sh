@@ -30,7 +30,7 @@ echo ""
 echo "Installing test root certificate bundle. NOT TO BE USED FOR PRODUCTION."
 sudo mkdir /certs
 cd /certs
-sudo wget -O test-certs.tar.bz2 "https://raw.githubusercontent.com/Azure-Samples/iot-edge-for-iiot/master/scripts/assets/test-certs.tar.bz2"
+sudo wget -O test-certs.tar.bz2 "https://raw.githubusercontent.com/Azure/Industrial-IoT/feature/nested_edge/tools/e2etesting/NestedEdge/scripts/assets/test-certs.tar.bz2"
 sudo tar -xjvf test-certs.tar.bz2
 cd ./certs
 

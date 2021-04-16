@@ -27,5 +27,5 @@ AmlEnvFilePath: ../AML.env
 TopLayerBaseDeploymentTemplateFilePath: ./edgeDeployments/topLayerBaseDeploymentItProxy.template.json
 MiddleLayerBaseDeploymentTemplateFilePath: ./edgeDeployments/middleLayerBaseDeployment.template.json
 BottomLayerBaseDeploymentTemplateFilePath: ./edgeDeployments/bottomLayerBaseDeploymentOtProxy.template.json
-RootCA: https://raw.githubusercontent.com/Azure-Samples/iot-edge-for-iiot/master/scripts/assets/test-certs.tar.bz2
+RootCA: https://raw.githubusercontent.com/Azure/Industrial-IoT/feature/nested_edge/tools/e2etesting/NestedEdge/scripts/assets/test-certs.tar.bz2
 
