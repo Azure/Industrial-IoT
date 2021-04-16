@@ -25,10 +25,8 @@ Param(
     $MemoryInGb = 0.5,
     [int]
     $CpuCount = 1,
-    [string]
-    $VNet,
-    [string]
-    $SubNet
+    [bool]
+    $NestedEdgeFlag = $false
 )
 
 # Stop execution when an error occurs.
@@ -38,19 +36,8 @@ if (!$ResourceGroupName) {
     Write-Error "ResourceGroupName not set."
 }
 
-## Login if required
-
-$context = Get-AzContext
-
-if (!$context) {
-    Write-Host "Logging in..."
-    Login-AzAccount -Tenant $TenantId
-    $context = Get-AzContext
-}
-
 ## Check if resource group exists
-
-$resourceGroup = Get-AzResourceGroup -Name $resourceGroupName
+$resourceGroup = az group show --name $ResourceGroupName | ConvertFrom-Json
 
 if (!$resourceGroup) {
     Write-Error "Could not find Resource Group '$($ResourceGroupName)'."
@@ -60,15 +47,12 @@ Write-Host "Resource Group: $($ResourceGroupName)"
 
 ## Determine suffix for testing resources
 
-$testSuffix = $resourceGroup.Tags["TestingResourcesSuffix"]
+$testSuffix = $resourceGroup.tags.TestingResourcesSuffix
 
 if (!$testSuffix) {
     $testSuffix = Get-Random -Minimum 10000 -Maximum 99999
-
-    $tags = $resourceGroup.Tags
-    $tags+= @{"TestingResourcesSuffix" = $testSuffix}
-    Set-AzResourceGroup -Name $resourceGroup.ResourceGroupName -Tag $tags | Out-Null
-    $resourceGroup = Get-AzResourceGroup -Name $resourceGroup.ResourceGroupName
+    # TODO: don't override the original tags
+    az group update --name $resourceGroup --tags TestingResourcesSuffix=$testSuffix
 }
 
 ## Check if KeyVault exists
@@ -84,7 +68,7 @@ for ($i = 0; $i -lt $NumberOfSimulations; $i++) {
     $allAciNames += $name
 }
 
-$existingACIs = Get-AzContainerGroup -ResourceGroupName $ResourceGroupName | select -ExpandProperty Name
+$existingACIs = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].name"  | ConvertFrom-Json
 
 $aciNamesToCreate = @()
 
@@ -99,23 +83,30 @@ Write-Host
 $jobs = @()
 
 if ($aciNamesToCreate.Length -gt 0) {
+    if ($NestedEdgeFlag -eq $false) {
+        $script = {
+            Param($Name)
+            $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
+            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name
+        }
+    }
+    else {
+        Write-Host "Nested edge is enabled"
+        ## Set vNet and subNet parameters for nested edge
+        $networkResourceGroup = $ResourceGroupName + "-RG-network"
+        $vNet =  az resource show --name "PurdueNetwork" --resource-group $networkResourceGroup --resource-type "Microsoft.Network/virtualNetworks" --query id
+        $subNet = "3-L2-OT-AreaSupervisoryControl"
+        Write-Host "vNet resource id is $vNet"
+
+        $script = {
+            Param($Name)
+            $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:vNet --subnet $using:subNet
+        }
+    }
+
     foreach ($aciNameToCreate in $aciNamesToCreate) {
         Write-Host "Creating ACI $($aciNameToCreate)..."
-        if (($VNet -eq "") -and ($SubNet -eq "")) {
-            $script = {
-                Param($Name)
-                $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
-                $aci = az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name
-            }
-        }
-        else{
-            $script = {
-                Param($Name)
-                $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
-                $aci = az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:VNet --subnet $using:SubNet
-            }            
-        }
-
         $job = Start-Job -Scriptblock $script -ArgumentList $aciNameToCreate
         $jobs += $job
     }
@@ -150,15 +141,18 @@ if ($aciNamesToCreate.Length -gt 0) {
 Write-Host
 Write-Host "Getting IPs of ACIs for simulated PLCs..."
 
-$containerInstances = Get-AzContainerGroup -ResourceGroupName $ResourceGroupName | ?{ $_.Name.StartsWith($ResourcesPrefix) }
-
-$plcSimNames = ""
-foreach ($ci in $containerInstances) {
-    $plcSimNames += $ci.IpAddress + ";"
+$ipList = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].ipAddress.ip"  | ConvertFrom-Json
+foreach ($ip in $ipList) {
+    Write-Host $ip
+    $plcSimNames += $ip + ";"
 }
 
-Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'plc-simulation-urls' -SecretValue (ConvertTo-SecureString $plcSimNames -AsPlainText -Force) | Out-Null
+try {
+    Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
+    az keyvault secret set --vault-name $keyVault --name "plc-simulation-urls" --value $plcSimNames > $null
+}
+catch {
+    Write-Host "Plc simulation urls are empty"
+}
 
 Write-Host "Deployment finished."
-
