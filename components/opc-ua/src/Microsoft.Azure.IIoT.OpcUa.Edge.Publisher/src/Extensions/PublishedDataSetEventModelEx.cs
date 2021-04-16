@@ -23,9 +23,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public static EventMonitoredItemModel ToMonitoredItem(
             this PublishedDataSetEventModel publishedEvent,
             string displayName = null) {
-            if (publishedEvent?.SelectClauses == null) {
+            if (publishedEvent == null) {
                 return null;
             }
+
             return new EventMonitoredItemModel {
                 Id = publishedEvent.Id,
                 DisplayName = displayName,
@@ -33,7 +34,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     SelectClauses = publishedEvent.SelectClauses?
                         .Select(s => s.Clone())
                         .ToList(),
-                    WhereClause = publishedEvent.WhereClause.Clone(),
+                    WhereClause = publishedEvent.WhereClause?.Clone(),
+                    TypeDefinitionId = publishedEvent.TypeDefinitionId,
                 },
                 DiscardNew = publishedEvent.DiscardNew,
                 QueueSize = publishedEvent.QueueSize,
