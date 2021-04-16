@@ -212,10 +212,10 @@ namespace IIoTPlatform_E2E_Tests {
                     if (edge != string.Empty) {
                         // Copy file to the edge vm
                         var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
-                        var terminal = sshCient.RunCommand(command);
+                        sshCient.RunCommand(command);
                         // Move file to the target folder with sudo permissions 
                         command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
-                        terminal = sshCient.RunCommand(command);
+                        sshCient.RunCommand(command);
                     }                 
                 }             
             }

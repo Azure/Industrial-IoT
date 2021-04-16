@@ -49,27 +49,49 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(3)]
         public void Test_StartPublishing250Nodes_Expect_Success() {
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-
+            var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));         
             _context.LoadSimulatedPublishedNodes(cts.Token).GetAwaiter().GetResult();
-            var testPlc = _context.SimulatedPublishedNodes.Skip(2).First().Value;
-            var nodesToPublish = _context.GetEntryModelWithoutNodes(testPlc);
 
-            // We want to take one of the slow nodes that updates each 10 seconds.
-            // To make sure that we will not have missing values because of timing issues,
-            // we will set publishing and sampling intervals to a lower value than the publishing
-            // interval of the simulated OPC PLC. This will eliminate false-positives.
-            nodesToPublish.OpcNodes = testPlc.OpcNodes
-                .Take(250)
-                .Select(opcNode => {
-                    var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
-                    opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
-                    opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
-                    return opcNode;
-                })
-                .ToArray();
+            PublishedNodesEntryModel nodesToPublish;
+            if (_context.SimulatedPublishedNodes.Count > 1) {
+                var testPlc = _context.SimulatedPublishedNodes.Skip(2).First().Value;
+                nodesToPublish = _context.GetEntryModelWithoutNodes(testPlc);
 
-            _context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, nodesToPublish);
+                // We want to take one of the slow nodes that updates each 10 seconds.
+                // To make sure that we will not have missing values because of timing issues,
+                // we will set publishing and sampling intervals to a lower value than the publishing
+                // interval of the simulated OPC PLC. This will eliminate false-positives.
+                nodesToPublish.OpcNodes = testPlc.OpcNodes
+                    .Take(250)
+                    .Select(opcNode => {
+                        var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
+                        opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
+                        opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
+                        return opcNode;
+                    })
+                    .ToArray();
+
+                _context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, nodesToPublish);
+            }
+            else {
+                var opcPlcIp = _context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[2];
+                nodesToPublish = new PublishedNodesEntryModel {
+                    EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
+                    UseSecurity = false
+                };
+
+                var nodes = new List<OpcUaNodesModel>();
+                for (int i = 0; i < 250; i++) {
+                    nodes.Add(new OpcUaNodesModel {
+                        Id = $"ns=2;s=SlowUInt{i+1}",
+                        OpcPublishingInterval = 10000/2,
+                        OpcSamplingInterval = 10000/4
+                    });
+                }
+
+                nodesToPublish.OpcNodes = nodes.ToArray();
+                _context.ConsumedOpcUaNodes.Add(opcPlcIp, nodesToPublish);
+            }
 
             TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { nodesToPublish }, _context, cts.Token).GetAwaiter().GetResult();
         }
