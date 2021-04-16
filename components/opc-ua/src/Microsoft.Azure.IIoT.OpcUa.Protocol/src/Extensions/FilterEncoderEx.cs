@@ -171,7 +171,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 };
             }
             if (model.Value != null) {
-                TypeInfo typeInfo = new TypeInfo(BuiltInType.NodeId, ValueRanks.Scalar);
+                var typeInfo = new TypeInfo(BuiltInType.NodeId, ValueRanks.Scalar);
+                try {
+                    // assume it's a node and try to parse it into correct namespace index
+                    // if it fails, it's ok it will go to the default route
+                    var nodeId = encoder.Decode(model.Value, null);
+                    var typeDefinitionId = nodeId.ToString().ToNodeId(encoder.Context);
+                    if (typeDefinitionId != null) {
+                        return new LiteralOperand(TypeInfo.Cast(typeDefinitionId, typeInfo.BuiltInType));
+                    }
+                }
+                catch(Exception) { };
                 return new LiteralOperand(TypeInfo.Cast(encoder.Decode(model.Value, null), typeInfo.BuiltInType));
             }
             if (model.Alias != null && !onlySimpleAttributeOperands) {
