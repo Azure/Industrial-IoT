@@ -422,7 +422,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             toAdd.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
                         }
                         try {
-                            toAdd.Create(rawSubscription.Session.MessageContext, rawSubscription.Session.NodeCache.TypeTree, codec, activate);
+                            toAdd.Create(rawSubscription.Session.MessageContext, rawSubscription.Session.NodeCache, codec, activate);
                             if (toAdd.EventTemplate != null) {
                                 toAdd.Item.AttributeId = Attributes.EventNotifier;
                             }
@@ -1023,11 +1023,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Create new stack monitored item
             /// </summary>
             /// <param name="messageContext"></param>
-            /// <param name="typeTree"></param>
+            /// <param name="nodeCache"></param>
             /// <param name="codec"></param>
             /// <param name="activate"></param>
             /// <returns></returns>
-            public void Create(ServiceMessageContext messageContext, ITypeTable typeTree, IVariantEncoder codec, bool activate) {
+            public void Create(ServiceMessageContext messageContext, NodeCache nodeCache, IVariantEncoder codec, bool activate) {
                 Item = new MonitoredItem {
                     Handle = this,
                     DisplayName = Template.DisplayName ?? Template.Id,
@@ -1035,7 +1035,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     IndexRange = Template.IndexRange,
                     RelativePath = Template.RelativePath?
                                 .ToRelativePath(messageContext)?
-                                .Format(typeTree),
+                                .Format(nodeCache.TypeTree),
                     MonitoringMode = activate
                         ? Template.MonitoringMode.ToStackType().
                             GetValueOrDefault(Opc.Ua.MonitoringMode.Reporting)
@@ -1052,7 +1052,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(messageContext));
                 }
                 else if (EventTemplate != null) {
-                    var eventFilter = codec.Decode(EventTemplate.EventFilter, true) ?? new EventFilter();
+                    var eventFilter = !string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId) ?
+                        GetSimpleEventFilter(nodeCache, messageContext) :
+                        codec.Decode(EventTemplate.EventFilter, true);
+                    eventFilter ??= new EventFilter();
 
                     // Add SourceTimestamp and ServerTimestamp select clauses.
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
@@ -1189,6 +1192,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 return fieldName;
+            }
+
+            internal EventFilter GetSimpleEventFilter(NodeCache nodeCache, ServiceMessageContext messageContext) {
+                var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(messageContext);
+                var nodes = new List<Node>();
+                ExpandedNodeId superType = null;
+                nodes.Insert(0, nodeCache.FetchNode(typeDefinitionId));
+                do {
+                    superType = nodes[0].GetSuperType(nodeCache.TypeTree);
+                    if (superType != null) {
+                        nodes.Insert(0, nodeCache.FetchNode(superType));
+                    }
+                }
+                while (superType != null);
+
+                var propertyNames = new List<QualifiedName>();
+                foreach (var node in nodes) {
+                    foreach (var reference in node.ReferenceTable) {
+                        if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty) {
+                            propertyNames.Add(nodeCache.FetchNode(reference.TargetId).BrowseName);
+                        }
+                    }
+                }
+
+                var eventFilter = new EventFilter();
+                foreach (var propertyName in propertyNames) {
+                    var selectClause = new SimpleAttributeOperand() {
+                        TypeDefinitionId = ObjectTypeIds.BaseEventType,
+                        AttributeId = Attributes.Value
+                    };
+                    selectClause.BrowsePath.Add(propertyName);
+                    eventFilter.SelectClauses.Add(selectClause);
+                }
+                eventFilter.WhereClause = new ContentFilter();
+                eventFilter.WhereClause.Push(FilterOperator.OfType, typeDefinitionId);
+
+                return eventFilter;
             }
 
             private HashSet<uint> _newTriggers = new HashSet<uint>();
