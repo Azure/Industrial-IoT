@@ -45,8 +45,8 @@ device_ca_cert_path="file:///certs/certs/certs/iot-edge-device-$deviceId-full-ch
 device_ca_pk_path="file:///certs/certs/private/iot-edge-device-$deviceId.key.pem"
 trusted_ca_certs_path="file:///certs/certs/certs/azure-iot-test-only.root.ca.cert.pem"
 sudo sed -i "28s|.*|trust_bundle_cert = \""$trusted_ca_certs_path"\"|" /etc/aziot/config.toml
-sudo sed -i "237s|.*|[edge_ca]|" /etc/aziot/config.toml
-sudo sed -i "238s|.*|cert = \""$device_ca_cert_path"\"|" /etc/aziot/config.toml
-sudo sed -i "240s|.*|pk = \""$device_ca_pk_path"\"|" /etc/aziot/config.toml
+sudo sed -i "266s|.*|[edge_ca]|" /etc/aziot/config.toml
+sudo sed -i "267s|.*|cert = \""$device_ca_cert_path"\"|" /etc/aziot/config.toml
+sudo sed -i "269s|.*|pk = \""$device_ca_pk_path"\"|" /etc/aziot/config.toml
 
 echo "Done."
