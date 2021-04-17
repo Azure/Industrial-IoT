@@ -69,8 +69,8 @@ namespace IIoTPlatform_E2E_Tests {
                             await Task.Delay(TestConstants.DefaultDelayMilliseconds);
                         }
                         else {
-                            for (int indexOfOpcApplication = 0; indexOfOpcApplication < numberOfItems; indexOfOpcApplication++) {
-                                var endpoint = ((string)json.items[indexOfOpcApplication].discoveryUrls[0]).TrimEnd('/');
+                            for (int i = 0; i < numberOfItems; i++) {
+                                var endpoint = "opc.tcp://" +((string)json.items[i].hostAddresses[0]).TrimEnd('/');
 
                                 if (requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
                                     foundEndpoints++;
@@ -96,7 +96,7 @@ namespace IIoTPlatform_E2E_Tests {
                 catch (Exception e) {
                     context.OutputHelper?.WriteLine("Error: discovery module didn't find OPC UA server in time");
                     PrettyPrintException(e, context.OutputHelper);
-                    throw;
+                    return null;
                 }
             }
 
@@ -131,7 +131,7 @@ namespace IIoTPlatform_E2E_Tests {
                         }
                         else {
                             for (int indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++) {
-                                var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpointUrl).TrimEnd('/');
+                                var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpoint.url).TrimEnd('/');
 
                                 if (requestedEndpointUrls == null || requestedEndpointUrls.Contains(endpoint)) {
                                     foundEndpoints++;
@@ -178,7 +178,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                 for (var indexOfOpcUaEndpoint = 0; indexOfOpcUaEndpoint < numberOfItems; indexOfOpcUaEndpoint++) {
 
-                    var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpointUrl).TrimEnd('/');
+                    var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpoint.url).TrimEnd('/');
                     if (endpoint == requestedEndpointUrl) {
                         return (string)json.items[indexOfOpcUaEndpoint].registration.id;
                     }
