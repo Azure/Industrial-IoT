@@ -34,6 +34,32 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
         }
 
         [Fact, PriorityOrder(0)]
+        public void Test_Discover_All_OPC_UA_Endpoints() {
+            // Add 5 servers
+            var endpointUrls = TestHelper.GetSimulatedOpcServerUrls(_context).Take(5).ToList();
+            AddTestOpcServers(endpointUrls);
+
+            // Discover all servers
+            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            dynamic result = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, requestedEndpointUrls: endpointUrls).GetAwaiter().GetResult();
+
+            // Validate that all servers are discovered
+            var applicationIds = new List<string>(endpointUrls.Count);
+            Assert.Equal(endpointUrls.Count, result.items.Count);
+            for (int i = 0; i < result.items.Count; i++) {
+                Assert.Equal("Server", result.items[i].applicationType);
+                var endpoint = "opc.tcp://" + result.items[i].hostAddresses[0].TrimEnd('/');
+                Assert.True((bool)endpointUrls.Contains(endpoint));
+                applicationIds.Add((string)result.items[i].applicationId);
+            }
+
+            // Clean up
+            foreach (var applicationId in applicationIds) {
+                RemoveApplication(applicationId);
+            }
+        }
+
+        [Fact, PriorityOrder(1)]
         public void Test_Discover_OPC_UA_Endpoints_IpAddress() {
             // Add 1 server
             var ipAddress = _context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator).First();
@@ -53,10 +79,12 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             // Validate that the endpoint can be found
             var result = TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(_context, _cancellationTokenSource.Token, requestedEndpointUrls: urls).GetAwaiter().GetResult();
             Assert.Equal(url, ((string)result.items[0].registration.endpoint.url).TrimEnd('/'));
+
+            // Clean up
             RemoveApplication((string)result.items[0].applicationId);
         }
 
-        [Fact, PriorityOrder(1)]
+        [Fact, PriorityOrder(2)]
         public void Test_Discover_OPC_UA_Endpoints_PortRange() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -85,33 +113,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
                 RemoveApplication(applicationId);
             }
         }
-
-        [Fact, PriorityOrder(2)]
-        public void Test_Discover_All_OPC_UA_Endpoints() {
-            // Add 5 servers
-            var endpointUrls = TestHelper.GetSimulatedOpcServerUrls(_context).Take(5).ToList();
-            AddTestOpcServers(endpointUrls);
-
-            // Discover all servers
-            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            dynamic result = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, requestedEndpointUrls: endpointUrls).GetAwaiter().GetResult();
-
-            // Validate that all servers are discovered
-            var applicationIds = new List<string>(endpointUrls.Count);
-            Assert.Equal(endpointUrls.Count, result.items.Count);
-            for (int i = 0; i < result.items.Count; i++) {
-                Assert.Equal("Server", result.items[i].applicationType);
-                var endpoint = "opc.tcp://" + result.items[i].hostAddresses[0].TrimEnd('/');
-                Assert.True((bool)endpointUrls.Contains(endpoint));
-                applicationIds.Add((string)result.items[i].applicationId);
-            }
-
-            // Clean up
-            foreach (var applicationId in applicationIds) {
-                RemoveApplication(applicationId);
-            }
-        }
-
+      
         private void AddTestOpcServers(List<string> endpointUrls) {
             foreach (var endpointUrl in endpointUrls) {
                 var body = new {
