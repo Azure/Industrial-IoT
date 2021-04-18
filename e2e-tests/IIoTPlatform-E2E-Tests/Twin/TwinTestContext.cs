@@ -35,7 +35,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             if (!string.IsNullOrWhiteSpace(OpcUaEndpointId)) {
-                TestHelper.Registry.UnregisterServerAsync(this, DiscoveryUrl, cts.Token).GetAwaiter().GetResult();
+                TestHelper.Registry.UnregisterServerAsync(this, OpcServerUrl, cts.Token).GetAwaiter().GetResult();
             }
 
             base.Dispose(true);
@@ -53,34 +53,17 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             TestHelper.WaitForServicesAsync(this, cts.Token).GetAwaiter().GetResult();
             RegistryHelper.WaitForIIoTModulesConnectedAsync(DeviceConfig.DeviceId, cts.Token).GetAwaiter().GetResult();
 
-            var simulatedOpcPlcs = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(this, cts.Token).GetAwaiter().GetResult();
-            var testPlc = simulatedOpcPlcs.Values.First();
+            var endpointUrl = TestHelper.GetSimulatedOpcServerUrls(this).First();
+            TestHelper.Registry.RegisterServerAsync(this, endpointUrl, cts.Token).GetAwaiter().GetResult();
 
-            TestHelper.Registry.RegisterServerAsync(this, testPlc.EndpointUrl, cts.Token).GetAwaiter().GetResult();
-
-            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, cts.Token, new List<string> { testPlc.EndpointUrl }).GetAwaiter().GetResult();
-
-            int numberOfItems = json.items.Count;
-            var found = false;
-
-            for (var indexOfTestPlc = 0; indexOfTestPlc < numberOfItems; indexOfTestPlc++) {
-
-                string endpoint = json.items[indexOfTestPlc].discoveryUrls[0].TrimEnd('/');
-                if (TestHelper.IsUrlStringsEqual(endpoint, testPlc.EndpointUrl)) {
-                    found = true;
-                    break;
-                }
-            }
-
-            Assert.True(found, "OPC Application not activated");
+            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(this, cts.Token, new List<string> { endpointUrl }).GetAwaiter().GetResult();
 
             if (string.IsNullOrWhiteSpace(OpcUaEndpointId)) {
-                OpcUaEndpointId = TestHelper.Discovery.GetOpcUaEndpointId(this, testPlc.EndpointUrl, cts.Token).GetAwaiter().GetResult();
+                OpcUaEndpointId = TestHelper.Discovery.GetOpcUaEndpointId(this, endpointUrl, cts.Token).GetAwaiter().GetResult();
                 Assert.False(string.IsNullOrWhiteSpace(OpcUaEndpointId), "The endpoint id was not set");
             }
 
-            DiscoveryUrl = testPlc.EndpointUrl;
-
+            OpcServerUrl = endpointUrl;
             TestHelper.Registry.ActivateEndpointAsync(this, OpcUaEndpointId, cts.Token).GetAwaiter().GetResult();
         }
 

@@ -105,7 +105,7 @@ if ($aciNamesToCreate.Length -gt 0) {
 
         $script = {
             Param($Name)
-            $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
+            $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
             $aci = New-AzContainerGroup -ResourceGroupName $using:ResourceGroupName -Name $Name -Image $using:PLCImage -OsType Linux -Command $aciCommand -Port @(50000,80) -Cpu $using:CpuCount -MemoryInGB $using:MemoryInGb -IpAddressType Public -DnsNameLabel $Name
         }
 
@@ -147,7 +147,7 @@ $containerInstances = Get-AzContainerGroup -ResourceGroupName $ResourceGroupName
 
 $plcSimNames = ""
 foreach ($ci in $containerInstances) {
-    $plcSimNames += $ci.Fqdn + ";"
+    $plcSimNames += $ci.IpAddress + ";"
 }
 
 Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
