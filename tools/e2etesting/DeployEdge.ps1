@@ -71,8 +71,13 @@ if ($iotHub.Count -ne 1) {
 Write-Host "IoT Hub Name: $($iotHub.Name)"
 
 ## Check if KeyVault exists
-$keyVault = "e2etestingkeyVault" + $testSuffix
-Write-Host "Key Vault Name: $($keyVault)"
+$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
+
+if ($keyVault.Count -ne 1) {
+    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
+} 
+
+Write-Host "Key Vault Name: $($keyVault.VaultName)"
 
 ## Ensure that Edge Device exists
 
@@ -92,7 +97,7 @@ if (!$edgeIdentity.Capabilities.IotEdge) {
 }
 
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-id' with value '$($edgeIdentity.Id)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-device-id' -SecretValue (ConvertTo-SecureString $edgeIdentity.Id -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-id' -SecretValue (ConvertTo-SecureString $edgeIdentity.Id -AsPlainText -Force) | Out-Null
 
 Write-Host "Updating 'os' and '__type__'-Tags in Device Twin..."
 Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"; } | Out-Null
@@ -143,20 +148,19 @@ if ($edgeDeployment.ProvisioningState -ne "Succeeded") {
 }
 
 Write-Host "Adding/Updating KeVault-Secret 'iot-edge-vm-username' with value '$($edgeVmUsername)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-username' -SecretValue (ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-username' -SecretValue (ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force) | Out-Null
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-privatekey'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-privatekey' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-privatekey' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
 
 ## This needs to be refactored. However, currently the SSH-Command is the only output from the Edge deployment script. And that command includes the FQDN of the VM.
 $sshUrl = $edgeDeployment.Outputs["public SSH"].Value
 $fqdn = $sshUrl.Split("@")[1]
 
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value '$($fqdn)'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-device-dnsname' -SecretValue (ConvertTo-SecureString $fqdn -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-dnsname' -SecretValue (ConvertTo-SecureString $fqdn -AsPlainText -Force) | Out-Null
 
 Write-Host "Deployment finished."
-

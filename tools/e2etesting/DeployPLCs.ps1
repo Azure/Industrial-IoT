@@ -57,7 +57,12 @@ if (!$testSuffix) {
 
 ## Check if KeyVault exists
 $keyVault = "e2etestingkeyVault" + $testSuffix
-Write-Host "Key Vault Name: $($keyVault)"
+$keyVaultList = az keyvault list --resource-group $ResourceGroupName | ConvertFrom-Json
+if ($keyVaultList.Count -ne 1){
+    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."  
+}
+
+$keyVault = $keyVaultList.name
 
 ## Ensure Azure Container Instances ##
 
