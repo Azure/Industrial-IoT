@@ -34,6 +34,15 @@ stages:
     steps:
     - template: steps/deployplatform.yml
 
+  - job: deploynestedtestresources
+    pool:
+      vmImage: 'ubuntu-latest'
+    condition: and(not(canceled()), and(eq(dependencies.deploy.result, 'Succeeded'), eq(variables['NestedEdgeFlag'], 'Enable')))
+    dependsOn: deploystandalone
+    displayName: 'Deploy Nested Edge Test Resources'
+    steps:
+    - template: steps/deploynestededgeresources.yml
+
   - job: deploytestresources
     condition: eq(dependencies.deployplatform.result, 'Succeeded')
     dependsOn: deployplatform
@@ -68,6 +77,7 @@ stages:
         ModeValue: default
 
   - job: runtestspublisher
+    condition: ne(variables['NestedEdgeFlag'], 'Enable')
     dependsOn: runteststwin
     timeoutInMinutes: 60
     displayName: 'Execute publisher tests'
