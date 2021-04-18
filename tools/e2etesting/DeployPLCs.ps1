@@ -96,7 +96,7 @@ if ($aciNamesToCreate.Length -gt 0) {
         }
     }
     else {
-        Write-Host "Create=ing containers with private IP addresses"
+        Write-Host "Creating containers with private IP addresses"
         ## Set vNet and subNet parameters for nested edge
         $networkResourceGroup = $ResourceGroupName + "-RG-network"
         $vNet =  az resource show --name "PurdueNetwork" --resource-group $networkResourceGroup --resource-type "Microsoft.Network/virtualNetworks" --query id
