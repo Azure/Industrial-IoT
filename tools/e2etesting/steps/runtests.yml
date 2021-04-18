@@ -25,7 +25,7 @@ steps:
     scriptType: filePath
     scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
     scriptArguments: >
-      -ResourceGroupName '$(ResourceGroup)'
+      -ResourceGroupName '$(ResourceGroupName)'
 
 - task: AzurePowerShell@5
   displayName: "Add permissions to KeyVault"
@@ -37,7 +37,7 @@ steps:
     scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
     scriptArguments: >
       -KeyVaultName "$(KeyVaultName)"
-      -ResourceGroupName "$(ResourceGroup)"
+      -ResourceGroupName "$(ResourceGroupName)"
       -ServicePrincipalName "$(ServicePrincipalId)"
 
 - task: AzureKeyVault@1

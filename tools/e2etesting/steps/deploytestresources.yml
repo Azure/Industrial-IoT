@@ -53,4 +53,4 @@ steps:
     scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
-      -PackageDirectory "$(BasePath)\TestEventProcessor"  
+      -PackageDirectory "$(BasePath)\TestEventProcessor"
