@@ -45,7 +45,9 @@ stages:
 
   - job: deploytestresources
     condition: and(eq(dependencies.deployplatform.result, 'Succeeded'), or(eq(dependencies.deploynestedtestresources.result, 'Succeeded'), eq(dependencies.deploynestedtestresources.result, 'Skipped')))
-    dependsOn: deployplatform, deploynestedtestresources
+    dependsOn: 
+      - deployplatform
+      - deploynestedtestresources
     displayName: 'Deploy Test Resources'
     pool:
       name: '$(AgentPool)'
