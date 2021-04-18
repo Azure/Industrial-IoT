@@ -37,14 +37,14 @@ stages:
   - job: deploynestedtestresources
     pool:
       vmImage: 'ubuntu-latest'
-    condition: and(not(canceled()), and(eq(dependencies.deploy.result, 'Succeeded'), eq(variables['NestedEdgeFlag'], 'Enable')))
-    dependsOn: deploy
+    condition: and(not(canceled()), and(eq(dependencies.deployplatform.result, 'Succeeded'), eq(variables['NestedEdgeFlag'], 'Enable')))
+    dependsOn: deployplatform
     displayName: 'Deploy Nested Edge Test Resources'
     steps:
     - template: steps/deploynestededgeresources.yml
 
   - job: deploytestresources
-    condition: eq(dependencies.deployplatform.result, 'Succeeded')
+    condition: and(eq(dependencies.deployplatform.result, 'Succeeded'), or(eq(dependencies.deploynestedtestresources.result, 'Succeeded'), eq(dependencies.deploynestedtestresources.result, 'Skipped')))
     dependsOn: deployplatform
     displayName: 'Deploy Test Resources'
     pool:
