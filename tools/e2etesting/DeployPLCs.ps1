@@ -26,7 +26,7 @@ Param(
     [int]
     $CpuCount = 1,
     [bool]
-    $NestedEdgeFlag = $false
+    $UsePrivateIp = $false
 )
 
 # Stop execution when an error occurs.
@@ -57,7 +57,12 @@ if (!$testSuffix) {
 
 ## Check if KeyVault exists
 $keyVault = "e2etestingkeyVault" + $testSuffix
-Write-Host "Key Vault Name: $($keyVault)"
+$keyVaultList = az keyvault list --resource-group $ResourceGroupName | ConvertFrom-Json
+if ($keyVaultList.Count -ne 1){
+    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."  
+}
+
+$keyVault = $keyVaultList.name
 
 ## Ensure Azure Container Instances ##
 
@@ -83,7 +88,7 @@ Write-Host
 $jobs = @()
 
 if ($aciNamesToCreate.Length -gt 0) {
-    if ($NestedEdgeFlag -eq $false) {
+    if ($UsePrivateIp -eq $false) {
         $script = {
             Param($Name)
             $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType) --ph=$($Name).$($using:resourceGroup.Location).azurecontainer.io'"
@@ -91,7 +96,7 @@ if ($aciNamesToCreate.Length -gt 0) {
         }
     }
     else {
-        Write-Host "Nested edge is enabled"
+        Write-Host "Creating containers with private IP addresses"
         ## Set vNet and subNet parameters for nested edge
         $networkResourceGroup = $ResourceGroupName + "-RG-network"
         $vNet =  az resource show --name "PurdueNetwork" --resource-group $networkResourceGroup --resource-type "Microsoft.Network/virtualNetworks" --query id

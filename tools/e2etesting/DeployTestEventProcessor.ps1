@@ -94,9 +94,13 @@ if (!$iotHub) {
     return
 }
 
-$testSuffix = $resourceGroup.Tags["TestingResourcesSuffix"]
-$keyVault = "e2etestingkeyVault" + $testSuffix
-Write-Host "Key Vault Name: $($keyVault)"
+$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
+
+if ($keyVault.Count -ne 1) {
+    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."
+}
+
+Write-Host "Key Vault Name: $($keyVault.VaultName)"
 
 ## Log parameters ##
 
@@ -110,7 +114,7 @@ Write-Host "AppService Plan Name: $($AppServicePlanName)"
 Write-Host "WebApp Name: $($WebAppName)"
 Write-Host "PackageDirectory: $($PackageDirectory)"
 Write-Host
-Write-Host "KeyVault: $($keyVault)"
+Write-Host "KeyVault: $($keyVault.VaultName)"
 Write-Host "IoTHub: $($IoTHubName)"
 
 ## Ensure Storage Account (for Checkpoint Storage) ##
@@ -197,22 +201,16 @@ $ehConnectionString =  "Endpoint={0};SharedAccessKeyName={1};SharedAccessKey={2}
 
 ## Set Secrets to KeyVault ##
 Write-Host "Setting KeyVault Secret 'testeventprocessor-baseurl' to '$($baseUrl)'."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name "testeventprocessor-baseurl" -SecretValue (ConvertTo-SecureString -String $baseUrl -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-baseurl" -SecretValue (ConvertTo-SecureString -String $baseUrl -AsPlainText -Force) | Out-Null
 
 Write-Host "Setting KeyVault Secret 'storageaccount-iothubcheckpoint-connectionstring' to '***'."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name "storageaccount-iothubcheckpoint-connectionstring" -SecretValue (ConvertTo-SecureString -String $storageAccountConnectionString -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "storageaccount-iothubcheckpoint-connectionstring" -SecretValue (ConvertTo-SecureString -String $storageAccountConnectionString -AsPlainText -Force) | Out-Null
 
 Write-Host "SettingKeyVault Secret 'testeventprocessor-username' to '$($Username)'."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name "testeventprocessor-username" -SecretValue (ConvertTo-SecureString -String $Username -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-username" -SecretValue (ConvertTo-SecureString -String $Username -AsPlainText -Force) | Out-Null
 
 Write-Host "Setting KeyVault Secret 'testeventprocessor-password' to '***'."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name "testeventprocessor-password" -SecretValue (ConvertTo-SecureString -String $Password -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-password" -SecretValue (ConvertTo-SecureString -String $Password -AsPlainText -Force) | Out-Null
 
 Write-Host "Setting KeyVault Secret 'iothub-eventhub-connectionstring' to '***'."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name "iothub-eventhub-connectionstring" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force) | Out-Null
-
-
-
-
-
-
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "iothub-eventhub-connectionstring" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force) | Out-Null
