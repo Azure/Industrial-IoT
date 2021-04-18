@@ -38,7 +38,7 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     condition: and(not(canceled()), and(eq(dependencies.deploy.result, 'Succeeded'), eq(variables['NestedEdgeFlag'], 'Enable')))
-    dependsOn: deploystandalone
+    dependsOn: deploy
     displayName: 'Deploy Nested Edge Test Resources'
     steps:
     - template: steps/deploynestededgeresources.yml
