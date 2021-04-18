@@ -43,9 +43,9 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public ITestOutputHelper? OutputHelper { get; set; }
 
         /// <summary>
-        /// Gets or sets the discovery url
+        /// Gets or sets the OPC server url
         /// </summary>
-        public string? DiscoveryUrl { get; set; }
+        public string? OpcServerUrl { get; set; }
 
         /// <summary>
         /// IoT Device Configuration
