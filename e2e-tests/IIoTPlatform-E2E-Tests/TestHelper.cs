@@ -23,6 +23,7 @@ namespace IIoTPlatform_E2E_Tests {
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using System.Text.RegularExpressions;
 
     internal static partial class TestHelper {
 
@@ -106,14 +107,14 @@ namespace IIoTPlatform_E2E_Tests {
         ) {
             var result = new Dictionary<string, PublishedNodesEntryModel>();
 
-            var opcPlcUrls = context.OpcPlcConfig.Urls;
-            context.OutputHelper?.WriteLine($"SimulatedOpcPlcUrls {opcPlcUrls}");
-            var listOfUrls = opcPlcUrls.Split(TestConstants.SimulationUrlsSeparator);
+            var opcPlcList = context.OpcPlcConfig.Urls;
+            context.OutputHelper?.WriteLine($"SimulatedOpcPlcUrls {opcPlcList}");
+            var ipAddressList = opcPlcList.Split(TestConstants.SimulationUrlsSeparator);
 
-            foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
+            foreach (var ipAddress in ipAddressList.Where(s => !string.IsNullOrWhiteSpace(s))) {
                 try {
                     using (var client = new HttpClient()) {
-                        var ub = new UriBuilder { Host = url };
+                        var ub = new UriBuilder { Host = ipAddress };
                         var baseAddress = ub.Uri;
 
                         client.BaseAddress = baseAddress;
@@ -131,12 +132,16 @@ namespace IIoTPlatform_E2E_Tests {
                             Assert.NotNull(entryModels[0].OpcNodes);
                             Assert.NotEmpty(entryModels[0].OpcNodes);
 
-                            result.Add(url, entryModels[0]);
+                            // Set endpoint url correctly when it's not specified in pn.json ie. replace fqdn with the ip address
+                            string fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
+                            entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, ipAddress);
+
+                            result.Add(ipAddress, entryModels[0]);
                         }
                     }
                 }
                 catch (Exception e) {
-                    context.OutputHelper?.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, url);
+                    context.OutputHelper?.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, ipAddress);
                     continue;
                 }
             }
