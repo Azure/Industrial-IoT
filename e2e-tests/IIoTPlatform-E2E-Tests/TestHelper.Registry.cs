@@ -234,17 +234,10 @@ namespace IIoTPlatform_E2E_Tests {
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
                 request.Resource = string.Format(TestConstants.APIRoutes.RegistryActivateEndpointsFormat, endpointId);
 
-                // This request fails when called for the first time, retry the call while the bug is being investigated
-                bool IsSuccessful = false;
-                int numberOfRetries = 3;
-                while (!IsSuccessful && numberOfRetries > 0) {
-                    var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
-                    IsSuccessful = response.IsSuccessful;
-                    numberOfRetries--;
-                }
+                var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
 
-                Assert.True(IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
-                      
+                Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
+
                 while (true) {
                     Assert.False(ct.IsCancellationRequested, "Endpoint was not activated within the expected timeout");
 
