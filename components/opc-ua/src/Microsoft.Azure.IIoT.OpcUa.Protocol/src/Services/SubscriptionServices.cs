@@ -1095,8 +1095,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     if (EventTemplate.PendingAlarms?.IsEnabled == true) {
                         var conditionIdClause = eventFilter.SelectClauses
-                            .Where(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId)
-                            .FirstOrDefault();
+                            .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId);
                         if (conditionIdClause != null) {
                             EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.IndexOf(conditionIdClause);
                         }
