@@ -741,7 +741,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Notifications = new List<MonitoredItemNotificationModel>()
                     };
 
-                    if (notification != null && notification.Events != null) {
+                    if (notification?.Events != null) {
                         for (var i = 0; i < notification.Events.Count; i++) {
                             var monitoredItem = subscription.MonitoredItems.SingleOrDefault(
                                     m => m.ClientHandle == notification.Events[i].ClientHandle);
@@ -760,8 +760,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 var pendingAlarmsOptions = itemWrapper?.EventTemplate?.PendingAlarms;
                                 if (pendingAlarmsOptions?.IsEnabled == true &&
                                     monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
-                                    if (pendingAlarmsOptions.ConditionIdIndex != -1) {
-                                        PendingAlarms[values[pendingAlarmsOptions.ConditionIdIndex].Value.ToString()] = monitoredItemNotification;
+                                    if (pendingAlarmsOptions.ConditionIdIndex.HasValue) {
+                                        PendingAlarms[values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString()] = monitoredItemNotification;
                                     }
                                 }
                             }

@@ -50,16 +50,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         }
 
         /// <summary>
-        /// ConditionIdIndex
+        /// Index in the SelectClause array for Condition id field
         /// </summary>
         [IgnoreDataMember]
-        public int ConditionIdIndex { get; set; } = -1;
+        public int? ConditionIdIndex { get; set; }
 
         /// <summary>
-        /// RetainIndex
+        /// Index in the SelectClause array for Retain field
         /// </summary>
         [IgnoreDataMember]
-        public int RetainIndex { get; set; } = -1;
+        public int? RetainIndex { get; set; }
 
         /// <summary>
         /// Clone
