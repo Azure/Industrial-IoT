@@ -72,7 +72,7 @@ namespace IIoTPlatform_E2E_Tests {
                             for (int indexOfRequestedOpcServer = 0;
                                 indexOfRequestedOpcServer < count;
                                 indexOfRequestedOpcServer++) {
-                                var endpoint = ((string)json.items[indexOfRequestedOpcServer].registration.endpointUrl).TrimEnd('/');
+                                var endpoint = ((string)json.items[indexOfRequestedOpcServer].registration.endpoint.url).TrimEnd('/');
                                 if (requestedEndpointUrls.Contains(endpoint)) {
                                     activationStates.Add((string)json.items[indexOfRequestedOpcServer].activationState);
                                 }
@@ -90,7 +90,7 @@ namespace IIoTPlatform_E2E_Tests {
                 }
                 catch (Exception) {
                     context.OutputHelper?.WriteLine("Error: OPC UA endpoint couldn't be activated");
-                    throw;
+                    return null;
                 }
             }
 

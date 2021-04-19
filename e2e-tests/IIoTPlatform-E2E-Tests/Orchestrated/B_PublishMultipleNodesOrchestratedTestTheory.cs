@@ -65,10 +65,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             // use the second OPC PLC for testing
             cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            _context.OpcServerUrl = TestHelper.GetSimulatedOpcServerUrls(_context).Skip(1).First();
             var testPlc = _context.SimulatedPublishedNodes.Values.Skip(1).First();
             _context.ConsumedOpcUaNodes[testPlc.EndpointUrl] = _context.GetEntryModelWithoutNodes(testPlc);
             var body = new {
-                discoveryUrl = testPlc.EndpointUrl
+                discoveryUrl = _context.OpcServerUrl
             };
 
             request.AddJsonBody(JsonConvert.SerializeObject(body));
@@ -84,47 +85,13 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             // check that Application was registered
             cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, new List<string> { testPlc.EndpointUrl}).GetAwaiter().GetResult();
-            bool found = false;
-            for(int indexOfTestPlc = 0; indexOfTestPlc < (int)json.items.Count; indexOfTestPlc++) {
-
-                var endpoint = ((string)json.items[indexOfTestPlc].discoveryUrls[0]).TrimEnd('/');
-                if (endpoint == testPlc.EndpointUrl) {
-                    found = true;
-                    break;
-                }
-            }
-            Assert.True(found, "OPC Application not activated");
+            dynamic json = TestHelper.Discovery.WaitForDiscoveryToBeCompletedAsync(_context, cts.Token, new List<string> { _context.OpcServerUrl }).GetAwaiter().GetResult();
+            Assert.True(json != null, "OPC Application not activated");
 
             // Read OPC UA Endpoint ID
-            cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            request = new RestRequest(Method.GET);
-            request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-            request.Resource = TestConstants.APIRoutes.RegistryEndpoints;
-
-            response = client.ExecuteAsync(request, cts.Token).GetAwaiter().GetResult();
-            Assert.NotNull(response);
-
-            if (!response.IsSuccessful) {
-                _output.WriteLine($"StatusCode: {response.StatusCode}");
-                _output.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                Assert.True(response.IsSuccessful, "GET /registry/v2/endpoints failed!");
-            }
-
-            Assert.NotEmpty(response.Content);
-            json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
-            Assert.NotNull(json);
-
-            found = false;
-            for (int indexOfTestPlc = 0; indexOfTestPlc < (int)json.items.Count; indexOfTestPlc++) {
-                var endpoint = ((string)json.items[indexOfTestPlc].registration.endpointUrl).TrimEnd('/');
-                if (endpoint == testPlc.EndpointUrl) {
-                    found = true;
-                    _context.OpcUaEndpointId = (string)json.items[indexOfTestPlc].registration.id;
-                    break;
-                }
-            }
-            Assert.True(found, "Could not find endpoints of OPC Application");
+            var endpointId = TestHelper.Discovery.GetOpcUaEndpointId(_context, _context.OpcServerUrl, cts.Token).GetAwaiter().GetResult();
+            Assert.True(endpointId != null, "Could not find endpoints of OPC Application");
+            _context.OpcUaEndpointId = endpointId;
 
             // Activate OPC UA Endpoint and wait until it's activated
             cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);

@@ -48,25 +48,7 @@ stages:
   dependsOn: deploy
   condition: or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped'))
   jobs:
-  - job: runtestspublisher
-    timeoutInMinutes: 60
-    displayName: 'Execute publisher tests'
-    steps:
-    - template: steps/runtests.yml
-      parameters:
-        ModeName: PublisherMode
-        ModeValue: orchestrated
-  - job: runteststwin
-    dependsOn: runtestspublisher
-    timeoutInMinutes: 60
-    displayName: 'Execute twin tests'
-    steps:
-    - template: steps/runtests.yml
-      parameters:
-        ModeName: TwinMode
-        ModeValue: default
   - job: runtestsdiscovery
-    dependsOn: runteststwin
     timeoutInMinutes: 60
     displayName: 'Execute discovery tests'
     steps:
@@ -74,6 +56,26 @@ stages:
       parameters:
         ModeName: DiscoveryMode
         ModeValue: default
+
+  - job: runteststwin
+    dependsOn: runtestsdiscovery
+    timeoutInMinutes: 60
+    displayName: 'Execute twin tests'
+    steps:
+    - template: steps/runtests.yml
+      parameters:
+        ModeName: TwinMode
+        ModeValue: default
+
+  - job: runtestspublisher
+    dependsOn: runteststwin
+    timeoutInMinutes: 60
+    displayName: 'Execute publisher tests'
+    steps:
+    - template: steps/runtests.yml
+      parameters:
+        ModeName: PublisherMode
+        ModeValue: orchestrated
 
 - stage: cleanup
   displayName: Cleanup resources

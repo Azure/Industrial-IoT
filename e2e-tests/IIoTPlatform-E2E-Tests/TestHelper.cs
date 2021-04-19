@@ -85,6 +85,16 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
+        /// Get urls of the simulated test opc servers
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <returns>List of server urls</returns>
+        public static List<string> GetSimulatedOpcServerUrls(
+            IIoTPlatformTestContext context) {
+            return context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator).Select(ip => $"opc.tcp://{ip}:50000").ToList();
+        }
+
+        /// <summary>
         /// Read PublishedNodes json from OPC-PLC and provide the data to the tests
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
