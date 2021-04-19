@@ -468,6 +468,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 if (applyChanges) {
                     rawSubscription.ApplyChanges();
+                    rawSubscription.ConditionRefresh();
                     _currentlyMonitored = nowMonitored;
                     if (!activate) {
                         var map = _currentlyMonitored.ToDictionary(
@@ -1050,8 +1051,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(session.MessageContext));
                 }
                 else if (EventTemplate != null) {
-                    var eventFilter = codec.Decode(EventTemplate.EventFilter, true);
-                    if (EventTemplate.PendingAlarms != null && EventTemplate.PendingAlarms.IsEnabled) {
+
+                    var eventFilter = !string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId) ?
+                        GetSimpleEventFilter(session.NodeCache, session.MessageContext) :
+                        codec.Decode(EventTemplate.EventFilter, true);
+
+                    // Add SourceTimestamp and ServerTimestamp select clauses.
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
+                        eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "Time");
+                    }
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "ReceiveTime")) {
+                        eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "ReceiveTime");
+                    }
+
+                    if (EventTemplate.PendingAlarms?.IsEnabled == true) {
                         if (!eventFilter.SelectClauses
                             .Where(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId)
                             .Any()) {
@@ -1169,7 +1182,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             internal string GetFieldDisplayName(int index) {
-                var fieldName = EventTemplate?.EventFilter?.SelectClauses?[index]?.DisplayName;
+                var fieldName = EventTemplate?.EventFilter?.SelectClauses?.ElementAtOrDefault(index)?.DisplayName;
                 if (fieldName == null) {
                     fieldName = Item.GetFieldName(index);
                     if (!string.IsNullOrEmpty(fieldName) && fieldName[0] == '/') {
@@ -1178,6 +1191,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 return fieldName;
+            }
+
+            internal EventFilter GetSimpleEventFilter(NodeCache nodeCache, ServiceMessageContext context) {
+                var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(context);
+                var nodes = new List<Node>();
+                ExpandedNodeId superType = null;
+                nodes.Insert(0, nodeCache.FetchNode(typeDefinitionId));
+                do {
+                    superType = nodes[0].GetSuperType(nodeCache.TypeTree);
+                    if (superType != null) {
+                        nodes.Insert(0, nodeCache.FetchNode(superType));
+                    }
+                }
+                while (superType != null);
+
+                var propertyNames = new List<QualifiedName>();
+                foreach (var node in nodes) {
+                    foreach (var reference in node.ReferenceTable) {
+                        if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty) {
+                            propertyNames.Add(nodeCache.FetchNode(reference.TargetId).BrowseName);
+                        }
+                    }
+                }
+
+                var eventFilter = new EventFilter();
+                foreach (var propertyName in propertyNames) {
+                    var selectClause = new SimpleAttributeOperand() {
+                        TypeDefinitionId = ObjectTypeIds.BaseEventType,
+                        AttributeId = Attributes.Value
+                    };
+                    selectClause.BrowsePath.Add(propertyName);
+                    eventFilter.SelectClauses.Add(selectClause);
+                }
+                eventFilter.WhereClause = new ContentFilter();
+                eventFilter.WhereClause.Push(FilterOperator.OfType, typeDefinitionId);
+
+                return eventFilter;
             }
 
             private HashSet<uint> _newTriggers = new HashSet<uint>();

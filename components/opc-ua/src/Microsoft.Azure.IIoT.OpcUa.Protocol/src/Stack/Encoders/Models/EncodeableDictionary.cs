@@ -46,7 +46,9 @@ namespace Opc.Ua.Encoders {
         /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder) {
             foreach (var entry in this) {
-                encoder.WriteDataValue(entry.Key, entry.Value);
+                if (!string.IsNullOrEmpty(entry.Key)) {
+                    encoder.WriteDataValue(entry.Key, entry.Value);
+                }
             }
         }
 

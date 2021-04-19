@@ -80,5 +80,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [DataMember(Name = "pendingAlarms", Order = 9)]
         public PendingAlarmsOptionsApiModel PendingAlarms { get; set; }
+
+        /// <summary>
+        /// Simple event Type id
+        /// </summary>
+        [DataMember(Name = "typeDefinitionId", Order = 10)]
+        public string TypeDefinitionId { get; set; }
     }
 }
