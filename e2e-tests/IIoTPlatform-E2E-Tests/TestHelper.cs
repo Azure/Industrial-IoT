@@ -23,6 +23,7 @@ namespace IIoTPlatform_E2E_Tests {
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using System.Text.RegularExpressions;
 
     internal static partial class TestHelper {
 
@@ -131,8 +132,9 @@ namespace IIoTPlatform_E2E_Tests {
                             Assert.NotNull(entryModels[0].OpcNodes);
                             Assert.NotEmpty(entryModels[0].OpcNodes);
 
-                            // Set endpoint url correctly when it's not specified in pn.json
-                            entryModels[0].EndpointUrl = $"opc.tcp://{ipAddress}:50000";
+                            // Set endpoint url correctly when it's not specified in pn.json ie. replace fqdn with the ip address
+                            string fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
+                            entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, ipAddress);
 
                             result.Add(ipAddress, entryModels[0]);
                         }
