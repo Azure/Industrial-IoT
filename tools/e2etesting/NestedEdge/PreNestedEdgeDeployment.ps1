@@ -57,6 +57,15 @@ if ($iotHub.Count -ne 1) {
 Write-Host "IoT Hub Name: $($iotHub.Name)"
 Write-Host "##vso[task.setvariable variable=iothub]$($iotHub.Name)"
 
+## Check if KeyVault exists
+$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
+
+if ($keyVault.Count -ne 1) {
+    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
+} 
+
+Write-Host "Key Vault Name: $($keyVault.VaultName)"
+
 ## Create ACR
 $acrName = "ACR" + $testSuffix
 $registry = New-AzContainerRegistry -ResourceGroupName $ResourceGroupName -Name $acrName -EnableAdminUser -Sku Basic
@@ -87,11 +96,8 @@ $sshPrivateKey = Get-Content $privateKeyFilePath -Raw
 $sshPublicKey = Get-Content $publicKeyFilePath -Raw
 
 # Store ssh keys
-$keyVault = "e2etestingkeyVault" + $testSuffix
-Write-Host "Key Vault Name: $($keyVault)"
-
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-privatekey'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-privatekey' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-privatekey' -SecretValue (ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force) | Out-Null
 
 Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
-Set-AzKeyVaultSecret -VaultName $keyVault -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey' -SecretValue (ConvertTo-SecureString $sshPublicKey -AsPlainText -Force) | Out-Null
