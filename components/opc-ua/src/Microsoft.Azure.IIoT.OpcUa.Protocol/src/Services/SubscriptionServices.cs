@@ -754,7 +754,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             if (message == null) {
                                 continue;
                             }
-                            message.Notifications.Add(monitoredItemNotification);
+                            message.Notifications?.Add(monitoredItemNotification);
 
                             if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
                                 var pendingAlarmsOptions = itemWrapper?.EventTemplate?.PendingAlarms;
