@@ -128,7 +128,7 @@ namespace IIoTPlatform_E2E_Tests {
                 if (!response.IsSuccessful) {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "POST /registry/v2/application failed!");
+                    Assert.True(response.IsSuccessful, "POST /registry/v2/applications failed!");
                 }
             }
 
@@ -196,8 +196,7 @@ namespace IIoTPlatform_E2E_Tests {
                     string discoveryUrl,
                     CancellationToken ct = default) {
 
-                var applicationId = await GetApplicationIdAsync(context, discoveryUrl, ct);
-
+                var applicationId = context.ApplicationId == null ? await GetApplicationIdAsync(context, discoveryUrl, ct) : context.ApplicationId;
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
@@ -254,6 +253,30 @@ namespace IIoTPlatform_E2E_Tests {
 
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds).ConfigureAwait(false);
                 }
+            }
+
+            /// <summary>
+            /// Deactivate the endpoint from <paramref name="context"/>
+            /// </summary>
+            /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+            /// <param name="ct">Cancellation token</param>
+            public static async Task DeactivateEndpointAsync(IIoTPlatformTestContext context, string endpointId, CancellationToken ct = default) {
+                var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+
+                Assert.False(string.IsNullOrWhiteSpace(endpointId), "Endpoint not set in the test context");
+
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                };
+
+                var request = new RestRequest(Method.POST);
+                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                request.Resource = string.Format(TestConstants.APIRoutes.RegistryDeactivateEndpointsFormat, endpointId);
+
+                var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
+
+                Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/deactivate failed!");
+
             }
 
             /// <summary>
