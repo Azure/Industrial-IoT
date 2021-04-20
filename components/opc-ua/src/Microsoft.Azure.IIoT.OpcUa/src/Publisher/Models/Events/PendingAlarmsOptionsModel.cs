@@ -50,6 +50,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         }
 
         /// <summary>
+        /// Index in the SelectClause array for Condition id field
+        /// </summary>
+        [IgnoreDataMember]
+        public int? ConditionIdIndex { get; set; }
+
+        /// <summary>
+        /// Index in the SelectClause array for Retain field
+        /// </summary>
+        [IgnoreDataMember]
+        public int? RetainIndex { get; set; }
+
+        /// <summary>
         /// Clone
         /// </summary>
         /// <returns></returns>
@@ -57,7 +69,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
             return new PendingAlarmsOptionsModel {
                 IsEnabled = IsEnabled,
                 UpdateInterval = UpdateInterval,
-                SnapshotInterval = SnapshotInterval
+                SnapshotInterval = SnapshotInterval,
+                ConditionIdIndex = ConditionIdIndex,
+                RetainIndex = RetainIndex,
             };
         }
 
@@ -70,7 +84,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
             return obj is PendingAlarmsOptionsModel model &&
                    IsEnabled == model.IsEnabled &&
                    UpdateInterval == model.UpdateInterval &&
-                   SnapshotInterval == model.SnapshotInterval;
+                   SnapshotInterval == model.SnapshotInterval &&
+                   ConditionIdIndex == model.ConditionIdIndex &&
+                   RetainIndex == model.RetainIndex;
         }
 
         /// <summary>
@@ -78,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// </summary>
         /// <returns>Return the hash code for this object</returns>
         public override int GetHashCode() {
-            return HashCode.Combine(IsEnabled, UpdateInterval, SnapshotInterval);
+            return HashCode.Combine(IsEnabled, UpdateInterval, SnapshotInterval, ConditionIdIndex, RetainIndex);
         }
 
         /// <summary>

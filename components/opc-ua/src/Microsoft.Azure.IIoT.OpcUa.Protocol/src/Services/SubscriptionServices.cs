@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Threading;
     using System.Threading.Tasks;
     using Prometheus;
+    using Opc.Ua.Encoders;
 
     /// <summary>
     /// Subscription services implementation
@@ -91,6 +92,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public ConnectionModel Connection => _subscription.Connection;
+
+            public ConcurrentDictionary<string, MonitoredItemNotificationModel> PendingAlarms { get; } = new ConcurrentDictionary<string, MonitoredItemNotificationModel>();
 
             /// <inheritdoc/>
             public event EventHandler<SubscriptionNotificationModel> OnSubscriptionDataChange;
@@ -735,9 +738,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
                         SubscriptionId = Id,
                         Timestamp = publishTime,
-                        Notifications = notification.ToMonitoredItemNotifications(
-                                subscription.MonitoredItems)?.ToList()
+                        Notifications = new List<MonitoredItemNotificationModel>()
                     };
+
+                    if (notification?.Events != null) {
+                        for (var i = 0; i < notification.Events.Count; i++) {
+                            var monitoredItem = subscription.MonitoredItems.SingleOrDefault(
+                                    m => m.ClientHandle == notification.Events[i].ClientHandle);
+                            if (monitoredItem == null) {
+                                continue;
+                            }
+
+                            var monitoredItemNotification = notification.Events[i]
+                                .ToMonitoredItemNotification(monitoredItem);
+                            if (message == null) {
+                                continue;
+                            }
+                            message.Notifications?.Add(monitoredItemNotification);
+
+                            if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
+                                var pendingAlarmsOptions = itemWrapper?.EventTemplate?.PendingAlarms;
+                                if (pendingAlarmsOptions?.IsEnabled == true &&
+                                    monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
+                                    if (pendingAlarmsOptions.ConditionIdIndex.HasValue) {
+                                        PendingAlarms[values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString()] = monitoredItemNotification;
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     if (message.Notifications?.Any() == true) {
                         OnSubscriptionEventChange.Invoke(this, message);
@@ -1066,14 +1095,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     if (EventTemplate.PendingAlarms?.IsEnabled == true) {
-                        if (!eventFilter.SelectClauses
-                            .Where(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId)
-                            .Any()) {
+                        var conditionIdClause = eventFilter.SelectClauses
+                            .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId);
+                        if (conditionIdClause != null) {
+                            EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.IndexOf(conditionIdClause);
+                        }
+                        else {
+                            EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.Count();
                             eventFilter.SelectClauses.Add(new SimpleAttributeOperand() {
                                 BrowsePath = new QualifiedNameCollection(),
                                 TypeDefinitionId = ObjectTypeIds.ConditionType,
                                 AttributeId = Attributes.NodeId
                             });
+                        }
+
+                        var retainClause = eventFilter.SelectClauses
+                            .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.BrowsePath?.FirstOrDefault() == "Retain");
+                        if (retainClause != null) {
+                            EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.IndexOf(retainClause);
+                        }
+                        else {
+                            EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.Count();
+                            eventFilter.AddSelectClause(ObjectTypeIds.ConditionType, "Retain");
                         }
                     }
                     Item.Filter = eventFilter;
