@@ -105,7 +105,7 @@ namespace IIoTPlatform_E2E_Tests.Discovery {
             var applicationIds = new List<string>(urls.Count);
             foreach (var item in result.items) {
                 Assert.Contains(((string)item.registration.endpoint.url).TrimEnd('/'), urls);
-                applicationIds.Add((string)result.items[0].applicationId);
+                applicationIds.Add((string)item.applicationId);
             }
 
             // Clean up
