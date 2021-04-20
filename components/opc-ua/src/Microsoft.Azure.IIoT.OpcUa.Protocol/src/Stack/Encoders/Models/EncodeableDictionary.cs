@@ -6,6 +6,7 @@
 namespace Opc.Ua.Encoders {
     using Opc.Ua;
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Encodeable dictionary carrying field names and values
@@ -43,8 +44,24 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         public EncodeableDictionary(IEnumerable<KeyDataValuePair> collection) : base(collection) { }
 
+        /// <summary>
+        /// Identifier for where to store the keys in the reversible format.
+        /// </summary>
+        private const string reversibleKeysIdentifier = "_Keys";
+
         /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder) {
+            if (encoder.UseReversibleEncoding) {
+                if (this.Any(x => x.Key == reversibleKeysIdentifier)) {
+                    // TODO: ...
+                    throw new System.Exception();
+                }
+
+                encoder.WriteStringArray(reversibleKeysIdentifier, this.Select(x => x.Key).ToArray());
+
+                // Check for keys.
+            }
+
             foreach (var entry in this) {
                 if (!string.IsNullOrEmpty(entry.Key)) {
                     encoder.WriteDataValue(entry.Key, entry.Value);
@@ -55,6 +72,13 @@ namespace Opc.Ua.Encoders {
         /// <inheritdoc/>
         public virtual void Decode(IDecoder decoder) {
             // No operation. Cannot decode without known keys.
+            var keys = decoder.ReadStringArray(reversibleKeysIdentifier);
+            foreach (var key in keys) {
+                Add(new KeyDataValuePair {
+                    Key = key,
+                    Value = decoder.ReadDataValue(key)
+                });
+            }
         }
 
         /// <inheritdoc/>
