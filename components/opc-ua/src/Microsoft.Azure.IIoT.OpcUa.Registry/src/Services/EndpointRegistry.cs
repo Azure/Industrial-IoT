@@ -634,7 +634,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             try {
                 // Ensure device scope for the registration before getting the secret.
-                // Changing device's scope regenrerates the secret.
+                // Changing device's scope regenerates the secret.
                 await EnsureDeviceScopeForRegistrationAsync(registration, ct);
 
                 // Get endpoint twin secret
@@ -730,7 +730,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             RegistryOperationContextModel context, CancellationToken ct = default) {
 
             // Ensure device scope for the registration before getting the secret.
-            // Changing device's scope regenrerates the secret.
+            // Changing device's scope regenerates the secret.
             await EnsureDeviceScopeForRegistrationAsync(registration, ct);
 
             // Update supervisor settings
