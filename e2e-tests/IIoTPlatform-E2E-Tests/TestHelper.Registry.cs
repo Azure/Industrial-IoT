@@ -239,9 +239,18 @@ namespace IIoTPlatform_E2E_Tests {
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
                 request.Resource = string.Format(TestConstants.APIRoutes.RegistryActivateEndpointsFormat, endpointId);
 
-                var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
+                // TODO remove workaround
+                // This request used to fail when called for the first time. The bug was fixed in the master,
+                // but we will keep this workaround until we can consume the fixed platform in the E2E tests.
+                bool IsSuccessful = false;
+                int numberOfRetries = 3;
+                while (!IsSuccessful && numberOfRetries > 0) {
+                    var response = await client.ExecuteAsync(request, ct);
+                    IsSuccessful = response.IsSuccessful;
+                    numberOfRetries--;
+                }
 
-                Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
+                Assert.True(IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
 
                 while (true) {
                     Assert.False(ct.IsCancellationRequested, "Endpoint was not activated within the expected timeout");
