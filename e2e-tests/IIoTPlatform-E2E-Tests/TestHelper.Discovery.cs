@@ -180,6 +180,7 @@ namespace IIoTPlatform_E2E_Tests {
 
                     var endpoint = ((string)json.items[indexOfOpcUaEndpoint].registration.endpoint.url).TrimEnd('/');
                     if (endpoint == requestedEndpointUrl) {
+                        context.ApplicationId = json.items[indexOfOpcUaEndpoint].applicationId;
                         return (string)json.items[indexOfOpcUaEndpoint].registration.id;
                     }
                 }
