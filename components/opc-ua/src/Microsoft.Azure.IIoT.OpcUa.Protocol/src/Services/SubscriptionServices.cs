@@ -1130,7 +1130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     // let's loop thru the select clause and setup the field names
                     foreach (var selectClause in eventFilter.SelectClauses) {
                         sb.Clear();
-                        for (var i = 0; i < selectClause.BrowsePath.Count; i++) {
+                        for (var i = 0; i < selectClause.BrowsePath?.Count; i++) {
                             if (i == 0) {
                                 if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
                                     sb.Append(session.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
@@ -1148,7 +1148,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 selectClause.AttributeId == Attributes.NodeId) {
                                 sb.Append("ConditionId");
                             }
-
                         }
                         FieldNames.Add(sb.ToString());
                     }
@@ -1290,14 +1289,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 foreach (var fieldName in fieldNames) {
-                    var fieldNameParts = fieldName.Name.Split('|');
                     var selectClause = new SimpleAttributeOperand() {
                         TypeDefinitionId = ObjectTypeIds.BaseEventType,
-                        AttributeId = Attributes.Value
+                        AttributeId = Attributes.Value,
+                        BrowsePath = fieldName.Name 
+                            .Split('|')
+                            .Select(x => new QualifiedName(x, fieldName.NamespaceIndex))
+                            .ToArray()
                     };
-                    foreach (var fieldNamePart in fieldNameParts) {
-                        selectClause.BrowsePath.Add(new QualifiedName(fieldNamePart, fieldName.NamespaceIndex));
-                    }
                     eventFilter.SelectClauses.Add(selectClause);
                 }
                 eventFilter.WhereClause = new ContentFilter();
