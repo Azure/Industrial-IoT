@@ -70,10 +70,10 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public virtual void Decode(IDecoder decoder) {
-            // Read keys for decoding. May throw in some decoders if an empty
-            // array was encoded.
+            // Read keys for decoding. 
             StringCollection keys = null;
             try {
+                // May throw in some decoders if an empty array was encoded.
                 keys = decoder.ReadStringArray(kKeysIdentifier);
             }
             catch {
