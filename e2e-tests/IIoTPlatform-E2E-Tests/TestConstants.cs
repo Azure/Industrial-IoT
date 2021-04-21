@@ -320,6 +320,17 @@ namespace IIoTPlatform_E2E_Tests {
             /// Endpoint state ready
             /// </summary>
             public const string Ready = "Ready";
+
+            /// <summary>
+            /// Endpoint activation state ready
+            /// </summary>
+            public const string Deactivated = "Deactivated";
+
+            /// <summary>
+            /// Endpoint state Disconnected
+            /// </summary>
+            public const string Disconnected = "Disconnected";
+
         }
     }
 }

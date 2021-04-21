@@ -196,7 +196,13 @@ namespace IIoTPlatform_E2E_Tests {
                     string discoveryUrl,
                     CancellationToken ct = default) {
 
-                var applicationId = context.ApplicationId == null ? await GetApplicationIdAsync(context, discoveryUrl, ct) : context.ApplicationId;
+                var applicationId = context.ApplicationId;
+
+                // Validate if an aplicationId was ever added to the context. If not try to get it from discovery Url
+                if (string.IsNullOrEmpty(applicationId)) {
+                    applicationId = await GetApplicationIdAsync(context, discoveryUrl, ct);
+                }
+
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
                 var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) { Timeout = TestConstants.DefaultTimeoutInMilliseconds };
@@ -276,6 +282,22 @@ namespace IIoTPlatform_E2E_Tests {
                 var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
 
                 Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/deactivate failed!");
+                while (true) {
+                    Assert.False(ct.IsCancellationRequested, "Endpoint was not deactivated within the expected timeout");
+
+                    var endpointList = await GetEndpointsAsync(context, ct).ConfigureAwait(false);
+                    var endpoint = endpointList.FirstOrDefault(e => string.Equals(e.Id, endpointId));
+
+                    if (string.Equals(endpoint.ActivationState, TestConstants.StateConstants.Deactivated)
+                            && string.Equals(endpoint.EndpointState, TestConstants.StateConstants.Disconnected)) {
+                        return;
+                    }
+
+                    context.OutputHelper?.WriteLine(string.IsNullOrEmpty(endpoint.Url) ? "Endpoint not found" :
+                        $"Endpoint state: {endpoint.EndpointState}, activation: {endpoint.ActivationState}");
+
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds).ConfigureAwait(false);
+                }
 
             }
 

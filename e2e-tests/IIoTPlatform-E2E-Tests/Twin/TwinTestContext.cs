@@ -35,7 +35,7 @@ namespace IIoTPlatform_E2E_Tests.Twin {
             using var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             if (!string.IsNullOrWhiteSpace(OpcUaEndpointId)) {
-                TestHelper.Registry.DeactivateEndpointAsync(this, OpcUaEndpointId);
+                TestHelper.Registry.DeactivateEndpointAsync(this, OpcUaEndpointId).GetAwaiter().GetResult();
                 TestHelper.Registry.UnregisterServerAsync(this, OpcServerUrl, cts.Token).GetAwaiter().GetResult();
             }
 
