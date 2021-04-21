@@ -1125,9 +1125,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
 
+                    var sb = new StringBuilder();
+
                     // let's loop thru the select clause and setup the field names
                     foreach (var selectClause in eventFilter.SelectClauses) {
-                        var sb = new StringBuilder();
+                        sb.Clear();
                         for (var i = 0; i < selectClause.BrowsePath.Count; i++) {
                             if (i == 0) {
                                 if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
