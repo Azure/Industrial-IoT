@@ -13,6 +13,11 @@ namespace Opc.Ua.Encoders {
     /// </summary>
     public class EncodeableDictionary : List<KeyDataValuePair>, IEncodeable {
 
+        /// <summary>
+        /// Identifier for the keys in the reversible format.
+        /// </summary>
+        private const string kKeysIdentifier = "_Keys";
+
         /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
             nameof(EncodeableDictionary);
@@ -44,22 +49,16 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         public EncodeableDictionary(IEnumerable<KeyDataValuePair> collection) : base(collection) { }
 
-        /// <summary>
-        /// Identifier for where to store the keys in the reversible format.
-        /// </summary>
-        private const string reversibleKeysIdentifier = "_Keys";
-
         /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder) {
             if (encoder.UseReversibleEncoding) {
-                if (this.Any(x => x.Key == reversibleKeysIdentifier)) {
-                    // TODO: ...
-                    throw new System.Exception();
+                // Write keys for decoding. Check first if the keys property is already used
+                // as it would overwrite the values.
+                if (this.Any(x => x.Key == kKeysIdentifier)) {
+                    throw new ServiceResultException(StatusCodes.BadEncodingError,
+                        $"The key '{kKeysIdentifier}' is already in use.");
                 }
-
-                encoder.WriteStringArray(reversibleKeysIdentifier, this.Select(x => x.Key).ToArray());
-
-                // Check for keys.
+                encoder.WriteStringArray(kKeysIdentifier, this.Select(x => x.Key).ToArray());
             }
 
             foreach (var entry in this) {
@@ -71,13 +70,22 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public virtual void Decode(IDecoder decoder) {
-            // No operation. Cannot decode without known keys.
-            var keys = decoder.ReadStringArray(reversibleKeysIdentifier);
-            foreach (var key in keys) {
-                Add(new KeyDataValuePair {
-                    Key = key,
-                    Value = decoder.ReadDataValue(key)
-                });
+            // Read keys for decoding. May throw in some decoders if an empty
+            // array was encoded.
+            StringCollection keys = null;
+            try {
+                keys = decoder.ReadStringArray(kKeysIdentifier);
+            }
+            catch {
+            }
+
+            if (keys != null) {
+                foreach (var key in keys) {
+                    Add(new KeyDataValuePair {
+                        Key = key,
+                        Value = decoder.ReadDataValue(key)
+                    });
+                }
             }
         }
 
