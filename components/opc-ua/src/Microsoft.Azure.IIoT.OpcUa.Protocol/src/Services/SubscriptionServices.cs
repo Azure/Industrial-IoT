@@ -102,6 +102,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public event EventHandler<SubscriptionNotificationModel> OnSubscriptionEventChange;
 
             /// <inheritdoc/>
+            public event EventHandler<int> OnSubscriptionDataDiagnosticsChange;
+
+            /// <summary>
+            ///  <inheritdoc/>
+            /// </summary>
+            public event EventHandler<int> OnSubscriptionEventDiagnosticsChange;
+
+            /// <inheritdoc/>
             public event EventHandler<SubscriptionNotificationModel> OnMonitoredItemChange;
 
             /// <summary>
@@ -754,7 +762,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             if (message == null) {
                                 continue;
                             }
-                            message.Notifications?.Add(monitoredItemNotification);
 
                             if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
                                 var pendingAlarmsOptions = itemWrapper?.EventTemplate?.PendingAlarms;
@@ -764,6 +771,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                         PendingAlarms[values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString()] = monitoredItemNotification;
                                     }
                                 }
+                                else {
+                                    message.Notifications?.Add(monitoredItemNotification);
+                                }
                             }
                         }
                     }
@@ -771,6 +781,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (message.Notifications?.Any() == true) {
                         OnSubscriptionEventChange.Invoke(this, message);
                     }
+
+                    OnSubscriptionEventDiagnosticsChange.Invoke(this, notification.Events.Count);
                 }
                 catch (Exception e) {
                     _logger.Warning(e, "Exception processing subscription notification");
@@ -881,6 +893,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (message.Notifications?.Any() == true) {
                         OnSubscriptionDataChange.Invoke(this, message);
                     }
+
+                    OnSubscriptionDataDiagnosticsChange.Invoke(this, message.Notifications.Count);
                 }
                 catch (Exception e) {
                     _logger.Warning(e, "Exception processing subscription notification");

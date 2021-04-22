@@ -27,6 +27,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         event EventHandler<SubscriptionNotificationModel> OnSubscriptionEventChange;
 
         /// <summary>
+        /// Subscription data change diagnostics events
+        /// </summary>
+        event EventHandler<int> OnSubscriptionDataDiagnosticsChange;
+
+        /// <summary>
+        /// Subscription event change diagnostics events
+        /// </summary>
+        event EventHandler<int> OnSubscriptionEventDiagnosticsChange;
+
+        /// <summary>
         /// Item change events
         /// </summary>
         event EventHandler<SubscriptionNotificationModel> OnMonitoredItemChange;

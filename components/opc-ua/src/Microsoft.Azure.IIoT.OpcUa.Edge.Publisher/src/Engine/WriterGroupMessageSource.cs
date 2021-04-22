@@ -142,6 +142,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _subscriptionInfo).ConfigureAwait(false);
                 sc.OnSubscriptionDataChange += OnSubscriptionDataChangedAsync;
                 sc.OnSubscriptionEventChange += OnSubscriptionEventChangedAsync;
+                sc.OnSubscriptionDataDiagnosticsChange += OnSubscriptionDataDiagnosticsChangedAsync;
+                sc.OnSubscriptionEventDiagnosticsChange += OnSubscriptionEventDiagnosticsChangedAsync;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
                     _subscriptionInfo.Configuration).ConfigureAwait(false);
                 Subscription = sc;
@@ -202,6 +204,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (Subscription != null) {
                     Subscription.OnSubscriptionDataChange -= OnSubscriptionDataChangedAsync;
                     Subscription.OnSubscriptionEventChange -= OnSubscriptionEventChangedAsync;
+                    Subscription.OnSubscriptionDataDiagnosticsChange -= OnSubscriptionDataDiagnosticsChangedAsync;
+                    Subscription.OnSubscriptionEventDiagnosticsChange -= OnSubscriptionEventDiagnosticsChangedAsync;
                     Subscription.Dispose();
                 }
                 _keyframeTimer?.Dispose();
@@ -222,7 +226,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
                     var snapshot = await Subscription.GetSnapshotAsync().ConfigureAwait(false);
                     if (snapshot != null) {
-                        CallMessageReceiverDelegates(this, sequenceNumber, snapshot, false /* ??? */);
+                        CallMessageReceiverDelegates(this, sequenceNumber, snapshot);
                     }
                 }
                 catch (Exception ex) {
@@ -257,7 +261,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         notification = snapshot;
                     }
                 }
-                CallMessageReceiverDelegates(sender, sequenceNumber, notification, false);
+                CallMessageReceiverDelegates(sender, sequenceNumber, notification);
+            }
+
+            /// <summary>
+            /// Handle subscription data diagnostics change messages
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="notificationCount"></param>
+            private void OnSubscriptionDataDiagnosticsChangedAsync(object sender, int notificationCount) {
+                lock (_lock) {
+                    if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
+                        _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
+                        // reset both
+                        _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
+                            "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
+                            " value changes were invoked by message source.",
+                            _outer.DataChangesCount, _outer.ValueChangesCount);
+                        _outer.DataChangesCount = 0;
+                        _outer.ValueChangesCount = 0;
+                    }
+
+                    _outer.ValueChangesCount += notificationCount;
+                    _outer.DataChangesCount++;
+                }
             }
 
             /// <summary>
@@ -266,7 +293,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <param name="sender"></param>
             /// <param name="notification"></param>
             private async void OnSubscriptionEventChangedAsync(object sender,
-                SubscriptionNotificationModel notification) {
+        SubscriptionNotificationModel notification) {
                 var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
                 if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0 &&
                     (sequenceNumber % _keyFrameCount.Value) == 0) {
@@ -275,7 +302,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         notification = snapshot;
                     }
                 }
-                CallMessageReceiverDelegates(sender, sequenceNumber, notification, true);
+                CallMessageReceiverDelegates(sender, sequenceNumber, notification);
+            }
+
+            /// <summary>
+            /// Handle subscription event diagnostics change messages
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="notificationCount"></param>
+            private void OnSubscriptionEventDiagnosticsChangedAsync(object sender, int notificationCount) {
+                lock (_lock) {
+                    if (_outer.EventChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
+                        _outer.EventValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
+                        // reset both
+                        _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
+                            "So far, {EventChangesCount} event changes and {EventValueChangesCount}" +
+                            " event value changes were invoked by message source.",
+                            _outer.EventChangesCount, _outer.EventValueChangesCount);
+                        _outer.EventChangesCount = 0;
+                        _outer.EventValueChangesCount = 0;
+                    }
+
+                    _outer.EventValueChangesCount += notificationCount;
+                    _outer.EventChangesCount++;
+                }
             }
 
             /// <summary>
@@ -284,9 +334,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <param name="sender"></param>
             /// <param name="sequenceNumber"></param>
             /// <param name="notification"></param>
-            /// <param name="isEvent"></param>
             private void CallMessageReceiverDelegates(object sender, uint sequenceNumber,
-                SubscriptionNotificationModel notification, bool isEvent) {
+                SubscriptionNotificationModel notification) {
                 try {
                     var message = new DataSetMessageModel {
                         // TODO: Filter changes on the monitored items contained in the template
@@ -302,36 +351,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         WriterGroup = _outer._writerGroup
                     };
                     lock (_lock) {
-                        if (!isEvent) {
-                            if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
-                                _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
-                                // reset both
-                                _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
-                                    "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
-                                    " value changes were invoked by message source.",
-                                    _outer.DataChangesCount, _outer.ValueChangesCount);
-                                _outer.DataChangesCount = 0;
-                                _outer.ValueChangesCount = 0;
-                            }
-
-                            _outer.ValueChangesCount += message.Notifications.Count();
-                            _outer.DataChangesCount++;
-                        }
-                        else {
-                            if (_outer.EventChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
-                                _outer.EventValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
-                                // reset both
-                                _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
-                                    "So far, {EventChangesCount} event changes and {EventValueChangesCount}" +
-                                    " event value changes were invoked by message source.",
-                                    _outer.EventChangesCount, _outer.EventValueChangesCount);
-                                _outer.EventChangesCount = 0;
-                                _outer.EventValueChangesCount = 0;
-                            }
-
-                            _outer.EventValueChangesCount += message.Notifications.Count();
-                            _outer.EventChangesCount++;
-                        }
                         _outer.OnMessage?.Invoke(sender, message);
                     }
                 }
