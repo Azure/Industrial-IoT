@@ -226,7 +226,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
                     var snapshot = await Subscription.GetSnapshotAsync().ConfigureAwait(false);
                     if (snapshot != null) {
-                        CallMessageReceiverDelegates(this, sequenceNumber, snapshot);
+                        CallMessageReceiverDelegates(this, sequenceNumber, snapshot, false);
                     }
                 }
                 catch (Exception ex) {
@@ -244,6 +244,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <param name="e"></param>
             private void MetadataTimerElapsed(object sender, ElapsedEventArgs e) {
                 // Send(_metaData)
+            }
+
+            /// <summary>
+            /// Handle subscription change messages
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="notification"></param>
+            private async void OnSubscriptionDataChangedAsync(object sender,
+                SubscriptionNotificationModel notification) {
+                var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
+                if (_keyFrameCount.HasValue && _keyFrameCount.Value != 0 &&
+                    (sequenceNumber % _keyFrameCount.Value) == 0) {
+                    var snapshot = await Try.Async(() => Subscription.GetSnapshotAsync()).ConfigureAwait(false);
+                    if (snapshot != null) {
+                        notification = snapshot;
+                    }
+                }
+                CallMessageReceiverDelegates(sender, sequenceNumber, notification, false);
             }
 
             /// <summary>
@@ -302,7 +320,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         notification = snapshot;
                     }
                 }
-                CallMessageReceiverDelegates(sender, sequenceNumber, notification);
+                CallMessageReceiverDelegates(sender, sequenceNumber, notification, true);
             }
 
             /// <summary>
@@ -334,8 +352,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// <param name="sender"></param>
             /// <param name="sequenceNumber"></param>
             /// <param name="notification"></param>
+            /// <param name="isEvent"></param>
             private void CallMessageReceiverDelegates(object sender, uint sequenceNumber,
-                SubscriptionNotificationModel notification) {
+                SubscriptionNotificationModel notification, bool isEvent) {
                 try {
                     var message = new DataSetMessageModel {
                         // TODO: Filter changes on the monitored items contained in the template
