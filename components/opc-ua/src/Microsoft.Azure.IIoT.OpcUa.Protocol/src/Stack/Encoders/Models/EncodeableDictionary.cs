@@ -70,12 +70,16 @@ namespace Opc.Ua.Encoders {
 
                 // Write keys for decoding.
                 encoder.WriteUInt32(kKeysCountIdentifier, (uint)Count);
-                encoder.WriteStringArray(kKeysIdentifier, this.Select(x => x.Key).ToArray());
+                if (Count > 0) {
+                    encoder.WriteStringArray(kKeysIdentifier, this.Select(x => x.Key).ToArray());
+                }
             }
 
-            foreach (var entry in this) {
-                if (!string.IsNullOrEmpty(entry.Key)) {
-                    encoder.WriteDataValue(entry.Key, entry.Value);
+            if (Count > 0) {
+                foreach (var entry in this) {
+                    if (!string.IsNullOrEmpty(entry.Key)) {
+                        encoder.WriteDataValue(entry.Key, entry.Value);
+                    }
                 }
             }
         }
