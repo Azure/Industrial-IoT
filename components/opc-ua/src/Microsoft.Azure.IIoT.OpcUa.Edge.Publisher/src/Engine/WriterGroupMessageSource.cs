@@ -222,7 +222,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var sequenceNumber = (uint)Interlocked.Increment(ref _currentSequenceNumber);
                     var snapshot = await Subscription.GetSnapshotAsync().ConfigureAwait(false);
                     if (snapshot != null) {
-                        CallMessageReceiverDelegates(this, sequenceNumber, snapshot, false /* ??? */);
+                        CallMessageReceiverDelegates(this, sequenceNumber, snapshot, false);
                     }
                 }
                 catch (Exception ex) {
