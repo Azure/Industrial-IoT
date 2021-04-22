@@ -66,6 +66,11 @@ namespace IIoTPlatform_E2E_Tests {
             public static string RegistryActivateEndpointsFormat = "/registry/v2/endpoints/{0}/activate";
 
             /// <summary>
+            /// Route to enable an OPC UA endpoint
+            /// </summary>
+            public static string RegistryDeactivateEndpointsFormat = "/registry/v2/endpoints/{0}/deactivate";
+
+            /// <summary>
             /// Route to applications within registry
             /// </summary>
             public const string RegistryApplications = "/registry/v2/applications";
@@ -330,6 +335,17 @@ namespace IIoTPlatform_E2E_Tests {
             /// Endpoint state ready
             /// </summary>
             public const string Ready = "Ready";
+
+            /// <summary>
+            /// Endpoint activation state ready
+            /// </summary>
+            public const string Deactivated = "Deactivated";
+
+            /// <summary>
+            /// Endpoint state Disconnected
+            /// </summary>
+            public const string Disconnected = "Disconnected";
+
         }
     }
 }
