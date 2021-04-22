@@ -75,11 +75,9 @@ namespace Opc.Ua.Encoders {
                 }
             }
 
-            if (Count > 0) {
-                foreach (var entry in this) {
-                    if (!string.IsNullOrEmpty(entry.Key)) {
-                        encoder.WriteDataValue(entry.Key, entry.Value);
-                    }
+            foreach (var entry in this) {
+                if (!string.IsNullOrEmpty(entry.Key)) {
+                    encoder.WriteDataValue(entry.Key, entry.Value);
                 }
             }
         }
