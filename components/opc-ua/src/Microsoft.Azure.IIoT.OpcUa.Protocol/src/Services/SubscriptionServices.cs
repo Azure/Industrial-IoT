@@ -471,7 +471,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 if (applyChanges) {
                     rawSubscription.ApplyChanges();
-                    rawSubscription.ConditionRefresh();
                     _currentlyMonitored = nowMonitored;
                     if (!activate) {
                         var map = _currentlyMonitored.ToDictionary(
@@ -515,6 +514,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _logger.Error("Monitored items mismatch: wrappers{wrappers} != items:{items} ",
                                 _currentlyMonitored.Count, _currentlyMonitored.Count);
                         }
+
+                        _logger.Information("Now issuing ConditionRefresh for subscription " +
+                            "{subscription}", rawSubscription.DisplayName);
+                        try {
+                            rawSubscription.ConditionRefresh();
+                        } catch (ServiceResultException e) {
+                            _logger.Information("ConditionRefresh for subscription " +
+                                "{subscription} failed with a ServiceResultException '{message}'", rawSubscription.DisplayName, e.Message);
+                        }
+                        catch (Exception e) {
+                            _logger.Information("ConditionRefresh for subscription " +
+                                "{subscription} failed with an exception '{message}'", rawSubscription.DisplayName, e.Message);
+                        }
+                        _logger.Information("ConditionRefresh for subscription " +
+                            "{subscription} has completed", rawSubscription.DisplayName);
                     }
                 }
                 else {
