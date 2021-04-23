@@ -1081,10 +1081,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(messageContext));
                 }
                 else if (EventTemplate != null) {
-                    var eventFilter = !string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId) ?
-                        GetSimpleEventFilter(nodeCache, messageContext) :
-                        codec.Decode(EventTemplate.EventFilter, true);
-                    eventFilter ??= new EventFilter();
+                    EventFilter eventFilter = new EventFilter();
+                    if (EventTemplate.EventFilter != null) {
+                        if (!string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId)) {
+                            eventFilter = GetSimpleEventFilter(nodeCache, messageContext);
+                        }
+                        else {
+                            eventFilter = codec.Decode(EventTemplate.EventFilter, true);
+                        }
+                    }
 
                     // Add SourceTimestamp and ServerTimestamp select clauses.
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
