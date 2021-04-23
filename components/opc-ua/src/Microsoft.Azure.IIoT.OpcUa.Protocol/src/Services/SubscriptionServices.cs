@@ -1056,7 +1056,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <param name="codec"></param>
             /// <param name="activate"></param>
             /// <returns></returns>
-            public void Create(ServiceMessageContext messageContext, NodeCache nodeCache, IVariantEncoder codec, bool activate) {
+            public void Create(ServiceMessageContext messageContext, INodeCache nodeCache, IVariantEncoder codec, bool activate) {
                 Item = new MonitoredItem {
                     Handle = this,
                     DisplayName = Template.DisplayName ?? Template.Id,
@@ -1237,7 +1237,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return fieldName;
             }
 
-            internal EventFilter GetSimpleEventFilter(NodeCache nodeCache, ServiceMessageContext messageContext) {
+            internal EventFilter GetSimpleEventFilter(INodeCache nodeCache, ServiceMessageContext messageContext) {
                 var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(messageContext);
                 var nodes = new List<Node>();
                 ExpandedNodeId superType = null;

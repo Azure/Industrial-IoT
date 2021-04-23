@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
     using Opc.Ua;
+    using Opc.Ua.Client;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 SamplingInterval = null,
                 DiscardNew = null,
             };
-            var monitoredItemWrapper = Create(template);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
             Assert.Equal(Attributes.Value, monitoredItemWrapper.Item.AttributeId);
             Assert.Equal(MonitoringMode.Reporting, monitoredItemWrapper.Item.MonitoringMode);
@@ -48,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 SamplingInterval = TimeSpan.FromMilliseconds(10000),
                 DiscardNew = true
             };
-            var monitoredItemWrapper = Create(template);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
             Assert.Equal("DisplayName", monitoredItemWrapper.Item.DisplayName);
             Assert.Equal((uint)NodeAttribute.Value, monitoredItemWrapper.Item.AttributeId);
@@ -71,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     DeadBandValue = 10.0
                 }
             };
-            var monitoredItemWrapper = Create(template);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
             Assert.IsType<DataChangeFilter>(monitoredItemWrapper.Item.Filter);
@@ -106,7 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                 }
             };
-            var monitoredItemWrapper = Create(template);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
             Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
@@ -128,7 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         [Fact]
         public void AddTimestampSelectClausesWhenBaseTemplateIsEventTemplate() {
             var template = new EventMonitoredItemModel();
-            var monitoredItemWrapper = Create(template);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
             Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
@@ -149,7 +150,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     IsEnabled = true
                 }
             };
-            var monitoredItemWrapper = Create(template);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
             Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
@@ -162,11 +163,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Empty(eventFilter.SelectClauses[2].BrowsePath);
         }
 
-        private MonitoredItemWrapper Create(BaseMonitoredItemModel template, ServiceMessageContext messageContext = null, ITypeTable typeTree = null, IVariantEncoder codec = null, bool activate = true) {
+        private INodeCache GetNodeCache() {
+            using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
+            var nodeCache = mock.Mock<INodeCache>();
+            var typeTable = new TypeTable(new NamespaceTable());
+            nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
+            return nodeCache.Object;
+        }
+
+        private MonitoredItemWrapper GetMonitoredItemWrapper(BaseMonitoredItemModel template, ServiceMessageContext messageContext = null, INodeCache nodeCache = null, IVariantEncoder codec = null, bool activate = true) {
             var monitoredItemWrapper = new MonitoredItemWrapper(template, Log.Logger);
             monitoredItemWrapper.Create(
                 messageContext ?? new ServiceMessageContext(),
-                typeTree ?? new TypeTable(new NamespaceTable()),
+                nodeCache ?? GetNodeCache(),
                 codec ?? new VariantEncoderFactory().Default,
                 activate);
             return monitoredItemWrapper;
