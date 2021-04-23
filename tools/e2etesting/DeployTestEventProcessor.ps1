@@ -214,9 +214,3 @@ Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "testeventprocessor-pa
 
 Write-Host "Setting KeyVault Secret 'iothub-eventhub-connectionstring' to '***'."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "iothub-eventhub-connectionstring" -SecretValue (ConvertTo-SecureString -String $ehConnectionString -AsPlainText -Force) | Out-Null
-
-
-
-
-
-

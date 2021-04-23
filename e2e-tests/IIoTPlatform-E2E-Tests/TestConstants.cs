@@ -66,6 +66,11 @@ namespace IIoTPlatform_E2E_Tests {
             public static string RegistryActivateEndpointsFormat = "/registry/v2/endpoints/{0}/activate";
 
             /// <summary>
+            /// Route to enable an OPC UA endpoint
+            /// </summary>
+            public static string RegistryDeactivateEndpointsFormat = "/registry/v2/endpoints/{0}/deactivate";
+
+            /// <summary>
             /// Route to applications within registry
             /// </summary>
             public const string RegistryApplications = "/registry/v2/applications";
@@ -185,6 +190,21 @@ namespace IIoTPlatform_E2E_Tests {
             /// Semicolon separated URLs to load published_nodes.json from OPC-PLCs
             /// </summary>
             public const string PLC_SIMULATION_URLS = "PLC_SIMULATION_URLS";
+
+            /// <summary>
+            /// IoTEdge version
+            /// </summary>
+            public const string IOT_EDGE_VERSION = "IOT_EDGE_VERSION";
+
+            /// <summary>
+            /// Nested edge flag
+            /// </summary>
+            public const string NESTED_EDGE_FLAG = "NESTED_EDGE_FLAG";
+
+            /// <summary>
+            /// Nested edge ssh connections
+            /// </summary>
+            public const string NESTED_EDGE_SSH_CONNECTIONS = "NESTED_EDGE_SSH_CONNECTIONS";
 
             /// <summary>
             /// Device identity of edge device at IoT Hub
@@ -315,6 +335,17 @@ namespace IIoTPlatform_E2E_Tests {
             /// Endpoint state ready
             /// </summary>
             public const string Ready = "Ready";
+
+            /// <summary>
+            /// Endpoint activation state ready
+            /// </summary>
+            public const string Deactivated = "Deactivated";
+
+            /// <summary>
+            /// Endpoint state Disconnected
+            /// </summary>
+            public const string Disconnected = "Disconnected";
+
         }
     }
 }

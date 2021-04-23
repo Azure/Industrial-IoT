@@ -14,7 +14,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
     /// <summary>
     /// Context to pass data between test cases
     /// </summary>
-    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig {
+    public class IIoTPlatformTestContext : IDisposable, IDeviceConfig, IIoTHubConfig, IIoTEdgeConfig, IIIoTPlatformConfig, ISshConfig, IOpcPlcConfig, ITestEventProcessorConfig, IContainerRegistryConfig {
 
         /// <summary>
         /// Configuration
@@ -31,6 +31,11 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Save the identifier of OPC server endpoints
         /// </summary>
         public string? OpcUaEndpointId { get; set; }
+
+        /// <summary>
+        /// Save the identfier of the opc ua application
+        /// </summary>
+        public string? ApplicationId { get; set; }
 
         /// <summary>
         /// Folder path where PublishedNodes file is saved during the test
@@ -56,6 +61,11 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// IoT Hub Configuration
         /// </summary>
         public IIoTHubConfig IoTHubConfig { get { return this; } }
+
+        /// <summary>
+        /// IoT Edge Configuration
+        /// </summary>
+        public IIoTEdgeConfig IoTEdgeConfig { get { return this; } }
 
         /// <summary>
         /// IoT Hub Configuration
@@ -88,8 +98,7 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         public RegistryHelper RegistryHelper { get; }
 
         /// <inheritdoc />
-        public void Dispose()
-        {
+        public void Dispose() {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
@@ -146,6 +155,15 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         string IIoTHubConfig.CheckpointStorageConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING,
             () => throw new Exception("IoT Hub Checkpoint Storage connection string is not provided."));
+
+        string IIoTEdgeConfig.EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
+            () => "1.1.0");
+
+        string IIoTEdgeConfig.NestedEdgeFlag => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_FLAG,
+            () => "Disable");
+
+        string[] IIoTEdgeConfig.NestedEdgeSshConnections => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.NESTED_EDGE_SSH_CONNECTIONS, 
+            () => "").Split(",");
 
         string IIIoTPlatformConfig.BaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_SERVICE_URL,
             () => { return string.Empty; });
