@@ -48,9 +48,14 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Fact, PriorityOrder(3)]
         public void Test_StartPublishingSingleNode_Expect_Success() {
-            var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-            var simulatedPublishedNodesConfiguration = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();
+            var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            var simulatedPublishedNodesConfiguration = new Dictionary<string, PublishedNodesEntryModel>(0);
 
+            // With the nested edge test servers don't have public IP addresses and cannot be accessed in this way
+            if (_context.IoTEdgeConfig.NestedEdgeFlag != "Enable") {              
+                TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();
+            }
+            
             PublishedNodesEntryModel model;
             if (simulatedPublishedNodesConfiguration.Count > 0) {
                 model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
@@ -82,7 +87,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 })
                 .ToArray();
 
-            cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { model }, _context, cts.Token).GetAwaiter().GetResult();
 
             Task.Delay(TestConstants.DefaultTimeoutInMilliseconds).GetAwaiter().GetResult(); //wait some time till the updated pn.json is reflected
