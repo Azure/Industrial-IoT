@@ -31,7 +31,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
 
         /// <inheritdoc />
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
-            var version = "1.1.0";
+            var version = "1.1";
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(@"
             {
                 ""$edgeAgent"": {
