@@ -103,9 +103,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public event EventHandler<int> OnSubscriptionDataDiagnosticsChange;
 
-            /// <summary>
             ///  <inheritdoc/>
-            /// </summary>
             public event EventHandler<int> OnSubscriptionEventDiagnosticsChange;
 
             /// <inheritdoc/>
@@ -1152,12 +1150,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         // set up the timers
                         if (EventTemplate.PendingAlarms.UpdateIntervalTimespan.HasValue) {
                             _pendingAlarmsUpdateTimer.Interval = EventTemplate.PendingAlarms.UpdateIntervalTimespan.Value.TotalMilliseconds;
-                            _pendingAlarmsUpdateTimer.Elapsed += PendingAlarmsUpdateTimer_Elapsed;
+                            _pendingAlarmsUpdateTimer.Elapsed += OnPendingAlarmsUpdateTimerElapsed;
                             _pendingAlarmsUpdateTimer.Start();
                         }
                         if (EventTemplate.PendingAlarms.SnapshotIntervalTimespan.HasValue) {
                             _pendingAlarmsSnapshotTimer.Interval = EventTemplate.PendingAlarms.SnapshotIntervalTimespan.Value.TotalMilliseconds;
-                            _pendingAlarmsSnapshotTimer.Elapsed += PendingAlarmsSnapshotTimer_Elapsed;
+                            _pendingAlarmsSnapshotTimer.Elapsed += OnPendingAlarmsSnapshotTimerElapsed;
                             _pendingAlarmsSnapshotTimer.Start();
                         }
                     }
@@ -1165,7 +1163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
-            private void PendingAlarmsUpdateTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e) {
+            private void OnPendingAlarmsUpdateTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
                 if (EventTemplate?.PendingAlarms?.Dirty == true) {
                     _pendingAlarmsUpdateTimer.Enabled = false;
                     SendPendingAlarms(false);
@@ -1173,7 +1171,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
-            private void PendingAlarmsSnapshotTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e) {
+            private void OnPendingAlarmsSnapshotTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
                 _pendingAlarmsSnapshotTimer.Enabled = false;
                 SendPendingAlarms(true);
                 _pendingAlarmsSnapshotTimer.Enabled = true;
@@ -1333,20 +1331,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message, MonitoredItemNotificationModel monitoredItemNotification) {
                 var pendingAlarmsOptions = EventTemplate?.PendingAlarms;
                 if (pendingAlarmsOptions?.IsEnabled == true && monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
-                    var conditionIdIndex = pendingAlarmsOptions.ConditionIdIndex ?? -1;
-                    var retainIndex = pendingAlarmsOptions.RetainIndex ?? -1;
-                    if (conditionIdIndex != -1) {
-                        var conditionId = values[conditionIdIndex].Value.ToString();
-                        if (!PendingAlarmEvents.ContainsKey(conditionId) || retainIndex == -1) {
+                    if (pendingAlarmsOptions.ConditionIdIndex.HasValue) {
+                        var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
+                        if (!PendingAlarmEvents.ContainsKey(conditionId) || !pendingAlarmsOptions.RetainIndex.HasValue) {
                             PendingAlarmEvents[conditionId] = monitoredItemNotification;
                             pendingAlarmsOptions.Dirty = true;
                         }
                         else {
                             var existingValues = PendingAlarmEvents[conditionId].Value.GetValue(typeof(EncodeableDictionary)) as EncodeableDictionary;
-                            if (existingValues[retainIndex] != values[retainIndex]) {
-                                PendingAlarmEvents[conditionId] = monitoredItemNotification;
+                            if (existingValues[pendingAlarmsOptions.RetainIndex.Value] != values[pendingAlarmsOptions.RetainIndex.Value]) {
                                 pendingAlarmsOptions.Dirty = true;
                             }
+                            PendingAlarmEvents[conditionId] = monitoredItemNotification;
                         }
                     }
                 }
@@ -1360,7 +1356,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (pendingAlarmsOptions == null) {
                     return;
                 }
-
 
                 if (pendingAlarmsOptions.IsEnabled == true &&
                     pendingAlarmsOptions.RetainIndex.HasValue == true &&
