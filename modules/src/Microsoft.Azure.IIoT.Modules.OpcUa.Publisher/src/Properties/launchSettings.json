@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher": {
-      "commandName": "Project",
-      "commandLineArgs": "--aa --mm PubSub --fd True --pf C:\\OpcPublisher\\pn4.json --dc HostName=trumpfdev.azure-devices.net;DeviceId=trumpfdev;SharedAccessKey=8VU6jaA+KTdXZqwPLauCipiv+aFbBBa7Wo2qMtRV5bY="
-    }
-  }
-}
