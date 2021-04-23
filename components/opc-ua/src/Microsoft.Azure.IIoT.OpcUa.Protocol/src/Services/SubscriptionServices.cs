@@ -1331,17 +1331,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message, MonitoredItemNotificationModel monitoredItemNotification) {
                 var pendingAlarmsOptions = EventTemplate?.PendingAlarms;
                 if (pendingAlarmsOptions?.IsEnabled == true && monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
-                    if (pendingAlarmsOptions.ConditionIdIndex.HasValue) {
+                    if (pendingAlarmsOptions.ConditionIdIndex.HasValue && pendingAlarmsOptions.RetainIndex.HasValue) {
                         var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
-                        if (!PendingAlarmEvents.ContainsKey(conditionId) || !pendingAlarmsOptions.RetainIndex.HasValue) {
-                            PendingAlarmEvents[conditionId] = monitoredItemNotification;
-                            pendingAlarmsOptions.Dirty = true;
+                        var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue<bool>(false);
+                        if (PendingAlarmEvents.ContainsKey(conditionId) && !retain) {
+                            PendingAlarmEvents.TryRemove(conditionId, out var monitoredItemNotificationModel);
                         }
-                        else {
-                            if (PendingAlarmEvents[conditionId].Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary existingValues && 
-                                existingValues[pendingAlarmsOptions.RetainIndex.Value] != values[pendingAlarmsOptions.RetainIndex.Value]) {
-                                pendingAlarmsOptions.Dirty = true;
-                            }
+                        else if (retain) {
+                            pendingAlarmsOptions.Dirty = true;
                             PendingAlarmEvents[conditionId] = monitoredItemNotification;
                         }
                     }
@@ -1368,7 +1365,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         SubscriptionId = (Item.Subscription?.Handle as SubscriptionWrapper)?.Id,
                         Timestamp = DateTime.UtcNow,
                         Notifications = PendingAlarmEvents.Values
-                            .Where(x => !snapshot || (x.Value.GetValue(typeof(EncodeableDictionary)) as EncodeableDictionary)[retainIndex].Value.GetValue<bool>(false) == true)
                             .ToList()
                     };
 
