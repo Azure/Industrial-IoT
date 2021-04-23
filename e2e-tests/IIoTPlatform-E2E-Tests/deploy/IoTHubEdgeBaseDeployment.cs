@@ -32,7 +32,10 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
 
         /// <inheritdoc />
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
-            var version = "1.1";
+            var server = string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) ?
+                TestConstants.MicrosoftContainerRegistry : _context.ContainerRegistryConfig.ContainerRegistryServer;
+            var version = _context.IoTEdgeConfig.EdgeVersion;
+
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(@"
             {
                 ""$edgeAgent"": {
