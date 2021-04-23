@@ -1338,8 +1338,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             pendingAlarmsOptions.Dirty = true;
                         }
                         else {
-                            var existingValues = PendingAlarmEvents[conditionId].Value.GetValue(typeof(EncodeableDictionary)) as EncodeableDictionary;
-                            if (existingValues[pendingAlarmsOptions.RetainIndex.Value] != values[pendingAlarmsOptions.RetainIndex.Value]) {
+                            if (PendingAlarmEvents[conditionId].Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary existingValues && 
+                                existingValues[pendingAlarmsOptions.RetainIndex.Value] != values[pendingAlarmsOptions.RetainIndex.Value]) {
                                 pendingAlarmsOptions.Dirty = true;
                             }
                             PendingAlarmEvents[conditionId] = monitoredItemNotification;
@@ -1369,7 +1369,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         Timestamp = DateTime.UtcNow,
                         Notifications = PendingAlarmEvents.Values
                             .Where(x => !snapshot || (x.Value.GetValue(typeof(EncodeableDictionary)) as EncodeableDictionary)[retainIndex].Value.GetValue<bool>(false) == true)
-                            .Select(x => x)
                             .ToList()
                     };
 
