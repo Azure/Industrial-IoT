@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.Deploy {
+    using System;
     using System.Collections.Generic;
     using Newtonsoft.Json;
     using TestExtensions;
@@ -24,14 +25,17 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         protected override int Priority => 0;
 
         /// <inheritdoc />
-        protected override string DeploymentName => kDeploymentName;
+        protected override string DeploymentName => kDeploymentName + $"{DateTime.UtcNow.Ticks}";
 
         /// <inheritdoc />
         protected override string TargetCondition => kTargetCondition;
 
         /// <inheritdoc />
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
-            var version = "1.1.0";
+            var server = string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) ?
+                TestConstants.MicrosoftContainerRegistry : _context.ContainerRegistryConfig.ContainerRegistryServer;
+            var version = _context.IoTEdgeConfig.EdgeVersion;
+
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(@"
             {
                 ""$edgeAgent"": {
@@ -50,7 +54,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                             ""edgeAgent"": {
                                 ""type"": ""docker"",
                                 ""settings"": {
-                                    ""image"": ""mcr.microsoft.com/azureiotedge-agent:" + version+ @""",
+                                    ""image"": """ + server + "/azureiotedge-agent:" + version+ @""",
                                     ""createOptions"": ""{}""
                                 },
                                 ""env"": {
@@ -73,8 +77,16 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                                 ""status"": ""running"",
                                 ""restartPolicy"": ""always"",
                                 ""settings"": {
-                                    ""image"": ""mcr.microsoft.com/azureiotedge-hub:" + version + @""",
+                                    ""image"": """ + server + "/azureiotedge-hub:" + version + @""",
                                     ""createOptions"":  ""{\""HostConfig\"":{\""PortBindings\"":{\""443/tcp\"":[{\""HostPort\"":\""443\""}],\""5671/tcp\"":[{\""HostPort\"":\""5671\""}],\""8883/tcp\"":[{\""HostPort\"":\""8883\""}],\""9600/tcp\"":[{\""HostPort\"":\""9600\""}]}},\""ExposedPorts\"":{\""5671/tcp\"":{},\""8883/tcp\"":{},\""9600/tcp\"":{}}}""
+                                },
+                                ""env"": {
+                                    ""experimentalFeatures:enabled"": {
+                                        ""value"": ""true""
+                                    },
+                                    ""experimentalFeatures:nestedEdgeEnabled"": {
+                                        ""value"": ""true""
+                                    }
                                 }
                             }
                         },

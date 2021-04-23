@@ -5,6 +5,7 @@
 
 namespace IIoTPlatform_E2E_Tests.Standalone {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -48,10 +49,30 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         [Fact, PriorityOrder(3)]
         public void Test_StartPublishingSingleNode_Expect_Success() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
+            var simulatedPublishedNodesConfiguration = new Dictionary<string, PublishedNodesEntryModel>(0);
 
-            var simulatedPublishedNodesConfiguration = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();
-
-            var model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
+            // With the nested edge test servers don't have public IP addresses and cannot be accessed in this way
+            if (_context.IoTEdgeConfig.NestedEdgeFlag != "Enable") {              
+                TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();
+            }
+            
+            PublishedNodesEntryModel model;
+            if (simulatedPublishedNodesConfiguration.Count > 0) {
+                model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
+            }
+            else {
+                var opcPlcIp = _context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[0];
+                model = new PublishedNodesEntryModel {
+                    EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
+                    UseSecurity = false,
+                    OpcNodes = new OpcUaNodesModel[] {
+                        new OpcUaNodesModel {
+                            Id = "ns=2;s=SlowUInt1",
+                            OpcPublishingInterval = 10000
+                        }
+                    }
+                };
+            }
 
             // We want to take one of the slow nodes that updates each 10 seconds.
             // To make sure that we will not have missing values because of timing issues,
@@ -68,7 +89,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(new[] { model }, _context, cts.Token).GetAwaiter().GetResult();
 
-            Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult(); //wait some time till the updated pn.json is reflected
+            Task.Delay(TestConstants.DefaultTimeoutInMilliseconds).GetAwaiter().GetResult(); //wait some time till the updated pn.json is reflected
         }
 
         [Fact, PriorityOrder(4)]

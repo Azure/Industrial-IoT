@@ -213,16 +213,28 @@ namespace IIoTPlatform_E2E_Tests {
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
-            DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
-
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
             context.OutputHelper?.WriteLine(json);
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
-            using var client = CreateScpClientAndConnect(context);
+            using var scpClient = CreateScpClientAndConnect(context);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-            client.Upload(stream, TestConstants.PublishedNodesFullName);
+            scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
+            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
+                using var sshCient = CreateSshClientAndConnect(context);
+                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
+                    if (edge != string.Empty) {
+                        // Copy file to the edge vm
+                        var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
+                        sshCient.RunCommand(command);
+                        // Move file to the target folder with sudo permissions 
+                        command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
+                        sshCient.RunCommand(command);
+                    }                 
+                }             
+            }
+            
             await SwitchToStandaloneModeAsync(context, ct);
         }
 
@@ -345,6 +357,16 @@ namespace IIoTPlatform_E2E_Tests {
                 isSuccessful = true;
             }
             Assert.True(isSuccessful, "Delete file was not successful");
+
+            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
+                using var sshCient = CreateSshClientAndConnect(context);
+                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
+                    if (edge != string.Empty) {
+                        var command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo rm {fileName}'";
+                        sshCient.RunCommand(command);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -406,6 +428,8 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddJsonBody(body);
 
             var response = await client.ExecuteAsync(request, ct);
+            Assert.True(response.IsSuccessful, $"Response status code: {response.StatusCode}");
+
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
         }
