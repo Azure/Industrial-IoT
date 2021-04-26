@@ -1001,6 +1001,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// </summary>
             public ConcurrentDictionary<string, MonitoredItemNotificationModel> PendingAlarmEvents { get; } = new ConcurrentDictionary<string, MonitoredItemNotificationModel>();
 
+            /// <summary>
+            /// Destructor for this class
+            /// </summary>
             ~MonitoredItemWrapper()
             {
                 _pendingAlarmsUpdateTimer.Stop();
@@ -1367,6 +1370,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return eventFilter;
             }
 
+            /// <summary>
+            /// Processing the monitored item notification
+            /// </summary>
+            /// <param name="message"></param>
+            /// <param name="monitoredItemNotification"></param>
             public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message, MonitoredItemNotificationModel monitoredItemNotification) {
                 var pendingAlarmsOptions = EventTemplate?.PendingAlarms;
                 if (pendingAlarmsOptions?.IsEnabled == true && monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
