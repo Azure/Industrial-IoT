@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Abstractions;
     using System;
     using System.Collections.Generic;
     using System.Collections.Concurrent;
@@ -491,7 +492,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                         // Check local host
                         if (host.EqualsIgnoreCase("localhost") && Host.IsContainer) {
                             // Also resolve docker internal since we are in a container
-                            host = kDockerHostName;
+                            host = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
                             continue;
                         }
                         break;
@@ -515,7 +516,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
             try {
                 if (Host.IsContainer) {
                     // Resolve docker host since we are running in a container
-                    var entry = await Dns.GetHostEntryAsync(kDockerHostName);
+                    string HostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
+                    var entry = await Dns.GetHostEntryAsync(HostName);
                     foreach (var address in entry.AddressList
                                 .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
                                 .Where(a => !addresses.Any(b => a.Equals(b)))) {
@@ -647,7 +649,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
 
         /// <summary> Progress reporting every 3 seconds </summary>
         private static readonly TimeSpan kProgressInterval = TimeSpan.FromSeconds(3);
-        private const string kDockerHostName = "host.docker.internal";
 
         private readonly ILogger _logger;
         private readonly IJsonSerializer _serializer;
