@@ -766,15 +766,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             }
 
                             if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
-                                var pendingAlarmsOptions = itemWrapper?.EventTemplate?.PendingAlarms;
+                                var pendingAlarmsOptions = itemWrapper.EventTemplate?.PendingAlarms;
                                 var evFilter = (itemWrapper.Item.Filter as EventFilter);
-                                var eventTypeIndex = evFilter.SelectClauses.IndexOf(
-                                    evFilter.SelectClauses
+                                var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
+                                    evFilter?.SelectClauses
                                         .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "EventType"));
 
                                 // now, is this a regular event or RefreshStartEventType/RefreshEndEventType?
-                                if (eventTypeIndex != -1) {
-                                    var eventType = notification.Events[i].EventFields[eventTypeIndex].Value as NodeId;
+                                if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1) {
+                                    var eventType = notification.Events[i].EventFields[eventTypeIndex.Value].Value as NodeId;
                                     if (eventType == ObjectTypeIds.RefreshStartEventType) {
                                         if (pendingAlarmsOptions?.IsEnabled == true) {
                                             PendingAlarms.Clear();
