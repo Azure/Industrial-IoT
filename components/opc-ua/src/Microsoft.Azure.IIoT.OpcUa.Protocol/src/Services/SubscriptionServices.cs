@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Threading.Tasks;
     using Prometheus;
     using Opc.Ua.Encoders;
+    using System.Text;
 
     /// <summary>
     /// Subscription services implementation
@@ -69,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="index"></param>
         /// <returns>The display name, if defined</returns>
         public static string GetFieldDisplayName(MonitoredItem monitoredItem, int index) {
-            return (monitoredItem.Handle as MonitoredItemWrapper)?.GetFieldDisplayName(index);
+            return (monitoredItem.Handle as MonitoredItemWrapper)?.FieldNames[index];
         }
 
         /// <summary>
@@ -986,6 +987,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public DateTime NextHeartbeat { get; private set; }
 
             /// <summary>
+            /// List of field names. Only used for events
+            /// </summary>
+            public List<string> FieldNames { get; } = new List<string>();
+
+            /// <summary>
             /// validates if a heartbeat is required.
             /// A heartbeat will be forced for the very first time
             /// </summary>
@@ -1138,6 +1144,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             eventFilter.AddSelectClause(ObjectTypeIds.ConditionType, "Retain");
                         }
                     }
+
+                    var sb = new StringBuilder();
+
+                    // let's loop thru the select clause and setup the field names
+                    foreach (var selectClause in eventFilter.SelectClauses) {
+                        sb.Clear();
+                        for (var i = 0; i < selectClause.BrowsePath?.Count; i++) {
+                            if (i == 0) {
+                                if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
+                                    sb.Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
+                                    sb.Append("#");
+                                }
+                            }
+                            else {
+                                sb.Append("/");
+                            }
+                            sb.Append(selectClause.BrowsePath[i].Name);
+                        }
+
+                        if (sb.Length == 0) {
+                            if (selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                                selectClause.AttributeId == Attributes.NodeId) {
+                                sb.Append("ConditionId");
+                            }
+                        }
+                        FieldNames.Add(sb.ToString());
+                    }
+
                     Item.Filter = eventFilter;
                 }
             }
@@ -1244,20 +1278,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return Item.MonitoringMode == change ? null : change;
             }
 
-            internal string GetFieldDisplayName(int index) {
-                var fieldName = EventTemplate?.EventFilter?.SelectClauses?.ElementAtOrDefault(index)?.DisplayName;
-                if (fieldName == null) {
-                    fieldName = Item.GetFieldName(index);
-                    if (!string.IsNullOrEmpty(fieldName) && fieldName[0] == '/') {
-                        fieldName = fieldName[1..];
-                    }
-                }
-
-                return fieldName;
-            }
-
-            internal EventFilter GetSimpleEventFilter(INodeCache nodeCache, ServiceMessageContext messageContext) {
-                var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(messageContext);
+            internal EventFilter GetSimpleEventFilter(INodeCache nodeCache, ServiceMessageContext context) {
+                var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(context);
                 var nodes = new List<Node>();
                 ExpandedNodeId superType = null;
                 nodes.Insert(0, nodeCache.FetchNode(typeDefinitionId));
@@ -1269,28 +1291,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 while (superType != null);
 
-                var propertyNames = new List<QualifiedName>();
+                var fieldNames = new List<QualifiedName>();
                 foreach (var node in nodes) {
-                    foreach (var reference in node.ReferenceTable) {
-                        if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty) {
-                            propertyNames.Add(nodeCache.FetchNode(reference.TargetId).BrowseName);
-                        }
-                    }
+                    ParseFields(nodeCache, fieldNames, node);
                 }
+                fieldNames = fieldNames
+                    .OrderBy(x => x.Name).ToList();
 
                 var eventFilter = new EventFilter();
-                foreach (var propertyName in propertyNames) {
+                // Let's add ConditionId manually first if event is derived from ConditionType
+                if (nodes.Any(x => x.NodeId == ObjectTypeIds.ConditionType)) {
+                    eventFilter.SelectClauses.Add(new SimpleAttributeOperand() {
+                        BrowsePath = new QualifiedNameCollection(),
+                        TypeDefinitionId = ObjectTypeIds.ConditionType,
+                        AttributeId = Attributes.NodeId
+                    });
+                }
+
+                foreach (var fieldName in fieldNames) {
                     var selectClause = new SimpleAttributeOperand() {
                         TypeDefinitionId = ObjectTypeIds.BaseEventType,
-                        AttributeId = Attributes.Value
+                        AttributeId = Attributes.Value,
+                        BrowsePath = fieldName.Name 
+                            .Split('|')
+                            .Select(x => new QualifiedName(x, fieldName.NamespaceIndex))
+                            .ToArray()
                     };
-                    selectClause.BrowsePath.Add(propertyName);
                     eventFilter.SelectClauses.Add(selectClause);
                 }
                 eventFilter.WhereClause = new ContentFilter();
                 eventFilter.WhereClause.Push(FilterOperator.OfType, typeDefinitionId);
 
                 return eventFilter;
+            }
+
+            private void ParseFields(INodeCache nodeCache, List<QualifiedName> fieldNames, Node node, string browsePathPrefix = "") {
+                foreach (var reference in node.ReferenceTable) {
+                    if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent && !reference.IsInverse) {
+                        var componentNode = nodeCache.FetchNode(reference.TargetId);
+                        if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable) {
+                            var fieldName = $"{browsePathPrefix}{componentNode.BrowseName.Name}";
+                            fieldNames.Add(new QualifiedName(fieldName, componentNode.BrowseName.NamespaceIndex));
+                            ParseFields(nodeCache, fieldNames, componentNode, $"{fieldName}|");
+                        }
+                    }
+                    else if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty) {
+                        var propertyNode = nodeCache.FetchNode(reference.TargetId);
+                        var fieldName = $"{browsePathPrefix}{propertyNode.BrowseName.Name}";
+                        fieldNames.Add(new QualifiedName(fieldName, propertyNode.BrowseName.NamespaceIndex));
+                    }
+                }
             }
 
             private HashSet<uint> _newTriggers = new HashSet<uint>();
