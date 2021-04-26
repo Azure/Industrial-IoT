@@ -515,13 +515,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
             // Check local host
             try {
                 if (Host.IsContainer) {
+                    string hostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
                     // Resolve docker host since we are running in a container
-                    string HostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
-                    var entry = await Dns.GetHostEntryAsync(HostName);
+                    if (string.IsNullOrEmpty(hostName)) {
+                        _logger.Information("Gateway Host Name not set");
+                        return;
+                    }
+                    _logger.Debug("Resolve IP for Gateway Host Name: {address}", hostName);
+                    var entry = await Dns.GetHostEntryAsync(hostName);
                     foreach (var address in entry.AddressList
                                 .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
                                 .Where(a => !addresses.Any(b => a.Equals(b)))) {
-                        _logger.Information("Including host address {address}", address);
+                        _logger.Information("Include gateway host address {address}", address);
                         addresses.Add(address);
                     }
                 }
@@ -531,7 +536,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 }
             }
             catch (Exception e) {
-                _logger.Warning(e, "Failed to add local host address.");
+                _logger.Warning(e, "Failed to add gateway host address.");
             }
         }
 
