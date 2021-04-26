@@ -542,7 +542,7 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public IEncodeable ReadEncodeable(string property, Type systemType) {
+        public IEncodeable ReadEncodeable(string property, Type systemType, ExpandedNodeId encodeableTypeId = null) {
             if (systemType == null) {
                 throw new ArgumentNullException(nameof(systemType));
             }
@@ -747,8 +747,8 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
-        public Array ReadEncodeableArray(string property, Type systemType) {
-            var values = ReadArray(property, () => ReadEncodeable(null, systemType))?
+        public Array ReadEncodeableArray(string property, Type systemType, ExpandedNodeId encodeableTypeId = null) {
+            var values = ReadArray(property, () => ReadEncodeable(null, systemType, encodeableTypeId))?
                 .ToList();
             if (values == null) {
                 return null;

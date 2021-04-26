@@ -181,8 +181,8 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc />
-        public IEncodeable ReadEncodeable(string fieldName, Type systemType) {
-            return _wrapped.ReadEncodeable(fieldName, systemType);
+        public IEncodeable ReadEncodeable(string fieldName, Type systemType, ExpandedNodeId encodeableTypeId = null) {
+            return _wrapped.ReadEncodeable(fieldName, systemType, encodeableTypeId);
         }
 
         /// <inheritdoc />
@@ -316,8 +316,8 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc />
-        public Array ReadEncodeableArray(string fieldName, Type systemType) {
-            return _wrapped.ReadEncodeableArray(fieldName, systemType);
+        public Array ReadEncodeableArray(string fieldName, Type systemType, ExpandedNodeId encodeableTypeId = null) {
+            return _wrapped.ReadEncodeableArray(fieldName, systemType, encodeableTypeId);
         }
 
         /// <inheritdoc />

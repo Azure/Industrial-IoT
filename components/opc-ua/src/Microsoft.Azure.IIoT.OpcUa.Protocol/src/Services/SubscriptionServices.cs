@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Prometheus;
     using Opc.Ua.Encoders;
     using Timer = System.Timers.Timer;
+    using System.Text;
 
     /// <summary>
     /// Subscription services implementation
@@ -70,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="index"></param>
         /// <returns>The display name, if defined</returns>
         public static string GetFieldDisplayName(MonitoredItem monitoredItem, int index) {
-            return (monitoredItem.Handle as MonitoredItemWrapper)?.GetFieldDisplayName(index);
+            return (monitoredItem.Handle as MonitoredItemWrapper)?.FieldNames[index];
         }
 
         /// <summary>
@@ -430,7 +431,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             toAdd.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
                         }
                         try {
-                            toAdd.Create(rawSubscription.Session, codec, activate);
+                            toAdd.Create(rawSubscription.Session.MessageContext, rawSubscription.Session.NodeCache, codec, activate);
                             if (toAdd.EventTemplate != null) {
                                 toAdd.Item.AttributeId = Attributes.EventNotifier;
                             }
@@ -958,7 +959,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Monitored item
         /// </summary>
-        private class MonitoredItemWrapper {
+        public class MonitoredItemWrapper {
 
             /// <summary>
             /// Assigned monitored item id on server
@@ -991,11 +992,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public DateTime NextHeartbeat { get; private set; }
 
             /// <summary>
+            /// List of field names. Only used for events
+            /// </summary>
+            public List<string> FieldNames { get; } = new List<string>();
+
+            /// <summary>
             /// Cache of the latest events for the pending alarms optionally monitored
             /// </summary>
             public ConcurrentDictionary<string, MonitoredItemNotificationModel> PendingAlarmEvents { get; } = new ConcurrentDictionary<string, MonitoredItemNotificationModel>();
 
-            ~MonitoredItemWrapper() {
+            ~MonitoredItemWrapper()
+            {
                 _pendingAlarmsUpdateTimer.Stop();
                 _pendingAlarmsSnapshotTimer.Stop();
             }
@@ -1080,24 +1087,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Create new stack monitored item
             /// </summary>
-            /// <param name="session"></param>
+            /// <param name="messageContext"></param>
+            /// <param name="nodeCache"></param>
             /// <param name="codec"></param>
             /// <param name="activate"></param>
             /// <returns></returns>
-            internal void Create(Session session, IVariantEncoder codec, bool activate) {
+            public void Create(ServiceMessageContext messageContext, INodeCache nodeCache, IVariantEncoder codec, bool activate) {
                 Item = new MonitoredItem {
                     Handle = this,
                     DisplayName = Template.DisplayName ?? Template.Id,
                     AttributeId = (uint)Template.AttributeId.GetValueOrDefault((NodeAttribute)Attributes.Value),
                     IndexRange = Template.IndexRange,
                     RelativePath = Template.RelativePath?
-                                .ToRelativePath(session.MessageContext)?
-                                .Format(session.NodeCache.TypeTree),
+                                .ToRelativePath(messageContext)?
+                                .Format(nodeCache.TypeTree),
                     MonitoringMode = activate
                         ? Template.MonitoringMode.ToStackType().
                             GetValueOrDefault(Opc.Ua.MonitoringMode.Reporting)
                         : Opc.Ua.MonitoringMode.Disabled,
-                    StartNodeId = Template.StartNodeId.ToNodeId(session.MessageContext),
+                    StartNodeId = Template.StartNodeId.ToNodeId(messageContext),
                     QueueSize = Template.QueueSize.GetValueOrDefault(1),
                     SamplingInterval = (int)Template.SamplingInterval.
                         GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
@@ -1106,13 +1114,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 if (DataTemplate != null) {
                     Item.Filter = DataTemplate.DataChangeFilter.ToStackModel() ??
-                        ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(session.MessageContext));
+                        ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(messageContext));
                 }
                 else if (EventTemplate != null) {
-
-                    var eventFilter = !string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId) ?
-                        GetSimpleEventFilter(session.NodeCache, session.MessageContext) :
-                        codec.Decode(EventTemplate.EventFilter, true);
+                    EventFilter eventFilter = new EventFilter();
+                    if (EventTemplate.EventFilter != null) {
+                        if (!string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId)) {
+                            eventFilter = GetSimpleEventFilter(nodeCache, messageContext);
+                        }
+                        else {
+                            eventFilter = codec.Decode(EventTemplate.EventFilter, true);
+                        }
+                    }
 
                     // Add SourceTimestamp and ServerTimestamp select clauses.
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
@@ -1159,6 +1172,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _pendingAlarmsSnapshotTimer.Start();
                         }
                     }
+
+                    var sb = new StringBuilder();
+
+                    // let's loop thru the select clause and setup the field names
+                    foreach (var selectClause in eventFilter.SelectClauses) {
+                        sb.Clear();
+                        for (var i = 0; i < selectClause.BrowsePath?.Count; i++) {
+                            if (i == 0) {
+                                if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
+                                    sb.Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
+                                    sb.Append("#");
+                                }
+                            }
+                            else {
+                                sb.Append("/");
+                            }
+                            sb.Append(selectClause.BrowsePath[i].Name);
+                        }
+
+                        if (sb.Length == 0) {
+                            if (selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                                selectClause.AttributeId == Attributes.NodeId) {
+                                sb.Append("ConditionId");
+                            }
+                        }
+                        FieldNames.Add(sb.ToString());
+                    }
+
                     Item.Filter = eventFilter;
                 }
             }
@@ -1279,19 +1320,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return Item.MonitoringMode == change ? null : change;
             }
 
-            internal string GetFieldDisplayName(int index) {
-                var fieldName = EventTemplate?.EventFilter?.SelectClauses?.ElementAtOrDefault(index)?.DisplayName;
-                if (fieldName == null) {
-                    fieldName = Item.GetFieldName(index);
-                    if (!string.IsNullOrEmpty(fieldName) && fieldName[0] == '/') {
-                        fieldName = fieldName[1..];
-                    }
-                }
-
-                return fieldName;
-            }
-
-            internal EventFilter GetSimpleEventFilter(NodeCache nodeCache, ServiceMessageContext context) {
+            internal EventFilter GetSimpleEventFilter(INodeCache nodeCache, ServiceMessageContext context) {
                 var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(context);
                 var nodes = new List<Node>();
                 ExpandedNodeId superType = null;
@@ -1304,22 +1333,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 while (superType != null);
 
-                var propertyNames = new List<QualifiedName>();
+                var fieldNames = new List<QualifiedName>();
                 foreach (var node in nodes) {
-                    foreach (var reference in node.ReferenceTable) {
-                        if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty) {
-                            propertyNames.Add(nodeCache.FetchNode(reference.TargetId).BrowseName);
-                        }
-                    }
+                    ParseFields(nodeCache, fieldNames, node);
                 }
+                fieldNames = fieldNames
+                    .OrderBy(x => x.Name).ToList();
 
                 var eventFilter = new EventFilter();
-                foreach (var propertyName in propertyNames) {
+                // Let's add ConditionId manually first if event is derived from ConditionType
+                if (nodes.Any(x => x.NodeId == ObjectTypeIds.ConditionType)) {
+                    eventFilter.SelectClauses.Add(new SimpleAttributeOperand() {
+                        BrowsePath = new QualifiedNameCollection(),
+                        TypeDefinitionId = ObjectTypeIds.ConditionType,
+                        AttributeId = Attributes.NodeId
+                    });
+                }
+
+                foreach (var fieldName in fieldNames) {
                     var selectClause = new SimpleAttributeOperand() {
                         TypeDefinitionId = ObjectTypeIds.BaseEventType,
-                        AttributeId = Attributes.Value
+                        AttributeId = Attributes.Value,
+                        BrowsePath = fieldName.Name 
+                            .Split('|')
+                            .Select(x => new QualifiedName(x, fieldName.NamespaceIndex))
+                            .ToArray()
                     };
-                    selectClause.BrowsePath.Add(propertyName);
                     eventFilter.SelectClauses.Add(selectClause);
                 }
                 eventFilter.WhereClause = new ContentFilter();
@@ -1377,9 +1416,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
+            private void ParseFields(INodeCache nodeCache, List<QualifiedName> fieldNames, Node node, string browsePathPrefix = "") {
+                foreach (var reference in node.ReferenceTable) {
+                    if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent && !reference.IsInverse) {
+                        var componentNode = nodeCache.FetchNode(reference.TargetId);
+                        if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable) {
+                            var fieldName = $"{browsePathPrefix}{componentNode.BrowseName.Name}";
+                            fieldNames.Add(new QualifiedName(fieldName, componentNode.BrowseName.NamespaceIndex));
+                            ParseFields(nodeCache, fieldNames, componentNode, $"{fieldName}|");
+                        }
+                    }
+                    else if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty) {
+                        var propertyNode = nodeCache.FetchNode(reference.TargetId);
+                        var fieldName = $"{browsePathPrefix}{propertyNode.BrowseName.Name}";
+                        fieldNames.Add(new QualifiedName(fieldName, propertyNode.BrowseName.NamespaceIndex));
+                    }
+                }
+            }
+
             private readonly Timer _pendingAlarmsUpdateTimer = new Timer();
             private readonly Timer _pendingAlarmsSnapshotTimer = new Timer();
-
             private HashSet<uint> _newTriggers = new HashSet<uint>();
             private HashSet<uint> _triggers = new HashSet<uint>();
             private Publisher.Models.MonitoringMode? _modeChange;
