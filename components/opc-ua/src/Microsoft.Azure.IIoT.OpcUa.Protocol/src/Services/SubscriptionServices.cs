@@ -514,21 +514,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _logger.Error("Monitored items mismatch: wrappers{wrappers} != items:{items} ",
                                 _currentlyMonitored.Count, _currentlyMonitored.Count);
                         }
-
-                        _logger.Information("Now issuing ConditionRefresh for subscription " +
-                            "{subscription}", rawSubscription.DisplayName);
-                        try {
-                            rawSubscription.ConditionRefresh();
-                        } catch (ServiceResultException e) {
-                            _logger.Information("ConditionRefresh for subscription " +
-                                "{subscription} failed with a ServiceResultException '{message}'", rawSubscription.DisplayName, e.Message);
-                        }
-                        catch (Exception e) {
-                            _logger.Information("ConditionRefresh for subscription " +
-                                "{subscription} failed with an exception '{message}'", rawSubscription.DisplayName, e.Message);
-                        }
-                        _logger.Information("ConditionRefresh for subscription " +
-                            "{subscription} has completed", rawSubscription.DisplayName);
                     }
                 }
                 else {
@@ -563,6 +548,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 "{subscription}",
                                 results.Count(r => r != null && StatusCode.IsNotGood(r.StatusCode)),
                                 rawSubscription.DisplayName);
+                        }
+                        else {
+                            _logger.Information("Now issuing ConditionRefresh for subscription " +
+                                "{subscription}", rawSubscription.DisplayName);
+                            try {
+                                rawSubscription.ConditionRefresh();
+                            }
+                            catch (ServiceResultException e) {
+                                _logger.Information("ConditionRefresh for subscription " +
+                                    "{subscription} failed with a ServiceResultException '{message}'", rawSubscription.DisplayName, e.Message);
+                            }
+                            catch (Exception e) {
+                                _logger.Information("ConditionRefresh for subscription " +
+                                    "{subscription} failed with an exception '{message}'", rawSubscription.DisplayName, e.Message);
+                            }
+                            _logger.Information("ConditionRefresh for subscription " +
+                                "{subscription} has completed", rawSubscription.DisplayName);
                         }
                     }
                 }
@@ -763,15 +765,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 continue;
                             }
 
-                            var monitoredItemNotification = notification.Events[i]
-                                .ToMonitoredItemNotification(monitoredItem);
-                            if (message == null) {
-                                continue;
-                            }
-                            message.Notifications?.Add(monitoredItemNotification);
-
                             if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
                                 var pendingAlarmsOptions = itemWrapper?.EventTemplate?.PendingAlarms;
+                                var evFilter = (itemWrapper.Item.Filter as EventFilter);
+                                var eventTypeIndex = evFilter.SelectClauses.IndexOf(
+                                    evFilter.SelectClauses
+                                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "EventType"));
+
+                                // now, is this a regular event or RefreshStartEventType/RefreshEndEventType?
+                                if (eventTypeIndex != -1) {
+                                    var eventType = notification.Events[i].EventFields[eventTypeIndex].Value as NodeId;
+                                    if (eventType == ObjectTypeIds.RefreshStartEventType) {
+                                        if (pendingAlarmsOptions?.IsEnabled == true) {
+                                            PendingAlarms.Clear();
+                                        }
+                                        continue;
+                                    }
+                                    else if (eventType == ObjectTypeIds.RefreshEndEventType) {
+                                        continue;
+                                    }
+                                }
+
+                                var monitoredItemNotification = notification.Events[i]
+                                .ToMonitoredItemNotification(monitoredItem);
+                                if (message == null) {
+                                    continue;
+                                }
+                                message.Notifications?.Add(monitoredItemNotification);
+
                                 if (pendingAlarmsOptions?.IsEnabled == true &&
                                     monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
                                     if (pendingAlarmsOptions.ConditionIdIndex.HasValue) {
@@ -1105,6 +1126,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "ReceiveTime")) {
                         eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "ReceiveTime");
+                    }
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "EventType")) {
+                        eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "EventType");
                     }
 
                     if (EventTemplate.PendingAlarms?.IsEnabled == true) {
