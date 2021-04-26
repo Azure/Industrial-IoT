@@ -497,8 +497,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                         }
                         break;
                     }
-                    catch (Exception e) {
-                        _logger.Warning(e, "Failed to resolve the host for {discoveryUrl}", discoveryUrl);
+                    catch (SocketException) {
+                        _logger.Warning("Failed to resolve the host for {discoveryUrl}", discoveryUrl);
+                        return list;
+                    }
+                    catch (Exception e){
+                        _logger.Error(e, "Failed to resolve the host for {discoveryUrl}", discoveryUrl);
                         return list;
                     }
                 }
