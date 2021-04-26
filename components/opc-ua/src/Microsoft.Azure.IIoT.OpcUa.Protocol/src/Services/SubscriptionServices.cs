@@ -425,7 +425,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             toAdd.Template.MonitoringMode = Publisher.Models.MonitoringMode.Disabled;
                         }
                         try {
-                            toAdd.Create(rawSubscription.Session, codec, activate);
+                            toAdd.Create(rawSubscription.Session.MessageContext, rawSubscription.Session.NodeCache, codec, activate);
                             if (toAdd.EventTemplate != null) {
                                 toAdd.Item.AttributeId = Attributes.EventNotifier;
                             }
@@ -953,7 +953,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Monitored item
         /// </summary>
-        private class MonitoredItemWrapper {
+        public class MonitoredItemWrapper {
 
             /// <summary>
             /// Assigned monitored item id on server
@@ -1065,24 +1065,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Create new stack monitored item
             /// </summary>
-            /// <param name="session"></param>
+            /// <param name="messageContext"></param>
+            /// <param name="nodeCache"></param>
             /// <param name="codec"></param>
             /// <param name="activate"></param>
             /// <returns></returns>
-            internal void Create(Session session, IVariantEncoder codec, bool activate) {
+            public void Create(ServiceMessageContext messageContext, INodeCache nodeCache, IVariantEncoder codec, bool activate) {
                 Item = new MonitoredItem {
                     Handle = this,
                     DisplayName = Template.DisplayName ?? Template.Id,
                     AttributeId = (uint)Template.AttributeId.GetValueOrDefault((NodeAttribute)Attributes.Value),
                     IndexRange = Template.IndexRange,
                     RelativePath = Template.RelativePath?
-                                .ToRelativePath(session.MessageContext)?
-                                .Format(session.NodeCache.TypeTree),
+                                .ToRelativePath(messageContext)?
+                                .Format(nodeCache.TypeTree),
                     MonitoringMode = activate
                         ? Template.MonitoringMode.ToStackType().
                             GetValueOrDefault(Opc.Ua.MonitoringMode.Reporting)
                         : Opc.Ua.MonitoringMode.Disabled,
-                    StartNodeId = Template.StartNodeId.ToNodeId(session.MessageContext),
+                    StartNodeId = Template.StartNodeId.ToNodeId(messageContext),
                     QueueSize = Template.QueueSize.GetValueOrDefault(1),
                     SamplingInterval = (int)Template.SamplingInterval.
                         GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds,
@@ -1091,13 +1092,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 if (DataTemplate != null) {
                     Item.Filter = DataTemplate.DataChangeFilter.ToStackModel() ??
-                        ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(session.MessageContext));
+                        ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(messageContext));
                 }
                 else if (EventTemplate != null) {
-
-                    var eventFilter = !string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId) ?
-                        GetSimpleEventFilter(session.NodeCache, session.MessageContext) :
-                        codec.Decode(EventTemplate.EventFilter, true);
+                    EventFilter eventFilter = new EventFilter();
+                    if (EventTemplate.EventFilter != null) {
+                        if (!string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId)) {
+                            eventFilter = GetSimpleEventFilter(nodeCache, messageContext);
+                        }
+                        else {
+                            eventFilter = codec.Decode(EventTemplate.EventFilter, true);
+                        }
+                    }
 
                     // Add SourceTimestamp and ServerTimestamp select clauses.
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
@@ -1250,8 +1256,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return fieldName;
             }
 
-            internal EventFilter GetSimpleEventFilter(NodeCache nodeCache, ServiceMessageContext context) {
-                var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(context);
+            internal EventFilter GetSimpleEventFilter(INodeCache nodeCache, ServiceMessageContext messageContext) {
+                var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(messageContext);
                 var nodes = new List<Node>();
                 ExpandedNodeId superType = null;
                 nodes.Insert(0, nodeCache.FetchNode(typeDefinitionId));
