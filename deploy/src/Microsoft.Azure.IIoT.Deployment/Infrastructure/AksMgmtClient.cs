@@ -31,7 +31,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string NETWORK_PROFILE_DNS_SERVICE_IP = "10.0.0.10";
         public const string NETWORK_PROFILE_DOCKER_BRIDGE_CIDR = "172.17.0.1/16";
 
-        public const string KUBERNETES_VERSION = "1.18.10";
+        public const string KUBERNETES_VERSION_FALLBACK = "1.18.14";
+        public const string KUBERNETES_VERSION_MAJ_MIN = "1.18";
 
         private readonly ContainerServiceManagementClient _containerServiceManagementClient;
 
@@ -59,8 +60,38 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         //}
 
         /// <summary>
+        /// Select latest patch version of Kubernetes with major and minor defined by versionMajorMinor.
+        /// If function fails to parse provided versions then null will be returned.
+        /// </summary>
+        /// <param name="versionMajorMinor"> Minor and major versions in [major].[minor] format </param>
+        /// <param name="kubernetesVersions"> List of available versions in [major].[minor].[patch] format </param>
+        /// <returns></returns>
+        public static string SelectLatestPatchVersion(
+            string versionMajorMinor,
+            IList<string> kubernetesVersions
+        ) {
+            if (kubernetesVersions is null || kubernetesVersions.Count() == 0) {
+                throw new ArgumentNullException(nameof(kubernetesVersions));
+            }
+
+            try {
+                var latestVersion = kubernetesVersions
+                    .Where(version => version.StartsWith($"{versionMajorMinor}."))
+                    .OrderBy(version => Int32.Parse(version.Substring(versionMajorMinor.Length + 1)))
+                    .Last();
+
+                return latestVersion;
+            }
+            catch(FormatException) {
+                Log.Warning($"Failed to parse provided Kubernetes versions.");
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Get definition of default AKS cluster.
         /// </summary>
+        /// <param name="kubernetesVersion"></param>
         /// <param name="resourceGroup"></param>
         /// <param name="aksApplication"></param>
         /// <param name="aksApplicationSecret"></param>
@@ -71,6 +102,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// <param name="tags"></param>
         /// <returns></returns>
         public ManagedClusterInner GetClusterDefinition(
+            string kubernetesVersion,
             IResourceGroup resourceGroup,
             Application aksApplication,
             string aksApplicationSecret,
@@ -80,6 +112,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             Workspace operationalInsightsWorkspace,
             IDictionary<string, string> tags = null
         ) {
+            if (string.IsNullOrWhiteSpace(kubernetesVersion)) {
+                throw new ArgumentNullException(nameof(kubernetesVersion));
+            }
             if (resourceGroup is null) {
                 throw new ArgumentNullException(nameof(resourceGroup));
             }
@@ -114,7 +149,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 Tags = tags,
 
                 //ProvisioningState = null,
-                KubernetesVersion = KUBERNETES_VERSION,
+                KubernetesVersion = kubernetesVersion,
                 DnsPrefix = aksDnsPrefix,
                 //Fqdn = null,
                 AgentPoolProfiles = new List<ManagedClusterAgentPoolProfile> {

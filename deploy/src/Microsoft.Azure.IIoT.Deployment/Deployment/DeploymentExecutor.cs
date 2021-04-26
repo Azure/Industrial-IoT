@@ -801,7 +801,24 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             await setupKeyVaultTask;
             var operationalInsightsWorkspace = await operationalInsightsWorkspaceCreationTask;
 
+            var kubernetesVersions = await _azureResourceManager
+                .ListKubernetesVersionsAsync(_resourceGroup.Region, cancellationToken);
+            var kubernetesVersion = AksMgmtClient.SelectLatestPatchVersion(
+                AksMgmtClient.KUBERNETES_VERSION_MAJ_MIN, kubernetesVersions.ToList());
+            if (kubernetesVersion is null) {
+                // We will fall back to AksMgmtClient.KUBERNETES_VERSION_FALLBACK if it is available in the region.
+                if (kubernetesVersions.Contains(AksMgmtClient.KUBERNETES_VERSION_FALLBACK)) {
+                    kubernetesVersion = AksMgmtClient.KUBERNETES_VERSION_FALLBACK;
+                }
+                else {
+                    throw new Exception($"Fallback Kubernetes version is not suported in the region: {AksMgmtClient.KUBERNETES_VERSION_FALLBACK}");
+                }
+            }
+
+            Log.Information($"Kubernetest version {kubernetesVersion} will be used in AKS.");
+
             var clusterDefinition = _aksManagementClient.GetClusterDefinition(
+                kubernetesVersion,
                 _resourceGroup,
                 _applicationsManager.GetAKSApplication(),
                 _applicationsManager.GetAKSApplicationSecret(),
