@@ -1153,7 +1153,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         for (var i = 0; i < selectClause.BrowsePath?.Count; i++) {
                             if (i == 0) {
                                 if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
-                                    sb.Append(session.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
+                                    sb.Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
                                     sb.Append("#");
                                 }
                             }
@@ -1325,7 +1325,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return eventFilter;
             }
 
-            private void ParseFields(NodeCache nodeCache, List<QualifiedName> fieldNames, Node node, string browsePathPrefix = "") {
+            private void ParseFields(INodeCache nodeCache, List<QualifiedName> fieldNames, Node node, string browsePathPrefix = "") {
                 foreach (var reference in node.ReferenceTable) {
                     if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent && !reference.IsInverse) {
                         var componentNode = nodeCache.FetchNode(reference.TargetId);
