@@ -142,8 +142,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _subscriptionInfo).ConfigureAwait(false);
                 sc.OnSubscriptionDataChange += OnSubscriptionDataChangedAsync;
                 sc.OnSubscriptionEventChange += OnSubscriptionEventChangedAsync;
-                sc.OnSubscriptionDataDiagnosticsChange += OnSubscriptionDataDiagnosticsChangedAsync;
-                sc.OnSubscriptionEventDiagnosticsChange += OnSubscriptionEventDiagnosticsChangedAsync;
+                sc.OnSubscriptionDataDiagnosticsChange += OnSubscriptionDataDiagnosticsChanged;
+                sc.OnSubscriptionEventDiagnosticsChange += OnSubscriptionEventDiagnosticsChanged;
                 await sc.ApplyAsync(_subscriptionInfo.MonitoredItems,
                     _subscriptionInfo.Configuration).ConfigureAwait(false);
                 Subscription = sc;
@@ -204,8 +204,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (Subscription != null) {
                     Subscription.OnSubscriptionDataChange -= OnSubscriptionDataChangedAsync;
                     Subscription.OnSubscriptionEventChange -= OnSubscriptionEventChangedAsync;
-                    Subscription.OnSubscriptionDataDiagnosticsChange -= OnSubscriptionDataDiagnosticsChangedAsync;
-                    Subscription.OnSubscriptionEventDiagnosticsChange -= OnSubscriptionEventDiagnosticsChangedAsync;
+                    Subscription.OnSubscriptionDataDiagnosticsChange -= OnSubscriptionDataDiagnosticsChanged;
+                    Subscription.OnSubscriptionEventDiagnosticsChange -= OnSubscriptionEventDiagnosticsChanged;
                     Subscription.Dispose();
                 }
                 _keyframeTimer?.Dispose();
@@ -269,7 +269,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notificationCount"></param>
-            private void OnSubscriptionDataDiagnosticsChangedAsync(object sender, int notificationCount) {
+            private void OnSubscriptionDataDiagnosticsChanged(object sender, int notificationCount) {
                 lock (_lock) {
                     if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
                         _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
@@ -309,7 +309,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             /// <param name="sender"></param>
             /// <param name="notificationCount"></param>
-            private void OnSubscriptionEventDiagnosticsChangedAsync(object sender, int notificationCount) {
+            private void OnSubscriptionEventDiagnosticsChanged(object sender, int notificationCount) {
                 lock (_lock) {
                     if (_outer.EventChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
                         _outer.EventValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {

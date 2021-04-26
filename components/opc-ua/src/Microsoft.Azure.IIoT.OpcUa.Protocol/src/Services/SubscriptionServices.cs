@@ -1007,7 +1007,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             ~MonitoredItemWrapper()
             {
                 _pendingAlarmsUpdateTimer.Stop();
+                _pendingAlarmsUpdateTimer.Dispose();
                 _pendingAlarmsSnapshotTimer.Stop();
+                _pendingAlarmsSnapshotTimer.Dispose();
             }
 
             /// <summary>
@@ -1167,11 +1169,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (EventTemplate.PendingAlarms.UpdateIntervalTimespan.HasValue) {
                             _pendingAlarmsUpdateTimer.Interval = EventTemplate.PendingAlarms.UpdateIntervalTimespan.Value.TotalMilliseconds;
                             _pendingAlarmsUpdateTimer.Elapsed += OnPendingAlarmsUpdateTimerElapsed;
+                            _pendingAlarmsUpdateTimer.AutoReset = false;
                             _pendingAlarmsUpdateTimer.Start();
                         }
                         if (EventTemplate.PendingAlarms.SnapshotIntervalTimespan.HasValue) {
                             _pendingAlarmsSnapshotTimer.Interval = EventTemplate.PendingAlarms.SnapshotIntervalTimespan.Value.TotalMilliseconds;
                             _pendingAlarmsSnapshotTimer.Elapsed += OnPendingAlarmsSnapshotTimerElapsed;
+                            _pendingAlarmsSnapshotTimer.AutoReset = false;
                             _pendingAlarmsSnapshotTimer.Start();
                         }
                     }
@@ -1209,16 +1213,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             private void OnPendingAlarmsUpdateTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
                 if (EventTemplate?.PendingAlarms?.Dirty == true) {
-                    _pendingAlarmsUpdateTimer.Enabled = false;
                     SendPendingAlarms(false);
-                    _pendingAlarmsUpdateTimer.Enabled = true;
+                    _pendingAlarmsUpdateTimer.Start();
                 }
             }
 
             private void OnPendingAlarmsSnapshotTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
-                _pendingAlarmsSnapshotTimer.Enabled = false;
                 SendPendingAlarms(true);
-                _pendingAlarmsSnapshotTimer.Enabled = true;
+                _pendingAlarmsSnapshotTimer.Start();
             }
 
             /// <summary>
