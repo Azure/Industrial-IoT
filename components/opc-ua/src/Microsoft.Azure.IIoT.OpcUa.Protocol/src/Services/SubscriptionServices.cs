@@ -772,43 +772,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             }
 
                             if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
-                                var pendingAlarmsOptions = itemWrapper.EventTemplate?.PendingAlarms;
-                                var evFilter = (itemWrapper.Item.Filter as EventFilter);
-                                var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
-                                    evFilter?.SelectClauses
-                                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "EventType"));
-
-                                // now, is this a regular event or RefreshStartEventType/RefreshEndEventType?
-                                if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1) {
-                                    var eventType = notification.Events[i].EventFields[eventTypeIndex.Value].Value as NodeId;
-                                    if (eventType == ObjectTypeIds.RefreshStartEventType) {
-                                        if (pendingAlarmsOptions?.IsEnabled == true) {
-                                            PendingAlarms.Clear();
-                                        }
-                                        continue;
-                                    }
-                                    else if (eventType == ObjectTypeIds.RefreshEndEventType) {
-                                        continue;
-                                    }
-                                }
-
-                                var monitoredItemNotification = notification.Events[i]
-                                .ToMonitoredItemNotification(monitoredItem);
-                            if (message == null) {
-                                continue;
-                            }
-
-                            if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
-                                itemWrapper.ProcessMonitoredItemNotification(message, monitoredItemNotification);
+                                itemWrapper.ProcessMonitoredItemNotification(message, notification.Events[i]);
                             }
                         }
-                    }
 
-                    if (message.Notifications?.Any() == true) {
-                        OnSubscriptionEventChange.Invoke(this, message);
-                    }
+                        if (message.Notifications?.Any() == true) {
+                            OnSubscriptionEventChange.Invoke(this, message);
+                        }
 
-                    OnSubscriptionEventDiagnosticsChange.Invoke(this, notification.Events.Count);
+                        OnSubscriptionEventDiagnosticsChange.Invoke(this, notification.Events.Count);
+                    }
                 }
                 catch (Exception e) {
                     _logger.Warning(e, "Exception processing subscription notification");
@@ -1027,8 +1000,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Destructor for this class
             /// </summary>
-            ~MonitoredItemWrapper()
-            {
+            ~MonitoredItemWrapper() {
                 _pendingAlarmsUpdateTimer.Stop();
                 _pendingAlarmsUpdateTimer.Dispose();
                 _pendingAlarmsSnapshotTimer.Stop();
@@ -1385,7 +1357,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var selectClause = new SimpleAttributeOperand() {
                         TypeDefinitionId = ObjectTypeIds.BaseEventType,
                         AttributeId = Attributes.Value,
-                        BrowsePath = fieldName.Name 
+                        BrowsePath = fieldName.Name
                             .Split('|')
                             .Select(x => new QualifiedName(x, fieldName.NamespaceIndex))
                             .ToArray()
@@ -1402,9 +1374,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Processing the monitored item notification
             /// </summary>
             /// <param name="message"></param>
-            /// <param name="monitoredItemNotification"></param>
-            public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message, MonitoredItemNotificationModel monitoredItemNotification) {
+            /// <param name="notification"></param>
+            public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message, EventFieldList notification) {
                 var pendingAlarmsOptions = EventTemplate?.PendingAlarms;
+                var evFilter = Item.Filter as EventFilter;
+                var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
+                    evFilter?.SelectClauses
+                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "EventType"));
+
+                // now, is this a regular event or RefreshStartEventType/RefreshEndEventType?
+                if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1) {
+                    var eventType = notification.EventFields[eventTypeIndex.Value].Value as NodeId;
+                    if (eventType == ObjectTypeIds.RefreshStartEventType) {
+                        if (pendingAlarmsOptions?.IsEnabled == true) {
+                            PendingAlarmEvents.Clear();
+                        }
+                        return;
+                    }
+                    else if (eventType == ObjectTypeIds.RefreshEndEventType) {
+                        return;
+                    }
+                }
+
+                var monitoredItemNotification = notification
+                .ToMonitoredItemNotification(Item);
+                if (message == null) {
+                    return;
+                }
                 if (pendingAlarmsOptions?.IsEnabled == true && monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
                     if (pendingAlarmsOptions.ConditionIdIndex.HasValue && pendingAlarmsOptions.RetainIndex.HasValue) {
                         var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
