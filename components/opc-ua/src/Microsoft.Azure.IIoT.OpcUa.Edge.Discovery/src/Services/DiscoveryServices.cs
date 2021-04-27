@@ -523,15 +523,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 if (Host.IsContainer) {
                     // Resolve docker host since we are running in a container
                     if (string.IsNullOrEmpty(hostName)) {
-                        _logger.Information("Gateway Host Name not set");
+                        _logger.Information("Gateway host name not set");
                         return;
                     }
-                    _logger.Debug("Resolve IP for Gateway Host Name: {address}", hostName);
+                    _logger.Debug("Resolve IP for gateway host name: {address}", hostName);
                     var entry = await Dns.GetHostEntryAsync(hostName);
                     foreach (var address in entry.AddressList
                                 .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
                                 .Where(a => !addresses.Any(b => a.Equals(b)))) {
-                        _logger.Information("Include gateway host address {address}", address);
+                        _logger.Information("Including gateway host address {address}", address);
                         addresses.Add(address);
                     }
                 }
