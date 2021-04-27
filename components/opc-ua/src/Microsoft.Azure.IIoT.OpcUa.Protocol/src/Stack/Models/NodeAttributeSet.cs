@@ -375,8 +375,10 @@ namespace Opc.Ua.Models {
                 }
             }
             References.Clear();
-            References.AddRange(decoder.ReadEncodeableArray<EncodeableReferenceModel>(
-                nameof(References))?.Select(r => r.Reference));
+            var references = decoder.ReadEncodeableArray<EncodeableReferenceModel>(nameof(References))?.Select(r => r.Reference);
+            if (references != null) {
+                References.AddRange(references);
+            }
             decoder.PopNamespace();
         }
 
