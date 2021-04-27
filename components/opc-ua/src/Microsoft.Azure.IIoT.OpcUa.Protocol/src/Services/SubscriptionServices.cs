@@ -1111,12 +1111,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
 
+                    List<SimpleAttributeOperand> addedSelectClauses = new List<SimpleAttributeOperand>();
+
                     // Add SourceTimestamp and ServerTimestamp select clauses.
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
-                        eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "Time");
+                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, "Time");
+                        eventFilter.SelectClauses.Add(selectClause);
+                        addedSelectClauses.Add(selectClause);
                     }
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "ReceiveTime")) {
-                        eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "ReceiveTime");
+                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, "ReceiveTime");
+                        eventFilter.SelectClauses.Add(selectClause);
+                        addedSelectClauses.Add(selectClause);
                     }
 
                     if (EventTemplate.PendingAlarms?.IsEnabled == true) {
@@ -1127,11 +1133,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                         else {
                             EventTemplate.PendingAlarms.ConditionIdIndex = eventFilter.SelectClauses.Count();
-                            eventFilter.SelectClauses.Add(new SimpleAttributeOperand() {
+                            var selectClause = new SimpleAttributeOperand() {
                                 BrowsePath = new QualifiedNameCollection(),
                                 TypeDefinitionId = ObjectTypeIds.ConditionType,
                                 AttributeId = Attributes.NodeId
-                            });
+                            };
+                            eventFilter.SelectClauses.Add(selectClause);
+                            addedSelectClauses.Add(selectClause);
                         }
 
                         var retainClause = eventFilter.SelectClauses
@@ -1141,7 +1149,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                         else {
                             EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.Count();
-                            eventFilter.AddSelectClause(ObjectTypeIds.ConditionType, "Retain");
+                            var selectClause = new SimpleAttributeOperand(ObjectTypeIds.ConditionType, "Retain");
+                            eventFilter.SelectClauses.Add(selectClause);
+                            addedSelectClauses.Add(selectClause);
                         }
                     }
 
@@ -1149,27 +1159,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     // let's loop thru the select clause and setup the field names
                     foreach (var selectClause in eventFilter.SelectClauses) {
-                        sb.Clear();
-                        for (var i = 0; i < selectClause.BrowsePath?.Count; i++) {
-                            if (i == 0) {
-                                if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
-                                    sb.Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
-                                    sb.Append("#");
+                        if (!addedSelectClauses.Any(x => x == selectClause)) {
+                            sb.Clear();
+                            for (var i = 0; i < selectClause.BrowsePath?.Count; i++) {
+                                if (i == 0) {
+                                    if (selectClause.BrowsePath[i].NamespaceIndex != 0) {
+                                        if (selectClause.BrowsePath[i].NamespaceIndex < nodeCache.NamespaceUris.Count) {
+                                            sb.Append(nodeCache.NamespaceUris.GetString(selectClause.BrowsePath[i].NamespaceIndex));
+                                            sb.Append("#");
+                                        }
+                                        else {
+                                            sb.Append($"{selectClause.BrowsePath[i].NamespaceIndex}:");
+                                        }
+                                    }
+                                }
+                                else {
+                                    sb.Append("/");
+                                }
+                                sb.Append(selectClause.BrowsePath[i].Name);
+                            }
+
+                            if (sb.Length == 0) {
+                                if (selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                                    selectClause.AttributeId == Attributes.NodeId) {
+                                    sb.Append("ConditionId");
                                 }
                             }
-                            else {
-                                sb.Append("/");
-                            }
-                            sb.Append(selectClause.BrowsePath[i].Name);
+                            FieldNames.Add(sb.ToString());
                         }
-
-                        if (sb.Length == 0) {
-                            if (selectClause.TypeDefinitionId == ObjectTypeIds.ConditionType &&
-                                selectClause.AttributeId == Attributes.NodeId) {
-                                sb.Append("ConditionId");
-                            }
+                        else {
+                            FieldNames.Add("");
                         }
-                        FieldNames.Add(sb.ToString());
                     }
 
                     Item.Filter = eventFilter;
