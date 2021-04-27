@@ -1142,7 +1142,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         internalSelectClauses.Add(selectClause);
                     }
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "EventType")) {
-                        eventFilter.AddSelectClause(ObjectTypeIds.BaseEventType, "EventType");
+                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, "EventType");
+                        eventFilter.SelectClauses.Add(selectClause);
+                        internalSelectClauses.Add(selectClause);
                     }
 
                     if (EventTemplate.PendingAlarms?.IsEnabled == true) {
@@ -1448,7 +1450,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 if (pendingAlarmsOptions.IsEnabled == true &&
-                    pendingAlarmsOptions.RetainIndex.HasValue == true &&
                     (snapshot || pendingAlarmsOptions.Dirty == true)) {
                     var message = new SubscriptionNotificationModel {
                         ServiceMessageContext = Item.Subscription?.Session?.MessageContext,
