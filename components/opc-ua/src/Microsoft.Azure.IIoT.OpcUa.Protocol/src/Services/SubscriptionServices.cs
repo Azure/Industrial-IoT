@@ -1404,7 +1404,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 if (pendingAlarmsOptions.IsEnabled == true &&
-                    pendingAlarmsOptions.RetainIndex.HasValue == true &&
                     (snapshot || pendingAlarmsOptions.Dirty == true)) {
                     var message = new SubscriptionNotificationModel {
                         ServiceMessageContext = Item.Subscription?.Session?.MessageContext,
