@@ -1111,18 +1111,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
 
-                    List<SimpleAttributeOperand> addedSelectClauses = new List<SimpleAttributeOperand>();
+                    // let's keep track of the internal fields we add so that they don't show up in the output
+                    List<SimpleAttributeOperand> internalSelectClauses = new List<SimpleAttributeOperand>();
 
                     // Add SourceTimestamp and ServerTimestamp select clauses.
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
                         var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, "Time");
                         eventFilter.SelectClauses.Add(selectClause);
-                        addedSelectClauses.Add(selectClause);
+                        internalSelectClauses.Add(selectClause);
                     }
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "ReceiveTime")) {
                         var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, "ReceiveTime");
                         eventFilter.SelectClauses.Add(selectClause);
-                        addedSelectClauses.Add(selectClause);
+                        internalSelectClauses.Add(selectClause);
                     }
 
                     if (EventTemplate.PendingAlarms?.IsEnabled == true) {
@@ -1139,7 +1140,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 AttributeId = Attributes.NodeId
                             };
                             eventFilter.SelectClauses.Add(selectClause);
-                            addedSelectClauses.Add(selectClause);
+                            internalSelectClauses.Add(selectClause);
                         }
 
                         var retainClause = eventFilter.SelectClauses
@@ -1151,7 +1152,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.Count();
                             var selectClause = new SimpleAttributeOperand(ObjectTypeIds.ConditionType, "Retain");
                             eventFilter.SelectClauses.Add(selectClause);
-                            addedSelectClauses.Add(selectClause);
+                            internalSelectClauses.Add(selectClause);
                         }
                     }
 
@@ -1159,7 +1160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     // let's loop thru the select clause and setup the field names
                     foreach (var selectClause in eventFilter.SelectClauses) {
-                        if (!addedSelectClauses.Any(x => x == selectClause)) {
+                        if (!internalSelectClauses.Any(x => x == selectClause)) {
                             sb.Clear();
                             for (var i = 0; i < selectClause.BrowsePath?.Count; i++) {
                                 if (i == 0) {
@@ -1188,6 +1189,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             FieldNames.Add(sb.ToString());
                         }
                         else {
+                            // if a field's nameis empty, it's not written to the output
                             FieldNames.Add("");
                         }
                     }
