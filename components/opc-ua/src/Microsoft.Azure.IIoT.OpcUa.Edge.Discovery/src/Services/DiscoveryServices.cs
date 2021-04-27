@@ -497,8 +497,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                         }
                         break;
                     }
-                    catch (SocketException) {
-                        _logger.Warning("Failed to resolve the host for {discoveryUrl}", discoveryUrl);
+                    catch (SocketException se) {
+                        _logger.Warning("Failed to resolve the host for {discoveryUrl} due to {message}",
+                            discoveryUrl, se.Message);
                         return list;
                     }
                     catch (Exception e){
@@ -517,9 +518,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// <returns></returns>
         private async Task AddLoopbackAddressesAsync(List<IPAddress> addresses) {
             // Check local host
+            string hostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
             try {
                 if (Host.IsContainer) {
-                    string hostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
                     // Resolve docker host since we are running in a container
                     if (string.IsNullOrEmpty(hostName)) {
                         _logger.Information("Gateway Host Name not set");
@@ -539,8 +540,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                     addresses.Add(IPAddress.Loopback);
                 }
             }
+            catch (SocketException se) {
+                _logger.Warning("Failed to add address for gateway host {hostName} due to {error}.",
+                    hostName, se.Message);
+            }
             catch (Exception e) {
-                _logger.Warning(e, "Failed to add gateway host address.");
+                _logger.Error(e, "Failed to add address for gateway host {hostName}.", hostName);
             }
         }
 
