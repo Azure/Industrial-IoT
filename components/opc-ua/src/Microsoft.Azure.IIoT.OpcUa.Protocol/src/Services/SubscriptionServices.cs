@@ -1147,6 +1147,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         internalSelectClauses.Add(selectClause);
                     }
 
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "EventType")) {
+                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, "EventType");
+                        eventFilter.SelectClauses.Add(selectClause);
+                        internalSelectClauses.Add(selectClause);
+                    }
+
                     if (EventTemplate.PendingAlarms?.IsEnabled == true) {
                         var conditionIdClause = eventFilter.SelectClauses
                             .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.AttributeId == Attributes.NodeId);

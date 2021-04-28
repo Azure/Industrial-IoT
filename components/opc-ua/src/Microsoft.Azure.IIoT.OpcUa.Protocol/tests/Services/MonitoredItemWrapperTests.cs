@@ -136,11 +136,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(2, eventFilter.SelectClauses.Count);
+            Assert.Equal(3, eventFilter.SelectClauses.Count);
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[0].TypeDefinitionId);
             Assert.Equal("Time", eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[1].TypeDefinitionId);
             Assert.Equal("ReceiveTime", eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[2].TypeDefinitionId);
+            Assert.Equal("EventType", eventFilter.SelectClauses[2].BrowsePath.ElementAtOrDefault(0));
         }
 
         [Fact]
@@ -157,13 +159,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(4, eventFilter.SelectClauses.Count);
-            Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[2].AttributeId);
-            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[2].TypeDefinitionId);
-            Assert.Empty(eventFilter.SelectClauses[2].BrowsePath);
-            Assert.Equal(Attributes.Value, eventFilter.SelectClauses[3].AttributeId);
+            Assert.Equal(5, eventFilter.SelectClauses.Count);
+            Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[3].AttributeId);
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[3].TypeDefinitionId);
-            Assert.Equal("Retain", eventFilter.SelectClauses[3].BrowsePath.FirstOrDefault());
+            Assert.Empty(eventFilter.SelectClauses[3].BrowsePath);
+            Assert.Equal(Attributes.Value, eventFilter.SelectClauses[4].AttributeId);
+            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[4].TypeDefinitionId);
+            Assert.Equal("Retain", eventFilter.SelectClauses[4].BrowsePath.FirstOrDefault());
         }
 
         private INodeCache GetNodeCache() {
