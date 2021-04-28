@@ -144,7 +144,90 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         [Fact]
-        public void AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplate() {
+        public void SetupFieldNameWithNamespaceNameWhenNamespaceIndexIsUsed() {
+            var template = new EventMonitoredItemModel {
+                EventFilter = new EventFilterModel {
+                    SelectClauses = new List<SimpleAttributeOperandModel> {
+                        new SimpleAttributeOperandModel {
+                            TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
+                            BrowsePath = new []{ "2:CycleId" }
+                        },
+                        new SimpleAttributeOperandModel {
+                            TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
+                            BrowsePath = new []{ "2:CurrentStep" }
+                        },
+                    },
+                    WhereClause = new ContentFilterModel {
+                        Elements = new List<ContentFilterElementModel> {
+                            new ContentFilterElementModel {
+                                FilterOperator = FilterOperatorType.OfType,
+                                FilterOperands = new List<FilterOperandModel> {
+                                    new FilterOperandModel {
+                                        Value = "ns=2;i=235"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var namespaceTable = new NamespaceTable(new[] {
+                Namespaces.OpcUa,
+                string.Empty,
+                "http://opcfoundation.org/Quickstarts/SimpleEvents",
+                "http://opcfoundation.org/UA/Diagnostics",
+            });
+            var nodeCache = GetNodeCache(namespaceTable);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template, nodeCache: nodeCache);
+
+            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.FieldNames.Count);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", monitoredItemWrapper.FieldNames[0]);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", monitoredItemWrapper.FieldNames[1]);
+        }
+
+        [Fact]
+        public void SetupFieldNameWithNamespaceNameWhenNamespaceIndexIsUsed2() {
+            var template = new EventMonitoredItemModel {
+                EventFilter = new EventFilterModel {
+                    SelectClauses = new List<SimpleAttributeOperandModel> {
+                        new SimpleAttributeOperandModel {
+                            TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
+                            BrowsePath = new []{ "2:CycleId" }
+                        },
+                        new SimpleAttributeOperandModel {
+                            TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
+                            BrowsePath = new []{ "2:CurrentStep" }
+                        },
+                    },
+                    WhereClause = new ContentFilterModel {
+                        Elements = new List<ContentFilterElementModel> {
+                            new ContentFilterElementModel {
+                                FilterOperator = FilterOperatorType.OfType,
+                                FilterOperands = new List<FilterOperandModel> {
+                                    new FilterOperandModel {
+                                        Value = "ns=2;i=235"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var namespaceTable = new NamespaceTable(new[] {
+                Namespaces.OpcUa,
+            });
+            var nodeCache = GetNodeCache(namespaceTable);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template, nodeCache: nodeCache);
+
+            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.FieldNames.Count);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", monitoredItemWrapper.FieldNames[0]);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", monitoredItemWrapper.FieldNames[1]);
+        }
+
+        [Fact]
+        public void AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplate2() {
             var template = new EventMonitoredItemModel {
                 PendingAlarms = new PendingAlarmsOptionsModel {
                     IsEnabled = true
@@ -158,19 +241,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
             Assert.NotNull(eventFilter.SelectClauses);
             Assert.Equal(4, eventFilter.SelectClauses.Count);
-            Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[2].AttributeId);
-            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[2].TypeDefinitionId);
-            Assert.Empty(eventFilter.SelectClauses[2].BrowsePath);
-            Assert.Equal(Attributes.Value, eventFilter.SelectClauses[3].AttributeId);
-            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[3].TypeDefinitionId);
-            Assert.Equal("Retain", eventFilter.SelectClauses[3].BrowsePath.FirstOrDefault());
         }
 
-        private INodeCache GetNodeCache() {
+        private static INodeCache GetNodeCache(NamespaceTable namespaceTable = null) {
+            namespaceTable ??= new NamespaceTable();
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             var nodeCache = mock.Mock<INodeCache>();
-            var typeTable = new TypeTable(new NamespaceTable());
+            var typeTable = new TypeTable(namespaceTable);
             nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
+            nodeCache.SetupGet(x => x.NamespaceUris).Returns(namespaceTable);
             return nodeCache.Object;
         }
 
