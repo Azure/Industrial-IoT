@@ -172,7 +172,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             var nodeCache = mock.Mock<INodeCache>();
             var typeTable = new TypeTable(new NamespaceTable());
+            typeTable.Add(new Node(new ReferenceDescription() {
+                TypeDefinition = ObjectTypeIds.BaseObjectType
+            }));
+            typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
+            typeTable.AddSubtype(ObjectTypeIds.ConditionType, ObjectTypeIds.BaseEventType);
             nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
+            nodeCache.Setup<Node>(x => x.FetchNode().Returns(new Node)
             return nodeCache.Object;
         }
 
