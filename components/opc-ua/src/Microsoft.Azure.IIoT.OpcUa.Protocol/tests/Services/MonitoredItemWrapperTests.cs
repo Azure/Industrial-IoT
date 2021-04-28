@@ -136,11 +136,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(2, eventFilter.SelectClauses.Count);
+            Assert.Equal(3, eventFilter.SelectClauses.Count);
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[0].TypeDefinitionId);
             Assert.Equal("Time", eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[1].TypeDefinitionId);
             Assert.Equal("ReceiveTime", eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[2].TypeDefinitionId);
+            Assert.Equal("EventType", eventFilter.SelectClauses[2].BrowsePath.ElementAtOrDefault(0));
+        }
+
+        [Fact]
+        public void AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplate() {
+            var template = new EventMonitoredItemModel {
+                PendingAlarms = new PendingAlarmsOptionsModel {
+                    IsEnabled = true
+                }
+            };
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+
+            Assert.NotNull(monitoredItemWrapper.Item.Filter);
+            Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
+
+            var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
+            Assert.NotNull(eventFilter.SelectClauses);
+            Assert.Equal(5, eventFilter.SelectClauses.Count);
+            Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[3].AttributeId);
+            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[3].TypeDefinitionId);
+            Assert.Empty(eventFilter.SelectClauses[3].BrowsePath);
+            Assert.Equal(Attributes.Value, eventFilter.SelectClauses[4].AttributeId);
+            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[4].TypeDefinitionId);
+            Assert.Equal("Retain", eventFilter.SelectClauses[4].BrowsePath.FirstOrDefault());
         }
 
         [Fact]
@@ -187,7 +212,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         [Fact]
-        public void SetupFieldNameWithNamespaceNameWhenNamespaceIndexIsUsed2() {
+        public void UseDefaultFieldNameWhenNamespaceTableIsEmpty() {
             var template = new EventMonitoredItemModel {
                 EventFilter = new EventFilterModel {
                     SelectClauses = new List<SimpleAttributeOperandModel> {
@@ -215,32 +240,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             };
 
-            var namespaceTable = new NamespaceTable(new[] {
-                Namespaces.OpcUa,
-            });
-            var nodeCache = GetNodeCache(namespaceTable);
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template, nodeCache: nodeCache);
-
-            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.FieldNames.Count);
-            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", monitoredItemWrapper.FieldNames[0]);
-            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", monitoredItemWrapper.FieldNames[1]);
-        }
-
-        [Fact]
-        public void AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplate2() {
-            var template = new EventMonitoredItemModel {
-                PendingAlarms = new PendingAlarmsOptionsModel {
-                    IsEnabled = true
-                }
-            };
             var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
-            Assert.NotNull(monitoredItemWrapper.Item.Filter);
-            Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
-
-            var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
-            Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(4, eventFilter.SelectClauses.Count);
+            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.FieldNames.Count);
+            Assert.Equal("2:CycleId", monitoredItemWrapper.FieldNames[0]);
+            Assert.Equal("2:CurrentStep", monitoredItemWrapper.FieldNames[1]);
         }
 
         private static INodeCache GetNodeCache(NamespaceTable namespaceTable = null) {

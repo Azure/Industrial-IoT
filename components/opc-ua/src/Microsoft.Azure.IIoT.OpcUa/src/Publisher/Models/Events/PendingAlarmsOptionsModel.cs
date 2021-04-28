@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         [IgnoreDataMember]
         public TimeSpan? UpdateIntervalTimespan {
             get => UpdateInterval.HasValue ?
-                TimeSpan.FromMilliseconds(UpdateInterval.Value) : (TimeSpan?)null;
+                TimeSpan.FromSeconds(UpdateInterval.Value) : (TimeSpan?)null;
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         [IgnoreDataMember]
         public TimeSpan? SnapshotIntervalTimespan {
             get => SnapshotInterval.HasValue ?
-                TimeSpan.FromMilliseconds(SnapshotInterval.Value) : (TimeSpan?)null;
+                TimeSpan.FromSeconds(SnapshotInterval.Value) : (TimeSpan?)null;
         }
 
         /// <summary>
@@ -62,6 +62,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         public int? RetainIndex { get; set; }
 
         /// <summary>
+        /// Has the pending alarms events been updated since las update message?
+        /// </summary>
+        [IgnoreDataMember]
+        public bool Dirty { get; set; } = false;
+
+        /// <summary>
         /// Clone
         /// </summary>
         /// <returns></returns>
@@ -72,6 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
                 SnapshotInterval = SnapshotInterval,
                 ConditionIdIndex = ConditionIdIndex,
                 RetainIndex = RetainIndex,
+                Dirty = Dirty,
             };
         }
 
@@ -86,7 +93,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
                    UpdateInterval == model.UpdateInterval &&
                    SnapshotInterval == model.SnapshotInterval &&
                    ConditionIdIndex == model.ConditionIdIndex &&
-                   RetainIndex == model.RetainIndex;
+                   RetainIndex == model.RetainIndex &&
+                   Dirty == model.Dirty;
         }
 
         /// <summary>
@@ -94,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events {
         /// </summary>
         /// <returns>Return the hash code for this object</returns>
         public override int GetHashCode() {
-            return HashCode.Combine(IsEnabled, UpdateInterval, SnapshotInterval, ConditionIdIndex, RetainIndex);
+            return HashCode.Combine(IsEnabled, UpdateInterval, SnapshotInterval, ConditionIdIndex, RetainIndex, Dirty);
         }
 
         /// <summary>
