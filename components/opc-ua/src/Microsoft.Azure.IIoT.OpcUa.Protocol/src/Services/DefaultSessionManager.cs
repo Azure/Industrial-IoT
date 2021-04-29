@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (!_sessions.TryGetValue(key, out var wrapper)) {
                     return;
                 }
-                if (onlyIfEmpty && wrapper._subscriptions.Count == 0) {
+                if (onlyIfEmpty && wrapper.Subscriptions.Count == 0) {
                     wrapper.State = SessionState.Disconnect;
                     TriggerKeepAlive();
                 }
@@ -145,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     };
                     _sessions.Add(id, wrapper);
                 }
-                wrapper._subscriptions.AddOrUpdate(subscription.Id, subscription);
+                wrapper.Subscriptions.AddOrUpdate(subscription.Id, subscription);
                 _logger.Information("Subscription '{subscriptionId}' registered/updated in session '{id}' in state {state}",
                     subscription.Id, id, wrapper.State);
                 if (wrapper.State == SessionState.Running) {
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (!_sessions.TryGetValue(id, out var wrapper)) {
                     return;
                 }
-                if (wrapper._subscriptions.TryRemove(subscription.Id, out _)) {
+                if (wrapper.Subscriptions.TryRemove(subscription.Id, out _)) {
                     _logger.Information("Subscription '{subscriptionId}' unregistered from session '{sessionId}' in state {state}",
                         subscription.Id, id, wrapper.State);
                 }
@@ -272,8 +272,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var delay = Task.Delay(keepAliveCheckInterval, ct);
                 await Task.WhenAny(delay, _triggerKeepAlive.Task).ConfigureAwait(false);
                 _logger.Debug("Runner Keepalive reset due to {delay} {trigger}",
-                    delay.IsCompleted ? "checkAlive" : String.Empty,
-                    _triggerKeepAlive.Task.IsCompleted ? "triggerKeepAlive" : String.Empty);
+                    delay.IsCompleted ? "checkAlive" : string.Empty,
+                    _triggerKeepAlive.Task.IsCompleted ? "triggerKeepAlive" : string.Empty);
             }
         }
 
@@ -288,7 +288,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             SessionWrapper wrapper, CancellationToken ct) {
             try {
 
-                if (!wrapper._subscriptions.Any()) {
+                if (!wrapper.Subscriptions.Any()) {
                     if (wrapper.IdleCount < wrapper.MaxKeepAlives) {
                         wrapper.IdleCount++;
                     }
@@ -313,7 +313,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     wrapper.MissedKeepAlives = 0;
 
                     // reactivate all subscriptons
-                    foreach (var subscription in wrapper._subscriptions.Values) {
+                    foreach (var subscription in wrapper.Subscriptions.Values) {
                         if (!ct.IsCancellationRequested) {
                             await subscription.ActivateAsync(wrapper.Session).ConfigureAwait(false);
                         }
@@ -374,7 +374,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             SessionWrapper wrapper, CancellationToken ct) {
             try {
                 // check if session requires clenup
-                if (!wrapper._subscriptions.Any()) {
+                if (!wrapper.Subscriptions.Any()) {
                     if (wrapper.IdleCount < wrapper.MaxKeepAlives) {
                         wrapper.IdleCount++;
                     }
@@ -429,10 +429,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 _logger.Information("Connected to '{endpointUrl}'", endpointUrl);
                                 session.Handle = wrapper;
                                 wrapper.Session = session;
-                                foreach (var subscription in wrapper._subscriptions.Values) {
+                                foreach (var subscription in wrapper.Subscriptions.Values) {
                                     await subscription.EnableAsync(wrapper.Session).ConfigureAwait(false);
                                 }
-                                foreach (var subscription in wrapper._subscriptions.Values) {
+                                foreach (var subscription in wrapper.Subscriptions.Values) {
                                     await subscription.ActivateAsync(wrapper.Session).ConfigureAwait(false);
                                 }
                                 wrapper.State = SessionState.Running;
@@ -479,7 +479,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (StatusCode.IsGood(wrapper.ReportedStatus)) {
                         if (wrapper.Session.Connected &&
                             !wrapper.Session.KeepAliveStopped) {
-                            foreach (var subscription in wrapper._subscriptions.Values) {
+                            foreach (var subscription in wrapper.Subscriptions.Values) {
                                 if (!ct.IsCancellationRequested) {
                                     await subscription.ActivateAsync(wrapper.Session).ConfigureAwait(false);
                                 }
@@ -708,7 +708,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (ServiceResult.IsGood(e.Status)) {
                         wrapper.MissedKeepAlives = 0;
 
-                        if (!wrapper._subscriptions.Any()) {
+                        if (!wrapper.Subscriptions.Any()) {
                             if (wrapper.IdleCount < wrapper.MaxKeepAlives) {
                                 wrapper.IdleCount++;
                             }
@@ -889,7 +889,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// registered subscriptions
             /// </summary>
-            public ConcurrentDictionary<string, ISubscription> _subscriptions { get; }
+            public ConcurrentDictionary<string, ISubscription> Subscriptions { get; }
                 = new ConcurrentDictionary<string, ISubscription>();
         }
 

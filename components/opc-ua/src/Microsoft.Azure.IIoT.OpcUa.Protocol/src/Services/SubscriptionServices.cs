@@ -1122,7 +1122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         ((MonitoringFilter)DataTemplate.AggregateFilter.ToStackModel(messageContext));
                 }
                 else if (EventTemplate != null) {
-                    EventFilter eventFilter = new EventFilter();
+                    var eventFilter = new EventFilter();
                     if (EventTemplate.EventFilter != null) {
                         if (!string.IsNullOrEmpty(EventTemplate.EventFilter.TypeDefinitionId)) {
                             eventFilter = GetSimpleEventFilter(nodeCache, messageContext);
@@ -1133,7 +1133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     // let's keep track of the internal fields we add so that they don't show up in the output
-                    List<SimpleAttributeOperand> internalSelectClauses = new List<SimpleAttributeOperand>();
+                    var internalSelectClauses = new List<SimpleAttributeOperand>();
 
                     // Add SourceTimestamp and ServerTimestamp select clauses.
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
