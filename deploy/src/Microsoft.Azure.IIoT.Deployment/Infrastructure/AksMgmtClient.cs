@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string NETWORK_PROFILE_DNS_SERVICE_IP = "10.0.0.10";
         public const string NETWORK_PROFILE_DOCKER_BRIDGE_CIDR = "172.17.0.1/16";
 
-        public const string KUBERNETES_VERSION_FALLBACK = "1.18.14";
+        public const string KUBERNETES_VERSION_FALLBACK = "1.18.10";
         public const string KUBERNETES_VERSION_MAJ_MIN = "1.18";
 
         private readonly ContainerServiceManagementClient _containerServiceManagementClient;
@@ -178,15 +178,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 },
                 AddonProfiles = new Dictionary<string, ManagedClusterAddonProfile> {
                     { "omsagent", new ManagedClusterAddonProfile {
-                        Enabled = true,
-                        Config = new Dictionary<string, string> {
-                            { "logAnalyticsWorkspaceResourceID", operationalInsightsWorkspace.Id }
+                            Enabled = true,
+                            Config = new Dictionary<string, string> {
+                                { "logAnalyticsWorkspaceResourceID", operationalInsightsWorkspace.Id }
+                            }
                         }
-                    }
                     },
                     { "httpApplicationRouting", new ManagedClusterAddonProfile {
-                        Enabled = false
-                    }
+                            Enabled = false
+                        }
                     }
                 },
                 //NodeResourceGroup = aksResourceGroupName, // This is not propagated yet.
