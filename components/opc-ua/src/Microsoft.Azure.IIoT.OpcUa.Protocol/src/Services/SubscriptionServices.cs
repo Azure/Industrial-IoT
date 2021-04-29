@@ -940,6 +940,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 OnSubscriptionEventChange.Invoke(this, message);
             }
 
+            public void SendMessage(SubscriptionNotificationModel message) {
+                OnSubscriptionEventChange.Invoke(this, message);
+            }
+
             private readonly SubscriptionModel _subscription;
             private readonly SubscriptionServices _outer;
             private readonly ILogger _logger;
@@ -1237,6 +1241,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     Item.Filter = eventFilter;
                 }
+            }
+
+            private void OnPendingAlarmsUpdateTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
+                if (EventTemplate?.PendingAlarms?.Dirty == true) {
+                    SendPendingAlarms(false);
+                    _pendingAlarmsUpdateTimer.Start();
+                }
+            }
+
+            private void OnPendingAlarmsSnapshotTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
+                SendPendingAlarms(true);
+                _pendingAlarmsSnapshotTimer.Start();
             }
 
             private void OnPendingAlarmsUpdateTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
