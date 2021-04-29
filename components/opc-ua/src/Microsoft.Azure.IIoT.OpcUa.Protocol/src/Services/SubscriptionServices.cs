@@ -564,13 +564,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             catch (ServiceResultException e) {
                                 _logger.Information("ConditionRefresh for subscription " +
                                     "{subscription} failed with a ServiceResultException '{message}'", rawSubscription.DisplayName, e.Message);
+                                noErrorFound = false;
                             }
                             catch (Exception e) {
                                 _logger.Information("ConditionRefresh for subscription " +
                                     "{subscription} failed with an exception '{message}'", rawSubscription.DisplayName, e.Message);
+                                noErrorFound = false;
+
                             }
-                            _logger.Information("ConditionRefresh for subscription " +
-                                "{subscription} has completed", rawSubscription.DisplayName);
+                            if (noErrorFound) {
+                                _logger.Information("ConditionRefresh for subscription " +
+                                    "{subscription} has completed", rawSubscription.DisplayName);
+                            }
                         }
                     }
                 }
