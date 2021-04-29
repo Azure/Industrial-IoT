@@ -564,13 +564,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             catch (ServiceResultException e) {
                                 _logger.Information("ConditionRefresh for subscription " +
                                     "{subscription} failed with a ServiceResultException '{message}'", rawSubscription.DisplayName, e.Message);
+                                noErrorFound = false;
                             }
                             catch (Exception e) {
                                 _logger.Information("ConditionRefresh for subscription " +
                                     "{subscription} failed with an exception '{message}'", rawSubscription.DisplayName, e.Message);
+                                noErrorFound = false;
+
                             }
-                            _logger.Information("ConditionRefresh for subscription " +
-                                "{subscription} has completed", rawSubscription.DisplayName);
+                            if (noErrorFound) {
+                                _logger.Information("ConditionRefresh for subscription " +
+                                    "{subscription} has completed", rawSubscription.DisplayName);
+                            }
                         }
                     }
                 }
@@ -1456,20 +1461,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 if (pendingAlarmsOptions.IsEnabled == true &&
-                    (snapshot || pendingAlarmsOptions.Dirty == true)) {
+                    (snapshot || pendingAlarmsOptions.Dirty == true) &&
+                    PendingAlarmEvents.Any()) {
+                    var firstNotification = PendingAlarmEvents.Values.First();
+                    var pendingAlarmsNotification = new MonitoredItemNotificationModel() {
+                        AttributeId = firstNotification.AttributeId,
+                        ClientHandle = firstNotification.ClientHandle,
+                        DiagnosticInfo = firstNotification.DiagnosticInfo,
+                        DisplayName = firstNotification.DisplayName,
+                        Id = firstNotification.Id,
+                        IsHeartbeat = false,
+                        SequenceNumber = firstNotification.SequenceNumber, // maybe own sequence number series here...
+                        NodeId = firstNotification.NodeId,
+                        StringTable = firstNotification.StringTable
+                    };
+                    var values = PendingAlarmEvents.Values.Select(x => x.Value).ToList();
+                    pendingAlarmsNotification.Value = new DataValue(new Variant(values));
+
                     var message = new SubscriptionNotificationModel {
                         ServiceMessageContext = Item.Subscription?.Session?.MessageContext,
                         ApplicationUri = Item.Subscription?.Session?.Endpoint?.Server?.ApplicationUri,
                         EndpointUrl = Item.Subscription?.Session?.Endpoint?.EndpointUrl,
                         SubscriptionId = (Item.Subscription?.Handle as SubscriptionWrapper)?.Id,
                         Timestamp = DateTime.UtcNow,
-                        Notifications = PendingAlarmEvents.Values
-                            .ToList()
+                        Notifications = new List<MonitoredItemNotificationModel>()
                     };
-
-                    if (message.Notifications?.Any() == true) {
-                        (Item.Subscription?.Handle as SubscriptionWrapper)?.SendMessage(message);
-                    }
+                    message.Notifications.Add(pendingAlarmsNotification);
+                    (Item.Subscription?.Handle as SubscriptionWrapper)?.SendMessage(message);
 
                     if (!snapshot) {
                         pendingAlarmsOptions.Dirty = false;
