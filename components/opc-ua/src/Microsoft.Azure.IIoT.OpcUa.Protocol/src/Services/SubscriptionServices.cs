@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Threading.Tasks;
     using Prometheus;
     using Opc.Ua.Encoders;
+    using Timer = System.Timers.Timer;
     using System.Text;
 
     /// <summary>
@@ -94,13 +95,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public ConnectionModel Connection => _subscription.Connection;
 
-            public ConcurrentDictionary<string, MonitoredItemNotificationModel> PendingAlarms { get; } = new ConcurrentDictionary<string, MonitoredItemNotificationModel>();
-
             /// <inheritdoc/>
             public event EventHandler<SubscriptionNotificationModel> OnSubscriptionDataChange;
 
             /// <inheritdoc/>
             public event EventHandler<SubscriptionNotificationModel> OnSubscriptionEventChange;
+
+            /// <inheritdoc/>
+            public event EventHandler<int> OnSubscriptionDataDiagnosticsChange;
+
+            ///  <inheritdoc/>
+            public event EventHandler<int> OnSubscriptionEventDiagnosticsChange;
 
             /// <inheritdoc/>
             public event EventHandler<SubscriptionNotificationModel> OnMonitoredItemChange;
@@ -769,16 +774,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             if (message == null) {
                                 continue;
                             }
-                            message.Notifications?.Add(monitoredItemNotification);
 
                             if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
-                                var pendingAlarmsOptions = itemWrapper?.EventTemplate?.PendingAlarms;
-                                if (pendingAlarmsOptions?.IsEnabled == true &&
-                                    monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
-                                    if (pendingAlarmsOptions.ConditionIdIndex.HasValue) {
-                                        PendingAlarms[values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString()] = monitoredItemNotification;
-                                    }
-                                }
+                                itemWrapper.ProcessMonitoredItemNotification(message, monitoredItemNotification);
                             }
                         }
                     }
@@ -786,6 +784,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (message.Notifications?.Any() == true) {
                         OnSubscriptionEventChange.Invoke(this, message);
                     }
+
+                    OnSubscriptionEventDiagnosticsChange.Invoke(this, notification.Events.Count);
                 }
                 catch (Exception e) {
                     _logger.Warning(e, "Exception processing subscription notification");
@@ -895,6 +895,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     if (message.Notifications?.Any() == true) {
                         OnSubscriptionDataChange.Invoke(this, message);
+                        OnSubscriptionDataDiagnosticsChange.Invoke(this, message.Notifications.Count);
                     }
                 }
                 catch (Exception e) {
@@ -937,6 +938,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 catch (Exception e) {
                     _logger.Warning(e, "Exception processing monitored item notification");
                 }
+            }
+
+            public void SendMessage(SubscriptionNotificationModel message) {
+                OnSubscriptionEventChange.Invoke(this, message);
             }
 
             private readonly SubscriptionModel _subscription;
@@ -990,6 +995,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// List of field names. Only used for events
             /// </summary>
             public List<string> FieldNames { get; } = new List<string>();
+
+            /// <summary>
+            /// Cache of the latest events for the pending alarms optionally monitored
+            /// </summary>
+            public ConcurrentDictionary<string, MonitoredItemNotificationModel> PendingAlarmEvents { get; } = new ConcurrentDictionary<string, MonitoredItemNotificationModel>();
+
+            /// <summary>
+            /// Destructor for this class
+            /// </summary>
+            ~MonitoredItemWrapper()
+            {
+                _pendingAlarmsUpdateTimer.Stop();
+                _pendingAlarmsUpdateTimer.Dispose();
+                _pendingAlarmsSnapshotTimer.Stop();
+                _pendingAlarmsSnapshotTimer.Dispose();
+            }
 
             /// <summary>
             /// validates if a heartbeat is required.
@@ -1143,6 +1164,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.Count();
                             eventFilter.AddSelectClause(ObjectTypeIds.ConditionType, "Retain");
                         }
+
+                        // set up the timers
+                        if (EventTemplate.PendingAlarms.UpdateIntervalTimespan.HasValue) {
+                            _pendingAlarmsUpdateTimer.Interval = EventTemplate.PendingAlarms.UpdateIntervalTimespan.Value.TotalMilliseconds;
+                            _pendingAlarmsUpdateTimer.Elapsed += OnPendingAlarmsUpdateTimerElapsed;
+                            _pendingAlarmsUpdateTimer.AutoReset = false;
+                            _pendingAlarmsUpdateTimer.Start();
+                        }
+                        if (EventTemplate.PendingAlarms.SnapshotIntervalTimespan.HasValue) {
+                            _pendingAlarmsSnapshotTimer.Interval = EventTemplate.PendingAlarms.SnapshotIntervalTimespan.Value.TotalMilliseconds;
+                            _pendingAlarmsSnapshotTimer.Elapsed += OnPendingAlarmsSnapshotTimerElapsed;
+                            _pendingAlarmsSnapshotTimer.AutoReset = false;
+                            _pendingAlarmsSnapshotTimer.Start();
+                        }
                     }
 
                     var sb = new StringBuilder();
@@ -1174,6 +1209,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     Item.Filter = eventFilter;
                 }
+            }
+
+            private void OnPendingAlarmsUpdateTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
+                if (EventTemplate?.PendingAlarms?.Dirty == true) {
+                    SendPendingAlarms(false);
+                    _pendingAlarmsUpdateTimer.Start();
+                }
+            }
+
+            private void OnPendingAlarmsSnapshotTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
+                SendPendingAlarms(true);
+                _pendingAlarmsSnapshotTimer.Start();
             }
 
             /// <summary>
@@ -1325,6 +1372,72 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return eventFilter;
             }
 
+            /// <summary>
+            /// Processing the monitored item notification
+            /// </summary>
+            /// <param name="message"></param>
+            /// <param name="monitoredItemNotification"></param>
+            public void ProcessMonitoredItemNotification(SubscriptionNotificationModel message, MonitoredItemNotificationModel monitoredItemNotification) {
+                var pendingAlarmsOptions = EventTemplate?.PendingAlarms;
+                if (pendingAlarmsOptions?.IsEnabled == true && monitoredItemNotification.Value.GetValue(typeof(EncodeableDictionary)) is EncodeableDictionary values) {
+                    if (pendingAlarmsOptions.ConditionIdIndex.HasValue && pendingAlarmsOptions.RetainIndex.HasValue) {
+                        var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
+                        var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue<bool>(false);
+                        if (PendingAlarmEvents.ContainsKey(conditionId) && !retain) {
+                            PendingAlarmEvents.TryRemove(conditionId, out var monitoredItemNotificationModel);
+                        }
+                        else if (retain) {
+                            pendingAlarmsOptions.Dirty = true;
+                            PendingAlarmEvents[conditionId] = monitoredItemNotification;
+                        }
+                    }
+                }
+                else {
+                    message.Notifications?.Add(monitoredItemNotification);
+                }
+            }
+
+            private void SendPendingAlarms(bool snapshot) {
+                var pendingAlarmsOptions = EventTemplate?.PendingAlarms;
+                if (pendingAlarmsOptions == null) {
+                    return;
+                }
+
+                if (pendingAlarmsOptions.IsEnabled == true &&
+                    (snapshot || pendingAlarmsOptions.Dirty == true) &&
+                    PendingAlarmEvents.Any()) {
+                    var firstNotification = PendingAlarmEvents.Values.First();
+                    var pendingAlarmsNotification = new MonitoredItemNotificationModel() {
+                        AttributeId = firstNotification.AttributeId,
+                        ClientHandle = firstNotification.ClientHandle,
+                        DiagnosticInfo = firstNotification.DiagnosticInfo,
+                        DisplayName = firstNotification.DisplayName,
+                        Id = firstNotification.Id,
+                        IsHeartbeat = false,
+                        SequenceNumber = firstNotification.SequenceNumber, // maybe own sequence number series here...
+                        NodeId = firstNotification.NodeId,
+                        StringTable = firstNotification.StringTable
+                    };
+                    var values = PendingAlarmEvents.Values.Select(x => x.Value).ToList();
+                    pendingAlarmsNotification.Value = new DataValue(new Variant(values));
+
+                    var message = new SubscriptionNotificationModel {
+                        ServiceMessageContext = Item.Subscription?.Session?.MessageContext,
+                        ApplicationUri = Item.Subscription?.Session?.Endpoint?.Server?.ApplicationUri,
+                        EndpointUrl = Item.Subscription?.Session?.Endpoint?.EndpointUrl,
+                        SubscriptionId = (Item.Subscription?.Handle as SubscriptionWrapper)?.Id,
+                        Timestamp = DateTime.UtcNow,
+                        Notifications = new List<MonitoredItemNotificationModel>()
+                    };
+                    message.Notifications.Add(pendingAlarmsNotification);
+                    (Item.Subscription?.Handle as SubscriptionWrapper)?.SendMessage(message);
+
+                    if (!snapshot) {
+                        pendingAlarmsOptions.Dirty = false;
+                    }
+                }
+            }
+
             private void ParseFields(INodeCache nodeCache, List<QualifiedName> fieldNames, Node node, string browsePathPrefix = "") {
                 foreach (var reference in node.ReferenceTable) {
                     if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent && !reference.IsInverse) {
@@ -1343,6 +1456,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
+            private readonly Timer _pendingAlarmsUpdateTimer = new Timer();
+            private readonly Timer _pendingAlarmsSnapshotTimer = new Timer();
             private HashSet<uint> _newTriggers = new HashSet<uint>();
             private HashSet<uint> _triggers = new HashSet<uint>();
             private Publisher.Models.MonitoringMode? _modeChange;
