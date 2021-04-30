@@ -116,16 +116,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 else {
                     _keyFrameCount = dataSetWriter.KeyFrameCount;
                 }
-
-                if (dataSetWriter.DataSetMetaDataSendInterval.HasValue &&
-                    dataSetWriter.DataSetMetaDataSendInterval.Value > TimeSpan.Zero) {
-                    _metaData = dataSetWriter.DataSet?.DataSetMetaData ??
-                        throw new ArgumentNullException(nameof(dataSetWriter.DataSet));
-
-                    _metadataTimer = new Timer(
-                        dataSetWriter.DataSetMetaDataSendInterval.Value.TotalMilliseconds);
-                    _metadataTimer.Elapsed += MetadataTimerElapsed;
-                }
             }
 
             /// <summary>
@@ -169,11 +159,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     ct.Register(() => _keyframeTimer.Stop());
                     _keyframeTimer.Start();
                 }
-
-                if (_metadataTimer != null) {
-                    ct.Register(() => _metadataTimer.Stop());
-                    _metadataTimer.Start();
-                }
             }
 
             /// <summary>
@@ -192,10 +177,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (_keyframeTimer != null) {
                     _keyframeTimer.Stop();
                 }
-
-                if (_metadataTimer != null) {
-                    _metadataTimer.Stop();
-                }
             }
 
 
@@ -209,7 +190,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     Subscription.Dispose();
                 }
                 _keyframeTimer?.Dispose();
-                _metadataTimer?.Dispose();
                 Subscription = null;
             }
 
@@ -235,15 +215,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 finally {
                     _keyframeTimer.Enabled = true;
                 }
-            }
-
-            /// <summary>
-            /// Fired when metadata time elapsed
-            /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="e"></param>
-            private void MetadataTimerElapsed(object sender, ElapsedEventArgs e) {
-                // Send(_metaData)
             }
 
             /// <summary>
@@ -359,8 +330,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
 
             private readonly Timer _keyframeTimer;
-            private readonly Timer _metadataTimer;
-            private readonly DataSetMetaDataModel _metaData;
             private readonly uint? _keyFrameCount;
             private long _currentSequenceNumber;
             private readonly WriterGroupMessageTrigger _outer;
