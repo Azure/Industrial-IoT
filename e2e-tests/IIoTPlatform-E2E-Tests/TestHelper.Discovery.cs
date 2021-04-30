@@ -43,24 +43,9 @@ namespace IIoTPlatform_E2E_Tests {
                     bool shouldExit = false;
                     do {
                         foundEndpoints = 0;
-                        var accessToken = await TestHelper.GetTokenAsync(context, ct);
-                        var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
-                            Timeout = TestConstants.DefaultTimeoutInMilliseconds
-                        };
 
-                        var request = new RestRequest(Method.GET);
-                        request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
-                        request.Resource = TestConstants.APIRoutes.RegistryApplications;
-
-                        var response = await client.ExecuteAsync(request, ct);
-                        Assert.NotNull(response);
-                        Assert.True(response.IsSuccessful, "GET /registry/v2/application failed!");
-
-                        if (!response.IsSuccessful) {
-                            context.OutputHelper?.WriteLine($"StatusCode: {response.StatusCode}");
-                            context.OutputHelper?.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                        }
-
+                        var route = TestConstants.APIRoutes.RegistryApplications;
+                        var response = CallRestApi(context, Method.GET, route, ct);
                         Assert.NotEmpty(response.Content);
                         json = JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
                         Assert.NotNull(json);
