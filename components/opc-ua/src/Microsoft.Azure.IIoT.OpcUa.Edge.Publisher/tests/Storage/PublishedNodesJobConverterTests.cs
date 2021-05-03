@@ -1341,7 +1341,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcMultiJob1TestWithEvents() {
+        public void PnPlcMultiJob1TestWithDataItemsAndEvents() {
             var pn = @"
 [
     {
@@ -1366,13 +1366,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         ""OpcEvents"": [
             {
                 ""Id"": ""i=2253"",
-                ""OpcSamplingInterval"": 2000,
                 ""OpcPublishingInterval"": 5000,
-                ""Heartbeat"": 3600,
-                ""SkipFirst"": true,
                 ""SelectClauses"": [
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""EventId""
                         ]
@@ -1427,11 +1424,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Single(jobs[2].WriterGroup.DataSetWriters[1].DataSet.DataSetSource.PublishedEvents.PublishedData);
             Assert.NotEmpty(jobs[3].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
             Assert.Empty(jobs[3].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+
+            var dataItemModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
+            Assert.Equal("i=2258", dataItemModel.Id);
+            Assert.Equal("i=2258", dataItemModel.PublishedVariableNodeId);
+
+            dataItemModel = jobs[1].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
+            Assert.Equal("ns=0;i=2261", dataItemModel.Id);
+            Assert.Equal("ns=0;i=2261", dataItemModel.PublishedVariableNodeId);
+
+            dataItemModel = jobs[2].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean", dataItemModel.Id);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean", dataItemModel.PublishedVariableNodeId);
+
+            var eventModel = jobs[2].WriterGroup.DataSetWriters[1].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
+            Assert.Equal("i=2253", eventModel.Id);
+            Assert.Equal("i=2253", eventModel.EventNotifier);
+            Assert.Single(eventModel.SelectClauses);
+            Assert.Equal("i=2041", eventModel.SelectClauses[0].TypeDefinitionId);
+            Assert.Single(eventModel.SelectClauses[0].BrowsePath);
+            Assert.Equal("EventId", eventModel.SelectClauses[0].BrowsePath[0]);
+            Assert.NotNull(eventModel.WhereClause);
+            Assert.Single(eventModel.WhereClause.Elements);
+            Assert.Equal(FilterOperatorType.OfType, eventModel.WhereClause.Elements[0].FilterOperator);
+            Assert.Single(eventModel.WhereClause.Elements[0].FilterOperands);
+            Assert.Equal("ns=2;i=235", eventModel.WhereClause.Elements[0].FilterOperands[0].Value);
         }
 
         [Fact]
         public void PnPlcJobTestWithEvents() {
-
             var pn = @"
 [
     {
@@ -1440,73 +1461,70 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         ""OpcEvents"": [
             {
                 ""Id"": ""i=2253"",
-                ""OpcSamplingInterval"": 2000,
                 ""OpcPublishingInterval"": 5000,
-                ""Heartbeat"": 3600,
-                ""SkipFirst"": true,
                 ""SelectClauses"": [
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""EventId""
                         ]
                     },
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""EventType""
                         ]
                     },
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""SourceNode""
                         ]
                     },
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""SourceName""
                         ]
                     },
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""Time""
                         ]
                     },
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""ReceiveTime""
                         ]
                     },
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""LocalTime""
                         ]
                     },
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""Message""
                         ]
                     },
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""Severity""
                         ]
                     },
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""2:CycleId""
                         ]
                     },
                     {
-                        ""TypeId"": ""i=2041"",
+                        ""TypeDefinitionId"": ""i=2041"",
                         ""BrowsePath"": [
                             ""2:CurrentStep""
                         ]
@@ -1531,13 +1549,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
 
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel()).ToList();
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
+            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
 
             Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
                Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
+
+            var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
+            Assert.Equal("i=2253", eventModel.Id);
+            Assert.Equal("i=2253", eventModel.EventNotifier);
+            Assert.Equal(11, eventModel.SelectClauses.Count);
+            Assert.All(eventModel.SelectClauses, x => {
+                Assert.Equal("i=2041", x.TypeDefinitionId);
+                Assert.Single(x.BrowsePath);
+            });
+            Assert.Equal(new[] { 
+                "EventId",
+                "EventType",
+                "SourceNode",
+                "SourceName",
+                "Time",
+                "ReceiveTime",
+                "LocalTime",
+                "Message",
+                "Severity",
+                "2:CycleId",
+                "2:CurrentStep"
+            }, eventModel.SelectClauses.Select(x => x.BrowsePath[0]));
         }
 
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
