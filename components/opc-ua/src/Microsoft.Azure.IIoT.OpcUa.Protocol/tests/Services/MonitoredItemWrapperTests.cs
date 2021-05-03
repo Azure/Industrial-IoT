@@ -168,11 +168,92 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal("Retain", eventFilter.SelectClauses[4].BrowsePath.FirstOrDefault());
         }
 
-        private INodeCache GetNodeCache() {
+        [Fact]
+        public void SetupFieldNameWithNamespaceNameWhenNamespaceIndexIsUsed() {
+            var template = new EventMonitoredItemModel {
+                EventFilter = new EventFilterModel {
+                    SelectClauses = new List<SimpleAttributeOperandModel> {
+                        new SimpleAttributeOperandModel {
+                            TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
+                            BrowsePath = new []{ "2:CycleId" }
+                        },
+                        new SimpleAttributeOperandModel {
+                            TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
+                            BrowsePath = new []{ "2:CurrentStep" }
+                        },
+                    },
+                    WhereClause = new ContentFilterModel {
+                        Elements = new List<ContentFilterElementModel> {
+                            new ContentFilterElementModel {
+                                FilterOperator = FilterOperatorType.OfType,
+                                FilterOperands = new List<FilterOperandModel> {
+                                    new FilterOperandModel {
+                                        Value = "ns=2;i=235"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var namespaceTable = new NamespaceTable(new[] {
+                Namespaces.OpcUa,
+                string.Empty,
+                "http://opcfoundation.org/Quickstarts/SimpleEvents",
+                "http://opcfoundation.org/UA/Diagnostics",
+            });
+            var nodeCache = GetNodeCache(namespaceTable);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template, nodeCache: nodeCache);
+
+            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.FieldNames.Count);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", monitoredItemWrapper.FieldNames[0]);
+            Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", monitoredItemWrapper.FieldNames[1]);
+        }
+
+        [Fact]
+        public void UseDefaultFieldNameWhenNamespaceTableIsEmpty() {
+            var template = new EventMonitoredItemModel {
+                EventFilter = new EventFilterModel {
+                    SelectClauses = new List<SimpleAttributeOperandModel> {
+                        new SimpleAttributeOperandModel {
+                            TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
+                            BrowsePath = new []{ "2:CycleId" }
+                        },
+                        new SimpleAttributeOperandModel {
+                            TypeDefinitionId = "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
+                            BrowsePath = new []{ "2:CurrentStep" }
+                        },
+                    },
+                    WhereClause = new ContentFilterModel {
+                        Elements = new List<ContentFilterElementModel> {
+                            new ContentFilterElementModel {
+                                FilterOperator = FilterOperatorType.OfType,
+                                FilterOperands = new List<FilterOperandModel> {
+                                    new FilterOperandModel {
+                                        Value = "ns=2;i=235"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
+
+            Assert.Equal(((EventFilter)monitoredItemWrapper.Item.Filter).SelectClauses.Count, monitoredItemWrapper.FieldNames.Count);
+            Assert.Equal("2:CycleId", monitoredItemWrapper.FieldNames[0]);
+            Assert.Equal("2:CurrentStep", monitoredItemWrapper.FieldNames[1]);
+        }
+
+        private static INodeCache GetNodeCache(NamespaceTable namespaceTable = null) {
+            namespaceTable ??= new NamespaceTable();
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             var nodeCache = mock.Mock<INodeCache>();
-            var typeTable = new TypeTable(new NamespaceTable());
+            var typeTable = new TypeTable(namespaceTable);
             nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
+            nodeCache.SetupGet(x => x.NamespaceUris).Returns(namespaceTable);
             return nodeCache.Object;
         }
 
