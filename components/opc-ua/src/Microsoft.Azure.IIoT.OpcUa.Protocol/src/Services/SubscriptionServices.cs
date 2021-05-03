@@ -1442,6 +1442,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue<bool>(false);
                         if (PendingAlarmEvents.ContainsKey(conditionId) && !retain) {
                             PendingAlarmEvents.TryRemove(conditionId, out var monitoredItemNotificationModel);
+                            pendingAlarmsOptions.Dirty = true;
                         }
                         else if (retain) {
                             pendingAlarmsOptions.Dirty = true;
@@ -1461,19 +1462,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
 
                 if (pendingAlarmsOptions.IsEnabled == true &&
-                    (snapshot || pendingAlarmsOptions.Dirty == true) &&
-                    PendingAlarmEvents.Any()) {
-                    var firstNotification = PendingAlarmEvents.Values.First();
+                    (snapshot || pendingAlarmsOptions.Dirty == true)) {
+                    var firstNotification = PendingAlarmEvents.Values.FirstOrDefault();
                     var pendingAlarmsNotification = new MonitoredItemNotificationModel() {
-                        AttributeId = firstNotification.AttributeId,
-                        ClientHandle = firstNotification.ClientHandle,
-                        DiagnosticInfo = firstNotification.DiagnosticInfo,
-                        DisplayName = firstNotification.DisplayName,
-                        Id = firstNotification.Id,
+                        AttributeId = Item.AttributeId,
+                        ClientHandle = firstNotification?.ClientHandle ?? 0,
+                        DiagnosticInfo = null,
+                        DisplayName = Item.DisplayName,
+                        Id = Item.DisplayName,
                         IsHeartbeat = false,
-                        SequenceNumber = firstNotification.SequenceNumber, // maybe own sequence number series here...
-                        NodeId = firstNotification.NodeId,
-                        StringTable = firstNotification.StringTable
+                        SequenceNumber = null,
+                        NodeId = Item.StartNodeId,
+                        StringTable = null
                     };
                     var values = PendingAlarmEvents.Values.Select(x => x.Value).ToList();
                     pendingAlarmsNotification.Value = new DataValue(new Variant(values));
