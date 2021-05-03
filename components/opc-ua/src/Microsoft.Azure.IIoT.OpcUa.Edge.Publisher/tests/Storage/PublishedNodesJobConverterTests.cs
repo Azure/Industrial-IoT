@@ -1568,7 +1568,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 Assert.Equal("i=2041", x.TypeDefinitionId);
                 Assert.Single(x.BrowsePath);
             });
-            Assert.Equal(new[] { 
+            Assert.Equal(new[] {
                 "EventId",
                 "EventType",
                 "SourceNode",
@@ -1581,6 +1581,51 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 "2:CycleId",
                 "2:CurrentStep"
             }, eventModel.SelectClauses.Select(x => x.BrowsePath[0]));
+        }
+
+        [Fact]
+        public void PnPlcJobTestWithPendingAlarms() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
+        ""UseSecurity"": false,
+        ""OpcEvents"": [
+            {
+                ""Id"": ""i=2253"",
+                ""OpcPublishingInterval"": 5000,
+                ""TypeDefinitionId"": ""ns=2;i=235"",
+                ""PendingAlarms"": {
+                    ""IsEnabled"": true,
+                    ""UpdateInterval"": 10000,
+                    ""SnapshotInterval"": 20000,
+                }
+            }
+        ]
+    }
+]
+";
+
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel()).ToList();
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
+            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+
+            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
+               Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
+
+            var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
+            Assert.Equal("i=2253", eventModel.Id);
+            Assert.Equal("i=2253", eventModel.EventNotifier);
+            Assert.Equal("ns=2;i=235", eventModel.TypeDefinitionId);
+            Assert.NotNull(eventModel.PendingAlarms);
+            Assert.True(eventModel.PendingAlarms.IsEnabled);
+            Assert.Equal(10000, eventModel.PendingAlarms.UpdateInterval);
+            Assert.Equal(20000, eventModel.PendingAlarms.SnapshotInterval);
         }
 
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
