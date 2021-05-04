@@ -38,7 +38,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 this[item.Key] = item.Value;
             }
             Config = ToAgentConfigModel();
-            LegacyCliModel = ToLegacyCliModel();
         }
 
         // TODO: Figure out which are actually supported in the new publisher implementation
@@ -194,15 +193,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             options.Parse(args);
 
             Config = ToAgentConfigModel();
-            LegacyCliModel = ToLegacyCliModel();
         }
 
         /// <summary>
         /// check if we're running in standalone mode - default publishednodes.json file accessible
         /// </summary>
-        public bool RunInLegacyMode => System.IO.File.Exists(
-            GetValueOrDefault(LegacyCliConfigKeys.PublisherNodeConfigurationFilename,
-                LegacyCliConfigKeys.DefaultPublishedNodesFilename));
+        public bool RunInLegacyMode => TryGetValue(LegacyCliConfigKeys.PublisherNodeConfigurationFilename, out _) ||
+             System.IO.File.Exists(LegacyCliConfigKeys.DefaultPublishedNodesFilename);
 
         /// <summary>
         /// The AgentConfigModel instance that is based on specified legacy command line arguments.
@@ -244,7 +241,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// The model of the CLI arguments.
         /// </summary>
-        public LegacyCliModel LegacyCliModel { get; }
+        public LegacyCliModel LegacyCliModel {
+            get {
+                if (_legacyCliModel == null) {
+                    _legacyCliModel = ToLegacyCliModel();
+                }
+
+                return _legacyCliModel;
+            }
+        }
 
         /// <summary>
         /// Gets the additiona loggerConfiguration that represents the command line arguments.
@@ -322,5 +327,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             var converter = TypeDescriptor.GetConverter(typeof(T));
             return (T)converter.ConvertFrom(this[key]);
         }
+
+        private LegacyCliModel _legacyCliModel = null;
     }
 }
