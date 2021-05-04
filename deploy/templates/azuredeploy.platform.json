@@ -82,6 +82,13 @@
                 "description": "The tenant the managed identity was registered in."
             }
         },
+        "authTenantId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription."
+            }
+        },
         "dockerServer": {
             "type": "string",
             "defaultValue": "mcr.microsoft.com",
@@ -126,7 +133,7 @@
         },
         "hostingPlanSku": {
             "type": "string",
-            "defaultValue": "B1",
+            "defaultValue": "S1",
             "allowedValues": [
                 "B1",
                 "B2",
@@ -254,6 +261,10 @@
                             "value": "[parameters('managedIdentityTenantId')]"
                         },
                         {
+                            "name": "PCS_AUTH_TENANT",
+                            "value": "[if(not(empty(parameters('authTenantId'))), parameters('authTenantId'), parameters('managedIdentityTenantId'))]"
+                        },
+                        {
                             "name": "PCS_SERVICE_URL",
                             "value": "[if(empty(parameters('serviceSiteName')), '', concat('https://', variables('serviceSiteResourceName'), '.azurewebsites.net'))]"
                         }
@@ -273,6 +284,7 @@
                         "PCS_KEYVAULT_URL": "[parameters('keyVaultUri')]",
                         "PCS_MSI_APPID": "[parameters('managedIdentityClientId')]",
                         "PCS_MSI_TENANT": "[parameters('managedIdentityTenantId')]",
+                        "PCS_AUTH_TENANT": "[if(not(empty(parameters('authTenantId'))), parameters('authTenantId'), parameters('managedIdentityTenantId'))]",
                         "DOCKER_ENABLE_CI": "[if(parameters('deployFromSource'), '', 'false')]",
                         "DOCKER_REGISTRY_SERVER_URL": "[if(parameters('deployFromSource'), '', concat('https://', parameters('dockerServer')))]",
                         "DOCKER_REGISTRY_SERVER_USERNAME": "[if(parameters('deployFromSource'), '', parameters('dockerUser'))]",
@@ -406,6 +418,10 @@
                         {
                             "name": "PCS_MSI_TENANT",
                             "value": "[parameters('managedIdentityTenantId')]"
+                        },
+                        {
+                            "name": "PCS_AUTH_TENANT",
+                            "value": "[if(not(empty(parameters('authTenantId'))), parameters('authTenantId'), parameters('managedIdentityTenantId'))]"
                         },
                         {
                             "name": "PCS_SERVICE_URL",

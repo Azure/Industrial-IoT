@@ -15,7 +15,7 @@ The Industrial-IoT repository includes all Azure Industrial IoT Platform compone
   * **OPC-Twin**
     The OPC Twin is an edge module that provides support for discovery and remote OPC UA service calls. It uses the edge and protocol components in the `Components/OPC UA` folder.
   * **OPC-Publisher**
-    The OPC Publisher is an IoT Edge module that streams OPC UA data in the form of Pub/Sub to IoT Hub for processing in downstream services.   It uses the edge and protocol components in the `Components/OPC UA` folder.
+    The OPC Publisher is an IoT Edge module that streams OPC UA data in the form of PubSub to IoT Hub for processing in downstream services. It uses the edge and protocol components in the `Components/OPC UA` folder.
 * **Services**
   The services folder includes the Microservices and Agents running in Azure Cloud and communicating with the Edge modules. They utilize the business logic contained in the `Components` folder.
 

@@ -1,6 +1,7 @@
 <#
  .SYNOPSIS
-    Builds csproj file and returns buildable dockerfile build definitions
+    Builds csproj file and returns buildable dockerfile build 
+    definitions
 
  .PARAMETER Path
     The folder containing the container.json file.
@@ -8,11 +9,16 @@
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
     Debug also includes debugger into images (where applicable).
+
+ .PARAMETER Fast
+    Perform a fast build.  This will only build what is needed for 
+    the system to operate.
 #>
 
 Param(
     [string] $Path = $null,
-    [switch] $Debug
+    [switch] $Debug,
+    [switch] $Fast
 )
 
 # Get meta data
@@ -25,7 +31,7 @@ if (!(Test-Path -Path $Path -PathType Container)) {
 }
 $Path = Resolve-Path -LiteralPath $Path
 $configuration = "Release"
-if ($Debug.IsPresent) {
+if ($script:Debug.IsPresent) {
     $configuration = "Debug"
 }
 $metadata = Get-Content -Raw -Path (Join-Path $Path "container.json") `
@@ -59,6 +65,17 @@ if ($projFile) {
         $argumentList += "-o"
         $argumentList += (Join-Path $output $runtimeId)
         $argumentList += $projFile.FullName
+
+        if ($script:Fast.IsPresent -and ($runtimeId -ne "portable")) {
+            # Only build portable, windows and linux in fast mode
+            if (($runtimeId -ne "win-x64") -and ($runtimeId -ne "linux-x64")) {
+                return;
+            }
+            # if not iot edge, just build for linux or as portable.
+            if ((!$metadata.iotedge) -and ($runtimeId -ne "linux-x64")) {
+                return;
+            }
+        }
 
         Write-Host "Publish $($projFile.FullName) with $($runtimeId) runtime..."
         & dotnet $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
@@ -110,14 +127,14 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         }
         "windows/amd64:10.0.17763.1457" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:10.0.17763.1457-amd64"
+            image = "mcr.microsoft.com/windows/nanoserver:1809"
             platformTag = "nanoserver-amd64-1809"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
         "windows/amd64:10.0.18363.1082" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:10.0.18363.1082-amd64"
+            image = "mcr.microsoft.com/windows/nanoserver:1909"
             platformTag = "nanoserver-amd64-1909"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
@@ -134,6 +151,17 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         $entryPoint = $platformInfo.entryPoint
         $environmentVars = @("ENV DOTNET_RUNNING_IN_CONTAINER=true")
 
+        if ($script:Fast.IsPresent) {
+            # Only build windows and linux iot edge images in fast mode
+            if (($_ -ne "windows/amd64:10.0.17763.1457") -and ($_ -ne "linux/amd64")) {
+                return;
+            }
+            # if not iot edge, just build linux images.
+            if ((!$metadata.iotedge) -and ($_ -ne "linux/amd64")) {
+                return;
+            }
+        }
+
         #
         # Check for overridden base image name - e.g. aspnet core images
         # this script only supports portable and defaults to dotnet entry 
@@ -149,7 +177,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         }
 
         $debugger = ""
-        if ($Debug.IsPresent) {
+        if ($script:Debug.IsPresent) {
             if (![string]::IsNullOrEmpty($platformInfo.debugger)) {
                 $debugger = $platformInfo.debugger
             }
