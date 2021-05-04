@@ -22,6 +22,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public string DisplayName { get; set; }
 
         /// <summary>
+        /// Alias identifier to be used in telemetry stream if provided
+        /// </summary>
+        public string AliasId { get; set; }
+
+        /// <summary>
         /// Publishing interval to use
         /// </summary>
         public TimeSpan? PublishingInterval { get; set; }
