@@ -46,11 +46,11 @@ if ($projFile) {
     $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
     $runtimes = @(
         "linux-arm",
-        "alpine-arm",
+        "linux-musl-arm",
         "linux-arm64",
-        "alpine-arm64",
+        "linux-musl-arm64",
         "linux-x64",
-        "alpine-x64",
+        "linux-musl-x64",
         "win-x64",
         ""
     )
@@ -76,12 +76,12 @@ if ($projFile) {
         $argumentList += $projFile.FullName
 
         if ($script:Fast.IsPresent -and ($runtimeId -ne "portable")) {
-            # Only build portable, windows and alpine in fast mode
-            if (($runtimeId -ne "win-x64") -and ($runtimeId -ne "alpine-x64")) {
+            # Only build portable, windows and linux in fast mode
+            if (($runtimeId -ne "win-x64") -and ($runtimeId -ne "linux-musl-x64")) {
                 return;
             }
-            # if not iot edge, just build for alpine or as portable.
-            if ((!$metadata.iotedge) -and ($runtimeId -ne "alpine-x64")) {
+            # if not iot edge, just build for linux or as portable.
+            if ((!$metadata.iotedge) -and ($runtimeId -ne "linux-musl-x64")) {
                 return;
             }
         }
@@ -112,14 +112,14 @@ if ($projFile) {
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/arm64" = @{
-            runtimeId = "alpine-arm64"
+            runtimeId = "linux-musl-arm64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine-arm64v8"
             platformTag = "linux-arm64v8"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/amd64" = @{
-            runtimeId = "alpine-x64"
+            runtimeId = "linux-musl-x64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
