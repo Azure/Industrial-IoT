@@ -168,8 +168,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(nodeId, ObjectTypeIds.ConditionType);
         }
 
-        protected override Mock<INodeCache> SetupMockedNodeCache() {
-            var nodeCache = base.SetupMockedNodeCache();
+        protected override Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null) {
+            var nodeCache = base.SetupMockedNodeCache(namespaceTable);
             AddNode(_baseObjectTypeNode);
             AddNode(_baseEventTypeNode);
             AddNode(_messageNode);
@@ -181,6 +181,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var typeTable = nodeCache.Object.TypeTree as TypeTable;
             typeTable.Add(_baseObjectTypeNode);
             typeTable.Add(_baseEventTypeNode);
+            typeTable.Add(_conditionTypeNode);
             typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
             typeTable.AddSubtype(ObjectTypeIds.ConditionType, ObjectTypeIds.BaseEventType);
             _baseObjectTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, false, ObjectTypeIds.BaseEventType);

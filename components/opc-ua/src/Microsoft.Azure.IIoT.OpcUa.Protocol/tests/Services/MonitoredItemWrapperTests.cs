@@ -243,25 +243,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal("2:CycleId", monitoredItemWrapper.FieldNames[0]);
             Assert.Equal("2:CurrentStep", monitoredItemWrapper.FieldNames[1]);
         }
-
-        private static INodeCache GetNodeCache(NamespaceTable namespaceTable = null) {
-            namespaceTable ??= new NamespaceTable();
-            using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
-            var nodeCache = mock.Mock<INodeCache>();
-            var typeTable = new TypeTable(namespaceTable);
-            nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
-            nodeCache.SetupGet(x => x.NamespaceUris).Returns(namespaceTable);
-            return nodeCache.Object;
-        }
-
-        private MonitoredItemWrapper GetMonitoredItemWrapper(BaseMonitoredItemModel template, ServiceMessageContext messageContext = null, INodeCache nodeCache = null, IVariantEncoder codec = null, bool activate = true) {
-            var monitoredItemWrapper = new MonitoredItemWrapper(template, Log.Logger);
-            monitoredItemWrapper.Create(
-                messageContext ?? new ServiceMessageContext(),
-                nodeCache ?? GetNodeCache(),
-                codec ?? new VariantEncoderFactory().Default,
-                activate);
-            return monitoredItemWrapper;
-        }
     }
 }
