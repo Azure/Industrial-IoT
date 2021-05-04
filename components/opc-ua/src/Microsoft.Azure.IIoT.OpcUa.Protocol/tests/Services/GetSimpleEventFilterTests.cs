@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template, null, null);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
             // Assert
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template, null, null);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
             // Assert
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
@@ -109,7 +109,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(nodeId, ObjectTypeIds.ConditionType);
         }
 
-
         [Fact]
         public void SetupSimpleFilterForConditionTypeWithPendingAlarmsEnabled() {
             // Arrange
@@ -123,7 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             };
 
             // Act
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template, null, null);
+            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
 
             // Assert
             Assert.NotNull(monitoredItemWrapper.Item.Filter);
@@ -202,9 +201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (x.IdType == IdType.Numeric && x.Identifier is uint id) {
                     return _nodes[id];
                 }
-                else {
-                    return null;
-                }
+                return null;
             });
             return nodeCache;
         }

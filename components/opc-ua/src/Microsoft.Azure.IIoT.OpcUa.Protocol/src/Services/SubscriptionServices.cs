@@ -1353,7 +1353,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <summary>
-            /// Builds select clause and where clause by using opc ua reflection
+            /// Builds select clause and where clause by using OPC UA reflection
             /// </summary>
             /// <param name="nodeCache"></param>
             /// <param name="context"></param>

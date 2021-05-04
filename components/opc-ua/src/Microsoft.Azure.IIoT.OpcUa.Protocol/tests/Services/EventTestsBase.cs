@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Serilog;
     using static Microsoft.Azure.IIoT.OpcUa.Protocol.Services.SubscriptionServices;
 
-    public class EventTestsBase {
+    public abstract class EventTestsBase {
         protected INodeCache GetNodeCache(NamespaceTable namespaceTable = null) {
             return SetupMockedNodeCache(namespaceTable).Object;
         }
@@ -19,8 +19,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         protected virtual Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null) {
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             var nodeCache = mock.Mock<INodeCache>();
-            if (namespaceTable == null)
+            if (namespaceTable == null) {
                 namespaceTable = new NamespaceTable();
+            }
             var typeTable = new TypeTable(namespaceTable);
             nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
             nodeCache.SetupGet(x => x.NamespaceUris).Returns(namespaceTable);
