@@ -10,13 +10,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Tests.Services {
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Serilog;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
-    using static Microsoft.Azure.IIoT.OpcUa.Protocol.Services.SubscriptionServices;
 
-    public class GetSimpleEventFilterTests {
+    public class GetSimpleEventFilterTests : EventTestsBase {
         [Fact]
         public void SetupSimpleFilterForBaseEventType() {
             // Arrange
@@ -58,14 +56,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Tests.Services {
             Assert.Equal(nodeId, ObjectTypeIds.BaseEventType);
         }
 
-        private INodeCache GetNodeCache() {
+        protected override Mock<INodeCache> SetupMockedNodeCache() {
+            var nodeCache = base.SetupMockedNodeCache();
             AddNode(_baseObjectTypeNode);
             AddNode(_baseEventTypeNode);
             AddNode(_eventIdNode);
-            using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
-            var nodeCache = mock.Mock<INodeCache>();
-            var typeTable = new TypeTable(new NamespaceTable());
-            nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
+            var typeTable = nodeCache.Object.TypeTree as TypeTable;
             typeTable.Add(_baseObjectTypeNode);
             typeTable.Add(_baseEventTypeNode);
             typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
@@ -81,7 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Tests.Services {
                     return null;
                 }
             });
-            return nodeCache.Object;
+            return nodeCache;
         }
 
         private void AddNode(Node node) {
@@ -115,15 +111,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Tests.Services {
         };
 
         private readonly Dictionary<uint, Node> _nodes = new Dictionary<uint, Node>();
-
-        private MonitoredItemWrapper GetMonitoredItemWrapper(BaseMonitoredItemModel template, ServiceMessageContext messageContext = null, INodeCache nodeCache = null, IVariantEncoder codec = null, bool activate = true) {
-            var monitoredItemWrapper = new MonitoredItemWrapper(template, Log.Logger);
-            monitoredItemWrapper.Create(
-                messageContext ?? new ServiceMessageContext(),
-                nodeCache ?? GetNodeCache(),
-                codec ?? new VariantEncoderFactory().Default,
-                activate);
-            return monitoredItemWrapper;
-        }
     }
 }

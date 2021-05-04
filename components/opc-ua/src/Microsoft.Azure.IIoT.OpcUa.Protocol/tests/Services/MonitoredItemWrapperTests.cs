@@ -8,15 +8,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models.Events;
     using Opc.Ua;
-    using Opc.Ua.Client;
-    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
-    using static Microsoft.Azure.IIoT.OpcUa.Protocol.Services.SubscriptionServices;
 
-    public class MonitoredItemWrapperTests {
+    public class MonitoredItemWrapperTests : EventTestsBase {
         [Fact]
         public void SetDefaultValuesWhenPropertiesAreNullInBaseTemplate() {
             var template = new DataMonitoredItemModel {
@@ -138,11 +135,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.NotNull(eventFilter.SelectClauses);
             Assert.Equal(3, eventFilter.SelectClauses.Count);
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[0].TypeDefinitionId);
-            Assert.Equal("Time", eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal(BrowseNames.Time, eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[1].TypeDefinitionId);
-            Assert.Equal("ReceiveTime", eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal(BrowseNames.ReceiveTime, eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[2].TypeDefinitionId);
-            Assert.Equal("EventType", eventFilter.SelectClauses[2].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[2].BrowsePath.ElementAtOrDefault(0));
         }
 
         [Fact]
@@ -165,25 +162,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Empty(eventFilter.SelectClauses[3].BrowsePath);
             Assert.Equal(Attributes.Value, eventFilter.SelectClauses[4].AttributeId);
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[4].TypeDefinitionId);
-            Assert.Equal("Retain", eventFilter.SelectClauses[4].BrowsePath.FirstOrDefault());
-        }
-
-        private INodeCache GetNodeCache() {
-            using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
-            var nodeCache = mock.Mock<INodeCache>();
-            var typeTable = new TypeTable(new NamespaceTable());
-            nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
-            return nodeCache.Object;
-        }
-
-        private MonitoredItemWrapper GetMonitoredItemWrapper(BaseMonitoredItemModel template, ServiceMessageContext messageContext = null, INodeCache nodeCache = null, IVariantEncoder codec = null, bool activate = true) {
-            var monitoredItemWrapper = new MonitoredItemWrapper(template, Log.Logger);
-            monitoredItemWrapper.Create(
-                messageContext ?? new ServiceMessageContext(),
-                nodeCache ?? GetNodeCache(),
-                codec ?? new VariantEncoderFactory().Default,
-                activate);
-            return monitoredItemWrapper;
+            Assert.Equal(BrowseNames.Retain, eventFilter.SelectClauses[4].BrowsePath.FirstOrDefault());
         }
     }
 }
