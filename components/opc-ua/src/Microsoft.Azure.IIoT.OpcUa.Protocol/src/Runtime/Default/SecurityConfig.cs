@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public const string ApplicationCertificateStorePathKey = "ApplicationCertificateStorePath";
         public const string ApplicationCertificateStoreTypeKey = "ApplicationCertificateStoreType";
         public const string ApplicationCertificateSubjectNameKey = "ApplicationCertificateSubjectName";
+        public const string ApplicationNameKey = "ApplicationName";
         public const string TrustedIssuerCertificatesPathKey = "TrustedIssuerCertificatesPath";
         public const string TrustedIssuerCertificatesTypeKey = "TrustedIssuerCertificatesType";
         public const string TrustedPeerCertificatesPathKey = "TrustedPeerCertificatesPath";
@@ -45,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
             StoreType = GetStringOrDefault(ApplicationCertificateStoreTypeKey,
                 () => CertificateStoreType.Directory),
             SubjectName = GetStringOrDefault(ApplicationCertificateSubjectNameKey,
-                () => $"CN={_application?.ApplicationName ?? "Microsoft.Azure.IIoT"}," +
+                () => $"CN={GetStringOrDefault(ApplicationNameKey, () => "Micorosft.Azure.IIoT")}," +
                 " C=DE, S=Bav, O=Microsoft, DC=localhost")
         };
 
