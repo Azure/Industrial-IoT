@@ -108,5 +108,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <returns></returns>
         Task CloseAsync();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        void OnSubscriptionStateChanged(bool online);
     }
 }
