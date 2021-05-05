@@ -1,20 +1,28 @@
 ﻿<#
  .SYNOPSIS
-    Registers required applications
+    Registers required applications.
 
  .DESCRIPTION
-    Registers required applications in aad and returns object containing information
+    Registers the required applications in AAD and returns an object containing the information.
 
  .PARAMETER Name
-    The Name prefix under which to register the applications
+    The Name prefix under which to register the applications.
+
+ .PARAMETER TenantId
+    The Azure Active Directory tenant to use.
+
+ .PARAMETER ReplyUrl
+    A reply_url to register, e.g. https://<NAME>.azurewebsites.net/
 
  .PARAMETER Context
-    A previously created az context (optional)
+    A previously created az context (optional).
 #>
 
 param(
     [Parameter(Mandatory = $true)] [string] $Name,
     $Context,
+    [string] $TenantId = $null,
+    [string] $ReplyUrl = $null,
     [string] $Output = $null,
     [string] $EnvironmentName = "AzureCloud"
 )
@@ -28,13 +36,15 @@ Function Select-Context() {
         [string] $environmentName,
         [Microsoft.Azure.Commands.Profile.Models.Core.PSAzureContext] $context
     )
+
     if ($context) {
+        Write-Host "Using passed context (Account $($context.Account), Tenant $($context.Tenant.Id))"
         return $context
     }
 
     $rootDir = Get-RootFolder $script:ScriptDir
     $contextFile = Join-Path $rootDir ".user"
-    if (Test-Path $contextFile) {
+    if ((Test-Path $contextFile) -and [string]::IsNullOrEmpty($script:TenantId)) {
         # Migrate .user file into root (next to .env)
         if (!(Test-Path $contextFile)) {
             $oldFile = Join-Path $script:ScriptDir ".user"
@@ -42,21 +52,36 @@ Function Select-Context() {
                 Move-Item -Path $oldFile -Destination $contextFile
             }
         }
-        $profile = Import-AzContext -Path $contextFile
-        if ($profile.Context) {
-            return $profile.Context
+        $azProfile = Import-AzContext -Path $contextFile
+        $context = $azProfile.Context
+        if ($context) {
+            Write-Host "Using saved context (Account $($context.Account), Tenant $($context.Tenant.Id))"
+            return $context
         }
     }
+
+    $tenantIdArg = @{}
+
+    if (![string]::IsNullOrEmpty($script:tenantId)) {
+        $tenantIdArg = @{
+            TenantId = $script:tenantId
+        }
+    }
+
+    # Login and get context
     try {
-        $profile = Connect-AzAccount `
-            -Environment $environmentName `
+        $azProfile = Connect-AzAccount `
+            -Environment $environmentName @tenantIdArg `
             -ErrorAction Stop
 
-        $reply = Read-Host -Prompt "Save credention in .user file [y/n]"
+        $reply = Read-Host -Prompt "Save credentials in .user file? [y/n]"
         if ($reply -match "[yY]") {
             Save-AzContext -Path $contextFile -Profile $connection
         }
-        return $profile.Context
+
+        $context = $azProfile.Context
+        Write-Host "Using context (Account $($context.Account), Tenant $($context.Tenant.Id))"
+        return $context
     }
     catch {
         throw "The login to the Azure account was not successful."
@@ -177,20 +202,30 @@ Function New-ADApplications() {
         [string] $applicationName
     )
     try {
+        $tenantId = $context.Tenant.Id
+
+        if (![string]::IsNullOrEmpty($script:TenantId)) {
+            $tenantId = $script:TenantId
+        }
+
         try {
-            $creds = Connect-AzureAD `
+            $creds = Connect-AzureADAlias `
                 -AzureEnvironmentName $context.Environment.Name `
-                -TenantId $context.Tenant.Id `
+                -TenantId $tenantId `
                 -AccountId $context.Account.Id `
                 -Credential $context.Account.Credential
         }
         catch {
-            # For some accounts $context.Account.Id may be first.last@something.com which might 
+            # For some accounts $context.Account.Id may be first.last@something.com which might
             # not be correct UserPrincipalName. In those cases we will prompt for another login.
-            $creds = Connect-AzureAD `
-                -AzureEnvironmentName $context.Environment.Name `
-                -TenantId $context.Tenant.Id `
-        
+            try {
+                $creds = Connect-AzureADAlias `
+                    -AzureEnvironmentName $context.Environment.Name `
+                    -TenantId $tenantId `
+                }
+            catch {
+                Write-Host "Failed collecting user credentials while registering $($applicationDisplayName): $($_.Exception.Message)"
+            }
         }
 
         if (!$creds) {
@@ -208,11 +243,29 @@ Function New-ADApplications() {
                 $user = Get-AzureADUser -ObjectId $creds.Account.Id -ErrorAction Stop
             }
             catch {
-                $user = (Get-AzureADUser -SearchString $creds.Account.Id)[0]
+                try {
+                    $user = (Get-AzureADUser -SearchString $creds.Account.Id)[0]
+                }
+                catch {
+                    Write-Host "Failed getting user principal for $($creds.Account.Id) while searching by account ID."
+                }
             }
         }
         catch {
             Write-Verbose "Getting user principal for $($creds.Account.Id) failed."
+        }
+
+        # May be using authTenantId, get ObjectId from external account.
+        if(!$user) {
+            $accountId = $context.Account.Id.Replace("@", "_")
+            $adUser = (Get-AzureADUser -Filter "startswith(userPrincipalName, '$($accountId)')")
+
+            $properties = @{
+                UserPrincipalName = $adUser.UserPrincipalName
+                ObjectId = $adUser.ObjectId
+            }
+            $user = New-Object psobject -Property $properties
+            $fallBackUser = $user.ObjectId
         }
 
         # Get or create native client application
@@ -376,7 +429,7 @@ Function New-ADApplications() {
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Microsoft Graph" `
             -requiredDelegatedPermissions "User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
-        
+
         Set-AzureADApplication -ObjectId $clientAadApplication.ObjectId `
             -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `
             -Oauth2AllowImplicitFlow $False -Oauth2AllowUrlPathMatching $True | Out-Null
@@ -390,8 +443,17 @@ Function New-ADApplications() {
         }
         Write-Host "'$($clientDisplayName)' updated with required resource access."
 
+        $replyUrls = New-Object System.Collections.Generic.List[System.String]
+        $replyUrl = $script:ReplyUrl
+        if (![string]::IsNullOrEmpty($replyUrl)) {
+            # Append "/" if necessary.
+            $replyUrl = If ($replyUrl.Substring($replyUrl.Length - 1, 1) -eq "/") { $replyUrl } Else {$replyUrl + "/"}
+            $replyUrls.Add("$($replyUrl)signin-oidc")
+            Write-Host "Registering $($replyUrl) as reply URL ..."
+        }
+
         Set-AzureADApplication -ObjectId $webAadApplication.ObjectId `
-            -RequiredResourceAccess $requiredResourcesAccess `
+            -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `
             -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True | Out-Null
         # Grant permissions to web app
         try {
@@ -402,6 +464,11 @@ Function New-ADApplications() {
             Write-Host "$($_.Exception) - this must be done manually with appropriate permissions."
         }
         Write-Host "'$($webDisplayName)' updated with required resource access."
+
+        # Reset ObjectId to use the one from the default tenant.
+        if($null -ne $fallBackUser) {
+            $user.ObjectId = $null
+        }
 
         return [pscustomobject] @{
             TenantId           = $creds.Tenant.Id
@@ -423,6 +490,7 @@ Function New-ADApplications() {
             WebAppDisplayName  = $webDisplayName
 
             UserPrincipalId    = $user.ObjectId
+            FallBackPrincipalId= $fallBackUser
         }
     }
     catch {
@@ -432,8 +500,8 @@ Function New-ADApplications() {
         Write-Host "An error occurred: $($ex.Exception.Message)"
         Write-Host
         Write-Host "Ensure you have installed the AzureAD cmdlets:"
-        Write-Host "1) Run Powershell as an administrator"
-        Write-Host "2) in the PowerShell window, type: Install-Module AzureAD"
+        Write-Host "1) Run PowerShell as an administrator"
+        Write-Host "2) In the PowerShell window, type: Install-Module AzureAD"
         Write-Host
 
         throw $ex
@@ -450,10 +518,11 @@ Function Add-AdminConsentGrant() {
     )
 
     $url = "https://main.iam.ad.ext.azure.com/api/RegisteredApplications/$($azureAppId)/Consent?onBehalfOfAll=true"
-    for ($i = 0; $i -lt 20; $i++) {
-        # try 20 times * 3 seconds = 1 minute
+    for ($i = 0; $i -lt 10; $i++) {
+        # Try 10 times * 3 s = 30 s
         $token = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate( `
             $context.Account, $context.Environment, $context.Tenant.Id, $null, "Never", $null, "74658136-14ec-4630-ad9b-26e160ff0fc6")
+
         if (!$token) {
             throw "Failed to get auth token for $($context.Tenant.Id)."
         }
@@ -465,7 +534,7 @@ Function Add-AdminConsentGrant() {
                 "x-ms-correlation-id"    = [guid]::NewGuid()
             }
             Invoke-RestMethod -Uri $url -Method POST -Headers $header
-            # success
+            # Success
             return
         }
         catch {
@@ -524,14 +593,33 @@ Function Add-PreauthorizedApplication() {
 $ErrorActionPreference = "Stop"
 $script:ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
+# Import Azure tools
 Import-Module Az
-try {
-    # Try first release version
-    Import-Module AzureAD
-}
-catch {
-    # Fallback to preview
-    Import-Module AzureAD.Standard.Preview
+# For CloudShell
+$isCloudShell = $false
+if (Get-Module -ListAvailable -Name "AzureAD.Standard.Preview") {
+    Write-Host "Importing module AzureAD.Standard.Preview"
+    Import-Module "AzureAD.Standard.Preview"
+    $isCloudShell = $true
+
+    # Azure cloud shell deliberately hided Connect-AzureAD cmdlet in a 2020 Feb update and used a wrapper with identical
+    # name Connect-AzureAD. This change pollutes cmdlet names in this script. The following line fixes the issue:
+    # Create an alias for Connect-AzureAD cmdlet depending on the version of AAD module
+    # so that the cmdlet could be used easier later
+    Set-Alias -Name Connect-AzureADAlias -Value "AzureAD.Standard.Preview\Connect-AzureAD"
+
+# For Windows PowerShell
+} elseif (Get-Module -ListAvailable -Name "AzureADPreview")  {
+    Write-Host "Importing module AzureADPreview"
+    Import-Module "AzureADPreview"
+    Set-Alias -Name Connect-AzureADAlias -Value "AzureADPreview\Connect-AzureAD"
+} elseif (Get-Module -ListAvailable -Name "AzureAD")  {
+    Write-Host "Importing module AzureAD"
+    Import-Module  "AzureAD"
+    Set-Alias -Name Connect-AzureADAlias -Value "AzureAD\Connect-AzureAD"
+} else {
+    Write-Host "This script is not compatible with your computer, please use Azure CloudShell https://shell.azure.com/powershell"
+    return
 }
 
 $selectedContext = Select-Context `
@@ -542,8 +630,16 @@ $aadConfig = New-ADApplications `
     -applicationName $script:Name `
     -context $selectedContext
 
+$aadConfigJson = $aadConfig | ConvertTo-Json
+
+if($isCloudShell) {
+    Write-Host "aadConfig:"
+    Write-Host $aadConfigJson
+}
+
 if ($script:Output) {
-    $aadConfig | ConvertTo-Json | Out-File $script:Output
+    $aadConfigJson | Out-File $script:Output
     return
 }
+
 return $aadConfig
