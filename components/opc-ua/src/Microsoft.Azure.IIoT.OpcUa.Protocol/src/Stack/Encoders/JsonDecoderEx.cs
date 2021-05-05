@@ -751,7 +751,7 @@ namespace Opc.Ua.Encoders {
             var values = ReadArray(property, () => ReadEncodeable(null, systemType, encodeableTypeId))?
                 .ToList();
             if (values == null) {
-                return null;
+                return Array.CreateInstance(systemType, 0);
             }
             var array = Array.CreateInstance(systemType, values.Count);
             values.CopyTo((IEncodeable[])array);
