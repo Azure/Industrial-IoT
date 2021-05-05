@@ -5,7 +5,7 @@
     <Description>Azure Industrial IoT Open Api support</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.2.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="5.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.5.0" />
