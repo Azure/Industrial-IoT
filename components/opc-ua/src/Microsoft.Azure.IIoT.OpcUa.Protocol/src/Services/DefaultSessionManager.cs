@@ -554,7 +554,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 // Validate thumbprint
                 if (e.Certificate.RawData != null && !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint)) {
-
                     if (_sessions.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
                         e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate)) {
                         e.Accept = true;
@@ -881,7 +880,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if ((value == SessionState.Running && oldState != SessionState.Running) ||
                             (value != SessionState.Running && oldState == SessionState.Running)) {
                             foreach (var subscription in Subscriptions.Values) {
-                                subscription.OnSubscriptionStateChanged((bool)(value == SessionState.Running));
+                                subscription.OnSubscriptionStateChanged(value == SessionState.Running);
                             }
                         }
                     }
