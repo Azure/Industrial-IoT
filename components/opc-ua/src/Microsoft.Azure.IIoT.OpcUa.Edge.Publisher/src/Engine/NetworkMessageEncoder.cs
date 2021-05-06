@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
             IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding) {
             try {
-                var resultJson = EncodeAsJson(messages, maxMessageSize);
+                var resultJson = EncodeAsJson(messages, maxMessageSize, useReversibleEncoding);
                 var resultUadp = EncodeAsUadp(messages, maxMessageSize);
                 var result = resultJson.Concat(resultUadp);
                 return Task.FromResult(result);
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
-                        UseReversibleEncoding = false
+                        UseReversibleEncoding = useReversibleEncoding
                     };
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
@@ -231,9 +231,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="maxMessageSize"></param>
+        /// <param name="useReversibleEncoding"></param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsJson(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
@@ -249,7 +250,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
                     UseAdvancedEncoding = true,
                     UseUriEncoding = true,
-                    UseReversibleEncoding = false
+                    UseReversibleEncoding = useReversibleEncoding
                 };
                 networkMessage.Encode(encoder);
                 encoder.Close();
