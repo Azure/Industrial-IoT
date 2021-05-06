@@ -42,9 +42,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding) {
             try {
-                var resultJson = EncodeAsJson(messages, maxMessageSize);
+                var resultJson = EncodeAsJson(messages, maxMessageSize, useReversibleEncoding);
                 var resultUadp = EncodeAsUadp(messages, maxMessageSize);
                 var result = resultJson.Concat(resultUadp);
                 return Task.FromResult(result);
@@ -56,9 +56,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding) {
             try {
-                var resultJson = EncodeBatchAsJson(messages, maxMessageSize);
+                var resultJson = EncodeBatchAsJson(messages, maxMessageSize, useReversibleEncoding);
                 var resultUadp = EncodeBatchAsUadp(messages, maxMessageSize);
                 var result = resultJson.Concat(resultUadp);
                 return Task.FromResult(result);
@@ -73,9 +73,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="maxMessageSize"></param>
+        /// <param name="useReversibleEncoding"></param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeBatchAsJson(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
@@ -223,9 +224,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="maxMessageSize"></param>
+        /// <param name="useReversibleEncoding"></param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsJson(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context

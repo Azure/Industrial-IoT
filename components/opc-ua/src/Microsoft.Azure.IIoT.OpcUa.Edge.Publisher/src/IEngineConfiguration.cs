@@ -38,5 +38,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         /// up in 50 MB memory consumed
         /// </summary>
         int? MaxOutgressMessages { get; }
+
+        /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public bool? UseReversibleEncoding { get; }
     }
 }
