@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
-    using Newtonsoft.Json;
     using Opc.Ua;
     using System.Collections.Generic;
     using System.Linq;
@@ -20,9 +19,9 @@ namespace Opc.Ua.Encoders {
         private const string kKeysIdentifier = "_Keys";
 
         /// <summary>
-        /// Identifier for the number of keys in the reversible format.
+        /// Identifier for the number of key-value pairs in the reversible format.
         /// </summary>
-        private const string kKeysCountIdentifier = "_KeysCount";
+        private const string kCountIdentifier = "_Count";
 
         /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
@@ -63,15 +62,16 @@ namespace Opc.Ua.Encoders {
                         $"The key '{kKeysIdentifier}' is already in use.");
                 }
 
-                if (this.Any(x => x.Key == kKeysCountIdentifier)) {
+                if (this.Any(x => x.Key == kCountIdentifier)) {
                     throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"The key '{kKeysCountIdentifier}' is already in use.");
+                        $"The key '{kCountIdentifier}' is already in use.");
                 }
 
                 // Write keys for decoding.
-                encoder.WriteUInt32(kKeysCountIdentifier, (uint)Count);
+                var keys = this.Select(x => x.Key).Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                encoder.WriteUInt32(kCountIdentifier, (uint)keys.Length);
                 if (Count > 0) {
-                    encoder.WriteStringArray(kKeysIdentifier, this.Select(x => x.Key).ToArray());
+                    encoder.WriteStringArray(kKeysIdentifier, keys);
                 }
             }
 
@@ -85,7 +85,7 @@ namespace Opc.Ua.Encoders {
         /// <inheritdoc/>
         public virtual void Decode(IDecoder decoder) {
             // Read keys for decoding.
-            var count = decoder.ReadUInt32(kKeysCountIdentifier);
+            var count = decoder.ReadUInt32(kCountIdentifier);
             if (count > 0) {
                 var keys = decoder.ReadStringArray(kKeysIdentifier);
                 foreach (var key in keys) {
