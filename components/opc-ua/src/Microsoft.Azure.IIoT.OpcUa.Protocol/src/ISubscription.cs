@@ -108,5 +108,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <returns></returns>
         Task CloseAsync();
+
+        /// <summary>
+        /// Function that gets called when subscription state changes between online/offline
+        /// </summary>
+        void OnSubscriptionStateChanged(bool online);
     }
 }

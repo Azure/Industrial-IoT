@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (!_sessions.TryGetValue(key, out var wrapper)) {
                     return;
                 }
-                if (onlyIfEmpty && wrapper.Subscriptions.Count == 0) {
+                if (onlyIfEmpty && wrapper.Subscriptions.Count == 0) {                   
                     wrapper.State = SessionState.Disconnect;
                     TriggerKeepAlive();
                 }
@@ -554,7 +554,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 // Validate thumbprint
                 if (e.Certificate.RawData != null && !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint)) {
-                    
                     if (_sessions.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
                         e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate)) {
                         e.Accept = true;
@@ -578,7 +577,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             }
                         }
                         catch (Exception ex) {
-                            _logger.Warning(ex,"Failed to add peer certificate {Thumbprint}, '{Subject}' " +
+                            _logger.Warning(ex, "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
                                 "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
                         }
                     }
@@ -869,7 +868,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Reconnecting
             /// </summary>
-            public SessionState State { get; set; }
+            public SessionState State {
+                get {
+                    return _state;
+                }
+                set {
+                    if (value != _state) {
+                        var oldState = _state;
+                        _state = value;
+
+                        if ((value == SessionState.Running && oldState != SessionState.Running) ||
+                            (value != SessionState.Running && oldState == SessionState.Running)) {
+                            foreach (var subscription in Subscriptions.Values) {
+                                subscription.OnSubscriptionStateChanged(value == SessionState.Running);
+                            }
+                        }
+                    }
+                }
+            }
 
             /// <summary>
             /// Error status notified
@@ -891,6 +907,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// </summary>
             public ConcurrentDictionary<string, ISubscription> Subscriptions { get; }
                 = new ConcurrentDictionary<string, ISubscription>();
+
+            private SessionState _state = SessionState.Init;
         }
 
         /// <summary>
