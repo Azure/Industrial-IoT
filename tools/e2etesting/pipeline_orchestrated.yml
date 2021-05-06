@@ -1,4 +1,10 @@
 name: $(Date:yyyyMMdd)$(Rev:rr)
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'IOT-OPC-WALLS-MSI'
+    KeyVaultName: 'developPipelineKV'
+    SecretsFilter: '*'
+    RunAsPreJob: true
 
 trigger: none
 pr: none
