@@ -1,5 +1,0 @@
-{
-    "name": "iotedge/opc-publisher",
-    "tag": "host",
-    "base": "mcr.microsoft.com/dotnet/core/runtime:3.1"
-}

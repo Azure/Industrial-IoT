@@ -8,6 +8,7 @@ jobs:
     name: Hosted Windows 2019 with VS2019
   variables:
     skipComponentGovernanceDetection: true
+    runCodesignValidationInjection: false
   steps:
   - task: PowerShell@2
     name: acrmatrix
@@ -44,11 +45,3 @@ jobs:
       azureSubscription: azureiiot
       scriptLocation: inlineScript
       inlineScript: powershell ./tools/scripts/acr-build.ps1 $(dockerFolder)
-  - task: AzureCLI@1
-    name: acrbuildd
-    displayName: Build Debug Images
-    inputs:
-      azureSubscription: azureiiot
-      scriptLocation: inlineScript
-      inlineScript: powershell ./tools/scripts/acr-build.ps1 $(dockerFolder) -debug
-

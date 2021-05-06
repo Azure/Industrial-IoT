@@ -1,14 +1,14 @@
 <#
  .SYNOPSIS
-    Creates release images with a particular release version in 
-    production ACR from the tested development version. 
+  Creates release images with a particular release version in 
+  production ACR from the tested development version. 
 
  .DESCRIPTION
-    The script requires az to be installed and already logged on to a 
-    subscription.  This means it should be run in a azcliv2 task in the
-    azure pipeline or "az login" must have been performed already.
+  The script requires az to be installed and already logged on to a 
+  subscription.  This means it should be run in a azcliv2 task in the
+  azure pipeline or "az login" must have been performed already.
 
-    Releases images with a given version number.
+  Releases images with a given version number.
 
  .PARAMETER BuildRegistry
     The name of the source registry where development image is present.
@@ -19,10 +19,14 @@
  .PARAMETER ReleaseRegistry
     The name of the destination registry where release images will 
     be created.
-
  .PARAMETER ReleaseSubscription
     The subscription of the release registry is different than build
     registry subscription
+ .PARAMETER ResourceGroupName
+    The name of the resource group to create if release registry does not
+    exist (Optional).
+ .PARAMETER ResourceGroupLocation
+    The location of the resource group to create (Optional).
 
  .PARAMETER ReleaseVersion
     The build version for the development image that is being released.
@@ -40,12 +44,66 @@ Param(
     [string] $BuildSubscription = "IOT_GERMANY",
     [string] $ReleaseRegistry = "industrialiotprod",
     [string] $ReleaseSubscription = $null,
+    [string] $ResourceGroupName = $null,
+    [string] $ResourceGroupLocation = $null,
     [Parameter(Mandatory = $true)] [string] $ReleaseVersion,
     [switch] $IsLatest,
     [switch] $IsMajorUpdate,
     [switch] $RemoveNamespaceOnRelease
 )
 
+$argumentList = @("account", "show")
+$account = & "az" $argumentList 2>$null | ConvertFrom-Json
+if (!$account) {
+    throw "Failed to retrieve account information."
+}
+if (![string]::IsNullOrEmpty($script:ReleaseSubscription)) {
+    $script:ReleaseSubscription = $account.name
+}
+if (![string]::IsNullOrEmpty($script:BuildSubscription)) {
+    $script:BuildSubscription = $account.name
+}
+
+if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
+    # check if release registry exists and if not create it
+    $argumentList = @("acr", "show", "--name", $script:ReleaseRegistry, 
+        "--subscription", $script:ReleaseSubscription)
+    $registry = & "az" $argumentList | ConvertFrom-Json
+    if (!$registry) {
+        # create registry - check if group exists and if not create it.
+        $argumentList = @("group", "show", "-g", $script:ResourceGroupName, 
+            "--subscription", $script:ReleaseSubscription)
+        $group = & "az" $argumentList 2>$null | ConvertFrom-Json
+        if (!$group) {
+            if ([string]::IsNullOrEmpty($script:ResourceGroupLocation)) {
+                throw "Need a resource group location to create the resource group."
+            }
+            $argumentList = @("group", "create", "-g", $script:ResourceGroupName, `
+                "-l", $script:ResourceGroupLocation, 
+                "--subscription", $script:ReleaseSubscription)
+            $group = & "az" $argumentList | ConvertFrom-Json
+            if ($LastExitCode -ne 0) {
+                throw "az $($argumentList) failed with $($LastExitCode)."
+            }
+            Write-Host "Created new Resource group $ResourceGroupName."
+        }
+        if ([string]::IsNullOrEmpty($script:ResourceGroupLocation)) {
+            $script:ResourceGroupLocation = $group.location
+        }
+    
+        $argumentList = @("acr", "create", "-g", $script:ResourceGroupName, "-n", `
+            $script:ReleaseRegistry, "-l", $script:ResourceGroupLocation, `
+            "--sku", "Basic", "--admin-enabled", "true", 
+            "--subscription", $script:ReleaseSubscription)
+        $registry = & "az" $argumentList | ConvertFrom-Json
+        if ($LastExitCode -ne 0) {
+            throw "az $($argumentList) failed with $($LastExitCode)."
+        }
+Write-Host "Created container registry $($registry.name) in $script:ResourceGroupName."
+    }
+}
+
+# Set build subscription if provided
 if (![string]::IsNullOrEmpty($script:BuildSubscription)) {
     Write-Debug "Setting subscription to $($script:BuildSubscription)"
     $argumentList = @("account", "set", 
@@ -58,7 +116,8 @@ if (![string]::IsNullOrEmpty($script:BuildSubscription)) {
 
 # get build registry credentials
 $argumentList = @("acr", "credential", "show", 
-    "--name", $script:BuildRegistry, "-ojson")
+    "--name", $script:BuildRegistry, "-ojson", 
+    "--subscription", $script:BuildSubscription)
 $result = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" })
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
@@ -70,7 +129,8 @@ Write-Host "Using Source Registry User name $($sourceUser) and password ****"
 
 # Get build repositories 
 $argumentList = @("acr", "repository", "list",
-    "--name", $script:BuildRegistry, "-ojson")
+    "--name", $script:BuildRegistry, "-ojson", 
+    "--subscription", $script:BuildSubscription)
 $result = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" })
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
@@ -86,6 +146,7 @@ foreach ($Repository in $BuildRepositories) {
     # see if build tag exists
     $argumentList = @("acr", "repository", "show", 
         "--name", $script:BuildRegistry,
+        "--subscription", $script:BuildSubscription,
         "-t", $BuildTag,
         "-ojson"
     )
@@ -123,7 +184,8 @@ foreach ($Repository in $BuildRepositories) {
     $FullImageName = "$($script:BuildRegistry).azurecr.io/$($BuildTag)" 
     $argumentList = @("acr", "import", "-ojson", "--force",
         "--name", $script:ReleaseRegistry,
-        "--source", $FullImageName
+        "--source", $FullImageName, 
+        "--subscription", $script:BuildSubscription,
         "--username", $sourceUser,
         "--password", $sourcePassword
     )

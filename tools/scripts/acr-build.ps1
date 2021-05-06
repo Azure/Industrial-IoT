@@ -12,19 +12,21 @@
 
  .PARAMETER Registry
     The name of the registry
-
  .PARAMETER Subscription
     The subscription to use - otherwise uses default
 
  .PARAMETER Debug
     Build debug and include debugger into images (where applicable)
+ .PARAMETER Fast
+    Perform fast build. 
 #>
 
 Param(
     [string] $Path = $null,
     [string] $Registry = $null,
     [string] $Subscription = $null,
-    [switch] $Debug
+    [switch] $Debug,
+    [switch] $Fast
 )
 
 # Check path argument and resolve to full existing path
@@ -37,69 +39,64 @@ if (!(Test-Path -Path $Path -PathType Container)) {
 }
 $Path = Resolve-Path -LiteralPath $Path
 
-# Try to build all code and create dockerfile definitions to build using docker.
-$definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
-    -Path $Path -Debug:$Debug
-if ($definitions.Count -eq 0) {
-    Write-Host "Nothing to build."
-    return
+if ($script:Fast.IsPresent) {
+    $namespace = ""
 }
-
-# Try get branch name
-$branchName = $env:BUILD_SOURCEBRANCH
-if (![string]::IsNullOrEmpty($branchName)) {
-    if ($branchName.StartsWith("refs/heads/")) {
-        $branchName = $branchName.Replace("refs/heads/", "")
-    }
-    else {
-        Write-Warning "'$($branchName)' is not a branch."
-        $branchName = $null
-    }
-}
-if ([string]::IsNullOrEmpty($branchName)) {
-    try {
-        $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
-        $branchName = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
-        if ($LastExitCode -ne 0) {
-            throw "git $($argumentList) failed with $($LastExitCode)."
+else {
+    # Building as part of ci/cd pipeline. Try get branch name
+    $branchName = $env:BUILD_SOURCEBRANCH
+    if (![string]::IsNullOrEmpty($branchName)) {
+        if ($branchName.StartsWith("refs/heads/")) {
+            $branchName = $branchName.Replace("refs/heads/", "")
+        }
+        else {
+            Write-Warning "'$($branchName)' is not a branch."
+            $branchName = $null
         }
     }
-    catch {
-        Write-Warning $_.Exception
-        $branchName = $null
+    if ([string]::IsNullOrEmpty($branchName)) {
+        try {
+            $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
+            $branchName = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+            if ($LastExitCode -ne 0) {
+                throw "git $($argumentList) failed with $($LastExitCode)."
+            }
+        }
+        catch {
+            Write-Warning $_.Exception
+            $branchName = $null
+        }
     }
-}
 
-if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-    Write-Warning "Not building from a branch - skip image build."
-    return
+    if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
+        Write-Warning "Not building from a branch - skip image build."
+        return
+    }
+
+    # Set namespace name based on branch name
+    $namespace = $branchName
+    if ($namespace.StartsWith("feature/")) {
+        # dev feature builds
+        $namespace = $namespace.Replace("feature/", "")
+    }
+    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
+        $namespace = "public"
+        if ([string]::IsNullOrEmpty($Registry)) {
+            # Release and Preview builds go into staging
+            $Registry = "industrialiot"
+        }
+    }
+    $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+    $namespace = "$($namespace)/"
 }
 
 if ([string]::IsNullOrEmpty($Registry)) {
     $Registry = $env.BUILD_REGISTRY
-}
-
-# Set namespace name based on branch name
-$namespace = $branchName
-if ($namespace.StartsWith("feature/")) {
-    # dev feature builds
-    $namespace = $namespace.Replace("feature/", "")
-}
-elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
-    $namespace = "public"
     if ([string]::IsNullOrEmpty($Registry)) {
-    	# Release and Preview builds go into staging
-        $Registry = "industrialiot"
+        # Feature builds by default build into dev registry
+        $Registry = "industrialiotdev"
     }
 }
-
-if ([string]::IsNullOrEmpty($Registry)) {
-    # Feature builds by default build into dev registry
-    $Registry = "industrialiotdev"
-}
-
-$namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
-$namespace = "$($namespace)/"
 
 Write-Warning "Using $($Registry).azurecr.io."
 $latestTag = "latest"
@@ -111,37 +108,55 @@ if ([string]::IsNullOrEmpty($sourceTag)) {
         $sourceTag = $version.Prefix
     }
     catch {
-        $sourceTag = $null
-    }
-}
-if (![string]::IsNullOrEmpty($sourceTag)) {
-    Write-Host "Using version $($sourceTag) from get-version.ps1"
-}
-else {
-    # Otherwise look at git tag
-    if (![string]::IsNullOrEmpty($env:BUILD_SOURCEVERSION)) {
-        # Try get current tag
-        try {
-            $argumentList = @("tag", "--points-at", $env:BUILD_SOURCEVERSION)
-            $sourceTag = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
-            if ($LastExitCode -ne 0) {
-                throw "git $($argumentList) failed with $($LastExitCode)."
-            }
+        # build as latest if not building from ci/cd pipeline
+        if (!$script:Fast.IsPresent) {
+            Write-Warning "Unable to determine version - skip image build."
+            return
         }
-        catch {
-            Write-Error "Error reading tag from $($env:BUILD_SOURCEVERSION)"
-            $sourceTag = $null
-        }
-    }
-    if ([string]::IsNullOrEmpty($sourceTag)) {
-        throw "Failed getting version from get-version.ps1"
+        $sourceTag = "latest"
     }
 }
 
+# Get build root - this is the top most folder with .dockerignore
+$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
+# Get meta data
+$metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
+    | ConvertFrom-Json
+
+# Set image name and namespace in acr based on branch and source tag
+$imageName = $metadata.name
+if ($script:Fast.IsPresent) {
+    if (!$metadata.buildAlways) {
+        Write-Host "Using fast build - Skipping optional image $imageName."
+        return
+    }
+}
+$tagPostfix = ""
+$tagPrefix = ""
+if (![string]::IsNullOrEmpty($metadata.tag)) {
+    if ($script:Fast.IsPresent) {
+        Write-Host "Using fast build - Skipping $imageName with prefix tags."
+        return
+    }
+    $tagPrefix = "$($metadata.tag)-"
+}
+if ($script:Debug.IsPresent -and (!$script:Fast.IsPresent)) {
+    $tagPostfix = "-debug"
+}
+
+Write-Host "Building source of $imageName..."
+# Try to build all code and create dockerfile definitions to build using docker.
+$definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
+    -Path $Path -Debug:$script:Debug -Fast:$script:Fast
+if ($definitions.Count -eq 0) {
+    Write-Host "Nothing to build."
+    return
+}
+
 # set default subscription
-if (![string]::IsNullOrEmpty($Subscription)) {
-    Write-Debug "Setting subscription to $($Subscription)"
-    $argumentList = @("account", "set", "--subscription", $Subscription)
+if (![string]::IsNullOrEmpty($script:Subscription)) {
+    Write-Debug "Setting subscription to $($script:Subscription)"
+    $argumentList = @("account", "set", "--subscription", $script:Subscription)
     & "az" $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
@@ -149,15 +164,15 @@ if (![string]::IsNullOrEmpty($Subscription)) {
 }
 
 # get registry information
-$argumentList = @("acr", "show", "--name", $Registry)
-$RegistryInfo = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
+$argumentList = @("acr", "show", "--name", $script:Registry)
+$script:RegistryInfo = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
 }
-$resourceGroup = $RegistryInfo.resourceGroup
+$resourceGroup = $script:RegistryInfo.resourceGroup
 Write-Debug "Using resource group $($resourceGroup)"
 # get credentials
-$argumentList = @("acr", "credential", "show", "--name", $Registry)
+$argumentList = @("acr", "credential", "show", "--name", $script:Registry)
 $credentials = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
@@ -166,27 +181,8 @@ $user = $credentials.username
 $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"
 
-# Get build root - this is the top most folder with .dockerignore
-$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
-# Get meta data
-$metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
-| ConvertFrom-Json
-
-
-# Set image name and namespace in acr based on branch and source tag
-$imageName = $metadata.name
-
-$tagPostfix = ""
-$tagPrefix = ""
-if ($Debug.IsPresent) {
-    $tagPostfix = "-debug"
-}
-if (![string]::IsNullOrEmpty($metadata.tag)) {
-    $tagPrefix = "$($metadata.tag)-"
-}
-
-$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($tagPostfix)"
-Write-Host "Full image name: $($fullImageName)"
+$fullImageName = "$($script:Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($tagPostfix)"
+Write-Host "Building image $($fullImageName)"
 
 $manifest = @" 
 image: $($fullImageName)
@@ -195,7 +191,7 @@ manifests:
 "@
 
 Write-Host "Building $($definitions.Count) images in $($Path) in $($buildRoot)"
-Write-Host " and pushing to $($Registry)/$($namespace)$($imageName)..."
+Write-Host " and pushing to $($script:Registry)/$($namespace)$($imageName)..."
 
 $definitions | Out-Host
 
@@ -231,27 +227,34 @@ $definitions | ForEach-Object {
     Write-Host "Start build job for $($image)"
 
     # Create acr command line 
-    $argumentList = @("acr", "build", "--verbose",
-        "--registry", $Registry,
+    $argumentList = @("acr", "build", 
+        "--registry", $script:Registry,
         "--resource-group", $resourceGroup,
         "--platform", $platform,
         "--file", $dockerfile,
         "--image", $image
     )
+    if (!$script:Fast.IsPresent) {
+        $argumentList += "--verbose"
+    }
     $argumentList += $buildContext
 
     $jobs += Start-Job -Name $image -ArgumentList $argumentList -ScriptBlock {
         $argumentList = $args
-        Write-Host "Building ... az $($argumentList | Out-String) for $($image)..."
+        if ($argumentList -contains "--verbose") {
+            Write-Host "Building ... az $($argumentList | Out-String)..."
+        }
         & az $argumentList 2>&1 | ForEach-Object { "$_" }
         if ($LastExitCode -ne 0) {
-            Write-Warning "az $($argumentList | Out-String) failed for $($image) with $($LastExitCode) - 2nd attempt..."
+            Write-Warning "az $($argumentList | Out-String) failed with $($LastExitCode) - 2nd attempt..."
             & az $argumentList 2>&1 | ForEach-Object { "$_" }
             if ($LastExitCode -ne 0) {
-                throw "Error: 'az $($argumentList | Out-String)' 2nd attempt failed for $($image) with $($LastExitCode)."
+                throw "Error: 'az $($argumentList | Out-String)' 2nd attempt failed with $($LastExitCode)."
             }
         }
-        Write-Host "... az $($argumentList | Out-String) completed for $($image)."
+        if ($argumentList -contains "--verbose") {
+            Write-Host "... az $($argumentList | Out-String) completed."
+        }
     }
     
     # Append to manifest
@@ -260,7 +263,7 @@ $definitions | ForEach-Object {
         @"
 
   - 
-    image: $($Registry).azurecr.io/$($image)
+    image: $($script:Registry).azurecr.io/$($image)
     platform: 
       $($os)
       $($architecture)
@@ -273,7 +276,9 @@ $definitions | ForEach-Object {
 if ($jobs.Count -ne 0) {
     # Wait until all jobs are completed
     Receive-Job -Job $jobs -WriteEvents -Wait | Out-Host
-    $jobs | Out-Host
+    if (!$script:Fast.IsPresent) {
+        $jobs | Out-Host
+    }
     $jobs | Where-Object { $_.State -ne "Completed" } | ForEach-Object {
         throw "ERROR: Building $($_.Name). resulted in $($_.State)."
     }

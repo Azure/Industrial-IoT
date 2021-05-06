@@ -48,7 +48,11 @@ foreach ($repository in $repositories) {
     foreach ($tag in $content.tags) {
         if ($tags -contains $tag) {
             continue
-        } 
+        }
+        if ($tag -eq "2.0") {
+            # must keep tag to keep connected factory in business
+            continue
+        }
         $obsoleted += "mcr.microsoft.com/$($public):$($tag)"
     }
 }

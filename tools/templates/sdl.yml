@@ -9,6 +9,10 @@ jobs:
     demands:
     - msbuild
     - npm
+  variables:
+    runCodesignValidationInjection: false
+    DOTNET_CLI_TELEMETRY_OPTOUT: true
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
@@ -27,8 +31,6 @@ jobs:
     inputs:
       command: restore 
       projects: 'Industrial-IoT.sln'
-      feedsToUse: 'config'
-      nugetConfigPath: './NuGet.Config'
   - task: MSBuild@1
     displayName: Build
     inputs:
@@ -47,6 +49,7 @@ jobs:
   - task: 'msospo.ospo-extension.8d7f9abb-6896-461d-9e25-4f74ed65ddb2.notice@0'
     displayName: Generate 3rd Party Notices
     inputs:
+      outputformat: 'text'
       outputfile: thirdpartynotices.txt
     continueOnError: true
   - task: BinSkim@3
@@ -66,14 +69,14 @@ jobs:
     displayName: 'Run Vulnerability Assessment'
     continueOnError: true
     condition: succeededOrFailed()
-#  - task: PoliCheck@1
-#    displayName: PoliCheck
-#    inputs:
-#      targetType: F
-#      SOMEnabled: false
-#      uploadToSOM: true
-#      workspaceid: f26cefbe-7e7b-436a-8aad-ded8bb5d03e1
-#    continueOnError: true
+  - task: PoliCheck@1
+    displayName: PoliCheck
+    inputs:
+      targetType: F
+      SOMEnabled: false
+      uploadToSOM: true
+      workspaceid: f26cefbe-7e7b-436a-8aad-ded8bb5d03e1
+    continueOnError: true
   - task: SdtReport@1
     displayName: 'Create Security Analysis Report'
     inputs:
@@ -87,6 +90,7 @@ jobs:
     displayName: 'Post Analysis'
     inputs:
       BinSkim: true
+      PoliCheck: true
       CredScan: true
       RoslynAnalyzers: true
   - script: |
