@@ -112,10 +112,6 @@ namespace Opc.Ua.Nodeset {
                     Alias(BrowseNames.Float, DataTypeIds.Float),
                     Alias(BrowseNames.Double, DataTypeIds.Double),
                     Alias(BrowseNames.DateTime, DataTypeIds.DateTime),
-#if true // TODO
-                    Alias(BrowseNames.Time, DataTypeIds.Time),
-                    Alias(BrowseNames.Date, DataTypeIds.Date),
-#endif
                     Alias(BrowseNames.String, DataTypeIds.String),
                     Alias(BrowseNames.ByteString, DataTypeIds.ByteString),
                     Alias(BrowseNames.Guid, DataTypeIds.Guid),

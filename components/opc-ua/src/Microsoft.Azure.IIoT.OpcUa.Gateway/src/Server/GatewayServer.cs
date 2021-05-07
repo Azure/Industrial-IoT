@@ -28,11 +28,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Net;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using System.Text;
-    
+    using Opc.Ua.Bindings;
+
 
     /// <summary>
     /// Gateway server controller implementation
@@ -1716,8 +1716,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         }
 
         /// <inheritdoc/>
-        protected override IList<Task> InitializeServiceHosts(
+        protected override IList<ServiceHost> InitializeServiceHosts(
             ApplicationConfiguration configuration,
+            TransportListenerBindings bindingFactory,
             out ApplicationDescription serverDescription,
             out EndpointDescriptionCollection endpoints) {
             // set server description - will be returned by ServerDescription property.
@@ -1731,7 +1732,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 DiscoveryUrls = null
             };
             endpoints = _endpoints;
-            return new List<Task> { Task.CompletedTask };
+            return new List<ServiceHost>(); // TODO: We should probably create a service host here - but is this code really used?
         }
 
         /// <inheritdoc/>
