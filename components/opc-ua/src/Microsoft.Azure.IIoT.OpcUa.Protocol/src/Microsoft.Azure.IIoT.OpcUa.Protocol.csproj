@@ -51,11 +51,11 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core.Debug" Version="1.4.365-gfc341ee8c5" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Configuration.Debug" Version="1.4.365-gfc341ee8c5" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server.Debug" Version="1.4.365-gfc341ee8c5" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.Debug" Version="1.4.365-gfc341ee8c5" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes.Debug" Version="1.4.365-gfc341ee8c5" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core.Debug" Version="1.4.366.31-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Configuration.Debug" Version="1.4.366.31-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server.Debug" Version="1.4.366.31-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.Debug" Version="1.4.366.31-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes.Debug" Version="1.4.366.31-preview" />
       </ItemGroup>
     </Otherwise>
   </Choose>
