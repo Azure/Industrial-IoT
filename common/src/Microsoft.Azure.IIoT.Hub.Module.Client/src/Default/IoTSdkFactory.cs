@@ -640,7 +640,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 throw new InvalidOperationException("Missing certificate file.");
             }
 
-            var store = new X509Store(StoreName.Root, StoreLocation.CurrentUser);
+            var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite);
             using (var cert = new X509Certificate2(X509Certificate.CreateFromCertFile(certPath))) {
                 store.Add(cert);
