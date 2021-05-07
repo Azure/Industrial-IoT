@@ -1348,11 +1348,6 @@ namespace Opc.Ua.Encoders {
                     Array.Copy(matrix.Elements, index, copy, 0, arrayLen);
                     // Write slice as value rank
 
-#if false // TODO is this really needed when we use the JsonWriter?
-                    if (_commaRequired) {
-                        _writer.Write(",");
-                    }
-#endif
                     WriteVariantContents(copy, 1, typeInfo.BuiltInType);
                     index += arrayLen;
                 }

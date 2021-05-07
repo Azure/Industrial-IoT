@@ -42,11 +42,11 @@
   <Choose>
     <When Condition="'$(Configuration)'=='Release'">
       <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.4.365-gfc341ee8c5" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Configuration" Version="1.4.365-gfc341ee8c5" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.4.365-gfc341ee8c5" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.4.365-gfc341ee8c5" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.365-gfc341ee8c5" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.4.366.31-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Configuration" Version="1.4.366.31-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.4.366.31-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.4.366.31-preview" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.366.31-preview" />
       </ItemGroup>
     </When>
     <Otherwise>
