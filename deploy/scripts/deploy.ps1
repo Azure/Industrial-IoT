@@ -723,7 +723,7 @@ Function New-Deployment() {
         $namespace = "public"
         if (!$script:branchName.StartsWith("release/")) {
 
-            if (($script:branchName -ne "main") -and ($script:branchName -ne "master") {
+            if (($script:branchName -ne "main") -and ($script:branchName -ne "master")) {
                 $namespace = $script:branchName
                 if ($script:branchName.StartsWith("feature/")) {
                     $namespace = $namespace.Replace("feature/", "")
