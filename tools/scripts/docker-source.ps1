@@ -17,6 +17,7 @@
 
 Param(
     [string] $Path = $null,
+    [string] $BuildRoot = $null,
     [switch] $Debug,
     [switch] $Fast
 )
@@ -39,11 +40,20 @@ $metadata = Get-Content -Raw -Path (Join-Path $Path "container.json") `
 
 $definitions = @()
 
+# set build root
+if ([string]::IsNullOrEmpty($BuildRoot)) {
+    $BuildRoot = $Path
+}
+else {
+    $BuildRoot = Join-Path (Resolve-Path -LiteralPath $BuildRoot) `
+        $metadata.name
+}
 # Create build job definitions from dotnet project in current folder
 $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
 if ($projFile) {
 
-    $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
+    $output = (Join-Path $BuildRoot `
+        (Join-Path "bin" (Join-Path "publish" $configuration)))
     $runtimes = @(
         "linux-arm",
         "linux-musl-arm",
@@ -213,36 +223,16 @@ ENTRYPOINT $($entryPoint)
 
 "@ 
         $imageContent = (Join-Path $output $runtimeId)
-        $dockerFile = (Join-Path $imageContent "Dockerfile.$($platformTag)")
+        $dockerFile = (Join-Path $output "Dockerfile.$($platformTag)")
         Write-Host Writing $($dockerFile)
         # $dockerFileContent | Out-Host
         $dockerFileContent | Out-File -Encoding ascii -FilePath $dockerFile
         $definitions += @{
             platform = $_
             dockerfile = $dockerFile
+            baseImage = $baseImage
             platformTag = $platformTag
             buildContext = $imageContent
-        }
-    }
-}
-
-if ($definitions.Count -eq 0) {
-    # Non-.net - Create job definitions from dockerfile structure in current folder
-    Get-ChildItem $Path -Recurse `
-        | Where-Object Name -eq "Dockerfile" `
-        | ForEach-Object {
-
-        $dockerfile = $_.FullName
-
-        $platformFolder = $_.DirectoryName.Replace($Path, "")
-        $platform = $platformFolder.Substring(1).Replace("\", "/")
-        $platformTag = $platform.Replace("/", "-")
-
-        $definitions += @{
-            dockerfile = $dockerfile
-            platform = $platform
-            platformTag = $platformTag
-            buildContext = $buildRoot
         }
     }
 }

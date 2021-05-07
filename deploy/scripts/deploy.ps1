@@ -686,9 +686,10 @@ Function New-Deployment() {
     $templateParameters.Add("repoUrl", $script:repo)
 
     # support forks on github by switching the template url
-    if ($script:repo.Contains("github.com")) {
-        $templateParemeters.Add("templateUrl", `
-            $script:repo.Replace("github.com", "raw.githubusercontent.com"))
+    if ($script:repo.ToLower().Contains("github.com")) {
+        $templateUrl = $script:repo.ToLower().Replace("github.com", "raw.githubusercontent.com")
+        Write-Host "$repo -> $templateUrl"
+        $templateParameters.Add("templateUrl", $templateUrl)
     }
 
     # Select an application name
