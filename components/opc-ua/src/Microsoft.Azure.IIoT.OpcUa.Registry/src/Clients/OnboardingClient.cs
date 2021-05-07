@@ -35,7 +35,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
                 request.Id = Guid.NewGuid().ToString();
             }
             await DiscoverAsync(new DiscoveryRequestModel {
-                Discovery = DiscoveryMode.Url,
                 Configuration = new DiscoveryConfigModel {
                     ActivationFilter = request.ActivationFilter.Clone(),
                     DiscoveryUrls = new List<string> { request.DiscoveryUrl },
