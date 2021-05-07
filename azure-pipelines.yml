@@ -1,6 +1,6 @@
 pr:
   autoCancel: true
-  draft: true
+  drafts: true
   branches:
     include:
     - '*'
@@ -10,6 +10,7 @@ trigger:
     include:
     - master
     - main
+    - dev/*
     - release/*
 stages:
 - stage: build
