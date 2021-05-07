@@ -21,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.History.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Auth;
@@ -208,6 +209,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
             builder.RegisterType<HistoricAccessAdapter<string>>()
               .AsImplementedInterfaces();
             builder.RegisterType<HistoricAccessAdapter<EndpointRegistrationModel>>()
+                .AsImplementedInterfaces();
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
         }
     }
