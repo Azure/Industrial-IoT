@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
-                        UseReversibleEncoding = false
+                        UseReversibleEncoding = useReversibleEncoding
                     };
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
-                        UseReversibleEncoding = false
+                        UseReversibleEncoding = useReversibleEncoding
                     };
                     foreach(var element in chunk) {
                         encoder.WriteEncodeable(null, element);
@@ -242,7 +242,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
                     UseAdvancedEncoding = true,
                     UseUriEncoding = true,
-                    UseReversibleEncoding = false
+                    UseReversibleEncoding = useReversibleEncoding
                 };
                 networkMessage.Encode(encoder);
                 encoder.Close();
