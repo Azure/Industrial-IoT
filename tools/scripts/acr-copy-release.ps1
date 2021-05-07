@@ -1,14 +1,14 @@
 <#
  .SYNOPSIS
-  Creates release images with a particular release version in 
-  production ACR from the tested development version. 
+    Creates release images with a particular release version in 
+    production ACR from the tested development version. 
 
  .DESCRIPTION
-  The script requires az to be installed and already logged on to a 
-  subscription.  This means it should be run in a azcliv2 task in the
-  azure pipeline or "az login" must have been performed already.
+    The script requires az to be installed and already logged on to a 
+    subscription.  This means it should be run in a azcliv2 task in the
+    azure pipeline or "az login" must have been performed already.
 
-  Releases images with a given version number.
+    Releases images with a given version number.
 
  .PARAMETER BuildRegistry
     The name of the source registry where development image is present.
@@ -43,7 +43,7 @@ Param(
     [string] $BuildRegistry = "industrialiot",
     [string] $BuildSubscription = "IOT_GERMANY",
     [string] $ReleaseRegistry = "industrialiotprod",
-    [string] $ReleaseSubscription = $null,
+    [string] $ReleaseSubscription = "IOT_GERMANY",
     [string] $ResourceGroupName = $null,
     [string] $ResourceGroupLocation = $null,
     [Parameter(Mandatory = $true)] [string] $ReleaseVersion,
@@ -51,18 +51,6 @@ Param(
     [switch] $IsMajorUpdate,
     [switch] $RemoveNamespaceOnRelease
 )
-
-$argumentList = @("account", "show")
-$account = & "az" $argumentList 2>$null | ConvertFrom-Json
-if (!$account) {
-    throw "Failed to retrieve account information."
-}
-if (![string]::IsNullOrEmpty($script:ReleaseSubscription)) {
-    $script:ReleaseSubscription = $account.name
-}
-if (![string]::IsNullOrEmpty($script:BuildSubscription)) {
-    $script:BuildSubscription = $account.name
-}
 
 if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
     # check if release registry exists and if not create it

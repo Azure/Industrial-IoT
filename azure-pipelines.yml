@@ -8,6 +8,8 @@ trigger:
   branches:
     include:
     - master
+    - main
+    - dev/*
     - release/*
 stages:
 - stage: build

@@ -79,7 +79,7 @@ else {
         # dev feature builds
         $namespace = $namespace.Replace("feature/", "")
     }
-    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
+    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "main") -or ($namespace -eq "master")) {
         $namespace = "public"
         if ([string]::IsNullOrEmpty($Registry)) {
             # Release and Preview builds go into staging
@@ -153,18 +153,19 @@ if ($definitions.Count -eq 0) {
     return
 }
 
-# set default subscription
-if (![string]::IsNullOrEmpty($script:Subscription)) {
-    Write-Debug "Setting subscription to $($script:Subscription)"
-    $argumentList = @("account", "set", "--subscription", $script:Subscription)
-    & "az" $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
-    if ($LastExitCode -ne 0) {
-        throw "az $($argumentList) failed with $($LastExitCode)."
+if ([string]::IsNullOrEmpty($script:Subscription)) {
+    $argumentList = @("account", "show")
+    $account = & "az" $argumentList 2>$null | ConvertFrom-Json
+    if (!$account) {
+        throw "Failed to retrieve account information."
     }
+    $script:Subscription = $account.name
+    Write-Host "Using default subscription $script:Subscription..."
 }
 
 # get registry information
-$argumentList = @("acr", "show", "--name", $script:Registry)
+$argumentList = @("acr", "show", "--name", $script:Registry, 
+    "--subscription", $script:Subscription)
 $script:RegistryInfo = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
@@ -172,7 +173,8 @@ if ($LastExitCode -ne 0) {
 $resourceGroup = $script:RegistryInfo.resourceGroup
 Write-Debug "Using resource group $($resourceGroup)"
 # get credentials
-$argumentList = @("acr", "credential", "show", "--name", $script:Registry)
+$argumentList = @("acr", "credential", "show", "--name", $script:Registry, 
+    "--subscription", $script:Subscription)
 $credentials = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
 if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
@@ -230,6 +232,7 @@ $definitions | ForEach-Object {
     $argumentList = @("acr", "build", 
         "--registry", $script:Registry,
         "--resource-group", $resourceGroup,
+        "--subscription", $script:Subscription,
         "--platform", $platform,
         "--file", $dockerfile,
         "--image", $image

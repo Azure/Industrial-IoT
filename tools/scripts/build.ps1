@@ -39,13 +39,14 @@ if ([string]::IsNullOrEmpty($script:Path)) {
     $script:Path = $BuildRoot
 }
 
-$argumentList = @("account", "show")
-$account = & "az" $argumentList 2>$null | ConvertFrom-Json
-if (!$account) {
-    throw "Failed to retrieve account information."
-}
-if (![string]::IsNullOrEmpty($script:Subscription)) {
+if ([string]::IsNullOrEmpty($script:Subscription)) {
+    $argumentList = @("account", "show")
+    $account = & "az" $argumentList 2>$null | ConvertFrom-Json
+    if (!$account) {
+        throw "Failed to retrieve account information."
+    }
     $script:Subscription = $account.name
+    Write-Host "Using default subscription $script:Subscription..."
 }
 
 $registry = $null
@@ -89,42 +90,6 @@ if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
     else {
         Write-Host "Using Container registry $($registry.name)."
     }
-
-    $argumentList = @("acr", "credential", "show", 
-        "--name", $registry.name, "--subscription", $script:Subscription)
-    $credentials = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) `
-        | ConvertFrom-Json
-    if ($LastExitCode -ne 0) {
-        throw "az $($argumentList) failed with $($LastExitCode)."
-    }
-    $user = $credentials.username
-    $password = $credentials.passwords[0].value
-
-    # now first upload helm chart to the registry if helm is installed
-    if ($script:Path -eq $BuildRoot) {
-        $chartName = "azure-industrial-iot"
-        $folder = join-path (join-path (join-path $BuildRoot "deploy2") "helm") `
-            $chartName
-        $chart = "$($registry.loginServer)/$($chartName):latest"
-        $env:HELM_EXPERIMENTAL_OCI = 1
-        $argumentList = @("chart", "save", $folder, $chart)
-        & "helm" $argumentList 2>$null
-        if ($LastExitCode -ne 0) {
-            throw "Failed to save Helm chart $chart as image locally."
-        }
-        $argumentList = @("registry", "login", $registry.loginServer, `
-            "-u", $user, "--password-stdin")
-        $password | & "helm" $argumentList  2>&1 | ForEach-Object { "$_" }
-        if ($LastExitCode -ne 0) {
-            throw "Failed to log into the registry using Helm."
-        }
-        $argumentList = @("chart", "push", $chart)
-        & "helm" $argumentList  2>&1 | ForEach-Object { "$_" }
-        if ($LastExitCode -ne 0) {
-            throw "Failed to upload Helm chart $chart."
-        }
-        Write-Host "Helm chart $chart uploaded to $($registry.name) registry."
-    }
 }
 
 # Traverse from build root and find all container.json metadata files and build
@@ -142,7 +107,8 @@ Get-ChildItem $script:Path -Recurse -Include "container.json" `
         # See if we should build into registry, otherwise build local docker images
         if ($registry) {
             & (Join-Path $PSScriptRoot "acr-build.ps1") -Path $dockerFolder `
-                -Debug:$Debug -Registry $registry.name -Fast
+                -Registry $registry.name -Subscription $script:Subscription `
+                -Debug:$Debug  -Fast
         }
         else {
             if ([string]::IsNullOrEmpty($dockerFolder)) {

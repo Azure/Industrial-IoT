@@ -618,8 +618,7 @@ if (Get-Module -ListAvailable -Name "AzureAD.Standard.Preview") {
     Import-Module  "AzureAD"
     Set-Alias -Name Connect-AzureADAlias -Value "AzureAD\Connect-AzureAD"
 } else {
-    Write-Host "This script is not compatible with your computer, please use Azure CloudShell https://shell.azure.com/powershell"
-    return
+    throw "This script is not compatible with your computer, please use Azure CloudShell https://shell.azure.com/powershell"
 }
 
 $selectedContext = Select-Context `

@@ -3,7 +3,7 @@
   "version": "2.8.0",
   "versionHeightOffset": 0,
   "publicReleaseRefSpec": [
-    "^refs/heads/master$",
+    "^refs/heads/main$",
     "^refs/heads/release/\\d+\\.\\d+\\.\\d+"
   ],
   "cloudBuild": {

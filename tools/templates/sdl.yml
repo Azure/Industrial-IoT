@@ -94,8 +94,8 @@ jobs:
       CredScan: true
       RoslynAnalyzers: true
   - script: |
-      if not "%BUILD_SOURCEBRANCHNAME%" == "master" echo ##vso[task.setvariable variable=MY_BRANCH;]develop
-          if "%BUILD_SOURCEBRANCHNAME%" == "master" echo ##vso[task.setvariable variable=MY_BRANCH;]master
+      if not "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]develop
+          if "%BUILD_SOURCEBRANCHNAME%" == "main" echo ##vso[task.setvariable variable=MY_BRANCH;]master
   - task: TSAUpload@1
     displayName: 'Upload to Stamp'
     inputs:

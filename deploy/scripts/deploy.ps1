@@ -111,18 +111,21 @@ Function Select-Context() {
             }
         }
         if (Test-Path $contextFile) {
-            $profile = Import-AzContext -Path $contextFile
-            if (($null -ne $profile) `
-                    -and ($null -ne $profile.Context) `
+            $connection = Import-AzContext -Path $contextFile
+            if (($null -ne $connection) `
+                    -and ($null -ne $connection.Context) `
                     -and ($null -ne (Get-AzSubscription))) {
-                $context = $profile.Context
+                $context = $connection.Context
             }
         }
     }
     if (!$context) {
         try {
+            Write-Host "Signing into $($environment.Name) ..."
             $connection = Connect-AzAccount -Environment $environment.Name `
-                -ErrorAction Stop
+                -SkipContextPopulation -ErrorAction Stop 
+            Write-Host "Signed in."
+            Write-Host
             $context = $connection.Context
         }
         catch {
@@ -254,8 +257,8 @@ Function Select-RepositoryAndBranch() {
                 $script:repo = $giturl
                 $script:branchName = $symbolic.Replace("$($remote)/", "")
                 if ($script:branchName -eq "HEAD") {
-                    Write-Warning "$($symbolic) is not a branch - using master."
-                    $script:branchName = "master"
+                    Write-Warning "$($symbolic) is not a branch - using main."
+                    $script:branchName = "main"
                 }
             }
             catch {
@@ -300,13 +303,13 @@ Function Select-RegistryCredentials() {
         $containerContext = $context
         Write-Host "Try using current authentication context to access container registry."
     }
-    if ($containerContext.Length -gt 1) {
+    elseif ($containerContext.Length -gt 1) {
         $containerContext = $containerContext[0]
     }
     Write-Host "Looking up credentials for $($script:acrRegistryName) registry."
     try {
         $registry = Get-AzContainerRegistry -DefaultProfile $containerContext `
-        | Where-Object { $_.Name -eq $script:acrRegistryName }
+            | Where-Object { $_.Name -eq $script:acrRegistryName }
     }
     catch {
         $registry = $null
@@ -720,7 +723,7 @@ Function New-Deployment() {
         $namespace = "public"
         if (!$script:branchName.StartsWith("release/")) {
 
-            if ($script:branchName -ne "master") {
+            if (($script:branchName -ne "main") -and ($script:branchName -ne "master") {
                 $namespace = $script:branchName
                 if ($script:branchName.StartsWith("feature/")) {
                     $namespace = $namespace.Replace("feature/", "")
@@ -731,7 +734,7 @@ Function New-Deployment() {
             # Select registry for preview and developer builds
             if ([string]::IsNullOrEmpty($script:acrRegistryName)) {
                 $script:acrSubscriptionName = "IOT_GERMANY"
-                if ($script:branchName -eq "master") {
+                if (($script:branchName -eq "main") -or ($script:branchName -eq "master")) {
                     # Get images from staging registry 
                     $script:acrRegistryName = "industrialiot"
                 }
@@ -1130,7 +1133,7 @@ Function Test-All-Deployment-Options() {
     $testGroup = $script:resourceGroupName
 
     $script:repo = "https://github.com/Azure/Industrial-IoT"
-    $script:branchName = "master"
+    $script:branchName = "main"
     $script:interactive = $false
     $script:deleteOnErrorPrompt = $false
     # register aad application
@@ -1194,10 +1197,10 @@ $script:requiredProviders = @(
     "microsoft.containerregistry"
 )
 
-Select-RepositoryAndBranch
-Write-Host "Signing in ..."
-Write-Host
 Import-Module Az
+Import-Module Az.ContainerRegistry
+
+Select-RepositoryAndBranch
 $script:context = Select-Context -context $script:context `
     -environment (Get-AzEnvironment -Name $script:environmentName)
 

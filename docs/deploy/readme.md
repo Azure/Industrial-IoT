@@ -29,7 +29,7 @@ Alternatively, the full deployment script deploys the following additional manag
 - 1 [Data Lake Storage](https://azure.microsoft.com/services/storage/data-lake-storage/) V2, Standard LRS SKU (used to connect Power BI to the platform, see tutorial)
 - 1 [Time Series Insights](https://azure.microsoft.com/services/time-series-insights), Pay As You Go SKU, 1 Scale Unit
 - 1 [Blob Storage](https://azure.microsoft.com/services/storage/) V2, Standard LRS SKU (used for long-term storage for Time Series Insights)
-- 2 [App Service](https://azure.microsoft.com/services/app-service/), B1 SKU (for hosting the Industrial IoT Engineering Tool cloud application and for hosting the cloud micro-services [all-in-one](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/all-in-one.md))
+- 2 [App Service](https://azure.microsoft.com/services/app-service/), B1 SKU (for hosting the Industrial IoT Engineering Tool cloud application and for hosting the cloud micro-services [all-in-one](../services/all-in-one.md))
 - 1 [SignalR](https://azure.microsoft.com/services/signalr-service/), Standard SKU (used to scale out asynchronous API notifications)
 - 4 [Virtual Machines](https://azure.microsoft.com/services/virtual-machines/), 2 B2 SKU (1 Linux IoT Edge gateway and 1 Windows IoT Edge gateway) and 2 B1 SKU (used for a factory simulation to show the capabilities of the platform and to generate sample telemetry)
 - 1 [Device Provisioning Service](https://docs.microsoft.com/azure/iot-dps/), S1 SKU (used for deploying and provisioning the simulation gateways)
