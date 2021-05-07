@@ -99,6 +99,21 @@ namespace Opc.Ua.Extensions {
         }
 
         [Fact]
+        public void DecodeNodeIdFromIntUrl() {
+            var context = new ServiceMessageContext();
+            var uri = "http://contosos.com#i=1";
+            var result = uri.ToExpandedNodeId(context);
+            Assert.Equal("http://contosos.com", result.NamespaceUri);
+        }
+
+        [Fact]
+        public void ParseNodeIdUsingAbsoluteUri() {
+            var value = "http://contosos.com#i=1";
+            Uri.TryCreate(value, UriKind.Absolute, out var uri);
+            Assert.NotEqual("http://contosos.com", uri.NoQueryAndFragment().AbsoluteUri);
+        }
+
+        [Fact]
         public void DecodeNodeIdFromBufferNoUri() {
             var context = new ServiceMessageContext();
             var expected = new byte[] { 0, 34, 23, 255, 6, 34, 65, 0, 0, 2, 0 };
