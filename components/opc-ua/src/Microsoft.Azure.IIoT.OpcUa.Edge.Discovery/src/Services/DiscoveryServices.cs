@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Abstractions;
     using System;
     using System.Collections.Generic;
     using System.Collections.Concurrent;
@@ -491,13 +492,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                         // Check local host
                         if (host.EqualsIgnoreCase("localhost") && Host.IsContainer) {
                             // Also resolve docker internal since we are in a container
-                            host = kDockerHostName;
+                            host = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
                             continue;
                         }
                         break;
                     }
-                    catch (Exception e) {
-                        _logger.Warning(e, "Failed to resolve the host for {discoveryUrl}", discoveryUrl);
+                    catch (SocketException se) {
+                        _logger.Warning("Failed to resolve the host for {discoveryUrl} due to {message}",
+                            discoveryUrl, se.Message);
+                        return list;
+                    }
+                    catch (Exception e){
+                        _logger.Error(e, "Failed to resolve the host for {discoveryUrl}", discoveryUrl);
                         return list;
                     }
                 }
@@ -512,14 +518,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// <returns></returns>
         private async Task AddLoopbackAddressesAsync(List<IPAddress> addresses) {
             // Check local host
+            string hostName = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
             try {
                 if (Host.IsContainer) {
                     // Resolve docker host since we are running in a container
-                    var entry = await Dns.GetHostEntryAsync(kDockerHostName);
+                    if (string.IsNullOrEmpty(hostName)) {
+                        _logger.Information("Gateway host name not set");
+                        return;
+                    }
+                    _logger.Debug("Resolve IP for gateway host name: {address}", hostName);
+                    var entry = await Dns.GetHostEntryAsync(hostName);
                     foreach (var address in entry.AddressList
                                 .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
                                 .Where(a => !addresses.Any(b => a.Equals(b)))) {
-                        _logger.Information("Including host address {address}", address);
+                        _logger.Information("Including gateway host address {address}", address);
                         addresses.Add(address);
                     }
                 }
@@ -528,8 +540,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                     addresses.Add(IPAddress.Loopback);
                 }
             }
+            catch (SocketException se) {
+                _logger.Warning("Failed to add address for gateway host {hostName} due to {error}.",
+                    hostName, se.Message);
+            }
             catch (Exception e) {
-                _logger.Warning(e, "Failed to add local host address.");
+                _logger.Error(e, "Failed to add address for gateway host {hostName}.", hostName);
             }
         }
 
@@ -647,7 +663,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
 
         /// <summary> Progress reporting every 3 seconds </summary>
         private static readonly TimeSpan kProgressInterval = TimeSpan.FromSeconds(3);
-        private const string kDockerHostName = "host.docker.internal";
 
         private readonly ILogger _logger;
         private readonly IJsonSerializer _serializer;

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Client {
+    using Microsoft.Azure.IIoT.Abstractions;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -53,9 +54,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             // The runtime injects this as an environment variable
-            var deviceId = Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
-            var moduleId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
-            var ehubHost = Environment.GetEnvironmentVariable("IOTEDGE_GATEWAYHOSTNAME");
+            var deviceId = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID);
+            var moduleId = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_MODULEID);
+            var ehubHost = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
 
             try {
                 if (!string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
@@ -111,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 }
             }
             if (!string.IsNullOrEmpty(ehubHost)) {
-                // Running in edge mode 
+                // Running in edge mode
                 // the configured transport (if provided) will be forced to it's OverTcp
                 // variant as follows: AmqpOverTcp when Amqp, AmqpOverWebsocket or AmqpOverTcp specified
                 // and MqttOverTcp otherwise. Default is MqttOverTcp
@@ -539,7 +540,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (IsClosed) {
                     return;
                 }
+#pragma warning disable CS0618 // Type or member is obsolete
                 await _client.UploadToBlobAsync(blobName, source);
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             /// <inheritdoc />
