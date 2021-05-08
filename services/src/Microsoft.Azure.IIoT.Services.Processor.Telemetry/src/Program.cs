@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
 
-            // Handle opc-ua pub/sub subscriber messages
+            // Handle opc-ua pubsub subscriber messages
             builder.RegisterType<MonitoredItemSampleBinaryHandler>()
                 .AsImplementedInterfaces();
             builder.RegisterType<MonitoredItemSampleJsonHandler>()

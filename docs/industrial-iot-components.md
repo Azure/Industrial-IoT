@@ -27,7 +27,7 @@ An IoT Edge device acts as a local Gateway and is comprised of Edge Runtime and 
 
 #### Industrial IoT Edge Modules
 
-- *OPC Publisher*: The OPC Publisher runs inside IoT Edge. It connects to OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA "Pub/Sub" format to Azure IoT Hub. All transport protocols supported by the Azure IoT Hub client SDK can be used, i.e. HTTPS, AMQP and MQTT.
+- *OPC Publisher*: The OPC Publisher runs inside IoT Edge. It connects to OPC UA servers and publishes JSON encoded telemetry data from these servers in OPC UA PubSub format to Azure IoT Hub. All transport protocols supported by the Azure IoT Hub client SDK can be used, i.e. HTTPS, AMQP and MQTT.
 - *OPC Twin*: The OPC Twin consists of microservices that use Azure IoT Edge and IoT Hub to connect the cloud and the factory network. OPC Twin provides discovery, registration, and remote control of industrial devices through REST APIs. OPC Twin does not require an OPC Unified Architecture (OPC UA) SDK, is programming language agnostic, and can be included in a serverless workflow.
 - *Discovery*: The discovery module, represented by the discoverer identity, provides discovery services on the edge which include OPC UA server discovery.  If discovery is configured and enabled, the module will send the results of a scan probe via the IoT Edge and IoT Hub telemetry path to the Onboarding service. The service processes the results and updates all related Identities in the Registry.
 
