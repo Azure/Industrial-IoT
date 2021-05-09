@@ -1263,12 +1263,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 // is it time to send anything?
                 if (pendingAlarmsOptions.IsEnabled == true &&
-                    (now > (_lastSentPendingAlarms + pendingAlarmsOptions.SnapshotIntervalTimespan) ||
-                    (now > (_lastSentPendingAlarms + pendingAlarmsOptions.UpdateIntervalTimespan) && pendingAlarmsOptions.Dirty))) {
+                    (((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.SnapshotIntervalTimespan ?? TimeSpan.MaxValue))) ||
+                        ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) && 
+                        pendingAlarmsOptions.Dirty)))) {
                     SendPendingAlarms();
                     _lastSentPendingAlarms = now;
-                    _pendingAlarmsTimer.Start();
                 }
+                _pendingAlarmsTimer.Start();
             }
 
             /// <summary>
