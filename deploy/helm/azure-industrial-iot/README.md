@@ -507,7 +507,7 @@ The following details of the Azure Storage account would be required:
 
 ## Installing the Chart
 
-This chart installs `2.7.206` version of components by default.
+This chart installs `2.8` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -573,7 +573,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.7.206`           |
+| `image.tag`         | Image tag                                | `2.8`           |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
@@ -657,7 +657,7 @@ A few notes about `loadConfFromKeyVault`:
   `azure.auth.servicesApp.appId` and `azure.auth.servicesApp.secret`.
 * You should use `loadConfFromKeyVault` only when Azure environment has been created for the same version
   (major and minor) of Azure Industrial IoT components. That is, you should use it to install the chart that
-  deploys `2.7.x` version of components to the environment that has been created for `2.6.x` version of
+  deploys `2.8.x` or `2.7.x` version of components to the environment that has been created for `2.6.x` version of
   components.
 
 | Parameter              | Description                                                                                          | Default |

@@ -21,7 +21,7 @@ We have also built an application running on Azure that lets you access the serv
 To [deploy the Azure Industrial IoT Platform](docs/deploy/readme.md), clone the repository:
 
   ```bash
-  git clone -b release/2.7.206 https://github.com/Azure/Industrial-IoT
+  git clone https://github.com/Azure/Industrial-IoT
   cd Industrial-IoT
   ```
 

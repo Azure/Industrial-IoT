@@ -154,7 +154,7 @@ foreach ($Repository in $BuildRepositories) {
         $ReleaseTags += "latest"
     }
 
-    # Example: if release version is 2.7.1, then base image tags are "2", "2.7", "2.7.1"
+    # Example: if release version is 2.8.1, then base image tags are "2", "2.8", "2.8.1"
     $versionParts = $script:ReleaseVersion.Split('.')
     if ($versionParts.Count -gt 0) {
         $versionTag = $versionParts[0]
