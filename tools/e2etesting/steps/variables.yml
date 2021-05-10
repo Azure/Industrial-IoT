@@ -1,6 +1,6 @@
 variables:
   BasePath: $(System.DefaultWorkingDirectory)\tools\e2etesting
-  ClientCredentialsKeyVaultName: automatedtesting
+  ClientCredentialsKeyVaultName: developPipelineKV
   AzureSubscription: IOT-OPC-WALLS-SP # Use Services-Connection with Service-Principal-Authentication as subscription
   AgentPool: Azure-IoT-Manufacturing
   IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
