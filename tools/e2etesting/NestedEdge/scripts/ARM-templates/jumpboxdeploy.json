@@ -1,0 +1,156 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": 
+  {  
+    "networkName": 
+    {
+      "type": "string",
+      "metadata": { "description": "Name of the virtual network the jump box is deployed to" }
+    },
+    "subnetName":
+    {
+      "type": "string",
+      "metadata": { "description": "Name of the subnet the jump box is deployed to" }
+    },
+    "networkResourceGroupName": 
+    {
+      "type": "string",
+      "metadata": { "description": "Name of the resource group that the vnet is part of" }
+    },
+    "machineName": 
+    {
+      "type": "string",
+      "defaultValue": "jumpbox1",
+      "metadata": { "description": "Name of the jump box" }
+    },
+    "machineAdminName": 
+    {
+      "type": "string",
+      "defaultValue": "jbadmin",
+      "metadata": { "description": "Name of the jump box administrator" }
+    },
+    "machineAdminSshPublicKey": 
+    {
+      "type": "string",
+      "metadata": { "description": "SSH public key provided as a string to connect to the jump box. Use \"ssh-keygen -t rsa -b 2048 &&\" to generate your SSH key pair.)" }
+    },
+    "vmSize":
+    {
+      "type": "string",
+      "defaultValue": "Standard_DS3_v2",
+      "metadata": { "description": "Size of the Azure virtual machine" }
+    }
+  },
+  "variables": 
+  {
+    "subnetReference": "[resourceId(subscription().subscriptionId, parameters('networkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('networkName'), parameters('subnetName'))]",
+    "vmNicName": "[concat(parameters('machineName'),'-nic-','0')]",
+    "vmPIPName": "[concat(parameters('machineName'),'-PIP')]",
+    "vmPIPDnsName": "[concat( 'jumpbox', uniqueString(resourceGroup().id))]",
+    "diskName": "[concat(parameters('machineName'),'-disk-','0')]",
+    "location": "[resourceGroup().location]"
+  },
+  "resources": 
+  [
+    {
+      "name": "[variables('vmPIPName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[variables('location')]",
+      "apiVersion": "2018-11-01",
+      "dependsOn": [],
+      "tags": { "displayName": "[variables('vmPIPName')]" },
+      "properties": 
+      {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": { "domainNameLabel": "[variables('vmPIPDnsName')]" }
+      }
+    },
+    {
+      "name": "[variables('vmNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[variables('location')]",
+      "apiVersion": "2018-11-01",
+      "dependsOn": [ "[resourceId('Microsoft.Network/publicIPAddresses', variables('vmPIPName'))]" ],
+      "tags": { "displayName": "[variables('vmNicName')]" },
+      "properties": 
+      {
+        "enableAcceleratedNetworking": false,
+        "ipConfigurations": 
+	[
+          {
+            "name": "ipconfig1",
+            "properties": 
+	    {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": { "id": "[variables('subnetReference')]" },
+              "publicIPAddress": { "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('vmPIPName'))]" }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('machineName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[variables('location')]",
+      "apiVersion": "2018-10-01",
+      "dependsOn": 
+      [
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('vmNicName'))]"
+      ],
+      "tags": 
+      {
+        "displayName": "[parameters('machineName')]"
+      },
+      "properties": 
+      {
+        "hardwareProfile":
+        {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": 
+        {
+          "computerName": "[parameters('machineName')]",
+          "adminUsername": "[parameters('machineAdminName')]",
+          "customData": "[base64(concat('#cloud-config\npackage_upgrade: true\npackages:\n  - curl\n  - nginx\nwrite_files:\n  - owner: www-data:www-data\n    path: /etc/nginx/sites-available/default\n    content: |\n      server {\n            listen 3000;\n\n            access_log /var/log/nginx/reverse-access.log;\n            error_log /var/log/nginx/reverse-error.log;\n\n            location / {\n                proxy_pass http://10.16.7.4:3000;\n            }\n        }\nruncmd:\n  - service nginx restart\n  - |\n      set -x\n      (\n        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash\n      ) &\n'))]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+              "publicKeys": [{
+                "path": "[concat('/home/', parameters('machineAdminName'), '/.ssh/authorized_keys')]",
+                "keyData": "[parameters('machineAdminSshPublicKey')]"
+              }]
+            }
+          }
+        },
+        "storageProfile": 
+        {
+          "imageReference": 
+          {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "18.04-LTS",
+            "version": "latest"
+          },
+          "osDisk": 
+          {
+            "name": "[variables('diskName')]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }          
+        },
+        "networkProfile": 
+        {
+          "networkInterfaces": [ { "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('vmNicName'))]" } ]
+        }
+      }
+    }
+  ],
+  "outputs": 
+  {
+    "adminUsername": { "type": "string", "value": "[parameters('machineAdminName')]" },
+    "fqdn": { "value": "[reference(variables('vmPIPName')).dnsSettings.fqdn]", "type": "string" }    
+  }
+}
+  

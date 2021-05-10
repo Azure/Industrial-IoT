@@ -129,6 +129,7 @@ $edgeParameters = @{
     "deviceConnectionString" = [string]$edgeDeviceConnectionString
     "authenticationType" = "sshPublicKey"
     "adminPasswordOrKey" = [string]$sshPublicKey
+    "allowSsh" = $true
     "vmSize" = [string]$EdgeVmSize
 }
 
@@ -163,4 +164,3 @@ Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-dnsname' -SecretValue (ConvertTo-SecureString $fqdn -AsPlainText -Force) | Out-Null
 
 Write-Host "Deployment finished."
-

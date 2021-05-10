@@ -23,6 +23,7 @@ namespace IIoTPlatform_E2E_Tests {
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using System.Text.RegularExpressions;
 
     internal static partial class TestHelper {
 
@@ -85,6 +86,16 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
+        /// Get urls of the simulated test opc servers
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <returns>List of server urls</returns>
+        public static List<string> GetSimulatedOpcServerUrls(
+            IIoTPlatformTestContext context) {
+            return context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator).Select(ip => $"opc.tcp://{ip}:50000").ToList();
+        }
+
+        /// <summary>
         /// Read PublishedNodes json from OPC-PLC and provide the data to the tests
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
@@ -96,14 +107,14 @@ namespace IIoTPlatform_E2E_Tests {
         ) {
             var result = new Dictionary<string, PublishedNodesEntryModel>();
 
-            var opcPlcUrls = context.OpcPlcConfig.Urls;
-            context.OutputHelper?.WriteLine($"SimulatedOpcPlcUrls {opcPlcUrls}");
-            var listOfUrls = opcPlcUrls.Split(TestConstants.SimulationUrlsSeparator);
+            var opcPlcList = context.OpcPlcConfig.Urls;
+            context.OutputHelper?.WriteLine($"SimulatedOpcPlcUrls {opcPlcList}");
+            var ipAddressList = opcPlcList.Split(TestConstants.SimulationUrlsSeparator);
 
-            foreach (var url in listOfUrls.Where(s => !string.IsNullOrWhiteSpace(s))) {
+            foreach (var ipAddress in ipAddressList.Where(s => !string.IsNullOrWhiteSpace(s))) {
                 try {
                     using (var client = new HttpClient()) {
-                        var ub = new UriBuilder { Host = url };
+                        var ub = new UriBuilder { Host = ipAddress };
                         var baseAddress = ub.Uri;
 
                         client.BaseAddress = baseAddress;
@@ -121,12 +132,16 @@ namespace IIoTPlatform_E2E_Tests {
                             Assert.NotNull(entryModels[0].OpcNodes);
                             Assert.NotEmpty(entryModels[0].OpcNodes);
 
-                            result.Add(url, entryModels[0]);
+                            // Set endpoint url correctly when it's not specified in pn.json ie. replace fqdn with the ip address
+                            string fqdn = Regex.Match(entryModels[0].EndpointUrl, @"opc.tcp:\/\/([^\}]+):").Groups[1].Value;
+                            entryModels[0].EndpointUrl = entryModels[0].EndpointUrl.Replace(fqdn, ipAddress);
+
+                            result.Add(ipAddress, entryModels[0]);
                         }
                     }
                 }
                 catch (Exception e) {
-                    context.OutputHelper?.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, url);
+                    context.OutputHelper?.WriteLine("Error occurred while downloading Message: {0} skipped: {1}", e.Message, ipAddress);
                     continue;
                 }
             }
@@ -198,16 +213,28 @@ namespace IIoTPlatform_E2E_Tests {
             IIoTPlatformTestContext context,
             CancellationToken ct = default
         ) {
-            DeleteFileOnEdgeVM(TestConstants.PublishedNodesFullName, context);
-
             var json = JsonConvert.SerializeObject(entries, Formatting.Indented);
             context.OutputHelper?.WriteLine("Write published_nodes.json to IoT Edge");
             context.OutputHelper?.WriteLine(json);
             CreateFolderOnEdgeVM(TestConstants.PublishedNodesFolder, context);
-            using var client = CreateScpClientAndConnect(context);
+            using var scpClient = CreateScpClientAndConnect(context);
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-            client.Upload(stream, TestConstants.PublishedNodesFullName);
+            scpClient.Upload(stream, TestConstants.PublishedNodesFullName);
 
+            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
+                using var sshCient = CreateSshClientAndConnect(context);
+                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
+                    if (edge != string.Empty) {
+                        // Copy file to the edge vm
+                        var command = $"scp -oStrictHostKeyChecking=no {TestConstants.PublishedNodesFullName} {edge}:{TestConstants.PublishedNodesFilename}";
+                        sshCient.RunCommand(command);
+                        // Move file to the target folder with sudo permissions 
+                        command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo mv {TestConstants.PublishedNodesFilename} {TestConstants.PublishedNodesFullName}'";
+                        sshCient.RunCommand(command);
+                    }                 
+                }             
+            }
+            
             await SwitchToStandaloneModeAsync(context, ct);
         }
 
@@ -330,6 +357,16 @@ namespace IIoTPlatform_E2E_Tests {
                 isSuccessful = true;
             }
             Assert.True(isSuccessful, "Delete file was not successful");
+
+            if (context.IoTEdgeConfig.NestedEdgeFlag == "Enable") {
+                using var sshCient = CreateSshClientAndConnect(context);
+                foreach (var edge in context.IoTEdgeConfig.NestedEdgeSshConnections) {
+                    if (edge != string.Empty) {
+                        var command = $"ssh -oStrictHostKeyChecking=no {edge} 'sudo rm {fileName}'";
+                        sshCient.RunCommand(command);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -391,6 +428,8 @@ namespace IIoTPlatform_E2E_Tests {
             request.AddJsonBody(body);
 
             var response = await client.ExecuteAsync(request, ct);
+            Assert.True(response.IsSuccessful, $"Response status code: {response.StatusCode}");
+
             dynamic json = JsonConvert.DeserializeObject(response.Content);
             Assert.NotNull(json);
         }

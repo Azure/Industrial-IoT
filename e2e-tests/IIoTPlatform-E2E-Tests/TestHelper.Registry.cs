@@ -72,7 +72,7 @@ namespace IIoTPlatform_E2E_Tests {
                             for (int indexOfRequestedOpcServer = 0;
                                 indexOfRequestedOpcServer < count;
                                 indexOfRequestedOpcServer++) {
-                                var endpoint = ((string)json.items[indexOfRequestedOpcServer].registration.endpointUrl).TrimEnd('/');
+                                var endpoint = ((string)json.items[indexOfRequestedOpcServer].registration.endpoint.url).TrimEnd('/');
                                 if (requestedEndpointUrls.Contains(endpoint)) {
                                     activationStates.Add((string)json.items[indexOfRequestedOpcServer].activationState);
                                 }
@@ -90,7 +90,7 @@ namespace IIoTPlatform_E2E_Tests {
                 }
                 catch (Exception) {
                     context.OutputHelper?.WriteLine("Error: OPC UA endpoint couldn't be activated");
-                    throw;
+                    return null;
                 }
             }
 
@@ -128,7 +128,7 @@ namespace IIoTPlatform_E2E_Tests {
                 if (!response.IsSuccessful) {
                     context.OutputHelper.WriteLine($"StatusCode: {response.StatusCode}");
                     context.OutputHelper.WriteLine($"ErrorMessage: {response.ErrorMessage}");
-                    Assert.True(response.IsSuccessful, "POST /registry/v2/application failed!");
+                    Assert.True(response.IsSuccessful, "POST /registry/v2/applications failed!");
                 }
             }
 
@@ -196,7 +196,12 @@ namespace IIoTPlatform_E2E_Tests {
                     string discoveryUrl,
                     CancellationToken ct = default) {
 
-                var applicationId = await GetApplicationIdAsync(context, discoveryUrl, ct);
+                var applicationId = context.ApplicationId;
+
+                // Validate if an aplicationId was ever added to the context. If not try to get it from discovery Url
+                if (string.IsNullOrEmpty(applicationId)) {
+                    applicationId = await GetApplicationIdAsync(context, discoveryUrl, ct);
+                }
 
                 var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
 
@@ -234,17 +239,19 @@ namespace IIoTPlatform_E2E_Tests {
                 request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
                 request.Resource = string.Format(TestConstants.APIRoutes.RegistryActivateEndpointsFormat, endpointId);
 
-                // This request fails when called for the first time, retry the call while the bug is being investigated
+                // TODO remove workaround
+                // This request used to fail when called for the first time. The bug was fixed in the master,
+                // but we will keep this workaround until we can consume the fixed platform in the E2E tests.
                 bool IsSuccessful = false;
                 int numberOfRetries = 3;
                 while (!IsSuccessful && numberOfRetries > 0) {
-                    var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
+                    var response = await client.ExecuteAsync(request, ct);
                     IsSuccessful = response.IsSuccessful;
                     numberOfRetries--;
                 }
 
                 Assert.True(IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/activate failed!");
-                      
+
                 while (true) {
                     Assert.False(ct.IsCancellationRequested, "Endpoint was not activated within the expected timeout");
 
@@ -261,6 +268,46 @@ namespace IIoTPlatform_E2E_Tests {
 
                     await Task.Delay(TestConstants.DefaultDelayMilliseconds).ConfigureAwait(false);
                 }
+            }
+
+            /// <summary>
+            /// Deactivate the endpoint from <paramref name="context"/>
+            /// </summary>
+            /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+            /// <param name="ct">Cancellation token</param>
+            public static async Task DeactivateEndpointAsync(IIoTPlatformTestContext context, string endpointId, CancellationToken ct = default) {
+                var accessToken = await GetTokenAsync(context, ct).ConfigureAwait(false);
+
+                Assert.False(string.IsNullOrWhiteSpace(endpointId), "Endpoint not set in the test context");
+
+                var client = new RestClient(context.IIoTPlatformConfigHubConfig.BaseUrl) {
+                    Timeout = TestConstants.DefaultTimeoutInMilliseconds
+                };
+
+                var request = new RestRequest(Method.POST);
+                request.AddHeader(TestConstants.HttpHeaderNames.Authorization, accessToken);
+                request.Resource = string.Format(TestConstants.APIRoutes.RegistryDeactivateEndpointsFormat, endpointId);
+
+                var response = client.ExecuteAsync(request, ct).GetAwaiter().GetResult();
+
+                Assert.True(response.IsSuccessful, "POST /registry/v2/endpoints/{endpointId}/deactivate failed!");
+                while (true) {
+                    Assert.False(ct.IsCancellationRequested, "Endpoint was not deactivated within the expected timeout");
+
+                    var endpointList = await GetEndpointsAsync(context, ct).ConfigureAwait(false);
+                    var endpoint = endpointList.FirstOrDefault(e => string.Equals(e.Id, endpointId));
+
+                    if (string.Equals(endpoint.ActivationState, TestConstants.StateConstants.Deactivated)
+                            && string.Equals(endpoint.EndpointState, TestConstants.StateConstants.Disconnected)) {
+                        return;
+                    }
+
+                    context.OutputHelper?.WriteLine(string.IsNullOrEmpty(endpoint.Url) ? "Endpoint not found" :
+                        $"Endpoint state: {endpoint.EndpointState}, activation: {endpoint.ActivationState}");
+
+                    await Task.Delay(TestConstants.DefaultDelayMilliseconds).ConfigureAwait(false);
+                }
+
             }
 
             /// <summary>
