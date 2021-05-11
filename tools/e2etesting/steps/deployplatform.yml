@@ -11,15 +11,19 @@ steps:
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
-      Write-Host "##vso[task.setvariable variable=ContainerRegistryServer]$($env:ContainerRegistryServer)"
-      Write-Host "##vso[task.setvariable variable=ContainerRegistryUsername]$($env:ContainerRegistryUsername)"
-      Write-Host "##vso[task.setvariable variable=ContainerRegistryPassword]$($env:ContainerRegistryPassword)"
-      Write-Host "##vso[task.setvariable variable=ImageNamespace]$($env:ImageNamespace)"
 
 - task: DownloadPipelineArtifact@2
   inputs:
     artifact: 'iai'
     path: $(BasePath)
+
+- task: AzureKeyVault@1
+  displayName: 'Load secrets from Key Vault as variables'
+  inputs:
+    azureSubscription: 'IOT-OPC-WALLS-SP'
+    KeyVaultName: 'developPipelineKV'
+    SecretsFilter: 'ImageNamespace,ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
+    RunAsPreJob: true
 
 - task: AzurePowerShell@5
   displayName: "Replace parameters in appSettings.json (for IAI)"
