@@ -1,5 +1,6 @@
 pr:
   autoCancel: true
+  drafts: true
   branches:
     include:
     - '*'
@@ -8,6 +9,8 @@ trigger:
   branches:
     include:
     - master
+    - main
+    - dev/*
     - release/*
     - develop
     - dev/2.8_rc

@@ -62,6 +62,7 @@ pushd %build_root%\api\swagger
 call :retrieve_spec twin
 call :retrieve_spec publisher
 call :retrieve_spec registry
+call :retrieve_spec history
 call :retrieve_spec events
 popd
 goto :eof

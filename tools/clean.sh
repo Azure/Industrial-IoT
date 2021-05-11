@@ -20,11 +20,10 @@ prefix=
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
-        --help)                usage ;;
-        --subscription)        subscription="$2" ;;
-        --prefix)              prefix="$2" ;;
+        --subscription|-s)     subscription="$2" ; shift ;;
+        --prefix)              prefix="$2" ; shift ;;
         -y)                    delete=1 ;;
-        -s)                    subscription="$2" ;;
+        *)                     usage ;;
     esac
     shift
 done
@@ -37,7 +36,7 @@ if [[ -n "$subscription" ]]; then
     az account set -s $subscription
 fi
 
-if [[ -n "$prefix "]] ; then
+if [[ -n "$prefix" ]] ; then
     # remove groups with prefix
     groups=$(az group list --query "[?starts_with(name, '$prefix')].name" -o tsv | tr -d '\r')
 else
