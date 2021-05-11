@@ -1478,7 +1478,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             _logger.Information("ConditionRefresh for subscription " +
                                 "{subscription} failed with an exception '{message}'", Item.Subscription.DisplayName, e.Message);
                             noErrorFound = false;
-
                         }
                         if (noErrorFound) {
                             _logger.Information("ConditionRefresh for subscription " +
