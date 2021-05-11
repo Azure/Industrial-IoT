@@ -129,6 +129,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public void OnSubscriptionStateChanged(bool online) {
+                if (_currentlyMonitored == null) {
+                    return;
+                }
                 foreach (var monitoredItem in _currentlyMonitored) {
                     monitoredItem.OnMonitoredItemStateChanged(online);
                 }
