@@ -129,6 +129,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public void OnSubscriptionStateChanged(bool online) {
+                if (_currentlyMonitored == null) {
+                    return;
+                }
                 foreach (var monitoredItem in _currentlyMonitored) {
                     monitoredItem.OnMonitoredItemStateChanged(online);
                 }
@@ -1158,24 +1161,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var internalSelectClauses = new List<SimpleAttributeOperand>();
 
                     // Add SourceTimestamp and ServerTimestamp select clauses.
-                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "Time")) {
-                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, "Time");
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.Time)) {
+                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.Time);
                         eventFilter.SelectClauses.Add(selectClause);
                         internalSelectClauses.Add(selectClause);
                     }
-                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "ReceiveTime")) {
-                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, "ReceiveTime");
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.ReceiveTime)) {
+                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.ReceiveTime);
                         eventFilter.SelectClauses.Add(selectClause);
                         internalSelectClauses.Add(selectClause);
                     }
-                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "EventType")) {
-                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, "EventType");
-                        eventFilter.SelectClauses.Add(selectClause);
-                        internalSelectClauses.Add(selectClause);
-                    }
-
-                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "EventType")) {
-                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, "EventType");
+                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType)) {
+                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.EventType);
                         eventFilter.SelectClauses.Add(selectClause);
                         internalSelectClauses.Add(selectClause);
                     }
@@ -1198,13 +1195,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
 
                         var retainClause = eventFilter.SelectClauses
-                            .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.BrowsePath?.FirstOrDefault() == "Retain");
+                            .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType && x.BrowsePath?.FirstOrDefault() == BrowseNames.Retain);
                         if (retainClause != null) {
                             EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.IndexOf(retainClause);
                         }
                         else {
                             EventTemplate.PendingAlarms.RetainIndex = eventFilter.SelectClauses.Count();
-                            var selectClause = new SimpleAttributeOperand(ObjectTypeIds.ConditionType, "Retain");
+                            var selectClause = new SimpleAttributeOperand(ObjectTypeIds.ConditionType, BrowseNames.Retain);
                             eventFilter.SelectClauses.Add(selectClause);
                             internalSelectClauses.Add(selectClause);
                         }
@@ -1374,7 +1371,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return Item.MonitoringMode == change ? null : change;
             }
 
-            internal EventFilter GetSimpleEventFilter(INodeCache nodeCache, ServiceMessageContext context) {
+            /// <summary>
+            /// Builds select clause and where clause by using OPC UA reflection
+            /// </summary>
+            /// <param name="nodeCache"></param>
+            /// <param name="context"></param>
+            /// <returns></returns>
+            public EventFilter GetSimpleEventFilter(INodeCache nodeCache, ServiceMessageContext context) {
                 var typeDefinitionId = EventTemplate.EventFilter.TypeDefinitionId.ToNodeId(context);
                 var nodes = new List<Node>();
                 ExpandedNodeId superType = null;
@@ -1431,7 +1434,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var evFilter = Item.Filter as EventFilter;
                 var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
                     evFilter?.SelectClauses
-                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == "EventType"));
+                        .FirstOrDefault(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
 
                 // now, is this a regular event or RefreshStartEventType/RefreshEndEventType?
                 if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1) {
