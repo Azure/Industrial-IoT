@@ -55,10 +55,10 @@ if ($projFile) {
     # Create dotnet command line 
     $output = (Join-Path $BuildRoot `
         (Join-Path "bin" (Join-Path "publish" $configuration)))
-    Write-Host "Clean $($projFile.FullName) and $output..."
+
     $argumentList = @("clean", $projFile.FullName)
-    & dotnet $argumentList 2>$null
-    # Remove-Item $output -Recurse
+    & dotnet $argumentList 2>&1 | ForEach-Object { $_ | Out-Null }
+    Remove-Item $output -Recurse -ErrorAction SilentlyContinue
 
     $runtimes = @(
         "linux-arm",
@@ -77,12 +77,12 @@ if ($projFile) {
     $runtimes | ForEach-Object {
         $runtimeId = $_
 
-        if ($script:Fast.IsPresent -and ($runtimeId -ne "portable")) {
-            # Only build portable, windows and linux in fast mode
+        # Only build portable, windows and linux in fast mode
+        if ($script:Fast.IsPresent -and ![string]::IsNullOrEmpty($runtimeId)) {
             if (($runtimeId -ne "win-x64") -and ($runtimeId -ne "linux-musl-x64")) {
                 return;
             }
-            # if not iot edge, just build for linux or as portable.
+            # if not iot edge, just build linux in addition to portable.
             if ((!$metadata.iotedge) -and ($runtimeId -ne "linux-musl-x64")) {
                 return;
             }
@@ -233,6 +233,7 @@ ENTRYPOINT $($entryPoint)
         Write-Host Writing $($dockerFile)
         # $dockerFileContent | Out-Host
         $dockerFileContent | Out-File -Encoding ascii -FilePath $dockerFile
+
         $definitions += @{
             platform = $_
             dockerfile = $dockerFile
