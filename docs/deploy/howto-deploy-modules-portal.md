@@ -6,11 +6,11 @@ This article explains how to deploy the Industrial IoT Edge modules to [Azure Io
 
 Before you begin, make sure you followed the [instructions to set up a IoT Edge device](howto-install-iot-edge.md) and have a running IoT Edge Gateway.
 
-To deploy all required modules to the Gateway using the Azure Portal...  
+To deploy all required modules to the Gateway using the Azure Portal...
 
 1. Sign in to the [Azure portal](https://portal.azure.com/) and navigate to the IoT Hub deployed earlier.
 
-   > An simple way to locate your IoT Hub is to find the resource group variable in your `.env` file.  This resource group contains the IoT Hub.
+   > A simple way to locate your IoT Hub is to find the resource group variable in your `.env` file.  This resource group contains the IoT Hub.
 
 2. Select **IoT Edge** from the left-hand menu.
 
@@ -23,7 +23,7 @@ To deploy all required modules to the Gateway using the Azure Portal...
 6. In the **IoT Edge Custom Module** dialog use `discovery` as name for the module, then specify the container *image URI* as
 
    ```bash
-   mcr.microsoft.com/iotedge/discovery:latest
+   mcr.microsoft.com/iotedge/discovery:2.7.206
    ```
 
    As *create options* use the following JSON:
@@ -34,22 +34,22 @@ To deploy all required modules to the Gateway using the Azure Portal...
 
    Fill out the optional fields if necessary. For more information about container create options, restart policy, and desired status see [EdgeAgent desired properties](https://docs.microsoft.com/azure/iot-edge/module-edgeagent-edgehub#edgeagent-desired-properties). For more information about the module twin see [Define or update desired properties](https://docs.microsoft.com/azure/iot-edge/module-composition#define-or-update-desired-properties).
 
-7. Select **Save** and repeat step **5**.  
+7. Select **Save** and repeat step **5**.
 
 8. In the **IoT Edge Custom Module** dialog use `twin` as name for the module, then specify the container *image URI* as
 
    ```bash
-   mcr.microsoft.com/iotedge/opc-twin:latest
+   mcr.microsoft.com/iotedge/opc-twin:2.7.206
    ```
 
    Leave the *create options* empty.
 
-9. Select **Save** and repeat step **5**.  
+9. Select **Save** and repeat step **5**.
 
 10. In the IoT Edge Custom Module dialog, use `publisher` as name for the module and the container *image URI* as
 
     ```bash
-    mcr.microsoft.com/iotedge/opc-publisher:latest
+    mcr.microsoft.com/iotedge/opc-publisher:2.7.206
     ```
 
     Leave the *create options* empty.

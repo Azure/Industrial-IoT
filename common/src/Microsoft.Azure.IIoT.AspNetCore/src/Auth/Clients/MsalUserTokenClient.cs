@@ -176,7 +176,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 var account = await decorator.Client.GetAccountAsync(user.GetMsalAccountId());
 
                 if (account == null) {
+#pragma warning disable CS0618 // Type or member is obsolete
                     var accounts = await decorator.Client.GetAccountsAsync();
+#pragma warning restore CS0618 // Type or member is obsolete
                     account = accounts.FirstOrDefault(a => a.Username == user.GetLoginHint());
                 }
 

@@ -112,7 +112,7 @@ The following details of the Azure IoT Hub would be required:
     ```
 
     Here are our recommended names for them:
-  
+
     * `events`: will be used by `eventsProcessor` microservices
     * `telemetry`: will be used by `telemetryProcessor` microservices
     * `tunnel`: will be used by `tunnelProcessor` microservices
@@ -344,7 +344,7 @@ The following details of **ServicesApp** AAD App Registrations will be required:
 * Client secret for **ServicesApp**. Client secret is also referred to as password. Here you can either
   provide client secret that you got when creating AAD App Registration. Or you can create a new client
   secret and use that.
-  
+
   Here are the steps to create new client secret
   [using portal](https://docs.microsoft.com/azure/active-directory/develop/howto-create-service-principal-portal#create-a-new-application-secret),
   or you can create a new client secret (password) using the following command:
@@ -388,7 +388,7 @@ The following details of **ClientsApp** AAD App Registrations will be required:
 * Client secret for **ClientsApp**. Client secret is also referred to as password. Here you can either
   provide client secret that you got when creating AAD App Registration. Or you can create a new client
   secret and use that.
-  
+
   Here are the steps to create new client secret
   [using portal](https://docs.microsoft.com/azure/active-directory/develop/howto-create-service-principal-portal#create-a-new-application-secret),
   or you can create a new client secret (password) using the following command:
@@ -500,14 +500,14 @@ The following details of the Azure Storage account would be required:
     automatically.
 
     Configuration parameter for this is `azure.adlsg2.container.cdm.name`.
-  
+
   * Root folder within the container. Defaults to `IIoTDataFlow`.
 
     Configuration parameter for this is `azure.adlsg2.container.cdm.rootFolder`.
 
 ## Installing the Chart
 
-This chart installs `2.7.200` version of components by default.
+This chart installs `2.7.206` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -573,7 +573,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.7.200`           |
+| `image.tag`         | Image tag                                | `2.7.206`           |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
@@ -1090,7 +1090,7 @@ This configuration makes sure that:
 * processing of forwarded headers is enabled:
   * [`use-forward-headers`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#use-forwarded-headers)
   * [`compute-full-forward-for`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#compute-full-forwarded-for)
-  
+
 * authentication response from Azure AAD is delivered to components:
   * [`proxy-buffer-size`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#proxy-buffer-size)
 

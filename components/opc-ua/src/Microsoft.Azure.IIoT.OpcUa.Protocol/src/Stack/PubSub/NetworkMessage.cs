@@ -33,6 +33,11 @@ namespace Opc.Ua.PubSub {
         public string DataSetClassId { get; set; }
 
         /// <summary>
+        /// Dataset writerGroup
+        /// </summary>
+        public string DataSetWriterGroup { get; set; }
+
+        /// <summary>
         /// Message type
         /// </summary>
         public string MessageType { get; set; } = "ua-data";
@@ -106,6 +111,7 @@ namespace Opc.Ua.PubSub {
             if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
                 !Utils.IsEqual(wrapper.MessageId, MessageId) ||
                 !Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
+                !Utils.IsEqual(wrapper.DataSetWriterGroup, DataSetWriterGroup) ||
                 !Utils.IsEqual(wrapper.BinaryEncodingId, BinaryEncodingId) ||
                 !Utils.IsEqual(wrapper.MessageType, MessageType) ||
                 !Utils.IsEqual(wrapper.PublisherId, PublisherId) ||
@@ -165,6 +171,8 @@ namespace Opc.Ua.PubSub {
             if(DataSetClassId != null){
                 MessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
             }
+            DataSetWriterGroup = decoder.ReadString(nameof(DataSetWriterGroup));
+
             var messagesArray = decoder.ReadEncodeableArray("Messages", typeof(DataSetMessage));
             Messages = new List<DataSetMessage>();
             foreach (var value in messagesArray) {
@@ -207,8 +215,12 @@ namespace Opc.Ua.PubSub {
                 if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
                     encoder.WriteString(nameof(PublisherId), PublisherId);
                 }
-                if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0) {
+                if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.DataSetClassId) != 0 &&
+                    !string.IsNullOrEmpty(DataSetClassId)) {
                     encoder.WriteString(nameof(DataSetClassId), DataSetClassId);
+                }
+                if (!string.IsNullOrEmpty(DataSetWriterGroup)) {
+                    encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
                 }
                 if (Messages != null && Messages.Count > 0) {
                     if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.SingleDataSetMessage) != 0) {
