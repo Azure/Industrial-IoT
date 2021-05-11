@@ -1267,7 +1267,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         SendPendingAlarms();
                         _lastSentPendingAlarms = now;
                     }
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     _logger.Error("SendPendingAlarms failed with exception {message}.", ex.Message);
                 }
                 finally {
@@ -1473,14 +1474,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (pendingAlarmsOptions.ConditionIdIndex.HasValue && pendingAlarmsOptions.RetainIndex.HasValue) {
                         var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
                         var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue<bool>(false);
-                        if (PendingAlarmEvents.ContainsKey(conditionId) && !retain) {
-                            lock (PendingAlarmEvents) {
+                        lock (PendingAlarmEvents) {
+                            if (PendingAlarmEvents.ContainsKey(conditionId) && !retain) {
                                 PendingAlarmEvents.Remove(conditionId, out var monitoredItemNotificationModel);
                                 pendingAlarmsOptions.Dirty = true;
                             }
-                        }
-                        else if (retain) {
-                            lock (PendingAlarmEvents) {
+                            else if (retain) {
                                 pendingAlarmsOptions.Dirty = true;
                                 PendingAlarmEvents[conditionId] = monitoredItemNotification;
                             }
