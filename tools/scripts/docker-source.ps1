@@ -52,8 +52,14 @@ else {
 $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
 if ($projFile) {
 
+    # Create dotnet command line 
     $output = (Join-Path $BuildRoot `
         (Join-Path "bin" (Join-Path "publish" $configuration)))
+    Write-Host "Clean $($projFile.FullName) and $output..."
+    $argumentList = @("clean", $projFile.FullName)
+    & dotnet $argumentList 2>$null
+    # Remove-Item $output -Recurse
+
     $runtimes = @(
         "linux-arm",
         "linux-musl-arm",
@@ -71,8 +77,19 @@ if ($projFile) {
     $runtimes | ForEach-Object {
         $runtimeId = $_
 
+        if ($script:Fast.IsPresent -and ($runtimeId -ne "portable")) {
+            # Only build portable, windows and linux in fast mode
+            if (($runtimeId -ne "win-x64") -and ($runtimeId -ne "linux-musl-x64")) {
+                return;
+            }
+            # if not iot edge, just build for linux or as portable.
+            if ((!$metadata.iotedge) -and ($runtimeId -ne "linux-musl-x64")) {
+                return;
+            }
+        }
+
         # Create dotnet command line 
-        $argumentList = @("publish", "-c", $configuration)
+        $argumentList = @("publish", "-c", $configuration, "--force")
         if (![string]::IsNullOrEmpty($runtimeId)) {
             $argumentList += "-r"
             $argumentList += $runtimeId
@@ -84,17 +101,6 @@ if ($projFile) {
         $argumentList += "-o"
         $argumentList += (Join-Path $output $runtimeId)
         $argumentList += $projFile.FullName
-
-        if ($script:Fast.IsPresent -and ($runtimeId -ne "portable")) {
-            # Only build portable, windows and linux in fast mode
-            if (($runtimeId -ne "win-x64") -and ($runtimeId -ne "linux-musl-x64")) {
-                return;
-            }
-            # if not iot edge, just build for linux or as portable.
-            if ((!$metadata.iotedge) -and ($runtimeId -ne "linux-musl-x64")) {
-                return;
-            }
-        }
 
         Write-Host "Publish $($projFile.FullName) with $($runtimeId) runtime..."
         & dotnet $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
