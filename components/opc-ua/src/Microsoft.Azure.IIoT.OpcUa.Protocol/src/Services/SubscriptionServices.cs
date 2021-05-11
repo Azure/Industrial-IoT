@@ -1258,15 +1258,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var now = DateTime.Now;
                 var pendingAlarmsOptions = EventTemplate.PendingAlarms;
 
-                // is it time to send anything?
-                if (pendingAlarmsOptions.IsEnabled == true &&
-                    (((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.SnapshotIntervalTimespan ?? TimeSpan.MaxValue))) ||
-                        ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) && 
-                        pendingAlarmsOptions.Dirty)))) {
-                    SendPendingAlarms();
-                    _lastSentPendingAlarms = now;
+                try {
+                    // is it time to send anything?
+                    if (pendingAlarmsOptions.IsEnabled == true &&
+                        (((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.SnapshotIntervalTimespan ?? TimeSpan.MaxValue))) ||
+                            ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) &&
+                            pendingAlarmsOptions.Dirty)))) {
+                        SendPendingAlarms();
+                        _lastSentPendingAlarms = now;
+                    }
+                } catch (Exception ex) {
+                    _logger.Error("SendPendingAlarms failed with exception {message}.", ex.Message);
                 }
-                _pendingAlarmsTimer.Start();
+                finally {
+                    _pendingAlarmsTimer.Start();
+                }
             }
 
             /// <summary>
