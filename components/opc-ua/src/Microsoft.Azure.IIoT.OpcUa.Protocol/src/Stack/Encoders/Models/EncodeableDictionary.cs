@@ -74,9 +74,8 @@ namespace Opc.Ua.Encoders {
 
                 // Write keys for decoding.
                 var keys = keyValuePairs.Select(x => x.Key).ToArray();
-                var count = (uint)keys.Length;
-                encoder.WriteUInt32(kCountIdentifier, count);
-                if (count > 0) {
+                encoder.WriteUInt32(kCountIdentifier, (uint)keys.Length);
+                if (keys.Length > 0) {
                     encoder.WriteStringArray(kKeysIdentifier, keys);
                 }
             }
