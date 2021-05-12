@@ -87,4 +87,4 @@ All OPC UA components use the OPC Foundation's OPC UA reference stack as nuget p
 
 * [Learn how to deploy OPC Twin Module](../deploy/howto-install-iot-edge.md)
 * [Learn about the OPC Twin Microservice](../services/twin.md)
-* [Learn about OPC Registry Onboarding](../services/onboarding.md)
+* [Learn about OPC Registry Onboarding](../services/processor-onboarding.md)

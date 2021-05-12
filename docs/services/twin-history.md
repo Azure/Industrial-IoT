@@ -10,4 +10,4 @@ The Historian Microservice API is more accessible by surfacing the `ExtensionObj
 
 ## Docker image
 
-`docker pull mcr.microsoft.com/iot/opc-history-service:preview`
+`docker pull mcr.microsoft.com/iot/opc-history-service:latest`

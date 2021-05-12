@@ -67,7 +67,7 @@ The Worker REST API can be used to Get/List the active workers and to remove a w
 
 ### Docker Image
 
-`docker pull mcr.microsoft.com/iot/opc-publisher-service:preview`
+`docker pull mcr.microsoft.com/iot/opc-publisher-service:latest`
 
 ## OPC Publisher Job Orchestrator Microservice
 
@@ -110,4 +110,4 @@ APIs of OPC Publisher Job Orchestrator Microservice are internal and are intende
 
 ### Docker Image
 
-`docker pull mcr.microsoft.com/iot/opc-publisher-edge-service:preview`
+`docker pull mcr.microsoft.com/iot/opc-publisher-edge-service:latest`

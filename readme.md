@@ -12,7 +12,7 @@ An overview architecture is depicted below:
 
 ![diagram](docs/media/IIoT-Diagram.png)
 
-The edge services are implemented as Azure IoT Edge modules and run on on-premises. The cloud services are implemented as ASP.NET micro-services with a REST interface and run on managed Azure Kubernetes Services (currently in preview) or stand-alone on Azure App Service. For both edge and cloud services, we have provided pre-built Docker containers in the Microsoft Container Registry (MCR), so you don't have to build them yourself. The edge and cloud services are leveraging each other and must be used together. We have also provided easy-to-use deployment scripts that allow you to deploy the entire platform in a step-by-step fashion.
+The edge services are implemented as Azure IoT Edge modules and run on on-premises. The cloud services are implemented as ASP.NET micro-services with a REST interface and run on managed Azure Kubernetes Services or stand-alone on Azure App Service. For both edge and cloud services, we have provided pre-built Docker containers in the Microsoft Container Registry (MCR), so you don't have to build them yourself. The edge and cloud services are leveraging each other and must be used together. We have also provided easy-to-use deployment scripts that allow you to deploy the entire platform in a step-by-step fashion.
 
 We have also built an application running on Azure that lets you access the services through a simple UI.
 

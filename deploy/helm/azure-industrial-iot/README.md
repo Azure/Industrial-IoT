@@ -25,7 +25,6 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
     * [Azure SignalR](#azure-signalr)
     * [Azure Application Insights](#azure-application-insights)
     * [Azure Log Analytics Workspace](#azure-log-analytics-workspace)
-    * [Azure Data Lake Storage Gen2](#azure-data-lake-storage-gen2)
 * [Installing the Chart](#installing-the-chart)
 * [Configuration](#configuration)
   * [Image](#image)
@@ -46,7 +45,6 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
   * [Data Protection](#data-protection)
     * [Azure Storage Account Container](#azure-storage-account-container)
     * [Azure Key Vault Key](#azure-key-vault-key)
-  * [Common Data Model](#common-data-model)
   * [Swagger](#swagger)
   * [NGINX Ingress Controller](#nginx-ingress-controller)
     * [Controller configuration](#controller-configuration)
@@ -216,14 +214,12 @@ $ az eventhubs eventhub create --resource-group MyResourceGroup --namespace-name
 
 ##### Azure Event Hub Consumer Groups
 
-Please create two consumer groups for the Event Hub. For example, you can call them `telemetry_cdm` and
-`telemetry_ux`. These can be created with the commands bellow. More details about the command and its
+Please create a consumer group for the Event Hub. For example, you can call it `telemetry_ux`. 
+These can be created with the commands bellow. More details about the command and its
 parameters can be found
 [here](https://docs.microsoft.com/cli/azure/eventhubs/eventhub/consumer-group?view=azure-cli-latest#az-eventhubs-eventhub-consumer-group-create).
 
 ```bash
-$ az eventhubs eventhub consumer-group create --resource-group MyResourceGroup --namespace-name mynamespace --eventhub-name myeventhub --name telemetry_cdm
-
 $ az eventhubs eventhub consumer-group create --resource-group MyResourceGroup --namespace-name mynamespace --eventhub-name myeventhub --name telemetry_ux
 ```
 
@@ -283,7 +279,6 @@ Configuration parameter for data protection key in Azure Key Vault is `azure.key
 Required for:
 
 * `engineeringTool`
-* `telemetryCdmProcessor`
 
 Details of AAD App Registration are required if you want to enable authentication for components of
 Azure Industrial IoT solution. If authentication is enabled, web APIs of components will require an Access Token for
@@ -460,49 +455,6 @@ The following details of the Azure Log Analytics Workspace would be required:
 
   Either one of the keys would work.
 
-#### Azure Data Lake Storage Gen2
-
-Required for:
-
-* `telemetryCdmProcessor`
-
-Azure Data Lake Storage Gen2 is used by `telemetryCdmProcessor` component, which receives events from the
-secondary telemetry event hub and publishes these events to the configured Azure Data Lake Storage resource.
-It also ensures that the necessary [Common Data Model Schema](https://docs.microsoft.com/common-data-model/model-json)
-files are created so that consumers such as Power Apps and Power BI can access the data and metadata.
-
-**Documentation**: [Common Data Model](https://docs.microsoft.com/common-data-model/)
-
-You would need to have an existing Azure Storage account. Here are the steps to
-[create an Azure Storage account](https://docs.microsoft.com/azure/storage/common/storage-account-create).
-Please note that for this feature we require:
-
-* `Account kind` to be set to `StorageV2 (general-purpose v2)`, step 7
-* `Hierarchical namespace` to be `Enabled`, step 8
-
-The following details of the Azure Storage account would be required:
-
-* Connection string for Azure Storage account.
-  This can be obtained with the following command:
-
-  ```bash
-  $ az storage account show-connection-string --name MyStorageAccount --query "connectionString"
-  "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=MyStorageAccount;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  ```
-
-* Details of Azure Storage Account Container that should be used for Common Data Model storage:
-
-  * Container Name. You can either manually create a blob container and pass its name to the chart, or
-    specify desired name of the container. Then it will be automatically created by the
-    `telemetryCdmProcessor`. If container name is not set, then it defaults to `powerbi` and will be created
-    automatically.
-
-    Configuration parameter for this is `azure.adlsg2.container.cdm.name`.
-
-  * Root folder within the container. Defaults to `IIoTDataFlow`.
-
-    Configuration parameter for this is `azure.adlsg2.container.cdm.rootFolder`.
-
 ## Installing the Chart
 
 This chart installs `2.8` version of components by default.
@@ -541,7 +493,6 @@ $ helm install azure-iiot azure-iiot/azure-industrial-iot --namespace azure-iiot
   --set azure.storageAccount.connectionString=<StorageAccountConnectionString> \
   --set azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<EventHubNamespaceConnectionString> \
   --set azure.eventHubNamespace.eventHub.name=<EventHubName> \
-  --set azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm=<EventHubTelemetryCdmConsumerGroup> \
   --set azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx=<EventHubTelemetryUxConsumerGroup> \
   --set azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<ServiceBusNamespaceConnectionString> \
   --set azure.keyVault.uri=<KeyVaultURI> \
@@ -585,12 +536,8 @@ values.
 | `azure.cosmosDB.connectionString`                                                           | Cosmos DB connection string with read-write permissions                                          | `null`                               |
 | `azure.storageAccount.connectionString`                                                     | Storage account connection string                                                                | `null`                               |
 | `azure.storageAccount.container.dataProtection.name`                                        | Name of storage account container for [data protection](#data-protection-container-(optional))   | `dataprotection`                     |
-| `azure.adlsg2.connectionString`                                                             | ADLS Gen2 account connection string                                                              | `null`                               |
-| `azure.adlsg2.container.cdm.name`                                                           | Name of ADLS Gen2 blob container for CDM storage                                                 | `powerbi`                            |
-| `azure.adlsg2.container.cdm.rootFolder`                                                     | CDM root folder within CDM blob container                                                        | `IIoTDataFlow`                       |
 | `azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString`   | Connection string of `RootManageSharedAccessKey` key of Event Hub namespace                      | `null`                               |
 | `azure.eventHubNamespace.eventHub.name`                                                     | Name of secondary Event Hub within Event Hub Namespace                                           | `null`                               |
-| `azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm`                               | Name of the consumer group for `telemetryCdmProcessor`                                           | `null`                               |
 | `azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx`                                | Name of the consumer group for `telemetryUxProcessor`                                            | `null`                               |
 | `azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString` | Connection string of `RootManageSharedAccessKey` key of Service Bus namespace                    | `null`                               |
 | `azure.keyVault.uri`                                                                        | Key Vault URI, also referred as DNS Name                                                         | `null`                               |
@@ -739,7 +686,7 @@ resource only for one micro-service (`registry`). Please consult `values.yaml` f
 parameters.
 
 Here is the list of all Azure Industrial IoT components that are deployed by this chart. Currently only
-`engineeringTool` and `telemetryCdmProcessor` are disabled by default.
+`engineeringTool` is disabled by default.
 
 | Name in `values.yaml`   | Description                                                                 | Enabled by Default |
 |-------------------------|-----------------------------------------------------------------------------|--------------------|
@@ -924,7 +871,6 @@ azure:
     eventHub:
       name: <EventHubName>
       consumerGroup:
-        telemetryCdm: <EventHubTelemetryCdmConsumerGroup>
         telemetryUx: <EventHubTelemetryUxConsumerGroup>
 
   serviceBusNamespace:
@@ -983,24 +929,6 @@ We use a key in Azure Key Vault to protect keys that are stored in
 You can specify the name of the key in Azure Key Vault to be used or the value will default to `dataprotection`.
 If it doesn't already exist, this key in Azure Key Vault will be created automatically on startup of `engineeringTool` component
 Configuration parameter for data protection key in Azure Key Vault is `azure.keyVault.key.dataProtection`.
-
-### Common Data Model
-
-> **NOTE:** This feature is in preview.
-
-`telemetryCdmProcessor` component can consume events from the secondary telemetry Event Hub and publish
-these events to the configured Azure Data Lake Storage Gen2 resource. It also ensures that the necessary
-[Common Data Model Schema](https://docs.microsoft.com/common-data-model/model-json) files are created so
-that consumers such as Power Apps and Power BI can access the data and metadata. You would have to explicitly
-enable `telemetryCdmProcessor` to use this feature, since it is disabled by default.
-
-Please note, that `telemetryCdmProcessor` requires authentication to be enabled. It also requires additional
-API permissions for `ServicesApp` AAD App Registration. Namely, it needs Delegated `user_impersonation`
-permission on `Azure Storage`. Please follow these steps to
-[add API permissions](https://docs.microsoft.com/graph/notifications-integration-app-registration#api-permissions).
-
-Here is a tutorial on
-[how to connect Power BI with Azure Data Lake Storage Gen2 and visualize publisher telemetry](../../../docs/tutorials/tut-power-bi-cdm.md).
 
 ### Swagger
 

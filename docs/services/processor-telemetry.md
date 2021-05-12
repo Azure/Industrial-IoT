@@ -15,4 +15,4 @@ The edge telemetry processor is an event processor host and can be scaled out to
 
 ## Docker image
 
-`docker pull mcr.microsoft.com/iot/industrial-iot-telemetry-processor:preview`
+`docker pull mcr.microsoft.com/iot/industrial-iot-telemetry-processor:latest`

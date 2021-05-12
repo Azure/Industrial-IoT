@@ -47,4 +47,4 @@ The discovery progress as well as current request queue size is reported via the
 
 * [Learn how to deploy Discovery Module](../deploy/howto-install-iot-edge.md)
 * [Learn about the Registry Microservice](../services/registry.md)
-* [Learn about Onboarding Microservice](../services/onboarding.md)
+* [Learn about Registry onboarding](../services/processor-onboarding.md)

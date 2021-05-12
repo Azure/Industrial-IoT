@@ -637,7 +637,7 @@ The following microservice endpoints are exposed:
 |-----------------|-------------------|-------------------------------------|------------------------------------------------------------------|
 | `registry`      | `/registry/`      | `/registry/swagger/index.html`      | [Registry Microservice](../services/registry.md)                 |
 | `twin`          | `/twin/`          | `/twin/swagger/index.html`          | [OPC Twin Microservice](../services/twin.md)                     |
-| `history`       | `/history/`       | `/history/swagger/index.html`       | [OPC Historian Access Microservice](../services/history.md)   |
+| `history`       | `/history/`       | `/history/swagger/index.html`       | [OPC Historian Access Microservice](../services/twin-history.md) |
 | `publisher`     | `/publisher/`     | `/publisher/swagger/index.html`     | [OPC Publisher Service](../services/publisher.md)                |
 | `events`        | `/events/`        | `/events/swagger/index.html`        | [Events Service](../services/events.md)                          |
 | `edgeJobs`      | `/edge/publisher/ | `/edge/publisher/swagger/index.html`| [Publisher jobs orchestrator service](../services/publisher.md)  |

@@ -17,7 +17,7 @@ Applications and their endpoints that have not been found for a while can be pur
 
 ## Docker image
 
-`docker pull mcr.microsoft.com/iot/opc-onboarding-service:preview`
+`docker pull mcr.microsoft.com/iot/opc-onboarding-service:latest`
 
 ## Next steps
 
