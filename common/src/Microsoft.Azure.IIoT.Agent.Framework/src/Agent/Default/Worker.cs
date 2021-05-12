@@ -106,6 +106,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 _logger.Information("Stopping worker...");
                 _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
+                // Inform services, that this worker has stopped working, so orchestrator can reassign job
+                if (_jobProcess != null) {
+                    _jobProcess.Status = WorkerStatus.Stopped;
+                    await SendHeartbeatWithoutResetTimer(); // need to be send before cancel the CancellationToken
+                }
+
                 // Stop worker
                 _cts.Cancel();
                 await _worker;
@@ -142,6 +148,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// </summary>
         /// <param name="sender"></param>
         private async void HeartbeatTimer_ElapsedAsync(object sender) {
+
+            await SendHeartbeatWithoutResetTimer();
+            Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
+        }
+
+        private async Task SendHeartbeatWithoutResetTimer() {
             try {
                 _logger.Debug("Sending heartbeat...");
 
@@ -155,10 +167,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 return; // Done
             }
             catch (Exception ex) {
-                _logger.Information(ex, "Could not send worker heartbeat.");
+                _logger.Debug(ex, "Could not send worker heartbeat.");
                 kModuleExceptions.WithLabels(AgentId, ex.Source, ex.GetType().FullName, ex.Message, ex.StackTrace, "Could not send worker hearbeat").Inc();
             }
-            Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
         }
 
         /// <summary>
@@ -226,6 +237,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
                     // Check if the job is to be continued with new configuration settings
                     if (_jobProcess.JobContinuation == null) {
+                        _jobProcess.Status = WorkerStatus.Stopped;
+                        await SendHeartbeatWithoutResetTimer();
                         _jobProcess = null;
                         break;
                     }
@@ -234,6 +247,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     if (jobProcessInstruction?.Job?.JobConfiguration == null ||
                         jobProcessInstruction?.ProcessMode == null) {
                         _logger.Information("Job continuation invalid, continue listening...");
+                        if (_jobProcess != null) {
+                            _jobProcess.Status = WorkerStatus.Stopped;
+                            await SendHeartbeatWithoutResetTimer();
+                        }
+
                         _jobProcess = null;
                         break;
                     }
@@ -242,6 +260,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
             catch (OperationCanceledException) {
                 _logger.Information("Processing cancellation received ...");
+                if (_jobProcess != null) {
+                    _jobProcess.Status = WorkerStatus.Stopped;
+                    await SendHeartbeatWithoutResetTimer();
+                }
+
                 _jobProcess = null;
             }
             finally {
@@ -262,7 +285,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             public JobProcessingInstructionModel JobContinuation { get; private set; }
 
             /// <inheritdoc/>
-            public WorkerStatus Status { get; private set; } = WorkerStatus.Stopped;
+            public WorkerStatus Status { get; internal set; } = WorkerStatus.Stopped;
 
             /// <inheritdoc/>
             public JobInfoModel Job => _currentJobProcessInstruction.Job;
