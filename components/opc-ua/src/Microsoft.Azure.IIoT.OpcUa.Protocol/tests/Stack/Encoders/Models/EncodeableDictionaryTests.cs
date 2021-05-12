@@ -108,6 +108,39 @@ namespace Opc.Ua.Encoders {
         }
 
         [Fact]
+        public void WriteReadNoNullKeyDataValuePairs() {
+            var expectedKey1 = "Key1";
+            var expectedKey2 = "Key2";
+            var expectedKey3 = "Key3";
+
+            var encodeableDictionary = new EncodeableDictionary {
+                new KeyDataValuePair { Key = expectedKey1, Value = null },
+                new KeyDataValuePair { Key = expectedKey2, Value = null },
+                new KeyDataValuePair { Key = expectedKey3, Value = null },
+            };
+
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            using (var stream = new MemoryStream()) {
+                using (var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.Object)) {
+                    encodeableDictionary.Encode(encoder);
+                }
+
+                // Encoder must be closed before getting buffer.
+                buffer = stream.ToArray();
+            }
+
+            using (var stream = new MemoryStream(buffer)) {
+                using var decoder = new JsonDecoderEx(stream, context);
+                var actual = new EncodeableDictionary();
+                actual.Decode(decoder);
+                Assert.Empty(actual);
+                var eof = decoder.ReadDataValue(null);
+                Assert.Null(eof);
+            }
+        }
+
+        [Fact]
         public void ThrowServiceResultExceptionWhenKeysIdentifierIsUsed() {
             var encodeableDictionary = new EncodeableDictionary {
                 new KeyDataValuePair { Key = "_Keys", Value = new DataValue(new Variant(123)) },

@@ -68,7 +68,10 @@ namespace Opc.Ua.Encoders {
                 }
 
                 // Write keys for decoding.
-                var keys = this.Select(x => x.Key).Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                var keys = this
+                    .Where(x => !string.IsNullOrEmpty(x.Key) && x.Value != null)
+                    .Select(x => x.Key)
+                    .ToArray();
                 encoder.WriteUInt32(kCountIdentifier, (uint)keys.Length);
                 if (Count > 0) {
                     encoder.WriteStringArray(kKeysIdentifier, keys);
