@@ -75,5 +75,4 @@ You can also connect connect the Time Series Insights environment to Power BI.  
 ## Next Steps
 
 - To learn more about the Time Series Insights explorer, see [Azure Time Series Insights explorer](https://docs.microsoft.com/en-us/azure/time-series-insights/time-series-insights-update-explorer).
-- [Visualize OPC UA PubSub Telemetry in Power BI](tut-power-bi-cdm.md)
 - [Deploy IoT Edge to discover and connect your own assets](../deploy/howto-install-iot-edge.md)

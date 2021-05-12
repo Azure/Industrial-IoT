@@ -2,7 +2,7 @@
 
 [Home](../readme.md)
 
-Azure Industrial IoT platform includes modules for [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) to connect your factory network.
+Azure Industrial IoT Platform includes modules for [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) to connect your factory network.
 
 The following modules are part of the platform:
 
