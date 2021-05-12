@@ -1463,6 +1463,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         _pendingAlarmsSnapshotTimer.Start();
                         return;
                     }
+                    else if (eventType == ObjectTypeIds.RefreshRequiredEventType) {
+                        var noErrorFound = true;
+
+                        // issue a condition refresh to make sure we are in a correct state
+                        _logger.Information("Now issuing ConditionRefresh for subscription " +
+                            "{subscription} due to receiving a RefreshRequired event", Item.Subscription.DisplayName);
+                        try {
+                            Item.Subscription.ConditionRefresh();
+                        }
+                        catch (ServiceResultException e) {
+                            _logger.Information("ConditionRefresh for subscription " +
+                                "{subscription} failed with a ServiceResultException '{message}'", Item.Subscription.DisplayName, e.Message);
+                            noErrorFound = false;
+                        }
+                        catch (Exception e) {
+                            _logger.Information("ConditionRefresh for subscription " +
+                                "{subscription} failed with an exception '{message}'", Item.Subscription.DisplayName, e.Message);
+                            noErrorFound = false;
+                        }
+                        if (noErrorFound) {
+                            _logger.Information("ConditionRefresh for subscription " +
+                                "{subscription} has completed", Item.Subscription.DisplayName);
+                        }
+                        return;
+                    }
                 }
 
                 var monitoredItemNotification = notification
