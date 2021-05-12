@@ -150,6 +150,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
         }
 
         /// <inheritdoc/>
+        public override ServiceHost CreateServiceHost(ServerBase server, params Uri[] addresses) {
+            return new ServiceHost(server, typeof(GatewayServer), addresses);
+        }
+
+        /// <inheritdoc/>
         public override ResponseHeader CreateSession(RequestHeader requestHeader,
             ApplicationDescription clientDescription, string serverUri, string endpointUrl,
             string sessionName, byte[] clientNonce, byte[] clientCertificate,
@@ -1732,7 +1737,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 DiscoveryUrls = null
             };
             endpoints = _endpoints;
-            return new List<ServiceHost>(); // TODO: We should probably create a service host here - but is this code really used?
+            return new List<ServiceHost> { CreateServiceHost(this, null) }; 
         }
 
         /// <inheritdoc/>
