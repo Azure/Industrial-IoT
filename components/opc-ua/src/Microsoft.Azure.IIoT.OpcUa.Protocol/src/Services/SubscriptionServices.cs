@@ -1022,12 +1022,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     else {
                         _pendingAlarmsTimer.Stop();
-                        lock (PendingAlarmEvents) {
+                        lock (_lock) {
                             PendingAlarmEvents.Clear();
                         }
                     }
                 }
             }
+
+            private readonly Object _lock = new object();
 
             /// <summary>
             /// Destructor for this class
@@ -1255,7 +1257,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             private void OnPendingAlarmsTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
                 var pendingAlarmsOptions = EventTemplate.PendingAlarms;
 
                 try {
@@ -1450,7 +1452,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         // stop the timers during condition refresh
                         if (pendingAlarmsOptions?.IsEnabled == true) {
                             _pendingAlarmsTimer.Stop();
-                            lock (PendingAlarmEvents) {
+                            lock (_lock) {
                                 PendingAlarmEvents.Clear();
                             }
                         }
@@ -1474,7 +1476,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (pendingAlarmsOptions.ConditionIdIndex.HasValue && pendingAlarmsOptions.RetainIndex.HasValue) {
                         var conditionId = values[pendingAlarmsOptions.ConditionIdIndex.Value].Value.ToString();
                         var retain = values[pendingAlarmsOptions.RetainIndex.Value].Value.GetValue<bool>(false);
-                        lock (PendingAlarmEvents) {
+                        lock (_lock) {
                             if (PendingAlarmEvents.ContainsKey(conditionId) && !retain) {
                                 PendingAlarmEvents.Remove(conditionId, out var monitoredItemNotificationModel);
                                 pendingAlarmsOptions.Dirty = true;
@@ -1493,7 +1495,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             private void SendPendingAlarms() {
                 List<MonitoredItemNotificationModel> notifications = null;
-                lock (PendingAlarmEvents) {
+                lock (_lock) {
                     notifications = new List<MonitoredItemNotificationModel>(PendingAlarmEvents.Values);
                     EventTemplate.PendingAlarms.Dirty = false;
                 }
@@ -1545,7 +1547,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             private readonly Timer _pendingAlarmsTimer = new Timer();
-            private DateTime _lastSentPendingAlarms = DateTime.Now;
+            private DateTime _lastSentPendingAlarms = DateTime.UtcNow;
             private HashSet<uint> _newTriggers = new HashSet<uint>();
             private HashSet<uint> _triggers = new HashSet<uint>();
             private Publisher.Models.MonitoringMode? _modeChange;
