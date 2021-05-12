@@ -22,7 +22,7 @@ steps:
   inputs:
     azureSubscription: 'IOT-OPC-WALLS-SP'
     KeyVaultName: 'developPipelineKV'
-    SecretsFilter: 'ImageNamespace,ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
+    SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
 - task: AzurePowerShell@5
