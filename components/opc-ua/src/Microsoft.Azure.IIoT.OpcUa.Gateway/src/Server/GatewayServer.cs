@@ -1737,7 +1737,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 DiscoveryUrls = null
             };
             endpoints = _endpoints;
-            return new List<ServiceHost> { CreateServiceHost(this, null) }; 
+            return new List<ServiceHost> { CreateServiceHost(this, endpoints.Select(x => new Uri(x.EndpointUrl)).ToArray()) }; 
         }
 
         /// <inheritdoc/>
