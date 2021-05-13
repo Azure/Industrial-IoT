@@ -42,9 +42,11 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup Condition="'$(SDL)' == 'true'">
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <PackageReference Include="Roslynator.Analyzers" Version="3.1.0" PrivateAssets="All" />
   </ItemGroup>
+  <PropertyGroup Condition="'$(SDL)' == 'true'">
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
   <PropertyGroup>
     <PrereleaseSuffix>$(PrereleaseVersionNoLeadingHyphen)-$(GitCommitIdShort)</PrereleaseSuffix>
     <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' != ''">[$(NuGetPackageVersion)]</PrereleaseVersion>
