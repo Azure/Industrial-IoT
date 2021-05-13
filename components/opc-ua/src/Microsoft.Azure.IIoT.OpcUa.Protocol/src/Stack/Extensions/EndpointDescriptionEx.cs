@@ -15,8 +15,8 @@ namespace Opc.Ua.Extensions {
         /// <summary>
         /// Matches model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="endpoint"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
         public static bool IsSameAs(this EndpointDescription endpoint,
             EndpointModel model) {

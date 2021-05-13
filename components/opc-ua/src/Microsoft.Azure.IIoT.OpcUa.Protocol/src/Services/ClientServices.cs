@@ -33,8 +33,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Create client host services
         /// </summary>
-        /// <param name="clientConfig"></param>
         /// <param name="logger"></param>
+        /// <param name="clientConfig"></param>
         /// <param name="identity"></param>
         /// <param name="maxOpTimeout"></param>
         public ClientServices(ILogger logger, IClientServicesConfig clientConfig,

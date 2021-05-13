@@ -62,14 +62,16 @@ namespace Opc.Ua.Design {
                 // Try to load as type dictionary
                 if (!design.CanSeek) {
                     // Stream is already partitially read - need to reset - if we cannot throw
-                    throw ex;
+                    throw;
                 }
                 try {
                     design.Seek(0, SeekOrigin.Begin);
                     return LoadTypeDictionary(design, assigner, resolver);
                 }
                 catch {
+#pragma warning disable CA2200 // Rethrow to preserve stack details
                     throw ex;
+#pragma warning restore CA2200 // Rethrow to preserve stack details
                 }
             }
         }

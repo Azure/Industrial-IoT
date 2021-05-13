@@ -299,5 +299,5 @@ dotnet_code_quality.CA1822.api_surface                                          
 dotnet_diagnostic.CA3075.severity                                                              = warning
 
 # RCS1090: Add call to 'ConfigureAwait' (or vice versa)
-dotnet_diagnostic.RCS1090.severity                                                             = warning
+dotnet_diagnostic.RCS1090.severity                                                             = suggestion
 
