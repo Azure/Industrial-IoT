@@ -126,8 +126,8 @@ namespace TestData {
 
                 return ServiceResult.Good;
             }
-            catch (Exception e) {
-                throw e;
+            catch (Exception) {
+                throw;
             }
         }
 

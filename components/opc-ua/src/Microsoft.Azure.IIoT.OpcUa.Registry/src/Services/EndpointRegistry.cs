@@ -240,10 +240,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     }
                     await ActivateAsync(registration, context, ct);
                 }
-                catch (Exception ex) {
+                catch (Exception) {
                     // Try other supervisors as candidates
                     if (!await ActivateAsync(registration, null, context, ct)) {
-                        throw ex;
+                        throw;
                     }
                 }
             }
@@ -764,7 +764,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 await Try.Async(() => ClearSupervisorTwinSecretAsync(
                     registration.DeviceId, registration.SupervisorId));
                 _logger.Error(ex, "Failed to activate twin");
-                throw ex;
+                throw;
             }
         }
 

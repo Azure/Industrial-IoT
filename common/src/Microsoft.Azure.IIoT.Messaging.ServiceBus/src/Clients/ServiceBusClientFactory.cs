@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
                         continue;
                     }
                     _logger.Error(ex, "Failed to create subscription client.");
-                    throw ex;
+                    throw;
                 }
             }
         }
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
                         continue; // 429
                     }
                     _logger.Error(ex, "Failed to create queue client.");
-                    throw ex;
+                    throw;
                 }
             }
         }
@@ -202,7 +202,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients {
                         continue; // 429
                     }
                     _logger.Error(ex, "Failed to create topic client.");
-                    throw ex;
+                    throw;
                 }
             }
         }

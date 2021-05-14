@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to start SignalR service host.");
-                throw ex;
+                throw;
             }
         }
 
