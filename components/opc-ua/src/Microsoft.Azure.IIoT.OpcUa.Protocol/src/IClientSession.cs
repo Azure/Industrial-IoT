@@ -32,8 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="elevation"></param>
         /// <param name="priority"></param>
         /// <param name="serviceCall"></param>
-        /// <param name="timeout"></param>
         /// <param name="handler"></param>
+        /// <param name="timeout"></param>
         /// <param name="ct"></param>
         /// <param name="completion"></param>
         /// <returns></returns>

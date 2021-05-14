@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to read data from {corpus}", corpusPath);
-                throw ex;
+                throw;
             }
         }
 
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to write data to {corpus}", corpusPath);
-                throw ex;
+                throw;
             }
         }
 
@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to write data to {corpus}", corpusPath);
-                throw ex;
+                throw;
             }
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to get files in {corpus}", folderCorpusPath);
-                throw ex;
+                throw;
             }
         }
 

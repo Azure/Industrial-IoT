@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
                                 eventName);
                         }
                         else {
-                            throw ex;
+                            throw;
                         }
                     }
                     handlers = new Dictionary<string, Subscription>();

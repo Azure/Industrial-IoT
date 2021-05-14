@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
                 finally {
                     kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "", _moduleGuid, "",
-                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", 
+                        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                         CultureInfo.InvariantCulture)).Set(0);
                     Client?.Dispose();
                     Client = null;
@@ -153,7 +153,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         return;
                     }
                 }
-                catch (Exception ex) {
+                catch (Exception) {
                     kModuleStart.WithLabels(DeviceId ?? "", ModuleId ?? "",
                         _moduleGuid, version,
                         DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     ModuleId = null;
                     SiteId = null;
                     Gateway = null;
-                    throw ex;
+                    throw;
                 }
                 finally {
                     _lock.Release();
@@ -544,7 +544,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private static readonly Gauge kModuleStart = Metrics
             .CreateGauge("iiot_edge_module_start", "starting module",
                 new GaugeConfiguration {
-                    LabelNames = new[] {"deviceid", "module", "runid", "version", "timestamp_utc" }
+                    LabelNames = new[] { "deviceid", "module", "runid", "version", "timestamp_utc" }
                 });
     }
 }

@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             _urlQueue = new ConcurrentQueue<string>(_connection.Endpoint.GetAllUrls());
             _queue = new PriorityQueue<int, SessionOperation>();
             _enqueueEvent = new TaskCompletionSource<bool>(
-                TaskContinuationOptions.RunContinuationsAsynchronously);
+                TaskCreationOptions.RunContinuationsAsynchronously);
 #pragma warning disable RECS0002 // Convert anonymous method to method group
             _processor = Task.Factory.StartNew(() => RunAsync(), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
@@ -75,11 +75,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="config">Application configuration</param>
         /// <param name="connection">Endpoint to connect to</param>
-        /// <param name="timeout">Session timeout</param>
+        /// <param name="logger">Logger</param>
         /// <param name="statusCb">Status callback for reporting</param>
         /// <param name="maxOpTimeout"></param>
-        /// <param name="logger">Logger</param>
         /// <param name="sessionName">Optional session name</param>
+        /// <param name="timeout">Session timeout</param>
         /// <param name="keepAlive">Keep alive interval</param>
         public static IClientSession Create(ApplicationConfiguration config,
             ConnectionModel connection, ILogger logger, Func<ConnectionModel,
@@ -96,11 +96,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="config">Application configuration</param>
         /// <param name="connection">Endpoint to connect to</param>
-        /// <param name="timeout">Session timeout</param>
+        /// <param name="logger">Logger</param>
         /// <param name="statusCb">Status callback for reporting</param>
         /// <param name="maxOpTimeout"></param>
-        /// <param name="logger">Logger</param>
         /// <param name="sessionName">Optional session name</param>
+        /// <param name="timeout">Session timeout</param>
         /// <param name="keepAlive">Keep alive interval</param>
         public static (IClientSession, ISessionHandle) CreateWithHandle(
             ApplicationConfiguration config, ConnectionModel connection,
@@ -495,7 +495,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // Wait on a fresh task or on the not yet completed on
                 if (tcs.Task.IsCompleted) {
                     var newEvent = new TaskCompletionSource<bool>(
-                        TaskContinuationOptions.RunContinuationsAsynchronously);
+                        TaskCreationOptions.RunContinuationsAsynchronously);
                     if (Interlocked.CompareExchange(ref _enqueueEvent, newEvent, tcs) == tcs) {
                         // Exchanged safely now we can wait for it.
                         tcs = newEvent;
@@ -657,7 +657,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var complexTypeSystem = new ComplexTypeSystem(session);
                 await complexTypeSystem.Load();
             }
-            catch (Exception ex){
+            catch (Exception ex) {
                 _logger.Error(ex, "Failed to load complex type system");
             }
             return session;

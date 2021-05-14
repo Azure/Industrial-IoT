@@ -13,6 +13,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>Industrial;Industrial IoT;Manufacturing;Azure;IoT;.NET</PackageTags>
     <HighEntropyVA>true</HighEntropyVA>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NeutralLanguage>en-US</NeutralLanguage>
     <LangVersion>8.0</LangVersion>
@@ -38,6 +39,12 @@
     <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
   </PropertyGroup>
   <PropertyGroup Condition="'$(FX_COP)' != ''">
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(SDL)' == 'true'">
+    <PackageReference Include="Roslynator.Analyzers" Version="3.1.0" PrivateAssets="All" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(SDL)' == 'true'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup>
