@@ -36,13 +36,13 @@ In the TSI Explorer, please note the Unassigned Time Series Instances. A TSI Ins
 
 The telemetry data can be visualized in the chart by right-clicking the TSI instance and selecting the Value. The time frame to be used in chart can be adjusted from the upper right corner. Value of multiple instances can be visualized on the same time basis selection.
 
-For more information, see [Quickstart: Explore the Azure Time Series Insights Preview](https://docs.microsoft.com/en-us/azure/time-series-insights/time-series-insights-update-quickstart)
+For more information, see [Quickstart: Explore Azure Time Series Insights](https://docs.microsoft.com/en-us/azure/time-series-insights/time-series-insights-update-quickstart)
 
 ## Define and apply a new Model
 
 Since the telemetry instances are now just in raw format, they need to be contextualized with the appropriate 
 
-For detailed information on TSI models see [Time Series Model in Azure Time Series Insights Preview](https://docs.microsoft.com/en-us/azure/time-series-insights/time-series-insights-update-tsm)
+For detailed information on TSI models see [Time Series Model in Azure Time Series Insights](https://docs.microsoft.com/en-us/azure/time-series-insights/time-series-insights-update-tsm)
 
 1. Step 1 - In the model tab of the Explorer, define a new hierarchy for the telemetry data ingested. A hierarchy is the logical tree structure meant to enable the user to insert the meta-information required for a more intuitive navigation through the tsi instances. a user can create/delete/modify hierarchy templates that can be later on instantiated for the various TSI instances.
 
@@ -75,5 +75,4 @@ You can also connect connect the Time Series Insights environment to Power BI.  
 ## Next Steps
 
 - To learn more about the Time Series Insights explorer, see [Azure Time Series Insights explorer](https://docs.microsoft.com/en-us/azure/time-series-insights/time-series-insights-update-explorer).
-- [Visualize OPC UA PubSub Telemetry in Power BI](tut-power-bi-cdm.md)
 - [Deploy IoT Edge to discover and connect your own assets](../deploy/howto-install-iot-edge.md)

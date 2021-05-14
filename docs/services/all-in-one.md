@@ -8,4 +8,4 @@ The all in one service host combines all micro services and agents into a single
 
 ## Docker image
 
-`docker pull mcr.microsoft.com/iot/industrial-iot-services-all:preview`
+`docker pull mcr.microsoft.com/iot/industrial-iot-services-all:latest`
