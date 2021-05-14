@@ -22,7 +22,7 @@ The minimal deployment script deploys the following managed Azure services into 
 - 1 [Cosmos DB](https://azure.microsoft.com/services/cosmos-db/) with Session consistency level (to persist state that is not persisted in IoT Hub)
 - 1 [Blob Storage](https://azure.microsoft.com/services/storage/) V2, Standard LRS SKU (for event hub checkpointing)
 
-[Azure Kubernetes Services](https://azure.microsoft.com/services/kubernetes-service/) should be used to host the cloud micro-services (this is currently in preview, please see our documentation).
+[Azure Kubernetes Services](https://azure.microsoft.com/services/kubernetes-service/) should be used to host the cloud micro-services.
 
 Alternatively, the full deployment script deploys the following additional managed Azure services into your Azure subscription and deploys the cloud micro-services into an App Service instance:
 

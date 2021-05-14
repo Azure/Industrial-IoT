@@ -56,7 +56,7 @@ The Registry Microservice provides REST APIs to activate and deactivate endpoint
 
 ## Docker image
 
-`docker pull mcr.microsoft.com/iot/opc-registry-service:preview`
+`docker pull mcr.microsoft.com/iot/opc-registry-service:latest`
 
 ## Next steps
 

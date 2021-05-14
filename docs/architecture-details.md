@@ -2,7 +2,7 @@
 
 [Home](readme.md)
 
-The following diagram shows a more detailed view of the platform components.
+The following diagram shows a more detailed view of the platform components.  
 
 ![architecture](media/architecture2.svg)
 

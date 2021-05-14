@@ -61,7 +61,7 @@ Request node browsing continuation
 |Name|Description|Schema|
 |---|---|---|
 |**abort**  <br>*optional*|Whether to abort browse and release.<br>(default: false)|boolean|
-|**continuationToken**  <br>*required*|Continuation token from previews browse request.<br>(mandatory)|string|
+|**continuationToken**  <br>*required*|Continuation token from latest browse request.<br>(mandatory)|string|
 |**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)|boolean|
 |**targetNodesOnly**  <br>*optional*|Whether to collapse all references into a set of<br>unique target nodes and not show reference<br>information.<br>(default is false)|boolean|

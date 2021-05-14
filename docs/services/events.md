@@ -18,4 +18,4 @@ The secondary Telemetry EventHub receives processed and decoded edge telemetry m
 
 ## Docker image
 
-`docker pull mcr.microsoft.com/iot/industrial-iot-events-service:preview`
+`docker pull mcr.microsoft.com/iot/industrial-iot-events-service:latest`

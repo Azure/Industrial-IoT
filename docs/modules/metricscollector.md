@@ -51,7 +51,7 @@ The metrics are exposed using an`HttpListener` based server. It may throw an **a
 
 ## Next steps
 
-* [Learn how to use Prometheus metrics](../dev-guides/how-to-use-prometheus-metrics.md)
+* [Learn how to use Prometheus metrics](../dev-guides/howto-use-prometheus-metrics.md)
 * [Learn how to view metrics in Log Analytics Workspace](../tutorials/tut-loganalytics.md)
 * [Learn how to view logs and metrics in Application Insights](../tutorials/tut-applicationinsights.md)
 * [Learn how to deploy Discovery Module](../deploy/howto-install-iot-edge.md)

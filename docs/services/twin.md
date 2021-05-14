@@ -25,7 +25,7 @@ OPC Twin Microservice in cloud exposes a [REST API](../api/twin/readme.md) to ca
 
 ## Docker image
 
-`docker pull mcr.microsoft.com/iot/opc-twin-service:preview`
+`docker pull mcr.microsoft.com/iot/opc-twin-service:latest`
 
 ## Next steps
 
