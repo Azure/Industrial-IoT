@@ -23,8 +23,8 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Create wrapper
         /// </summary>
-        /// <param name="contentType"></param>
         /// <param name="stream"></param>
+        /// <param name="contentType"></param>
         /// <param name="context"></param>
         public ModelDecoder(Stream stream, string contentType,
             ServiceMessageContext context = null) :

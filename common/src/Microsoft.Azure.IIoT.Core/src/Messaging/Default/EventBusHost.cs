@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
                         catch (Exception ex) {
                             _logger.Error(ex, "Failed to start Event bus host for {type}.",
                                 type.Name);
-                            throw ex;
+                            throw;
                         }
                     }
                 }
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
                     catch (Exception ex) {
                         _logger.Error(ex, "Failed to stop Event bus host using token {token}.",
                             token);
-                        throw ex;
+                        throw;
                     }
                 }
                 _handlers.Clear();
