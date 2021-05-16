@@ -8,12 +8,9 @@ trigger:
   batch: true
   branches:
     include:
-    - master
     - main
     - dev/*
     - release/*
-    - develop
-    - dev/2.8_rc
 stages:
 - stage: build
   displayName: 'Build and Test Code'
