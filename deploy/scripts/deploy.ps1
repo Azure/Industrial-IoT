@@ -9,7 +9,7 @@
     The type of deployment (minimum, local, services, simulation, app, all), defaults to all.
 
  .PARAMETER version
-    Set to "latest" or another mcr image tag to deploy - if not set deploys latest.
+    Set to mcr image tag to deploy - if not set and version can not be parsed from branch name will deploy "latest".
 
  .PARAMETER branchName
     The branch name where to find the deployment templates - if not set, will try to use git.

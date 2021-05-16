@@ -164,12 +164,18 @@ Using the `deploy/scripts/deploy.ps1` script you can deploy several configuratio
 
 To support these scenarios, the `deploy.ps1` takes the following parameters:
 
-```
+```bash
  .PARAMETER type
     The type of deployment (minimum, local, services, simulation, app, all), defaults to all.
 
  .PARAMETER version
-    Set to "latest" or another mcr image tag to deploy - if not set deploys current main branch ("latest").
+    Set to mcr image tag to deploy - if not set and version can not be parsed from branch name will deploy "latest".
+
+ .PARAMETER branchName
+    The branch name where to find the deployment templates - if not set, will try to use git.
+
+ .PARAMETER repo
+    The repository to find the deployment templates in - if not set will try to use git or set default.
 
  .PARAMETER resourceGroupName
     Can be the name of an existing or new resource group.
@@ -188,6 +194,9 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
 
  .PARAMETER authTenantId
     Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription.
+
+ .PARAMETER accountName
+    The account name to use if not to use default.
 
  .PARAMETER applicationName
     The name of the application, if not local deployment.
