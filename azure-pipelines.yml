@@ -9,6 +9,8 @@ trigger:
     include:
     - master
     - release/*
+    - main
+    - develop
 stages:
 - stage: build
   displayName: 'Build and Test Code'
@@ -42,9 +44,8 @@ stages:
   - build
   jobs:
   - template: tools/templates/acrbuild.yml
-- stage: coverage 
+- stage: coverage
   displayName: 'Code Coverage'
-  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   dependsOn:
   - build
   jobs:
