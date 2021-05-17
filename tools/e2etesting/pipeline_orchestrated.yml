@@ -2,8 +2,6 @@ name: $(Date:yyyyMMdd)$(Rev:rr)
 trigger: none
 pr: none
 
-# ToDo: Remove this line.
-
 # this is being defined in app-ci pipeline
 resources:
   pipelines:
