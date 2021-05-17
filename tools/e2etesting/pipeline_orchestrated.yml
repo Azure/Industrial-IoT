@@ -2,6 +2,19 @@ name: $(Date:yyyyMMdd)$(Rev:rr)
 trigger: none
 pr: none
 
+# this is being defined in app-ci pipeline
+resources:
+  pipelines:
+  - pipeline: E2E Orchestrated run after CI build   # Name of the pipeline resource
+    source: Custom\Azure_IOT\Industrial\Components\Azure.Industrial-IoT # Name of the pipeline referenced by the pipeline resource
+    trigger:
+      branches:
+        include:
+        - releases/*
+        - master
+        - main
+        - develop
+
 pool:
   name: '$(AgentPool)'
 
