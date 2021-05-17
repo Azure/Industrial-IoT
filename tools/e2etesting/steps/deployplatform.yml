@@ -25,6 +25,20 @@ steps:
     SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
+- task: PowerShell@2
+  displayName: Versioning
+  name: setVersionInfo
+  inputs:
+    targetType: filePath
+    filePath: $(BasePath)\..\scripts\set-version.ps1
+
+- task: CmdLine@2
+  displayName: 'Override platform version if necessary'
+  timeoutInMinutes: 1
+  inputs:
+    script: echo "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
+    condition: eq(variables['PlatformVersion'], '')
+
 - task: AzurePowerShell@5
   displayName: "Replace parameters in appSettings.json (for IAI)"
   inputs:
