@@ -1,0 +1,57 @@
+steps:
+- task: AzureCLI@2
+  displayName: 'Set Service Principal Environment Variables'
+  name: promoteserviceprincipal
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalKey]$($env:servicePrincipalKey)"
+
+- task: DownloadPipelineArtifact@2
+  inputs:
+    artifact: 'iai'
+    path: $(BasePath)
+
+- task: AzurePowerShell@5
+  displayName: "Replace parameters in appSettings.json (for IAI)"
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\ReplaceVariablesInAppSettings.ps1'
+    scriptArguments: >
+      -ClientId "$(ServicePrincipalId)"
+      -ClientSecret "$(ServicePrincipalKey)"
+      -ApplicationName "$(ApplicationName)"
+      -AppSettingsFilename "$(BasePath)\IAI\appsettings.json"
+      -ResourceGroupName "$(ResourceGroupName)"
+      -Region "$(Region)"
+      -ImageTag "$(PlatformVersion)"
+      -ImageNamespace "$(ImageNamespace)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
+      -ContainerRegistryUsername "$(ContainerRegistryUsername)"
+      -ContainerRegistryPassword "$(ContainerRegistryPassword)"
+
+- task: CmdLine@2
+  displayName: 'Run deployment with IAI'
+  timeoutInMinutes: 90
+  inputs:
+    script: '$(IAILocalFilename)'
+    workingDirectory: '$(BasePath)\IAI'
+
+- task: AzurePowerShell@5
+  displayName: "Add permissions to KeyVault"
+  name: keyvaultpermissions
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -ServicePrincipalName "$(ServicePrincipalId)"

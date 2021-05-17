@@ -1,0 +1,127 @@
+{
+	"info": {
+		"_postman_id": "01a89858-bbe9-414c-bb37-749552d8ae79",
+		"name": "Basic IIoT API Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "bbb46337-6295-44f0-a002-30852e646ba7",
+						"exec": [
+							"var json = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"AccessToken\", json.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{ClientSecret}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{ClientId}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "https://{{TenantId}}/{{ApplicationName}}-service/.default",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{TenantId}}/oauth2/v2.0/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{TenantId}}",
+						"oauth2",
+						"v2.0",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Call Registry",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4f9103b7-b4cd-4a8c-b69d-91e11f247840",
+						"exec": [
+							"pm.test(\"Status test\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Body test\", function() {\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"pm.test(\"Empty list test\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.items.length).to.eql(0);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{AccessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ServiceUrl}}/registry/v2/applications",
+					"host": [
+						"{{ServiceUrl}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"applications"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

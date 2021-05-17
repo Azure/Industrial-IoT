@@ -163,6 +163,78 @@
             "metadata": {
                 "description": "Tags for resources."
             }
+        },
+        "helmRepoUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "URL of the Helm repository containing azure-industrial-iot chart"
+            }
+        },
+        "helmChartVersion": {
+            "type": "string",
+            "metadata": {
+                "description": "Version of azure-industrial-iot Helm chart to use"
+            }
+        },
+        "aiiotImageTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Docker image tag for Azure Industrial IoT components"
+            }
+        },
+        "aiiotImageNamespace": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker image namespace for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryServer": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker container registry for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryUsername": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker container registry username for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryPassword": {
+            "type": "securestring",
+            "metadata": {
+              "description": "Docker container registry password for Azure Industrial IoT components"
+            }
+        },
+        "aiiotTenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Tenant ID"
+            }
+        },
+        "aiiotKeyVaultUri": {
+            "type": "string",
+            "metadata": {
+                "description": "URI of Azure Key Vault"
+            }
+        },
+        "aiiotServicesAppId": {
+            "type": "string",
+            "metadata": {
+                "description": "AppId of AAD App Registration for ServicesApp"
+            }
+        },
+        "aiiotServicesAppSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Client secret (password) of AAD App Registration for ServicesApp"
+            }
+        },
+        "aiiotServicesHostname": {
+            "type": "string",
+            "metadata": {
+                "description": "Hostname on which components of Azure Industrial IoT solution will be available externally"
+            }
         }
     },
     "variables": {
@@ -247,7 +319,7 @@
                     "imageReference": {
                         "publisher": "Canonical",
                         "offer": "UbuntuServer",
-                        "sku": "16.04-LTS",
+                        "sku": "18.04-LTS",
                         "version": "latest"
                     }
                 },
@@ -276,7 +348,8 @@
             "properties": {
                 "roleDefinitionId": "[variables(parameters('aksBuiltInRoleType'))]",
                 "principalId": "[reference(variables('virtualMachineId'), '2017-12-01', 'Full').identity.principalId]",
-                "scope": "[resourceGroup().id]"
+                "scope": "[resourceGroup().id]",
+                "principalType": "ServicePrincipal"
             }
         },
         {
@@ -290,7 +363,8 @@
             "properties": {
                 "roleDefinitionId": "[variables(parameters('storageBuiltInRoleType'))]",
                 "principalId": "[reference(variables('virtualMachineId'), '2017-12-01', 'Full').identity.principalId]",
-                "scope": "[resourceGroup().id]"
+                "scope": "[resourceGroup().id]",
+                "principalType": "ServicePrincipal"
             }
         },
         {
@@ -313,7 +387,7 @@
                     "timestamp": 1000000
                 },
                 "protectedSettings": {
-                    "managedIdentity" : {},
+                    "managedIdentity": {},
                     "fileUris": "[parameters('scriptFileUris')]",
                     "commandToExecute": "[concat(
                         'sudo -H bash jumpbox.sh',
@@ -321,9 +395,21 @@
                         ' --aks_cluster ', parameters('aksClusterName'),
                         ' --role ', parameters('aksBuiltInRoleType'),
                         ' --load_balancer_ip ', parameters('aksPublicIpAddress'),
-                        ' --public_ip_dns_label ', parameters('aksPublicIpDnsLabel')
+                        ' --public_ip_dns_label ', parameters('aksPublicIpDnsLabel'),
+                        ' --helm_repo_url ', parameters('helmRepoUrl'),
+                        ' --helm_chart_version ', parameters('helmChartVersion'),
+                        ' --aiiot_image_tag ', parameters('aiiotImageTag'),
+                        ' --aiiot_image_namespace ', parameters('aiiotImageNamespace'),
+                        ' --aiiot_container_registry_server ', parameters('aiiotContainerRegistryServer'),
+                        ' --aiiot_container_registry_username ', parameters('aiiotContainerRegistryUsername'),
+                        ' --aiiot_container_registry_password ', parameters('aiiotContainerRegistryPassword'),
+                        ' --aiiot_tenant_id ', parameters('aiiotTenantId'),
+                        ' --aiiot_key_vault_uri ', parameters('aiiotKeyVaultUri'),
+                        ' --aiiot_services_app_id ', parameters('aiiotServicesAppId'),
+                        ' --aiiot_services_app_secret ', parameters('aiiotServicesAppSecret'),
+                        ' --aiiot_services_hostname ', parameters('aiiotServicesHostname')
                     )]"
-                }
+              }
             }
         }
     ],

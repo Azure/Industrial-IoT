@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "IIoTPlatform-E2E-Tests": {
+      "commandName": "Project",
+      "environmentVariables": {
+      }
+    }
+  }
+}
