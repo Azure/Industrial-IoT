@@ -36,11 +36,11 @@ steps:
   displayName: 'Override platform version if necessary'
   timeoutInMinutes: 1
   inputs:
-    # script: echo "##vso[task.setvariable variable=PlatformVersion;]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
+    script: echo "--$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)--" && echo "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)" && echo "--$(PlatformVersion)--"
     condition: eq(variables['PlatformVersion'], '')
-    inlineScript: |
-      Write-Host "$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
-      Write-Host "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
+    # inlineScript: |
+    #   Write-Host "$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
+    #   Write-Host "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
 
 - task: AzurePowerShell@5
   displayName: "Replace parameters in appSettings.json (for IAI)"
