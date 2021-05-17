@@ -2,7 +2,7 @@
 
 [Home](readme.md)
 
-Azure Industrial IoT platform is instrumented with Prometheus metrics for Edge modules and Microservices hosted in AKS cluster.
+Azure Industrial IoT Platform is instrumented with Prometheus metrics for Edge modules and Microservices hosted in AKS cluster.
 
 To learn more about how to use Prometheus metrics in the code, please refer [here](../dev-guides/howto-use-prometheus-metrics.md).
 

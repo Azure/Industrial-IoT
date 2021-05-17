@@ -10,9 +10,9 @@
 - [OPC Historic Access REST API](history/readme.md)
 - [Events REST API](events/readme.md)
 
-All REST calls use MsgPack or JSON as mime type.  [OPC UA](../opcua.md) types are encoded as per Part 6 [with some exceptions](json.md).
+All REST calls use MsgPack or JSON as mime type. [OPC UA](../opcua.md) types are encoded as per Part 6 [with some exceptions](json.md).
 
 ## Next steps
 
-- [Use the REST API using PostMan](../tutorials/tut-use-postman.md)
+- [Use the REST API using Postman](../tutorials/tut-use-postman.md)
 - [Use the CLI to call REST API](../tutorials/tut-use-cli.md).

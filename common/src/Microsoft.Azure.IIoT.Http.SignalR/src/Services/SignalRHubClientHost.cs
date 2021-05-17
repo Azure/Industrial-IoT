@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
             catch (Exception ex) {
                 _started = false;
                 _logger.Error(ex, "Error starting SignalR client host.");
-                throw ex;
+                throw;
             }
             finally {
                 _lock.Release();

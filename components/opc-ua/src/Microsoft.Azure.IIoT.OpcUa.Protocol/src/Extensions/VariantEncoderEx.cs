@@ -58,8 +58,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="diagnostics"></param>
         /// <param name="code"></param>
         /// <param name="operation"></param>
-        /// <param name="config"></param>
         /// <param name="codec"></param>
+        /// <param name="config"></param>
         /// <returns></returns>
         public static ServiceResultModel Encode(this IVariantEncoder codec,
             DiagnosticInfo diagnostics,
@@ -80,8 +80,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert from service result to diagnostics info
         /// </summary>
         /// <param name="result"></param>
-        /// <param name="config"></param>
         /// <param name="codec"></param>
+        /// <param name="config"></param>
         /// <param name="code"></param>
         /// <returns></returns>
         public static DiagnosticInfo Decode(this IVariantEncoder codec,
@@ -99,8 +99,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert from service result to diagnostics info
         /// </summary>
         /// <param name="result"></param>
-        /// <param name="config"></param>
         /// <param name="codec"></param>
+        /// <param name="config"></param>
         /// <returns></returns>
         public static List<OperationResultModel> Decode(
             this IVariantEncoder codec, ServiceResultModel result, DiagnosticsModel config) {
@@ -137,8 +137,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert to service model
         /// </summary>
         /// <param name="diagnostics"></param>
-        /// <param name="config"></param>
         /// <param name="codec"></param>
+        /// <param name="config"></param>
         /// <returns></returns>
         public static ServiceResultModel Encode(this IVariantEncoder codec,
             List<OperationResultModel> diagnostics, DiagnosticsModel config) {
@@ -161,8 +161,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="statusCode"></param>
         /// <param name="diagnosticsInfo"></param>
-        /// <param name="config"></param>
         /// <param name="codec"></param>
+        /// <param name="config"></param>
         /// <returns></returns>
         public static ServiceResultModel Encode(this IVariantEncoder codec,
             StatusCode? statusCode, DiagnosticInfo diagnosticsInfo = null,
@@ -189,8 +189,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert operation results to json
         /// </summary>
         /// <param name="results"></param>
-        /// <param name="config"></param>
         /// <param name="codec"></param>
+        /// <param name="config"></param>
         /// <returns></returns>
         private static VariantValue Write(this IVariantEncoder codec,
             List<OperationResultModel> results, DiagnosticsModel config) {

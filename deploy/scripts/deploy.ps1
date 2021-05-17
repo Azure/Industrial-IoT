@@ -1,18 +1,24 @@
 ﻿<#
  .SYNOPSIS
-    Deploys Industrial IoT services to Azure
+    Deploys Industrial IoT services to Azure.
 
  .DESCRIPTION
-    Deploys the Industrial IoT services dependencies and optionally micro services and UI to Azure.
+    Deploys the Industrial IoT services dependencies, and optionally microservices and UI to Azure.
 
  .PARAMETER type
-    The type of deployment (minimum, local, services, simulation, app, all)
+    The type of deployment (minimum, local, services, simulation, app, all), defaults to all.
 
  .PARAMETER version
-    Set to "latest" or another mcr image tag to deploy - if not set deploys current master branch ("preview").
+    Set to mcr image tag to deploy - if not set and version can not be parsed from branch name will deploy "latest".
+
+ .PARAMETER branchName
+    The branch name where to find the deployment templates - if not set, will try to use git.
+
+ .PARAMETER repo
+    The repository to find the deployment templates in - if not set will try to use git or set default.
 
  .PARAMETER resourceGroupName
-    Can be the name of an existing or a new resource group
+    Can be the name of an existing or new resource group.
 
  .PARAMETER resourceGroupLocation
     Optional, a resource group location. If specified, will try to create a new resource group in this location.
@@ -23,52 +29,62 @@
  .PARAMETER subscriptionName
     Or alternatively the subscription name.
 
+ .PARAMETER tenantId
+    The Azure Active Directory tenant tied to the subscription(s) that should be listed as options.
+
+ .PARAMETER authTenantId
+    Specifies an Azure Active Directory tenant for authentication that is different from the one tied to the subscription.
+
  .PARAMETER accountName
     The account name to use if not to use default.
 
  .PARAMETER applicationName
-    The name of the application if not local deployment.
+    The name of the application, if not local deployment.
 
  .PARAMETER aadConfig
-    The aad configuration object (use aad-register.ps1 to create object).  If not provides calls aad-register.ps1.
+    The aad configuration object (use aad-register.ps1 to create object). If not provided, calls aad-register.ps1.
 
  .PARAMETER context
-    A previously created az context to be used as authentication.
+    A previously created az context to be used for authentication.
 
  .PARAMETER aadApplicationName
-    The application name to use when registering aad application.  If not set, uses applicationName
+    The application name to use when registering aad application. If not set, uses applicationName.
 
  .PARAMETER acrRegistryName
-    An optional name of a Azure container registry to deploy containers from.
+    An optional name of an Azure container registry to deploy containers from.
 
  .PARAMETER acrSubscriptionName
-    The subscription of the container registry if differemt from the specified subscription.
+    The subscription of the container registry, if different from the specified subscription.
 
  .PARAMETER environmentName
-    The cloud environment to use (defaults to Azure Cloud).
+    The cloud environment to use, defaults to AzureCloud.
 
  .PARAMETER simulationProfile
-    If you are deploying a simulation, the simulation profile to use if not default.
+    If you are deploying a simulation, the simulation profile to use, if not default.
 
  .PARAMETER numberOfSimulationsPerEdge
-    Number of simulations to deploy per edge
+    Number of simulations to deploy per edge.
 
  .PARAMETER numberOfLinuxGateways
-    Number of linux gateways to deploy into the simulation
+    Number of Linux gateways to deploy into the simulation.
 
  .PARAMETER numberOfWindowsGateways
-    Number of windows gateways to deploy into the simulation
+    Number of Windows gateways to deploy into the simulation.
 #>
 
 param(
     [ValidateSet("minimum", "local", "services", "simulation", "app", "all")] [string] $type = "all",
-    [string] $version = "preview",
+    [string] $version,
+    [string] $repo,
+    [string] $branchName,
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
     [string] $subscriptionName,
     [string] $subscriptionId,
     [string] $accountName,
+    [string] $tenantId,
+    [string] $authTenantId,
     [string] $aadApplicationName,
     [string] $acrRegistryName,
     [string] $acrSubscriptionName,
@@ -103,18 +119,21 @@ Function Select-Context() {
             }
         }
         if (Test-Path $contextFile) {
-            $profile = Import-AzContext -Path $contextFile
-            if (($null -ne $profile) `
-                    -and ($null -ne $profile.Context) `
+            $connection = Import-AzContext -Path $contextFile
+            if (($null -ne $connection) `
+                    -and ($null -ne $connection.Context) `
                     -and ($null -ne (Get-AzSubscription))) {
-                $context = $profile.Context
+                $context = $connection.Context
             }
         }
     }
     if (!$context) {
         try {
+            Write-Host "Signing into $($environment.Name) ..."
             $connection = Connect-AzAccount -Environment $environment.Name `
-                -ErrorAction Stop
+                -SkipContextPopulation -ErrorAction Stop 
+            Write-Host "Signed in."
+            Write-Host
             $context = $connection.Context
         }
         catch {
@@ -122,23 +141,31 @@ Function Select-Context() {
         }
     }
 
+    $tenantIdArg = @{}
+
+    if (![string]::IsNullOrEmpty($script:tenantId)) {
+        $tenantIdArg = @{
+            TenantId = $script:tenantId
+        }
+    }
+
     $subscriptionDetails = $null
     if (![string]::IsNullOrEmpty($script:subscriptionName)) {
-        $subscriptionDetails = Get-AzSubscription -SubscriptionName $script:subscriptionName
+        $subscriptionDetails = Get-AzSubscription -SubscriptionName $script:subscriptionName @tenantIdArg
         if (!$subscriptionDetails -and !$script:interactive) {
             throw "Invalid subscription provided with -subscriptionName"
         }
     }
 
     if (!$subscriptionDetails -and ![string]::IsNullOrEmpty($script:subscriptionId)) {
-        $subscriptionDetails = Get-AzSubscription -SubscriptionId $script:subscriptionId
+        $subscriptionDetails = Get-AzSubscription -SubscriptionId $script:subscriptionId @tenantIdArg
         if (!$subscriptionDetails -and !$script:interactive) {
             throw "Invalid subscription provided with -subscriptionId"
         }
     }
 
     if (!$subscriptionDetails) {
-        $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq "Enabled" }
+        $subscriptions = Get-AzSubscription @tenantIdArg | Where-Object { $_.State -eq "Enabled" }
 
         if ($subscriptions.Count -eq 0) {
             throw "No active subscriptions found - exiting."
@@ -171,7 +198,7 @@ Function Select-Context() {
             }
             $subscriptionId = $subscriptions[$option - 1].Id
         }
-        $subscriptionDetails = Get-AzSubscription -SubscriptionId $subscriptionId
+        $subscriptionDetails = Get-AzSubscription -SubscriptionId $subscriptionId @tenantIdArg
         if (!$subscriptionDetails) {
             throw "Failed to get details for subscription $($subscriptionId)"
         }
@@ -205,11 +232,6 @@ Function Select-Context() {
 # Select repository and branch
 #*******************************************************************************************************
 Function Select-RepositoryAndBranch() {
-    
-    if ([string]::IsNullOrEmpty($script:repo)) {
-        # Try get repo name / TODO
-        $script:repo = "https://github.com/Azure/Industrial-IoT"
-    }
 
     if ([string]::IsNullOrEmpty($script:branchName)) {
         # Try get branch name
@@ -235,19 +257,29 @@ Function Select-RepositoryAndBranch() {
                 if ($LastExitCode -ne 0) {
                     throw "git $($argumentList) failed with $($LastExitCode)."
                 }
-                $script:repo = $giturl
+                if ([string]::IsNullOrEmpty($script:repo)) {
+                    $script:repo = $giturl.Replace(".git", "")
+                }
                 $script:branchName = $symbolic.Replace("$($remote)/", "")
                 if ($script:branchName -eq "HEAD") {
-                    Write-Warning "$($symbolic) is not a branch - using master."
-                    $script:branchName = "master"
+                    Write-Warning "$($symbolic) is not a branch - using main."
+                    $script:branchName = "main"
                 }
             }
             catch {
-                throw "This script requires *git* to be installed and must be run from " + `
-                    "within a branch of the Industrial IoT repository. " + `
-                    "See the deployment documentation at https://github.com/Azure/Industrial-IoT " + `
-                    "to learn about other deployment options."
+                if (![string]::IsNullOrEmpty($script:version)) {
+                    $script:branchName = "release/$script:version"
+                }
+                else {
+                    Write-Warning "Cannot determine branch - using main."
+                    $script:branchName = "main"
+                }
             }
+        }
+    
+        if ([string]::IsNullOrEmpty($script:repo)) {
+            # Try get repo name / TODO
+            $script:repo = "https://github.com/Azure/Industrial-IoT"
         }
     }
 }
@@ -264,7 +296,13 @@ Function Select-RegistryCredentials() {
 
     if (![string]::IsNullOrEmpty($script:acrSubscriptionName) `
             -and ($context.Subscription.Name -ne $script:acrSubscriptionName)) {
-        $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName
+        $tenantIdArg = @{}
+        if (![string]::IsNullOrEmpty($script:tenantId)) {
+            $tenantIdArg = @{
+                TenantId = $script:tenantId
+            }
+        }
+        $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName @tenantIdArg
         if (!$acrSubscription) {
             Write-Warning "Specified container registry subscription $($script:acrSubscriptionName) not found."
         }
@@ -278,19 +316,13 @@ Function Select-RegistryCredentials() {
         $containerContext = $context
         Write-Host "Try using current authentication context to access container registry."
     }
-    if ($containerContext.Length -gt 1) {
+    elseif ($containerContext.Length -gt 1) {
         $containerContext = $containerContext[0]
     }
-    if ([string]::IsNullOrEmpty($script:acrRegistryName)) {
-        # use default dev images repository name - see acr-build.ps1
-        $script:acrRegistryName = "industrialiotdev"
-    }
-
     Write-Host "Looking up credentials for $($script:acrRegistryName) registry."
-
     try {
         $registry = Get-AzContainerRegistry -DefaultProfile $containerContext `
-        | Where-Object { $_.Name -eq $script:acrRegistryName }
+            | Where-Object { $_.Name -eq $script:acrRegistryName }
     }
     catch {
         $registry = $null
@@ -545,10 +577,19 @@ Function Get-EnvironmentVariables() {
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_AUTH_PUBLIC_CLIENT_APPID=$($var)"
     }
+
     $var = $deployment.Outputs["tenantId"].Value
+    $authTenantId = $script:aadConfig.TenantId
+    if($var -ne $authTenantId) {
+        if (![string]::IsNullOrEmpty($var)) {
+            Write-Output "PCS_MSI_TENANT=$($var)"
+        }
+        $var = $authTenantId
+    }
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_AUTH_TENANT=$($var)"
     }
+
     $var = $deployment.Outputs["tsiUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_TSI_URL=$($var)"
@@ -602,7 +643,7 @@ Function Write-EnvironmentVariables() {
         if ($writeFile) {
             if (Test-Path $ENVVARS) {
                 $prompt = "Overwrite existing .env file in $rootDir? [y/n]"
-                if ( $reply -match "[yY]" ) {
+                if ($reply -match "[yY]") {
                     Remove-Item $ENVVARS -Force
                 }
                 else {
@@ -644,6 +685,13 @@ Function New-Deployment() {
     $templateParameters.Add("branchName", $script:branchName)
     $templateParameters.Add("repoUrl", $script:repo)
 
+    # support forks on github by switching the template url
+    if ($script:repo.ToLower().Contains("github.com")) {
+        $templateUrl = $script:repo.ToLower().Replace("github.com", "raw.githubusercontent.com")
+        Write-Host "$repo -> $templateUrl"
+        $templateParameters.Add("templateUrl", $templateUrl)
+    }
+
     # Select an application name
     if (($script:type -eq "local") -or ($script:type -eq "minimum") -or ($script:type -eq "simulation")) {
         if ([string]::IsNullOrEmpty($script:applicationName) `
@@ -684,40 +732,63 @@ Function New-Deployment() {
             $templateParameters.Add("serviceSiteName", $script:applicationName)
         }
     }
-    
+
+    $StartTime = $(get-date)
+    write-host "Start time: $($StartTime.ToShortTimeString())"
+
     # Select docker images to use
     if (-not (($script:type -eq "local") -or ($script:type -eq "minimum"))) {
+
+        $namespace = ""
+        if ($script:acrSubscriptionName -eq "IOT_GERMANY") {
+            if (($script:acrRegistryName -eq "industrialiot") -or `
+                ($script:acrRegistryName -eq "industrialiotprod")) {
+                $namespace = "public"
+            }
+            elseif ($script:acrRegistryName -eq "industrialiotdev") {
+                $namespace = $script:branchName
+                if ($script:branchName.StartsWith("feature/")) {
+                    $namespace = $namespace.Replace("feature/", "")
+                }
+                $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+            }
+        }
+	    
+        # Try and get registry credentials
+        try {
+            $creds = Select-RegistryCredentials
+        }
+        catch {
+            $creds = $null
+        }
+
         if ([string]::IsNullOrEmpty($script:version)) {
             if ($script:branchName.StartsWith("release/")) {
                 $script:version = $script:branchName.Replace("release/", "")
             }
             else {
-                $script:version = "preview"
+                $script:version = "latest"
             }
         }
-        $templateParameters.Add("imagesTag", $script:version)
-        $creds = Select-RegistryCredentials
+
+        # Configure registry
         if ($creds) {
             $templateParameters.Add("dockerServer", $creds.dockerServer)
             $templateParameters.Add("dockerUser", $creds.dockerUser)
             $templateParameters.Add("dockerPassword", $creds.dockerPassword)
-
-            # see acr-build.ps1 for naming logic
-            $namespace = $script:branchName
-            if ($namespace.StartsWith("feature/")) {
-                $namespace = $namespace.Replace("feature/", "")
-            }
-            elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
-                $namespace = "public"
-            }
-            $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
-            $templateParameters.Add("imagesNamespace", $namespace)
-            Write-Host "Using $($script:version) $($namespace) images from $($creds.dockerServer)."
+	        $templateParameters.Add("imagesNamespace", $namespace)
+            Write-Host "Using $($script:version) $($namespace) images from private registry $($creds.dockerServer)."
+        }
+        elseif ([string]::IsNullOrEmpty($script:acrRegistryName)) {
+            $templateParameters.Add("dockerServer", "mcr.microsoft.com")
+            Write-Host "Using released $($script:version) images from mcr.microsoft.com."
         }
         else {
-            $templateParameters.Add("dockerServer", "mcr.microsoft.com")
-            Write-Host "Using $($script:version) images from mcr.microsoft.com."
+            $templateParameters.Add("dockerServer", "$($script:acrRegistryName).azurecr.io")
+	        $templateParameters.Add("imagesNamespace", $namespace)
+            Write-Host "Using $($script:version) $($namespace) images from $($script:acrRegistryName).azurecr.io."
         }
+        $templateParameters.Add("imagesTag", $script:version)
     }
 
     # Configure simulation
@@ -775,7 +846,7 @@ Function New-Deployment() {
             $templateParameters.Add("edgeVmSize", $edgeVmSize)
         }
 
-        # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulatoin containers.
+        # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulation containers.
         $simulationVmSizes = Get-AzVMSize $script:resourceGroupLocation `
             | Where-Object { $availableVmNames -icontains $_.Name } `
             | Where-Object {
@@ -808,12 +879,27 @@ Function New-Deployment() {
         # register aad application
         Write-Host
         Write-Host "Registering client and services AAD applications in your tenant..."
+        $aadRegisterContext = $context
+
+        # Use context of auth tenant
+        if (![string]::IsNullOrEmpty($authTenantId)) {
+            Write-Host "Connecting to AAD tenant $($authTenantId)..."
+            Connect-AzAccount -Tenant $authTenantId -ContextName AuthTenantId -Force
+            $aadRegisterContext = Select-AzContext AuthTenantId
+        }
+
         $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
-            -Context $context -Name $script:aadApplicationName
+            -Context $aadRegisterContext -Name $script:aadApplicationName
 
         Write-Host "Client and services AAD applications registered..."
         Write-Host
         $aadAddReplyUrls = $true
+
+        # Restore AD context
+        if (![string]::IsNullOrEmpty($authTenantId)) {
+            Write-Host "Switching to AAD tenant $($context.Tenant)..."
+            Set-AzContext -Context $context
+        }
     }
     elseif (($script:aadConfig -is [string]) -and (Test-Path $script:aadConfig)) {
         # read configuration from file
@@ -842,10 +928,23 @@ Function New-Deployment() {
     if (![string]::IsNullOrEmpty($script:aadConfig.Authority)) {
         $templateParameters.Add("authorityUri", $script:aadConfig.Authority)
     }
+    if (![string]::IsNullOrEmpty($script:aadConfig.tenantId)) {
+        $templateParameters.Add("authTenantId", $script:aadConfig.tenantId)
+    }
 
     # Register current aad user to access keyvault
     if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
         $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.UserPrincipalId)
+    }
+    else {
+        $userPrincipalId = (Get-AzADUser -UserPrincipalName (Get-AzContext).Account.Id).Id
+
+        if (![string]::IsNullOrEmpty($userPrincipalId)) {
+            $templateParameters.Add("keyVaultPrincipalId", $userPrincipalId)
+        }
+        else {
+            $templateParameters.Add("keyVaultPrincipalId", $script:aadConfig.FallBackPrincipalId)
+        }
     }
 
     # Add IoTSuiteType tag. This tag will be applied for all resources.
@@ -861,8 +960,7 @@ Function New-Deployment() {
         try {
             if (![string]::IsNullOrEmpty($adminUser) -and ![string]::IsNullOrEmpty($adminPassword)) {
                 Write-Host
-                Write-Host "The following User and Password can be used to log into deployed VM's:"
-                Write-Host
+                Write-Host "The following username and password can be used to log into the deployed VMs:"
                 Write-Host $adminUser
                 Write-Host $adminPassword
                 Write-Host
@@ -882,13 +980,19 @@ Function New-Deployment() {
             Set-ResourceGroupTags -state "Complete"
             Write-Host "Deployment succeeded."
 
+            # Use context of auth tenant
+            if (![string]::IsNullOrEmpty($authTenantId)) {
+                Write-Host "Switching to AAD tenant $($authTenantId)..."
+                Select-AzContext AuthTenantId
+            }
+
             #
             # Add reply urls
             #
             $replyUrls = New-Object System.Collections.Generic.List[System.String]
             if ($aadAddReplyUrls) {
                 # retrieve existing urls
-                $app = Get-AzADApplication -ObjectId $aadConfig.WebAppPrincipalId
+                $app = Get-AzADApplication -ApplicationId $script:aadConfig.WebAppId
                 if ($app.ReplyUrls -and ($app.ReplyUrls.Count -ne 0)) {
                     $replyUrls = $app.ReplyUrls;
                 }
@@ -899,10 +1003,10 @@ Function New-Deployment() {
                 Write-Host "The deployed application can be found at:"
                 Write-Host $website
                 Write-Host
-                if (![string]::IsNullOrEmpty($script:aadConfig.WebAppPrincipalId)) {
+                if (![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
                     if (!$aadAddReplyUrls) {
                         Write-Host "To be able to use the application you need to register the following"
-                        Write-Host "reply url for AAD application $($script:aadConfig.WebAppPrincipalId):"
+                        Write-Host "reply url for AAD application $($script:aadConfig.WebAppId):"
                         Write-Host "$($website)/signin-oidc"
                     }
                     else {
@@ -911,7 +1015,7 @@ Function New-Deployment() {
                 }
             }
 
-            if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.WebAppPrincipalId)) {
+            if ($aadAddReplyUrls -and ![string]::IsNullOrEmpty($script:aadConfig.WebAppId)) {
                 $serviceUri = $deployment.Outputs["serviceUrl"].Value
 
                 if (![string]::IsNullOrEmpty($serviceUri)) {
@@ -937,7 +1041,7 @@ Function New-Deployment() {
             if ($aadAddReplyUrls) {
                 # register reply urls in web application registration
                 Write-Host
-                Write-Host "Registering reply urls for $($aadConfig.WebAppPrincipalId)..."
+                Write-Host "Registering reply urls for $($script:aadConfig.WebAppId)..."
 
                 try {
                     # assumes we are still connected
@@ -947,21 +1051,24 @@ Function New-Deployment() {
                     # TODO
                     #    & (Join-Path $script:ScriptDir "aad-update.ps1") `
                     #        $context `
-                    #        -ObjectId $aadConfig.WebAppPrincipalId -ReplyUrls $replyUrls
-                    Update-AzADApplication -ObjectId $aadConfig.WebAppPrincipalId -ReplyUrl $replyUrls `
+                    #        -ObjectId $script:aadConfig.WebAppPrincipalId -ReplyUrls $replyUrls
+                    Update-AzADApplication -ApplicationId $script:aadConfig.WebAppId -ReplyUrl $replyUrls `
                         | Out-Null
 
-                    Write-Host "Reply urls registered in web app $($aadConfig.WebAppPrincipalId)..."
+                    Write-Host "Reply urls registered in web app $($script:aadConfig.WebAppId)..."
                     Write-Host
                 }
                 catch {
                     Write-Host $_.Exception.Message
                     Write-Host
                     Write-Host "Registering reply urls failed. Please add the following urls to"
-                    Write-Host "the web app '$($aadConfig.WebAppPrincipalId)' manually:"
+                    Write-Host "the web app '$($script:aadConfig.WebAppId)' manually:"
                     $replyUrls | ForEach-Object { Write-Host $_ }
                 }
             }
+
+            $elapsedTime = $(get-date) - $StartTime
+            write-host "Elapsed time (hh:mm:ss): $($elapsedTime.ToString("hh\:mm\:ss"))" 
 
             #
             # Create environment file
@@ -1015,64 +1122,6 @@ Function New-Deployment() {
 }
 
 #*******************************************************************************************************
-# Test all deployment options and resource locations one by one
-#*******************************************************************************************************
-Function Test-All-Deployment-Options() {
-    Param(
-        $context
-    )
-
-    while ([string]::IsNullOrEmpty($script:resourceGroupName) `
-            -or ($script:resourceGroupName -notmatch "^[a-z0-9-_]*$")) {
-        Write-Host
-        $script:resourceGroupName = Read-Host "Please provide test resource group prefix"
-    }
-    $testGroup = $script:resourceGroupName
-
-    $script:repo = "https://github.com/Azure/Industrial-IoT"
-    $script:branchName = "master"
-    $script:interactive = $false
-    $script:deleteOnErrorPrompt = $false
-    # register aad application
-    $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
-        -Context $context -Name $script:aadApplicationName
-
-    Get-ResourceGroupLocations | ForEach-Object {
-        $script:resourceGroupLocation = $_.Location
-        foreach ($deployType in @("all", "app", "services", "local")) {
-            $script:type = $deployType
-            $script:resourceGroupName = "$($testGroup)_$($script:resourceGroupLocation)_$($script:type)"
-            $existing = Get-AzResourceGroup -ResourceGroupName $script:resourceGroupName `
-                -ErrorAction SilentlyContinue
-            if (!$existing) {
-                try {
-                    Write-Host("Deploying to $($script:resourceGroupName)...")
-                    New-AzResourceGroup -Name $script:resourceGroupName `
-                        -Location $script:resourceGroupLocation | Out-Null
-                    $script:applicationName = $script:resourceGroupName.Replace("_", "")
-                    New-Deployment -context $context | Out-Null
-
-                    Remove-AzResourceGroup -ResourceGroupName $script:resourceGroupName -Force `
-                        -ErrorAction SilentlyContinue | Out-Null
-                    New-AzResourceGroup -Name $script:resourceGroupName -Location $script:resourceGroupLocation `
-                        -ErrorAction SilentlyContinue | Out-Null
-                }
-                catch {
-                    Write-Host
-                    Write-Host
-                    Write-Warning("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
-                    Write-Warning($_)
-                    Write-Host
-                    Write-Host
-
-                    break
-                }
-            }
-        }
-    }
-}
-
-#*******************************************************************************************************
 # Script body
 #*******************************************************************************************************
 $ErrorActionPreference = "Stop"
@@ -1094,12 +1143,10 @@ $script:requiredProviders = @(
     "microsoft.containerregistry"
 )
 
-Write-Host "Using '$($script:version)' version..."
+Import-Module Az
+Import-Module Az.ContainerRegistry
 
 Select-RepositoryAndBranch
-Write-Host "Signing in ..."
-Write-Host
-Import-Module Az
 $script:context = Select-Context -context $script:context `
     -environment (Get-AzEnvironment -Name $script:environmentName)
 

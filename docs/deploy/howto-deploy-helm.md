@@ -2,8 +2,8 @@
 
 [Helm](https://helm.sh/) is a package manager for [Kubernetes](https://kubernetes.io/) which you can use to
 deploy microservices of Azure Industrial IoT Platform into an existing Kubernetes cluster. To facilitate this
-we have created `azure-industrial-iot` Helm charts. You can use it for `2.5`, `2.6` and `2.7` versions of our
-microservices:
+we have created `azure-industrial-iot` Helm charts. You can use it for `2.5`, `2.6`, `2.7` and `2.8` versions
+of our microservices:
 
 - `0.1.0` version of `azure-industrial-iot` Helm chart to deploy `2.5` version of Azure Industrial IoT
   Platform microservices.
@@ -12,6 +12,8 @@ microservices:
 - `0.3.1` version of `azure-industrial-iot` Helm chart to deploy `2.7` version (up until `2.7.199`) of Azure
   Industrial IoT Platform microservices.
 - `0.3.2` version of `azure-industrial-iot` Helm chart to deploy `2.7.206` version of Azure Industrial IoT
+  Platform microservices.
+- `0.4.0` version of `azure-industrial-iot` Helm chart to deploy `2.8` version of Azure Industrial IoT
   Platform microservices.
 
 ## Installing The Chart
@@ -24,8 +26,9 @@ Kubernetes cluster:
 - For `0.2.0` version of the Chart: [Azure Industrial IoT Helm Chart v0.2.0](https://github.com/Azure/Industrial-IoT/blob/helm/0.2.0/deploy/helm/azure-industrial-iot/README.md)
 - For `0.3.1` version of the Chart: [Azure Industrial IoT Helm Chart v0.3.1](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/README.md)
 - For `0.3.2` version of the Chart: [Azure Industrial IoT Helm Chart v0.3.2](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.2/deploy/helm/azure-industrial-iot/README.md)
+- For `0.3.3` version of the Chart: [Azure Industrial IoT Helm Chart v0.3.3](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.3/deploy/helm/azure-industrial-iot/README.md)
 
-For latest documentation and chart sources please check [deploy/helm/azure-industrial-iot/](../../deploy/helm/azure-industrial-iot/)
+For latest (`0.4.0`) documentation and chart sources please check [deploy/helm/azure-industrial-iot/](../../deploy/helm/azure-industrial-iot/)
 directory.
 
 ## Helm Repositories

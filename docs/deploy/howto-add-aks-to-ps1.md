@@ -2,7 +2,7 @@
 
 [Home](readme.md)
 
-This article explains how to add an AKS cluster and deploy components of Azure Industrial IoT platform using
+This article explains how to add an AKS cluster and deploy components of Azure Industrial IoT Platform using
 a Helm chart on top of a platform deployed through either `deploy.cmd` or `deploy.sh` scripts.
 
 ## Table of contents <!-- omit in toc -->
@@ -13,15 +13,16 @@ a Helm chart on top of a platform deployed through either `deploy.cmd` or `deplo
   * [Create an AKS cluster](#create-an-aks-cluster)
   * [Create a Public IP address](#create-a-public-ip-address)
   * [Get credentials for kubectl](#get-credentials-for-kubectl)
-  * [Create ClusterRoleBinding for Kubernetes Dashboard](#create-clusterrolebinding-for-kubernetes-dashboard)
-  * [Deploy nginx-ingress Helm chart](#deploy-nginx-ingress-helm-chart)
+  * [Deploy ingress-nginx Helm chart](#deploy-ingress-nginx-helm-chart)
   * [Deploy cert-manager Helm chart](#deploy-cert-manager-helm-chart)
   * [Create ClusterIssuer resource](#create-clusterissuer-resource)
   * [Stop App Service resources](#stop-app-service-resources)
   * [Deploy azure-industrial-iot Helm chart](#deploy-azure-industrial-iot-helm-chart)
     * [Using configuration in Azure Key Vault](#using-configuration-in-azure-key-vault)
     * [Passing Azure resource details through YAML file](#passing-azure-resource-details-through-yaml-file)
-    * [Installing the chart](#installing-the-chart)
+    * [Installing `azure-industrial-iot` Helm chart](#installing-azure-industrial-iot-helm-chart)
+      * [Installing the chart from GitHub repository](#installing-the-chart-from-github-repository)
+      * [Installing the chart from Helm chart repository](#installing-the-chart-from-helm-chart-repository)
   * [Check status of deployed resources](#check-status-of-deployed-resources)
   * [Enable Prometheus metrics scraping](#enable-prometheus-metrics-scraping)
   * [Update Redirect URIs of web App Registration](#update-redirect-uris-of-web-app-registration)
@@ -31,15 +32,15 @@ a Helm chart on top of a platform deployed through either `deploy.cmd` or `deplo
 ## Introduction
 
 `deploy.cmd` or `deploy.sh` scripts
-are deploying components of Azure Industrial IoT platform into two instances of Azure App Services, and as
+are deploying components of Azure Industrial IoT Platform into two instances of Azure App Services, and as
 such they do not provide high degree of scalability and high-availability. We recommend using those scripts
 for PoC and demo purposes. For production scenarios, we recommend running component of Azure Industrial IoT
 platform in Kubernetes cluster. This article will guide you through the steps of making your existing
 deployment into a more production-ready one.
 
 Please note that we also provide `Microsoft.Azure.IIoT.Deployment (Preview)` command-line application, which
-similar to deployment scripts creates an instance of Azure Industrial IoT platform. In contrast to
-deployment scripts, it deploys components of Azure Industrial IoT platform into an AKS cluster. Please use
+similar to deployment scripts creates an instance of Azure Industrial IoT Platform. In contrast to
+deployment scripts, it deploys components of Azure Industrial IoT Platform into an AKS cluster. Please use
 that application if you are starting from scratch:
 
 * Deploying Azure Industrial IoT Platform to [Azure Kubernetes Service (AKS)](howto-deploy-aks.md) as
@@ -57,7 +58,7 @@ that application if you are starting from scratch:
   * `-service`, we will refer to this one as `service` App Registration
 
   If you first need to run deployment scripts, please use this documentation:
-  
+
   [Azure Industrial IoT Platform and Simulation demonstrator using the deployment script](howto-deploy-all-in-one.md)
 
 * Azure CLI: [Install the Azure CLI](https://docs.microsoft.com/cli/azure/install-azure-cli)
@@ -67,10 +68,13 @@ that application if you are starting from scratch:
   az aks install-cli
   ```
 
-* Helm 3: You can run the following command to install `helm` using Azure CLI:
+* Helm 3: Please follow the steps in the official documentation to install Helm CLI:
+  [Installing Helm](https://helm.sh/docs/intro/install/)
+
+  Alternatively, you can run the following command to install `helm` using Azure CLI:
 
   ```bash
-  az acr helm install-cli
+  az acr helm install-cli --client-version "3.2.0"
   ```
 
 ## Deployment Steps
@@ -81,7 +85,7 @@ The steps to create AKS cluster with static public IP address bellow are based o
 
 ### Create an AKS cluster
 
-Go to the resource group that houses your deployment of Azure Industrial IoT platform and create and AKS
+Go to the resource group that houses your deployment of Azure Industrial IoT Platform and create and AKS
 cluster in it. Please follow the steps in this tutorial and note the steps below it:
 
 * [Create an AKS cluster using Azure portal](https://docs.microsoft.com/azure/aks/kubernetes-walkthrough-portal#create-an-aks-cluster)
@@ -131,28 +135,22 @@ Provide your resource group and AKS cluster names:
 az aks get-credentials --resource-group myResourceGroup --name myAksCluster
 ```
 
-### Create ClusterRoleBinding for Kubernetes Dashboard
+### Deploy ingress-nginx Helm chart
+
+Create `ingress-nginx` namespace:
 
 ```bash
-kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+kubectl create namespace ingress-nginx
 ```
 
-### Deploy nginx-ingress Helm chart
-
-Create `nginx-ingress` namespace:
+Add `ingress-nginx` Helm chart repository:
 
 ```bash
-kubectl create namespace nginx-ingress
-```
-
-Add `stable` Helm chart repository:
-
-```bash
-helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 ```
 
-Create `nginx-ingress.yaml` file that we will use for deploying the Helm chart based on the template below.
+Create `ingress-nginx.yaml` file that we will use for deploying the Helm chart based on the template below.
 
 Apply the following changes:
 
@@ -178,29 +176,25 @@ controller:
   metrics:
     enabled: true
 defaultBackend:
+  enabled: true
   nodeSelector:
     beta.kubernetes.io/os: linux
 ```
 
-Install `stable/nginx-ingress` Helm chart using `nginx-ingress.yaml` file created above.
+Install `ingress-nginx/ingress-nginx` Helm chart using `ingress-nginx.yaml` file created above.
 
 ```bash
-helm install nginx-ingress stable/nginx-ingress --namespace nginx-ingress --version 1.36.0 -f nginx-ingress.yaml
+helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 3.12.0 -f ingress-nginx.yaml
 ```
+
+Documentation for `ingress-nginx/ingress-nginx` Helm chart can be found [here](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx).
 
 ### Deploy cert-manager Helm chart
-
-Install the `CustomResourceDefinition` resources:
-
-```bash
-kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.13/deploy/manifests/00-crds.yaml
-```
 
 Create `cert-manager` namespace and label it to disable resource validation:
 
 ```bash
 kubectl create namespace cert-manager
-kubectl label namespace cert-manager cert-manager.io/disable-validation=true
 ```
 
 Add `jetstack` Helm chart repository:
@@ -213,8 +207,10 @@ helm repo update
 Install `jetstack/cert-manager` Helm chart:
 
 ```bash
-helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v0.13.0
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.1.0 --set installCRDs=true
 ```
+
+Documentation for `jetstack/cert-manager` Helm chart can be found [here](https://artifacthub.io/packages/helm/jetstack/cert-manager).
 
 ### Create ClusterIssuer resource
 
@@ -223,7 +219,7 @@ You can set your email address in `ClusterIssuer` so that letsencrypt informs yo
 the certificate that was issued to you. To do that uncomment `email:` line and set the value.
 
 ```yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
@@ -316,6 +312,9 @@ Note the following values in the YAML file:
   `pcs-` secrets in Azure Key Vault.
 
 ```yaml
+image:
+  tag: 2.8
+
 loadConfFromKeyVault: true
 
 azure:
@@ -335,8 +334,6 @@ deployment:
   microServices:
     engineeringTool:
       enabled: true
-    telemetryCdmProcessor:
-      enabled: true
 
   ingress:
     enabled: true
@@ -355,6 +352,10 @@ deployment:
       secretName: tls-secret
     hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
+
+> **NOTE**: Please note that we have used `2.8` as the value of `image:tag` configuration parameter
+> above. That will result in `2.8` version of microservices and edge modules to be deployed. If you want
+> to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
 #### Passing Azure resource details through YAML file
 
@@ -393,6 +394,9 @@ Note the following values in the YAML file:
   Azure Key Vault.
 
 ```yaml
+image:
+  tag: 2.8
+
 azure:
   tenantId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 
@@ -403,7 +407,6 @@ azure:
       consumerGroup:
         events: events
         telemetry: telemetry
-        tunnel: tunnel
         onboarding: onboarding
 
     sharedAccessPolicies:
@@ -428,7 +431,6 @@ azure:
       name: eventhub-XXXXXX
 
       consumerGroup:
-        telemetryCdm: telemetry_cdm
         telemetryUx: telemetry_ux
 
   serviceBusNamespace:
@@ -466,8 +468,6 @@ deployment:
   microServices:
     engineeringTool:
       enabled: true
-    telemetryCdmProcessor:
-      enabled: true
 
   ingress:
     enabled: true
@@ -487,36 +487,51 @@ deployment:
     hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
 
-#### Installing the chart
+> **NOTE**: Please note that we have used `2.8` as the value of `image:tag` configuration parameter
+> above. That will result in `2.8` version of microservices and edge modules to be deployed. If you want
+> to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
-Here we will install `azure-industrial-iot` Helm chart from the root of the GitHub repo. For that, please
-use `aiiot.yaml` that you created above and run the following command:
+#### Installing `azure-industrial-iot` Helm chart
+
+##### Installing the chart from GitHub repository
+
+Here we will install `azure-industrial-iot` Helm chart from the root of the GitHub repo. This deployment
+method should be used for development purposes. For production deployments please check next section on
+[installing the chart from Helm chart repository](#installing-the-chart-from-helm-chart-repository).
+
+For installing the chart, please use `aiiot.yaml` that you created above and run the following command:
 
 ```bash
 helm install aiiot --namespace aiiot .\deploy\helm\azure-industrial-iot\ -f aiiot.yaml
 ```
 
-`aiiot.yaml` that we created above is for `0.3.1` version of the Helm chart. Please modify it accordingly if
-you install a different version of the chart. Please check documentation of each version for a list of
-applicable values for that specific version.
+`aiiot.yaml` that we created above is for `0.4.0` or `0.3.2` versions of the Helm chart. Please modify it
+accordingly if you want to install a different version of the chart. Please check documentation of each
+version for a list of applicable values for that specific version. Documentation links of different versions
+of the chart can be found in [Deploying Azure Industrial IoT Platform Microservices Using Helm](howto-deploy-helm.md).
 
-You can also install the charts from one of Helm repositories that we publish to. For that you would first
-add Helm repository and then install the chart from there as shown bellow.
+##### Installing the chart from Helm chart repository
+
+You can also install `azure-industrial-iot` Helm charts from one of Helm repositories that we publish to.
+For that you would first add Helm repository and then install the chart from there as shown bellow.
 
 ```bash
 helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
 helm repo update
-helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0.3.1 -f aiiot.yaml
+helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0.3.2 -f aiiot.yaml
 ```
+
+Please note that the version of the chart in GitHub repo will be ahead of chart versions that we publish
+to Helm repositories.
+
+Details of both Helm chart repositories that we publish to can be found in [Helm Repositories](howto-deploy-helm.md#helm-repositories).
 
 ### Check status of deployed resources
 
-To check status of deployed resources let's open Kubernetes Dashboard. Please provide your resource group
-and AKS cluster names:
-
-```bash
-az aks browse --resource-group myResourceGroup --name myAksCluster
-```
+To check status of deployed resources one can use Kubernetes Dashboard. Please follow the steps
+[here](https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/) to deploy and then access
+Kubernetes Dashboard. Alternatively, use `kubectl` command to get status of Kubernetes resources such as pods,
+deployments or services.
 
 ### Enable Prometheus metrics scraping
 
@@ -543,7 +558,6 @@ For that do the following:
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/registry/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/twin/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/history/swagger/oauth2-redirect.html`
-   * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/vault/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/edge/publisher/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/events/swagger/oauth2-redirect.html`
    * `https://aks-cluster-ip.westeurope.cloudapp.azure.com/publisher/swagger/oauth2-redirect.html`
@@ -573,7 +587,6 @@ Public IP address resource.
 | OPC Registry Swagger UI                | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/registry/swagger/index.html`       |
 | OPC Twin Swagger UI                    | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/twin/swagger/index.html`           |
 | OPC Historian Access Swagger UI        | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/history/swagger/index.html`        |
-| OPC Vault Swagger UI                   | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/vault/swagger/index.html`          |
-| Publisher Lobs Orchestrator Swagger UI | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/edge/publisher/swagger/index.html` |
-| Events Swagger UI                      | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/events/swagger/index.html`         |
 | OPC Publisher Swagger UI               | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/publisher/swagger/index.html`      |
+| Publisher Jobs Orchestrator Swagger UI | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/edge/publisher/swagger/index.html` |
+| Events Swagger UI                      | `https://aks-cluster-ip.westeurope.cloudapp.azure.com/events/swagger/index.html`         |

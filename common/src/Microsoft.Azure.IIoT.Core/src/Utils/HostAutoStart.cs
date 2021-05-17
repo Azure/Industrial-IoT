@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Utils {
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to start some hosts.");
-                throw ex;
+                throw;
             }
         }
 

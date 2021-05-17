@@ -13,6 +13,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageTags>Industrial;Industrial IoT;Manufacturing;Azure;IoT;.NET</PackageTags>
     <HighEntropyVA>true</HighEntropyVA>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NeutralLanguage>en-US</NeutralLanguage>
     <LangVersion>8.0</LangVersion>
@@ -40,6 +41,12 @@
   <PropertyGroup Condition="'$(FX_COP)' != ''">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
+  <ItemGroup Condition="'$(SDL)' == 'true'">
+    <PackageReference Include="Roslynator.Analyzers" Version="3.1.0" PrivateAssets="All" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(SDL)' == 'true'">
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
   <PropertyGroup>
     <PrereleaseSuffix>$(PrereleaseVersionNoLeadingHyphen)-$(GitCommitIdShort)</PrereleaseSuffix>
     <PrereleaseVersion Condition="'$(BUILD_SOURCEVERSION)' != ''">[$(NuGetPackageVersion)]</PrereleaseVersion>
@@ -47,5 +54,9 @@
     <PrereleaseVersion Condition="'$(PublicRelease)' == 'True'">$(VersionPrefix)-*</PrereleaseVersion>
     <ReleaseVersion Condition="'$(PublicRelease)' == 'True'">$(VersionPrefix)</ReleaseVersion>
     <ReleaseVersion Condition="'$(PublicRelease)' == 'False'">$(NuGetPackageVersion)</ReleaseVersion>
+  </PropertyGroup>
+  <!-- only create the SARIF files for the SDL build step in cloud builds -->
+  <PropertyGroup Condition="'$(NBGV_NugetPackageVersion)' != ''">
+    <ErrorLog>$(MSBuildProjectFullPath).$([System.Guid]::NewGuid().ToString().Substring(0,8)).sarif</ErrorLog>
   </PropertyGroup>
 </Project>

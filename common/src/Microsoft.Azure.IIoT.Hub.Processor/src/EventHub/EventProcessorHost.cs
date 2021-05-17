@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
             catch (Exception ex) {
                 _logger.Error(ex, "Error starting event processor host.");
                 _host = null;
-                throw ex;
+                throw;
             }
             finally {
                 _lock.Release();

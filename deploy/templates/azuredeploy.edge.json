@@ -216,9 +216,9 @@
         },
         "branchName": {
             "type": "string",
-            "defaultValue": "master",
+            "defaultValue": "main",
             "metadata": {
-                "description": "The branch from which to deploy deploy services and application.  Default to master."
+                "description": "The branch from which to deploy deploy services and application.  Default to main."
             }
         },
         "managedIdentityResourceId": {
@@ -286,7 +286,7 @@
         "linuxImage": {
             "publisher": "Canonical",
             "offer": "UbuntuServer",
-            "sku": "16.04.0-LTS",
+            "sku": "18.04-LTS",
             "version": "latest"
         },
         "linuxOsProfile": {
