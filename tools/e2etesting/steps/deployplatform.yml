@@ -30,7 +30,7 @@ steps:
   name: setVersionInfo
   inputs:
     targetType: filePath
-    filePath: ../../scripts/set-version.ps1
+    filePath: $(BasePath)\..\scripts\set-version.ps1
 
 - task: CmdLine@2
   displayName: 'Override platform version if necessary'
