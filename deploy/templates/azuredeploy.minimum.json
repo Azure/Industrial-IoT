@@ -6,21 +6,21 @@
             "type": "string",
             "defaultValue": "[concat('msi', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5))]",
             "metadata": {
-                "description": "The name of the managed identity to create.  If client principal was omitted a default identity will be provisioned to access resources."
+                "description": "The name of the managed identity to create. If client principal was omitted a default identity will be provisioned to access resources."
             }
         },
         "templateUrl": {
             "type": "string",
             "defaultValue": "https://raw.githubusercontent.com/Azure/Industrial-IoT",
             "metadata": {
-                "description": "The artifacts url from which to pull all linked templates.  Default is official repository."
+                "description": "The artifacts url from which to pull all linked templates. Default is official repository."
             }
         },
         "branchName": {
             "type": "string",
-            "defaultValue": "master",
+            "defaultValue": "main",
             "metadata": {
-                "description": "The branch from which to deploy deploy services and application.  Default to master."
+                "description": "The branch from which to deploy services and application. Default to main."
             }
         },
         "storageName": {
@@ -51,8 +51,8 @@
                 "description": "The name of the Azure Cosmos DB instance created as part of the deployment."
             }
         },
-        "cosmosDbAccountOfferType": { 
-            "type": "string", 
+        "cosmosDbAccountOfferType": {
+            "type": "string",
             "defaultValue": "Standard",
             "allowedValues": [
                 "Standard"

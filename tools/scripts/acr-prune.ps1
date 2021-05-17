@@ -12,46 +12,75 @@
 
  .PARAMETER Subscription
     The subscription to use - otherwise uses default
+
+ .PARAMETER All
+    Delete all repositories
+
+ .PARAMETER Yes
+    Confirm action - otherwise it will be a dry run.
 #>
 
 Param(
-    [string] $Registry = $null,
-    [string] $Subscription = $null
+    [Parameter(Mandatory = $true)] [string] $Registry = $null,
+    [string] $Subscription = $null,
+    [switch] $All,
+    [switch] $Yes
 )
 
-# Check and set registry
-if ([string]::IsNullOrEmpty($Registry)) {
-    $Registry = $env.BUILD_REGISTRY
-    if ([string]::IsNullOrEmpty($Registry)) {
-        $Registry = "industrialiotdev"
-        Write-Warning "No registry specified - using $($Registry).azurecr.io."
-    }
-}
-
 # set default subscription
-if (![string]::IsNullOrEmpty($Subscription)) {
-    Write-Debug "Setting subscription to $($Subscription)"
-    $argumentList = @("account", "set", "--subscription", $Subscription)
-    & "az" $argumentList 2`>`&1 | %{ "$_" }
+if (![string]::IsNullOrEmpty($script:Subscription)) {
+    Write-Debug "Setting subscription to $($script:Subscription)"
+    $argumentList = @("account", "set", "--subscription", $script:Subscription, "-ojson")
+    & "az" $argumentList 2`>`&1 | ForEach-Object { "$_" }
     if ($LastExitCode -ne 0) {
         throw "az $($argumentList) failed with $($LastExitCode)."
     }
 }
 
+if (-not $script:All.IsPresent) {
+    # get build registry credentials
+    $argumentList = @("acr", "credential", "show", "--name", $script:Registry, "-ojson")
+    $result = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" })
+    if ($LastExitCode -ne 0) {
+        throw "az $($argumentList) failed with $($LastExitCode)."
+    }
+    $dockerCredentials = $result | ConvertFrom-Json
+    $dockerUser = $dockerCredentials.username
+    $dockerPassword = $dockerCredentials.passwords[0].value
+}
+
 # get list of repositories
-$argumentList = @("acr", "repository", "list", "--name", $Registry)
-$repositories = (& "az" $argumentList 2>&1 | %{ "$_" }) | ConvertFrom-Json
-$repositories | ForEach-Object {
-    $repository = $_
+$argumentList = @("acr", "repository", "list", "--name", $script:Registry, "-ojson")
+$repositories = (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | ConvertFrom-Json
+foreach ($repository in $repositories) {
     
-    if (!$repository.StartsWith("public/")) {
-        Write-Warning "Deleting $($repository)"
-        $argumentList = @("acr", "repository", "delete", 
-            "--yes",
+    if ($script:All.IsPresent) {
+        Write-Warning "Deleting $($repository)..."
+        $argumentList = @("acr", "repository", "delete", "--yes", "-ojson",
             "--name", $Registry,
             "--repository", $repository
         )
-        (& "az" $argumentList 2>&1 | %{ "$_" }) | Out-Host
+        if (-not $script:Yes.IsPresent) {
+            "Would have deleted $($repository). Uses -Yes option."
+        }
+        else {
+            (& "az" $argumentList 2>&1 | ForEach-Object { "$_" }) | Out-Host
+        }
+    }
+    else {
+        # use acr cli to purge dangling manifests per repo
+        $argumentList = @("run", "-it", "mcr.microsoft.com/acr/acr-cli:0.4", "purge"
+            "--password", $dockerPassword,
+            "--username", $dockerUser,
+            "--registry", $script:Registry,
+            "--filter", """$($repository):.*""",
+            "--ago", "2y",
+            "--untagged"
+        )
+        if (-not $script:Yes.IsPresent) {
+            $argumentList += "--dry-run"
+        }
+        (& "docker" $argumentList 2>&1 | ForEach-Object { "$_" }) | Out-Host
     }
 }
 

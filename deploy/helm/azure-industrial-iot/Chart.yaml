@@ -14,5 +14,5 @@ home: https://github.com/Azure/Industrial-IoT
 maintainers:
 - name: Karapet Kostandyan
   email: kakostan@microsoft.com
-icon: https://raw.githubusercontent.com/Azure/Industrial-IoT/master/docs/media/microsoft-symbol.png
+icon: https://raw.githubusercontent.com/Azure/Industrial-IoT/main/docs/media/microsoft-symbol.png
 appVersion: 2.8.0

@@ -7,6 +7,7 @@ jobs:
   pool:
     vmImage: 'windows-2019'
   variables:
+    runCodesignValidationInjection: false
     skipComponentGovernanceDetection: true
     DOTNET_CLI_TELEMETRY_OPTOUT: true
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -17,7 +18,7 @@ jobs:
     inputs:
       targetType: filePath
       filePath: ./tools/scripts/get-matrix.ps1
-      arguments: -FileName *.sln
+      arguments: -FileName Industrial-IoT.sln
 - job: buildall
   displayName: Building
   dependsOn: buildprep
@@ -25,6 +26,11 @@ jobs:
     matrix: $[dependencies.buildprep.outputs['buildmatrix.jobMatrix'] ]
   pool:
     vmImage: $(poolImage)
+  variables:
+    skipComponentGovernanceDetection: true
+    DOTNET_CLI_TELEMETRY_OPTOUT: true
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+    runCodesignValidationInjection: false
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK'
@@ -55,6 +61,7 @@ jobs:
   pool:
     vmImage: 'windows-2019'
   variables:
+    runCodesignValidationInjection: false
     skipComponentGovernanceDetection: true
     DOTNET_CLI_TELEMETRY_OPTOUT: true
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
