@@ -158,7 +158,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             BatchTriggerInterval = _config.BatchTriggerInterval,
                             DiagnosticsInterval = _config.DiagnosticsInterval,
                             MaxMessageSize = _config.MaxMessageSize,
-                            MaxOutgressMessages = _config.MaxOutgressMessages
+                            MaxOutgressMessages = _config.MaxOutgressMessages,
+                            UseReversibleEncoding = _config.UseReversibleEncoding,
                         },
                         WriterGroup = new WriterGroupModel {
                             MessageType = legacyCliModel.MessageEncoding,

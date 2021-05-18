@@ -62,6 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed);
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
             _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(200);
+            _useReversibleEncoding = _config.UseReversibleEncoding.GetValueOrDefault(false);
         }
 
         /// <inheritdoc/>
@@ -90,10 +91,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     async input => {
                         try {
                             if (_dataSetMessageBufferSize == 1) {
-                                return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
+                                return await _messageEncoder.EncodeAsync(input, _maxEncodedMessageSize, _useReversibleEncoding).ConfigureAwait(false);
                             }
                             else {
-                                return await _messageEncoder.EncodeBatchAsync(input, _maxEncodedMessageSize).ConfigureAwait(false);
+                                return await _messageEncoder.EncodeBatchAsync(input, _maxEncodedMessageSize, _useReversibleEncoding).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) {
@@ -330,6 +331,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Define the maximum size of messages
         /// </summary>
         private readonly int _maxOutgressMessages;
+
+        /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        private readonly bool _useReversibleEncoding;
 
         /// <summary>
         /// Counts the amount of messages that couldn't be send to IoTHub
