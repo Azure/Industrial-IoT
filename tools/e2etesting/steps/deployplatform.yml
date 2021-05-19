@@ -32,23 +32,10 @@ steps:
     targetType: filePath
     filePath: $(BasePath)\..\scripts\set-version.ps1
 
-- task: CmdLine@2
-  displayName: 'Validate version info'
-  timeoutInMinutes: 1
-  inputs:
-    script: echo "$(setVersionInfo.Version_Full)--$(setVersionInfo.Version_Prefix)--$(setVersionInfo.Version_Prerelease)"
-
-# - task: CmdLine@2
-#   displayName: 'Override platform version if necessary'
-#   timeoutInMinutes: 1
-#   inputs:
-#     condition: eq(variables['PlatformVersion'], '')
-#     script: echo "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
-
 - task: AzureCLI@2
   displayName: 'Override platform version if necessary'
+  condition: eq(variables['PlatformVersion'], '')
   inputs:
-    condition: eq(variables['PlatformVersion'], '')
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     scriptLocation: 'InlineScript'
@@ -56,12 +43,6 @@ steps:
     addSpnToEnvironment: true
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
-
-- task: CmdLine@2
-  displayName: 'Validate platform version'
-  timeoutInMinutes: 1
-  inputs:
-    script: echo "Platform version - $(PlatformVersion)"
 
 - task: AzurePowerShell@5
   displayName: "Replace parameters in appSettings.json (for IAI)"
