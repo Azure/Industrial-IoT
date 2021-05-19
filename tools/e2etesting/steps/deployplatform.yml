@@ -33,6 +33,12 @@ steps:
     filePath: $(BasePath)\..\scripts\set-version.ps1
 
 - task: CmdLine@2
+  displayName: 'Validate version info'
+  timeoutInMinutes: 1
+  inputs:
+    script: echo "$(setVersionInfo.Version_Full)--$(setVersionInfo.Version_Prefix)--$(setVersionInfo.Version_Prerelease)"
+
+- task: CmdLine@2
   displayName: 'Override platform version if necessary'
   timeoutInMinutes: 1
   inputs:
