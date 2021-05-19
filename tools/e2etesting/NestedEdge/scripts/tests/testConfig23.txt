@@ -1,0 +1,34 @@
+# Configuration file to define the IoT Edge devices and IIOT assets to deploy over a ISA-95 network in Azure
+# 
+# How to use:
+# - Do not modify the network layers (subnets) names as they must map to the ISA-95 network
+# - For each network layer, specify a list of IoT Edge devices or IIOT assets to certificates separated by white spaces
+# - Each IoT Edge device or IIOT asset will run in an Azure VM
+# - IIOT assets are differianted by IoT Edge devices by the value in parenthesis after their names:
+#     - If set to OPC-UA or OPC-UA-1, an OPC-UA server is simulated with configuration 1. Ex: L2-OPC-UA-server-1(OPC-UA)
+#     - If set to OPC-UA-2, an OPC-UA server is simulated with configuration 2. L2-OPC-UA-server-2(OPC-UA-2)
+#     - For every other value or no value between parenthesis, an IoT Edge device is created
+# - IoT Edge devices' parents are provided by the value in parenthesis after their names. Ex: L4-edge(L5-edge) creates an IoT Edge device named L4-edge which parent is L5-edge
+# - IoT Edge devices without parents are connected directly to the cloud. Ex: L5-edge connects directly to the cloud
+# - Only give names to IoT Edge devices or IIOT assets that meet the Linux Azure VMs naming standards, e.g.
+#     - Their names cannot exceed 64 characters in length
+#     - Their names cannot contain the following characters: ` ~ ! @ # $ % ^ & * ( ) = + _ [ ] { } \\ | ; : ' \" , < > / ?."
+# - IoT Edge configuration
+#     - BaseDeploymentFilePath: Pointer to a JSON deployment manifest file that will be used as a base for all IoT Edge devices
+#     - RootCA: Pointer to a tar file with Root CA and Azure IoT tooling to generate TLS server certificates for all IoT Edge devices
+# - Case matters and make sure to keep an empty line at the end of the file
+
+# IoT Edge and IIOT assets topology
+7-L5-IT-EnterpriseNetwork: L5-edge
+6-L4-IT-SiteLogistics: L4-edge(L5-edge)
+4-L3-OT-SiteOperations: L3-edge(L4-edge)
+3-L2-OT-AreaSupervisoryControl: L2-OPC-UA-server-1(OPC-UA) L2-OPC-UA-server-2(OPCUA) L2-OPC-UA-server-3(OPC-UA-1) L2-OPC-UA-server-4(OPC-UA-2)
+2-L1-OT-BasicControl:
+1-L0-OT-Process:
+
+# IoT Edge configuration
+AcrEnvFilePath: ../ACR.env
+TopLayerBaseDeploymentTemplateFilePath: ./edgeDeployments/topLayerBaseDeploymentItProxy.template.json
+MiddleLayerBaseDeploymentFilePath: ./edgeDeployments/middleLayerBaseDeployment.json
+BottomLayerBaseDeploymentFilePath: ./edgeDeployments/bottomLayerBaseDeploymentOtProxy.json
+RootCA: https://raw.githubusercontent.com/Azure/Industrial-IoT/feature/nested_edge/tools/e2etesting/NestedEdge/scripts/assets/test-certs.tar.bz2
