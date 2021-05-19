@@ -56,6 +56,11 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder) {
+            // Get valid key-value pairs for encoding.
+            var keyValuePairs = this
+                .Where(x => !string.IsNullOrEmpty(x.Key) && x.Value != null)
+                .ToArray();
+
             if (encoder.UseReversibleEncoding) {
                 if (this.Any(x => x.Key == kKeysIdentifier)) {
                     throw new ServiceResultException(StatusCodes.BadEncodingError,
@@ -68,17 +73,15 @@ namespace Opc.Ua.Encoders {
                 }
 
                 // Write keys for decoding.
-                var keys = this.Select(x => x.Key).Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                var keys = keyValuePairs.Select(x => x.Key).ToArray();
                 encoder.WriteUInt32(kCountIdentifier, (uint)keys.Length);
-                if (Count > 0) {
+                if (keys.Length > 0) {
                     encoder.WriteStringArray(kKeysIdentifier, keys);
                 }
             }
 
-            foreach (var entry in this) {
-                if (!string.IsNullOrEmpty(entry.Key)) {
-                    encoder.WriteDataValue(entry.Key, entry.Value);
-                }
+            foreach (var keyValuePair in keyValuePairs) {
+                encoder.WriteDataValue(keyValuePair.Key, keyValuePair.Value);
             }
         }
 
