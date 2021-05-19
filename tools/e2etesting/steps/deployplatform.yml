@@ -38,12 +38,24 @@ steps:
   inputs:
     script: echo "$(setVersionInfo.Version_Full)--$(setVersionInfo.Version_Prefix)--$(setVersionInfo.Version_Prerelease)"
 
-- task: CmdLine@2
+# - task: CmdLine@2
+#   displayName: 'Override platform version if necessary'
+#   timeoutInMinutes: 1
+#   inputs:
+#     condition: eq(variables['PlatformVersion'], '')
+#     script: echo "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
+
+- task: AzureCLI@2
   displayName: 'Override platform version if necessary'
-  timeoutInMinutes: 1
   inputs:
-    script: echo "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
     condition: eq(variables['PlatformVersion'], '')
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
 
 - task: CmdLine@2
   displayName: 'Validate platform version'
