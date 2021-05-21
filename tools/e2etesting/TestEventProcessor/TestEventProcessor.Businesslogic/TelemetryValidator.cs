@@ -295,7 +295,7 @@ namespace TestEventProcessor.BusinessLogic {
                 _messageDeliveryDelayChecker.ProcessEvent(entrySourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime);
                 _valueChangeCounterPerNodeId.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
                 _missingValueChangesChecker.ProcessEvent(entrySourceTimestamp);
-                _incrementalIntValueChecker.ProcessEvent(entryNodeId, entryValue);
+                _incrementalIntValueChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
 
                 Interlocked.Increment(ref _totalValueChangesCount);
                 valueChangesCount++;
