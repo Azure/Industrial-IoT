@@ -919,7 +919,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 BatchTriggerInterval = model.BatchTriggerInterval,
                 DiagnosticsInterval = model.DiagnosticsInterval,
                 MaxMessageSize = model.MaxMessageSize,
-                MaxOutgressMessages = model.MaxOutgressMessages
+                MaxOutgressMessages = model.MaxOutgressMessages,
+                UseReversibleEncoding = model.UseReversibleEncoding
             };
         }
 
@@ -936,7 +937,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 BatchTriggerInterval = model.BatchTriggerInterval,
                 MaxMessageSize = model.MaxMessageSize,
                 DiagnosticsInterval = model.DiagnosticsInterval,
-                MaxOutgressMessages = model.MaxOutgressMessages
+                MaxOutgressMessages = model.MaxOutgressMessages,
+                UseReversibleEncoding = model.UseReversibleEncoding
             };
         }
 

@@ -83,6 +83,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." +
                         "Default is 'true', for legacy compatibility use 'false'",
                         (bool b) => this[LegacyCliConfigKeys.FullFeaturedMessage] = b.ToString() },
+                    { "re|reversibleencoding=", "Use reversible encoding for messages",
+                        (bool b) => this[LegacyCliConfigKeys.UseReversibleEncoding] = b.ToString() },
 
                     // Client settings
                     { "ot|operationtimeout=", "The operation timeout of the publisher OPC UA client in ms.",
@@ -239,6 +241,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public int? MaxOutgressMessages => LegacyCliModel.MaxOutgressMessages;
 
         /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public bool? UseReversibleEncoding => LegacyCliModel.UseReversibleEncoding;
+
+        /// <summary>
         /// The model of the CLI arguments.
         /// </summary>
         public LegacyCliModel LegacyCliModel {
@@ -286,6 +293,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, MessagingMode.Samples),
                 MessageEncoding = GetValueOrDefault(LegacyCliConfigKeys.MessageEncoding, MessageEncoding.Json),
                 FullFeaturedMessage = GetValueOrDefault(LegacyCliConfigKeys.FullFeaturedMessage, false),
+                UseReversibleEncoding = GetValueOrDefault(LegacyCliConfigKeys.UseReversibleEncoding, false),
                 EdgeHubConnectionString = GetValueOrDefault<string>(LegacyCliConfigKeys.EdgeHubConnectionString, null),
                 OperationTimeout = GetValueOrDefault(LegacyCliConfigKeys.OpcOperationTimeout, TimeSpan.FromSeconds(15)),
                 MaxStringLength = GetValueOrDefault(LegacyCliConfigKeys.OpcMaxStringLength, TransportQuotaConfigEx.DefaultMaxStringLength),

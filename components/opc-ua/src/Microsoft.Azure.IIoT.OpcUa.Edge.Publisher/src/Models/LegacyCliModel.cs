@@ -127,6 +127,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public bool FullFeaturedMessage { get; set; }
 
         /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public bool UseReversibleEncoding { get; set; }
+
+        /// <summary>
         /// The maximum string length.
         /// </summary>
         public int? MaxStringLength { get; set; }
