@@ -608,7 +608,7 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Reads an array with the specified valueRank and the specified BuiltInType
         /// </summary>
-        public object ReadArray(string fieldName, int valueRank, BuiltInType builtInType) {
+        public object ReadArray(string fieldName, int valueRank, BuiltInType builtInType, ExpandedNodeId nodeId) {
             if (valueRank == ValueRanks.OneDimension) {
                 switch (builtInType) {
                     case BuiltInType.Boolean:
@@ -1915,7 +1915,7 @@ namespace Opc.Ua.Encoders {
                     }
                     if (!hasInnerArray) {
                         // read array from one dimension
-                        var part = ReadArray(null, ValueRanks.OneDimension, builtInType) as System.Collections.IList;
+                        var part = ReadArray(null, ValueRanks.OneDimension, builtInType, null) as System.Collections.IList;
                         if (part != null && part.Count > 0) {
                             // add part elements to final list 
                             foreach (var item in part) {
@@ -1925,7 +1925,8 @@ namespace Opc.Ua.Encoders {
                     }
                 }
             }
-            catch (Exception) {
+            catch (Exception ex) {
+                throw new ServiceResultException(ex.Message);
             }
         }
 
