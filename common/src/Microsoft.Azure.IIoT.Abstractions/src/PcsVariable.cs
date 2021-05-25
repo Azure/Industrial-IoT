@@ -289,8 +289,5 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Log file path environment variable </summary>
         public const string PCS_LOGS_PATH =
             "PCS_LOGS_PATH";
-        /// <summary> The maximum size of the (IoT D2C) message outgress queue </summary>
-        public const string PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES =
-            "PCS_DEFAULT_PUBLISH_MAX_OUTGRESS_MESSAGES";
     }
 }
