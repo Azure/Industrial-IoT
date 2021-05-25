@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _batchTriggerInterval = _config.BatchTriggerInterval.GetValueOrDefault(TimeSpan.Zero);
             _diagnosticsOutputTimer = new Timer(DiagnosticsOutputTimer_Elapsed);
             _batchTriggerIntervalTimer = new Timer(BatchTriggerIntervalTimer_Elapsed);
-            _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(200);
+            _maxOutgressMessages = _config.MaxOutgressMessages.GetValueOrDefault(4096); // = 1 GB
         }
 
         /// <inheritdoc/>
@@ -337,10 +337,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             "Opc DataChanges/second delivered for processing", kGaugeConfig);
         private static readonly Gauge kIoTHubQueueBuffer = Metrics.CreateGauge(
             "iiot_edge_publisher_iothub_queue_size",
-            "IoT messages queued sending", kGaugeConfig); 
+            "IoT messages queued sending", kGaugeConfig);
             private static readonly Gauge kIoTHubQueueBufferDroppedCount = Metrics.CreateGauge(
             "iiot_edge_publisher_iothub_queue_dropped_count",
-            "IoT messages dropped", kGaugeConfig); 
+            "IoT messages dropped", kGaugeConfig);
         private static readonly Gauge kSentMessagesCount = Metrics.CreateGauge(
             "iiot_edge_publisher_sent_iot_messages",
             "IoT messages sent to hub", kGaugeConfig);
