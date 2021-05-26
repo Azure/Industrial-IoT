@@ -369,6 +369,11 @@ namespace Opc.Ua.Encoders {
             }
         }
 
+        /// <inheritdoc />
+        public void WriteArray(string fieldName, object array, int valueRank, BuiltInType builtInType) {
+            _wrapped.WriteArray(fieldName, array, valueRank, builtInType);
+        }
+
         /// <summary>
         /// Create encoder for content type
         /// </summary>

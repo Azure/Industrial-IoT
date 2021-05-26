@@ -26,11 +26,6 @@ namespace Opc.Ua.Models {
         public LocalizedText Description { get; internal set; }
 
         /// <summary>
-        /// Whether the enum is an option set
-        /// </summary>
-        public bool IsOptionSet { get; set; }
-
-        /// <summary>
         /// Base type string
         /// </summary>
         public string BaseType { get; internal set; }
