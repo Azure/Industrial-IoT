@@ -79,7 +79,7 @@ else {
         # dev feature builds
         $namespace = $namespace.Replace("feature/", "")
     }
-    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "main") -or ($namespace -eq "master")) {
+    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
         $namespace = "public"
         if ([string]::IsNullOrEmpty($Registry)) {
             # Release and Preview builds go into staging
@@ -93,7 +93,7 @@ else {
 if ([string]::IsNullOrEmpty($Registry)) {
     $Registry = $env.BUILD_REGISTRY
     if ([string]::IsNullOrEmpty($Registry)) {
-        # Feature builds by default build into dev registry
+        # Feature builds by default into dev registry
         $Registry = "industrialiotdev"
     }
 }
@@ -102,10 +102,12 @@ Write-Warning "Using $($Registry).azurecr.io."
 $latestTag = "latest"
 # get and set build information from gitversion, git or version content
 $sourceTag = $env:Version_Prefix
+$prereleaseTag = $env:Version_Prerelease
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
         $version = & (Join-Path $PSScriptRoot "get-version.ps1")
         $sourceTag = $version.Prefix
+        $prereleaseTag = $version.Prerelease
     }
     catch {
         # build as latest if not building from ci/cd pipeline
@@ -116,19 +118,24 @@ if ([string]::IsNullOrEmpty($sourceTag)) {
         $sourceTag = "latest"
     }
 }
-
-# Get build root - this is the top most folder with .dockerignore
-$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
-# Get meta data
-$metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
-    | ConvertFrom-Json
-
-# Set image name and namespace in acr based on branch and source tag
-$imageName = $metadata.name
-if ($script:Fast.IsPresent) {
-    if (!$metadata.buildAlways) {
-        Write-Host "Using fast build - Skipping optional image $imageName."
-        return
+if (![string]::IsNullOrEmpty($sourceTag)) {
+    Write-Host "Using version $($sourceTag)$($prereleaseTag) from get-version.ps1"
+}
+else {
+    # Otherwise look at git tag
+    if (![string]::IsNullOrEmpty($env:BUILD_SOURCEVERSION)) {
+        # Try get current tag
+        try {
+            $argumentList = @("tag", "--points-at", $env:BUILD_SOURCEVERSION)
+            $sourceTag = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+            if ($LastExitCode -ne 0) {
+                throw "git $($argumentList) failed with $($LastExitCode)."
+            }
+        }
+        catch {
+            Write-Error "Error reading tag from $($env:BUILD_SOURCEVERSION)"
+            $sourceTag = $null
+        }
     }
 }
 $tagPostfix = ""
@@ -183,8 +190,27 @@ $user = $credentials.username
 $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"
 
-$fullImageName = "$($script:Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($tagPostfix)"
-Write-Host "Building image $($fullImageName)"
+# Get build root - this is the top most folder with .dockerignore
+$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
+# Get meta data
+$metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
+| ConvertFrom-Json
+
+
+# Set image name and namespace in acr based on branch and source tag
+$imageName = $metadata.name
+
+$tagPostfix = ""
+$tagPrefix = ""
+if ($Debug.IsPresent) {
+    $tagPostfix = "-debug"
+}
+if (![string]::IsNullOrEmpty($metadata.tag)) {
+    $tagPrefix = "$($metadata.tag)-"
+}
+
+$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($prereleaseTag)$($tagPostfix)"
+Write-Host "Full image name: $($fullImageName)"
 
 $manifest = @" 
 image: $($fullImageName)
@@ -225,7 +251,7 @@ $definitions | ForEach-Object {
         }
     }
 
-    $image = "$($namespace)$($imageName):$($tagPrefix)$($sourceTag)-$($platformTag)$($tagPostfix)"
+    $image = "$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($prereleaseTag)-$($platformTag)$($tagPostfix)"
     Write-Host "Start build job for $($image)"
 
     # Create acr command line 
