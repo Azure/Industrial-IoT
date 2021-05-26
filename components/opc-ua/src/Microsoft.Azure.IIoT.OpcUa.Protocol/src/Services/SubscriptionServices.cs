@@ -566,25 +566,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 rawSubscription.DisplayName);
                         }
                         else {
-                            _logger.Information("Now issuing ConditionRefresh for subscription " +
-                                "{subscription}", rawSubscription.DisplayName);
+                            _logger.Information("Now issuing ConditionRefresh for item {item} on subscription " +
+                                "{subscription}", change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
                             try {
                                 rawSubscription.ConditionRefresh();
                             }
                             catch (ServiceResultException e) {
-                                _logger.Information("ConditionRefresh for subscription " +
-                                    "{subscription} failed with a ServiceResultException '{message}'", rawSubscription.DisplayName, e.Message);
+                                _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                    "{subscription} failed with a ServiceResultException '{message}'",
+                                    change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName, e.Message);
                                 noErrorFound = false;
                             }
                             catch (Exception e) {
-                                _logger.Information("ConditionRefresh for subscription " +
-                                    "{subscription} failed with an exception '{message}'", rawSubscription.DisplayName, e.Message);
+                                _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                    "{subscription} failed with an exception '{message}'",
+                                    change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName, e.Message);
                                 noErrorFound = false;
 
                             }
                             if (noErrorFound) {
-                                _logger.Information("ConditionRefresh for subscription " +
-                                    "{subscription} has completed", rawSubscription.DisplayName);
+                                _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                    "{subscription} has completed",
+                                    change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
                             }
                         }
                     }
@@ -1467,24 +1470,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         var noErrorFound = true;
 
                         // issue a condition refresh to make sure we are in a correct state
-                        _logger.Information("Now issuing ConditionRefresh for subscription " +
-                            "{subscription} due to receiving a RefreshRequired event", Item.Subscription.DisplayName);
+                        _logger.Information("Now issuing ConditionRefresh for item {item} on subscription " +
+                            "{subscription} due to receiving a RefreshRequired event", 
+                            Item.DisplayName ?? "", Item.Subscription.DisplayName);
                         try {
                             Item.Subscription.ConditionRefresh();
                         }
                         catch (ServiceResultException e) {
-                            _logger.Information("ConditionRefresh for subscription " +
-                                "{subscription} failed with a ServiceResultException '{message}'", Item.Subscription.DisplayName, e.Message);
+                            _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                "{subscription} failed with a ServiceResultException '{message}'",
+                                Item.DisplayName ?? "", Item.Subscription.DisplayName, e.Message);
                             noErrorFound = false;
                         }
                         catch (Exception e) {
-                            _logger.Information("ConditionRefresh for subscription " +
-                                "{subscription} failed with an exception '{message}'", Item.Subscription.DisplayName, e.Message);
+                            _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                "{subscription} failed with an exception '{message}'",
+                                Item.DisplayName ?? "", Item.Subscription.DisplayName, e.Message);
                             noErrorFound = false;
                         }
                         if (noErrorFound) {
-                            _logger.Information("ConditionRefresh for subscription " +
-                                "{subscription} has completed", Item.Subscription.DisplayName);
+                            _logger.Information("ConditionRefresh for item {item} on subscription " +
+                                "{subscription} has completed",
+                                Item.DisplayName ?? "", Item.Subscription.DisplayName);
                         }
                         return;
                     }
