@@ -1347,7 +1347,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             return new PendingAlarmsOptionsApiModel {
                 IsEnabled = model.IsEnabled,
                 UpdateInterval = model.UpdateInterval,
-                SnapshotInterval = model.SnapshotInterval
+                SnapshotInterval = model.SnapshotInterval,
+                CompressMessages = model.CompressMessages
             };
         }
 
@@ -1362,7 +1363,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             return new PendingAlarmsOptionsModel {
                 IsEnabled = model.IsEnabled,
                 UpdateInterval = model.UpdateInterval,
-                SnapshotInterval = model.SnapshotInterval
+                SnapshotInterval = model.SnapshotInterval,
+                CompressMessages = model.CompressMessages
             };
         }
 

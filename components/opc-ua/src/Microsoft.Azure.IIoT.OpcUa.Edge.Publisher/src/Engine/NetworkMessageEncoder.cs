@@ -83,6 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
+            var compressMessage = messages.Where(x => x.CompressMessages).Any();
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
@@ -135,11 +136,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
+
+                    byte[] body = Encoding.UTF8.GetBytes(writer.ToString());
+                    if (compressMessage) {
+                        var stream = new MemoryStream(body);
+                        body = stream.Zip();
+                    }
+
                     var encoded = new NetworkMessageModel {
-                        Body = Encoding.UTF8.GetBytes(writer.ToString()),
+                        Body = body,
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
-                        ContentType = ContentMimeType.UaJson,
+                        ContentType = compressMessage ? ContentMimeType.Binary : ContentMimeType.UaJson,
                         MessageSchema = MessageSchemaTypes.NetworkMessageJson
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /

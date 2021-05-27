@@ -778,6 +778,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
                         SubscriptionId = Id,
                         Timestamp = publishTime,
+                        CompressMessages = false,
                         Notifications = new List<MonitoredItemNotificationModel>()
                     };
 
@@ -850,6 +851,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
                         SubscriptionId = Id,
                         Timestamp = publishTime,
+                        CompressMessages = false,
                         Notifications = notification.ToMonitoredItemNotifications(
                                 subscription?.MonitoredItems)?.ToList()
                     };
@@ -1550,6 +1552,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         EndpointUrl = Item.Subscription?.Session?.Endpoint?.EndpointUrl,
                         SubscriptionId = (Item.Subscription?.Handle as SubscriptionWrapper)?.Id,
                         Timestamp = DateTime.UtcNow,
+                        CompressMessages = pendingAlarmsOptions.CompressMessages,
                         Notifications = new List<MonitoredItemNotificationModel>()
                     };
                     message.Notifications.Add(pendingAlarmsNotification);
