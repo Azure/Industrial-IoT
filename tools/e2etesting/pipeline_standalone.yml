@@ -42,7 +42,7 @@ stages:
   displayName: "Deploy Components"
   dependsOn: build
   condition: and(not(canceled()), eq(dependencies.build.result, 'Succeeded'))
-  jobs:  
+  jobs:
   - job: deploystandalone
     displayName: 'Deploy Standalone Resources'
     steps:

@@ -47,7 +47,7 @@ stages:
   displayName: "Deploy Components"
   dependsOn: build
   condition: eq(dependencies.build.result, 'Succeeded')
-  jobs:  
+  jobs:
   - job: deployplatform
     displayName: 'Deploy Platform'
     steps:
@@ -64,7 +64,7 @@ stages:
 
   - job: deploytestresources
     condition: and(eq(dependencies.deployplatform.result, 'Succeeded'), or(eq(dependencies.deploynestedtestresources.result, 'Succeeded'), eq(dependencies.deploynestedtestresources.result, 'Skipped')))
-    dependsOn: 
+    dependsOn:
       - deployplatform
       - deploynestedtestresources
     displayName: 'Deploy Test Resources'
