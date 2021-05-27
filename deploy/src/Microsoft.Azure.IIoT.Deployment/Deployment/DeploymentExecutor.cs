@@ -1241,8 +1241,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var aiiotImageTag = helmSettings?.ImageTag ?? HelmSettings._defaultImageTag;
             var aiiotImageNamespace = helmSettings?.ImageNamespace ?? HelmSettings._defaultImageNamespace;
             var aiiotContainerRegistryServer = helmSettings?.ContainerRegistryServer ?? HelmSettings._defaultContainerRegistryServer;
-            var aiiotContainerRegistryUsername = helmSettings?.ContainerRegistryUsername;
-            var aiiotContainerRegistryPassword = helmSettings?.ContainerRegistryPassword;
+            var aiiotContainerRegistryUsername = helmSettings?.ContainerRegistryUsername ?? HelmSettings._defaultContainerRegistryUsername;
+            var aiiotContainerRegistryPassword = helmSettings?.ContainerRegistryPassword ?? HelmSettings._defaultContainerRegistryPassword;
 
             Log.Information("Helm Settings: tag=" + aiiotImageTag + ", namespace=" + aiiotImageNamespace + ", server=" + aiiotContainerRegistryServer + ", username=" + aiiotContainerRegistryUsername);
 
