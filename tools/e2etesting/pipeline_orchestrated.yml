@@ -18,9 +18,9 @@ resources:
     trigger:
       branches:
         include:
-        - refs/heads/releases/*
-        - refs/heads/master
-        - refs/heads/main
+        - releases/*
+        - master
+        - main
 
 pool:
   name: '$(AgentPool)'
