@@ -55,6 +55,35 @@ steps:
     KeyVaultName: '$(KeyVaultName)'
     SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
 
+- task: AzureKeyVault@1
+  displayName: 'Load secrets from Key Vault as variables by default'
+  condition: and(eq(variables['ContainerRegistryServer'], ''), eq(variables['ContainerRegistryUsername'], ''), eq(variables['ContainerRegistryPassword'], ''))
+  inputs:
+    azureSubscription: 'IOT-OPC-WALLS-SP'
+    KeyVaultName: 'developPipelineKV'
+    SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
+    RunAsPreJob: true
+
+- task: PowerShell@2
+  displayName: Versioning
+  name: setVersionInfo
+  condition: eq(variables['PlatformVersion'], '')
+  inputs:
+    targetType: filePath
+    filePath: $(BasePath)\..\scripts\set-version.ps1
+
+- task: AzureCLI@2
+  displayName: 'Override platform version if necessary'
+  condition: eq(variables['PlatformVersion'], '')
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
+
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
   timeoutInMinutes: 90
