@@ -79,11 +79,11 @@
     <EmbeddedResource Include="Resources\scripts\jumpbox.sh" />
   </ItemGroup>
 
-  <!--<ItemGroup>
+  <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>-->
+  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Resources\deployments\" />
