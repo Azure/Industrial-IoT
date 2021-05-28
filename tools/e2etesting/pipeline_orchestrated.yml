@@ -1,7 +1,26 @@
 name: $(Date:yyyyMMdd)$(Rev:rr)
-
 trigger: none
 pr: none
+
+schedules:
+- cron: "0 10 * * *"
+  displayName: Nightly build of main branch.
+  branches:
+    include:
+    - main
+  always: true
+
+# Trigger Orchestrated E2E Pipeline post completion of build pipeline.
+resources:
+  pipelines:
+  - pipeline: Orchestrated-E2E-CD-Pipeline
+    source: Custom\Azure_IOT\Industrial\Components\Azure.Industrial-IoT
+    trigger:
+      branches:
+        include:
+        - refs/heads/releases/*
+        - refs/heads/master
+        - refs/heads/main
 
 pool:
   name: '$(AgentPool)'

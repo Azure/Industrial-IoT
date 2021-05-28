@@ -70,7 +70,7 @@ if (!$ImageTag) {
 }
 
 if (!$ImageNamespace) {
-   $ImageNamespace="public"
+   $ImageNamespace="main"
 }
 
 if (!$ContainerRegistryServer) {
