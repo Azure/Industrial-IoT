@@ -1016,15 +1016,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Property setter that gets indication if item is online or not.
             /// </summary>
             public void OnMonitoredItemStateChanged(bool online) {
-                if (EventTemplate?.PendingAlarms?.IsEnabled == true) {
-                    if (online) {
-                        _pendingAlarmsTimer.Start();
-                    }
-                    else {
-                        _pendingAlarmsTimer.Stop();
-                        lock (_lock) {
-                            PendingAlarmEvents.Clear();
-                        }
+                if (EventTemplate?.PendingAlarms?.IsEnabled == true && online) {
+                    _pendingAlarmsTimer.Start();
+                }
+                else {
+                    _pendingAlarmsTimer.Stop();
+                    lock (_lock) {
+                        PendingAlarmEvents.Clear();
                     }
                 }
             }
@@ -1262,7 +1260,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 try {
                     // is it time to send anything?
-                    if (pendingAlarmsOptions.IsEnabled == true &&
+                    if (Item.Created && pendingAlarmsOptions.IsEnabled == true &&
                         (((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.SnapshotIntervalTimespan ?? TimeSpan.MaxValue))) ||
                             ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) &&
                             pendingAlarmsOptions.Dirty)))) {
