@@ -196,12 +196,14 @@
         },
         "aiiotContainerRegistryUsername": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
               "description": "Docker container registry username for Azure Industrial IoT components"
             }
         },
         "aiiotContainerRegistryPassword": {
             "type": "securestring",
+            "defaultValue": "",
             "metadata": {
               "description": "Docker container registry password for Azure Industrial IoT components"
             }
