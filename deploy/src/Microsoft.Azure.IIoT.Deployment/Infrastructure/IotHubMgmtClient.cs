@@ -85,14 +85,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                var operationInputs = new OperationInputs {
-                    Name = iotHubName
-                };
-
                 var nameAvailabilityInfo = await _iotHubClient
                     .IotHubResource
                     .CheckNameAvailabilityAsync(
-                        operationInputs,
+                        iotHubName,
                         cancellationToken
                     );
 
@@ -296,6 +292,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             try {
                 Log.Verbose($"Creating IoT Hub Event Hub Consumer Group: {consumerGroupName} ...");
 
+                var eventHubConsumerGroupName = new EventHubConsumerGroupName {
+                    Name = consumerGroupName,
+                };
+
                 var eventHubConsumerGroupInfo = await _iotHubClient
                     .IotHubResource
                     .CreateEventHubConsumerGroupAsync(
@@ -303,6 +303,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         iotHub.Name,
                         eventHubEndpointName,
                         consumerGroupName,
+                        eventHubConsumerGroupName,
                         cancellationToken
                     );
 
