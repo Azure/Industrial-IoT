@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string NETWORK_PROFILE_DNS_SERVICE_IP = "10.0.0.10";
         public const string NETWORK_PROFILE_DOCKER_BRIDGE_CIDR = "172.17.0.1/16";
 
-        public const string KUBERNETES_VERSION_FALLBACK = "1.18.14";
+        public const string KUBERNETES_VERSION_FALLBACK = "1.18.17";
         public const string KUBERNETES_VERSION_MAJ_MIN = "1.18";
 
         private readonly ContainerServiceManagementClient _containerServiceManagementClient;

@@ -806,16 +806,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var kubernetesVersions = await _azureResourceManager
                 .ListKubernetesVersionsAsync(_resourceGroup.Region, cancellationToken);
             var kubernetesVersion = AksMgmtClient.SelectLatestPatchVersion(
-                AksMgmtClient.KUBERNETES_VERSION_MAJ_MIN, kubernetesVersions.ToList());
-            if (kubernetesVersion is null) {
-                // We will fall back to AksMgmtClient.KUBERNETES_VERSION_FALLBACK if it is available in the region.
-                if (kubernetesVersions.Contains(AksMgmtClient.KUBERNETES_VERSION_FALLBACK)) {
-                    kubernetesVersion = AksMgmtClient.KUBERNETES_VERSION_FALLBACK;
-                }
-                else {
-                    throw new Exception($"Fallback Kubernetes version is not suported in the region: {AksMgmtClient.KUBERNETES_VERSION_FALLBACK}");
-                }
-            }
+                AksMgmtClient.KUBERNETES_VERSION_MAJ_MIN,
+                kubernetesVersions.ToList()
+            );
+
+            // Take higher version between the received latest and KUBERNETES_VERSION_FALLBACK.
+            kubernetesVersion = AksMgmtClient.SelectLatestPatchVersion(
+                AksMgmtClient.KUBERNETES_VERSION_MAJ_MIN,
+                new List<string> { kubernetesVersion, AksMgmtClient.KUBERNETES_VERSION_FALLBACK }
+            );
 
             Log.Information($"Kubernetes version {kubernetesVersion} will be used in AKS.");
 
