@@ -51,6 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Shold we compress messages using GZip?
         /// </summary>
-        public bool CompressMessages { get; internal set; }
+        public bool CompressedPayload { get; internal set; }
     }
 }

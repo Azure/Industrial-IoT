@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// Should we compress messages using GZip?
         /// </summary>
-        public bool CompressMessages { get; set; }
+        public bool CompressedPayload { get; set; }
 
         /// <summary>
         /// Service message context

@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Should we compress messages using GZip?
         /// </summary>
-        [DataMember(Name = "compressMessages", Order = 3)]
-        public bool CompressMessages { get; set; } = false;
+        [DataMember(Name = "compressedPayload", Order = 3)]
+        public bool CompressedPayload { get; set; } = false;
     }
 }

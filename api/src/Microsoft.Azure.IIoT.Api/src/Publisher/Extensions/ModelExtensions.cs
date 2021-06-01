@@ -1348,7 +1348,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 IsEnabled = model.IsEnabled,
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval,
-                CompressMessages = model.CompressMessages
+                CompressedPayload = model.CompressedPayload
             };
         }
 
@@ -1364,7 +1364,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 IsEnabled = model.IsEnabled,
                 UpdateInterval = model.UpdateInterval,
                 SnapshotInterval = model.SnapshotInterval,
-                CompressMessages = model.CompressMessages
+                CompressedPayload = model.CompressedPayload
             };
         }
 
