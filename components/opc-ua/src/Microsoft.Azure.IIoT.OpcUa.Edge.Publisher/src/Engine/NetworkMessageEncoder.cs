@@ -106,7 +106,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     };
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
-                    var notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
+                    var notificationSize = 0;
+                    if (compressedPayload) {
+                        var stream = new MemoryStream(Encoding.UTF8.GetBytes(helperWriter.ToString()));
+                        notificationSize = Encoding.UTF8.GetByteCount(Convert.ToBase64String(stream.Zip()));
+                    }
+                    else {
+                        notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
+                    }
+
                     if (notificationSize > maxMessageSize) {
                         // we cannot handle this notification. Drop it.
                         // TODO Trace
