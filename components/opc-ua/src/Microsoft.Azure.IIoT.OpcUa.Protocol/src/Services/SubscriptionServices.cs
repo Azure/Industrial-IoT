@@ -565,7 +565,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 results.Count(r => r != null && StatusCode.IsNotGood(r.StatusCode)),
                                 rawSubscription.DisplayName);
                         }
-                        else {
+                        if (change.Where(x => x.EventTemplate != null).Any()) { 
                             _logger.Information("Now issuing ConditionRefresh for item {item} on subscription " +
                                 "{subscription}", change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
                             try {
