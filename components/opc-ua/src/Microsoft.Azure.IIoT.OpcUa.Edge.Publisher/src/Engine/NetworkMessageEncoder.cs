@@ -145,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                     encoder.Close();
 
-                    byte[] body = Encoding.UTF8.GetBytes(writer.ToString());
+                    var body = Encoding.UTF8.GetBytes(writer.ToString());
                     if (compressedPayload) {
                         var stream = new MemoryStream(body);
                         body = Encoding.UTF8.GetBytes(Convert.ToBase64String(stream.Zip()));
