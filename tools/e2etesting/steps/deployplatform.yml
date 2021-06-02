@@ -31,7 +31,7 @@ steps:
   condition: eq(variables['BranchName'], 'prmathur/release')
   inputs:
     azureSubscription: 'IOT-OPC-WALLS-SP'
-    KeyVaultName: 'releasePipelineKV'
+    KeyVaultName: 'developPipelineKV'
     SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
@@ -53,6 +53,18 @@ steps:
     addSpnToEnvironment: true
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
+
+- task: AzureCLI@2
+  displayName: 'Override "$(ImageNamespace)" for release branch to "public"'
+  condition: eq(variables['BranchName'], 'prmathur/release')
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ImageNamespace]public"
 
 - task: AzurePowerShell@5
   displayName: "Replace parameters in appSettings.json (for IAI)"
