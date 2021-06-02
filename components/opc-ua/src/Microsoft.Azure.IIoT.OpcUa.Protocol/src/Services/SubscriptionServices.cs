@@ -1540,11 +1540,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     IsHeartbeat = false,
                     SequenceNumber = null,
                     NodeId = Item.StartNodeId,
-                    StringTable = null
+                    StringTable = null,
+                    Value = new DataValue(notifications.Select(x => x.Value.Value).OfType<ExtensionObject>().ToArray())
                 };
-                var values = notifications.Select(x => x.Value).ToList();
-
-                pendingAlarmsNotification.Value = new DataValue(new Variant(values));
 
                 var message = new SubscriptionNotificationModel {
                     ServiceMessageContext = Item.Subscription?.Session?.MessageContext,
