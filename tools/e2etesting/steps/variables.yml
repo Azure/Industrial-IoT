@@ -6,3 +6,7 @@ variables:
   IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
   TestPath: $(System.DefaultWorkingDirectory)\e2e-tests\IIoTPlatform-E2E-Tests
   Runtime: 'win-x64'
+  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
+    BranchName: $[ replace(variables['Build.SourceBranch'], 'refs/heads/', '') ]
+  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
+    BranchName: $[ replace(variables['System.PullRequest.TargetBranch'], 'refs/heads/', '') ]

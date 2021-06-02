@@ -26,6 +26,15 @@ steps:
     SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
+- task: AzureKeyVault@1
+  displayName: 'Load secrets from Release Key Vault as variables on Release Branch'
+  condition: and(eq(variables['BranchName'], 'prmathur/release'), eq(variables['ContainerRegistryServer'], ''), eq(variables['ContainerRegistryUsername'], ''), eq(variables['ContainerRegistryPassword'], ''))
+  inputs:
+    azureSubscription: 'IOT-OPC-WALLS-SP'
+    KeyVaultName: 'releasePipelineKV'
+    SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
+    RunAsPreJob: true
+
 - task: PowerShell@2
   displayName: Versioning
   name: setVersionInfo
