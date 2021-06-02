@@ -28,7 +28,7 @@ steps:
 
 - task: AzureKeyVault@1
   displayName: 'Load secrets from Release Key Vault as variables on Release Branch'
-  condition: and(eq(variables['BranchName'], 'prmathur/release'), eq(variables['ContainerRegistryServer'], ''), eq(variables['ContainerRegistryUsername'], ''), eq(variables['ContainerRegistryPassword'], ''))
+  condition: eq(variables['BranchName'], 'prmathur/release')
   inputs:
     azureSubscription: 'IOT-OPC-WALLS-SP'
     KeyVaultName: 'releasePipelineKV'
