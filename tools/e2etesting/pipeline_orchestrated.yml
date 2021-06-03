@@ -8,7 +8,7 @@ schedules:
   branches:
     include:
     - main
-    - prmathur/release
+    - release
   always: true
 
 # Trigger Orchestrated E2E Pipeline post completion of build pipeline.
@@ -20,7 +20,7 @@ resources:
       branches:
         include:
         - refs/heads/releases/*
-        - refs/heads/prmathur/release/*
+        - refs/heads/release/*
         - refs/heads/master
         - refs/heads/main
 

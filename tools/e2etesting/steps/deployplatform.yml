@@ -28,7 +28,7 @@ steps:
 
 - task: AzureKeyVault@1
   displayName: 'Load secrets from Release Key Vault as variables on Release Branch'
-  condition: eq(variables['BranchName'], 'prmathur/release')
+  condition: eq(variables['BranchName'], 'release')
   inputs:
     azureSubscription: 'IOT-OPC-WALLS-SP'
     KeyVaultName: 'releaseCICDPipelineKV'
@@ -56,7 +56,7 @@ steps:
 
 - task: AzureCLI@2
   displayName: 'Override "ImageNamespace : $(ImageNamespace)" for release branch to "public"'
-  condition: eq(variables['BranchName'], 'prmathur/release')
+  condition: eq(variables['BranchName'], 'release')
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
