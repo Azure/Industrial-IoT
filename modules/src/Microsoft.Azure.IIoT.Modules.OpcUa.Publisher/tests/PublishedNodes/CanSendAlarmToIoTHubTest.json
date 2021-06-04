@@ -1,0 +1,19 @@
+﻿[
+  {
+    "EndpointUrl": "opc.tcp://localhost:52210/UA/SampleServer",
+    "UseSecurity": false,
+    "OpcEvents": [
+      {
+        "DisplayName": "AlarmConditions",
+        "Id": "i=2253",
+        "TypeDefinitionId": "i=2041",
+        "PendingAlarms": {
+          "IsEnabled": true,
+          "UpdateInterval": 10,
+          "SnapshotInterval": 20,
+          "CompressMessages": false
+        }
+      }
+    ]
+  }
+]

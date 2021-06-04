@@ -1,0 +1,41 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
+    using System.Threading.Tasks;
+    using Xunit;
+
+    /// <summary>
+    /// Currently, we create new independent instances of server, publisher and mocked IoT services for each test,
+    /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
+    /// </summary>
+    public class IntegrationTests : PublisherIntegrationTestBase, IClassFixture<OPCUAServerFixture> {
+        [Theory]
+        [InlineData(@"./PublishedNodes/CanSendDataItemToIoTHubTest.json")]
+        public async Task CanSendDataItemToIoTHubTest(string publishedNodesFile) {
+            // Arrange
+            // Act
+            var messages = await ProcessMessages(publishedNodesFile);
+
+            // Assert
+            Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1259", messages[0].RootElement[0].GetProperty("NodeId").GetString());
+            Assert.InRange(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
+        }
+
+        [Theory]
+        [InlineData(@"./PublishedNodes/CanSendAlarmToIoTHubTest.json")]
+        public async Task CanSendAlarmToIoTHubTest(string publishedNodesFile) {
+            // Arrange
+            // Act
+            var messages = await ProcessMessages(publishedNodesFile);
+
+            // Assert
+            Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
+            Assert.Equal("AlarmConditions", messages[0].RootElement[0].GetProperty("DisplayName").GetString());
+            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank", messages[0].RootElement[0].GetProperty("Value")[1].GetProperty("Value").GetProperty("SourceNode").GetString());
+            Assert.Equal("100", messages[0].RootElement[0].GetProperty("Value")[1].GetProperty("Value").GetProperty("Severity").ToString());
+        }
+    }
+}
