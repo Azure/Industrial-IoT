@@ -83,6 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
+            var compressedPayload = messages.Where(x => x.CompressedPayload).Any();
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
@@ -105,7 +106,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     };
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
-                    var notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
+                    var notificationSize = 0;
+                    if (compressedPayload) {
+                        var stream = new MemoryStream(Encoding.UTF8.GetBytes(helperWriter.ToString()));
+                        try {
+                            notificationSize = Encoding.UTF8.GetByteCount(Convert.ToBase64String(stream.Zip()));
+                        }
+                        finally {
+                            stream.Dispose();
+                        }
+                    }
+                    else {
+                        notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
+                    }
+
                     if (notificationSize > maxMessageSize) {
                         // we cannot handle this notification. Drop it.
                         // TODO Trace
@@ -135,11 +149,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
+
+                    var body = Encoding.UTF8.GetBytes(writer.ToString());
+                    if (compressedPayload) {
+                        var stream = new MemoryStream(body);
+                        try {
+                            body = Encoding.UTF8.GetBytes(Convert.ToBase64String(stream.Zip()));
+                        }
+                        finally {
+                            stream.Dispose();
+                        }
+                    }
+
                     var encoded = new NetworkMessageModel {
-                        Body = Encoding.UTF8.GetBytes(writer.ToString()),
-                        ContentEncoding = "utf-8",
+                        Body = body,
+                        ContentEncoding = compressedPayload ? "gzip" : "utf-8",
                         Timestamp = DateTime.UtcNow,
-                        ContentType = ContentMimeType.UaJson,
+                        ContentType = compressedPayload ? ContentMimeType.Binary : ContentMimeType.UaJson,
                         MessageSchema = MessageSchemaTypes.NetworkMessageJson
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /

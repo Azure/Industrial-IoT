@@ -778,6 +778,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
                         SubscriptionId = Id,
                         Timestamp = publishTime,
+                        CompressedPayload = false,
                         Notifications = new List<MonitoredItemNotificationModel>()
                     };
 
@@ -850,6 +851,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         EndpointUrl = subscription?.Session?.Endpoint?.EndpointUrl,
                         SubscriptionId = Id,
                         Timestamp = publishTime,
+                        CompressedPayload = false,
                         Notifications = notification.ToMonitoredItemNotifications(
                                 subscription?.MonitoredItems)?.ToList()
                     };
@@ -1260,22 +1262,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             private void OnPendingAlarmsTimerElapsed(object sender, System.Timers.ElapsedEventArgs e) {
                 var now = DateTime.UtcNow;
                 var pendingAlarmsOptions = EventTemplate.PendingAlarms;
-
-                try {
-                    // is it time to send anything?
-                    if (Item.Created && pendingAlarmsOptions.IsEnabled == true &&
-                        (((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.SnapshotIntervalTimespan ?? TimeSpan.MaxValue))) ||
-                            ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) &&
-                            pendingAlarmsOptions.Dirty)))) {
-                        SendPendingAlarms();
-                        _lastSentPendingAlarms = now;
+                if (pendingAlarmsOptions?.IsEnabled == true) {
+                    try {
+                        // is it time to send anything?
+                        if (Item.Created && pendingAlarmsOptions.IsEnabled == true &&
+                            (((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.SnapshotIntervalTimespan ?? TimeSpan.MaxValue))) ||
+                                ((now > (_lastSentPendingAlarms + (pendingAlarmsOptions.UpdateIntervalTimespan ?? TimeSpan.MaxValue))) &&
+                                pendingAlarmsOptions.Dirty)))) {
+                            SendPendingAlarms();
+                            _lastSentPendingAlarms = now;
+                        }
                     }
-                }
-                catch (Exception ex) {
-                    _logger.Error("SendPendingAlarms failed with exception {message}.", ex.Message);
-                }
-                finally {
-                    _pendingAlarmsTimer.Start();
+                    catch (Exception ex) {
+                        _logger.Error("SendPendingAlarms failed with exception {message}.", ex.Message);
+                    }
+                    finally {
+                        _pendingAlarmsTimer.Start();
+                    }
                 }
             }
 
@@ -1471,7 +1474,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                         // issue a condition refresh to make sure we are in a correct state
                         _logger.Information("Now issuing ConditionRefresh for item {item} on subscription " +
-                            "{subscription} due to receiving a RefreshRequired event", 
+                            "{subscription} due to receiving a RefreshRequired event",
                             Item.DisplayName ?? "", Item.Subscription.DisplayName);
                         try {
                             Item.Subscription.ConditionRefresh();
@@ -1550,6 +1553,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     EndpointUrl = Item.Subscription?.Session?.Endpoint?.EndpointUrl,
                     SubscriptionId = (Item.Subscription?.Handle as SubscriptionWrapper)?.Id,
                     Timestamp = DateTime.UtcNow,
+                    CompressedPayload = EventTemplate.PendingAlarms.CompressedPayload,
                     Notifications = new List<MonitoredItemNotificationModel>()
                 };
                 message.Notifications.Add(pendingAlarmsNotification);
