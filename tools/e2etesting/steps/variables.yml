@@ -8,5 +8,3 @@ variables:
   Runtime: 'win-x64'
   ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
     BranchName: $[ replace(variables['Build.SourceBranch'], 'refs/heads/', '') ]
-  ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
-    BranchName: $[ replace(variables['System.PullRequest.TargetBranch'], 'refs/heads/', '') ]
