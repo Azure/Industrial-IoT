@@ -109,8 +109,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var notificationSize = 0;
                     if (compressedPayload) {
                         var stream = new MemoryStream(Encoding.UTF8.GetBytes(helperWriter.ToString()));
-                        notificationSize = Encoding.UTF8.GetByteCount(Convert.ToBase64String(stream.Zip()));
-                        stream.Dispose();
+                        try {
+                            notificationSize = Encoding.UTF8.GetByteCount(Convert.ToBase64String(stream.Zip()));
+                        }
+                        finally {
+                            stream.Dispose();
+                        }
                     }
                     else {
                         notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
@@ -149,13 +153,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var body = Encoding.UTF8.GetBytes(writer.ToString());
                     if (compressedPayload) {
                         var stream = new MemoryStream(body);
-                        body = Encoding.UTF8.GetBytes(Convert.ToBase64String(stream.Zip()));
-                        stream.Dispose();
+                        try {
+                            body = Encoding.UTF8.GetBytes(Convert.ToBase64String(stream.Zip()));
+                        }
+                        finally {
+                            stream.Dispose();
+                        }
                     }
 
                     var encoded = new NetworkMessageModel {
                         Body = body,
-                        ContentEncoding = "utf-8",
+                        ContentEncoding = compressedPayload ? "gzip" : "utf-8",
                         Timestamp = DateTime.UtcNow,
                         ContentType = compressedPayload ? ContentMimeType.Binary : ContentMimeType.UaJson,
                         MessageSchema = MessageSchemaTypes.NetworkMessageJson
