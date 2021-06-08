@@ -5,10 +5,11 @@ pr: none
 
 schedules:
 - cron: "0 10 * * *"
-  displayName: Nightly build of main branch.
+  displayName: Nightly build of main and release branch.
   branches:
     include:
     - main
+    - release
   always: true
 
 # Trigger Stand Alone E2E Pipeline post completion of build pipeline.
@@ -20,6 +21,7 @@ resources:
       branches:
         include:
         - refs/heads/releases/*
+        - refs/heads/release/*
         - refs/heads/master
         - refs/heads/main
 pool:
