@@ -7,7 +7,7 @@
         "Id": "ns=21;i=1259",
         "OpcSamplingInterval": 2000,
         "OpcPublishingInterval": 2000,
-        "DisplayName": "SlowDouble10"
+        "DisplayName": "Output"
       }
     ]
   }

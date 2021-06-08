@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
+    using System;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -12,14 +13,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
     /// this could be optimised e.g. create only single instance of server and publisher between tests in the same class.
     /// </summary>
     public class IntegrationTests : PublisherIntegrationTestBase, IClassFixture<OPCUAServerFixture> {
-        [Theory]
+        [Theory]        
         [InlineData(@"./PublishedNodes/CanSendDataItemToIoTHubTest.json")]
         public async Task CanSendDataItemToIoTHubTest(string publishedNodesFile) {
             // Arrange
             // Act
-            var messages = await ProcessMessages(publishedNodesFile);
+            var messages = await ProcessMessagesAsync(publishedNodesFile);
 
             // Assert
+            Assert.Single(messages);
             Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1259", messages[0].RootElement[0].GetProperty("NodeId").GetString());
             Assert.InRange(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
         }
@@ -29,13 +31,14 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
         public async Task CanSendAlarmToIoTHubTest(string publishedNodesFile) {
             // Arrange
             // Act
-            var messages = await ProcessMessages(publishedNodesFile);
+            var messages = await ProcessMessagesAsync(publishedNodesFile, new TimeSpan(0, 0, 1), new TimeSpan(0, 2, 0), 1);
 
             // Assert
+            Assert.Single(messages);            
             Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
             Assert.Equal("AlarmConditions", messages[0].RootElement[0].GetProperty("DisplayName").GetString());
             Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank", messages[0].RootElement[0].GetProperty("Value")[1].GetProperty("Value").GetProperty("SourceNode").GetString());
-            Assert.Equal("100", messages[0].RootElement[0].GetProperty("Value")[1].GetProperty("Value").GetProperty("Severity").ToString());
+            Assert.Equal("100", messages[0].RootElement[0].GetProperty("Value")[1].GetProperty("Value").GetProperty("Severity").ToString());          
         }
     }
 }

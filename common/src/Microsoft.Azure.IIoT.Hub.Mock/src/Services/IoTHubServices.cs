@@ -114,7 +114,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 ModuleId = moduleId,
                 EnqueuedTimeUtc = DateTime.UtcNow,
                 Message = new Message(payload),
-                DisposedMessage = payload
+                MessageData = payload
             };
             foreach (var item in message.Properties) {
                 ev.Message.Properties.Add(item.Key, item.Value);
@@ -385,7 +385,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     DeviceId = Device.Id,
                     ModuleId = Device.ModuleId,
                     Message = message,
-                    DisposedMessage = message.GetBytes(),
+                    MessageData = message.GetBytes(),
                     EnqueuedTimeUtc = DateTime.UtcNow
                 })) {
                     throw new CommunicationException("Failed to upload blob");
@@ -523,7 +523,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// <summary/>
             public Message Message { get; set; }
             /// <summary/>
-            public byte[] DisposedMessage { get; set; }
+            public byte[] MessageData { get; set; }
         }
 
         private readonly SqlQuery _query;

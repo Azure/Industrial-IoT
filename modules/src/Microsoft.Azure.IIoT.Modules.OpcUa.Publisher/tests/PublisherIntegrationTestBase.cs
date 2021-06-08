@@ -26,7 +26,9 @@
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.IO;    
+    using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
     using System.Text;
     using System.Text.Json;
     using System.Threading;
@@ -40,7 +42,7 @@
         /// <summary>
         /// Whether the module is running.
         /// </summary>
-        public BlockingCollection<EventMessage> Events { get; set; } = new BlockingCollection<EventMessage>();
+        private BlockingCollection<EventMessage> Events { get; set; } = new BlockingCollection<EventMessage>();
 
         public PublisherIntegrationTestBase() {
             // This is a fake but correctly formatted connection string.
@@ -48,38 +50,53 @@
             var config = connectionString.ToIoTHubConfig();
 
             _typedConnectionString = ConnectionString.Parse(config.IoTHubConnString);
-            _exit = new TaskCompletionSource<bool>();            
+            _exit = new TaskCompletionSource<bool>();
         }
 
-        protected async Task<List<JsonDocument>> ProcessMessages(string publishedNodesFile) {
-            // publishedNodesFile points to the local server on the same machine and port currently as tests are run one at a time (not parallel) it does not need randomly generated port numbers.
-            _ = Task.Run(() => HostPublisherAsync(Mock.Of<ILogger>(), publishedNodesFile));
+        protected Task<List<JsonDocument>> ProcessMessagesAsync(string publishedNodesFile, string[] arguments = default) {
+            // Collect messages from server with default settings
+            return ProcessMessagesAsync(publishedNodesFile, new TimeSpan(0, 0, 0, 0, 500), new TimeSpan(0, 0, 2, 0, 0), 1, arguments);
+        }
 
-            while (Events.Count == 0) {
-                await Task.Delay(500);
+        protected async Task<List<JsonDocument>> ProcessMessagesAsync(string publishedNodesFile, TimeSpan messageCheckingDelay, TimeSpan messageCollectionTimeout, int messageCount, string[] arguments = default) {
+
+            // publishedNodesFile points to the local server on the same machine and port currently as tests are run one at a time (not parallel) it does not need randomly generated port numbers.
+            _ = Task.Run(() => HostPublisherAsync(Mock.Of<ILogger>(), publishedNodesFile, arguments = arguments ?? Array.Empty<string>()));
+
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+
+            while (Events.Count < messageCount) {
+                if(stopWatch.Elapsed > messageCollectionTimeout) {
+                    break;
+                }
+                await Task.Delay(messageCheckingDelay);
             }
 
             Exit();
 
             var messages = new List<JsonDocument>();
             foreach (var evt in Events) {
-                messages.Add(JsonDocument.Parse(Encoding.UTF8.GetString(evt.DisposedMessage)));
+                messages.Add(JsonDocument.Parse(Encoding.UTF8.GetString(evt.MessageData)));
             }
 
             return messages;
-        }
+        }      
 
         /// <summary>
         /// Setup publishing from sample server.
         /// </summary>
-        protected async Task HostPublisherAsync(ILogger logger, string publishedNodesFilePath) {
+        private async Task HostPublisherAsync(ILogger logger, string publishedNodesFilePath, string[] arguments) {
             try {
                 var config = _typedConnectionString.ToIoTHubConfig();
-
-                var arguments = new List<string>();
-                arguments.Add($"--ec={_typedConnectionString}");
-                arguments.Add("--aa");
-                arguments.Add($"--pf={publishedNodesFilePath}");
+                arguments = arguments.Concat(
+                     new[]
+                            {
+                                $"--ec={_typedConnectionString}",
+                                "--aa",
+                                $"--pf={publishedNodesFilePath}"
+                            }
+                    ).ToArray();
 
                 var configuration = new ConfigurationBuilder()
                                         .SetBasePath(Directory.GetCurrentDirectory())
@@ -182,15 +199,15 @@
             builder.RegisterType<VariantEncoderFactory>().AsImplementedInterfaces();
 
             return builder.Build();
-        }       
+        }
 
         /// <inheritdoc/>
-        public void Exit() {
+        private void Exit() {
             // Shut down gracefully.            
             _exit.TrySetResult(true);
         }
-        
+
         private readonly TaskCompletionSource<bool> _exit;
-        private readonly ConnectionString _typedConnectionString;        
+        private readonly ConnectionString _typedConnectionString;
     }
 }
