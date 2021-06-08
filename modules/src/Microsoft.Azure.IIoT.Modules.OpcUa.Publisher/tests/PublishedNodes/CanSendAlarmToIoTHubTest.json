@@ -11,7 +11,7 @@
           "IsEnabled": true,
           "UpdateInterval": 10,
           "SnapshotInterval": 20,
-          "CompressMessages": false
+          "CompressedPayload": false
         }
       }
     ]
