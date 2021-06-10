@@ -78,7 +78,7 @@
                 try {
                     _serverWrapper.Dispose();
                 }
-                catch (Opc.Ua.ServiceResultException) {
+                catch (AggregateException) {
                     // Ignored.
                 }
             }
