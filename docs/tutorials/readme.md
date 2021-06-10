@@ -17,6 +17,7 @@ To begin, [deploy the Azure Industrial IoT Platform](../deploy/howto-deploy-all-
 - [Discover a server and browse its address space using the CLI](tut-use-cli.md)
 - [Discover a server and browse its address space using Postman](tut-use-postman.md)
 - [Develop and debug the Industrial IoT Microservices during development](../deploy/howto-run-microservices-locally.md)
+- [Create a local metrics dashboard for OPC Publisher](prometheus-metrics/MetricsDashboard.md)
 
 ## Learn more
 
