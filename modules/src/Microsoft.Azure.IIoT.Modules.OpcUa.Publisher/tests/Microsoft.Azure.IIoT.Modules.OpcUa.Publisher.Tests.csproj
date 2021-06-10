@@ -26,10 +26,13 @@
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="PublishedNodes\CanSendAlarmToIoTHubTest.json">
+    <None Update="PublishedNodes\PendingAlarms.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="PublishedNodes\CanSendDataItemToIoTHubTest.json">
+    <None Update="PublishedNodes\DataItems.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="PublishedNodes\SimpleEvents.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

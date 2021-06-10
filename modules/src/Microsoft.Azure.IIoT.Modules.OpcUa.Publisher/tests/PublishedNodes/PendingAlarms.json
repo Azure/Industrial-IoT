@@ -4,7 +4,7 @@
     "UseSecurity": false,
     "OpcEvents": [
       {
-        "DisplayName": "AlarmConditions",
+        "DisplayName": "PendingAlarms",
         "Id": "i=2253",
         "TypeDefinitionId": "i=2041",
         "PendingAlarms": {
