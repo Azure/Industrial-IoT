@@ -75,7 +75,12 @@
 
             if (disposing) {
                 // Dispose managed state (managed objects).
-                _serverWrapper.Dispose();
+                try {
+                    _serverWrapper.Dispose();
+                }
+                catch (AggregateException) {
+                    // Ignored.
+                }
             }
 
             _disposed = true;
