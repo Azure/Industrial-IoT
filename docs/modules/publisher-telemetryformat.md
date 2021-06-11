@@ -1,3 +1,5 @@
+[Home](../../readme.md)
+
 ### OPC Publisher Telemetry Configuration File Format
 
 **Please note: This feature is only available in version 2.5 and below of OPC Publisher.**
