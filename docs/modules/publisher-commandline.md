@@ -1,5 +1,73 @@
 [Home](../../readme.md)
 
+### OPC Publisher Command Line Arguments for Version 2.6 and above
+
+             --pf, --publishfile=VALUE
+                                       the filename to configure the nodes  to publish.
+                                       If this Option is specified it puts OPC Publisher into standalone  mode.
+             --lf, --logfile=VALUE
+                                       the filename of the logfile to use.
+             --ll. --loglevel=VALUE
+                                       the log level to use (allowed: fatal, error,
+                                       warn, info, debug, verbose).
+             --me, --messageencoding=VALUE
+                                       the messaging encoding for outgoing  messages
+                                       allowed values: Json, Uadp
+             --mm, --messagingmode=VALUE
+                                       the messaging mode for outgoing  messages
+                                       allowed values: PubSub, Samples
+             --fm, --fullfeaturedmessage=VALUE
+                                       the full featured mode for messages (all fields filled in).
+                                       Default is 'true', for legacy compatibility use 'false'
+             --aa, --autoaccept
+                                       the publisher trusted all servers it is establishing a connection to
+             --bs, --batchsize=VALUE
+                                       the number of OPC UA data-change messages to be cached for batching.
+             --si, --iothubsendinterval=VALUE
+                                       the trigger batching interval in seconds.
+             --ms, --iothubmessagesize=VALUE
+                                       the maximum size of the (IoT D2C) message.
+             --om, --maxoutgressmessages=VALUE
+                                       the maximum  size of the (IoT D2C) message egress buffer.
+             --di, --diagnosticsinterval=VALUE
+                                       shows publisher diagnostic info at the specified interval in seconds
+                                       (need log level info). -1 disables remote diagnostic log and diagnostic output
+             --lt, --logflugtimespan=VALUE
+                                       the timespan in seconds when the logfile should be flushed.
+             --ih, --iothubprotocol=VALUE
+                                       protocol to use for communication with the hub.
+                                       allowed values: AmqpOverTcp, AmqpOverWebsocket, MqttOverTcp,
+                                       MqttOverWebsocket, Amqp, Mqtt, Tcp, Websocket, Any
+             --hb, --heartbeatinterval=VALUE
+                                       the publisher is using this as default value in seconds for the
+                                       heartbeat interval setting of nodes without  a heartbeat interval setting.
+             --ot, --operationtimeout=VALUE
+                                       the operation timeout of the publisher OPC  UA client in ms.
+             --ol, --opcmaxstringlen=VALUE
+                                       the max length of a string opc can transmit/receive.
+             --oi, --opcsamplinginterval=VALUE
+                                       default value in milliseconds to request the servers to sample values
+             --op, --opcpublishinginterval=VALUE
+                                       default value in milliseconds for the publishing interval setting
+                                       of the subscriptions against the OPC UA  server.
+             --ct, --createsessiontimeout=VALUE
+                                       the interval in seconds the publisher is sending keep alive
+                                       messages to the OPC servers on the endpoints it is  connected to.
+             --kt, --keepalivethresholt=VALUE
+                                       specify the number of keep alive  packets a server can miss,
+                                       before the session is disconnected.
+             --tm, --trustmyself
+                                       the publisher certificate is put into the  trusted store automatically.
+             --at, --appcertstoretype=VALUE
+                                       the own application cert store type  (allowed: Directory, X509Store).
+             --dc, --deviceconnectionstring=VALUE
+                                       A device or edge module connection string to use.
+             --sf, --skipfirstevent=VALUE
+                                       the publisher is using this as default value for
+                                       the skip first event setting of nodes without
+                                       a skip first event setting.
+                                       Default: False
+                                       
 ### OPC Publisher Command Line Arguments for Version 2.5 and below
 
     Usage: opcpublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
@@ -312,72 +380,3 @@
                                    the trusted issuer cert store always
                                    resides in a directory.
 
-
-
-### OPC Publisher Command Line Arguments for Version 2.6 and above
-
-             --pf, --publishfile=VALUE
-                                       the filename to configure the nodes  to publish.
-                                       If this Option is specified it puts OPC Publisher into standalone  mode.
-             --lf, --logfile=VALUE
-                                       the filename of the logfile to use.
-             --ll. --loglevel=VALUE
-                                       the log level to use (allowed: fatal, error,
-                                       warn, info, debug, verbose).
-             --me, --messageencoding=VALUE
-                                       the messaging encoding for outgoing  messages
-                                       allowed values: Json, Uadp
-             --mm, --messagingmode=VALUE
-                                       the messaging mode for outgoing  messages
-                                       allowed values: PubSub, Samples
-             --fm, --fullfeaturedmessage=VALUE
-                                       the full featured mode for messages (all fields filled in).
-                                       Default is 'true', for legacy compatibility use 'false'
-             --aa, --autoaccept
-                                       the publisher trusted all servers it is establishing a connection to
-             --bs, --batchsize=VALUE
-                                       the number of OPC UA data-change messages to be cached for batching.
-             --si, --iothubsendinterval=VALUE
-                                       the trigger batching interval in seconds.
-             --ms, --iothubmessagesize=VALUE
-                                       the maximum size of the (IoT D2C) message.
-             --om, --maxoutgressmessages=VALUE
-                                       the maximum  size of the (IoT D2C) message egress buffer.
-             --di, --diagnosticsinterval=VALUE
-                                       shows publisher diagnostic info at the specified interval in seconds
-                                       (need log level info). -1 disables remote diagnostic log and diagnostic output
-             --lt, --logflugtimespan=VALUE
-                                       the timespan in seconds when the logfile should be flushed.
-             --ih, --iothubprotocol=VALUE
-                                       protocol to use for communication with the hub.
-                                       allowed values: AmqpOverTcp, AmqpOverWebsocket, MqttOverTcp,
-                                       MqttOverWebsocket, Amqp, Mqtt, Tcp, Websocket, Any
-             --hb, --heartbeatinterval=VALUE
-                                       the publisher is using this as default value in seconds for the
-                                       heartbeat interval setting of nodes without  a heartbeat interval setting.
-             --ot, --operationtimeout=VALUE
-                                       the operation timeout of the publisher OPC  UA client in ms.
-             --ol, --opcmaxstringlen=VALUE
-                                       the max length of a string opc can transmit/receive.
-             --oi, --opcsamplinginterval=VALUE
-                                       default value in milliseconds to request the servers to sample values
-             --op, --opcpublishinginterval=VALUE
-                                       default value in milliseconds for the publishing interval setting
-                                       of the subscriptions against the OPC UA  server.
-             --ct, --createsessiontimeout=VALUE
-                                       the interval in seconds the publisher is sending keep alive
-                                       messages to the OPC servers on the endpoints it is  connected to.
-             --kt, --keepalivethresholt=VALUE
-                                       specify the number of keep alive  packets a server can miss,
-                                       before the session is disconnected.
-             --tm, --trustmyself
-                                       the publisher certificate is put into the  trusted store automatically.
-             --at, --appcertstoretype=VALUE
-                                       the own application cert store type  (allowed: Directory, X509Store).
-             --dc, --deviceconnectionstring=VALUE
-                                       A device or edge module connection string to use.
-             --sf, --skipfirstevent=VALUE
-                                       the publisher is using this as default value for
-                                       the skip first event setting of nodes without
-                                       a skip first event setting.
-                                       Default: False
