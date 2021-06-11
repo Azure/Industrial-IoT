@@ -18,6 +18,8 @@ We have also built an application running on Azure that lets you access the serv
 
 ## Getting started
 
+### Industrial IoT Platform
+
 To [deploy the Azure Industrial IoT Platform](docs/deploy/readme.md), clone the repository:
 
   ```bash
@@ -41,9 +43,12 @@ On Linux:
 
 For more information see the [detailed instructions](docs/deploy/howto-deploy-all-in-one.md) and [alternative deployment options](docs/deploy/readme.md).
 
+### OPC Publisher 
+
+To learn how to use OPC Publisher as standalone outside the context of Industrial IoT Platform (as container or IoT Edge module) please have a look [here](docs/modules/publisher.md).
+
 ## Learn more
 
-- Documentation of OPC Publisher IoT Edge Module as standalone (without Industrial IoT Platform) see [here](docs/modules/publisher.md).
 - [Documentation and tutorials](https://azure.github.io/Industrial-IoT/).
 - [Releases of the platform](https://github.com/Azure/Industrial-IoT/releases).
 
