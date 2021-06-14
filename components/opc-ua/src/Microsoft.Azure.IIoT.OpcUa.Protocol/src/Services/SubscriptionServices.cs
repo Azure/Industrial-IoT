@@ -1162,6 +1162,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
 
+                    Task.Run(() => {
+                        foreach (var element in eventFilter.WhereClause.Elements) {
+                            if (element.FilterOperator == FilterOperator.OfType) {
+                                foreach (var filterOperand in element.FilterOperands) {
+                                    var nodeId = default(NodeId);
+                                    try {
+                                        nodeId = (filterOperand.Body as LiteralOperand).Value.ToString().ToNodeId(messageContext);
+                                        nodeCache.FetchNode(nodeId.ToExpandedNodeId(messageContext.NamespaceUris)); // it will throw an exception if it doesn't work
+                                    }
+                                    catch (Exception ex) {
+                                        _logger.Warning($"Where clause is doing OfType({nodeId}) and we got this message {ex.Message} while looking it up");
+                                    }
+                                }
+                            }
+                        }
+                    });
+
                     // let's keep track of the internal fields we add so that they don't show up in the output
                     var internalSelectClauses = new List<SimpleAttributeOperand>();
 
