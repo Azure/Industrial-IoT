@@ -767,20 +767,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var sequenceNumber = notification.Events.First().Message?.SequenceNumber;
                     var publishTime = (notification.Events.First().Message?.PublishTime).
                         GetValueOrDefault(DateTime.UtcNow);
+                    var numOfEvents = 0;
 
                     _logger.Debug("Event for subscription: {Subscription}, sequence#: " +
                         "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
                         subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
 
-                    var message = new SubscriptionNotificationModel {
-                        ServiceMessageContext = subscription.Session?.MessageContext,
-                        ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
-                        EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
-                        SubscriptionId = Id,
-                        Timestamp = publishTime,
-                        CompressedPayload = false,
-                        Notifications = new List<MonitoredItemNotificationModel>()
-                    };
+                    SubscriptionNotificationModel message = null;
 
                     if (notification?.Events != null) {
                         for (var i = 0; i < notification.Events.Count; i++) {
@@ -790,16 +783,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 continue;
                             }
 
+                            if (message == null) {
+                                message = new SubscriptionNotificationModel {
+                                    ServiceMessageContext = subscription.Session?.MessageContext,
+                                    ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
+                                    EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
+                                    SubscriptionId = Id,
+                                    Timestamp = publishTime,
+                                    CompressedPayload = false,
+                                    Notifications = new List<MonitoredItemNotificationModel>()
+                                };
+                            }
+
                             if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
                                 itemWrapper.ProcessMonitoredItemNotification(message, notification.Events[i]);
                             }
+
+                            // TODO: What's the right number?
+                            if (message.Notifications.Count >= 100) {
+                                OnSubscriptionEventChange.Invoke(this, message);
+                                numOfEvents += message.Notifications.Count;
+                                message = null;
+                            }
                         }
 
-                        if (message.Notifications?.Any() == true) {
+                        if (message?.Notifications?.Any() == true) {
                             OnSubscriptionEventChange.Invoke(this, message);
+                            numOfEvents += message.Notifications.Count;
                         }
 
-                        OnSubscriptionEventDiagnosticsChange.Invoke(this, notification.Events.Count);
+                        OnSubscriptionEventDiagnosticsChange.Invoke(this, numOfEvents);
                     }
                 }
                 catch (Exception e) {
