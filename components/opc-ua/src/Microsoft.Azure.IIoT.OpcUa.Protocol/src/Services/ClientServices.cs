@@ -29,17 +29,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     /// </summary>
     public class ClientServices : IClientHost, IEndpointServices, IEndpointDiscovery,
         ICertificateServices<EndpointModel>, IDisposable {
-
         /// <summary>
         /// Create client host services
         /// </summary>
-        /// <param name="clientConfig"></param>
         /// <param name="logger"></param>
+        /// <param name="clientConfig"></param>
         /// <param name="identity"></param>
         /// <param name="maxOpTimeout"></param>
         public ClientServices(ILogger logger, IClientServicesConfig clientConfig,
             IIdentity identity = null, TimeSpan? maxOpTimeout = null) {
-
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _clientConfig = clientConfig ??
@@ -56,20 +54,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         public async Task InitializeAsync() {
             if (_appConfig == null) {
                 _appConfig = await _clientConfig.ToApplicationConfigurationAsync(
-                    _identity, true, VerifyCertificate);
+                    _identity, true, VerifyCertificate).ConfigureAwait(false);
             }
         }
 
         /// <inheritdoc/>
-        public Task AddTrustedPeerAsync(byte[] certificates) {
-            InitializeAsync().ConfigureAwait(false);
+        public async Task AddTrustedPeerAsync(byte[] certificates) {
+            await InitializeAsync().ConfigureAwait(false);
             var chain = Utils.ParseCertificateChainBlob(certificates)?
                 .Cast<X509Certificate2>()
                 .Reverse()
                 .ToList();
             if (chain == null || chain.Count == 0) {
-                return Task.FromException(
-                    new ArgumentNullException(nameof(certificates)));
+                throw new ArgumentNullException(nameof(certificates));
             }
             var certificate = chain.First();
             try {
@@ -83,13 +80,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _appConfig.SecurityConfiguration.TrustedIssuerCertificates
                         .Add(chain);
                 }
-                return Task.CompletedTask;
+                return;
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to add Certificate {Thumbprint}, " +
                     "{Subject} to trust list.", certificate.Thumbprint,
                     certificate.Subject);
-                return Task.FromException(ex);
+                throw;
             }
             finally {
                 chain?.ForEach(c => c?.Dispose());
@@ -97,15 +94,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public Task RemoveTrustedPeerAsync(byte[] certificates) {
-            InitializeAsync().ConfigureAwait(false);
+        public async Task RemoveTrustedPeerAsync(byte[] certificates) {
+            await InitializeAsync().ConfigureAwait(false);
             var chain = Utils.ParseCertificateChainBlob(certificates)?
                 .Cast<X509Certificate2>()
                 .Reverse()
                 .ToList();
             if (chain == null || chain.Count == 0) {
-                return Task.FromException(
-                    new ArgumentNullException(nameof(certificates)));
+                throw new ArgumentNullException(nameof(certificates));
             }
             var certificate = chain.First();
             try {
@@ -116,13 +112,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     .Remove(certificate.YieldReturn());
 
                 // Remove only from trusted peers
-                return Task.CompletedTask;
+                return;
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to remove Certificate {Thumbprint}, " +
                     "{Subject} from trust list.", certificate.Thumbprint,
                     certificate.Subject);
-                return Task.FromException(ex);
+                throw;
             }
             finally {
                 chain?.ForEach(c => c?.Dispose());
@@ -182,7 +178,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <inheritdoc/>
         public async Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
             Uri discoveryUrl, List<string> locales, CancellationToken ct) {
-            await InitializeAsync();
+            await InitializeAsync().ConfigureAwait(false);
             var results = new HashSet<DiscoveredEndpointModel>();
             var visitedUris = new HashSet<string> {
                 CreateDiscoveryUri(discoveryUrl.ToString(), 4840)
@@ -191,7 +187,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var localeIds = locales != null ? new StringCollection(locales) : null;
             queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
             ct.ThrowIfCancellationRequested();
-            while (queue.Any()) {
+            while (queue.Count > 0) {
                 var nextServer = queue.Dequeue();
                 discoveryUrl = nextServer.Item1;
                 var sw = Stopwatch.StartNew();
@@ -224,14 +220,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (string.IsNullOrEmpty(endpoint?.Url)) {
                 throw new ArgumentNullException(nameof(endpoint.Url));
             }
-            await InitializeAsync();
+            await InitializeAsync().ConfigureAwait(false);
             var configuration = EndpointConfiguration.Create(_appConfig);
             configuration.OperationTimeout = 20000;
             var discoveryUrl = new Uri(endpoint.Url);
             using (var client = DiscoveryClient.Create(discoveryUrl, configuration)) {
                 // Get endpoint descriptions from endpoint url
                 var endpoints = await client.GetEndpointsAsync(null,
-                    client.Endpoint.EndpointUrl, null, null);
+                    client.Endpoint.EndpointUrl, null, null).ConfigureAwait(false);
 
                 // Match to provided endpoint info
                 var ep = endpoints.Endpoints?.FirstOrDefault(e => e.IsSameAs(endpoint));
@@ -254,7 +250,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (string.IsNullOrEmpty(connection.Endpoint?.Url)) {
                 throw new ArgumentNullException(nameof(connection.Endpoint.Url));
             }
-            await InitializeAsync();
+            await InitializeAsync().ConfigureAwait(false);
             var key = new ConnectionIdentifier(connection);
             while (true) {
                 _cts.Token.ThrowIfCancellationRequested();
@@ -264,7 +260,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         service, handler, timeout, ct, out var result);
                     if (scheduled) {
                         // Session is owning the task to completion now.
-                        return await result;
+                        return await result.ConfigureAwait(false);
                     }
                 }
                 // Create new session next go around
@@ -285,7 +281,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private async Task DiscoverAsync(Uri discoveryUrl, StringCollection localeIds,
             IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
             Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result) {
-
             var configuration = EndpointConfiguration.Create(_appConfig);
             configuration.OperationTimeout = timeout;
             using (var client = DiscoveryClient.Create(discoveryUrl, configuration)) {
@@ -293,7 +288,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // Get endpoints from current discovery server
                 //
                 var endpoints = await client.GetEndpointsAsync(null,
-                    client.Endpoint.EndpointUrl, localeIds, null);
+                    client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
                 if (!(endpoints?.Endpoints?.Any() ?? false)) {
                     _logger.Debug("No endpoints at {discoveryUrl}...", discoveryUrl);
                     return;
@@ -317,7 +312,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 //
                 try {
                     var response = await client.FindServersOnNetworkAsync(null, 0, 1000,
-                        new StringCollection());
+                        new StringCollection()).ConfigureAwait(false);
                     var servers = response?.Servers ?? new ServerOnNetworkCollection();
                     foreach (var server in servers) {
                         var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
@@ -339,7 +334,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // into the discovery queue
                 //
                 var found = await client.FindServersAsync(null,
-                    client.Endpoint.EndpointUrl, localeIds, null);
+                    client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
                 if (found?.Servers != null) {
                     var servers = found.Servers.SelectMany(s => s.DiscoveryUrls);
                     foreach (var server in servers) {
@@ -357,7 +352,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Create session
         /// </summary>
         /// <param name="id"></param>
-        /// <returns></returns>
         private IClientSession GetOrCreateSession(ConnectionIdentifier id) {
             _lock.Wait();
             try {
@@ -378,7 +372,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Called when timer fired evicting inactive / timedout sessions
         /// </summary>
-        /// <returns></returns>
         private void OnTimer() {
             if (_cts.IsCancellationRequested) {
                 return;
@@ -410,7 +403,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Handle inactive
         /// </summary>
         /// <param name="id"></param>
-        /// <returns></returns>
         private void EvictIfInactive(ConnectionIdentifier id) {
             _lock.Wait();
             try {
@@ -433,7 +425,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="e"></param>
         private void VerifyCertificate(CertificateValidator validator,
             CertificateValidationEventArgs e) {
-            if (e.Accept == true) {
+            if (e.Accept) {
                 return;
             }
             if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted) {
@@ -456,7 +448,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="uri"></param>
         /// <param name="defaultPort"></param>
-        /// <returns></returns>
         private static string CreateDiscoveryUri(string uri, int defaultPort) {
             var url = new UriBuilder(uri);
             if (url.Port == 0 || url.Port == -1) {
@@ -472,7 +463,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="state"></param>
-        /// <returns></returns>
         private Task NotifyStateChangeAsync(ConnectionModel connection,
             EndpointConnectivityState state) {
             var id = new ConnectionIdentifier(connection);
@@ -491,7 +481,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Disposable callback handle
         /// </summary>
         private class CallbackHandle : IDisposable {
-
             /// <summary>
             /// Callback
             /// </summary>

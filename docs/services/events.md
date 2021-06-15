@@ -14,8 +14,8 @@ The SignalR event service forwards ...
 
 over SignalR to clients and thus provides a reactive UX experience.
 
-The secondary Telemetry EventHub receives processed and decoded edge telemetry messages from the OPC Publisher module (Pub/Sub).  This is the same EventHub that Azure Timeseries Insights (TSI) can connect to for historian query capability.
+The secondary Telemetry EventHub receives processed and decoded edge telemetry messages from the OPC Publisher module (PubSub).  This is the same EventHub that Azure Time Series Insights (TSI) can connect to for historian query capability.
 
 ## Docker image
 
-`docker pull mcr.microsoft.com/iot/industrial-iot-events-service:preview`
+`docker pull mcr.microsoft.com/iot/industrial-iot-events-service:latest`

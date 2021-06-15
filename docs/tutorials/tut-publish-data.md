@@ -18,7 +18,7 @@ All Publishers deployed to your gateways are listed in under *Publisher*.
 
 Next section will guide you on the configuration of the data-points to be published from the edge module to the Azure IIoT platform.
 
-1. Step 1 - in the browse tab of the engineering tool, select the endpoint from which the data needs to be published. Make sure the endpoint is in an ActivatedAndConnected, meaning that the OPC UA Twin module has an active session to the target server. Only this way browsing and selecting the right data-points is possible. 
+1. Step 1 - in the browse tab of the engineering tool, select the endpoint from which the data needs to be published. Make sure the endpoint is in an ActivatedAndConnected, meaning that the OPC UA Twin module has an active session to the target server. Only this way browsing and selecting the right data-points is possible.
 
     Select the endpoint following the endpoint url to the desired server
 
@@ -28,19 +28,18 @@ Next section will guide you on the configuration of the data-points to be publis
 
    ![Step 2](../media/tut-publish-data-step2.png)
 
-3. Step 3 - Browse further by clicking on the Node's link (the Node Type) to the desired process data variables in the address space. The variable nodes will display the actual value in the table. The variables can be selected for publishing by clicking the Turn on button. 
+3. Step 3 - Browse further by clicking on the Node's link (the Node Type) to the desired process data variables in the address space. The variable nodes will display the actual value in the table. The variables can be selected for publishing by clicking the Turn on button.
 
    ![Step 3](../media/tut-publish-data-step3.png)
 
-4. Step 4 - Make the selection of the variables to be published. This will initiate a job for the publisher and telemetry data associated to the selected will start flowing from the edge into the Azure IIoT platform. the variable's value will reflect now it's changes realtime in the view. 
+4. Step 4 - Make the selection of the variables to be published. This will initiate a job for the publisher and telemetry data associated to the selected will start flowing from the edge into the Azure IIoT platform. the variable's value will reflect now it's changes realtime in the view.
 
     ![Step 4](../media/tut-publish-data-step4.png)
 
 ## Next steps
 
-Once the configuration ofr the published data is done, the endpoints may be disconnected from the engineering tool. Please not though that endpoints need to be reconnected, so that browsing is possible, when modifications to the publishing data-points are required. 
+Once the configuration of the published data is done, the endpoints may be disconnected from the engineering tool. Please not though that endpoints need to be reconnected, so that browsing is possible, when modifications to the publishing data-points are required.
 
-The telemetry data from the OPC UA Servers on the field is now flowing into the IIoT platform and is stored in the TSI storage respective in the Azure DataLake Gen 2 in CDM format.
+The telemetry data from the OPC UA Servers on the field is now flowing into the IIoT platform and to Azure TimeSeries Insights (TSI).
 
 - [Visualize and analyze your data in Time Series Insights](tut-timeseriesinsights.md)
-- [Visualize and analyze your data in CDM format in Power Bi](tut-power-bi-cdm.md)

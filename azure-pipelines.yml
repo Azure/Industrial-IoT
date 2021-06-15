@@ -1,5 +1,6 @@
 pr:
   autoCancel: true
+  drafts: true
   branches:
     include:
     - '*'
@@ -7,7 +8,8 @@ trigger:
   batch: true
   branches:
     include:
-    - master
+    - main
+    - dev/*
     - release/*
 stages:
 - stage: build
@@ -42,7 +44,7 @@ stages:
   - build
   jobs:
   - template: tools/templates/acrbuild.yml
-- stage: coverage 
+- stage: coverage
   displayName: 'Code Coverage'
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   dependsOn:

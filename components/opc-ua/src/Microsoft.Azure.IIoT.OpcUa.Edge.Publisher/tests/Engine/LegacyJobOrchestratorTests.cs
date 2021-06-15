@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Serializers.NewtonSoft;
     using Xunit;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
 
     /// <summary>
     /// Tests the LegacyJobOrchestrator class
@@ -42,7 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             for (var i = 0; i < 10; i++) {
                 tasks.Add(converter.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
             }
-            
+
             await Task.WhenAll(tasks);
 
             Assert.Equal(2, tasks.Count(t => t.Result != null));

@@ -33,8 +33,6 @@ jobs:
     inputs:
       command: restore
       projects: 'Industrial-IoT.sln'
-      feedsToUse: 'config'
-      nugetConfigPath: './NuGet.Config'   
   - task: DotNetCoreCLI@2
     displayName: Build
     inputs:

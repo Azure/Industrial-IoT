@@ -16,4 +16,4 @@ This agent has the following responsibilities:
 
 ## Docker image
 
-`docker pull mcr.microsoft.com/iot/opc-registry-sync-service:preview`
+`docker pull mcr.microsoft.com/iot/opc-registry-sync-service:latest`

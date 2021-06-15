@@ -444,7 +444,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _logger.Warning(e,
                         "Exception during setter {controller} {name} invocation",
                         _controller.Target.GetType().Name, _property.Name);
-                    throw e;
+                    throw;
                 }
             }
 
@@ -475,7 +475,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _logger.Warning(e,
                         "Exception during getter {controller} {name} invocation",
                         _controller.Target.GetType().Name, _property.Name);
-                    throw e;
+                    throw;
                 }
             }
 
@@ -508,7 +508,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _logger.Warning(e,
                         "Exception collecting all indexed values on {controller}.",
                         _controller.Target.GetType().Name);
-                    throw e;
+                    throw;
                 }
             }
 

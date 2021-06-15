@@ -20,8 +20,8 @@ namespace Opc.Ua.Encoders {
         /// Create wrapper
         /// </summary>
         /// <param name="contentType"></param>
-        /// <param name="callback"></param>
         /// <param name="stream"></param>
+        /// <param name="callback"></param>
         /// <param name="context"></param>
         public ModelEncoder(Stream stream, string contentType,
             Action<ExpandedNodeId> callback = null,

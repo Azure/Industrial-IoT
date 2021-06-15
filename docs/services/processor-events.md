@@ -13,4 +13,4 @@ The edge event processor is an event processor host and can be scaled out to han
 
 ## Docker image
 
-`docker pull mcr.microsoft.com/iot/industrial-iot-events-processor:preview`
+`docker pull mcr.microsoft.com/iot/industrial-iot-events-processor:latest`

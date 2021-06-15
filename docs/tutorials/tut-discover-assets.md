@@ -24,7 +24,7 @@ When clicking on *Twin Module* a list of all registered twin modules will be sho
 
 ## Discover Assets
 
-To discover OPC UA server assets in the connected networks (factories, etc.) you will use the IoT Edge [discovery module](../modules/discovery.md) deployed into IoT Edge gateways.   The discovery module supports network scanning which will be used to find all OPC UA assets and upload the results to the [Onboarding Service](../services/onboarding.md) which creates the endpoint and asset identities in IoT Hub.
+To discover OPC UA server assets in the connected networks (factories, etc.) you will use the IoT Edge [discovery module](../modules/discovery.md) deployed into IoT Edge gateways. The discovery module supports network scanning which will be used to find all OPC UA assets and upload the results to the [Onboarding Service](../services/processor-onboarding.md) which creates the endpoint and asset identities in IoT Hub.
 
 1. When clicking on **Discovery** a list opens, which shows all currently deployed discovery modules, their Connection Status, the Scan status, and the Scan configuration.
 

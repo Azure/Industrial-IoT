@@ -1,0 +1,56 @@
+steps:
+- task: DownloadPipelineArtifact@2
+  inputs:
+    artifact: 'testartifacts'
+    path: $(BasePath)
+
+- task: AzureCLI@2
+  displayName: "Deploy containers with simulated PLCs with public ips"
+  timeoutInMinutes: 90
+  condition: ne(variables['NestedEdgeFlag'], 'Enable')
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: 'ps'
+    scriptPath: '$(BasePath)\DeployPLCs.ps1'
+    arguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -UsePrivateIp $false
+
+- task: AzureCLI@2
+  displayName: "Deploy containers with simulated PLCs with private ips"
+  timeoutInMinutes: 90
+  condition: eq(variables['NestedEdgeFlag'], 'Enable')
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: 'ps'
+    scriptPath: '$(BasePath)\DeployPLCs.ps1'
+    arguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -UsePrivateIp $true
+
+- task: AzurePowerShell@5
+  displayName: "Deploy VM with IoT Edge Runtime"
+  timeoutInMinutes: 90
+  condition: ne(variables['NestedEdgeFlag'], 'Enable')
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DeployEdge.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -KeysPath "$(Agent.TempDirectory)"
+
+- task: AzurePowerShell@5
+  displayName: "Deploy TestEventProcessor"
+  timeoutInMinutes: 90
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DeployTestEventProcessor.ps1'
+    scriptArguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -PackageDirectory "$(BasePath)\TestEventProcessor"

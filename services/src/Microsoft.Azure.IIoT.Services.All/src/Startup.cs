@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
                     if (aex.InnerExceptions.All(e => e is OperationCanceledException)) {
                         return;
                     }
-                    throw aex;
+                    throw;
                 }
             }
 

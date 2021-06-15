@@ -15,6 +15,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
     using Serilog;
     using Microsoft.Azure.IIoT.Deployment.Configuration.Extension;
 
+    /// <summary>
+    /// Configuration provider that prompts user to provide missing details.
+    /// </summary>
     class ConsoleConfigurationProvider : ConfigurationProviderWithSettings {
 
         // ClientId (or AppId) of AzureIndustrialIoTDeployment Application
@@ -28,6 +31,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             AppSettings appSettings = null
         ) : base(appSettings) {}
 
+        /// <inheritdoc/>
         public override RunMode GetRunMode() {
             if (_runMode.HasValue) {
                 return _runMode.Value;
@@ -43,6 +47,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return _runMode.Value;
         }
 
+        /// <inheritdoc/>
         public override AuthenticationConfiguration GetAuthenticationConfiguration(
             IEnumerable<AzureEnvironment> azureEnvironments
         ) {
@@ -106,6 +111,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return authConf;
         }
 
+        /// <summary>
+        /// Prompt user to select Azure environment from a list of available ones.
+        /// </summary>
+        /// <param name="azureEnvironments"></param>
+        /// <returns></returns>
         protected AzureEnvironment GetAzureEnvironmentFromConsole(
             IEnumerable<AzureEnvironment> azureEnvironments
         ) {
@@ -120,11 +130,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                 ++index;
             }
 
-            var selection = ReadIndex(azureEnvironments.Count(), "Select Azure environment: ");
+            var selection = ReadIndex(azureEnvironments.Count(), "Select Azure environment (using its index): ");
 
             return azureEnvironments.ElementAt(selection);
         }
 
+        /// <summary>
+        /// Prompt user to provide tenant id.
+        /// </summary>
+        /// <returns></returns>
         protected Guid GetTenantIdFromConsole() {
             Console.WriteLine("Please provide your TenantId:");
 
@@ -140,6 +154,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             }
         }
 
+        /// <inheritdoc/>
         public override ISubscription GetSubscription(
             IEnumerable<ISubscription> subscriptionsList
         ) {
@@ -160,6 +175,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return GetSubscriptionFromConsole(subscriptionsList);
         }
 
+        /// <summary>
+        /// Prompt user to select a subscription from a list of available ones.
+        /// </summary>
+        /// <param name="subscriptionsList"></param>
+        /// <returns></returns>
         protected ISubscription GetSubscriptionFromConsole(
             IEnumerable<ISubscription> subscriptionsList
         ) {
@@ -185,7 +205,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                     ++index;
                 }
 
-                var selection = ReadIndex(subscriptionsCount, "Please select which subscription to use: ");
+                var selection = ReadIndex(subscriptionsCount, "Select subscription to use (using its index): ");
                 subscription = subscriptionsList.ElementAt(selection);
             }
 
@@ -194,6 +214,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return subscription;
         }
 
+        /// <inheritdoc/>
         public override string GetApplicationName() {
             if (!string.IsNullOrEmpty(_appSettings?.ApplicationName)) {
                 if (!kApplicationNameRgx.IsMatch(_appSettings.ApplicationName)) {
@@ -208,6 +229,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return GetApplicationNameFromConsole();
         }
 
+        /// <summary>
+        /// Prompt user to provide a name for Azure IIoT deployment instance.
+        /// </summary>
+        /// <returns></returns>
         protected string GetApplicationNameFromConsole() {
             while(true) {
                 Console.WriteLine("Please provide a name for the AAD application to register. " +
@@ -222,6 +247,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             }
         }
 
+        /// <inheritdoc/>
         public override bool IfUseExistingResourceGroup() {
             if (null != _appSettings?.ResourceGroup?.UseExisting && _appSettings.ResourceGroup.UseExisting.HasValue) {
                 Log.Information($"Configured to use existing resource group: {_appSettings.ResourceGroup.UseExisting.Value}");
@@ -231,11 +257,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return IfUseExistingResourceGroupFromConsole();
         }
 
+        /// <summary>
+        /// Prompt user to select whether an existing resource group should be used for deployment.
+        /// </summary>
+        /// <returns></returns>
         protected bool IfUseExistingResourceGroupFromConsole() {
             Console.WriteLine("Do you want to use existing Resource Group or create a new one ? ");
             return ChoisePrompt('E', "existing", 'N', "new");
         }
 
+        /// <inheritdoc/>
         public override IResourceGroup GetExistingResourceGroup(
             IEnumerable<IResourceGroup> resourceGroups
         ) {
@@ -256,6 +287,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return GetExistingResourceGroupFromConsole(resourceGroups);
         }
 
+        /// <summary>
+        /// Prompt user to select a resource group that should be used for deployment from a list of existing ones.
+        /// </summary>
+        /// <param name="resourceGroups"> List of existing resource groups </param>
+        /// <returns></returns>
         protected IResourceGroup GetExistingResourceGroupFromConsole(
             IEnumerable<IResourceGroup> resourceGroups
         ) {
@@ -267,10 +303,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                 ++index;
             }
 
-            var selection = ReadIndex(resourceGroups.Count(), "Select an option: ");
+            var selection = ReadIndex(resourceGroups.Count(), "Select resource group (using its index): ");
             return resourceGroups.ElementAt(selection);
         }
 
+        /// <inheritdoc/>
         public override Tuple<Region, string> GetNewResourceGroup(
             IEnumerable<Region> regions,
             Func<string, bool> ifResourceGroupExists,
@@ -317,6 +354,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return new Tuple<Region, string>(resourceGroupRegion, resourceGroupName);
         }
 
+        /// <summary>
+        /// Get new resource group region from console.
+        /// </summary>
+        /// <param name="regions"> List of valid regions </param>
+        /// <returns></returns>
         protected Region GetNewResourceGroupRegionFromConsole(
             IEnumerable<Region> regions
         ) {
@@ -331,12 +373,18 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
                 ++index;
             }
 
-            var regionSelection = ReadIndex(regions.Count(), "Select a region: ");
+            var regionSelection = ReadIndex(regions.Count(), "Select region (using its index): ");
             var region = regions.ElementAt(regionSelection);
 
             return region;
         }
 
+        /// <summary>
+        /// Get new resource group name from console.
+        /// </summary>
+        /// <param name="checkIfResourceGroupExists"> Callback to check if resource group already exists </param>
+        /// <param name="resourceGroupDefaultName"> Default name for the resource group </param>
+        /// <returns></returns>
         protected string GetNewResourceGroupNameFromConsole(
             Func<string, bool> checkIfResourceGroupExists,
             string resourceGroupDefaultName = null
@@ -370,6 +418,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return resourceGroupName;
         }
 
+        /// <inheritdoc/>
         public override ApplicationRegistrationDefinition GetApplicationRegistrationDefinition() {
             var applicationRegistration = _appSettings?.ApplicationRegistration;
 
@@ -383,14 +432,21 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return applicationRegistration.ToApplicationRegistrationDefinition();
         }
 
-        public override string GetApplicationURL() {
-            if (!string.IsNullOrEmpty(_appSettings?.ApplicationURL)) {
-                return _appSettings.ApplicationURL;
+        /// <inheritdoc/>
+        public override string GetApplicationUrl() {
+            if (!string.IsNullOrEmpty(_appSettings?.ApplicationUrl)) {
+                return _appSettings.ApplicationUrl;
             }
 
             return null;
         }
 
+        /// <inheritdoc/>
+        public override HelmSettings GetHelmSettings() {
+            return _appSettings?.Helm;
+        }
+
+        /// <inheritdoc/>
         public override bool IfSaveEnvFile() {
             if (null != _appSettings?.SaveEnvFile && _appSettings.SaveEnvFile.HasValue) {
                 Log.Information($"Configured to save .env file: {_appSettings.SaveEnvFile.Value}");
@@ -401,6 +457,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return ChoisePrompt('Y', "yes", 'N', "no");
         }
 
+        /// <inheritdoc/>
         public override bool IfPerformCleanup() {
             if (null != _appSettings?.NoCleanup && _appSettings.NoCleanup.HasValue) {
                 var performCleanup = !_appSettings.NoCleanup.Value;
@@ -412,6 +469,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return ChoisePrompt('Y', "yes", 'N', "no");
         }
 
+        /// <summary>
+        /// Read non-empty string from console.
+        /// </summary>
+        /// <returns></returns>
         protected string ReadNonEmptyString() {
             string inputStr;
 
@@ -422,17 +483,28 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
             return inputStr;
         }
 
+        /// <summary>
+        /// Prompt user to select an index from [0, indexMaxValue) interval.
+        /// </summary>
+        /// <param name="indexMaxValue"></param>
+        /// <param name="selectionQuestion"></param>
+        /// <returns></returns>
         protected int ReadIndex(
             int indexMaxValue,
-            string selectionPrefix
+            string selectionQuestion
         ) {
+            if (indexMaxValue == 0) {
+                throw new ArgumentException(nameof(indexMaxValue));
+            }
+            if (string.IsNullOrEmpty(selectionQuestion)) {
+                throw new ArgumentNullException(nameof(selectionQuestion));
+            }
+
             int? selection = null;
 
             while (!selection.HasValue) {
                 try {
-                    if (!string.IsNullOrEmpty(selectionPrefix)) {
-                        Console.WriteLine(selectionPrefix);
-                    }
+                    Console.WriteLine(selectionQuestion);
 
                     var selectionTmp = Convert.ToInt32(Console.ReadLine());
 

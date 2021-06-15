@@ -36,8 +36,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to stack model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <param name="noDefaultFilter"></param>
         /// <returns></returns>
         public static EventFilter Decode(this IVariantEncoder encoder, EventFilterModel model,
@@ -60,8 +60,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to stack model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
         public static EventFilterModel Encode(this IVariantEncoder encoder, EventFilter model) {
             if (model == null) {
@@ -78,8 +78,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to stack model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
         public static ContentFilter Decode(this IVariantEncoder encoder, ContentFilterModel model,
@@ -97,8 +97,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to service model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
         public static ContentFilterModel Encode(this IVariantEncoder encoder, ContentFilter model) {
             if (model == null) {
@@ -114,8 +114,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to stack model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
         public static ContentFilterElement Decode(this IVariantEncoder encoder,
@@ -135,8 +135,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to service model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
         public static ContentFilterElementModel Encode(this IVariantEncoder encoder,
             ContentFilterElement model) {
@@ -156,8 +156,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to stack model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <param name="onlySimpleAttributeOperands"></param>
         /// <returns></returns>
         public static FilterOperand Decode(this IVariantEncoder encoder,
@@ -206,8 +206,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Convert to service model
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="encoder"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
         public static FilterOperandModel Encode(this IVariantEncoder encoder,
             FilterOperand model) {

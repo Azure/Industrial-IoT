@@ -1,0 +1,372 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "defaultValue": "contoso",
+            "metadata": {
+                "description": "Name of the factory"
+            }
+        },
+        "vmUsername": {
+            "type": "string",
+            "defaultValue": "iotadmin",
+            "metadata": {
+                "description": "Username for the IoT Edge VM"
+            }
+        },
+        "vmPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Password for IoT Edge VM"
+            }
+        },
+        "edgeVmSize": {
+            "type": "string",
+            "defaultValue": "Standard_B2ms",
+            "allowedValues": [
+                "",
+                "Standard_B2ms",
+                "Standard_B4ms",
+                "Standard_B8ms",
+                "Standard_B12ms",
+                "Standard_B16ms",
+                "Standard_B20ms"
+            ],
+            "metadata": {
+                "description": "Size of the IoT Edge VM"
+            }
+        },
+        "numberOfSimulations": {
+            "type": "int",
+            "defaultValue": 1,
+            "maxValue": 100,
+            "minValue": 1,
+            "metadata": {
+                "description": "Number of simulated PLCs"
+            }
+        },
+        "numberOfSlowNodes": {
+            "type": "int",
+            "defaultValue": 250,
+            "maxValue": 100000,
+            "minValue": 1,
+            "metadata": {
+                "description": "Number of slow nodes"
+            }
+        },
+        "slowNodeRate": {
+            "type": "int",
+            "defaultValue": 10,
+            "maxValue": 255,
+            "minValue": 1,
+            "metadata": {
+                "description": "Rate in seconds to change slow nodes"
+            }
+        },
+        "slowNodeType": {
+            "type": "string",
+            "defaultValue": "uint",
+            "allowedValues": [
+                "",
+                "uint",
+                "double",
+                "bool",
+                "uintarray"
+            ],
+            "metadata": {
+                "description": "Data type for slow nodes"
+            }
+        },
+        "numberOfFastNodes": {
+            "type": "int",
+            "defaultValue": 50,
+            "maxValue": 10000,
+            "minValue": 1,
+            "metadata": {
+                "description": "Number of fast nodes"
+            }
+        },
+        "fastNodeRate": {
+            "type": "int",
+            "defaultValue": 1,
+            "maxValue": 255,
+            "minValue": 1,
+            "metadata": {
+                "description": "Rate in seconds to change fast nodes"
+            }
+        },
+        "fastNodeType": {
+            "type": "string",
+            "defaultValue": "uint",
+            "allowedValues": [
+                "",
+                "uint",
+                "double",
+                "bool",
+                "uintarray"
+            ],
+            "metadata": {
+                "description": "Data type for fast nodes"
+            }
+        },
+        "containerImage": {
+            "type": "string",
+            "defaultValue": "iotedge/opc-plc:1.2.2",
+            "metadata": {
+                "description": "Container image"
+            }
+        },
+        "containerServer": {
+            "type": "string",
+            "defaultValue": "mcr.microsoft.com",
+            "metadata": {
+                "description": "Container server"
+            }
+        },
+        "containerUser": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Username for Container Registry"
+            }
+        },
+        "containerPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Password for Container Registry"
+            }
+        },
+        "iotEdgeConnString": {
+            "type": "string",
+            "defaultValue": "HostName=;DeviceId=;SharedAccessKey=",
+            "metadata": {
+                "description": "IoT Edge connection string from IoT Hub (contains DeviceId)"
+            }
+        }
+    },
+    "variables": {
+        "instanceId": "[take(uniqueString(subscription().subscriptionId, resourceGroup().id, parameters('factoryName')), 7)]",
+        "factoryCode": "[parameters('factoryName')]",
+        "nameInfix": "[tolower(concat(variables('factoryCode'), '-', variables('instanceId')))]",
+
+        "vmEdge": "[concat('vm-', variables('nameInfix'), '-edge')]",
+        "aciPlc": "[concat('aci-', variables('nameInfix'), '-plc')]",
+
+        "nicPrefix": "[concat('nic-', variables('nameInfix'))]",
+        "nicEdge": "[concat(variables('nicPrefix'), '-edge')]",
+        "nicEdgeId": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces', variables('nicEdge'))]",
+
+        "vnetName": "[concat('vnet-', variables('nameInfix'))]",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+
+        "edgeLinuxImage": {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "18.04-LTS",
+            "version": "latest"
+        },
+        "linuxOsProfile": {
+            "computerName": "[variables('vmEdge')]",
+            "adminUsername": "[parameters('vmUsername')]",
+            "adminPassword": "[if(not(empty(parameters('vmPassword'))), parameters('vmPassword'), json('null'))]",
+            "customData": "[base64(concat('#cloud-config\n\napt:\n  preserve_sources_list: true\n  sources:\n    msft.list:\n      source: \"deb https://packages.microsoft.com/ubuntu/18.04/multiarch/prod bionic main\"\n      key: |\n        -----BEGIN PGP PUBLIC KEY BLOCK-----\n        Version: GnuPG v1.4.7 (GNU/Linux)\n\n        mQENBFYxWIwBCADAKoZhZlJxGNGWzqV+1OG1xiQeoowKhssGAKvd+buXCGISZJwT\n        LXZqIcIiLP7pqdcZWtE9bSc7yBY2MalDp9Liu0KekywQ6VVX1T72NPf5Ev6x6DLV\n        7aVWsCzUAF+eb7DC9fPuFLEdxmOEYoPjzrQ7cCnSV4JQxAqhU4T6OjbvRazGl3ag\n        OeizPXmRljMtUUttHQZnRhtlzkmwIrUivbfFPD+fEoHJ1+uIdfOzZX8/oKHKLe2j\n        H632kvsNzJFlROVvGLYAk2WRcLu+RjjggixhwiB+Mu/A8Tf4V6b+YppS44q8EvVr\n        M+QvY7LNSOffSO6Slsy9oisGTdfE39nC7pVRABEBAAG0N01pY3Jvc29mdCAoUmVs\n        ZWFzZSBzaWduaW5nKSA8Z3Bnc2VjdXJpdHlAbWljcm9zb2Z0LmNvbT6JATUEEwEC\n        AB8FAlYxWIwCGwMGCwkIBwMCBBUCCAMDFgIBAh4BAheAAAoJEOs+lK2+EinPGpsH\n        /32vKy29Hg51H9dfFJMx0/a/F+5vKeCeVqimvyTM04C+XENNuSbYZ3eRPHGHFLqe\n        MNGxsfb7C7ZxEeW7J/vSzRgHxm7ZvESisUYRFq2sgkJ+HFERNrqfci45bdhmrUsy\n        7SWw9ybxdFOkuQoyKD3tBmiGfONQMlBaOMWdAsic965rvJsd5zYaZZFI1UwTkFXV\n        KJt3bp3Ngn1vEYXwijGTa+FXz6GLHueJwF0I7ug34DgUkAFvAs8Hacr2DRYxL5RJ\n        XdNgj4Jd2/g6T9InmWT0hASljur+dJnzNiNCkbn9KbX7J/qK1IbR8y560yRmFsU+\n        NdCFTW7wY0Fb1fWJ+/KTsC4=\n        =J6gs\n        -----END PGP PUBLIC KEY BLOCK----- \npackages:\n  - moby-cli\n  - libiothsm-std\n  - moby-engine\nruncmd:\n  - |\n      set -x\n      (\n        # Wait for docker daemon to start\n        while [ $(ps -ef | grep -v grep | grep docker | wc -l) -le 0 ]; do \n          sleep 3\n        done\n\n        # Prevent iotedge from starting before the device connection string is set in config.yaml\n        sudo ln -s /dev/null /etc/systemd/system/iotedge.service\n        apt install iotedge\n        sed -i \"s#\\(device_connection_string: \\).*#\\1\\\"', parameters('iotEdgeConnString'), '\\\"#g\" /etc/iotedge/config.yaml \n        systemctl unmask iotedge\n        systemctl start iotedge\n      apt install curl\n      ) &\n'))]"
+        },
+        "vmScriptExtension": {
+            "publisher": "Microsoft.Azure.Extensions",
+            "type": "CustomScript",
+            "typeHandlerVersion": "2.0",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": [
+                ]
+            },
+            "protectedSettings": {
+                "commandToExecute": "[concat('bash -c \"cd /tmp; for i in {1..', parameters('numberOfSimulations'), '}; do echo \\\"http://', variables('aciPlc'), '\\$i.', resourceGroup().location, '.azurecontainer.io/pn.json\\\"; curl http://', variables('aciPlc'), '\\$i.', resourceGroup().location, '.azurecontainer.io/pn.json -m 2 -o ->> pn.json -s; done|tee pn.log|awk ''END { print \"Done\" }''; mkdir -p /var/iiotedge; sed ''s/\\]\\[/,/g'' pn.json > /var/iiotedge/pn.json; chmod -fR 777 /var/iiotedge; rm pn.json\"')]"
+            }
+        },
+        "edgeVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]"
+    },
+    "resources": [
+        {
+            "comments": "VNET for factory",
+            "name": "[variables('vnetName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2019-09-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.1.8.0/22"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "subnet-vm",
+                        "properties": {
+                            "addressPrefix": "10.1.8.0/24"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "comments": "PLC ACIs",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "[concat(variables('aciPlc'), add(copyIndex(), 1))]",
+            "condition": "[not(equals(parameters('numberOfSimulations'), 0))]",
+            "copy": {
+                "name": "plcCopies",
+                "count": "[if(not(equals(0, parameters('numberOfSimulations'))), parameters('numberOfSimulations'), 1)]",
+                "mode": "Serial",
+                "batchSize": "[min(parameters('numberOfSimulations'), 10)]"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.ContainerInstance/containerGroups",
+                            "apiVersion": "2018-10-01",
+                            "name": "[concat(variables('aciPlc'), add(copyIndex(), 1))]",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "containers": [
+                                    {
+                                        "name": "[concat(variables('aciPlc'), add(copyIndex(), 1))]",
+                                        "properties": {
+                                            "image": "[concat(parameters('containerServer'), '/', parameters('containerImage'))]",
+                                            "command": [
+                                                "/bin/sh",
+                                                "-c",
+                                                "[concat('./opcplc --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=', parameters('numberOfSlowNodes'), ' --sr=', parameters('slowNodeRate'), ' --st=', parameters('slowNodeType'), ' --fn=', parameters('numberOfFastNodes'), ' --fr=', parameters('fastNodeRate'), ' --ft=', parameters('fastNodeType'), ' --ph=', variables('aciPlc'), add(copyIndex(), 1), '.', resourceGroup().location, '.azurecontainer.io')]"
+                                            ],
+                                            "ports": [
+                                                {
+                                                    "protocol": "TCP",
+                                                    "port": 50000
+                                                },
+                                                {
+                                                    "protocol": "TCP",
+                                                    "port": 80
+                                                }
+                                            ],
+                                            "environmentVariables": [],
+                                            "resources": {
+                                                "requests": {
+                                                    "memoryInGB": 0.5,
+                                                    "cpu": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                "restartPolicy": "Always",
+                                "ipAddress": {
+                                    "ports": [
+                                        {
+                                            "protocol": "TCP",
+                                            "port": 50000
+                                        },
+                                        {
+                                            "protocol": "TCP",
+                                            "port": 80
+                                        }
+                                    ],
+                                    "type": "Public",
+                                    "dnsNameLabel": "[concat(variables('aciPlc'), add(copyIndex(), 1))]"
+                                },
+                                "osType": "Linux",
+                                "imageRegistryCredentials": [
+                                    {
+                                        "server": "[parameters('containerServer')]",
+                                        "username": "[if(not(empty(parameters('containerUser'))), parameters('containerUser'), '.')]",
+                                        "password": "[if(not(empty(parameters('containerPassword'))), parameters('containerPassword'), '.')]"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "comments": "Network interface for IoT Edge VM",
+            "name": "[variables('nicEdge')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-09-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[concat(variables('vnetId'), '/subnets/', 'subnet-vm')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[variables('vnetId')]"
+            ]
+        },
+        {
+            "comments": "IoT Edge VM",
+            "name": "[variables('vmEdge')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-03-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('edgeVmSku')]"
+                },
+                "osProfile": "[variables('linuxOsProfile')]",
+                "storageProfile": {
+                    "imageReference": "[variables('edgeLinuxImage')]",
+                    "osDisk": {
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[variables('nicEdgeId')]"
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[variables('nicEdgeId')]"
+            ]
+        },
+        {
+            "comments": "One time script execution to create pn.json for OPC Publisher",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vmEdge'), '/', 'scriptextensions')]",
+            "apiVersion": "2019-03-01",
+            "location": "[resourceGroup().location]",
+            "properties": "[variables('vmScriptExtension')]",
+            "dependsOn": [
+                "[variables('vmEdge')]",
+                "plcCopies"
+            ]
+        }
+    ],
+    "outputs": {
+        "vmUsername": {
+            "type": "string",
+            "value": "[parameters('vmUsername')]"
+        }
+    }
+}

@@ -240,10 +240,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     }
                     await ActivateAsync(registration, context, ct);
                 }
-                catch (Exception ex) {
+                catch (Exception) {
                     // Try other supervisors as candidates
                     if (!await ActivateAsync(registration, null, context, ct)) {
-                        throw ex;
+                        throw;
                     }
                 }
             }
@@ -633,12 +633,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
             }
             try {
-                var endpoint = registration.ToServiceModel();
+                // Ensure device scope for the registration before getting the secret.
+                // Changing device's scope regenerates the secret.
+                await EnsureDeviceScopeForRegistrationAsync(registration, ct);
+
                 // Get endpoint twin secret
                 var secret = await _iothub.GetPrimaryKeyAsync(registration.DeviceId, null, ct);
 
-                // Ensure device scope
-                await EnsureDeviceScopeForRegistrationAsync(registration, ct);
+                var endpoint = registration.ToServiceModel();
 
                 // Try activate endpoint - if possible...
                 await _activator.ActivateEndpointAsync(endpoint.Registration, secret, ct);
@@ -727,11 +729,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private async Task ActivateAsync(EndpointRegistration registration,
             RegistryOperationContextModel context, CancellationToken ct = default) {
 
+            // Ensure device scope for the registration before getting the secret.
+            // Changing device's scope regenerates the secret.
+            await EnsureDeviceScopeForRegistrationAsync(registration, ct);
+
             // Update supervisor settings
             var secret = await _iothub.GetPrimaryKeyAsync(registration.DeviceId, null, ct);
-
-            // Ensure device scope for the registration
-            await EnsureDeviceScopeForRegistrationAsync(registration, ct);
 
             var endpoint = registration.ToServiceModel();
             try {
@@ -761,7 +764,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 await Try.Async(() => ClearSupervisorTwinSecretAsync(
                     registration.DeviceId, registration.SupervisorId));
                 _logger.Error(ex, "Failed to activate twin");
-                throw ex;
+                throw;
             }
         }
 
