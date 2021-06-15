@@ -1,4 +1,4 @@
-Use configuration files for OPC UA Events in OPC Publisher
+# Use configuration files for OPC UA Events in OPC Publisher
 
 This section describes how to configure the OPC Publisher to listen to events. Primarily you have to configure three things:
 * The source node you want to receive events for.
