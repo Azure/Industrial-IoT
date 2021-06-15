@@ -316,7 +316,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     wrapper.MissedKeepAlives = 0;
 
                     // reactivate all subscriptions
-                    foreach (var subscription in wrapper._subscriptions.Values) {
+                    foreach (var subscription in wrapper.Subscriptions.Values) {
                         if (!ct.IsCancellationRequested) {
                             await subscription.ActivateAsync(wrapper.Session).ConfigureAwait(false);
                         }
@@ -377,7 +377,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             SessionWrapper wrapper, CancellationToken ct) {
             try {
                 // check if session requires cleanup
-                if (!wrapper._subscriptions.Any()) {
+                if (!wrapper.Subscriptions.Any()) {
                     if (wrapper.IdleCount < wrapper.MaxKeepAlives) {
                         wrapper.IdleCount++;
                     }

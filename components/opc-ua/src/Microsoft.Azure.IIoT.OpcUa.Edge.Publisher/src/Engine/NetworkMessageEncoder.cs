@@ -4,15 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
-    using Microsoft.Azure.IIoT.OpcUa.Core;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
-    using Opc.Ua.Encoders;
-    using Opc.Ua.Extensions;
-    using Opc.Ua.PubSub;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -21,6 +14,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Text;
     using System.Threading.Tasks;
     using Serilog;
+    using Opc.Ua.PubSub;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core;
+    using Opc.Ua.Encoders;
+    using Opc.Ua.Extensions;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -409,12 +409,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             .Select(q => q.Any() ? q.Dequeue() : null)
                                 .Where(s => s != null)
                                     .ToDictionary(
-                                        s => !string.IsNullOrEmpty(s.DisplayName) 
+                                        /*s => !string.IsNullOrEmpty(s.DisplayName) 
                                             ? s.DisplayName 
                                             : !string.IsNullOrEmpty(s.Id)
                                             ? s.Id
                                             : s.NodeId.ToExpandedNodeId(context.NamespaceUris)
-                                                .AsString(message.ServiceMessageContext),
+                                                .AsString(message.ServiceMessageContext),*/
                                         s => GetPayloadIdentifier(s, message,context),
                                         s => s.Value);
                         var dataSetMessage = new DataSetMessage() {
