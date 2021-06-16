@@ -111,23 +111,14 @@ fi
 
 if [ "$AIIOT_CONTAINER_REGISTRY_SERVER" != "mcr.microsoft.com" ]; then
     echo "Private registry specified. Checking for username and password.."
-    is_private_repo=true
 
     if [[ -z "$AIIOT_CONTAINER_REGISTRY_USERNAME" ]]; then
-        echo "Parameter is empty or missing: aiiot_container_registry_username"
-        exit 1
+        is_private_repo=true
+        if [[ -z "$AIIOT_CONTAINER_REGISTRY_PASSWORD" ]]; then
+            echo "Parameter is empty or missing: aiiot_container_registry_password"
+            exit 1
+        fi
     fi
-
-    if [[ -z "$AIIOT_CONTAINER_REGISTRY_PASSWORD" ]]; then
-        echo "Parameter is empty or missing: aiiot_container_registry_password"
-        exit 1
-    fi
-
-    if [[ -z "$AIIOT_IMAGE_NAMESPACE" ]]; then
-        echo "Parameter is empty or missing: aiiot_image_namespace"
-        exit 1
-    fi
-
 fi
 
 if [[ -z "$AIIOT_TENANT_ID" ]]; then
