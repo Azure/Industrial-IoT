@@ -111,13 +111,16 @@ fi
 
 if [ "$AIIOT_CONTAINER_REGISTRY_SERVER" != "mcr.microsoft.com" ]; then
     echo "Private registry specified. Checking for username and password.."
+    is_private_repo=true
 
     if [[ -z "$AIIOT_CONTAINER_REGISTRY_USERNAME" ]]; then
-        is_private_repo=true
-        if [[ -z "$AIIOT_CONTAINER_REGISTRY_PASSWORD" ]]; then
-            echo "Parameter is empty or missing: aiiot_container_registry_password"
-            exit 1
-        fi
+        echo "Parameter is empty or missing: aiiot_container_registry_username"
+        exit 1
+    fi
+
+    if [[ -z "$AIIOT_CONTAINER_REGISTRY_PASSWORD" ]]; then
+        echo "Parameter is empty or missing: aiiot_container_registry_password"
+        exit 1
     fi
 fi
 
@@ -299,11 +302,10 @@ if [ "$is_private_repo" = true ] ; then
     namestr="--set deployment.microServices.SERVICE_NAME.extraEnv[IDX].name=PCS_KEY "
     valuestr="--set deployment.microServices.SERVICE_NAME.extraEnv[IDX].value=PCS_VAL "
     setsvc=""
-
     declare -A envvar=( [$pcs_server]=$AIIOT_CONTAINER_REGISTRY_SERVER [$pcs_user]=$AIIOT_CONTAINER_REGISTRY_USERNAME [$pcs_pwd]=$AIIOT_CONTAINER_REGISTRY_PASSWORD [$pcs_tag]=$AIIOT_IMAGE_TAG)
     registryserver="$AIIOT_CONTAINER_REGISTRY_SERVER"
     if [[ -n "$AIIOT_IMAGE_NAMESPACE" ]] ; then
-        registryserver="$registry/$AIIOT_IMAGE_NAMESPACE"
+        registryserver="$registryserver/$AIIOT_IMAGE_NAMESPACE"
         envvar+=( [$pcs_namespace]=$AIIOT_IMAGE_NAMESPACE )
     fi
     for svc in ${iiotsvcs[@]}; do
