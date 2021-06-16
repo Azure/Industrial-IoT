@@ -122,12 +122,6 @@ if [ "$AIIOT_CONTAINER_REGISTRY_SERVER" != "mcr.microsoft.com" ]; then
         echo "Parameter is empty or missing: aiiot_container_registry_password"
         exit 1
     fi
-
-    if [[ -z "$AIIOT_IMAGE_NAMESPACE" ]]; then
-        echo "Parameter is empty or missing: aiiot_image_namespace"
-        exit 1
-    fi
-
 fi
 
 if [[ -z "$AIIOT_TENANT_ID" ]]; then
@@ -308,7 +302,12 @@ if [ "$is_private_repo" = true ] ; then
     namestr="--set deployment.microServices.SERVICE_NAME.extraEnv[IDX].name=PCS_KEY "
     valuestr="--set deployment.microServices.SERVICE_NAME.extraEnv[IDX].value=PCS_VAL "
     setsvc=""
-    declare -A envvar=( [$pcs_server]=$AIIOT_CONTAINER_REGISTRY_SERVER [$pcs_user]=$AIIOT_CONTAINER_REGISTRY_USERNAME [$pcs_pwd]=$AIIOT_CONTAINER_REGISTRY_PASSWORD [$pcs_namespace]=$AIIOT_IMAGE_NAMESPACE [$pcs_tag]=$AIIOT_IMAGE_TAG)
+    declare -A envvar=( [$pcs_server]=$AIIOT_CONTAINER_REGISTRY_SERVER [$pcs_user]=$AIIOT_CONTAINER_REGISTRY_USERNAME [$pcs_pwd]=$AIIOT_CONTAINER_REGISTRY_PASSWORD [$pcs_tag]=$AIIOT_IMAGE_TAG)
+    registryserver="$AIIOT_CONTAINER_REGISTRY_SERVER"
+    if [[ -n "$AIIOT_IMAGE_NAMESPACE" ]] ; then
+        registryserver="$registryserver/$AIIOT_IMAGE_NAMESPACE"
+        envvar+=( [$pcs_namespace]=$AIIOT_IMAGE_NAMESPACE )
+    fi
     for svc in ${iiotsvcs[@]}; do
       idx=0
       for key in ${!envvar[@]}; do
@@ -328,7 +327,7 @@ if [ "$is_private_repo" = true ] ; then
     # Install aiiot/azure-industrial-iot Helm chart
     helm install --atomic azure-industrial-iot aiiot/azure-industrial-iot --namespace azure-industrial-iot --version $HELM_CHART_VERSION --timeout 30m0s \
         --set image.tag=$AIIOT_IMAGE_TAG \
-        --set image.registry="$AIIOT_CONTAINER_REGISTRY_SERVER/$AIIOT_IMAGE_NAMESPACE" \
+        --set image.registry="$registryserver" \
         --set image.pullSecrets[0].name=$AIIOT_CONTAINER_REGISTRY_USERNAME \
         --set loadConfFromKeyVault=true \
         --set azure.tenantId=$AIIOT_TENANT_ID \
