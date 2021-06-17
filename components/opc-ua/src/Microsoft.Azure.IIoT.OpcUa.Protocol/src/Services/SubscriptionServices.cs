@@ -795,8 +795,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 itemWrapper.ProcessMonitoredItemNotification(message, notification.Events[i]);
                             }
 
-                            OnSubscriptionEventChange.Invoke(this, message);
-                            numOfEvents++;
+                            if (message.Notifications.Any()) {
+                                OnSubscriptionEventChange.Invoke(this, message);
+                                numOfEvents++;
+                            }
                         }
                     }
 
