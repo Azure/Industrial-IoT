@@ -565,7 +565,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 results.Count(r => r != null && StatusCode.IsNotGood(r.StatusCode)),
                                 rawSubscription.DisplayName);
                         }
-                        if (change.Where(x => x.EventTemplate != null).Any()) { 
+                        if (change.Where(x => x.EventTemplate != null).Any()) {
                             _logger.Information("Now issuing ConditionRefresh for item {item} on subscription " +
                                 "{subscription}", change.FirstOrDefault()?.Item?.DisplayName ?? "", rawSubscription.DisplayName);
                             try {
@@ -767,20 +767,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var sequenceNumber = notification.Events.First().Message?.SequenceNumber;
                     var publishTime = (notification.Events.First().Message?.PublishTime).
                         GetValueOrDefault(DateTime.UtcNow);
+                    var numOfEvents = 0;
 
                     _logger.Debug("Event for subscription: {Subscription}, sequence#: " +
                         "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
                         subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
-
-                    var message = new SubscriptionNotificationModel {
-                        ServiceMessageContext = subscription.Session?.MessageContext,
-                        ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
-                        EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
-                        SubscriptionId = Id,
-                        Timestamp = publishTime,
-                        CompressedPayload = false,
-                        Notifications = new List<MonitoredItemNotificationModel>()
-                    };
 
                     if (notification?.Events != null) {
                         for (var i = 0; i < notification.Events.Count; i++) {
@@ -790,17 +781,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 continue;
                             }
 
+                            var message = new SubscriptionNotificationModel {
+                                ServiceMessageContext = subscription.Session?.MessageContext,
+                                ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
+                                EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
+                                SubscriptionId = Id,
+                                Timestamp = publishTime,
+                                CompressedPayload = false,
+                                Notifications = new List<MonitoredItemNotificationModel>()
+                            };
+
                             if (monitoredItem.Handle is MonitoredItemWrapper itemWrapper) {
                                 itemWrapper.ProcessMonitoredItemNotification(message, notification.Events[i]);
                             }
-                        }
 
-                        if (message.Notifications?.Any() == true) {
-                            OnSubscriptionEventChange.Invoke(this, message);
+                            if (message.Notifications.Any()) {
+                                OnSubscriptionEventChange.Invoke(this, message);
+                                numOfEvents++;
+                            }
                         }
-
-                        OnSubscriptionEventDiagnosticsChange.Invoke(this, notification.Events.Count);
                     }
+
+                    OnSubscriptionEventDiagnosticsChange.Invoke(this, numOfEvents);
                 }
                 catch (Exception e) {
                     _logger.Warning(e, "Exception processing subscription notification");
