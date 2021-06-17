@@ -14,6 +14,11 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
 
         private const string kWorkspaceId = "Docker:WorkspaceId";
         private const string kWorkspaceKey = "Docker:WorkspaceKey";
+        private const string kSubscriptionId = "SubscriptionId";
+        private const string kResourceGroupName = "ResourceGroupName";
+        private const string kIoTHubConnectionString = "IoTHubConnectionString";
+
+
 
         /// <inheritdoc/>
         public string LogWorkspaceId => GetStringOrDefault(kWorkspaceId,
@@ -22,6 +27,15 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
         /// <inheritdoc/>
         public string LogWorkspaceKey => GetStringOrDefault(kWorkspaceKey,
             () => GetStringOrDefault(PcsVariable.PCS_WORKSPACE_KEY));
+
+        /// <inheritdoc/>
+        public string IoTHubResourceId =>
+            "/subscriptions/" +
+            GetStringOrDefault(kSubscriptionId, () => GetStringOrDefault(PcsVariable.PCS_SUBSCRIPTION_ID)) +
+            "/resourceGroups/" +
+            GetStringOrDefault(kResourceGroupName, () => GetStringOrDefault(PcsVariable.PCS_RESOURCE_GROUP)) +
+            "/providers/Microsoft.Devices/IotHubs/" +
+            ConnectionString.Parse(GetStringOrDefault(kIoTHubConnectionString, () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_CONNSTRING))).HubName;
 
         /// <summary>
         /// Configuration constructor
