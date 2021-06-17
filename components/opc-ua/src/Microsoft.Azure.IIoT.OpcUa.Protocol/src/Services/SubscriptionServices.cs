@@ -773,8 +773,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         "{Sequence} isKeepAlive: {KeepAlive}, publishTime: {PublishTime}",
                         subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
 
-                    SubscriptionNotificationModel message = null;
-
                     if (notification?.Events != null) {
                         for (var i = 0; i < notification.Events.Count; i++) {
                             var monitoredItem = subscription.MonitoredItems.SingleOrDefault(
@@ -783,7 +781,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 continue;
                             }
 
-                            message = new SubscriptionNotificationModel {
+                            var message = new SubscriptionNotificationModel {
                                 ServiceMessageContext = subscription.Session?.MessageContext,
                                 ApplicationUri = subscription.Session?.Endpoint?.Server?.ApplicationUri,
                                 EndpointUrl = subscription.Session?.Endpoint?.EndpointUrl,
