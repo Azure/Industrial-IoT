@@ -58,7 +58,10 @@ namespace Opc.Ua.Encoders {
         public virtual void Encode(IEncoder encoder) {
             // Get valid key-value pairs for encoding.
             var keyValuePairs = this
-                .Where(x => !string.IsNullOrEmpty(x.Key) && x.Value != null)
+                .Where(x => !string.IsNullOrEmpty(x.Key))
+                .Where(x => x.Value != null)
+                .Where(x => x.Value.Value != null)
+                .Where(x => !(x.Value.Value is LocalizedText lt) || (lt.Locale != null && lt.Text != null))
                 .ToArray();
 
             if (encoder.UseReversibleEncoding) {
