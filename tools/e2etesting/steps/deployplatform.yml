@@ -22,7 +22,7 @@ steps:
   condition: and(eq(variables['ContainerRegistryServer'], ''), eq(variables['ContainerRegistryUsername'], ''), eq(variables['ContainerRegistryPassword'], ''))
   inputs:
     azureSubscription: 'IOT-OPC-WALLS-SP'
-    KeyVaultName: 'developPipelineKV'
+    KeyVaultName: 'developerPipelineKV'
     SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
