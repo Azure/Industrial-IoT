@@ -151,19 +151,20 @@ if ($script:Debug.IsPresent -and (!$script:Fast.IsPresent)) {
     $tagPostfix = "-debug"
 }
 
-# Check and set registry
-if ([string]::IsNullOrEmpty($Registry)) {
-    $Registry = $env.BUILD_REGISTRY
-    if ([string]::IsNullOrEmpty($Registry)) {
-        if ($releaseBuild) {
-            # Make sure we do not override latest in release builds - this is done manually later.
-            $latestTag = "preview"
-            $Registry = "industrialiot"
-        }
-        else {
-            $Registry = "industrialiotdev"
-        }
-        Write-Warning "No registry specified - using $($Registry).azurecr.io."
+Write-Host "Building source of $imageName..."
+# Try to build all code and create dockerfile definitions to build using docker.
+$definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
+    -Path $Path -Debug:$script:Debug -Fast:$script:Fast
+if ($definitions.Count -eq 0) {
+    Write-Host "Nothing to build."
+    return
+}
+
+if ([string]::IsNullOrEmpty($script:Subscription)) {
+    $argumentList = @("account", "show")
+    $account = & "az" $argumentList 2>$null | ConvertFrom-Json
+    if (!$account) {
+        throw "Failed to retrieve account information."
     }
     $script:Subscription = $account.name
     Write-Host "Using default subscription $script:Subscription..."
