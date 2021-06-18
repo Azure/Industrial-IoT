@@ -1,3 +1,5 @@
+[Home](../../readme.md)
+
 # Operations Manual
 
 ## Introduction
@@ -17,7 +19,7 @@ The edge services are implemented as Azure IoT Edge modules and run on-premises.
 The following edge modules are part of the platform:
 
 - OPC Publisher Module
-  The OPC Publisher module runs on Azure IoT Edge and connects to OPC UA-enabled assets, reads data from them using OPC UA subscriptions, converts the resulting OPC UA “Data Changed Notifications” into OPC UA PubSub messages, and sends them to the cloud via [IoT EdgeHub](https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub). It can be configured from the cloud or locally via a configuration file.
+  The OPC Publisher module runs on Azure IoT Edge and connects to OPC UA-enabled assets, reads data from them using OPC UA subscriptions, converts the resulting OPC UA “Data Changed Notifications” into OPC UA PubSub messages, and sends them to the cloud via [IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub). It can be configured from the cloud or locally via a configuration file.
 
 - OPC Twin Module
   The OPC Twin module runs on Azure IoT Edge and connects to OPC UA-enabled assets, browses their data model, reads and writes ad-hoc data, and calls methods on the asset. It can be accessed from the cloud.
@@ -246,7 +248,7 @@ One can update, read, and query all entries in the IoT Hub Device Registry.
 
 The following diagram shows the registry service in relation to the other components:
 
-<img src="media/image4.png" style="width:6.11863in;height:3.12612in" />
+<img src="../media/architecture.png" style="width:6.11863in;height:3.12612in" />
 
 ##### Activate and Deactivate Endpoints
 
@@ -874,55 +876,42 @@ References:
 
 The deployment script automatically configures all components to work with each other using default values. Here are some of the more relevant customization settings for the components:
 
--   IoT Hub
+-   `IoT Hub`
+    -   `Networking -> Public access`: Configure Internet access, e.g., IP filters.
+    -   `Networking -> Private endpoint connections`: Create an endpoint that is not accessible through the Internet and can be consumed internally by other Azure services or on-premises devices (e.g., through a VPN connection)
+    -   `IoT Edge`: Manage the configuration of the edge devices that are connected to the OPC UA servers
+        -   Manage the identities of the IoT Edge devices that may access the hub, configure which modules are installed and which configuration they use, e.g. encoding parameters for the OPC Publisher
 
-    -   Networking -> Public access: Configure Internet access, e.g., IP filters.
-
-    -   Networking -> Private endpoint connections: Create an endpoint that is not accessible through the Internet and can be consumed internally by other Azure services or on-premises devices (e.g., through a VPN connection)
-
-    -   IoT Edge: Manage the configuration of the edge devices that are connected to the OPC UA servers
-
--   Cosmos DB
-
+-   `Cosmos DB`
     -   Replicate data globally: Configure data-redundancy.
-
+    
     -   Firewall and virtual networks: Configure Internet and VNET access, and IP filters.
-
+    
     -   Private endpoint connections: Create an endpoint that is not accessible through the Internet.
-
--   Key Vault
-
+    
+-   `Key Vault`
     -   Secrets: Manage platform settings
-
+    
     -   Access policies: Manage which applications and users may access the data in the Key Vault and which operations (e.g. read, write, list, delete) are they allowed to perform
-
+    
     -   Networking: Firewall, VNET and private endpoints
-
--   Azure Active Directory (AAD) -> App registrations
-
-    -   <APP_NAME>-web -> Authentication: Manage reply URIs, which is the list of URIs that can be used as landing pages after authentication succeeds. The deployment script may be unable to configure this automatically under certain scenarios, such as lack of AAD admin rights; one may want to add or modify URIs when changing the hostname of the Web app, e.g. the port number used by the localhost for debugging
-
--   App Service
-
+    
+-   `Azure Active Directory (AAD) -> App registrations`
+    -   `<APP_NAME>-web -> Authentication`: Manage reply URIs, which is the list of URIs that can be used as landing pages after authentication succeeds. The deployment script may be unable to configure this automatically under certain scenarios, such as lack of AAD admin rights; one may want to add or modify URIs when changing the hostname of the Web app, e.g. the port number used by the localhost for debugging
+    
+-   `App Service`
     -   Configuration: Manage the environment variables that control the services or UI
-
--   Virtual machine
-
+    
+-   `Virtual machine`
     -   Networking: Configure supported networks and firewall rules
-
     -   Serial console: SSH access to get insights or for debugging, get the credentials from the output of deployment script or reset the password
-
--   IoT Hub -> IoT Edge
-
-    -   Manage the identities of the IoT Edge devices that may access the hub, configure which modules are installed and which configuration they use, e.g. encoding parameters for the OPC Publisher
-
--   IoT Hub -> IoT Edge -> <DEVICE> -> Set Modules -> OpcPublisher (for standalone OPC Publisher operation only)
+-   `IoT Hub -> IoT Edge -> <DEVICE> -> Set Modules -> OpcPublisher` (for standalone OPC Publisher operation only)
 
 <table><thead><tr class="header"><th>Configuration Option<br />
 (shorthand|full name)</th><th>Description</th></tr></thead><tbody><tr class="odd"><td>pf|publishfile</td><td>the filename to configure the nodes to publish. If this Option is specified it puts OPC Publisher into stadalone mode.</td></tr><tr class="even"><td>lf|logfile</td><td>the filename of the logfile to use.</td></tr><tr class="odd"><td>ll|loglevel</td><td>the log level to use (allowed: fatal, error, warn, info, debug, verbose).</td></tr><tr class="even"><td>me|messageencoding</td><td>The messaging encoding for outgoing messages allowed values: Json, Uadp</td></tr><tr class="odd"><td>mm|messagingmode</td><td>The messaging mode for outgoing messages allowed values: PubSub, Samples</td></tr><tr class="even"><td>fm|fullfeaturedmessage</td><td>The full featured mode for messages (all fields filled in). Default is 'true', for legacy compatibility use 'false'</td></tr><tr class="odd"><td>aa|autoaccept</td><td>The publisher trusted all servers it is establishing a connection to</td></tr><tr class="even"><td>bs|batchsize</td><td>The number of OPC UA data-change messages to be cached for batching.</td></tr><tr class="odd"><td>si|iothubsendinterval</td><td>The trigger batching interval in seconds.</td></tr><tr class="even"><td>ms|iothubmessagesize</td><td>The maximum size of the (IoT D2C) message.</td></tr><tr class="odd"><td>om|maxoutgressmessages</td><td>The maximum size of the (IoT D2C) message egress buffer.</td></tr><tr class="even"><td>di|diagnosticsinterval</td><td>Shows publisher diagnostic info at the specified interval in seconds (need log level info).<br />
 -1 disables remote diagnostic log and diagnostic output</td></tr><tr class="odd"><td>lt|logflugtimespan</td><td>The timespan in seconds when the logfile should be flushed.</td></tr><tr class="even"><td>ih|iothubprotocol</td><td>Protocol to use for communication with the hub. Allowed values: AmqpOverTcp, AmqpOverWebsocket, MqttOverTcp, MqttOverWebsocket, Amqp, Mqtt, Tcp, Websocket, Any</td></tr><tr class="odd"><td>hb|heartbeatinterval</td><td>The publisher is using this as default value in seconds for the heartbeat interval setting of nodes without a heartbeat interval setting.</td></tr><tr class="even"><td>ot|operationtimeout</td><td>The operation timeout of the publisher OPC UA client in ms.</td></tr><tr class="odd"><td>ol|opcmaxstringlen</td><td>The max length of a string opc can transmit/receive.</td></tr><tr class="even"><td>oi|opcsamplinginterval</td><td>Default value in milliseconds to request the servers to sample values</td></tr><tr class="odd"><td>op|opcpublishinginterval</td><td>Default value in milliseconds for the publishing interval setting of the subscriptions against the OPC UA server.</td></tr><tr class="even"><td>ct|createsessiontimeout</td><td>The interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.</td></tr><tr class="odd"><td>kt|keepalivethresholt</td><td>Specify the number of keep alive packets a server can miss, before the session is disconnected.</td></tr><tr class="even"><td>tm|trustmyself</td><td>The publisher certificate is put into the trusted store automatically.</td></tr><tr class="odd"><td>at|appcertstoretype</td><td>The own application cert store type (allowed: Directory, X509Store).</td></tr></tbody></table>
 
-Reference: OPC Publisher Edge Module
+Reference: [OPC Publisher Edge Module](../modules/publisher-commandline.md)
 
 ### Configuration Environment Variables
 
@@ -979,7 +968,7 @@ Configuration of CosmosDB.
 PCS_COSMOSDB_CONNSTRING</td><td>required</td><td>null</td><td>CosmosDB Connection string</td></tr><tr class="even"><td>CosmosDb:ThroughputUnits<br />
 PCS_COSMOSDB_THROUGHPUT</td><td>optional</td><td>400</td><td>Throughput units</td></tr></tbody></table>
 
-##### ItemContainer Configuration
+##### Item Container Configuration
 
 | Environment Variable Names | Modality | Default Value | Description                                                         |
 |----------------------------|----------|---------------|---------------------------------------------------------------------|
@@ -1021,7 +1010,7 @@ PCS_IMAGES_TAG</td><td>required</td><td>null</td><td>The tag of the images</td><
 
 ##### Job Database Configuration
 
-See Item Container Configuration.
+See [Item Container Configuration](Item-Container-Configuration).
 
 ##### Registry Configuration
 
@@ -1035,7 +1024,7 @@ PCS_TWIN_SERVICE_URL</td><td>required</td><td>http://localhost:9041/twin</td><td
 
 ##### Worker Database Configuration
 
-See Item Container Configuration.
+See [Item Container Configuration](Item-Container-Configuration).
 
 ##### Job Orchestrator Configuration
 
@@ -1232,7 +1221,7 @@ The sequence below describes the data flow of a telemetry event through the syst
    
    Examples for the different telemetry formats can be found here.
    
-   The configuration for `message mode` and `ncoding` is configurable at the OPC Publisher module level via command line options.
+   The configuration for `message mode` and `ncoding` is configurable at the OPC Publisher module level via [command line options](../modules/publisher-commandline.md).
    
 7. The encoded telemetry events are added as the payload, which cannot exceed 256kB, the maximum size of an IoT Hub message
 
@@ -1305,7 +1294,6 @@ Our testing has shown that there are only a handful of components that require h
     -   up to 250 millicores of CPU
     
 -   **Publisher Job Orchestrator Microservice**: This service receives heartbeats from OPC Publisher modules and dispatches publisher jobs to them. In setups with many publishers and publishers having big job definitions (several thousands of nodes per job) we have seen consumption of:
-    
     -   up to 2 GB of memory
     
     -   up to 1,000 millicores of CPU
@@ -1651,9 +1639,9 @@ However, the biggest hurdle most OT admins need to overcome when deploying the A
 
 <img src="media/image26.png" style="width:5.49479in;height:3.88851in" />
 
-In the dialog above, it can be seen that the certificate **Microsoft.Azure.IIoT** has been trusted by KepServerEx. Only once this is done the data can be exchanged between the OPC UA server (in this case KepServerEx) and the Azure Industrial IoT platform (specifically OPC Publisher Edge module and OPC Twin Edge module).
+In the dialog above, it can be seen that the certificate **Microsoft.Azure.IIoT** has been trusted by Kepware `KepServerEx`. Only once this is done the data can be exchanged between the OPC UA server (in this case `KepServerEx`) and the Azure Industrial IoT platform (specifically OPC Publisher Edge module and OPC Twin Edge module).
 
-OPC UA certificates used by the OPC Publisher Edge module and the OPC Twin Edge module are self-signed certificates generated when the modules start up and if the certificates don’t already exist. However, each time a Docker container starts up, all previous state of the container is removed. To avoid re-establishing trust by each OPC UA server on-premises after each restart of the modules, the certificates can be persisted to the local filesystem of the host gateway (where IoT Edge as well as the Docker containers EdgeHub and EdgeAgent and of course OPC Publisher module and OPC Twin module run on). To do this, the filesystem directory within the container needs to be mapped to an existing filesystem directory on the host through a [bind mount](https://docs.docker.com/storage/bind-mounts). For example, for the OPC Publisher running in “standalone mode” (i.e. without the use of its companion cloud microservices), this can be achieved via the following highlighted container create options:
+OPC UA certificates used by the OPC Publisher Edge module and the OPC Twin Edge module are self-signed certificates generated when the modules start up and if the certificates don’t already exist. However, each time a Docker container starts up, all previous state of the container is removed. To avoid re-establishing trust by each OPC UA server on-premises after each restart of the modules, the certificates can be persisted to the local filesystem of the host gateway (where IoT Edge as well as the Docker containers `EdgeHub` and `EdgeAgent` and of course OPC Publisher module and OPC Twin module run on). To do this, the filesystem directory within the container needs to be mapped to an existing filesystem directory on the host through a [bind mount](https://docs.docker.com/storage/bind-mounts). For example, for the OPC Publisher running in “standalone mode” (i.e., without the use of its companion cloud microservices), this can be achieved via the following highlighted container create options:
 
 ```json
 {
