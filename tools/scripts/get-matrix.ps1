@@ -39,7 +39,7 @@ if (![string]::IsNullOrEmpty($JobPrefix)) {
 $agents = @{
     windows = "windows-2019"
     linux = "ubuntu-18.04"
-    mac = "macOS-10.15"
+    # mac = "macOS-10.15"
 }
 
 $jobMatrix = @{}

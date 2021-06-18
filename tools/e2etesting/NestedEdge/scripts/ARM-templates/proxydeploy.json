@@ -1,0 +1,248 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": 
+  {  
+    "networkResourceGroupName": 
+    {
+      "type": "string",
+      "metadata": { "description": "Name of the resource group that the virtual network is part of" }
+    },
+    "networkName": 
+    {
+      "type": "string",
+      "metadata": { "description": "Name of the virtual network the network VMs are deployed to" }
+    },
+    "vmSize": 
+    {
+      "type": "string",
+      "defaultValue": "Standard_DS3_v2",
+      "metadata": { "description": "Size of the Azure virtual machine" }
+    },
+    "itProxySubnetName":
+    {
+      "type": "string",
+      "metadata": { "description": "Name of the subnet the IT Proxy is deployed to" }
+    },
+    "itProxyMachineName": 
+    {
+      "type": "string",
+      "defaultValue": "itproxy1",
+      "metadata": { "description": "Name of the IT Proxy" }
+    },
+    "itProxyMachineAdminName": 
+    {
+      "type": "string",
+      "defaultValue": "pradmin",
+      "metadata": { "description": "Name of the IT Proxy administrator" }
+    },
+    "itProxyMachineAdminSshPublicKey": 
+    {
+      "type": "string",
+      "metadata": { "description": "SSH public key provided as a string to connect to the IT Proxy)" }
+    },
+    "otProxySubnetName":
+    {
+      "type": "string",
+      "metadata": { "description": "Name of the subnet the OT Proxy is deployed to" }
+    },
+    "otProxyMachineName": 
+    {
+      "type": "string",
+      "defaultValue": "itproxy1",
+      "metadata": { "description": "Name of the OT Proxy" }
+    },
+    "otProxyMachineAdminName": 
+    {
+      "type": "string",
+      "defaultValue": "pradmin",
+      "metadata": { "description": "Name of the OT Proxy administrator" }
+    },
+    "otProxyMachineAdminSshPublicKey": 
+    {
+      "type": "string",
+      "metadata": { "description": "SSH public key provided as a string to connect to the OT Proxy." }
+    }
+  },
+  "variables": 
+  {
+    "location": "[resourceGroup().location]",
+    "itProxySubnetReference": "[resourceId(subscription().subscriptionId, parameters('networkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('networkName'), parameters('itProxySubnetName'))]",
+    "itProxyVmNicName": "[concat(parameters('itProxyMachineName'),'-nic-','0')]",
+    "itProxyDiskName": "[concat(parameters('itProxyMachineName'),'-disk-','0')]",
+    "otProxySubnetReference": "[resourceId(subscription().subscriptionId, parameters('networkResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('networkName'), parameters('otProxySubnetName'))]",
+    "otProxyVmNicName": "[concat(parameters('otProxyMachineName'),'-nic-','0')]",
+    "otProxyDiskName": "[concat(parameters('otProxyMachineName'),'-disk-','0')]"
+  },
+  "resources": 
+  [
+    {
+      "name": "[variables('itProxyVmNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[variables('location')]",
+      "apiVersion": "2018-11-01",
+      "dependsOn": [ ],
+      "tags": { "displayName": "[variables('itProxyVmNicName')]" },
+      "properties": 
+      {
+        "enableAcceleratedNetworking": false,
+        "ipConfigurations": 
+	[
+          {
+            "name": "ipconfig1",
+            "properties": 
+	    {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": { "id": "[variables('itProxySubnetReference')]" }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('itProxyMachineName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[variables('location')]",
+      "apiVersion": "2018-10-01",
+      "dependsOn": 
+      [
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('itProxyVmNicName'))]"
+      ],
+      "tags": 
+      {
+        "displayName": "[parameters('itProxyMachineName')]"
+      },
+      "properties": 
+      {
+        "hardwareProfile":
+        {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": 
+        {
+          "computerName": "[parameters('itProxyMachineName')]",
+          "adminUsername": "[parameters('itProxyMachineAdminName')]",
+          "customData": "[base64(concat('#cloud-config\n\npackage_update: true\npackage_upgrade: true\npackages:\n  - squid3\n  - squid3-client\n  - curl\nwrite_files:\n  - path: /etc/squid/squid.conf\n    owner: root:root\n    permissions: ''0644''\n    content: |\n      # Turn on debug options to allow for monitoring blocked domains\n      debug_options ALL,1 33,2\n\n      dns_v4_first on\n\n      # Squid normally listens to port 3128\n      http_port 3128\n\n      # Setup Most local Network Ranges\n      acl localnet src 10.0.0.0/8  # Possible internal network\n      acl localnet src 172.16.0.0/12 # Possible internal network\n      acl localnet src 192.168.0.0/16 # Possible internal network\n      acl localhost src 127.0.0.1/32 ::1\n\n      acl SSL_ports port 443\n      acl CONNECT method CONNECT\n      acl Safe_ports port 443\n      acl Safe_ports port 80\n\n      acl manager url_regex -i ^cache_object:// +i ^https?://[^/]+/squid-internal-mgr/\n\n      acl whitelist dstdomain \"/etc/squid/whitelist.txt\"\n\n      http_access allow manager localhost\n      http_access deny manager\n      http_access deny !Safe_ports\n\n      http_access deny !whitelist\n\n      http_access allow localhost\n      http_access allow localnet\n\n      http_access deny all\n  - path: /etc/squid/whitelist.txt\n    owner: root:root\n    permissions: ''0644''\n    content: |\n      .ubuntu.com\n      .packages.microsoft.com\n      .docker.io\n      .cloudflare.docker.com\n      .mcr.microsoft.com\n      .azurecr.io\n      .blob.core.windows.net\n      .azure-devices.net\n      .global.azure-devices-provisioning.net\n      .cdn.mscr.io\nruncmd:\n  - |\n      set -x\n      (\n        sudo systemctl daemon-reload\n        sudo systemctl restart squid\n      ) &'))]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+              "publicKeys": [{
+                "path": "[concat('/home/', parameters('itProxyMachineAdminName'), '/.ssh/authorized_keys')]",
+                "keyData": "[parameters('itProxyMachineAdminSshPublicKey')]"
+              }]
+            }
+          }
+        },
+        "storageProfile": 
+        {
+          "imageReference": 
+          {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "18.04-LTS",
+            "version": "latest"
+          },
+          "osDisk": 
+          {
+            "name": "[variables('itProxyDiskName')]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }          
+        },
+        "networkProfile": 
+        {
+          "networkInterfaces": [ { "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('itProxyVmNicName'))]" } ]
+        }
+      }
+    },
+    {
+      "name": "[variables('otProxyVmNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[variables('location')]",
+      "apiVersion": "2018-11-01",
+      "dependsOn": [ ],
+      "tags": { "displayName": "[variables('otProxyVmNicName')]" },
+      "properties": 
+      {
+        "enableAcceleratedNetworking": false,
+        "ipConfigurations": 
+	[
+          {
+            "name": "ipconfig1",
+            "properties": 
+	    {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": { "id": "[variables('otProxySubnetReference')]" }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('otProxyMachineName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[variables('location')]",
+      "apiVersion": "2018-10-01",
+      "dependsOn": 
+      [
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('otProxyVmNicName'))]"
+      ],
+      "tags": 
+      {
+        "displayName": "[parameters('otProxyMachineName')]"
+      },
+      "properties": 
+      {
+        "hardwareProfile":
+        {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": 
+        {
+          "computerName": "[parameters('otProxyMachineName')]",
+          "adminUsername": "[parameters('otProxyMachineAdminName')]",
+          "customData": "[base64(concat('#cloud-config\n\npackage_update: true\npackage_upgrade: true\npackages:\n  - squid3\n  - squid3-client\n  - curl\nwrite_files:\n  - path: /etc/squid/squid.conf\n    owner: root:root\n    permissions: ''0644''\n    content: |\n      # Turn on debug options to allow for monitoring blocked domains\n      debug_options ALL,1 33,2\n\n      dns_v4_first on\n\n      # Squid normally listens to port 3128\n      http_port 3128\n\n      # allow all requests\n      http_access allow all\n\n  - path: /etc/squid/whitelist.txt\n    owner: root:root\n    permissions: ''0644''\n    content: |\n      .com\n      .io\n      .net\n      .io\nruncmd:\n  - |\n      set -x\n      (\n        sudo systemctl daemon-reload\n        sudo systemctl restart squid\n      ) &'))]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+              "publicKeys": [{
+                "path": "[concat('/home/', parameters('otProxyMachineAdminName'), '/.ssh/authorized_keys')]",
+                "keyData": "[parameters('otProxyMachineAdminSshPublicKey')]"
+              }]
+            }
+          }
+        },
+        "storageProfile": 
+        {
+          "imageReference": 
+          {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "18.04-LTS",
+            "version": "latest"
+          },
+          "osDisk": 
+          {
+            "name": "[variables('otProxyDiskName')]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }          
+        },
+        "networkProfile": 
+        {
+          "networkInterfaces": [ { "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('otProxyVmNicName'))]" } ]
+        }
+      }
+    }
+  ],
+  "outputs": 
+  {
+    "itProxyMachineName": { "type": "string", "value": "[parameters('itProxyMachineName')]" },
+    "itProxyPrivateIpAddress": { "value": "[reference(variables('itProxyVmNicName')).ipConfigurations[0].properties.privateIPAddress]", "type": "string" },
+    "itProxyAdminUsername": { "type": "string", "value": "[parameters('itProxyMachineAdminName')]" },
+    "otProxyMachineName": { "type": "string", "value": "[parameters('otProxyMachineName')]" },
+    "otProxyPrivateIpAddress": { "value": "[reference(variables('otProxyVmNicName')).ipConfigurations[0].properties.privateIPAddress]", "type": "string" },
+    "otProxyAdminUsername": { "type": "string", "value": "[parameters('otProxyMachineAdminName')]" } 
+  }
+}
+  

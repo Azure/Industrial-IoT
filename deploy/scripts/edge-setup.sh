@@ -11,17 +11,23 @@ done
 curdir="$( cd "$(dirname "$0")" ; pwd -P )"
 
 echo "In $curdir..."
-echo "Prepare machine..."
+osversion=$(lsb_release -sr)
+if [[ -z "$osversion" ]]; then
+    echo "Not an Ubuntu image..."
+    exit 1
+fi
+echo "Prepare Ubuntu $osversion..."
 DEBIAN_FRONTEND=noninteractive
 
 # install powershell and iotedge
-curl -O https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb
+
+curl -O https://packages.microsoft.com/config/ubuntu/$osversion/packages-microsoft-prod.deb
 dpkg -i packages-microsoft-prod.deb
 apt-get update
 apt-get install -y --no-install-recommends powershell
 echo "Powershell installed."
 
-curl -o microsoft-prod.list https://packages.microsoft.com/config/ubuntu/16.04/multiarch/prod.list
+curl -o microsoft-prod.list https://packages.microsoft.com/config/ubuntu/$osversion/multiarch/prod.list
 cp ./microsoft-prod.list /etc/apt/sources.list.d/
 curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
 cp ./microsoft.gpg /etc/apt/trusted.gpg.d/

@@ -19,13 +19,12 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
     * [Azure Service Bus Namespace](#azure-service-bus-namespace)
     * [Azure Key Vault](#azure-key-vault)
       * [Data Protection Key (Optional)](#data-protection-key-optional)
-    * [Azure SignalR](#azure-signalr)
   * [Recommended Azure Resources](#recommended-azure-resources)
     * [Azure AAD App Registration](#azure-aad-app-registration)
   * [Optional Azure Resources](#optional-azure-resources)
+    * [Azure SignalR](#azure-signalr)
     * [Azure Application Insights](#azure-application-insights)
     * [Azure Log Analytics Workspace](#azure-log-analytics-workspace)
-    * [Azure Data Lake Storage Gen2](#azure-data-lake-storage-gen2)
 * [Installing the Chart](#installing-the-chart)
 * [Configuration](#configuration)
   * [Image](#image)
@@ -46,7 +45,6 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
   * [Data Protection](#data-protection)
     * [Azure Storage Account Container](#azure-storage-account-container)
     * [Azure Key Vault Key](#azure-key-vault-key)
-  * [Common Data Model](#common-data-model)
   * [Swagger](#swagger)
   * [NGINX Ingress Controller](#nginx-ingress-controller)
     * [Controller configuration](#controller-configuration)
@@ -106,8 +104,6 @@ The following details of the Azure IoT Hub would be required:
 
     $ az iot hub consumer-group create --hub-name MyIotHub --name telemetry
 
-    $ az iot hub consumer-group create --hub-name MyIotHub --name tunnel
-
     $ az iot hub consumer-group create --hub-name MyIotHub --name onboarding
     ```
 
@@ -115,7 +111,6 @@ The following details of the Azure IoT Hub would be required:
 
     * `events`: will be used by `eventsProcessor` microservices
     * `telemetry`: will be used by `telemetryProcessor` microservices
-    * `tunnel`: will be used by `tunnelProcessor` microservices
     * `onboarding`: will be used by `onboarding` microservices
 
 * Connection string of `iothubowner` policy for the Azure IoT Hub.
@@ -219,14 +214,12 @@ $ az eventhubs eventhub create --resource-group MyResourceGroup --namespace-name
 
 ##### Azure Event Hub Consumer Groups
 
-Please create two consumer groups for the Event Hub. For example, you can call them `telemetry_cdm` and
-`telemetry_ux`. These can be created with the commands bellow. More details about the command and its
+Please create a consumer group for the Event Hub. For example, you can call it `telemetry_ux`. 
+These can be created with the commands bellow. More details about the command and its
 parameters can be found
 [here](https://docs.microsoft.com/cli/azure/eventhubs/eventhub/consumer-group?view=azure-cli-latest#az-eventhubs-eventhub-consumer-group-create).
 
 ```bash
-$ az eventhubs eventhub consumer-group create --resource-group MyResourceGroup --namespace-name mynamespace --eventhub-name myeventhub --name telemetry_cdm
-
 $ az eventhubs eventhub consumer-group create --resource-group MyResourceGroup --namespace-name mynamespace --eventhub-name myeventhub --name telemetry_ux
 ```
 
@@ -279,29 +272,6 @@ to `dataprotection`.
 
 Configuration parameter for data protection key in Azure Key Vault is `azure.keyVault.key.dataProtection`.
 
-#### Azure SignalR
-
-You would need to have an existing Azure SignalR instance. Here are the steps to
-[create an Azure SignalR Service instance](https://docs.microsoft.com/azure/azure-signalr/signalr-quickstart-azure-functions-csharp#create-an-azure-signalr-service-instance).
-When creating Azure SignalR instance please set `Service mode` to `Default` in step 3.
-
-You can also create an Azure SignalR service using [Azure CLI](https://docs.microsoft.com/cli/azure/signalr?view=azure-cli-latest#az-signalr-create):
-
-```bash
-$ az signalr create --name MySignalR --resource-group MyResourceGroup --sku Standard_S1 --unit-count 1 --service-mode Default
-```
-
-The following details of Azure SignalR service would be required:
-
-* Connection string. This can be obtained with the following command:
-
-  ```bash
-  $ az signalr key list --name MySignalR --resource-group MyResourceGroup --query "primaryConnectionString"
-  "Endpoint=https://mysignalr.service.signalr.net;AccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;Version=1.0;"
-  ```
-
-* Service Mode. Use the value that you set when creating Azure SignalR instance.
-
 ### Recommended Azure Resources
 
 #### Azure AAD App Registration
@@ -309,7 +279,6 @@ The following details of Azure SignalR service would be required:
 Required for:
 
 * `engineeringTool`
-* `telemetryCdmProcessor`
 
 Details of AAD App Registration are required if you want to enable authentication for components of
 Azure Industrial IoT solution. If authentication is enabled, web APIs of components will require an Access Token for
@@ -408,6 +377,30 @@ The following details of **ClientsApp** AAD App Registrations will be required:
 
 ### Optional Azure Resources
 
+#### Azure SignalR
+
+If you want to enable deployment of Engineering Tool as part of deployment of the chart then you will need
+to have an existing Azure SignalR instance. Here are the steps to
+[create an Azure SignalR Service instance](https://docs.microsoft.com/azure/azure-signalr/signalr-quickstart-azure-functions-csharp#create-an-azure-signalr-service-instance).
+When creating Azure SignalR instance please set `Service mode` to `Default` in step 3.
+
+You can also create an Azure SignalR service using [Azure CLI](https://docs.microsoft.com/cli/azure/signalr?view=azure-cli-latest#az-signalr-create):
+
+```bash
+$ az signalr create --name MySignalR --resource-group MyResourceGroup --sku Standard_S1 --unit-count 1 --service-mode Default
+```
+
+The following details of Azure SignalR service would be required:
+
+* Connection string. This can be obtained with the following command:
+
+  ```bash
+  $ az signalr key list --name MySignalR --resource-group MyResourceGroup --query "primaryConnectionString"
+  "Endpoint=https://mysignalr.service.signalr.net;AccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;Version=1.0;"
+  ```
+
+* Service Mode. Use the value that you set when creating Azure SignalR instance.
+
 #### Azure Application Insights
 
 You can enable delivery of telemetry and logs from components of Azure Industrial IoT to an Azure
@@ -462,52 +455,9 @@ The following details of the Azure Log Analytics Workspace would be required:
 
   Either one of the keys would work.
 
-#### Azure Data Lake Storage Gen2
-
-Required for:
-
-* `telemetryCdmProcessor`
-
-Azure Data Lake Storage Gen2 is used by `telemetryCdmProcessor` component, which receives events from the
-secondary telemetry event hub and publishes these events to the configured Azure Data Lake Storage resource.
-It also ensures that the necessary [Common Data Model Schema](https://docs.microsoft.com/common-data-model/model-json)
-files are created so that consumers such as Power Apps and Power BI can access the data and metadata.
-
-**Documentation**: [Common Data Model](https://docs.microsoft.com/common-data-model/)
-
-You would need to have an existing Azure Storage account. Here are the steps to
-[create an Azure Storage account](https://docs.microsoft.com/azure/storage/common/storage-account-create).
-Please note that for this feature we require:
-
-* `Account kind` to be set to `StorageV2 (general-purpose v2)`, step 7
-* `Hierarchical namespace` to be `Enabled`, step 8
-
-The following details of the Azure Storage account would be required:
-
-* Connection string for Azure Storage account.
-  This can be obtained with the following command:
-
-  ```bash
-  $ az storage account show-connection-string --name MyStorageAccount --query "connectionString"
-  "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=MyStorageAccount;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-  ```
-
-* Details of Azure Storage Account Container that should be used for Common Data Model storage:
-
-  * Container Name. You can either manually create a blob container and pass its name to the chart, or
-    specify desired name of the container. Then it will be automatically created by the
-    `telemetryCdmProcessor`. If container name is not set, then it defaults to `powerbi` and will be created
-    automatically.
-
-    Configuration parameter for this is `azure.adlsg2.container.cdm.name`.
-
-  * Root folder within the container. Defaults to `IIoTDataFlow`.
-
-    Configuration parameter for this is `azure.adlsg2.container.cdm.rootFolder`.
-
 ## Installing the Chart
 
-This chart installs `2.7.200` version of components by default.
+This chart installs `2.8` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -537,19 +487,15 @@ $ helm install azure-iiot azure-iiot/azure-industrial-iot --namespace azure-iiot
   --set azure.iotHub.eventHub.endpoint=<IoTHubEventHubEndpoint> \
   --set azure.iotHub.eventHub.consumerGroup.events=<IoTHubEventHubEventsConsumerGroup> \
   --set azure.iotHub.eventHub.consumerGroup.telemetry=<IoTHubEventHubTelemetryConsumerGroup> \
-  --set azure.iotHub.eventHub.consumerGroup.tunnel=<IoTHubEventHubTunnelConsumerGroup> \
   --set azure.iotHub.eventHub.consumerGroup.onboarding=<IoTHubEventHubOnboardingConsumerGroup> \
   --set azure.iotHub.sharedAccessPolicies.iothubowner.connectionString=<IoTHubConnectionString> \
   --set azure.cosmosDB.connectionString=<CosmosDBConnectionString> \
   --set azure.storageAccount.connectionString=<StorageAccountConnectionString> \
   --set azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<EventHubNamespaceConnectionString> \
   --set azure.eventHubNamespace.eventHub.name=<EventHubName> \
-  --set azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm=<EventHubTelemetryCdmConsumerGroup> \
   --set azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx=<EventHubTelemetryUxConsumerGroup> \
   --set azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<ServiceBusNamespaceConnectionString> \
   --set azure.keyVault.uri=<KeyVaultURI> \
-  --set azure.signalR.connectionString=<SignalRConnectionString> \
-  --set azure.signalR.serviceMode=<SignalRServiceMode> \
   --set azure.auth.required=false
 ```
 
@@ -573,7 +519,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.7.200`           |
+| `image.tag`         | Image tag                                | `2.8`               |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
@@ -585,18 +531,13 @@ values.
 | `azure.iotHub.eventHub.endpoint`                                                            | Event Hub-compatible endpoint of built-in EventHub of IoT Hub                                    | `null`                               |
 | `azure.iotHub.eventHub.consumerGroup.events`                                                | Consumer group of built-in EventHub of IoT Hub for `eventsProcessor`                             | `null`                               |
 | `azure.iotHub.eventHub.consumerGroup.telemetry`                                             | Consumer group of built-in EventHub of IoT Hub for `telemetryProcessor`                          | `null`                               |
-| `azure.iotHub.eventHub.consumerGroup.tunnel`                                                | Consumer group of built-in EventHub of IoT Hub for `tunnelProcessor`                             | `null`                               |
 | `azure.iotHub.eventHub.consumerGroup.onboarding`                                            | Consumer group of built-in EventHub of IoT Hub for `onboarding`                                  | `null`                               |
 | `azure.iotHub.sharedAccessPolicies.iothubowner.connectionString`                            | Connection string of `iothubowner` policy of IoT Hub                                             | `null`                               |
 | `azure.cosmosDB.connectionString`                                                           | Cosmos DB connection string with read-write permissions                                          | `null`                               |
 | `azure.storageAccount.connectionString`                                                     | Storage account connection string                                                                | `null`                               |
 | `azure.storageAccount.container.dataProtection.name`                                        | Name of storage account container for [data protection](#data-protection-container-(optional))   | `dataprotection`                     |
-| `azure.adlsg2.connectionString`                                                             | ADLS Gen2 account connection string                                                              | `null`                               |
-| `azure.adlsg2.container.cdm.name`                                                           | Name of ADLS Gen2 blob container for CDM storage                                                 | `powerbi`                            |
-| `azure.adlsg2.container.cdm.rootFolder`                                                     | CDM root folder within CDM blob container                                                        | `IIoTDataFlow`                       |
 | `azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString`   | Connection string of `RootManageSharedAccessKey` key of Event Hub namespace                      | `null`                               |
 | `azure.eventHubNamespace.eventHub.name`                                                     | Name of secondary Event Hub within Event Hub Namespace                                           | `null`                               |
-| `azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm`                               | Name of the consumer group for `telemetryCdmProcessor`                                           | `null`                               |
 | `azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx`                                | Name of the consumer group for `telemetryUxProcessor`                                            | `null`                               |
 | `azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString` | Connection string of `RootManageSharedAccessKey` key of Service Bus namespace                    | `null`                               |
 | `azure.keyVault.uri`                                                                        | Key Vault URI, also referred as DNS Name                                                         | `null`                               |
@@ -657,7 +598,7 @@ A few notes about `loadConfFromKeyVault`:
   `azure.auth.servicesApp.appId` and `azure.auth.servicesApp.secret`.
 * You should use `loadConfFromKeyVault` only when Azure environment has been created for the same version
   (major and minor) of Azure Industrial IoT components. That is, you should use it to install the chart that
-  deploys `2.7.x` version of components to the environment that has been created for `2.6.x` version of
+  deploys `2.8.x` or `2.7.x` version of components to the environment that has been created for `2.6.x` version of
   components.
 
 | Parameter              | Description                                                                                          | Default |
@@ -720,7 +661,6 @@ following aspects of application runtime for microservices:
 | `apps.urlPathBase.registry`                     | URL path base for `registry` component                                           | `/registry`       |
 | `apps.urlPathBase.twin`                         | URL path base for `twin` component                                               | `/twin`           |
 | `apps.urlPathBase.history`                      | URL path base for `history` component                                            | `/history`        |
-| `apps.urlPathBase.gateway`                      | URL path base for `gateway` component                                            | `/ua`             |
 | `apps.urlPathBase.publisher`                    | URL path base for `publisher` component                                          | `/publisher`      |
 | `apps.urlPathBase.edgeJobs`                     | URL path base for `edgeJobs` component                                           | `/edge/publisher` |
 | `apps.urlPathBase.events`                       | URL path base for `events` component                                             | `/events`         |
@@ -746,7 +686,7 @@ resource only for one micro-service (`registry`). Please consult `values.yaml` f
 parameters.
 
 Here is the list of all Azure Industrial IoT components that are deployed by this chart. Currently only
-`engineeringTool` and `telemetryCdmProcessor` are disabled by default.
+`engineeringTool` is disabled by default.
 
 | Name in `values.yaml`   | Description                                                                 | Enabled by Default |
 |-------------------------|-----------------------------------------------------------------------------|--------------------|
@@ -754,15 +694,12 @@ Here is the list of all Azure Industrial IoT components that are deployed by thi
 | `sync`                  | [Registry Synchronization Agent](../../../docs/services/registry-sync.md)   | `true`             |
 | `twin`                  | [OPC Twin Microservice](../../../docs/services/twin.md)                     | `true`             |
 | `history`               | [OPC Historian Access Microservice](../../../docs/services/twin-history.md) | `true`             |
-| `gateway`               | [OPC Gateway Microservice](../../../docs/services/twin-gateway.md)          | `true`             |
 | `publisher`             | [OPC Publisher Service](../../../docs/services/publisher.md)                | `true`             |
 | `events`                | [Events Service](../../../docs/services/events.md)                          | `true`             |
 | `edgeJobs`              | [Publisher jobs orchestrator service](../../../docs/services/publisher.md)  | `true`             |
 | `onboarding`            | [Onboarding Processor](../../../docs/services/processor-onboarding.md)      | `true`             |
 | `eventsProcessor`       | [Edge Event Processor](../../../docs/services/processor-events.md)          | `true`             |
-| `telemetryCdmProcessor` | [Datalake export](../../../docs/services/processor-telemetry-cdm.md)        | `false`            |
 | `telemetryProcessor`    | [Edge Telemetry processor](../../../docs/services/processor-telemetry.md)   | `true`             |
-| `tunnelProcessor`       | [Http Tunnel processor](../../../docs/services/processor-tunnel.md)         | `true`             |
 | `engineeringTool`       | [Engineering Tool](../../../docs/services/engineeringtool.md)               | `false`            |
 
 #### Deployment Resource Configuration
@@ -793,15 +730,12 @@ Those are the values of `imageRepository` for all components:
 | `deployment.microServices.sync.imageRepository`                    | `iot/opc-registry-sync-service`                |
 | `deployment.microServices.twin.imageRepository`                    | `iot/opc-twin-service`                         |
 | `deployment.microServices.history.imageRepository`                 | `iot/opc-history-service`                      |
-| `deployment.microServices.gateway.imageRepository`                 | `iot/opc-gateway-service`                      |
 | `deployment.microServices.publisher.imageRepository`               | `iot/opc-publisher-service`                    |
 | `deployment.microServices.edgeJobs.imageRepository`                | `iot/opc-publisher-edge-service`               |
 | `deployment.microServices.events.imageRepository`                  | `iot/industrial-iot-events-service`            |
 | `deployment.microServices.onboarding.imageRepository`              | `iot/opc-onboarding-service`                   |
 | `deployment.microServices.eventsProcessor.imageRepository`         | `iot/industrial-iot-events-processor`          |
-| `deployment.microServices.telemetryCdmProcessor.imageRepository`   | `iot/industrial-iot-telemetry-cdm-processor`   |
 | `deployment.microServices.telemetryProcessor.imageRepository`      | `iot/industrial-iot-telemetry-processor`       |
-| `deployment.microServices.tunnelProcessor.imageRepository`         | `iot/industrial-iot-tunnel-processor`          |
 | `deployment.microServices.engineeringTool.imageRepository`         | `iot/industrial-iot-frontend`                  |
 
 #### Service Resource Configuration
@@ -830,8 +764,6 @@ Those are the service ports exposed by components:
 | `deployment.microServices.registry.service.port`             | `9042`               |
 | `deployment.microServices.twin.service.port`                 | `9041`               |
 | `deployment.microServices.history.service.port`              | `9043`               |
-| `deployment.microServices.gateway.service.port`              | `9040`               |
-| `deployment.microServices.gateway.service.opcPort`           | `51111`              |
 | `deployment.microServices.publisher.service.port`            | `9045`               |
 | `deployment.microServices.edgeJobs.service.port`             | `9046`               |
 | `deployment.microServices.events.service.port`               | `9050`               |
@@ -857,7 +789,6 @@ in `values.yaml`. Note that Ingress is disabled by default.
 | `deployment.ingress.paths.registry`        | Path on which `registry` component should be exposed. Should be set to enable for `registry`.               | `/registry`       |
 | `deployment.ingress.paths.twin`            | Path on which `twin` component should be exposed. Should be set to enable for `twin`.                       | `/twin`           |
 | `deployment.ingress.paths.history`         | Path on which `history` component should be exposed. Should be set to enable for `history`.                 | `/history`        |
-| `deployment.ingress.paths.gateway`         | Path on which `gateway` component should be exposed. Should be set to enable for `gateway`.                 | `/ua`             |
 | `deployment.ingress.paths.publisher`       | Path on which `publisher` component should be exposed. Should be set to enable for `publisher`.             | `/publisher`      |
 | `deployment.ingress.paths.events`          | Path on which `events` component should be exposed. Should be set to enable for `events`.                   | `/events`         |
 | `deployment.ingress.paths.edgeJobs`        | Path on which `edgeJobs` component should be exposed. Should be set to enable for `edgeJobs`.               | `/edge/publisher` |
@@ -920,7 +851,6 @@ azure:
       consumerGroup:
         events: <IoTHubEventHubEventsConsumerGroup>
         telemetry: <IoTHubEventHubTelemetryConsumerGroup>
-        tunnel: <IoTHubEventHubTunnelConsumerGroup>
         onboarding: <IoTHubEventHubOnboardingConsumerGroup>
 
     sharedAccessPolicies:
@@ -941,7 +871,6 @@ azure:
     eventHub:
       name: <EventHubName>
       consumerGroup:
-        telemetryCdm: <EventHubTelemetryCdmConsumerGroup>
         telemetryUx: <EventHubTelemetryUxConsumerGroup>
 
   serviceBusNamespace:
@@ -1000,24 +929,6 @@ We use a key in Azure Key Vault to protect keys that are stored in
 You can specify the name of the key in Azure Key Vault to be used or the value will default to `dataprotection`.
 If it doesn't already exist, this key in Azure Key Vault will be created automatically on startup of `engineeringTool` component
 Configuration parameter for data protection key in Azure Key Vault is `azure.keyVault.key.dataProtection`.
-
-### Common Data Model
-
-> **NOTE:** This feature is in preview.
-
-`telemetryCdmProcessor` component can consume events from the secondary telemetry Event Hub and publish
-these events to the configured Azure Data Lake Storage Gen2 resource. It also ensures that the necessary
-[Common Data Model Schema](https://docs.microsoft.com/common-data-model/model-json) files are created so
-that consumers such as Power Apps and Power BI can access the data and metadata. You would have to explicitly
-enable `telemetryCdmProcessor` to use this feature, since it is disabled by default.
-
-Please note, that `telemetryCdmProcessor` requires authentication to be enabled. It also requires additional
-API permissions for `ServicesApp` AAD App Registration. Namely, it needs Delegated `user_impersonation`
-permission on `Azure Storage`. Please follow these steps to
-[add API permissions](https://docs.microsoft.com/graph/notifications-integration-app-registration#api-permissions).
-
-Here is a tutorial on
-[how to connect Power BI with Azure Data Lake Storage Gen2 and visualize publisher telemetry](../../../docs/tutorials/tut-power-bi-cdm.md).
 
 ### Swagger
 

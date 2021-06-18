@@ -23,8 +23,8 @@ namespace Opc.Ua.Nodeset {
         /// Creates a nodeset from node state collection
         /// </summary>
         /// <param name="collection"></param>
-        /// <param name="lastModified"></param>
         /// <param name="model"></param>
+        /// <param name="lastModified"></param>
         /// <param name="context"></param>
         /// <returns></returns>
         public static NodeSet2 CreateFromNodeStateCollection(NodeStateCollection collection,
@@ -48,8 +48,8 @@ namespace Opc.Ua.Nodeset {
         /// Creates a nodeset from node state collection
         /// </summary>
         /// <param name="nodes"></param>
-        /// <param name="lastModified"></param>
         /// <param name="model"></param>
+        /// <param name="lastModified"></param>
         /// <param name="context"></param>
         /// <returns></returns>
         public static NodeSet2 Create(IEnumerable<BaseNodeModel> nodes,
@@ -77,7 +77,11 @@ namespace Opc.Ua.Nodeset {
             var reader = new StreamReader(stream);
             try {
                 var serializer = new XmlSerializer(typeof(UANodeSet));
-                return new NodeSet2(serializer.Deserialize(reader) as UANodeSet);
+                var xmlReader = new XmlTextReader(reader) {
+                    DtdProcessing = DtdProcessing.Prohibit,
+                    XmlResolver = null
+                };
+                return new NodeSet2(serializer.Deserialize(xmlReader) as UANodeSet);
             }
             finally {
                 reader.Dispose();

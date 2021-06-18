@@ -74,8 +74,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport.Probe {
             /// <summary>
             /// Called whenever socket operation completes
             /// </summary>
-            /// <param name="arg"></param>
             /// <param name="index"></param>
+            /// <param name="arg"></param>
             /// <param name="ok"></param>
             /// <param name="timeout"></param>
             /// <returns>true if completed, false to be called again</returns>

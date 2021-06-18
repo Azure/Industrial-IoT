@@ -26,8 +26,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const int IOT_HUB_EVENT_HUB_RETENTION_TIME_IN_DAYS = 2;
 
         public const string IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME = "events";
-        public const string IOT_HUB_EVENT_HUB_EVENTS_CONSUMER_GROUP_NAME = "events";
-        public const string IOT_HUB_EVENT_HUB_TELEMETRY_CONSUMER_GROUP_NAME = "telemetry";
+
+        public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_EVENTS_NAME = "events";
+        public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TELEMETRY_NAME = "telemetry";
+        public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_TUNNEL_NAME = "tunnel";
+        public const string IOT_HUB_EVENT_HUB_CONSUMER_GROUP_ONBOARDING_NAME = "onboarding";
 
         public const string IOT_HUB_OWNER_KEY_NAME = "iothubowner";
 
@@ -82,14 +85,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             CancellationToken cancellationToken = default
         ) {
             try {
-                var operationInputs = new OperationInputs {
-                    Name = iotHubName
-                };
-
                 var nameAvailabilityInfo = await _iotHubClient
                     .IotHubResource
                     .CheckNameAvailabilityAsync(
-                        operationInputs,
+                        iotHubName,
                         cancellationToken
                     );
 
@@ -293,6 +292,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             try {
                 Log.Verbose($"Creating IoT Hub Event Hub Consumer Group: {consumerGroupName} ...");
 
+                var eventHubConsumerGroupName = new EventHubConsumerGroupName {
+                    Name = consumerGroupName,
+                };
+
                 var eventHubConsumerGroupInfo = await _iotHubClient
                     .IotHubResource
                     .CreateEventHubConsumerGroupAsync(
@@ -300,6 +303,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         iotHub.Name,
                         eventHubEndpointName,
                         consumerGroupName,
+                        eventHubConsumerGroupName,
                         cancellationToken
                     );
 

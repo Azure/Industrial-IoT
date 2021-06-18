@@ -1,0 +1,119 @@
+parameters:
+- name: ModeName
+  type: string
+- name: ModeValue
+  type: string
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Set Service Principal Environment Variables'
+  name: promoteserviceprincipal
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
+
+- task: AzurePowerShell@5
+  displayName: 'Set KeyVaultName-Variable'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\DetermineKeyVaultName.ps1'
+    scriptArguments: >
+      -ResourceGroupName '$(ResourceGroupName)'
+
+- task: AzurePowerShell@5
+  displayName: "Add permissions to KeyVault"
+  name: keyvaultpermissions
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\SetKeyVaultPermissions.ps1'
+    scriptArguments: >
+      -KeyVaultName "$(KeyVaultName)"
+      -ResourceGroupName "$(ResourceGroupName)"
+      -ServicePrincipalName "$(ServicePrincipalId)"
+
+- task: AzureKeyVault@1
+  displayName: 'Retrieve KeyVault secrets'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: '$(KeyVaultName)'
+    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,testeventprocessor-baseurl,testeventprocessor-username,testeventprocessor-password,iothub-eventhub-connectionstring,storageaccount-iothubcheckpoint-connectionstring'
+
+- task: AzureKeyVault@1
+  displayName: 'Retrieve KeyVault secrets for API tests'
+  condition: ne( '${{ parameters.ModeValue }}', 'standalone')
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: '$(KeyVaultName)'
+    SecretsFilter: 'PCS-SERVICE-URL,PCS-AUTH-TENANT,PCS-AUTH-CLIENT-APPID,PCS-AUTH-CLIENT-SECRET'
+
+- task: AzureKeyVault@1
+  displayName: 'Load secrets from Key Vault as variables by default'
+  condition: and(eq(variables['ContainerRegistryServer'], ''), eq(variables['ContainerRegistryUsername'], ''), eq(variables['ContainerRegistryPassword'], ''))
+  inputs:
+    azureSubscription: 'IOT-OPC-WALLS-SP'
+    KeyVaultName: 'developPipelineKV'
+    SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
+    RunAsPreJob: true
+
+- task: PowerShell@2
+  displayName: Versioning
+  name: setVersionInfo
+  condition: eq(variables['PlatformVersion'], '')
+  inputs:
+    targetType: filePath
+    filePath: $(BasePath)\..\scripts\set-version.ps1
+
+- task: AzureCLI@2
+  displayName: 'Override platform version if necessary'
+  condition: eq(variables['PlatformVersion'], '')
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    scriptLocation: 'InlineScript'
+    scriptType: 'ps'
+    addSpnToEnvironment: true
+    inlineScript: |
+      Write-Host "##vso[task.setvariable variable=PlatformVersion]$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)"
+
+- task: DotNetCoreCLI@2
+  displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
+  timeoutInMinutes: 90
+  inputs:
+    command: test
+    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.csproj'
+    arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal'
+  env:
+    PCS_SERVICE_URL: '$(pcs-service-url)'
+    PCS_AUTH_TENANT: '$(pcs-auth-tenant)'
+    PCS_AUTH_CLIENT_APPID: '$(pcs-auth-client-appid)'
+    PCS_AUTH_CLIENT_SECRET: '$(pcs-auth-client-secret)'
+    ApplicationName: '$(ApplicationName)'
+    PLC_SIMULATION_URLS: '$(plc-simulation-urls)'
+    IOT_EDGE_DEVICE_ID: '$(iot-edge-device-id)'
+    IOT_EDGE_DEVICE_DNSNAME: '$(iot-edge-device-dnsname)'
+    IOT_EDGE_VM_USERNAME: '$(iot-edge-vm-username)'
+    IOT_EDGE_VM_PUBLICKEY: '$(iot-edge-vm-publickey)'
+    IOT_EDGE_VM_PRIVATEKEY: '$(iot-edge-vm-privatekey)'
+    PCS_IOTHUB_CONNSTRING: '$(pcs-iothub-connstring)'
+    IOTHUB_EVENTHUB_CONNECTIONSTRING: '$(iothub-eventhub-connectionstring)'
+    STORAGEACCOUNT_IOTHUBCHECKPOINT_CONNECTIONSTRING: '$(storageaccount-iothubcheckpoint-connectionstring)'
+    TESTEVENTPROCESSOR_BASEURL: '$(testeventprocessor-baseurl)'
+    TESTEVENTPROCESSOR_USERNAME: '$(testeventprocessor-username)'
+    TESTEVENTPROCESSOR_PASSWORD: '$(testeventprocessor-password)'
+    PCS_IMAGES_TAG: '$(PlatformVersion)'
+    PCS_CONTAINER_REGISTRY_SERVER: "$(ContainerRegistryServer)"
+    PCS_CONTAINER_REGISTRY_USER: "$(ContainerRegistryUsername)"
+    PCS_CONTAINER_REGISTRY_PASSWORD: "$(ContainerRegistryPassword)"
+    PCS_IMAGES_NAMESPACE: "$(ImageNamespace)"
+    IOT_EDGE_VERSION: "$(EdgeVersion)"
+    NESTED_EDGE_FLAG: "$(NestedEdgeFlag)"
+    NESTED_EDGE_SSH_CONNECTIONS: "$(NestedEdgeSshConnection)"

@@ -10,7 +10,7 @@
 $version = & (Join-Path $PSScriptRoot "get-version.ps1")
 
 # Call versioning for build
-& nbgv  @("cloud", "-c", "-a")
+& ./tools/nbgv  @("cloud", "-c", "-a")
 if ($LastExitCode -ne 0) {
    Write-Warning "Error: 'nbgv cloud -c -a' failed with $($LastExitCode)."
 }
@@ -20,3 +20,4 @@ Write-Host "Setting version build variables:"
 
 Write-Host "##vso[task.setvariable variable=Version_Full;isOutput=true]$($version.Full)"
 Write-Host "##vso[task.setvariable variable=Version_Prefix;isOutput=true]$($version.Prefix)"
+Write-Host "##vso[task.setvariable variable=Version_Prerelease;isOutput=true]$($version.Prerelease)"

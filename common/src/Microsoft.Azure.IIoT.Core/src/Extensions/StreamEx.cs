@@ -8,6 +8,7 @@ namespace System.IO {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Xml;
 
     /// <summary>
     /// Stream extensions
@@ -51,7 +52,11 @@ namespace System.IO {
             var reader = new StreamReader(stream);
             try {
                 var serializer = new Xml.Serialization.XmlSerializer(typeof(T));
-                return (T)serializer.Deserialize(reader);
+                var xmlReader = new XmlTextReader(reader) {
+                    DtdProcessing = DtdProcessing.Prohibit,
+                    XmlResolver = null
+                };
+                return (T)serializer.Deserialize(xmlReader);
             }
             finally {
                 reader.Close();

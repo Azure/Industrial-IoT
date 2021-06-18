@@ -5,8 +5,9 @@
     <Description>Azure Industrial IoT Core Azure Storage Implementations</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.2.2" />
+    <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.6.1" />
     <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="5.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />

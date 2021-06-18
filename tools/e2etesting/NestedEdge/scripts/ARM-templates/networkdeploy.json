@@ -1,0 +1,1503 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "networkName": {
+      "type": "string",
+      "defaultValue": "Purdue",
+      "metadata": {
+        "description": "Virtual Network Name"
+      }
+    },
+    "addressPrefix": {
+      "type": "string",
+      "defaultValue": "10.16",
+      "metadata": {
+        "description": "Address Prefix"
+      }
+    }
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "L0SubnetName": "1-L0-OT-Process",
+    "L1SubnetName": "2-L1-OT-BasicControl",
+    "L2SubnetName": "3-L2-OT-AreaSupervisoryControl",
+    "L3SubnetName": "4-L3-OT-SiteOperations",
+    "OtDmzSubnetName": "5-OT-Dmz",
+    "L4SubnetName": "6-L4-IT-SiteLogistics",
+    "L5SubnetName": "7-L5-IT-EnterpriseNetwork",
+    "ItDmzSubnetName": "8-IT-Dmz",
+    "SupportSubnetName": "999-Demo-Support",
+    "L0NsgName": "[concat(parameters('networkName'), '-L0-nsg')]",
+    "L1NsgName": "[concat(parameters('networkName'), '-L1-nsg')]",
+    "L2NsgName": "[concat(parameters('networkName'), '-L2-nsg')]",
+    "L3NsgName": "[concat(parameters('networkName'), '-L3-nsg')]",
+    "OtDmzNsgName": "[concat(parameters('networkName'), '-otdmz-nsg')]",
+    "L4NsgName": "[concat(parameters('networkName'), '-L4-nsg')]",
+    "L5NsgName": "[concat(parameters('networkName'), '-L5-nsg')]",
+    "ItDmzNsgName": "[concat(parameters('networkName'), '-itdmz-nsg')]",
+    "SupportNsgName": "[concat(parameters('networkName'), '-support-nsg')]",
+    "networkAddressCidr": "[concat(parameters('addressPrefix'), '.0.0/16')]",
+    "L0AddressCidr": "[concat(parameters('addressPrefix'), '.1.0/24')]",
+    "L1AddressCidr": "[concat(parameters('addressPrefix'), '.2.0/24')]",
+    "L2AddressCidr": "[concat(parameters('addressPrefix'), '.3.0/24')]",
+    "L3AddressCidr": "[concat(parameters('addressPrefix'), '.4.0/24')]",
+    "OtDmzAddressCidr": "[concat(parameters('addressPrefix'), '.5.0/24')]",
+    "L4AddressCidr": "[concat(parameters('addressPrefix'), '.6.0/24')]",
+    "L5AddressCidr": "[concat(parameters('addressPrefix'), '.7.0/24')]",
+    "ItDmzAddressCidr": "[concat(parameters('addressPrefix'), '.8.0/24')]",
+    "SupportAddressCidr": "[concat(parameters('addressPrefix'), '.9.0/24')]",
+    "SupportSourceAddress": "*",
+    "PortSsh": "22",
+    "PortRdp": "3389",
+    "PortModbus": "502",
+    "PortModbosTcpSecurity": "802",
+    "PortMqtt": "1883",
+    "PortMqtts": "8883",
+    "PortHttp": "80",
+    "PortHttps": "443",
+    "PortProxy": "3128",
+    "PortAmqps": "5671",
+    "PortOPC1": "50000",
+    "PortOPC2": "50001",
+    "PortGrafana": "3000"
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-10-01",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[parameters('networkName')]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[variables('L0NsgName')]",
+        "[variables('L1NsgName')]",
+        "[variables('L2NsgName')]",
+        "[variables('L3NsgName')]",
+        "[variables('L4NsgName')]",
+        "[variables('L5NsgName')]",
+        "[variables('ItDmzNsgName')]",
+        "[variables('OtDmzNsgName')]",
+        "[variables('SupportNsgName')]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('networkAddressCidr')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('SupportSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('SupportAddressCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('SupportNsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('L0SubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('L0AddressCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('L0NsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('L1SubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('L1AddressCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('L1NsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('L2SubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('L2AddressCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('L2NsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('L3SubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('L3AddressCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('L3NsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('L4SubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('L4AddressCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('L4NsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('L5SubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('L5AddressCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('L5NsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('OtDmzSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('OtDmzAddressCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('OtDmzNsgName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('ItDmzSubnetName')]",
+            "properties": {
+              "addressPrefix": "[variables('ItDmzAddressCidr')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('ItDmzNsgName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('SupportNsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2018-08-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow_Inbound_Remoting_1",
+            "properties": {
+              "description": "Allow Inbound Routing - May want to limit to CIDR",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortSsh')]",
+                "[variables('PortRdp')]",
+                "[variables('PortGrafana')]"
+              ],
+              "sourceAddressPrefix": "[variables('SupportSourceAddress')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Inbound",
+            "properties": {
+              "description": "Deny All Other Inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('L0NsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2018-08-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "ToRemove_Allow_Machine_Build",
+            "properties": {
+              "description": "Remove, only used for custom script execution",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 202,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_Support",
+            "properties": {
+              "description": "Allow Inbound From Support",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('SupportAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L1",
+            "properties": {
+              "description": "Allow Inbound From L1",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]",
+                "[variables('PortMqtts')]",
+                "[variables('PortMqtt')]",
+                "[variables('PortModbosTcpSecurity')]",
+                "[variables('PortModbus')]"
+              ],
+              "sourceAddressPrefix": "[variables('L1AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Inbound",
+            "properties": {
+              "description": "Deny All Other Inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L1",
+            "properties": {
+              "description": "Allow Outbound to L1",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L1AddressCidr')]",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Outbound",
+            "properties": {
+              "description": "Deny All Other Outbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('L1NsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2018-08-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "ToRemove_Allow_Machine_Build_2",
+            "properties": {
+              "description": "Remove, only used for custom script execution",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 202,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_Support",
+            "properties": {
+              "description": "Allow Inbound From Support",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('SupportAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L0",
+            "properties": {
+              "description": "Allow Inbound From L0",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('L0AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 205,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L2",
+            "properties": {
+              "description": "Allow Inbound From L2",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]",
+                "[variables('PortMqtts')]",
+                "[variables('PortMqtt')]",
+                "[variables('PortModbosTcpSecurity')]",
+                "[variables('PortModbus')]"
+              ],
+              "sourceAddressPrefix": "[variables('L2AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Inbound",
+            "properties": {
+              "description": "Deny All Other Inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L0",
+            "properties": {
+              "description": "Allow Outbound to L0",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]",
+                "[variables('PortMqtts')]",
+                "[variables('PortMqtt')]",
+                "[variables('PortModbosTcpSecurity')]",
+                "[variables('PortModbus')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L0AddressCidr')]",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L2",
+            "properties": {
+              "description": "Allow Outbound to L2",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L2AddressCidr')]",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Outbound",
+            "properties": {
+              "description": "Deny All Other Outbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('L2NsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2018-08-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "KepIn",
+            "properties": {
+              "description": "For KepServer",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "49320",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "KepOut",
+            "properties": {
+              "description": "For KepServer",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "49320",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "ToRemove_Allow_Machine_Build_3",
+            "properties": {
+              "description": "Remove, only used for custom script execution",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 202,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_Support",
+            "properties": {
+              "description": "Allow Inbound From Support",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('SupportAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L1",
+            "properties": {
+              "description": "Allow Inbound From L1",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('L1AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 205,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L3",
+            "properties": {
+              "description": "Allow Inbound From L3",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]",
+                "[variables('PortOPC1')]",
+                "[variables('PortOPC2')]"
+              ],
+              "sourceAddressPrefix": "[variables('L3AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Inbound",
+            "properties": {
+              "description": "Deny All Other Inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L1",
+            "properties": {
+              "description": "Allow Outbound to L1",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]",
+                "[variables('PortMqtts')]",
+                "[variables('PortMqtt')]",
+                "[variables('PortModbosTcpSecurity')]",
+                "[variables('PortModbus')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L1AddressCidr')]",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L3",
+            "properties": {
+              "description": "Allow Outbound to L3",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L3AddressCidr')]",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Outbound",
+            "properties": {
+              "description": "Deny All Other Outbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('L3NsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2018-08-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "KepIn",
+            "properties": {
+              "description": "For KepServer",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "49320",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "KepOut",
+            "properties": {
+              "description": "For KepServer",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "49320",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "HttpsOut",
+            "properties": {
+              "description": "For AzureMonitor",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "ToRemove_Allow_Machine_Build_4",
+            "properties": {
+              "description": "Remove, only used for custom script execution",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 202,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_Support",
+            "properties": {
+              "description": "Allow Inbound From Support",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('SupportAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L2",
+            "properties": {
+              "description": "Allow Inbound From L2",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('L2AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 205,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_OT_DMZ",
+            "properties": {
+              "description": "Allow Inbound From OT DMZ",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]",
+                "[variables('PortProxy')]"
+              ],
+              "sourceAddressPrefix": "[variables('OtDmzAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Inbound",
+            "properties": {
+              "description": "Deny All Other Inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L2",
+            "properties": {
+              "description": "Allow Outbound to L2",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]",
+                "[variables('PortMqtts')]",
+                "[variables('PortMqtt')]",
+                "[variables('PortModbosTcpSecurity')]",
+                "[variables('PortModbus')]",
+                "[variables('PortOPC1')]",
+                "[variables('PortOPC2')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L2AddressCidr')]",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_extern_OPC_UA",
+            "properties": {
+              "description": "Allow extern OPCUA",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "50000",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 205,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_OT_DMZ",
+            "properties": {
+              "description": "Allow Outbound to OT_DMZ",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortProxy')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('OtDmzAddressCidr')]",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L4_AMQPS",
+            "properties": {
+              "description": "Allow Outbound to L4 using AMQPS",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortAmqps')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L4AddressCidr')]",
+              "access": "Allow",
+              "priority": 220,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Outbound",
+            "properties": {
+              "description": "Deny All Other Outbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('OtDmzNsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2018-08-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "ToRemove_Allow_Machine_Build_5",
+            "properties": {
+              "description": "Remove, only used for custom script execution",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 202,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_Support",
+            "properties": {
+              "description": "Allow Inbound From Support",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('SupportAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L3",
+            "properties": {
+              "description": "Allow Inbound From L3",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortProxy')]"
+              ],
+              "sourceAddressPrefix": "[variables('L3AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 205,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L4",
+            "properties": {
+              "description": "Allow Inbound From L4",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]"
+              ],
+              "sourceAddressPrefix": "[variables('L4AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Inbound",
+            "properties": {
+              "description": "Deny All Other Inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L3",
+            "properties": {
+              "description": "Allow Outbound to L3",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]",
+                "[variables('PortProxy')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L3AddressCidr')]",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L4",
+            "properties": {
+              "description": "Allow Outbound to L4",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L4AddressCidr')]",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Outbound",
+            "properties": {
+              "description": "Deny All Other Outbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('L4NsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2018-08-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "KepIn",
+            "properties": {
+              "description": "For KepServer",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "49320",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "KepOut",
+            "properties": {
+              "description": "For KepServer",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "49320",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "HttpsOut",
+            "properties": {
+              "description": "For AzureMonitor",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "ToRemove_Allow_Machine_Build_6",
+            "properties": {
+              "description": "Remove, only used for custom script execution",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 202,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_Support",
+            "properties": {
+              "description": "Allow Inbound From Support",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('SupportAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_OT_DMZ",
+            "properties": {
+              "description": "Allow Inbound From OT DMZ",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]"
+              ],
+              "sourceAddressPrefix": "[variables('OtDmzAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 205,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L3",
+            "properties": {
+              "description": "Allow Inbound From L3",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('L3AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Inbound",
+            "properties": {
+              "description": "Deny All Other Inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_OT_DMZ",
+            "properties": {
+              "description": "Allow Outbound to OT DMZ",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('OtDmzAddressCidr')]",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L5",
+            "properties": {
+              "description": "Allow Outbound to L5",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L5AddressCidr')]",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L5_AMQPS",
+            "properties": {
+              "description": "Allow Outbound to L5 using AMQPS",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortAmqps')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L5AddressCidr')]",
+              "access": "Allow",
+              "priority": 220,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Outbound",
+            "properties": {
+              "description": "Deny All Other Outbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('L5NsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2018-08-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "ToRemove_Allow_Machine_Build_7",
+            "properties": {
+              "description": "Remove, only used for custom script execution",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 202,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "HttpsOut",
+            "properties": {
+              "description": "For AzureMonitor",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_Support",
+            "properties": {
+              "description": "Allow Inbound From Support",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('SupportAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L4",
+            "properties": {
+              "description": "Allow Inbound From L4",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('L4AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 205,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_IT_Dmz",
+            "properties": {
+              "description": "Allow Inbound From IT DMZ",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]"
+              ],
+              "sourceAddressPrefix": "[variables('ItDmzAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Inbound",
+            "properties": {
+              "description": "Deny All Other Inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_L4",
+            "properties": {
+              "description": "Allow Outbound to L4",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortHttps')]",
+                "[variables('PortHttp')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('L4AddressCidr')]",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_To_IT_DMZ",
+            "properties": {
+              "description": "Allow Outbound to IT_DMZ",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortProxy')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "[variables('ItDmzAddressCidr')]",
+              "access": "Allow",
+              "priority": 210,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Allow_Outbound_Amqps",
+            "properties": {
+              "description": "Allow Outbound to the internet over AMQPS",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRanges": [
+                "[variables('PortAmqps')]"
+              ],
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 220,
+              "direction": "Outbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Outbound",
+            "properties": {
+              "description": "Deny All Other Outbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('ItDmzNsgName')]",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2018-08-01",
+      "location": "[variables('location')]",
+      "tags": {},
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow_Inbound_From_Support",
+            "properties": {
+              "description": "Allow Inbound From Support",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('SupportAddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 200,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Allow_Inbound_From_L5",
+            "properties": {
+              "description": "Allow Inbound From L5",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "[variables('L5AddressCidr')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 205,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Deny_All_Other_Inbound",
+            "properties": {
+              "description": "Deny All Other Inbound",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 250,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "virtualNetworkResourceGroupName": {
+      "type": "string",
+      "value": "[resourceGroup().name]"
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "value": "[parameters('networkName')]"
+    },
+    "virtualNetworkAddressPrefix": {
+      "type": "string",
+      "value": "[parameters('addressPrefix')]"
+    },
+    "networkAddressCidr": {
+      "type": "string",
+      "value": "[variables('networkAddressCidr')]"
+    },
+    "L0SubnetName": {
+      "type": "string",
+      "value": "[variables('L0SubnetName')]"
+    },
+    "L0NsgName": {
+      "type": "string",
+      "value": "[variables('L0NsgName')]"
+    },
+    "L0SubnetCidr": {
+      "type": "string",
+      "value": "[variables('L0AddressCidr')]"
+    },
+    "L1SubnetName": {
+      "type": "string",
+      "value": "[variables('L1SubnetName')]"
+    },
+    "L1NsgName": {
+      "type": "string",
+      "value": "[variables('L1NsgName')]"
+    },
+    "L1SubnetCidr": {
+      "type": "string",
+      "value": "[variables('L1AddressCidr')]"
+    },
+    "L2SubnetName": {
+      "type": "string",
+      "value": "[variables('L2SubnetName')]"
+    },
+    "L2NsgName": {
+      "type": "string",
+      "value": "[variables('L2NsgName')]"
+    },
+    "L2SubnetCidr": {
+      "type": "string",
+      "value": "[variables('L2AddressCidr')]"
+    },
+    "L3SubnetName": {
+      "type": "string",
+      "value": "[variables('L3SubnetName')]"
+    },
+    "L3NsgName": {
+      "type": "string",
+      "value": "[variables('L3NsgName')]"
+    },
+    "L3SubnetCidr": {
+      "type": "string",
+      "value": "[variables('L3AddressCidr')]"
+    },
+    "L4SubnetName": {
+      "type": "string",
+      "value": "[variables('L4SubnetName')]"
+    },
+    "L4NsgName": {
+      "type": "string",
+      "value": "[variables('L4NsgName')]"
+    },
+    "L4SubnetCidr": {
+      "type": "string",
+      "value": "[variables('L4AddressCidr')]"
+    },
+    "L5SubnetName": {
+      "type": "string",
+      "value": "[variables('L5SubnetName')]"
+    },
+    "L5NsgName": {
+      "type": "string",
+      "value": "[variables('L5NsgName')]"
+    },
+    "L5SubnetCidr": {
+      "type": "string",
+      "value": "[variables('L5AddressCidr')]"
+    },
+    "OtDmzSubnetName": {
+      "type": "string",
+      "value": "[variables('OtDmzSubnetName')]"
+    },
+    "OtDmzNsgName": {
+      "type": "string",
+      "value": "[variables('OtDmzNsgName')]"
+    },
+    "OtDmzSubnetCidr": {
+      "type": "string",
+      "value": "[variables('OtDmzAddressCidr')]"
+    },
+    "ItDmzSubnetName": {
+      "type": "string",
+      "value": "[variables('ItDmzSubnetName')]"
+    },
+    "ItDmzNsgName": {
+      "type": "string",
+      "value": "[variables('ItDmzNsgName')]"
+    },
+    "ItDmzSubnetCidr": {
+      "type": "string",
+      "value": "[variables('ItDmzAddressCidr')]"
+    },
+    "SupportSubnetName": {
+      "type": "string",
+      "value": "[variables('SupportSubnetName')]"
+    },
+    "SupportNsgName": {
+      "type": "string",
+      "value": "[variables('SupportNsgName')]"
+    },
+    "SupportSubnetCidr": {
+      "type": "string",
+      "value": "[variables('SupportAddressCidr')]"
+    }
+  }
+}

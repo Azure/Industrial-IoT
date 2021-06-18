@@ -1,0 +1,93 @@
+name: $(Date:yyyyMMdd)$(Rev:rr)
+
+trigger: none
+pr: none
+
+schedules:
+- cron: "0 10 * * *"
+  displayName: Nightly build of main and release branch.
+  branches:
+    include:
+    - main
+    - release
+  always: true
+
+# Trigger Stand Alone E2E Pipeline post completion of build pipeline.
+resources:
+  pipelines:
+  - pipeline: Standalone-E2E-CD-Pipeline
+    source: Custom\Azure_IOT\Industrial\Components\Azure.Industrial-IoT
+    trigger:
+      branches:
+        include:
+        - refs/heads/releases/*
+        - refs/heads/release/*
+        - refs/heads/master
+        - refs/heads/main
+pool:
+  name: '$(AgentPool)'
+
+variables:
+- template: steps/variables.yml
+
+stages:
+- stage: build
+  displayName: "Build Resources"
+  condition: ne(variables['UseExisting'], true)
+  jobs:
+  - job: buildtestresources
+    displayName: 'Build Test Resources'
+    steps:
+    - template: steps/buildtestresources.yml
+
+- stage: deploy
+  displayName: "Deploy Components"
+  dependsOn: build
+  condition: and(not(canceled()), eq(dependencies.build.result, 'Succeeded'))
+  jobs:
+  - job: deploystandalone
+    displayName: 'Deploy Standalone Resources'
+    steps:
+    - template: steps/deploystandalone.yml
+
+  - job: deploynestedtestresources
+    pool:
+      vmImage: 'ubuntu-latest'
+    condition: and(not(canceled()), and(eq(dependencies.deploystandalone.result, 'Succeeded'), eq(variables['NestedEdgeFlag'], 'Enable')))
+    dependsOn: deploystandalone
+    displayName: 'Deploy Nested Edge Test Resources'
+    steps:
+    - template: steps/deploynestededgeresources.yml
+
+  - job: deploytestresources
+    condition: and(not(canceled()), or(eq(dependencies.deploynestedtestresources.result, 'Succeeded'), eq(dependencies.deploynestedtestresources.result, 'Skipped')))
+    dependsOn: deploynestedtestresources
+    displayName: 'Deploy Test Resources'
+    steps:
+    - template: steps/deploytestresources.yml
+
+- stage: runtests
+  displayName: "Execute tests"
+  dependsOn: deploy
+  condition: and(not(canceled()), or(eq(dependencies.deploy.result, 'Succeeded'), eq(dependencies.deploy.result, 'Skipped')))
+  jobs:
+  - job: runtests
+    timeoutInMinutes: 120
+    displayName: 'Run End 2 End Tests'
+    steps:
+    - template: steps/runtests.yml
+      parameters:
+        ModeName: PublisherMode
+        ModeValue: standalone
+
+- stage: cleanup
+  displayName: Cleanup resources
+  dependsOn: runtests
+  condition: and(not(canceled()), eq(variables['Cleanup'], true))
+  jobs:
+  - job: cleanup
+    displayName: Cleanup
+    steps:
+    - template: steps/cleanup.yml
+      parameters:
+        CleanupAppRegistrations: false

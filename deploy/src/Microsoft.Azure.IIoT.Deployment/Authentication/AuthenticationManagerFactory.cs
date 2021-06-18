@@ -5,25 +5,28 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
-    using System;
     using System.Runtime.InteropServices;
+    using Microsoft.Azure.IIoT.Deployment.Deployment;
 
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-
+    /// <summary>
+    /// Factory class for instantiating corresponding IAuthenticationManager class.
+    /// </summary>
     class AuthenticationManagerFactory {
 
+        /// <summary>
+        /// Get instance of IAuthenticationManager based on provided authentication configuration.
+        /// </summary>
+        /// <param name="authConf"> authentication configuration </param>
+        /// <returns></returns>
         public static IAuthenticationManager GetAuthenticationManager(
-            AzureEnvironment azureEnvironment,
-            Guid tenantId,
-            Guid applicationClientId,
-            string clientSecret = null
+            AuthenticationConfiguration authConf
         ) {
-            if (null != clientSecret) {
+            if (null != authConf.ClientSecret) {
                 return new ClientCredentialsAuthenticationManager(
-                    azureEnvironment,
-                    tenantId,
-                    applicationClientId,
-                    clientSecret
+                    authConf.AzureEnvironment,
+                    authConf.TenantId,
+                    authConf.ClientId,
+                    authConf.ClientSecret
                 );
             }
             else {
@@ -31,16 +34,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
 
                 if (isWindows) {
                     return new InteractiveAuthenticationManager(
-                        azureEnvironment,
-                        tenantId,
-                        applicationClientId
+                        authConf.AzureEnvironment,
+                        authConf.TenantId,
+                        authConf.ClientId
                     );
                 }
                 else {
                     return new CodeFlowAuthenticationManager(
-                        azureEnvironment,
-                        tenantId,
-                        applicationClientId
+                        authConf.AzureEnvironment,
+                        authConf.TenantId,
+                        authConf.ClientId
                     );
 
                 }

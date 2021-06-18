@@ -1,6 +1,7 @@
 <#
  .SYNOPSIS
-    Builds csproj file and returns buildable dockerfile build definitions
+    Builds csproj file and returns buildable dockerfile build 
+    definitions
 
  .PARAMETER Path
     The folder containing the container.json file.
@@ -8,11 +9,17 @@
  .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
     Debug also includes debugger into images (where applicable).
+
+ .PARAMETER Fast
+    Perform a fast build.  This will only build what is needed for 
+    the system to operate.
 #>
 
 Param(
     [string] $Path = $null,
-    [switch] $Debug
+    [string] $BuildRoot = $null,
+    [switch] $Debug,
+    [switch] $Fast
 )
 
 # Get meta data
@@ -25,7 +32,7 @@ if (!(Test-Path -Path $Path -PathType Container)) {
 }
 $Path = Resolve-Path -LiteralPath $Path
 $configuration = "Release"
-if ($Debug.IsPresent) {
+if ($script:Debug.IsPresent) {
     $configuration = "Debug"
 }
 $metadata = Get-Content -Raw -Path (Join-Path $Path "container.json") `
@@ -33,12 +40,36 @@ $metadata = Get-Content -Raw -Path (Join-Path $Path "container.json") `
 
 $definitions = @()
 
+# set build root
+if ([string]::IsNullOrEmpty($BuildRoot)) {
+    $BuildRoot = $Path
+}
+else {
+    $BuildRoot = Join-Path (Resolve-Path -LiteralPath $BuildRoot) `
+        $metadata.name
+}
 # Create build job definitions from dotnet project in current folder
 $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
 if ($projFile) {
 
-    $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
-    $runtimes = @("linux-arm", "linux-arm64", "linux-x64", "win-x64", "")
+    # Create dotnet command line 
+    $output = (Join-Path $BuildRoot `
+        (Join-Path "bin" (Join-Path "publish" $configuration)))
+
+    $argumentList = @("clean", $projFile.FullName)
+    & dotnet $argumentList 2>&1 | ForEach-Object { $_ | Out-Null }
+    Remove-Item $output -Recurse -ErrorAction SilentlyContinue
+
+    $runtimes = @(
+        "linux-arm",
+        "linux-musl-arm",
+        "linux-arm64",
+        "linux-musl-arm64",
+        "linux-x64",
+        "linux-musl-x64",
+        "win-x64",
+        ""
+    )
     if (![string]::IsNullOrEmpty($metadata.base)) {
         # Shortcut - only build portable
         $runtimes = @("")
@@ -46,8 +77,19 @@ if ($projFile) {
     $runtimes | ForEach-Object {
         $runtimeId = $_
 
+        # Only build portable, windows and linux in fast mode
+        if ($script:Fast.IsPresent -and ![string]::IsNullOrEmpty($runtimeId)) {
+            if (($runtimeId -ne "win-x64") -and ($runtimeId -ne "linux-musl-x64")) {
+                return;
+            }
+            # if not iot edge, just build linux in addition to portable.
+            if ((!$metadata.iotedge) -and ($runtimeId -ne "linux-musl-x64")) {
+                return;
+            }
+        }
+
         # Create dotnet command line 
-        $argumentList = @("publish", "-c", $configuration)
+        $argumentList = @("publish", "-c", $configuration, "--force")
         if (![string]::IsNullOrEmpty($runtimeId)) {
             $argumentList += "-r"
             $argumentList += $runtimeId
@@ -67,12 +109,6 @@ if ($projFile) {
         }
     }
 
-    $installLinuxDebugger = @"
-RUN apt-get update && apt-get install -y --no-install-recommends unzip curl procps \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg
-ENV PATH="${PATH}:/root/vsdbg/vsdbg"
-"@
     # Get project's assembly name to create entry point entry in dockerfile
     $assemblyName = $null
     ([xml] (Get-Content -Path $projFile.FullName)).Project.PropertyGroup `
@@ -89,37 +125,32 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-arm32v7"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
-            debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/arm64" = @{
-            runtimeId = "linux-arm64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
+            runtimeId = "linux-musl-arm64"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine-arm64v8"
             platformTag = "linux-arm64v8"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
-            debugger = $null
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/amd64" = @{
-            runtimeId = "linux-x64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
+            runtimeId = "linux-musl-x64"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
-            debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "windows/amd64:10.0.17763.1457" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:10.0.17763.1457-amd64"
+            image = "mcr.microsoft.com/windows/nanoserver:1809"
             platformTag = "nanoserver-amd64-1809"
-            debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
         "windows/amd64:10.0.18363.1082" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:10.0.18363.1082-amd64"
+            image = "mcr.microsoft.com/windows/nanoserver:1909"
             platformTag = "nanoserver-amd64-1909"
-            debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
     }
@@ -133,6 +164,17 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         $platformTag = $platformInfo.platformTag
         $entryPoint = $platformInfo.entryPoint
         $environmentVars = @("ENV DOTNET_RUNNING_IN_CONTAINER=true")
+
+        if ($script:Fast.IsPresent) {
+            # Only build windows and linux iot edge images in fast mode
+            if (($_ -ne "windows/amd64:10.0.17763.1457") -and ($_ -ne "linux/amd64")) {
+                return;
+            }
+            # if not iot edge, just build linux images.
+            if ((!$metadata.iotedge) -and ($_ -ne "linux/amd64")) {
+                return;
+            }
+        }
 
         #
         # Check for overridden base image name - e.g. aspnet core images
@@ -148,12 +190,6 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             $runtimeId = "portable"
         }
 
-        $debugger = ""
-        if ($Debug.IsPresent) {
-            if (![string]::IsNullOrEmpty($platformInfo.debugger)) {
-                $debugger = $platformInfo.debugger
-            }
-        }
         $runtimeOnly = ""
         if (![string]::IsNullOrEmpty($platformInfo.runtimeOnly)) {
             $runtimeOnly = $platformInfo.runtimeOnly
@@ -187,44 +223,23 @@ $($workdir)
 COPY . .
 $($runtimeOnly)
 
-$($debugger)
-
 $($environmentVars | Out-String)
 
 ENTRYPOINT $($entryPoint)
 
 "@ 
         $imageContent = (Join-Path $output $runtimeId)
-        $dockerFile = (Join-Path $imageContent "Dockerfile.$($platformTag)")
+        $dockerFile = (Join-Path $output "Dockerfile.$($platformTag)")
         Write-Host Writing $($dockerFile)
         # $dockerFileContent | Out-Host
         $dockerFileContent | Out-File -Encoding ascii -FilePath $dockerFile
+
         $definitions += @{
             platform = $_
             dockerfile = $dockerFile
+            baseImage = $baseImage
             platformTag = $platformTag
             buildContext = $imageContent
-        }
-    }
-}
-
-if ($definitions.Count -eq 0) {
-    # Non-.net - Create job definitions from dockerfile structure in current folder
-    Get-ChildItem $Path -Recurse `
-        | Where-Object Name -eq "Dockerfile" `
-        | ForEach-Object {
-
-        $dockerfile = $_.FullName
-
-        $platformFolder = $_.DirectoryName.Replace($Path, "")
-        $platform = $platformFolder.Substring(1).Replace("\", "/")
-        $platformTag = $platform.Replace("/", "-")
-
-        $definitions += @{
-            dockerfile = $dockerfile
-            platform = $platform
-            platformTag = $platformTag
-            buildContext = $buildRoot
         }
     }
 }
