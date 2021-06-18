@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Deploy {
         string LogWorkspaceKey { get; }
 
         /// <summary>
-        /// The Resource Is of the IoT Hub
+        /// The Resource Id of the IoT Hub
         /// </summary>
         string IoTHubResourceId { get; }
     }
