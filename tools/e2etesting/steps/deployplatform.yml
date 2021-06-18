@@ -31,7 +31,7 @@ steps:
   condition: startsWith(variables['BranchName'], 'release')
   inputs:
     azureSubscription: 'IOT-OPC-WALLS-SP'
-    KeyVaultName: 'releaseCICDPipelineKV'
+    KeyVaultName: 'industrialiotKV'
     SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
