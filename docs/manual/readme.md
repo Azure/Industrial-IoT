@@ -19,34 +19,45 @@ The edge services are implemented as Azure IoT Edge modules and run on-premises.
 The following edge modules are part of the platform:
 
 - OPC Publisher Module
+
   The OPC Publisher module runs on Azure IoT Edge and connects to OPC UA-enabled assets, reads data from them using OPC UA subscriptions, converts the resulting OPC UA “Data Changed Notifications” into OPC UA PubSub messages, and sends them to the cloud via [IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub). It can be configured from the cloud or locally via a configuration file.
 
 - OPC Twin Module
+
   The OPC Twin module runs on Azure IoT Edge and connects to OPC UA-enabled assets, browses their data model, reads and writes ad-hoc data, and calls methods on the asset. It can be accessed from the cloud.
 
 - Discovery Module
+
   The Discovery module runs on Azure IoT Edge and scans the shop floor network for OPC UA-enabled assets. When it finds an asset, it queries the assets endpoints (including its security configuration) and registers an IoT Hub device in the IoT Hub Device Registry for each endpoint.
 
 - Registry Microservice
+
   The Registry microservice is responsible for CRUD commands to the [IoT Hub Device Registry](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-identity-registry) as well as providing a HTTP REST interface for cloud applications. It manages all OPC UA asset endpoints that are stored in the IoT Hub device registry.
 
 - OPC Twin Microservice
+
   The OPC Twin microservice is responsible for accessing OPC UA assets via the OPC Twin edge module and provides a HTTP REST interface to cloud applications.
 
 - OPC Publisher Microservice and Orchestrator Microservice
+
   The OPC Publisher microservice is responsible for managing OPC Publisher module subscriptions to OPC UA assets. It provides a HTTP REST interface to cloud applications.
+  
   The Orchestrator microservice is an internal service responsible for load-balancing publishing jobs across OPC Publisher modules deployed in the same shop floor. It is also used to fail over publishing jobs from one OPC Publisher module to another.
 
 - Edge Telemetry Processor Microservice
+
   The Edge Telemetry Processor microservice is responsible for decoding OPC UA PubSub messages received by IoT Hub and provides the data to post processing Azure services like Azure Event Hubs, Azure Data Lake Storage or Azure Time Series Insights for further processing and visualization.
 
 - Registry Onboarding Processor Microservice
+
   The Registry Onboarding Processor microservice responsible for processing OPC UA endpoints sent to the cloud by the Discovery module.
 
 - Edge Event Processor Microservice
+
   The Edge Event Processor microservice is responsible for decoding discovery messages sent to it by the Discovery module and forwards their payload, i.e., OPC UA endpoints, to the Registry Onboarding Processor. It implements an Event Processor.
 
 - Registry Synchronization Microservice
+
   The Registry Synchronization microservice is responsible for providing a HTTP REST interface to cloud applications that want to initiate an asset discovery process via the Discovery module.
 
 ### Data Flow Diagram
