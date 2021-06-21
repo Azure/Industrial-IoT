@@ -79,21 +79,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
 
             // Configure create options and version per os specified
             string createOptions;
-            string version;
+
             if (isLinux) {
                 // Linux
                 createOptions = "{}";
-                version = "0.0.4-amd64";
-            }
+           }
             else {
                 // Windows
                 createOptions = _serializer.SerializeToString(new {
                     User = "ContainerAdministrator"
                 });
-                version = "0.0.5-windows-amd64";
             }
             createOptions = createOptions.Replace("\"", "\\\"");
-            var image = $"veyalla/metricscollector:{version}";
+            var image = "mcr.microsoft.com/azureiotedge-metrics-collector:1.0";
             _logger.Information("Updating metrics collector module deployment for {os}", isLinux ? "Linux" : "Windows");
 
             // Return deployment modules object
@@ -108,11 +106,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                         ""type"": ""docker"",
                         ""version"": ""1.0"",
                         ""env"": {
-                            ""AzMonWorkspaceId"": {
+                            ""UploadTarget"": {
+                                ""value"": ""AzureMonitor""
+                            },
+                            ""LogAnalyticsWorkspaceId"": {
                                 ""value"": """ + _config.LogWorkspaceId + @"""
                             },
-                            ""AzMonWorkspaceKey"": {
+                            ""LogAnalyticsSharedKey"": {
                                 ""value"": """ + _config.LogWorkspaceKey + @"""
+                            },
+                            ""ResourceId"": {
+                                ""value"": """ + _config.IoTHubResourceId + @"""
+                            },
+                            ""MetricsEndpointsCSV"": {
+                                ""value"": ""http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://opcpublisher:9702/metrics""
                             }
                         },
                         ""status"": ""running"",
@@ -121,18 +128,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 },
                 ""$edgeHub"": {
                     ""properties.desired.routes." + kModuleName + @"ToUpstream"": ""FROM /messages/modules/" + kModuleName + @"/* INTO $upstream""
-                },
-                """ + kModuleName + @""": {
-                    ""properties.desired"": {
-                        ""schemaVersion"": ""1.0"",
-                        ""scrapeFrequencySecs"": 120,
-                        ""metricsFormat"": ""Json"",
-                        ""syncTarget"": ""AzureLogAnalytics"",
-                        ""endpoints"": {
-                            ""opctwin"": ""http://twin:9701/metrics"",
-                            ""opcpublisher"": ""http://publisher:9702/metrics""
-                        }
-                    }
                 }
             }";
             return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(content);

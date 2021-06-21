@@ -41,6 +41,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Deploy {
                 .Build();
             configuration["Docker:WorkspaceId"] = "WorkspaceId";
             configuration["Docker:WorkspaceKey"] = "WorkspaceKey";
+            configuration["SubscriptionId"] = "SubscriptionId";
+            configuration["ResourceGroupName"] = "ResourceGroupName";
+            configuration["IoTHubConnectionString"] = "HostName=test.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=test";
 
             using (var mock = Setup(ioTHubConfigurationServicesMock, configuration)) {
                 var metricsCollectorDeploymentService = mock.Create<IoTHubMetricsCollectorDeployment>();
@@ -51,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Deploy {
                 {
                     var configurationModel = configurationModelList[0];
                     Assert.Equal("__default-metricscollector-linux", configurationModel.Id);
-                    Assert.Equal(3, configurationModel.Content.ModulesContent.Count);
+                    Assert.Equal(2, configurationModel.Content.ModulesContent.Count);
 
                     // Check routes of layered deployment for Linux
                     Assert.Equal("FROM /messages/modules/metricscollector/* INTO $upstream",
@@ -59,19 +62,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Deploy {
 
                     // Check docker image
                     var module = (Newtonsoft.Json.Linq.JObject)configurationModel.Content.ModulesContent["$edgeAgent"]["properties.desired.modules.metricscollector"];
-                    Assert.Equal("veyalla/metricscollector:0.0.4-amd64",
+                    Assert.Equal("mcr.microsoft.com/azureiotedge-metrics-collector:1.0",
                         module["settings"].Value<string>("image"));
 
                     // Check environment variables
+                    Assert.Equal("AzureMonitor",
+                        module["env"]["UploadTarget"].Value<string>("value"));
                     Assert.Equal("WorkspaceId",
-                        module["env"]["AzMonWorkspaceId"].Value<string>("value"));
+                        module["env"]["LogAnalyticsWorkspaceId"].Value<string>("value"));
                     Assert.Equal("WorkspaceKey",
-                        module["env"]["AzMonWorkspaceKey"].Value<string>("value"));
+                        module["env"]["LogAnalyticsSharedKey"].Value<string>("value"));
+                    Assert.Equal("/subscriptions/SubscriptionId/resourceGroups/ResourceGroupName/providers/Microsoft.Devices/IotHubs/test",
+                        module["env"]["ResourceId"].Value<string>("value"));
+                    Assert.Equal("http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://opcpublisher:9702/metrics",
+                        module["env"]["MetricsEndpointsCSV"].Value<string>("value"));
                 }
                 {
                     var configurationModel = configurationModelList[1];
                     Assert.Equal("__default-metricscollector-windows", configurationModel.Id);
-                    Assert.Equal(3, configurationModel.Content.ModulesContent.Count);
+                    Assert.Equal(2, configurationModel.Content.ModulesContent.Count);
 
                     // Check routes of layered deployment for Windows
                     Assert.Equal("FROM /messages/modules/metricscollector/* INTO $upstream",
@@ -79,14 +88,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Deploy {
 
                     // Check docker image
                     var module = (Newtonsoft.Json.Linq.JObject)configurationModel.Content.ModulesContent["$edgeAgent"]["properties.desired.modules.metricscollector"];
-                    Assert.Equal("veyalla/metricscollector:0.0.5-windows-amd64",
+                    Assert.Equal("mcr.microsoft.com/azureiotedge-metrics-collector:1.0",
                         module["settings"].Value<string>("image"));
 
                     // Check environment variables
+                    Assert.Equal("AzureMonitor",
+                        module["env"]["UploadTarget"].Value<string>("value"));
                     Assert.Equal("WorkspaceId",
-                        module["env"]["AzMonWorkspaceId"].Value<string>("value"));
+                        module["env"]["LogAnalyticsWorkspaceId"].Value<string>("value"));
                     Assert.Equal("WorkspaceKey",
-                        module["env"]["AzMonWorkspaceKey"].Value<string>("value"));
+                        module["env"]["LogAnalyticsSharedKey"].Value<string>("value"));
+                    Assert.Equal("/subscriptions/SubscriptionId/resourceGroups/ResourceGroupName/providers/Microsoft.Devices/IotHubs/test",
+                        module["env"]["ResourceId"].Value<string>("value"));
+                    Assert.Equal("http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://opcpublisher:9702/metrics",
+                        module["env"]["MetricsEndpointsCSV"].Value<string>("value"));
                 }
             }
         }
