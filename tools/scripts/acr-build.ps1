@@ -79,7 +79,7 @@ else {
         # dev feature builds
         $namespace = $namespace.Replace("feature/", "")
     }
-    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
+    elseif ($namespace.StartsWith("release") -or ($namespace -eq "master")) {
         $namespace = "public"
         if ([string]::IsNullOrEmpty($Registry)) {
             # Release and Preview builds go into staging
