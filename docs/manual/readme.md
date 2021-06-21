@@ -20,7 +20,7 @@ The following edge modules are part of the platform:
 
 - OPC Publisher Module
 
-  The OPC Publisher module runs on Azure IoT Edge and connects to OPC UA-enabled assets, reads data from them using OPC UA subscriptions, converts the resulting OPC UA “Data Changed Notifications” into OPC UA PubSub messages, and sends them to the cloud via [IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub). It can be configured from the cloud or locally via a configuration file.
+  The OPC Publisher module runs on Azure IoT Edge and connects to OPC UA-enabled assets, reads data from them using OPC UA subscriptions, converts the resulting OPC UA "Data Changed Notifications" into OPC UA PubSub messages, and sends them to the cloud via [IoT Edge](https://docs.microsoft.com/en-us/azure/iot-edge/module-edgeagent-edgehub). It can be configured from the cloud or locally via a configuration file.
 
 - OPC Twin Module
 
@@ -84,15 +84,15 @@ The Discovery Module provides discovery services to discover assets (OPC UA serv
 
 Use cases for this module:
 
--   An industrial solution wants to detect assets which are unknown by its asset management system.
--   A customer wants to access an asset without looking up the connectivity information in his asset management database or Excel spreadsheet printout from 10 years ago!
--   A customer wants to onboard an asset which was recently added to a production line without causing additional network load.
+- An industrial solution wants to detect assets which are unknown by its asset management system.
+- A customer wants to access an asset without looking up the connectivity information in his asset management database or Excel spreadsheet printout from 10 years ago!
+- A customer wants to onboard an asset which was recently added to a production line without causing additional network load.
 
 The Discovery module supports two modes of operation:
 
--   Active Scan mode: The local network is actively scanned by the Discovery module.
+- Active Scan mode: The local network is actively scanned by the Discovery module.
 
--   Targeted discovery mode: A list of asset addresses can be specified to be checked.
+- Targeted discovery mode: A list of asset addresses can be specified to be checked.
 
 Discovery is based on native OPC UA server functionality as specified in the OPC UA specification, which allows discovery of endpoint information including security profile information without establishing an OPC UA authenticated and encrypted OPC UA session.
 
@@ -104,11 +104,11 @@ The Discovery can be configured via the OPC Registry REST API and allows a fine-
 
 The Discovery module can be configured to do active network and port scanning. The following parameters can be configured for active scanning:
 
--   address ranges (needed when hosted in a Docker context where the host interfaces are not visible)
+- address ranges (needed when hosted in a Docker context where the host interfaces are not visible)
 
--   port ranges (to narrow or widen scanning to a list of known ports)
+- port ranges (to narrow or widen scanning to a list of known ports)
 
--   number of workers and time between scans (Advanced)
+- number of workers and time between scans (Advanced)
 
 Active scanning should be used with care since it causes load on the local network and might be identified by network security software as a threat.
 
@@ -116,15 +116,15 @@ For a targeted discovery, the configuration requires a specific list of discover
 
 ##### Recurring discovery
 
-Recurring discovery can be enabled for a Discovery module, which has impact on the network and CPU load the Discovery module generates. This is controlled by specifying a specific “mode” for the Discovery module in addition to the configuration mentioned above:
+Recurring discovery can be enabled for a Discovery module, which has impact on the network and CPU load the Discovery module generates. This is controlled by specifying a specific "mode" for the Discovery module in addition to the configuration mentioned above:
 
--   **Off**: no scanning takes place (default)
+- **Off**: no scanning takes place (default)
 
--   **Local**: only scan the network addresses of each interface visible in the Discovery module container, i.e. localhost.
+- **Local**: only scan the network addresses of each interface visible in the Discovery module container, i.e. localhost.
 
--   **Fast**: only scan the first 255 addresses of each interface's subnet using a set of well-known OPC UA server ports.
+- **Fast**: only scan the first 255 addresses of each interface's subnet using a set of well-known OPC UA server ports.
 
--   **Scan**: Do a full scan of all interfaces using all IANA unassigned ports as well as the OPC UA LDS ports 4840-4841.
+- **Scan**: Do a full scan of all interfaces using all IANA unassigned ports as well as the OPC UA LDS ports 4840-4841.
 
 ##### One-time discovery
 
@@ -144,9 +144,9 @@ The functionality of this module is to connect to assets (OPC UA servers) and en
 
 Use cases for this module:
 
--   A customer wants to gather the configuration of an asset by reading configuration parameters of the asset.
--   A customer wants to browse an OPC UA server’s information model/address space for telemetry selection.
--   An industrial solution wants to react on a condition detected in an asset by changing a configuration parameter in the asset.
+- A customer wants to gather the configuration of an asset by reading configuration parameters of the asset.
+- A customer wants to browse an OPC UA server’s information model/address space for telemetry selection.
+- An industrial solution wants to react on a condition detected in an asset by changing a configuration parameter in the asset.
 
 The OPC Twin Module provides an IoT Hub device direct method API allowing the OPC Twin microservice to invoke OPC UA method call functionality. The payload is transcoded from JSON to OPC UA binary and passed on through the OPC UA stack (integrated into the OPC Twin module) to the OPC UA server. The response is reencoded to JSON and passed back as the result of the direct method call to the OPC Twin microservice. This includes Variant encoding and decoding in a consistent JSON format.
 
@@ -162,42 +162,42 @@ The OPC Publisher runs on IoT Edge. It connects to assets (OPC UA servers) and p
 
 Use cases for this module:
 
--   A customer wants to get insights for her assets and visualize them in the cloud.
--   Data from assets should be stored for analytics purposes in the cloud.
+- A customer wants to get insights for her assets and visualize them in the cloud.
+- Data from assets should be stored for analytics purposes in the cloud.
 
 The module can be configured via a REST API of the OPC Publisher microservice (documented [here](../api/publisher/readme.md)) to publish data value changes of tags in an asset (OPC UA server). To achieve this, it connects to assets (OPC UA servers) on the shop floor and sets up OPC UA subscriptions to monitor data (OPC UA nodes) by using an integrated OPC UA stack.
 
 When a data value change of a OPC UA node is reported, it transcodes the OPC UA data value change notification into the configured encoding and publishes it to IoT Hub. The supported schemas are:
 
--   OPC UA Network Messages (as per Part 14 of the OPC UA specification)
--   Simplified monitored item notification messages (non-standardized)
+- OPC UA Network Messages (as per Part 14 of the OPC UA specification)
+- Simplified monitored item notification messages (non-standardized)
 
 The encoding of the published messages is JSON or OPC UA binary.
 
 The OPC Publisher supports two operational modes:
 
--   Standalone mode
--   Orchestrated mode
+- Standalone mode
+- Orchestrated mode
 
-In both modes the OPC Publisher Module is to a container orchestration runtime as IoT Edge or Kubernetes. The modes differentiate how the operation of OPC Publisher is controlled. The mode is controlled by the fact if the OPC Publisher module is configured to read its configuration from a configuration file (see “pf” option below).
+In both modes the OPC Publisher Module is to a container orchestration runtime as IoT Edge or Kubernetes. The modes differentiate how the operation of OPC Publisher is controlled. The mode is controlled by the fact if the OPC Publisher module is configured to read its configuration from a configuration file (see "pf" option below).
 
 In standalone mode all configuration is done via command line options when starting the module and via a configuration file, which controls which OPC UA nodes should be published as well as specifying more detailed parameters for the publishing of each node:
 
--   `PublishingInterval`: The interval in milliseconds on which the underlying OPC UA stack should publish the current value of the node.
--   `SamplingInterval`: The interval in milliseconds at which the OPC UA server should sample the nodes value and check for changes to be published at the next `PublishingInterval`
--   `Heartbeat`: an interval in seconds, which enforce to publish the value of the node even it has not changed
+- `PublishingInterval`: The interval in milliseconds on which the underlying OPC UA stack should publish the current value of the node.
+- `SamplingInterval`: The interval in milliseconds at which the OPC UA server should sample the nodes value and check for changes to be published at the next `PublishingInterval`
+- `Heartbeat`: an interval in seconds, which enforce to publish the value of the node even it has not changed
 
 In standalone mode OPC Publisher supports configuration via container launch options. See configuration section for its options.
 
 In orchestrated mode the OPC Publisher module is controlled by the OPC Publisher and Orchestrator microservice. The REST API documented [here](../api/publisher/readme.md) allows to control the publishing.
 
-In this mode the OPC Publisher module runs a configurable number of workers (which can be set by the “Update publisher configuration” REST API documented [here](../api/registry/readme.md)). Those workers are checking in regular intervals for assignment of new publishing jobs. The assignment is done based on site IDs, which allows to run multiple IoT Edge installations in the same shop floor network segment (same site ID) and achieve redundancy for the publishing jobs, which publish data from OPC UA server systems in this network segment.
+In this mode the OPC Publisher module runs a configurable number of workers (which can be set by the "Update publisher configuration" REST API documented [here](../api/registry/readme.md)). Those workers are checking in regular intervals for assignment of new publishing jobs. The assignment is done based on site IDs, which allows to run multiple IoT Edge installations in the same shop floor network segment (same site ID) and achieve redundancy for the publishing jobs, which publish data from OPC UA server systems in this network segment.
 
 ##### Overview of how Standalone Mode Works 
 
 OPC Publisher Module checks on a regular basis if there is a `publishednodes.json` file in its application directory. If there is one, the file is parsed and the OPC Publisher Module creates a new OPC UA subscription for each OPC UA server endpoint specified in the file and starts monitoring for data changes from this OPC UA server.
 
-#####  Overview of how Orchestrated Mode Works
+##### Overview of how Orchestrated Mode Works
 
 1. During module startup, the OPC Publisher module also registers itself with the Orchestrator microservice so the orchestrator knows which publishing jobs it can possibly assign to it.
 
@@ -207,9 +207,9 @@ OPC Publisher Module checks on a regular basis if there is a `publishednodes.jso
 
 4. The Orchestrator microservice does not leverage the IoT Hub device identity for the OPC UA server endpoint but instead creates a new IoT Hub device for the publishing job, so in theory we could have multiple publishing jobs per OPC UA server endpoint. However, to maintain backward compatibility with the V1 Publisher REST API, there can only be 1 job per OPC UA server endpoint right now.
 
-5. A job can contain several `DataSetWriters`. A `DataSetWriter` must have a distinct publishing interval (e.g., “publish this data every second”). Therefore, if you want to publish a set of OPC UA data items (“nodes”) at different publishing intervals, the orchestrator will create multiple `DataSetWriters`.
+5. A job can contain several `DataSetWriters`. A `DataSetWriter` must have a distinct publishing interval (e.g., "publish this data every second"). Therefore, if you want to publish a set of OPC UA data items ("nodes") at different publishing intervals, the orchestrator will create multiple `DataSetWriters`.
 
-   > Implementation detail: Right now, the OPC Publisher creates a separate subscription per `DataSetWriter`. 
+   > Implementation detail: Right now, the OPC Publisher creates a separate subscription per `DataSetWriter`.
 
    <img src="media/image3.png" style="width:6.2493in;height:3.33403in" />
 
@@ -225,35 +225,35 @@ In the cloud, the platform is built on top of several Azure PaaS Services which 
 
 The following cloud microservices (providing external-facing REST interfaces) are part of the platform:
 
-1.  Registry Microservice
+1. Registry Microservice
 
-2.  OPC Twin Microservice
+2. OPC Twin Microservice
 
-3.  OPC Publisher Microservice
+3. OPC Publisher Microservice
 
 These microservices provide discovery, registration, and remote control of industrial devices through REST APIs that can be implemented in any programming language and framework that can call an HTTP REST endpoint.
 
 The following cloud microservices are part of the platform and handle event processing as well as non-user-driven tasks:
 
-1.  Edge Telemetry Processor
+1. Edge Telemetry Processor
 
-2.  Edge Event Processor
+2. Edge Event Processor
 
-3.  Registry Onboarding Processor
+3. Registry Onboarding Processor
 
-4.  Registry Synchronization Service
+4. Registry Synchronization Service
 
-5.  Publisher Orchestrator Service
+5. Publisher Orchestrator Service
 
 #### Registry Microservice
 
 The role of the Registry microservice is to manage entries in the IoT Hub Device Registry. These include:
 
--   **Applications:** In OPC parlance, an "Application" can be a server, a client or both. It is also a grouping mechanism for endpoints, i.e., Applications have endpoints. An application contains all server provided information, such as Discovery URLs, Application and Product URIs.
+- **Applications:** In OPC parlance, an "Application" can be a server, a client or both. It is also a grouping mechanism for endpoints, i.e., Applications have endpoints. An application contains all server provided information, such as Discovery URLs, Application and Product URIs.
 
--   **Endpoints:** Each endpoint is represented as the IoT Hub device twin of an OPC UA Server application's endpoint. A server can have multiple endpoints with different configurations, including security properties. Endpoint identities are used to invoke OPC UA services or retrieve endpoint specific information, such as certificates.
+- **Endpoints:** Each endpoint is represented as the IoT Hub device twin of an OPC UA Server application's endpoint. A server can have multiple endpoints with different configurations, including security properties. Endpoint identities are used to invoke OPC UA services or retrieve endpoint specific information, such as certificates.
 
--   **Gateways:** The gateway is an IoT Edge device that hosts Discovery, OPC Twin and OPC Publisher modules, all of which have their IoT Edge module identities managed in the registry.
+- **Gateways:** The gateway is an IoT Edge device that hosts Discovery, OPC Twin and OPC Publisher modules, all of which have their IoT Edge module identities managed in the registry.
 
 One can update, read, and query all entries in the IoT Hub Device Registry.
 
@@ -269,19 +269,19 @@ After the initial registration in the IoT Hub Device Registry, server endpoints 
 
 The OPC Twin microservice exposes a REST API to call the following OPC UA services on activated endpoints in an OPC Twin edge module:
 
--   Read and write a “value” on a variable node. Write is also exposed as desired/reported property on the endpoint identity.
+- Read and write a "value" on a variable node. Write is also exposed as desired/reported property on the endpoint identity.
 
--   Call a “Method Node”.
+- Call a "Method Node".
 
--   Read and write node “Attributes”.
+- Read and write node "Attributes".
 
--   History read and update service calls to interact with historians.
+- History read and update service calls to interact with historians.
 
--   Batching of any of the above calls.
+- Batching of any of the above calls.
 
--   Browse first / next (with and without reading the browsed target nodes)
+- Browse first / next (with and without reading the browsed target nodes)
 
--   Get meta data of methods (to display input arguments to a user)
+- Get meta data of methods (to display input arguments to a user)
 
 The diagram for the Registry microservice above also shows the OPC Twin service in relationship to other components.
 
@@ -311,13 +311,13 @@ The OPC Publisher orchestration service is responsible to manage distribution of
 
 The telemetry processor processes all edge telemetry by
 
--   Filtering out edge events. Those are processed by the Edge Event processor.
+- Filtering out edge events. Those are processed by the Edge Event processor.
 
--   Decoding binary PubSub (UADP) network messages
+- Decoding binary PubSub (UADP) network messages
 
--   Converting PubSub Network messages into simple messages
+- Converting PubSub Network messages into simple messages
 
--   Forwarding these and other telemetry to a secondary Event Hub. From there telemetry events are forwarded to applications, processed through TSI and/or stored in Azure Data Lake Storage.
+- Forwarding these and other telemetry to a secondary Event Hub. From there telemetry events are forwarded to applications, processed through TSI and/or stored in Azure Data Lake Storage.
 
 The edge telemetry processor is an event processor host and can be scaled out to handle the configured number of partitions. It connects to the configured telemetry consumer group on IoT Hub, defaults to "telemetry".
 
@@ -325,9 +325,9 @@ The edge telemetry processor is an event processor host and can be scaled out to
 
 The edge event processor processes events received from edge modules. This includes:
 
--   Discovery progress events forwarded to SignalR.
+- Discovery progress events forwarded to SignalR.
 
--   Discovery results forwarded to the Onboarding Micro Service
+- Discovery results forwarded to the Onboarding Micro Service
 
 The edge event processor is an Event Processor Host, and it can be scaled out to handle the configured number of partitions. It connects to a configured events consumer group on IoT Hub and defaults to "events".
 
@@ -359,9 +359,9 @@ Reference: [Subscriptions, licenses, accounts, and tenants for Microsoft's cloud
 
 Azure Active Directory (Azure AD or AAD) is Microsoft’s cloud-based identity and access management service, which helps your employees sign in and access resources in:
 
--   External resources, such as Microsoft Office 365, the Azure portal, and thousands of other SaaS applications.
+- External resources, such as Microsoft Office 365, the Azure portal, and thousands of other SaaS applications.
 
--   Internal resources, such as apps on your corporate network and intranet, along with any cloud apps developed by your own organization.
+- Internal resources, such as apps on your corporate network and intranet, along with any cloud apps developed by your own organization.
 
 Specifically, Azure Industrial IoT platform is using Azure AD as an identity provider which authenticates users and applications accessing the platform. Azure AD will be providing access tokens to authenticated users or applications which are then checked by the platform components to identify the identities of clients.
 
@@ -385,15 +385,15 @@ IoT Hub's capabilities help build scalable, full-featured IoT solutions such as 
 
 Azure IoT Hub is a cornerstone of Azure Industrial IoT Platform, that uses it for all communications between the IoT Edge modules and cloud microservices. Apart from that Azure IoT Hub is also used for:
 
--   Managing entities and identities such as Applications, Endpoints and Gateways.
+- Managing entities and identities such as Applications, Endpoints and Gateways.
 
--   Managing IoT Edge devices.
+- Managing IoT Edge devices.
 
--   Managing IoT Edge module deployment definitions and rules for applying them.
+- Managing IoT Edge module deployment definitions and rules for applying them.
 
--   Calling device methods on IoT Edge modules.
+- Calling device methods on IoT Edge modules.
 
--   Several of the event-processors consume telemetry and management events directly from built-in Event Hub of IoT Hub.
+- Several of the event-processors consume telemetry and management events directly from built-in Event Hub of IoT Hub.
 
 Reference: [Azure IoT Hub overview](https://docs.microsoft.com/en-us/azure/iot-hub/about-iot-hub)
 
@@ -403,18 +403,17 @@ Azure Event Hubs is a big data streaming platform and event ingestion service. I
 
 We use Azure Event Hub (separate instance from Azure IoT Hub built-in one) to send decoded and processed edge telemetry messages from the OPC Publisher module. This is done by Edge Telemetry Processor cloud microservice. Data from this secondary Event Hub is then used:
 
--   as source for Azure Time Series Insights (TSI).
+- as source for Azure Time Series Insights (TSI).
 
--   as source for CDM Telemetry Exporter which writes it to Data Lake.
+- as source for CDM Telemetry Exporter which writes it to Data Lake.
 
--   as source for SignalR Event Service to be delivered to SignalR clients, such as Engineering Tool.
+- as source for SignalR Event Service to be delivered to SignalR clients, such as Engineering Tool.
 
 References:
 
--   [Azure Event Hubs a big data streaming platform and event ingestion service](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-about)
+- [Azure Event Hubs a big data streaming platform and event ingestion service](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-about)
 
--   [Features and terminology in Azure Event Hubs](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-features)
-
+- [Features and terminology in Azure Event Hubs](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-features)
 
 #### Azure Cosmos DB Account
 
@@ -422,31 +421,31 @@ Azure Cosmos DB is Microsoft's globally distributed, multi-model database servic
 
 Cloud microservices of Azure Industrial IoT use Cosmos DB for storing:
 
--   List of publisher workers agents and their state.
+- List of publisher workers agents and their state.
 
--   List of publisher jobs and their state.
+- List of publisher jobs and their state.
 
--   Certificate requests, lifetime management events and index of certificates for the OPC Vault Microservice.
+- Certificate requests, lifetime management events and index of certificates for the OPC Vault Microservice.
 
 References:
 
--   [Welcome to Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/introduction)
+- [Welcome to Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/introduction)
 
--   Request Units in Azure Cosmos DB
+- Request Units in Azure Cosmos DB
 
 #### Azure Storage Account
 
 The Azure Storage platform is Microsoft's cloud storage solution for modern data storage scenarios. Core storage services offer a massively scalable object store for data objects, disk storage for Azure virtual machines (VMs), a file system service for the cloud, a messaging store for reliable messaging, and a NoSQL store. The services are:
 
--   **Durable and highly available**. Redundancy ensures that your data is safe in the event of transient hardware failures. One can also opt to replicate data across datacenters or geographical regions for additional protection from local catastrophe or natural disaster. Data replicated in this way remains highly available in the event of an unexpected outage.
+- **Durable and highly available**. Redundancy ensures that your data is safe in the event of transient hardware failures. One can also opt to replicate data across datacenters or geographical regions for additional protection from local catastrophe or natural disaster. Data replicated in this way remains highly available in the event of an unexpected outage.
 
--   **Secure**. All data written to an Azure storage account is encrypted by the service. Azure Storage provides one with fine-grained control over who has access to your data.
+- **Secure**. All data written to an Azure storage account is encrypted by the service. Azure Storage provides one with fine-grained control over who has access to your data.
 
--   **Scalable**. Azure Storage is designed to be massively scalable to meet the data storage and performance needs of today's applications.
+- **Scalable**. Azure Storage is designed to be massively scalable to meet the data storage and performance needs of today's applications.
 
--   **Managed**. Azure handles hardware maintenance, updates, and critical issues.
+- **Managed**. Azure handles hardware maintenance, updates, and critical issues.
 
--   **Accessible**. Data in Azure Storage is accessible from anywhere in the world over HTTP or HTTPS. Microsoft provides client libraries for Azure Storage in a variety of languages, including .NET, Java, Node.js, Python, PHP, Ruby, Go, and others, as well as a mature REST API. Azure Storage supports scripting in Azure PowerShell or Azure CLI. And the Azure portal and Azure Storage Explorer offer easy visual solutions for working with your data.
+- **Accessible**. Data in Azure Storage is accessible from anywhere in the world over HTTP or HTTPS. Microsoft provides client libraries for Azure Storage in a variety of languages, including .NET, Java, Node.js, Python, PHP, Ruby, Go, and others, as well as a mature REST API. Azure Storage supports scripting in Azure PowerShell or Azure CLI. And the Azure portal and Azure Storage Explorer offer easy visual solutions for working with your data.
 
 ##### Blob Storage
 
@@ -454,31 +453,31 @@ Azure Blob storage is Microsoft's object storage solution for the cloud. Blob st
 
 Blob storage is ideal for:
 
--   Serving images or documents directly to a browser.
+- Serving images or documents directly to a browser.
 
--   Storing files for distributed access.
+- Storing files for distributed access.
 
--   Streaming video and audio.
+- Streaming video and audio.
 
--   Storing data for backup and restore, disaster recovery, and archiving.
+- Storing data for backup and restore, disaster recovery, and archiving.
 
--   Storing data for analysis by an on-premises or Azure-hosted service.
+- Storing data for analysis by an on-premises or Azure-hosted service.
 
 Objects in Blob storage can be accessed from anywhere in the world via HTTP or HTTPS. Users or client applications can access blobs via URLs, the Azure Storage REST API, Azure PowerShell, Azure CLI, or an Azure Storage client library. The storage client libraries are available for multiple languages, including .NET, Java, Node.js, Python, PHP, and Ruby.
 
 Cloud microservices of Azure Industrial IoT use Azure Blob Storage for:
 
--   Event Hub consumer offset checkpointing
+- Event Hub consumer offset checkpointing
 
--   [ASP.NET Core Data Protection](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1) feature
+- [ASP.NET Core Data Protection](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1) feature
 
--   [Azure IoT Hub file upload](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-file-upload) feature
+- [Azure IoT Hub file upload](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-file-upload) feature
 
 References:
 
--   [Azure Blob storage overview](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-overview)
+- [Azure Blob storage overview](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-overview)
 
--   [Introduction to the core Azure Storage services](https://docs.microsoft.com/en-us/azure/storage/common/storage-introduction)
+- [Introduction to the core Azure Storage services](https://docs.microsoft.com/en-us/azure/storage/common/storage-introduction)
 
 #### Azure Service Bus
 
@@ -488,22 +487,21 @@ Data is transferred between different applications and services using messages. 
 
 Some common use-case scenarios for Azure Service Bus are:
 
--   Messaging. Transfer business data, such as sales or purchase orders, journals, or inventory movements.
+- Messaging. Transfer business data, such as sales or purchase orders, journals, or inventory movements.
 
--   Decouple applications. Improve reliability and scalability of applications and services. Client and service don't have to be online at the same time.
+- Decouple applications. Improve reliability and scalability of applications and services. Client and service don't have to be online at the same time.
 
--   Topics and subscriptions. Enable 1:n relationships between publishers and subscribers.
+- Topics and subscriptions. Enable 1:n relationships between publishers and subscribers.
 
--   Message sessions. Implement workflows that require message ordering or message deferral.
+- Message sessions. Implement workflows that require message ordering or message deferral.
 
 Components of Azure Industrial IoT platform use Service Bus for communication between cloud microservices. The data passed between through it can be classified as command and control. No telemetry data is passed through Service Bus.
 
 References:
 
--   [Azure Service Bus overview](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview)
+- [Azure Service Bus overview](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview)
 
--   [Choose between Azure messaging services - Event Grid, Event Hubs, and Service Bus](https://docs.microsoft.com/en-us/azure/event-grid/compare-messaging-services)
-
+- [Choose between Azure messaging services - Event Grid, Event Hubs, and Service Bus](https://docs.microsoft.com/en-us/azure/event-grid/compare-messaging-services)
 
 #### Azure Key Vault
 
@@ -511,13 +509,13 @@ Azure Key Vault is a tool for securely storing and accessing secrets. A secret i
 
 Azure Key Vault helps solve the following problems:
 
--   **Secrets Management** - Azure Key Vault can be used to Securely store and tightly control access to tokens, passwords, certificates, API keys, and other secrets.
+- **Secrets Management** - Azure Key Vault can be used to Securely store and tightly control access to tokens, passwords, certificates, API keys, and other secrets.
 
--   **Key Management** - Azure Key Vault can also be used as a Key Management solution. Azure Key Vault makes it easy to create and control the encryption keys used to encrypt your data.
+- **Key Management** - Azure Key Vault can also be used as a Key Management solution. Azure Key Vault makes it easy to create and control the encryption keys used to encrypt your data.
 
--   **Certificate Management** - Azure Key Vault is also a service that lets one easily provision, manage, and deploy public and private Transport Layer Security/Secure Sockets Layer (TLS/SSL) certificates for use with Azure and your internal connected resources.
+- **Certificate Management** - Azure Key Vault is also a service that lets one easily provision, manage, and deploy public and private Transport Layer Security/Secure Sockets Layer (TLS/SSL) certificates for use with Azure and your internal connected resources.
 
--   **Store secrets backed by Hardware Security Modules** - The secrets and keys can be protected either by software or FIPS 140-2 Level 2 validated HSMs.
+- **Store secrets backed by Hardware Security Modules** - The secrets and keys can be protected either by software or FIPS 140-2 Level 2 validated HSMs.
 
 Azure Industrial IoT platform mainly uses Azure Key Vault as a centralized store of application secrets. We store information about whole deployment environment such as Azure resource details, their connections strings, as well as application configuration in Key Vault.
 
@@ -525,11 +523,11 @@ We also use Azure Key Vault for enabling [ASP.Net Core Data Protection](https://
 
 References:
 
--   [About Azure Key Vault](https://docs.microsoft.com/en-us/azure/key-vault/general/overview)
+- [About Azure Key Vault](https://docs.microsoft.com/en-us/azure/key-vault/general/overview)
 
--   [About keys, secrets and certificates](https://docs.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates)
+- [About keys, secrets and certificates](https://docs.microsoft.com/en-us/azure/key-vault/general/about-keys-secrets-certificates)
 
--   [ASP.NET Core Data Protection](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
+- [ASP.NET Core Data Protection](https://docs.microsoft.com/en-us/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
 
 #### Azure App Registrations
 
@@ -539,27 +537,27 @@ When one completes the app registration, one has a globally unique instance of t
 
 The application object describes three aspects of an application:
 
--   how the service can issue tokens to access the application
+- how the service can issue tokens to access the application
 
--   resources that the application might need to access.
+- resources that the application might need to access.
 
--   the actions that the application can take.
+- the actions that the application can take.
 
 Deployment of Azure Industrial IoT platform requires Azure AD app registrations to enable authentication for the components. With authentication enabled, every call to APIs of Azure Industrial IoT components will require an Access Token to authenticate and authorize the caller. The authentication will happen against Azure AD using details of app registration. So, we generally require two apps to be registered in your AAD:
 
--   one which will define identity and permissions of Azure Industrial IoT components, we refer to this one as **ServicesApp**
+- one which will define identity and permissions of Azure Industrial IoT components, we refer to this one as **ServicesApp**
 
--   one for clients accessing APIs of Azure Industrial IoT components, we refer to this as **ClientsApp**.
+- one for clients accessing APIs of Azure Industrial IoT components, we refer to this as **ClientsApp**.
 
 Based on your setup, one might decide to split **ClientsApp** into two app registrations for client applications instead of one, one for web clients and one for native clients, such as CLI applications.
 
 References:
 
--   [Microsoft identity platform overview](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview)
+- [Microsoft identity platform overview](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview)
 
--   [Application and service principal objects in Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)
+- [Application and service principal objects in Azure Active Directory](https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)
 
--   [Azure AAD App Registration](../deploy/helm/azure-industrial-iot/README.md#azure-aad-app-registration)
+- [Azure AAD App Registration](../deploy/helm/azure-industrial-iot/README.md#azure-aad-app-registration)
 
 #### Azure Kubernetes Service (AKS)
 
@@ -569,9 +567,9 @@ Cloud microservices of Azure Industrial IoT Platform are designed to be easily d
 
 References:
 
--   [About Azure Kubernetes Service (AKS)](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
+- [About Azure Kubernetes Service (AKS)](https://docs.microsoft.com/en-us/azure/aks/intro-kubernetes)
 
--   azure-industrial-iot Helm chart (0.3.2)
+- azure-industrial-iot Helm chart (0.3.2)
 
 #### Azure Monitor
 
@@ -589,11 +587,11 @@ Application Insights queries are based on Kusto Query Language (KQL). One can se
 
 References:
 
--   [Introduction to Azure Application Insights](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview)
+- [Introduction to Azure Application Insights](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview)
 
--   [Overview of alerts in Microsoft Azure](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-overview?toc=%2Fazure%2Fazure-monitor%2Ftoc.json)
+- [Overview of alerts in Microsoft Azure](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-overview?toc=%2Fazure%2Fazure-monitor%2Ftoc.json)
 
--   [How to view logs and metrics in Azure Application Insights](../tutorials/tut-applicationinsights.md)
+- [How to view logs and metrics in Azure Application Insights](../tutorials/tut-applicationinsights.md)
 
 #### Azure Log Analytics 
 
@@ -603,31 +601,31 @@ We use Azure Log Analytics workspace to collect metrics from Edge modules as wel
 
 References:
 
--   [Introduction to Azure Log Analytics Workspace](https://docs.microsoft.com/en-us/azure/azure-monitor/learn/quick-create-workspace)
+- [Introduction to Azure Log Analytics Workspace](https://docs.microsoft.com/en-us/azure/azure-monitor/learn/quick-create-workspace)
 
--   [How to view metrics in Azure Log Analytics Workspace](../tutorials/tut-loganalytics.md)
+- [How to view metrics in Azure Log Analytics Workspace](../tutorials/tut-loganalytics.md)
 
 #### Azure Time Series Insights
 
 Azure Time Series Insights is built to store, visualize, and query large amounts of time series data, such as that generated by IoT devices. Azure Time Series Insights has four key jobs:
 
--   It's fully integrated with cloud gateways like Azure IoT Hub and Azure Event Hubs. It easily connects to these event sources and parses JSON from messages and structures that have data in clean rows and columns. It joins metadata with telemetry and indexes your data in a columnar store.
+- It's fully integrated with cloud gateways like Azure IoT Hub and Azure Event Hubs. It easily connects to these event sources and parses JSON from messages and structures that have data in clean rows and columns. It joins metadata with telemetry and indexes your data in a columnar store.
 
--   Azure Time Series Insights manages the storage of your data. To make sure that data is always easily accessible, it stores your data in memory and SSDs for up to 400 days. You can interactively query billions of events in seconds–on demand.
+- Azure Time Series Insights manages the storage of your data. To make sure that data is always easily accessible, it stores your data in memory and SSDs for up to 400 days. You can interactively query billions of events in seconds–on demand.
 
--   Azure Time Series Insights provides out-of-the-box visualization through the Azure Time Series Insights Explorer.
+- Azure Time Series Insights provides out-of-the-box visualization through the Azure Time Series Insights Explorer.
 
--   Azure Time Series Insights provides a query service, both in the Azure Time Series Insights Explorer and by using APIs that are easy to integrate to embed your time series data into custom applications.
+- Azure Time Series Insights provides a query service, both in the Azure Time Series Insights Explorer and by using APIs that are easy to integrate to embed your time series data into custom applications.
 
 Time Series Insights can be configured to consume processed telemetry messages that Azure Industrial IoT platform stores in secondary Event Hub. For that you would add secondary Event Hub as event source of your Azure Time Series Insights environment. Please check references bellow for more details on how to connect Time Series Insights to an Event Hub, as well as, how to use Time Series Insights to visualize telemetry sent from OPC Publisher.
 
 References:
 
--   [What is Azure Time Series Insights Gen2?](https://docs.microsoft.com/en-us/azure/time-series-insights/overview-what-is-tsi)
+- [What is Azure Time Series Insights Gen2?](https://docs.microsoft.com/en-us/azure/time-series-insights/overview-what-is-tsi)
 
--   [Add an event hub event source to your Azure Time Series Insights environment](https://docs.microsoft.com/en-us/azure/time-series-insights/how-to-ingest-data-event-hub)
+- [Add an event hub event source to your Azure Time Series Insights environment](https://docs.microsoft.com/en-us/azure/time-series-insights/how-to-ingest-data-event-hub)
 
--   [Time Series Insights](../tutorials/tut-timeseriesinsights.md)
+- [Time Series Insights](../tutorials/tut-timeseriesinsights.md)
 
 ## Deployment, Configuration, Scale, Dataflow
 
@@ -639,43 +637,43 @@ The following information about components and installation types covers only th
 
 #### Main Components
 
--   Minimum dependencies: IoT Hub, Cosmos DB, Service Bus, Event Hub, Key Vault, Storage
+- Minimum dependencies: IoT Hub, Cosmos DB, Service Bus, Event Hub, Key Vault, Storage
 
--   Standard dependencies: Minimum + SignalR Service, Azure Active Directory (AAD) app registrations, Device Provisioning Service, Time Series Insights, Workbook, Log Analytics, Application Insights
+- Standard dependencies: Minimum + SignalR Service, Azure Active Directory (AAD) app registrations, Device Provisioning Service, Time Series Insights, Workbook, Log Analytics, Application Insights
 
--   Microservices: App Service Plan, App Service
+- Microservices: App Service Plan, App Service
 
--   UI (Web app): App Service Plan (shared with microservices), App Service
+- UI (Web app): App Service Plan (shared with microservices), App Service
 
--   Simulation: Virtual machine, Virtual network, IoT Edge
+- Simulation: Virtual machine, Virtual network, IoT Edge
 
--   Azure Kubernetes Service
+- Azure Kubernetes Service
 
 #### Installation Types
 
--   Minimum: Minimum dependencies
+- Minimum: Minimum dependencies
 
--   Local: Minimum + standard dependencies
+- Local: Minimum + standard dependencies
 
--   Services: Local + microservices
+- Services: Local + microservices
 
--   Simulation: Minimum dependencies + simulation components
+- Simulation: Minimum dependencies + simulation components
 
--   App: Services + UI
+- App: Services + UI
 
--   All (default): App + simulation
+- All (default): App + simulation
 
 #### Requirements
 
--   Supported operating systems for deployment are Windows, Linux and Mac
+- Supported operating systems for deployment are Windows, Linux and Mac
 
--   IoT Edge supports Windows 10 IoT Enterprise LTSC and Ubuntu Linux 16.08/18.04 LTS Linux, see [here](https://docs.microsoft.com/en-us/azure/iot-edge/support)
+- IoT Edge supports Windows 10 IoT Enterprise LTSC and Ubuntu Linux 16.08/18.04 LTS Linux, see [here](https://docs.microsoft.com/en-us/azure/iot-edge/support)
 
--   Git: <https://git-scm.com/downloads>
+- Git: <https://git-scm.com/downloads>
 
 Azure subscription
 
--   The AAD app registrations used for authentication require Global Administrator, Application Administrator or Cloud Application Administrator rights to provide tenant-wide admin consent (see below for further options)
+- The AAD app registrations used for authentication require Global Administrator, Application Administrator or Cloud Application Administrator rights to provide tenant-wide admin consent (see below for further options)
 
 #### Clone Repository
 
@@ -707,15 +705,13 @@ The script will collect the required information, such as Azure account, subscri
 
 The microservices and the UI are web applications that require authentication, this requires three app registrations in the AAD. If the required rights are missing, there are two possible solutions:
 
--   Ask the AAD admin to grant tenant-wide admin consent for the application.
+- Ask the AAD admin to grant tenant-wide admin consent for the application.
 
--   An AAD admin can create the AAD applications. The deploy/scripts folder contains the aad-register.ps1 script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the deploy.ps1 script in the same folder using the -aadConfig argument.
+- An AAD admin can create the AAD applications. The deploy/scripts folder contains the aad-register.ps1 script to perform the AAD registration separately from the deployment. The output of the script is a file containing the relevant information to be used as part of deployment and must be passed to the deploy.ps1 script in the same folder using the -aadConfig argument.
 
     ```powershell
     cd deploy/scripts
-    
     ./aad-register.ps1 -Name &lt;application-name> -Output aad.json
-    
     ./deploy.ps1 -aadConfig aad.json
     ```
 
@@ -725,11 +721,11 @@ For production deployments that require staging, rollback, scaling and resilienc
 
 References:
 
--   [Deploying Azure Industrial IoT Platform](https://github.com/Azure/Industrial-IoT/tree/master/docs/deploy)
+- [Deploying Azure Industrial IoT Platform](https://github.com/Azure/Industrial-IoT/tree/master/docs/deploy)
 
--   [How to deploy all-in-one](../deploy/howto-deploy-all-in-one.md)
+- [How to deploy all-in-one](../deploy/howto-deploy-all-in-one.md)
 
--   [How to deploy platform into AKS](../deploy/howto-deploy-aks.md)
+- [How to deploy platform into AKS](../deploy/howto-deploy-aks.md)
 
 
 ### Deployment of Azure Industrial IoT components using Helm chart
@@ -744,9 +740,9 @@ For the deployment of cloud microservices of Azure Industrial IoT platform into 
 
 Helm CLI (3+) is required to be install, upgrade, roll back and uninstall Helm charts. Helm CLI can be installed in two ways:
 
-1.  Using official installation steps: [Installing Helm](https://helm.sh/docs/intro/install/)
+1. Using official installation steps: [Installing Helm](https://helm.sh/docs/intro/install/)
 
-2.  Using Azure CLI. The command for that is:
+2. Using Azure CLI. The command for that is:
 
     ```bash
     az acr helm install-cli
@@ -766,7 +762,7 @@ Documentation of the chart lists all required Azure resources and provides steps
 
 To install the chart first ensure that you have added either one of two Helm repositories where we publish azure-industrial-iot Helm chart. It can be found in:
 
--   <https://microsoft.github.io/charts/repo>
+- <https://microsoft.github.io/charts/repo>
 
     To add the repository run the following command:
 
@@ -774,7 +770,7 @@ To install the chart first ensure that you have added either one of two Helm rep
     helm repo add microsoft <https://microsoft.github.io/charts/repo>
     ```
 
--   <https://azureiiot.blob.core.windows.net/helm>
+- <https://azureiiot.blob.core.windows.net/helm>
 
     To add the repository run the following command:
 
@@ -794,7 +790,7 @@ kubectl create namespace azure-iiot-ns
 
 ##### Install azure-industrial-iot Helm chart
 
-To install the chart with a specific release name, **azure-iiot** for example, one would run the following command changing all values in &lt;> with the ones specific to their deployment and Azure resources. For command on how to manually obtain those for an existing deployment of Azure resources please check [Prerequisites](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/README.md#prerequisites) of the Helm documentation.
+To install the chart with a specific release name, **azure-iiot** for example, one would run the following command changing all values in &lt;&gt; with the ones specific to their deployment and Azure resources. For command on how to manually obtain those for an existing deployment of Azure resources please check [Prerequisites](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/README.md#prerequisites) of the Helm documentation.
 
 ```bash
 helm install azure-iiot microsoft/azure-industrial-iot --namespace azure-iiot-ns \
@@ -877,46 +873,55 @@ For all configuration options that are available for azure-industrial-iot Helm c
 
 References:
 
--   [Helm documentation](https://helm.sh/docs/)
+- [Helm documentation](https://helm.sh/docs/)
 
--   azure-industrial-iot Helm chart, version 0.3.2
+- azure-industrial-iot Helm chart, version 0.3.2
 
--   [Compatibility matrix of Helm chart versions and Azure Industrial IoT components](../deploy/howto-deploy-helm.md)
+- [Compatibility matrix of Helm chart versions and Azure Industrial IoT components](../deploy/howto-deploy-helm.md)
 
 ### Configuration Settings
 
 The deployment script automatically configures all components to work with each other using default values. Here are some of the more relevant customization settings for the components:
 
--   `IoT Hub`
-    -   `Networking -> Public access`: Configure Internet access, e.g., IP filters.
-    -   `Networking -> Private endpoint connections`: Create an endpoint that is not accessible through the Internet and can be consumed internally by other Azure services or on-premises devices (e.g., through a VPN connection)
-    -   `IoT Edge`: Manage the configuration of the edge devices that are connected to the OPC UA servers
-        -   Manage the identities of the IoT Edge devices that may access the hub, configure which modules are installed and which configuration they use, e.g. encoding parameters for the OPC Publisher
+- `IoT Hub`
 
--   `Cosmos DB`
-    -   Replicate data globally: Configure data-redundancy.
-    
-    -   Firewall and virtual networks: Configure Internet and VNET access, and IP filters.
-    
-    -   Private endpoint connections: Create an endpoint that is not accessible through the Internet.
-    
--   `Key Vault`
-    -   Secrets: Manage platform settings
-    
-    -   Access policies: Manage which applications and users may access the data in the Key Vault and which operations (e.g. read, write, list, delete) are they allowed to perform
-    
-    -   Networking: Firewall, VNET and private endpoints
-    
--   `Azure Active Directory (AAD) -> App registrations`
-    -   `<APP_NAME>-web -> Authentication`: Manage reply URIs, which is the list of URIs that can be used as landing pages after authentication succeeds. The deployment script may be unable to configure this automatically under certain scenarios, such as lack of AAD admin rights; one may want to add or modify URIs when changing the hostname of the Web app, e.g. the port number used by the localhost for debugging
-    
--   `App Service`
-    -   Configuration: Manage the environment variables that control the services or UI
-    
--   `Virtual machine`
-    -   Networking: Configure supported networks and firewall rules
-    -   Serial console: SSH access to get insights or for debugging, get the credentials from the output of deployment script or reset the password
--   `IoT Hub -> IoT Edge -> <DEVICE> -> Set Modules -> OpcPublisher` (for standalone OPC Publisher operation only)
+  - `Networking -> Public access`: Configure Internet access, e.g., IP filters.
+
+  - `Networking -> Private endpoint connections`: Create an endpoint that is not accessible through the Internet and can be consumed internally by other Azure services or on-premises devices (e.g., through a VPN connection)
+
+  - `IoT Edge`: Manage the configuration of the edge devices that are connected to the OPC UA servers
+    - Manage the identities of the IoT Edge devices that may access the hub, configure which modules are installed and which configuration they use, e.g. encoding parameters for the OPC Publisher
+
+- `Cosmos DB`
+
+  - Replicate data globally: Configure data-redundancy.
+
+  - Firewall and virtual networks: Configure Internet and VNET access, and IP filters.
+
+  - Private endpoint connections: Create an endpoint that is not accessible through the Internet.
+
+- `Key Vault`
+
+  - Secrets: Manage platform settings
+
+  - Access policies: Manage which applications and users may access the data in the Key Vault and which operations (e.g. read, write, list, delete) are they allowed to perform
+
+  - Networking: Firewall, VNET and private endpoints
+
+- `Azure Active Directory (AAD) -> App registrations`
+
+  - `<APP_NAME>-web -> Authentication`: Manage reply URIs, which is the list of URIs that can be used as landing pages after authentication succeeds. The deployment script may be unable to configure this automatically under certain scenarios, such as lack of AAD admin rights; one may want to add or modify URIs when changing the hostname of the Web app, e.g. the port number used by the localhost for debugging
+
+- `App Service`
+
+  - Configuration: Manage the environment variables that control the services or UI
+
+- `Virtual machine`
+  - Networking: Configure supported networks and firewall rules
+
+  - Serial console: SSH access to get insights or for debugging, get the credentials from the output of deployment script or reset the password
+
+- `IoT Hub -> IoT Edge -> <DEVICE> -> Set Modules -> OpcPublisher` (for standalone OPC Publisher operation only)
 
 <table><thead><tr class="header"><th>Configuration Option<br />
 (shorthand|full name)</th><th>Description</th></tr></thead><tbody><tr class="odd"><td>pf|publishfile</td><td>the filename to configure the nodes to publish. If this Option is specified it puts OPC Publisher into stadalone mode.</td></tr><tr class="even"><td>lf|logfile</td><td>the filename of the logfile to use.</td></tr><tr class="odd"><td>ll|loglevel</td><td>the log level to use (allowed: fatal, error, warn, info, debug, verbose).</td></tr><tr class="even"><td>me|messageencoding</td><td>The messaging encoding for outgoing messages allowed values: Json, Uadp</td></tr><tr class="odd"><td>mm|messagingmode</td><td>The messaging mode for outgoing messages allowed values: PubSub, Samples</td></tr><tr class="even"><td>fm|fullfeaturedmessage</td><td>The full featured mode for messages (all fields filled in). Default is 'true', for legacy compatibility use 'false'</td></tr><tr class="odd"><td>aa|autoaccept</td><td>The publisher trusted all servers it is establishing a connection to</td></tr><tr class="even"><td>bs|batchsize</td><td>The number of OPC UA data-change messages to be cached for batching.</td></tr><tr class="odd"><td>si|iothubsendinterval</td><td>The trigger batching interval in seconds.</td></tr><tr class="even"><td>ms|iothubmessagesize</td><td>The maximum size of the (IoT D2C) message.</td></tr><tr class="odd"><td>om|maxoutgressmessages</td><td>The maximum size of the (IoT D2C) message egress buffer.</td></tr><tr class="even"><td>di|diagnosticsinterval</td><td>Shows publisher diagnostic info at the specified interval in seconds (need log level info).<br />
@@ -926,7 +931,7 @@ Reference: [OPC Publisher Edge Module](../modules/publisher-commandline.md)
 
 ### Configuration Environment Variables
 
-In the following sections, one can find the configuration environment variables to configure the different microservices. The values can be changed by setting environment variables (that are defined in the 2<sup>nd</sup> column). For legacy reasons, multiple environment variables exist for one value. They overwrite each other from top to bottom (last one wins).
+In the following sections, one can find the configuration environment variables to configure the different microservices. The values can be changed by setting environment variables (that are defined in the second column). For legacy reasons, multiple environment variables exist for one value. They overwrite each other from top to bottom (last one wins).
 
 #### Configuration Parameters
 
@@ -1094,11 +1099,11 @@ The diagnostic information of the OPC Publisher helps estimate the size and cost
 
 References
 
--   [Azure IoT Hub pricing](https://azure.microsoft.com/en-us/pricing/details/iot-hub/)
--   [Azure IoT Hub pricing information](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-pricing)
--   [IoT Hub quotas and throttling](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-quotas-throttling)
--   [IoT Hub limits](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#iot-hub-limits)
--   [How to estimate the costs of running the Azure Industrial IoT Platform](../tutorials/tut-iiot-cost-estimation.md)
+- [Azure IoT Hub pricing](https://azure.microsoft.com/en-us/pricing/details/iot-hub/)
+- [Azure IoT Hub pricing information](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-pricing)
+- [IoT Hub quotas and throttling](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-quotas-throttling)
+- [IoT Hub limits](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#iot-hub-limits)
+- [How to estimate the costs of running the Azure Industrial IoT Platform](../tutorials/tut-iiot-cost-estimation.md)
 
 #### IoT Edge VM
 
@@ -1122,9 +1127,9 @@ We recommend starting with an AKS cluster with at least 3 cluster nodes. If you 
 
 References:
 
--   [Scale the node count in an Azure Kubernetes Service (AKS) cluster.](https://docs.microsoft.com/en-us/azure/aks/scale-cluster)
+- [Scale the node count in an Azure Kubernetes Service (AKS) cluster.](https://docs.microsoft.com/en-us/azure/aks/scale-cluster)
 
--   [Cluster operator and developer best practices.](https://docs.microsoft.com/en-us/azure/aks/best-practices)
+- [Cluster operator and developer best practices.](https://docs.microsoft.com/en-us/azure/aks/best-practices)
 
 ### IoT Edge Configuration
 
@@ -1146,37 +1151,37 @@ See here for more detail: [Understand IoT Edge automatic deployments for single 
 
 In the Azure Industrial IoT platform there are several cloud microservices that are responsible for the creation of base automatic deployment and layered deployments for Industrial IoT Edge modules:
 
-1.  The Registry Microservice is responsible for:
+1. The Registry Microservice is responsible for:
 
-    1.  The creation of a base automatic deployment for the `edgeAgent` and `edgeHub` modules. The deployment is called: `iiotedge`.
+   1. The creation of a base automatic deployment for the `edgeAgent` and `edgeHub` modules. The deployment is called: `iiotedge`.
 
-    2.  The creation of layered deployments for the **Discovery** module. The deployments are called:
+   2. The creation of layered deployments for the **Discovery** module. The deployments are called:
 
-        1.  `__default-discoverer-windows`
+      1. `__default-discoverer-windows`
 
-        2.  `__default-discoverer-linux`
+      2. `__default-discoverer-linux`
 
-    3.  If details of the Azure Log Analytics Workspace are provided, the creation of layered deployments for the Azure IoT Edge **Metrics Collector** module. The deployments are called:
+      3. If details of the Azure Log Analytics Workspace are provided, the creation of layered deployments for the Azure IoT Edge **Metrics Collector** module. The deployments are called:
 
-        1.  `__default-metricscollector-windows`
+         1. `__default-metricscollector-windows`
 
-        2.  `__default-metricscollector-linux`
+         2. `__default-metricscollector-linux`
 
-2.  The OPC Twin Microservice is responsible for:
+2. The OPC Twin Microservice is responsible for:
 
-    1.  The creation of layered deployments for the **OPC Twin** module. The deployments are called:
+   1. The creation of layered deployments for the **OPC Twin** module. The deployments are called:
 
-        1.  `__default-opctwin-windows`
+      1. `__default-opctwin-windows`
 
-        2.  `__default-opctwin`
+      2. `__default-opctwin`
 
-3.  The OPC Publisher Microservice is responsible for:
+3. The OPC Publisher Microservice is responsible for:
 
-    1.  The Creation of layered deployments for the **OPC Publisher** module. The deployments are called:
+   1. The Creation of layered deployments for the **OPC Publisher** module. The deployments are called:
 
-        1.  `__default-opcpublisher-windows`
+      1. `__default-opcpublisher-windows`
 
-        2.  `__default-opcpublisher`
+      2. `__default-opcpublisher`
 
 ### Data flow scenarios per use case
 
@@ -1204,11 +1209,11 @@ The OPC Twin microservice REST interface can also be used to create monitored it
 
 The sequence below describes the data flow of a telemetry event through the system when the value of an OPC UA node configured for publishing changes:
 
-1.  An OPC UA server exposes nodes with sensor readings (called tags), and additional functionality.
+1. An OPC UA server exposes nodes with sensor readings (called tags), and additional functionality.
 
-2.  The OPC Publisher connects to one or more selected OPC UA servers and creates subscriptions requesting to be notified when the value of the specified nodes change.
+2. The OPC Publisher connects to one or more selected OPC UA servers and creates subscriptions requesting to be notified when the value of the specified nodes change.
 
-3.  The publisher groups nodes from the same endpoint and with the same publishing characteristics in subscriptions as monitored items.
+3. The publisher groups nodes from the same endpoint and with the same publishing characteristics in subscriptions as monitored items.
 
 4. Each node can be configured with a specific `SamplingInterval`, `PublishingInterval` and `Heartbeat` (keep-alive)
 
@@ -1222,18 +1227,19 @@ The sequence below describes the data flow of a telemetry event through the syst
 
 6. OPC Publisher groups and encodes the telemetry events using the specified messaging mode and message encoding format.
 
-   -   `Messaging mode`: This specifies the schema which should be used for a telemetry event. There are two supported schemas:
-   -   `PubSub`: A Publisher-Subscriber schema defined in the OPC UA specification
-       
-   -   `Samples`: Supported for backward compatibility to older versions of OPC Publisher
+   - `Messaging mode`: This specifies the schema which should be used for a telemetry event. There are two supported schemas:
 
-   -   `Message encoding`: The encoding of the schema can be controlled by a separate setting, which supports two encodings:
-       -   `JSON`: Plain-text JSON format
-   
+     - `PubSub`: A Publisher-Subscriber schema defined in the OPC UA specification
+
+     - `Samples`: Supported for backward compatibility to older versions of OPC Publisher
+
+   - `Message encoding`: The encoding of the schema can be controlled by a separate setting, which supports two encodings:
+       - `JSON`: Plain-text JSON format
+
    Examples for the different telemetry formats can be found here.
-   
+
    The configuration for `message mode` and `ncoding` is configurable at the OPC Publisher module level via [command line options](../modules/publisher-commandline.md).
-   
+
 7. The encoded telemetry events are added as the payload, which cannot exceed 256kB, the maximum size of an IoT Hub message
 
 8. The messages are sent to the IoT Hub, which stores them for the configured retention time (default: 1 day, max: 7 days, dependent on the size of the ingested messages as well, see [here](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-messages-read-builtin) for more details).
@@ -1246,7 +1252,7 @@ The sequence below describes the data flow of a telemetry event through the syst
 
 #### IoT Edge and IoT Edge Modules
 
-IoT Edge runs on both Windows 10 and Linux (various distributions) and leverages Docker containers for all workloads, including the built-in IoT Edge modules `edgeAgent` and `edgeHub`. Docker has settings for the maximum host resources that each container can consume. These can be displayed by the Docker command “stats” (run “docker stats” from the command line on the gateway host):
+IoT Edge runs on both Windows 10 and Linux (various distributions) and leverages Docker containers for all workloads, including the built-in IoT Edge modules `edgeAgent` and `edgeHub`. Docker has settings for the maximum host resources that each container can consume. These can be displayed by the Docker command "stats" (run "docker stats" from the command line on the gateway host):
 
 <img src="media/image9.png" style="width:6.3in;height:0.66389in" />
 
@@ -1254,7 +1260,7 @@ Furthermore, the speed at which OPC UA telemetry messages can be sent to the clo
 
 <img src="media/image10.png" style="width:6.3in;height:1.05875in" alt="A close up of a screen Description automatically generated" />
 
-Customers often require “at least once” delivery of each telemetry message to the cloud, so Quality of Service - QoS must be enabled, in this case. As flow control is a big part of QoS, this significantly increases latency of each message delivered to the cloud. This is countered by packing as many telemetry “tags” as possible into a single message, called “batching.” Using batching, between 300 to 475 telemetry tags can be packaged into a single IoT Hub message of maximum size (256KB). The reason for the range stems from the fact that each JSON encoded telemetry tag is not always the same length. It is dependent on tag names, the tag types and OPC UA server URI. Such an IoT Hub message takes about 150 ms to be delivered from Edge Hub to IoT Hub on a typical DSL connection and is much faster when Azure Express Route is leveraged. For a list of practical latency figures, please see [here](https://docs.microsoft.com/en-us/azure/expressroute/expressroute-troubleshooting-network-performance#latencybandwidth-results).
+Customers often require "at least once" delivery of each telemetry message to the cloud, so Quality of Service - QoS must be enabled, in this case. As flow control is a big part of QoS, this significantly increases latency of each message delivered to the cloud. This is countered by packing as many telemetry "tags" as possible into a single message, called "batching." Using batching, between 300 to 475 telemetry tags can be packaged into a single IoT Hub message of maximum size (256KB). The reason for the range stems from the fact that each JSON encoded telemetry tag is not always the same length. It is dependent on tag names, the tag types and OPC UA server URI. Such an IoT Hub message takes about 150 ms to be delivered from Edge Hub to IoT Hub on a typical DSL connection and is much faster when Azure Express Route is leveraged. For a list of practical latency figures, please see [here](https://docs.microsoft.com/en-us/azure/expressroute/expressroute-troubleshooting-network-performance#latencybandwidth-results).
 
 The calculation for the maximum end-to-end latency is:
 
@@ -1288,9 +1294,9 @@ Increasing the number of telemetry tags sent in a single message can also be ach
 
 Attention should be paid to container resource requests and limits when deploying components of Azure Industrial IoT platform into an AKS cluster using the azure-industrial-iot Helm chart. The resource requests and limits specify how much memory and/or CPU is allocated to a container and the limit. To put it simply:
 
--   A Container is guaranteed to have as much memory as it requests but is not allowed to use more memory than its limit.
+- A Container is guaranteed to have as much memory as it requests but is not allowed to use more memory than its limit.
 
--   A Containers cannot use more CPU than the configured limit. Provided the system has CPU time free, a container is guaranteed to be allocated as much CPU as it requests.
+- A Containers cannot use more CPU than the configured limit. Provided the system has CPU time free, a container is guaranteed to be allocated as much CPU as it requests.
 
 By default, the Helm chart does not specify any resource requests or limits. The settings in the Helm chart allow one to predefine a maximum memory and CPU that will be consumed by components of Azure Industrial IoT platform. This will also make sure that other applications deployed in the same cluster will not be affected at times of high load.
 
@@ -1298,22 +1304,23 @@ It is generally assumed, that setting resource limits should be a conscious choi
 
 Our testing has shown that there are only a handful of components that require higher resource limits that need to be specified. Those are:
 
--   **Edge Telemetry Processor**: This microservice does initial decoding and processing of telemetry messages from the IoT Hub. In our tests we have seen consumption of:
-    
-    -   up to 2 GB of memory
-    
-    -   up to 250 millicores of CPU
-    
--   **Publisher Job Orchestrator Microservice**: This service receives heartbeats from OPC Publisher modules and dispatches publisher jobs to them. In setups with many publishers and publishers having big job definitions (several thousands of nodes per job) we have seen consumption of:
-    -   up to 2 GB of memory
-    
-    -   up to 1,000 millicores of CPU
-    
--   **CDM Telemetry Processor**: This is a preview microservice which is **disabled** in the Helm chart by default. It exports telemetry messages from Event Hub into Azure Data Lake Storage using CDM format. In cases with a very large number of published nodes and high frequency of publishing we have seen it consume:
+- **Edge Telemetry Processor**: This microservice does initial decoding and processing of telemetry messages from the IoT Hub. In our tests we have seen consumption of:
 
-    -   up to 3 GBs of memory
-    
-    -   up to 1,000 millicores of CPU
+  - up to 2 GB of memory
+
+  - up to 250 millicores of CPU
+
+- **Publisher Job Orchestrator Microservice**: This service receives heartbeats from OPC Publisher modules and dispatches publisher jobs to them. In setups with many publishers and publishers having big job definitions (several thousands of nodes per job) we have seen consumption of:
+
+  - up to 2 GB of memory
+
+  - up to 1,000 millicores of CPU
+
+- **CDM Telemetry Processor**: This is a preview microservice which is **disabled** in the Helm chart by default. It exports telemetry messages from Event Hub into Azure Data Lake Storage using CDM format. In cases with a very large number of published nodes and high frequency of publishing we have seen it consume:
+
+  - up to 3 GBs of memory
+
+  - up to 1,000 millicores of CPU
 
 In our tests, all other components of Azure Industrial IoT platform nominally consume between 100 and 300 MBs of memory and up to 150 millicores of CPU. So, these usually did not require us to set any specific resource requests or limits.
 
@@ -1338,9 +1345,9 @@ More details about configuration of components when deploying them using azure-i
 
 References:
 
--   [Assign Memory Resources to Containers and Pods](https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/)
+- [Assign Memory Resources to Containers and Pods](https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/)
 
--   [Assign CPU Resources to Containers and Pods](https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/)
+- [Assign CPU Resources to Containers and Pods](https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/)
 
 ####  Azure PaaS Services
 
@@ -1364,25 +1371,25 @@ The limits and quotas for Azure Event Hub can be found under [Event Hubs Quotas]
 
 The limits and quotas for Azure Kubernetes Service can be found under [AKS Quotas Skus Regions](https://docs.microsoft.com/en-us/azure/aks/quotas-skus-regions). Azure Kubernetes Service has a built-in metrics page which provides information on the state and the health of the AKS cluster. This page leverages the integration of Azure Kubernetes Service and Azure Monitor and it can be accessed from the resource page of the AKS cluster in the Azure Portal. It can be found by selecting **Insights > Cluster** from the left pane and provides the following metrics:
 
--   **Node CPU utilization %**: An aggregated perspective of CPU utilization for the entire cluster. To filter the results for the time range, select Avg, Min, 50th, 90th, 95th, or Max in the percentiles selector above the chart. The filters can be used either individually or combined.
+- **Node CPU utilization %**: An aggregated perspective of CPU utilization for the entire cluster. To filter the results for the time range, select Avg, Min, 50th, 90th, 95th, or Max in the percentiles selector above the chart. The filters can be used either individually or combined.
 
--   **Node memory utilization %**: An aggregated perspective of memory utilization for the entire cluster. To filter the results for the time range, select Avg, Min, 50th, 90th, 95th, or Max in the percentiles selector above the chart. The filters can be used either individually or combined.
+- **Node memory utilization %**: An aggregated perspective of memory utilization for the entire cluster. To filter the results for the time range, select Avg, Min, 50th, 90th, 95th, or Max in the percentiles selector above the chart. The filters can be used either individually or combined.
 
--   **Node count**: A node count and status from Kubernetes. Status values of the cluster nodes represented are Total, Ready, and Not Ready. They can be filtered individually or combined in the selector above the chart.
+- **Node count**: A node count and status from Kubernetes. Status values of the cluster nodes represented are Total, Ready, and Not Ready. They can be filtered individually or combined in the selector above the chart.
 
--   **Active pod count**: A pod count and status from Kubernetes. Status values of the pods represented are Total, Pending, Running, Unknown, Succeeded, or Failed. They can be filtered individually or combined in the selector above the chart.
+- **Active pod count**: A pod count and status from Kubernetes. Status values of the pods represented are Total, Pending, Running, Unknown, Succeeded, or Failed. They can be filtered individually or combined in the selector above the chart.
 
 <img src="media/image15.png" style="width:6.3468in;height:3.60974in" alt="Example performance charts on the Cluster tab" />
 
 Those are the base metrics which should be referenced when determining if one is hitting limitations of an existing cluster. The page also provides useful insights on state and health of:
 
--   Cluster nodes
+- Cluster nodes
 
--   Controllers
+- Controllers
 
--   Containers
+- Containers
 
--   Deployments
+- Deployments
 
 Reference: [Monitor your Kubernetes cluster performance with Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/azure-monitor/insights/container-insights-analyze)
 
@@ -1408,11 +1415,11 @@ Job definitions that are stored in Cosmos DB have 2MB limit on their size. This 
 
 References:
 
--   [Request Units in Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/request-units)
+- [Request Units in Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/request-units)
 
--   [Introduction to provisioned throughput in Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/set-throughput)
+- [Introduction to provisioned throughput in Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/set-throughput)
 
--   [Monitor and debug with metrics in Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/use-metrics)
+- [Monitor and debug with metrics in Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/use-metrics)
 
 ##### Azure Blob Storage
 
@@ -1458,19 +1465,19 @@ For a complete overview of all production deployment settings for IoT Edge, see 
 
 #### Cloud Services
 
-##### *Metrics*
+##### Service Metrics
 
 All microservices support both Prometheus and Application Insights for log metrics.
 
 Metrics can be added using any of the two formats. However, for production environment (AKS), recommended way is to use Prometheus. HTTP metrics like response time, status codes, controller counts, etc. using Prometheus middleware are collected. When deploying to AKS, an [oms-agent](https://docs.microsoft.com/en-us/azure/azure-monitor/insights/container-insights-onboard) needs to be installed (if not already) which pulls metrics from the microservices endpoint and pushes them into Log Analytics.
 
--   To enable Prometheus metrics and/or logs scraping, the config file from the repo, e.g, from [main](https://github.com/Azure/Industrial-IoT/blob/main/deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/04_oms_agent_configmap.yaml) branch must be used:
+- To enable Prometheus metrics and/or logs scraping, the config file from the repo, e.g, from [main](https://github.com/Azure/Industrial-IoT/blob/main/deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/04_oms_agent_configmap.yaml) branch must be used:
 
 ```bash
 kubectl apply -f <oms_agent_config_file>.yaml
 ```
 
--   One should also make sure that scraping of Prometheus metrics is enabled from **azure-industrial-iot** Helm chart itself. The configuration parameter for that is **prometheus.scrape** and is set to **true** by default. More details on this can be found [here](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.2/deploy/helm/azure-industrial-iot/README.md#prometheus).
+- One should also make sure that scraping of Prometheus metrics is enabled from **azure-industrial-iot** Helm chart itself. The configuration parameter for that is **prometheus.scrape** and is set to **true** by default. More details on this can be found [here](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.2/deploy/helm/azure-industrial-iot/README.md#prometheus).
 
 One can find the metrics in the Log Analytics workspace in the Azure Portal:
 
@@ -1480,7 +1487,7 @@ One can find the metrics in the Log Analytics workspace in the Azure Portal:
 
 More details on how to check the metrics can be found [here](../tutorials/tut-loganalytics.md).
 
-##### *Logging*
+##### Logging
 
 Logs from cloud microservices are sent directly to Azure Application Insights. One can find the logs at:
 
@@ -1500,13 +1507,13 @@ These logs are available at*:*
 
 #### Metrics Convention
 
-All metrics in the Azure Industrial IoT platform start with *“iiot”*.
+All metrics in the Azure Industrial IoT platform start with *"iiot"*.
 
 For edge modules: `iiot_<module_name>_<metric_name>`
 
 For cloud services: `iiot_<service_name>_<metric_name>`
 
-Default HTTP Middleware metrics from Prometheus dotnet client start with *“http”*.
+Default HTTP Middleware metrics from Prometheus dotnet client start with *"http"*.
 
 #### IIoT Metrics
 
@@ -1550,20 +1557,19 @@ When Azure Industrial IoT components are deployed into an AKS cluster, it is cru
 
 The most important metrics to monitor for containers are:
 
--   Memory utilization
+- Memory utilization
 
--   CPU utilization
+- CPU utilization
 
--   Number of restarts for a container
+- Number of restarts for a container
 
 Important metrics to monitor for the AKS cluster health are:
 
--   Memory utilization of nodes
+- Memory utilization of nodes
 
--   CPU utilization of nodes
+- CPU utilization of nodes
 
--   Active pod count. This is relevant because there is a configurable limit on the maximum number of pods that can run simultaneously. There are configuration parameters for both the whole cluster as well as for the number of pods per node.
-
+- Active pod count. This is relevant because there is a configurable limit on the maximum number of pods that can run simultaneously. There are configuration parameters for both the whole cluster as well as for the number of pods per node.
 
 These metrics are available under `Monitoring -> Metrics` in the left pane of Azure Kubernetes Service resource page in Azure Portal as shown below:
 
@@ -1575,10 +1581,9 @@ To check the health of an AKS cluster, one can also use the workbooks provided b
 
 References:
 
--   [Monitor your Kubernetes cluster performance with Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/azure-monitor/insights/container-insights-analyze)
+- [Monitor your Kubernetes cluster performance with Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/azure-monitor/insights/container-insights-analyze)
 
--   [Understand Kubernetes cluster health with Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/azure-monitor/insights/container-insights-health)
-
+- [Understand Kubernetes cluster health with Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/azure-monitor/insights/container-insights-health)
 
 #### Azure Application Insights
 
@@ -1596,7 +1601,7 @@ For more information on Live Metrics Stream, please refer [here](https://docs.mi
 
 Application Map helps one detect performance bottlenecks or failure hotspots across all components of the distributed application. Each node on the map represents an application component or its dependencies with relevant health KPI and alerts status readings. One can click through from any component to more detailed diagnostics, such as Application Insights events. Components run on any number of server/role/container instances.
 
-The application map finds components by following HTTP dependency calls made between services with the Application Insights SDK installed. If there are failures, one can click on the “*Investigate failure*” pane for each specific component. To troubleshoot performance problems, select “*Investigate Performance”.*
+The application map finds components by following HTTP dependency calls made between services with the Application Insights SDK installed. If there are failures, one can click on the "*Investigate failure*" pane for each specific component. To troubleshoot performance problems, select "*Investigate Performance".*
 
 Application Map has been enabled for Azure Industrial IoT Platform’s cloud microservices.
 
@@ -1604,7 +1609,7 @@ Application Map has been enabled for Azure Industrial IoT Platform’s cloud mic
 
 References:
 
--   [Application Map](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-map?tabs=net)
+- [Application Map](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-map?tabs=net)
 
 ##### Failures
 
@@ -1612,11 +1617,11 @@ Application Insights also helps in diagnosing failures within monitored applicat
 
 <img src="media/image23.jpg" style="width:6.29444in;height:2.9875in" />
 
-To check the exceptions, one can go to “*Exceptions*” tab. To get the detailed logs responsible for exceptions, one can click on “*Drill into Exceptions*”.
+To check the exceptions, one can go to "*Exceptions*" tab. To get the detailed logs responsible for exceptions, one can click on "*Drill into Exceptions*".
 
 <img src="media/image24.jpg" style="width:6.2882in;height:2.95694in" />
 
-When “*Drilled into Exceptions*” is clicked, representative samples for each of these subsets of operations can be reviewed. To diagnose exceptions, one can click on the count of a particular exception to be presented with the End-to-end transaction details tab, such as this one:
+When "*Drilled into Exceptions*" is clicked, representative samples for each of these subsets of operations can be reviewed. To diagnose exceptions, one can click on the count of a particular exception to be presented with the End-to-end transaction details tab, such as this one:
 
 <img src="media/image25.jpg" style="width:6.29444in;height:3.08611in" />
 
@@ -1628,23 +1633,23 @@ More information on how to diagnose failures can be found at <https://docs.micro
 
 Follow the data from the source and check where it stops:
 
-1.  Check OPC UA server
+1. Check OPC UA server
 
-2.  Check IoT Edge
+2. Check IoT Edge
 
-3.  Check OPC Publisher
+3. Check OPC Publisher
 
-4.  Check EdgeHub
+4. Check EdgeHub
 
-5.  Check data arriving in IoT Hub (install and run Azure IoT Explorer)
+5. Check data arriving in IoT Hub (install and run Azure IoT Explorer)
 
-6.  Check logs from Edge Telemetry Processor
+6. Check logs from Edge Telemetry Processor
 
-7.  Check data arriving in database (TSI Explorer or similar if another database is used)
+7. Check data arriving in database (TSI Explorer or similar if another database is used)
 
 #### Check OPC UA server
 
-The Azure Industrial IoT platform connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into both the OPC Publisher Edge module as well as the OPC Twin Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish trust between the client and the server. This is done through mutual authentication, i.e. the certificates must be “accepted” (or trusted) by both the client and the server. To simplify setup, the OPC Publisher Edge module and the OPC Twin Edge module have a setting enabled to automatically accept all server certificates (“--aa” in the case of the OPC Publisher, see example below).
+The Azure Industrial IoT platform connects to OPC UA servers built into machines or industrial systems via OPC UA client/server. There is an OPC UA client built into both the OPC Publisher Edge module as well as the OPC Twin Edge module. OPC UA Client/server uses an OPC UA Secure Channel to secure this connection. The OPC UA Secure Channel in turn uses X.509 certificates to establish trust between the client and the server. This is done through mutual authentication, i.e. the certificates must be "accepted" (or trusted) by both the client and the server. To simplify setup, the OPC Publisher Edge module and the OPC Twin Edge module have a setting enabled to automatically accept all server certificates ("--aa" in the case of the OPC Publisher, see example below).
 
 However, the biggest hurdle most OT admins need to overcome when deploying the Azure Industrial IoT platform is to accept the Azure Industrial IoT platform X.509 certificate in the OPC UA server the platform tries to connect to. There is usually a configuration tool that comes with the built-in OPC UA server where certificates can be trusted. Here a screenshot of this dialog from PTC’s KepServerEx industrial connectivity software configuration tool:
 
@@ -1652,7 +1657,7 @@ However, the biggest hurdle most OT admins need to overcome when deploying the A
 
 In the dialog above, it can be seen that the certificate **Microsoft.Azure.IIoT** has been trusted by Kepware `KepServerEx`. Only once this is done the data can be exchanged between the OPC UA server (in this case `KepServerEx`) and the Azure Industrial IoT platform (specifically OPC Publisher Edge module and OPC Twin Edge module).
 
-OPC UA certificates used by the OPC Publisher Edge module and the OPC Twin Edge module are self-signed certificates generated when the modules start up and if the certificates don’t already exist. However, each time a Docker container starts up, all previous state of the container is removed. To avoid re-establishing trust by each OPC UA server on-premises after each restart of the modules, the certificates can be persisted to the local filesystem of the host gateway (where IoT Edge as well as the Docker containers `EdgeHub` and `EdgeAgent` and of course OPC Publisher module and OPC Twin module run on). To do this, the filesystem directory within the container needs to be mapped to an existing filesystem directory on the host through a [bind mount](https://docs.docker.com/storage/bind-mounts). For example, for the OPC Publisher running in “standalone mode” (i.e., without the use of its companion cloud microservices), this can be achieved via the following highlighted container create options:
+OPC UA certificates used by the OPC Publisher Edge module and the OPC Twin Edge module are self-signed certificates generated when the modules start up and if the certificates don’t already exist. However, each time a Docker container starts up, all previous state of the container is removed. To avoid re-establishing trust by each OPC UA server on-premises after each restart of the modules, the certificates can be persisted to the local filesystem of the host gateway (where IoT Edge as well as the Docker containers `EdgeHub` and `EdgeAgent` and of course OPC Publisher module and OPC Twin module run on). To do this, the filesystem directory within the container needs to be mapped to an existing filesystem directory on the host through a [bind mount](https://docs.docker.com/storage/bind-mounts). For example, for the OPC Publisher running in "standalone mode" (i.e., without the use of its companion cloud microservices), this can be achieved via the following highlighted container create options:
 
 ```json
 {
@@ -1692,23 +1697,23 @@ OPC UA certificates used by the OPC Publisher Edge module and the OPC Twin Edge 
 
 This option will map the `/mount` directory within the Docker container to the `/mount` directory on the host gateway OS. Every time the container is restarted, the OPC UA certificate stored in the `/mount/pki` application certificate store will be read and reused by the OPC Publisher module and no new certificate will be generated.
 
-Another feature of OPC UA that is often turned off by OT administrators is user authentication. User authentication is another authentication layer on top of the client/server authentication described above. Most OPC UA servers only support anonymous user authentication but some support user authentication based on username and password. If this is the case, a username and password must be supplied to the OPC Publisher’s publish command via the `PublishStartRequestApiModel -> RequestHeaderApiModel -> CredentialApiModel`. A similar setting exists when running the OPC Publisher in “standalone mode”. There, username and password can be set in the `publishednodes.json` file (properties `OpcAuthenticationUsername` and `OpcAuthenticationPassword`).
+Another feature of OPC UA that is often turned off by OT administrators is user authentication. User authentication is another authentication layer on top of the client/server authentication described above. Most OPC UA servers only support anonymous user authentication but some support user authentication based on username and password. If this is the case, a username and password must be supplied to the OPC Publisher’s publish command via the `PublishStartRequestApiModel -> RequestHeaderApiModel -> CredentialApiModel`. A similar setting exists when running the OPC Publisher in "standalone mode". There, username and password can be set in the `publishednodes.json` file (properties `OpcAuthenticationUsername` and `OpcAuthenticationPassword`).
 
 #### Check IoT Edge
 
 To troubleshoot an IoT Edge device, follow these steps:
 
--   Run “`iotedge check`” for windows or “`sudo iotedge check`” for Linux
+- Run "`iotedge check`" for windows or "`sudo iotedge check`" for Linux
 
--   View the status of the IoT Edge security manager: “`Get-Service iotedge`” for windows or “`systemctl status iotedge`” for linux*.*
+- View the status of the IoT Edge security manager: "`Get-Service iotedge`" for windows or "`systemctl status iotedge`" for linux*.*
 
--   Restart the IoT Edge Security Daemon: “`Restart-Service iotedge`“ for windows or “`systemctl restart iotedge`” for linux.
+- Restart the IoT Edge Security Daemon: "`Restart-Service iotedge`" for windows or "`systemctl restart iotedge`" for linux.
 
--   Check the logs: “`iotedge logs <container name>`”
+- Check the logs: "`iotedge logs <container name>`"
 
--   Restart containers: “`iotedge restart <container name>`”
+- Restart containers: "`iotedge restart <container name>`"
 
--   Restart the IoT Edge runtime containers: “`iotedge restart edgeAgent && iotedge restart edgeHub`"
+- Restart the IoT Edge runtime containers: "`iotedge restart edgeAgent && iotedge restart edgeHub`"
 
 For more detailed description on how to troubleshoot IoT Edge device, please refer to <https://docs.microsoft.com/en-us/azure/iot-edge/troubleshoot-common-errors>
 
@@ -1726,13 +1731,13 @@ To restart a module, the `iotedge` command line utility can be used as well. The
 
 ```bash
 iotedge restart <modulename>
-​```bash``
+​​```
 
 The name of the module can be retrieved via
 
 ​```bash
 iotedge list
-​```bash
+​​```
 
 ##### Troubleshooting the Job Orchestrator Service
 
@@ -1794,9 +1799,9 @@ If the request duration is too high, that can mean that the service needs more r
 
 Steps to verify that:
 
--   check the memory and CPU consumption on the pod where the service runs to see if they are too high. More than 1 GB of memory consumption and more than 250 millicores of CPU consumption would be considered high.
+- check the memory and CPU consumption on the pod where the service runs to see if they are too high. More than 1 GB of memory consumption and more than 250 millicores of CPU consumption would be considered high.
 
--   check the CosmosDB instance in the Azure portal for alerts like “number of requests exceeding capacity”.
+- check the CosmosDB instance in the Azure portal for alerts like "number of requests exceeding capacity".
 
 If you discover one of these issues, it’s either possible to reduce the resource consumption of the service or to increase assigned resources:
 
@@ -1804,19 +1809,19 @@ If you discover one of these issues, it’s either possible to reduce the resour
 
    Increasing of the heartbeat and the job check intervals (p.e. to 2 minutes) reduces the overall number of requests and therefore results in a lower usage of resources. However, with increasing interval changes on job will take longer to get reflected by the publisher. To change the intervals, the Registry-Service (see 2.2.1) can be used like this:
 
-- Get a list of running publishers: `GET /registry/v2/publishers`
+   - Get a list of running publishers: `GET /registry/v2/publishers`
 
-  The response will contain a list with active publishers, each of them has a property Configuration with sub-properties `JobCheckInterval` and `HeartbeatInterval`
+     The response will contain a list with active publishers, each of them has a property Configuration with sub-properties `JobCheckInterval` and `HeartbeatInterval`
 
-- Update the publisher configuration with the updated `JobCheckInterval` and `HeartbeatInterval`-Properties: `PATCH /registry/v2/publishers/<PublisherId>`
+   - Update the publisher configuration with the updated `JobCheckInterval` and `HeartbeatInterval`-Properties: `PATCH /registry/v2/publishers/<PublisherId>`
 
-  The details of these operations can be found by using the Swagger-Definition of the Registry-Service: `/registry/swagger/`
+     The details of these operations can be found by using the Swagger-Definition of the Registry-Service: `/registry/swagger/`
 
-<img src="media/image30.png" style="width:6.3in;height:3.18542in" />
+     <img src="media/image30.png" style="width:6.3in;height:3.18542in" />
 
-2.  Assign higher resource limits for service pod (see 4.1.2.1)
+2. Assign higher resource limits for service pod (see 4.1.2.1)
 
-3.  Increase RUs for CosmosDB instance (see 4.1.3.6)
+3. Increase RUs for CosmosDB instance (see 4.1.3.6)
 
 ##### Job/Worker troubleshooting
 
@@ -1856,7 +1861,7 @@ To find the root cause and resolution, please refer [here](https://docs.microsof
 
 #### Check IoT Edge Module Access
 
--   Login to Edge machine and view logs by running “`iotedge logs -f <modulename>]`” from the command line
+- Login to Edge machine and view logs by running "`iotedge logs -f <modulename>]`" from the command line
 
 - *Getting access denied while running OPC Twin or OPC Publisher module*
 
@@ -1880,7 +1885,7 @@ To verify that the data is arriving in IoT Hub the Metrics of the IoT Hub can be
 
 <img src="media/image31.png" style="width:6.27273in;height:3.59375in" />
 
-Another option to troubleshoot the issues in IoT Hub is by checking the “*Diagnose and solve problems”* section of the IoT Hub resource page on the Azure Portal as shown below:
+Another option to troubleshoot the issues in IoT Hub is by checking the "*Diagnose and solve problems"* section of the IoT Hub resource page on the Azure Portal as shown below:
 
 <img src="media/image32.jpg" style="width:6.2882in;height:2.38681in" />
 
@@ -1892,7 +1897,7 @@ Moreover, enabling the diagnostic settings provides more data to troubleshoot an
 
 As a next step the Azure IoT Explorer can be used to validate that messages for a particular Publisher job are delivered to IoT Hub. To install Azure IoT Explorer, please follow the steps here:
 
--   [Install and use Azure IoT Explorer](https://docs.microsoft.com/en-us/azure/iot-pnp/howto-use-iot-explorer)
+- [Install and use Azure IoT Explorer](https://docs.microsoft.com/en-us/azure/iot-pnp/howto-use-iot-explorer)
 
 After Azure IoT Explorer is installed, the connection string for the specific IoT Hub to connect to is required from the Azure Portal.. To get the id of a specific job from the OPC Publisher microservice, the following endpoint lists all publisher jobs:
 
@@ -1914,7 +1919,7 @@ The next step is to check the Edge Telemetry Processor. It reads telemetry data 
 
 The Edge Telemetry Processor does not provide metrics or logs for understanding its current load or throughput, but its logs can be viewed to check for any errors. In usual conditions its logs should mostly report about event-processor partitions being created, opened, and closed.
 
-Please check section “**5.2.1.1** Get container logs from Azure Kubernetes Service (AKS)” for steps on how to get logs of a running container using kubectl. Also check section “**5.2.2.1** Get component metrics from Azure Kubernetes Service (AKS)” for getting metrics using kubectl.
+Please check section "[Logs](Logs) Get container logs from Azure Kubernetes Service (AKS)" for steps on how to get logs of a running container using kubectl. Also check section [Metrics](Metrics) Get component metrics from Azure Kubernetes Service (AKS)" for getting metrics using kubectl.
 
 For the Edge Telemetry Processor, the name of the pod has the following structure:
 
@@ -1926,9 +1931,9 @@ In the current version, the only metric , exposed by the Edge Telemetry Processo
 
 <img src="media/image36.png" style="width:6.3in;height:4.41667in" />
 
-#### Check data arriving in the Database.
+#### Check data arriving in the Database
 
-By default, Azure Time Series Insights is connected to the Edge Telemetry Processor when a full deployment of the Azure Industrial IoT platform was performed. To access the Time Series Insights dashboard called “Time Series Insights Explorer”, permissions to access the portal must be granted first. To do so, navigate to the Azure Portal, select the resource group of the Azure Industrial IoT platform deployment, navigate to the Time Series Insights environment, select “Data Access Policies”, select “Add”, select “Select user”, pick your user Azure Active Directory credentials, select “Select”, select “Select role”, select “Contributor”, select “Ok” and select “Ok” again. Now select “Overview” and select “Go to TSI Explorer” at the top of the page. TSI Explorer will launch in a separate Browser windows and you will see an environment called “Time Series Analytics”. You can then zoom into the data time slice you are interested in:
+By default, Azure Time Series Insights is connected to the Edge Telemetry Processor when a full deployment of the Azure Industrial IoT platform was performed. To access the Time Series Insights dashboard called "Time Series Insights Explorer", permissions to access the portal must be granted first. To do so, navigate to the Azure Portal, select the resource group of the Azure Industrial IoT platform deployment, navigate to the Time Series Insights environment, select "Data Access Policies", select "Add", select "Select user", pick your user Azure Active Directory credentials, select "Select", select "Select role", select "Contributor", select "Ok" and select "Ok" again. Now select "Overview" and select "Go to TSI Explorer" at the top of the page. TSI Explorer will launch in a separate Browser windows and you will see an environment called "Time Series Analytics". You can then zoom into the data time slice you are interested in:
 
 <img src="media/image37.png" style="width:6.3in;height:3.26667in" />
 
@@ -1936,19 +1941,19 @@ By default, Azure Time Series Insights is connected to the Edge Telemetry Proces
 
 #### Logs
 
-For troubleshooting, the logs of the components of the Azure Industrial IoT platform that are deployed to AKS cluster provide information about any anomalies or warnings and errors. Section **4.2.3.2 Logging** describes how to check logs in Application Insights and in the Log Analytics Workspace. It should be noted that details of Application Insights and Log Analytics Workspace should be provided through values of the Helm chart so that logs are delivered to those services. In addition, a set up for the collection of container logs on the cluster might be needed. The default installation uses the oms-agent for log collection. Check section **4.2.3.2 Logging** for more details.
+For troubleshooting, the logs of the components of the Azure Industrial IoT platform that are deployed to AKS cluster provide information about any anomalies or warnings and errors. Section [Logging](Logging) describes how to check logs in Application Insights and in the Log Analytics Workspace. It should be noted that details of Application Insights and Log Analytics Workspace should be provided through values of the Helm chart so that logs are delivered to those services. In addition, a set up for the collection of container logs on the cluster might be needed. The default installation uses the oms-agent for log collection. Check section [Logging](Logging) for more details.
 
 To summarize that section, the logs in Application Insights can be found at:
 
--   `Application Insights > Logs > traces`
+- `Application Insights > Logs > traces`
 
--   `Application Insights > Logs > exceptions`
+- `Application Insights > Logs > exceptions`
 
 The container logs that are sent to the Log Analytics Workspace can be found at:
 
--   `Log Analytics Workspace > Logs > ContainerInsights > ContainerLog`
+- `Log Analytics Workspace > Logs > ContainerInsights > ContainerLog`
 
-For more details, please check section **4.2.3.2 Logging**.
+For more details, please check section [Logging](Logging).
 
 ##### Get container logs from Azure Kubernetes Service (AKS)
 
@@ -1994,13 +1999,13 @@ The output will look like this:
 
 #### Metrics
 
-Please check section **4.2.3.1 Metrics** for details on how to get metrics for the components of the Azure Industrial IoT platform. To get metrics, scraping of Prometheus metrics must be enabled on the cluster, or alternatively on the namespace. The use of the oms-agent is described in aforementioned (**4.2.3.1**) section.
+Please check section [Metrics](Service-Metrics) for details on how to get metrics for the components of the Azure Industrial IoT platform. To get metrics, scraping of Prometheus metrics must be enabled on the cluster, or alternatively on the namespace. The use of the oms-agent is described in aforementioned [section](Service-Metrics).
 
 ##### Get component metrics from Azure Kubernetes Service (AKS)
 
 Metrics can also be directly checked from the running pod in AKS. First, the name of the pod that needs to be checked must be retrieved. Please check I the previous section how to get the name with the **kubectl get pods** command.
 
-Once the pod name is known, e.g. “azure-industrial-iot-registry-9fc849f8b-4rpjp”, the **kubectl port-forward** command can be used to read the metrics. The documentation for this command is [here](https://kubernetes.io/docs/tasks/access-application-cluster/port-forward-access-application-cluster/#forward-a-local-port-to-a-port-on-the-pod). The command looks like this:
+Once the pod name is known, e.g. "azure-industrial-iot-registry-9fc849f8b-4rpjp", the **kubectl port-forward** command can be used to read the metrics. The documentation for this command is [here](https://kubernetes.io/docs/tasks/access-application-cluster/port-forward-access-application-cluster/#forward-a-local-port-to-a-port-on-the-pod). The command looks like this:
 
 ```bash
 kubectl port-forward <pod_name> <local_port>:<container_port> --namespace <namespace>
@@ -2041,17 +2046,17 @@ Here is the list of metrics ports for our microservices:
 
 Four of our main cloud microservices provide APIs for client-communication. These microservices are:
 
--   Registry Microservice
+- Registry Microservice
 
--   OPC Twin Microservice
+- OPC Twin Microservice
 
--   OPC Publisher Microservice
+- OPC Publisher Microservice
 
--   Publisher Job Orchestrator Microservice
+- Publisher Job Orchestrator Microservice
 
 APIs of the Publisher Job Orchestrator Microservice are intended to be used only by the OPC Publisher module to report its heartbeats and to request jobs, so this is an internal service. APIs of the other three microservices are intended to be used by clients of the platform, whether it is a user or service.
 
-All of those Microservices also provide a Swagger UI for exercising the APIs. The Swagger UI can be found on the **/<component>/swagger/index.html** endpoint for each component:
+All of those Microservices also provide a Swagger UI for exercising the APIs. The Swagger UI can be found on the **/&lt;component&gt;/swagger/index.html** endpoint for each component:
 
 | Microservice                            | Endpoint                           |
 |-----------------------------------------|------------------------------------|
@@ -2072,7 +2077,7 @@ The authorization page comes up, click on Authorize again.
 
 The authorization flow redirects the user to the global Microsoft Azure AD login page which validates the identity and returns the user to the Swagger UI.
 
-After authentication APIs can be used through the Swagger UI. For each endpoint, click on it to open a separate view showing details of the call, such as optional and required parameters, payload structure and response structure. Click on **“Try it out”** button to start populating the fields. Once parameters and a payload is all set, click **“Execute”** to perform the request. The response code and body will be displayed in the same view.
+After authentication APIs can be used through the Swagger UI. For each endpoint, click on it to open a separate view showing details of the call, such as optional and required parameters, payload structure and response structure. Click on **"Try it out"** button to start populating the fields. Once parameters and a payload is all set, click **"Execute"** to perform the request. The response code and body will be displayed in the same view.
 
 <img src="media/image44.png" style="width:6.27986in;height:4.99375in" />
 
@@ -2102,7 +2107,7 @@ The first step for resolving this situation is to define resource (memory and CP
 
 References:
 
--   [Kubernetes: Application Introspection and Debugging](https://kubernetes.io/docs/tasks/debug-application-cluster/debug-application-introspection/)
+- [Kubernetes: Application Introspection and Debugging](https://kubernetes.io/docs/tasks/debug-application-cluster/debug-application-introspection/)
 
 #### Redirect URIs
 
@@ -2152,9 +2157,9 @@ https://azure-iiot-27180.westeurope.cloudapp.azure.com/publisher/swagger/oauth2-
 
 References:
 
--   [Configure your App Service or Azure Functions app to use Azure AD login](https://docs.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad)
+- [Configure your App Service or Azure Functions app to use Azure AD login](https://docs.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad)
 
--   [Redirect URI (reply URL) restrictions and limitations](https://docs.microsoft.com/en-us/azure/active-directory/develop/reply-url)
+- [Redirect URI (reply URL) restrictions and limitations](https://docs.microsoft.com/en-us/azure/active-directory/develop/reply-url)
 
 #### External Service URL
 
@@ -2235,9 +2240,9 @@ Please refer to documentation here for guidance on Azure PaaS services’ backup
 
 In the context of the Azure Industrial IoT Platform, version upgrade relates to upgrading cloud microservices to newer versions. The exact mechanism depends on the deployment method and can be accomplished in 2 ways:
 
--   Update of components using Helm CLI for deployments into an AKS cluster using Helm chart.
+- Update of components using Helm CLI for deployments into an AKS cluster using Helm chart.
 
--   Update of components through change of Docker image tag that is hosted in App Service.
+- Update of components through change of Docker image tag that is hosted in App Service.
 
 Our strong recommendation is to run the same version of components together across the deployment to eliminate any potential compatibility issues. This recommendation is enforced in the Helm chart approach, which does not allow one to specify different versions for different components.
 
@@ -2249,7 +2254,7 @@ Please note that when microservices are deployed using Helm chart, it is not pos
 
 A prerequisite for these steps is the Helm CLI. It will be used for getting configuration values of an existing Helm release and upgrading it.
 
-In the below commands “`azure-industrial-iot`” is used as the namespace. Please update the namespace to the value appropriate for your deployment.
+In the below commands "`azure-industrial-iot`" is used as the namespace. Please update the namespace to the value appropriate for your deployment.
 
 1. Get the name of existing Helm release. The following command can be used for that:
 
@@ -2257,15 +2262,15 @@ In the below commands “`azure-industrial-iot`” is used as the namespace. Ple
 
    The output will look something like this:
 
-<img src="media/image51.png" style="width:6.29166in;height:0.3641in" />
+   <img src="media/image51.png" style="width:6.29166in;height:0.3641in" />
 
-​		We will need this `azure-industrial-iot` release name later to get the configuration values.
+​   We will need this `azure-industrial-iot` release name later to get the configuration values.
 
-2. Get values that have been provided to this Helm release when it was deployed, save output in a file: 
+2. Get values that have been provided to this Helm release when it was deployed, save output in a file:
 
    `helm get values azure-industrial-iot --namespace azure-industrial-iot > values.yaml`
 
-3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from 2.7.206 version to 2.8.0. 
+3. Update image tag to in `values.yaml` to a newer version. For example, let’s assume that we want to upgrade from 2.7.206 version to 2.8.0.
 
    Please check the `values.yaml` file to see if there is an image tag set, the parameter for that is `image.tag`. If there is one, change its value to 2.8.0 from 2.7.206. If there isn’t one, please add it.
 
@@ -2289,9 +2294,9 @@ Please note that deployment via scripts is recommended only for demos/POC case a
 
 When components of the Azure Industrial IoT platform are deployed using [deploy.cmd](https://github.com/Azure/Industrial-IoT/blob/master/deploy.cmd) or [these](https://github.com/Azure/Industrial-IoT/blob/master/deploy.sh) scripts, back-end microservices are hosted in two instances of App Service. Those two App Service instances will be hosting the following components:
 
--   All-in-one service: The all-in-one service host combines all micro services and agents into a single process that hosts each individual web API on its named resource endpoint. It is an easy way to host the entire platform in a single container or on a single web application instance in the cloud. Docker container for this is `mcr.microsoft.com/iot/industrial-iot-services-all`.
+- All-in-one service: The all-in-one service host combines all micro services and agents into a single process that hosts each individual web API on its named resource endpoint. It is an easy way to host the entire platform in a single container or on a single web application instance in the cloud. Docker container for this is `mcr.microsoft.com/iot/industrial-iot-services-all`.
 
--   Engineering Tool: The Engineering tool is a ASP.net Core *Blazor* application that provides a simple frontend for the contained services. It is a sample and showcases all API's just like the CLI. Docker container for this is `mcr.microsoft.com/iot/industrial-iot-frontend`.
+- Engineering Tool: The Engineering tool is a ASP.net Core *Blazor* application that provides a simple frontend for the contained services. It is a sample and showcases all API's just like the CLI. Docker container for this is `mcr.microsoft.com/iot/industrial-iot-frontend`.
 
 Updating the components in this case is done by specifying a new tag for the docker images for of the App Service Instances and restarting the resources. To do that, one would need to find both instances of the App Service resource in the resource group of the deployment.
 
@@ -2299,7 +2304,7 @@ Here are resources of a sample deployment:
 
 <img src="media/image52.png" style="width:6.29166in;height:2.54316in" />
 
-Then, go to one of those resources in Azure Portal, then to Container Settings under Settings on left pane, then change tag of the image specified in “Full Image Name and Tag” to the version that is desired, let’s say 2.7.206, and then click on Save.
+Then, go to one of those resources in Azure Portal, then to Container Settings under Settings on left pane, then change tag of the image specified in "Full Image Name and Tag" to the version that is desired, let’s say 2.7.206, and then click on Save.
 
 <img src="media/image53.png" style="width:6.29166in;height:4.23536in" />
 
