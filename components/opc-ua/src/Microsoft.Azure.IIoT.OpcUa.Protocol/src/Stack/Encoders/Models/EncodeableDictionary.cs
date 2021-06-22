@@ -61,7 +61,7 @@ namespace Opc.Ua.Encoders {
                 .Where(x => !string.IsNullOrEmpty(x.Key))
                 .Where(x => x.Value != null)
                 .Where(x => x.Value.Value != null)
-                .Where(x => !(x.Value.Value is LocalizedText lt) || (lt.Locale != null && lt.Text != null))
+                .Where(x => !(x.Value.Value is LocalizedText lt) || lt.Locale != null || lt.Text != null)
                 .ToArray();
 
             if (encoder.UseReversibleEncoding) {
