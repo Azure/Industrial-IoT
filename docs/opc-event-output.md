@@ -1,6 +1,6 @@
 # Detailing the output for OPC UA Events in OPC Publisher
 
-This section describes what the output looks like when listening for events in the OPC Publisher. Events are produced in the PubSub format specified in the OPC UA Standard. The payload is an event which consists of fields selected in the select clause and it's values.
+This section describes what the output looks like when listening for events in the OPC Publisher. Events are produced in the PubSub format specified in the OPC UA Standard. The payload is an event which consists of fields selected in the select clause and its values.
 
 Here is an example of the output we get when listening to events from the Simple Events sample:
 ```json
@@ -45,7 +45,7 @@ Here is an example of the output we get when listening to events from the Simple
   }
 }
 ```
-A few things to note here. Here the event in the payload is named "SimpleEvents" which it has been configured to by setting the DisplayName property of the events configuration. Also note that all fields+values reside under the Value key.
+A few things to note here. Here the event in the payload is named "SimpleEvents" which has been configured to by setting the DisplayName property of the events configuration. Also note that all fields+values reside under the Value key.
 
 The format produced here does not contain enough information to decode the JSON properly. If you need this there is a command-line switch in the OPC Publisher called "reversibleencoding", or "re" which can be set to either true or false. The default value is false. If you enable this setting the output will look like this:
 ```json
