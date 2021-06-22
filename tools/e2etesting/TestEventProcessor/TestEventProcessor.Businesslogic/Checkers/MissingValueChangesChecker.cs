@@ -51,6 +51,11 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                 return;
             }
 
+            // do not process if no source timestamp
+            if (sourceTimestamp == default(DateTime)) {
+                return;
+            }
+
             // Do not process if _expectedValueChangesPerTimestamp is set to zero.
             if (_expectedValueChangesPerTimestamp == 0) {
                 return;

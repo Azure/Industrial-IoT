@@ -57,6 +57,11 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             DateTime sourceTimestamp,
             DateTime enqueuedimestamp
         ) {
+            // do not process if no source timestamp
+            if (sourceTimestamp == default(DateTime)) {
+                return;
+            }
+
             // Do not process if _expectedMaximalDuration is set to zero.
             if (_expectedMaximalDuration.Equals(TimeSpan.Zero)) {
                 return;

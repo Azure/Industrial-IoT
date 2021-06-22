@@ -43,6 +43,11 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
             DateTime _0,
             object _1
         ) {
+            // do not process if we are missing data
+            if (string.IsNullOrEmpty(nodeId) || _0 == default(DateTime) || _1 == null) {
+                return;
+            }
+
             _lock.Wait();
             try {
                 if (_valueChangesPerNodeId.ContainsKey(nodeId)) {

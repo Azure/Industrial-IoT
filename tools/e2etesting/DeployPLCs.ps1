@@ -20,6 +20,10 @@ Param(
     [string]
     $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:latest",
     [string]
+    $PLCUsername = "dummy",
+    [string]
+    $PLCPassword = "dummy",
+    [string]
     $ResourcesPrefix = "e2etesting",
     [Double]
     $MemoryInGb = 0.5,
@@ -93,8 +97,8 @@ if ($aciNamesToCreate.Length -gt 0) {
     if ($UsePrivateIp -eq $false) {
         $script = {
             Param($Name)
-            $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
-            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name
+            $aciCommand = "/bin/sh -c './opcplc --ses --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --registry-username $using:PLCUsername --registry-password $using:PLCPassword --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Public --dns-name-label $Name
             if ($LASTEXITCODE -ne 0) {
                 throw "Job failed with exit code: $LASTEXITCODE"
             }
@@ -110,8 +114,8 @@ if ($aciNamesToCreate.Length -gt 0) {
 
         $script = {
             Param($Name)
-            $aciCommand = "/bin/sh -c './opcplc --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
-            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:vNet --subnet $using:subNet
+            $aciCommand = "/bin/sh -c './opcplc --ses --ctb --pn=50000 --autoaccept --nospikes --nodips --nopostrend --nonegtrend --nodatavalues --sph --wp=80 --sn=$($using:NumberOfSlowNodes) --sr=$($using:SlowNodeRate) --st=$($using:SlowNodeType) --fn=$($using:NumberOfFastNodes) --fr=$($using:FastNodeRate) --ft=$($using:FastNodeType)'"
+            az container create --resource-group $using:ResourceGroupName --name $Name --image $using:PLCImage --registry-username $using:PLCUsername --registry-password $using:PLCPassword --os-type Linux --command $aciCommand --ports @(50000,80) --cpu $using:CpuCount --memory $using:MemoryInGb --ip-address Private --vnet $using:vNet --subnet $using:subNet
             if ($LASTEXITCODE -ne 0) {
                 throw "Job failed with exit code: $LASTEXITCODE"
             }

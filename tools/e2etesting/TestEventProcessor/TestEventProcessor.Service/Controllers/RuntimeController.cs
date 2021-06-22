@@ -60,5 +60,10 @@ namespace TestEventProcessor.Service.Controllers
 
             return result;
         }
+
+        [HttpGet("messages")]
+        public string GetMessages() {
+            return _validator.GetMessages();
+        }
     }
 }

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace IIoTPlatform_E2E_Tests.Standalone {
+    using Azure.Messaging.EventHubs.Consumer;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -20,14 +22,20 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
     [Collection("IIoT Standalone Test Collection")]
     [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
-    public class B_PublishMultipleNodesStandaloneTestTheory {
+    public class B_PublishMultipleNodesStandaloneTestTheory : IDisposable {
         private readonly ITestOutputHelper _output;
         private readonly IIoTStandaloneTestContext _context;
+        private readonly EventHubConsumerClient _consumer;
 
         public B_PublishMultipleNodesStandaloneTestTheory(IIoTStandaloneTestContext context, ITestOutputHelper output) {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
+            _consumer = _context.GetEventHubConsumerClient();
+        }
+
+        public void Dispose() {
+            _consumer?.CloseAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
 
         [Fact, PriorityOrder(1)]
@@ -107,14 +115,15 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         [Fact, PriorityOrder(5)]
-        public void Test_VerifyDataAvailableAtIoTHub_Expect_NumberOfValueChanges_GreaterThan_Zero() {
+        public async Task Test_VerifyDataAvailableAtIoTHub_Expect_NumberOfValueChanges_GreaterThan_Zero() {
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             //wait some time till the updated pn.json is reflected
             Task.Delay(3 * 60 * 1000, cts.Token).GetAwaiter().GetResult();
 
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 250, 10_000, 90_000_000, cts.Token).GetAwaiter().GetResult();
+            var messages = _consumer.ReadEventsAsync(false, cancellationToken: cts.Token);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 250, 10_000, 90_000_000, cts.Token);
 
             // wait some time to generate events to process
             Task.Delay(90 * 1000, cts.Token).GetAwaiter().GetResult();
@@ -124,19 +133,26 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True((uint)json.duplicateValueCount == 0, "Duplicate values detected");
 
             // check that every published node is sending data
-            if (_context.ConsumedOpcUaNodes != null) {
-                var expectedNodes = new List<string>(_context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id));
-                foreach (dynamic property in json.valueChangesByNodeId) {
-                    var propertyName = (string)property.Name;
-                    var nodeId = propertyName.Split('#').Last();
-                    var expected = expectedNodes.FirstOrDefault(n => n.EndsWith(nodeId));
-                    Assert.True(expected != null, $"Publishing from unexpected node: {propertyName}");
-                    expectedNodes.Remove(expected);
+            var expectedNodes = new HashSet<string>(_context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(n => n.Id));
+            Assert.NotEmpty(expectedNodes);
+
+            await foreach (var message in messages.WithCancellation(cts.Token)) {
+                var batchedMessages = message.DeserializeJson<JArray>();
+                foreach (dynamic batchedMessage in batchedMessages) {
+                    foreach (var messageItem in batchedMessage.Messages) {
+                        foreach (var payloadItem in messageItem.Payload.Properties()) {
+                            var nodeId = (string)payloadItem.Name;
+                            Assert.True(expectedNodes.Remove(nodeId), $"Publishing from unexpected node: {nodeId}");
+                        }
+                    }
                 }
 
-                expectedNodes.ForEach(n => _context.OutputHelper.WriteLine(n));
-                Assert.Empty(expectedNodes);
+                if (!expectedNodes.Any()) {
+                    break;
+                }
+
             }
+            Assert.Empty(expectedNodes);
         }
 
         [Fact, PriorityOrder(6)]
