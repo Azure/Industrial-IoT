@@ -650,6 +650,13 @@ namespace IIoTPlatform_E2E_Tests {
             }
         }
 
+        /// <summary>
+        /// Serialize a published nodes json file.
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="port">Port of OPC UA server</param>
+        /// <param name="writerId">DataSetWriterId to set</param>
+        /// <param name="opcEvents">OPC UA events</param>
         public static string PublishedNodesJson(this IIoTStandaloneTestContext context, uint port, string writerId, JArray opcEvents) {
             return JsonConvert.SerializeObject(
                 new JArray(
@@ -661,6 +668,14 @@ namespace IIoTPlatform_E2E_Tests {
                 ), Formatting.Indented);
         }
 
+        /// <summary>
+        /// Create an ACI
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="commandLine">Command line for container</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <param name="fileToUpload">File to upload to the container</param>
+        /// <param name="numInstances">Number of instances</param>
         public static async Task CreateSimulationContainerAsync(IIoTPlatformTestContext context, List<string> commandLine, CancellationToken cancellationToken, string fileToUpload = null, int numInstances = 1) {
             var azure = await GetAzureContextAsync(context, cancellationToken);
 
@@ -682,6 +697,12 @@ namespace IIoTPlatform_E2E_Tests {
                             context.AzureStorageKey)));
         }
 
+        /// <summary>
+        /// Upload a file to a storage account
+        /// </summary>
+        /// <param name="storageAccountName">Name of storage account</param>
+        /// <param name="storageAccountKey">Key for storage account</param>
+        /// <param name="fileName">File name</param>
         private async static Task UploadFileToStorageAccountAsync(string storageAccountName, string storageAccountKey, string fileName) {
             var cloudStorageAccount = new CloudStorageAccount(new StorageCredentials(storageAccountName, storageAccountKey), true);
             var cloudFileClient = cloudStorageAccount.CreateCloudFileClient();
@@ -703,6 +724,18 @@ namespace IIoTPlatform_E2E_Tests {
             await cf.UploadFromFileAsync(fileName);
         }
 
+        /// <summary>
+        /// Create a container group
+        /// </summary>
+        /// <param name="azure">Azure context</param>
+        /// <param name="resourceGroupName">Resource group name</param>
+        /// <param name="containerGroupName">Container group name</param>
+        /// <param name="containerImage">Container image</param>
+        /// <param name="executable">Starting command line</param>
+        /// <param name="commandLine">Additional command line options</param>
+        /// <param name="fileShareName">File share name</param>
+        /// <param name="storageAccountName">Storage account name</param>
+        /// <param name="storageAccountKey">Storage account key</param>
         private static async Task<string> CreateContainerGroupAsync(IAzure azure,
                                       string resourceGroupName,
                                       string containerGroupName,
@@ -740,10 +773,19 @@ namespace IIoTPlatform_E2E_Tests {
             return containerGroup.Fqdn;
         }
 
+
+        /// <summary>
+        /// Delete an ACI
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static void DeleteSimulationContainer(IIoTPlatformTestContext context) {
             DeleteSimulationContainerAsync(context).GetAwaiter().GetResult();
         }
 
+        /// <summary>
+        /// Delete an ACI
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         public static async Task DeleteSimulationContainerAsync(IIoTPlatformTestContext context) {
             await Task.WhenAll(
             context.PlcAciDynamicUrls
@@ -752,6 +794,11 @@ namespace IIoTPlatform_E2E_Tests {
             );
         }
 
+        /// <summary>
+        /// Get an azure context
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="cancellationToken">Cancellation token</param>
         private async static Task<IAzure> GetAzureContextAsync(IIoTPlatformTestContext context, CancellationToken cancellationToken) {
             if (context.AzureContext != null) {
                 return context.AzureContext;
@@ -813,6 +860,10 @@ namespace IIoTPlatform_E2E_Tests {
             return kSerializer.Deserialize<T>(reader);
         }
 
+        /// <summary>
+        /// Get an Event Hub consumer
+        /// </summary>
+        /// <param name="config">Configuration for IoT Hub</param>
         public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config) {
             return new EventHubConsumerClient(
                 TestConstants.TestConsumerGroupName,
@@ -1028,6 +1079,11 @@ namespace IIoTPlatform_E2E_Tests {
             return source.ConsumeDuring(context, m => m.PublisherId, duration);
         }
 
+        /// <summary>
+        /// Truncate a date time
+        /// </summary>
+        /// <param name="dateTime">Date time top truncate</param>
+        /// <param name="timeSpan">Time span</param>
         public static DateTime Truncate(this DateTime dateTime, TimeSpan timeSpan) {
             if (timeSpan == TimeSpan.Zero) {
                 return dateTime;
