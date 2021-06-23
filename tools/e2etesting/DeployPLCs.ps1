@@ -20,9 +20,9 @@ Param(
     [string]
     $PLCImage = "mcr.microsoft.com/iotedge/opc-plc:latest",
     [string]
-    $PLCUsername = "dummy",
+    $PLCUsername = "",
     [string]
-    $PLCPassword = "dummy",
+    $PLCPassword = "",
     [string]
     $ResourcesPrefix = "e2etesting",
     [Double]
