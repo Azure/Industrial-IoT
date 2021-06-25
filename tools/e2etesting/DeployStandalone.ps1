@@ -1,11 +1,11 @@
 Param(
     [string]
     $ResourceGroupName,
-    [Guid]
+    [string]
     $TenantId,
-    [String]
+    [string]
     $Region = "EastUS",
-    [String]
+    [string]
     $ServicePrincipalId
 )
 
@@ -78,6 +78,16 @@ if (!$iotHub) {
     $iotHub = New-AzIotHub -ResourceGroupName $ResourceGroupName -Name $iotHubName -SkuName S1 -Units 1 -Location $resourceGroup.Location
 }
 
+# Ensure Event Hub additional consumer group for tests
+
+$cgName = "TestConsumer"
+$iotHubCg = Get-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $iotHubName | Where-Object Name -eq $cgName
+
+if (!$iotHubCg) {
+    Write-Host "Creating IoT Hub Event Hub Consumer Group $($cgName)..."
+    $iotHubCg = Add-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $iotHubName -EventHubConsumerGroupName $cgName
+}
+
 ## Ensure KeyVault
 
 $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -ErrorAction SilentlyContinue
@@ -96,5 +106,8 @@ $connectionString = Get-AzIotHubConnectionString $ResourceGroupName -Name $iothu
 
 Write-Host "Adding/Updating KeyVault-Secret 'PCS-IOTHUB-CONNSTRING' with value '***'..."
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IOTHUB-CONNSTRING' -SecretValue (ConvertTo-SecureString $connectionString.PrimaryConnectionString -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'SP-TENANT-ID' -SecretValue (ConvertTo-SecureString $TenantId -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'RESOURCE-GROUP-NAME' -SecretValue (ConvertTo-SecureString $ResourceGroupName -AsPlainText -Force) | Out-Null
+Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'REGION' -SecretValue (ConvertTo-SecureString $Region -AsPlainText -Force) | Out-Null
 
 Write-Host "Deployment finished."

@@ -51,6 +51,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                 Cmd = new[] {
                 "PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
                 "--aa",
+                "--mm=PubSub",
                 "--pf=" + TestConstants.PublishedNodesFullName
             },
                 HostConfig = new {

@@ -76,6 +76,11 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
                 return;
             }
 
+            // Do not process if we don't have nodeId
+            if (string.IsNullOrEmpty(nodeId)) {
+                return;
+            }
+
             // Do not process if _expectedInterval is set to zero.
             if (_expectedInterval.Equals(TimeSpan.Zero)) {
                 return;
@@ -148,7 +153,7 @@ namespace TestEventProcessor.BusinessLogic.Checkers {
         private void CheckForMissingTimestamps() {
             _lock.Wait();
             try {
-                foreach(var kvp in _sourceTimestamps) {
+                foreach (var kvp in _sourceTimestamps) {
                     if (kvp.Value.Count < 2) {
                         // Nothing to check as there are no enough timestamps to compare.
                         continue;
