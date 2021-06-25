@@ -10,6 +10,7 @@ schedules:
     include:
     - main
     - release
+    - releases
   always: true
 
 # Trigger Stand Alone E2E Pipeline post completion of build pipeline.
@@ -22,7 +23,6 @@ resources:
         include:
         - refs/heads/releases/*
         - refs/heads/release/*
-        - refs/heads/master
         - refs/heads/main
 pool:
   name: '$(AgentPool)'
