@@ -14,51 +14,53 @@ In the configuration file you can specify how many event configurations as you l
 Here is an example of a configuration file in normal or advanced mode:
 ```json
 [
-  {
-    "EndpointUrl": "opc.tcp://testserver:62563/Quickstarts/SimpleEventsServer",
-    "OpcEvents": [
-      {
-        "Id": "i=2253",
-        "DisplayName": "SimpleEventServerEvents",
-        "SelectClauses": [
-          {
-            "TypeDefinitionId": "i=2041",
-            "BrowsePath": [
-              "EventId"
-            ]
-          },
-          {
-            "TypeDefinitionId": "i=2041",
-            "BrowsePath": [
-              "Message"
-            ]
-          },
-          {
-            "TypeDefinitionId": "ns=2;i=235",
-            "BrowsePath": [
-              "/2:CycleId"
-            ]
-          },
-          {
-            "TypeDefinitionId": "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
-            "BrowsePath": [
-              "/http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep"
-            ]
-          }
-        ],
-        "WhereClause": {
-            "Elements": [
-                "FilterOperator": "OfType",
-                "FilterOperands": [
-                  {
-                    "Value": "ns=2;i=235"
-                  }
-                ]
-            ]
-          }
-      }
-    ]
-  }
+    {
+        "EndpointUrl": "opc.tcp://testserver:62563/Quickstarts/SimpleEventsServer",
+        "OpcEvents": [
+            {
+                "Id": "i=2253",
+                "DisplayName": "SimpleEventServerEvents",
+                "SelectClauses": [
+                    {
+                        "TypeDefinitionId": "i=2041",
+                        "BrowsePath": [
+                            "EventId"
+                        ]
+                    },
+                    {
+                        "TypeDefinitionId": "i=2041",
+                        "BrowsePath": [
+                            "Message"
+                        ]
+                    },
+                    {
+                        "TypeDefinitionId": "ns=2;i=235",
+                        "BrowsePath": [
+                            "/2:CycleId"
+                        ]
+                    },
+                    {
+                        "TypeDefinitionId": "nsu=http://opcfoundation.org/Quickstarts/SimpleEvents;i=235",
+                        "BrowsePath": [
+                            "/http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep"
+                        ]
+                    }
+                ],
+                "WhereClause": {
+                    "Elements": [
+                        {
+                            "FilterOperator": "OfType",
+                            "FilterOperands": [
+                                {
+                                    "Value": "ns=2;i=235"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
 ]
 ```
 As highlighted in the example above you can specify namespaces both by using the index or the full name for the namespace. Also look at how the BrowsePath can be configured.
@@ -66,16 +68,16 @@ As highlighted in the example above you can specify namespaces both by using the
 And here is an example of a configuration file in simple mode:
 ```json
 [
-  {
-    "EndpointUrl": "opc.tcp://testserver:62563/Quickstarts/SimpleEventsServer",
-    "OpcEvents": [
-      {
-        "Id": "i=2253",
-        "DisplayName": "SimpleEventServerEvents",
-        "TypeDefinitionId": "ns=2;i=235" 
-      }
-    ]
-  }
+    {
+        "EndpointUrl": "opc.tcp://testserver:62563/Quickstarts/SimpleEventsServer",
+        "OpcEvents": [
+            {
+                "Id": "i=2253",
+                "DisplayName": "SimpleEventServerEvents",
+                "TypeDefinitionId": "ns=2;i=235"
+            }
+        ]
+    }
 ]
 ```
 
@@ -88,22 +90,22 @@ In addition to this, you can also configure to enable pending alarms view. What 
 Here is an example of a configuration for a pending alarms:
 ```json
 [
-  {
-    "EndpointUrl": "opc.tcp://testserver:62563/Quickstarts/AlarmConditionServer",
-    "OpcEvents": [
-      {
-        "DisplayName": "AlarmConditions",
-        "Id": "i=2253",
-        "TypeDefinitionId": "i=2915",
-        "PendingAlarms": {
-          "IsEnabled": true,
-          "UpdateInterval": 10,
-          "SnapshotInterval": 20,
-          "CompressedPayload": false
-        }
-      }
-    ]
-  }
+    {
+        "EndpointUrl": "opc.tcp://testserver:62563/Quickstarts/AlarmConditionServer",
+        "OpcEvents": [
+            {
+                "DisplayName": "AlarmConditions",
+                "Id": "i=2253",
+                "TypeDefinitionId": "i=2915",
+                "PendingAlarms": {
+                    "IsEnabled": true,
+                    "UpdateInterval": 10,
+                    "SnapshotInterval": 20,
+                    "CompressedPayload": false
+                }
+            }
+        ]
+    }
 ]
 ```
 
