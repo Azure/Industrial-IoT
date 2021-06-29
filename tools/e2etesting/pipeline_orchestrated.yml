@@ -20,7 +20,7 @@ resources:
     trigger:
       branches:
         include:
-        - refs/heads/releases/*
+        - refs/heads/releases
         - refs/heads/release/*
         - refs/heads/main
 
