@@ -74,11 +74,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 Assert.Equal("s=EncodeableDictionary", typeId);
                 Assert.Equal("Json", encoding);
 
-                var count = body.GetProperty("_Count").GetInt32();
-                var keys = body.GetProperty("_Keys").EnumerateArray().Select(x => x.GetString()).ToArray();
-                Assert.Equal(4, count);
-                Assert.Equal(new[] { kEventId, kMessage, kCycleId, kCurrentStep }, keys);
-
                 var eventId = body.GetProperty(kEventId);
                 Assert.Equal("ByteString", eventId.GetProperty("Type").GetString());
                 Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);

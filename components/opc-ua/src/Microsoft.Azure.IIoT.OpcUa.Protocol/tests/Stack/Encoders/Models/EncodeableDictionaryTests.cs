@@ -139,17 +139,5 @@ namespace Opc.Ua.Encoders {
                 Assert.Null(eof);
             }
         }
-
-        [Fact]
-        public void ThrowServiceResultExceptionWhenKeysIdentifierIsUsed() {
-            var encodeableDictionary = new EncodeableDictionary {
-                new KeyDataValuePair { Key = "_Keys", Value = new DataValue(new Variant(123)) },
-            };
-
-            var context = new ServiceMessageContext();
-            using var stream = new MemoryStream();
-            using var encoder = new JsonEncoderEx(stream, context, JsonEncoderEx.JsonEncoding.Object);
-            Assert.Throws<ServiceResultException>(() => encodeableDictionary.Encode(encoder));
-        }
     }
 }

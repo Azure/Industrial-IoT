@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Encoders {
     using Opc.Ua;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -12,17 +13,6 @@ namespace Opc.Ua.Encoders {
     /// Encodeable dictionary carrying field names and values
     /// </summary>
     public class EncodeableDictionary : List<KeyDataValuePair>, IEncodeable {
-
-        /// <summary>
-        /// Identifier for the keys in the reversible format.
-        /// </summary>
-        private const string kKeysIdentifier = "_Keys";
-
-        /// <summary>
-        /// Identifier for the number of key-value pairs in the reversible format.
-        /// </summary>
-        private const string kCountIdentifier = "_Count";
-
         /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
             nameof(EncodeableDictionary);
@@ -56,50 +46,32 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder) {
-            // Get valid key-value pairs for encoding.
-            var keyValuePairs = this
+            // Get valid dictionary for encoding.
+            var dictionary = this
                 .Where(x => !string.IsNullOrEmpty(x.Key))
                 .Where(x => x.Value != null)
                 .Where(x => x.Value.Value != null)
                 .Where(x => !(x.Value.Value is LocalizedText lt) || lt.Locale != null || lt.Text != null)
-                .ToArray();
+                .ToDictionary(x => x.Key, x => x.Value);
 
-            if (encoder.UseReversibleEncoding) {
-                if (this.Any(x => x.Key == kKeysIdentifier)) {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"The key '{kKeysIdentifier}' is already in use.");
-                }
-
-                if (this.Any(x => x.Key == kCountIdentifier)) {
-                    throw new ServiceResultException(StatusCodes.BadEncodingError,
-                        $"The key '{kCountIdentifier}' is already in use.");
-                }
-
-                // Write keys for decoding.
-                var keys = keyValuePairs.Select(x => x.Key).ToArray();
-                encoder.WriteUInt32(kCountIdentifier, (uint)keys.Length);
-                if (keys.Length > 0) {
-                    encoder.WriteStringArray(kKeysIdentifier, keys);
-                }
-            }
-
-            foreach (var keyValuePair in keyValuePairs) {
-                encoder.WriteDataValue(keyValuePair.Key, keyValuePair.Value);
+            foreach (var value in dictionary) {
+                encoder.WriteDataValue(value.Key, value.Value);
             }
         }
 
         /// <inheritdoc/>
         public virtual void Decode(IDecoder decoder) {
-            // Read keys for decoding.
-            var count = decoder.ReadUInt32(kCountIdentifier);
-            if (count > 0) {
-                var keys = decoder.ReadStringArray(kKeysIdentifier);
-                foreach (var key in keys) {
-                    Add(new KeyDataValuePair {
-                        Key = key,
-                        Value = decoder.ReadDataValue(key)
-                    });
-                }
+            // Only JSON decoder that can decode a dictionary is supported.
+            if (!(decoder is JsonDecoderEx jsonDecoder)) {
+                throw new Exception($"Cannot decode using the decoder: {decoder.GetType()}.");
+            }
+            var dictionary = jsonDecoder.ReadDataValueDictionary(null);
+
+            foreach (var kvp in dictionary) {
+                Add(new KeyDataValuePair {
+                    Key = kvp.Key,
+                    Value = kvp.Value
+                });
             }
         }
 
