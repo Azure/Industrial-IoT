@@ -54,8 +54,8 @@ namespace Opc.Ua.Encoders {
                 .Where(x => !(x.Value.Value is LocalizedText lt) || lt.Locale != null || lt.Text != null)
                 .ToDictionary(x => x.Key, x => x.Value);
 
-            foreach (var value in dictionary) {
-                encoder.WriteDataValue(value.Key, value.Value);
+            foreach (var keyValuePair in dictionary) {
+                encoder.WriteDataValue(keyValuePair.Key, keyValuePair.Value);
             }
         }
 
@@ -66,11 +66,10 @@ namespace Opc.Ua.Encoders {
                 throw new Exception($"Cannot decode using the decoder: {decoder.GetType()}.");
             }
             var dictionary = jsonDecoder.ReadDataValueDictionary(null);
-
-            foreach (var kvp in dictionary) {
+            foreach (var keyValuePair in dictionary) {
                 Add(new KeyDataValuePair {
-                    Key = kvp.Key,
-                    Value = kvp.Value
+                    Key = keyValuePair.Key,
+                    Value = keyValuePair.Value
                 });
             }
         }
