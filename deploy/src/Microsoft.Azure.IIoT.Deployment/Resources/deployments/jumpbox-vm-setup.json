@@ -1,0 +1,178 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "aksClusterName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of AKS cluster"
+            }
+        },
+        "aksPublicIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "Address of AKS cluster Public IP"
+            }
+        },
+        "aksPublicIpDnsLabel": {
+            "type": "string",
+            "metadata": {
+                "description": "DNS label of AKS cluster Public IP"
+            }
+        },
+        "virtualMachineName": {
+            "type": "string",
+            "defaultValue": "jumpbox-vm",
+            "metadata": {
+                "description": "Name of Network Interface resource for jumpbox"
+            }
+        },
+        "aksBuiltInRoleType": {
+            "type": "string",
+            "metadata": {
+                "description": "AKS role that should be assigned to the VM"
+            },
+            "allowedValues": [
+                "AzureKubernetesServiceClusterAdminRole",
+                "AzureKubernetesServiceClusterUserRole"
+            ],
+            "defaultValue": "AzureKubernetesServiceClusterAdminRole"
+        },
+        "scriptFileUris": {
+            "type": "array",
+            "defaultValue": [],
+            "metadata": {
+                "description": "fileUris that should be set for VM setup step"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for resources."
+            }
+        },
+        "helmRepoUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "URL of the Helm repository containing azure-industrial-iot chart"
+            }
+        },
+        "helmChartVersion": {
+            "type": "string",
+            "metadata": {
+                "description": "Version of azure-industrial-iot Helm chart to use"
+            }
+        },
+        "aiiotImageTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Docker image tag for Azure Industrial IoT components"
+            }
+        },
+        "aiiotImageNamespace": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker image namespace for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryServer": {
+            "type": "string",
+            "metadata": {
+              "description": "Docker container registry for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryUsername": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+              "description": "Docker container registry username for Azure Industrial IoT components"
+            }
+        },
+        "aiiotContainerRegistryPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+              "description": "Docker container registry password for Azure Industrial IoT components"
+            }
+        },
+        "aiiotTenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "Azure Tenant ID"
+            }
+        },
+        "aiiotKeyVaultUri": {
+            "type": "string",
+            "metadata": {
+                "description": "URI of Azure Key Vault"
+            }
+        },
+        "aiiotServicesAppId": {
+            "type": "string",
+            "metadata": {
+                "description": "AppId of AAD App Registration for ServicesApp"
+            }
+        },
+        "aiiotServicesAppSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Client secret (password) of AAD App Registration for ServicesApp"
+            }
+        },
+        "aiiotServicesHostname": {
+            "type": "string",
+            "metadata": {
+                "description": "Hostname on which components of Azure Industrial IoT solution will be available externally"
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]"
+    },
+    "resources": [
+        {
+            "comments": "One time script execution to setup VM",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('virtualMachineName'), '/scriptextensions_setup')]",
+            "apiVersion": "2019-03-01",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [],
+            "location": "[variables('location')]",
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.1",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "timestamp": 1000000
+                },
+                "protectedSettings": {
+                    "managedIdentity": {},
+                    "fileUris": "[parameters('scriptFileUris')]",
+                    "commandToExecute": "[concat(
+                        'sudo -H bash jumpbox.sh',
+                        ' --resource_group ', resourceGroup().name,
+                        ' --aks_cluster ', parameters('aksClusterName'),
+                        ' --role ', parameters('aksBuiltInRoleType'),
+                        ' --load_balancer_ip ', parameters('aksPublicIpAddress'),
+                        ' --public_ip_dns_label ', parameters('aksPublicIpDnsLabel'),
+                        ' --helm_repo_url ', parameters('helmRepoUrl'),
+                        ' --helm_chart_version ', parameters('helmChartVersion'),
+                        ' --aiiot_image_tag ', parameters('aiiotImageTag'),
+                        ' --aiiot_image_namespace ', '\"', parameters('aiiotImageNamespace'), '\"',
+                        ' --aiiot_container_registry_server ', '\"', parameters('aiiotContainerRegistryServer'),'\"',
+                        ' --aiiot_container_registry_username ', '\"', parameters('aiiotContainerRegistryUsername'), '\"',
+                        ' --aiiot_container_registry_password ', '\"', parameters('aiiotContainerRegistryPassword'), '\"',
+                        ' --aiiot_tenant_id ', '\"', parameters('aiiotTenantId'), '\"',
+                        ' --aiiot_key_vault_uri ', parameters('aiiotKeyVaultUri'),
+                        ' --aiiot_services_app_id ', '\"', parameters('aiiotServicesAppId'), '\"',
+                        ' --aiiot_services_app_secret ', '\"', parameters('aiiotServicesAppSecret'), '\"',
+                        ' --aiiot_services_hostname ', '\"', parameters('aiiotServicesHostname'), '\"'
+                    )]"
+              }
+            }
+        }
+    ],
+    "outputs": {}
+}
