@@ -90,11 +90,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 return Task.FromResult(job);
             }
-            catch(OperationCanceledException) {
+            catch (OperationCanceledException) {
                 _logger.Information("Operation GetAvailableJobAsync was canceled");
                 throw;
             }
-            catch(Exception e) {
+            catch (Exception e) {
                 _logger.Error(e, "Error while looking for available jobs, for {Worker}", workerId);
                 throw;
             }
@@ -190,24 +190,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _lock.Wait();
                     var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
-                    if (currentFileHash != _lastKnownFileHash) {
+                    if (currentFileHash != _lastKnownFileHash || retryCount < 3) {
                         _logger.Information("File {publishedNodesFile} has changed, last known hash {LastHash}, new hash {NewHash}, reloading...",
                             _legacyCliModel.PublishedNodesFile,
                             _lastKnownFileHash,
                             currentFileHash);
                         _lastKnownFileHash = currentFileHash;
-                        using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
+                        using (var fileReader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
                             IEnumerable<WriterGroupJobModel> jobs = null;
-                            try {
-                                jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
-                            }
-                            catch (IOException) {
-                                throw; //pass it thru, to handle retries
-                            }
-                            catch (SerializerException ex) {
-                                _logger.Information(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
-                                _lastKnownFileHash = string.Empty;
-                                return;
+
+                            using (var fileSchemaReader = new StreamReader(_legacyCliModel.PublishedNodesSchemaFile)) {                                
+                                try {
+                                    jobs = _publishedNodesJobConverter.Read(fileReader, fileSchemaReader, _legacyCliModel);
+                                }
+                                catch (IOException) {
+                                    throw; //pass it thru, to handle retries
+                                }
+                                catch (SerializerException ex) {
+                                    _logger.Information(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
+                                    _lastKnownFileHash = string.Empty;
+                                    return;
+                                }
                             }
 
                             foreach (var job in jobs) {
@@ -252,14 +255,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                         _availableJobs = availableJobs;
                         _assignedJobs.Clear();
-                    } else {
+                    }
+                    else {
                         _logger.Information("File {publishedNodesFile} has changed and content-hash is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
                     }
                     break;
                 }
                 catch (IOException ex) {
                     retryCount--;
-                    if (retryCount > 0) {
+                    if (retryCount > 0) 
+                        {
+                        _logger.Error(ex, "Error while loading job from file. Retrying...");
                         Task.Delay(5000).GetAwaiter().GetResult();
                     }
                     else {

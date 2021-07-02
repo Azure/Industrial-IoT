@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Schema;
     using Newtonsoft.Json.Serialization;
     using System;
     using System.Buffers;
@@ -67,12 +68,28 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
         }
 
         /// <inheritdoc/>
-        public object Deserialize(ReadOnlyMemory<byte> buffer, Type type) {
+        public object Deserialize(ReadOnlyMemory<byte> buffer, Type type, TextReader schemaReader = null) {
             try {
                 // TODO move to .net 3 to use readonly span as stream source
                 var jsonSerializer = JsonSerializer.CreateDefault(Settings);
                 using (var stream = new MemoryStream(buffer.ToArray()))
                 using (var reader = new StreamReader(stream, ContentEncoding)) {
+
+                    // Validate json if schema is provided.
+                    if (schemaReader != null) {
+                        var messages = new List<string>();
+                        using (var jsonSchemaReader = new JsonTextReader(schemaReader)) {
+                            var schema = JSchema.Load(jsonSchemaReader);
+                            using (var validatingReader = new JSchemaValidatingReader(new JsonTextReader(reader))) {
+                                validatingReader.Schema = schema;
+                                validatingReader.ValidationEventHandler += (o, a) => messages.Add(a.Message);
+                                var serializedType = jsonSerializer.Deserialize(validatingReader, type);
+
+                                return messages.Count > 0 ? throw new JsonSerializationException(string.Join(", ", messages.ToArray())) : serializedType;
+                            }
+                        }
+                    }
+
                     return jsonSerializer.Deserialize(reader, type);
                 }
             }
@@ -82,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             catch (JsonReaderException ex) {
                 throw new SerializerException(ex.Message, ex);
             }
-        }
+        }      
 
         /// <inheritdoc/>
         public void Serialize(IBufferWriter<byte> buffer, object o, SerializeOption format) {

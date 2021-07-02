@@ -4,17 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Opc.Ua;
     using System;
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Threading.Tasks;
     using Xunit;
 
     /// <summary>
@@ -30,36 +31,70 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcEmptyTest() {
+        public async Task PnPlcEmptyTest() {
             var pn = @"
 [
 ]
 ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             // No jobs
             Assert.Empty(jobs);
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetWriterIdTest() {
+        public async Task PnPlcSchemaValidationFailureTest() {
             var pn = @"
 [
     {
         ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",        
         ""OpcNodes"": [
             {
                 ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                ""HeartbeatInterval"": 2,
+                ""OpcSamplingInterval"": 2000,
+                ""OpcPublishingInterval"": 2000
             }
         ]
     }
 ]
 ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+
+            // Verify correct exception is thrown.
+            var exception = await Assert.ThrowsAsync<IIoT.Exceptions.SerializerException>(async () =>
+            converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel()));
+
+            // Verify correct message is provided in exception.
+            Assert.Equal("Required properties are missing from object: UseSecurity. Path '[0]', line 14, position 5.", exception.Message);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubDataSetWriterIdTest() {
+            var pn = @"
+[
+    {
+        ""DataSetWriterId"": ""testid"",
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""UseSecurity"": false,
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2,
+                ""OpcSamplingInterval"": 2000,
+                ""OpcPublishingInterval"": 2000
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -69,23 +104,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetWriterGroupTest() {
+        public async Task PnPlcPubSubDataSetWriterGroupTest() {
             var pn = @"
-[
-    {
-        ""DataSetWriterGroup"": ""testgroup"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                ""DataSetWriterGroup"": ""testgroup"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""HeartbeatInterval"": 2,
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -95,22 +134,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetFieldId1Test() {
+        public async Task PnPlcPubSubDataSetFieldId1Test() {
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testfieldid1""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""DataSetFieldId"": ""testfieldid1"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -120,26 +163,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetFieldId2Test() {
+        public async Task PnPlcPubSubDataSetFieldId2Test() {
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testfieldid1""
-            },
-            {
-                ""Id"": ""i=2259"",
-                ""DataSetFieldId"": ""testfieldid2""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""DataSetFieldId"": ""testfieldid1"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""i=2259"",
+                        ""DataSetFieldId"": ""testfieldid2"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -155,29 +204,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubFullTest() {
+        public async Task PnPlcPubSubFullTest() {
             var pn = @"
-[
-    {
-        ""DataSetWriterGroup"": ""testgroup"",
-        ""DataSetWriterId"": ""testwriterid"",
-        ""DataSetPublishingInterval"": 1000,
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testfieldid1"",
-                ""OpcPublishingInterval"": 2000
-            },
-            {
-                ""Id"": ""i=2259"",
+                ""DataSetWriterGroup"": ""testgroup"",
+                ""DataSetWriterId"": ""testwriterid"",
+                ""DataSetPublishingInterval"": 1000,
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""DataSetFieldId"": ""testfieldid1"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""i=2259"",
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromSeconds(5) } );
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromSeconds(5) });
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -202,22 +254,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingInterval1Test() {
+        public async Task PnPlcPubSubDataSetPublishingInterval1Test() {
             var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -227,23 +283,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingInterval2Test() {
+        public async Task PnPlcPubSubDataSetPublishingInterval2Test() {
             var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""OpcPublishingInterval"": 2000
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",                        
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -253,25 +312,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingInterval3Test() {
+        public async Task PnPlcPubSubDataSetPublishingInterval3Test() {
             var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258""
-            },
-            {
-                ""Id"": ""i=2259""
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""i=2259"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -281,27 +346,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDataSetPublishingInterval4Test() {
+        public async Task PnPlcPubSubDataSetPublishingInterval4Test() {
             var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""OpcPublishingInterval"": 2000
-            },
-            {
-                ""Id"": ""i=2259"",
-                ""OpcPublishingInterval"": 3000
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",                        
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""i=2259"",
+                        ""OpcPublishingInterval"": 3000,
+                        ""OpcSamplingInterval"": 2000,                
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -311,23 +380,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDisplayName1Test() {
+        public async Task PnPlcPubSubDisplayName1Test() {
             var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""testdisplayname1""
-            },
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""DisplayName"": ""testdisplayname1"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                ]
+            }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -337,22 +410,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDisplayName2Test() {
+        public async Task PnPlcPubSubDisplayName2Test() {
             var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-            },
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                ]
+            }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -362,24 +439,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDisplayName3Test() {
+        public async Task PnPlcPubSubDisplayName3Test() {
             var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""testdisplayname1"",
-                ""DataSetFieldId"": ""testdatasetfieldid1"",
-            },
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""DisplayName"": ""testdisplayname1"",
+                        ""DataSetFieldId"": ""testdatasetfieldid1"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                ]
+            }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -389,23 +470,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubDisplayName4Test() {
+        public async Task PnPlcPubSubDisplayName4Test() {
             var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testdatasetfieldid1"",
-            },
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""DataSetFieldId"": ""testdatasetfieldid1"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                ]
+            }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -415,127 +500,147 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPubSubPublishedNodeDisplayName1Test() {
+        public async Task PnPlcPubSubPublishedNodeDisplayName1Test() {
             var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""testdisplayname1""
-            },
-        ]
-    }
-]
-";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
-
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("testdisplayname1", jobs
-                .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
-        }
-
-        [Fact]
-        public void PnPlcPubSubPublishedNodeDisplayName2Test() {
-            var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
-            {
-                ""Id"": ""i=2258"",
-            },
-        ]
-    }
-]
-";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
-
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Null(jobs
-                .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
-        }
-
-        [Fact]
-        public void PnPlcPubSubPublishedNodeDisplayName3Test() {
-            var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
-            {
-                ""Id"": ""i=2258"",
-                ""DisplayName"": ""testdisplayname1"",
-                ""DataSetFieldId"": ""testdatasetfieldid1"",
-            },
-        ]
-    }
-]
-";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
-
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Equal("testdisplayname1", jobs
-                .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
-        }
-
-        [Fact]
-        public void PnPlcPubSubPublishedNodeDisplayName4Test() {
-            var pn = @"
-[
-    {
-        ""DataSetPublishingInterval"": ""1000"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
-            {
-                ""Id"": ""i=2258"",
-                ""DataSetFieldId"": ""testdatasetfieldid1"",
-            },
-        ]
-    }
-]
-";
-            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
-
-            Assert.NotEmpty(jobs);
-            Assert.Single(jobs);
-            Assert.Null(jobs
-                .Single().WriterGroup.DataSetWriters
-                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
-        }
-
-        [Fact]
-        public void PnPlcHeartbeatInterval2Test() {
-
-            var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
-            {
-                ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 2
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""DisplayName"": ""testdisplayname1"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal("testdisplayname1", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubPublishedNodeDisplayName2Test() {
+            var pn = @"
+        [
+            {
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                ]
+            }
+        ]
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Null(jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubPublishedNodeDisplayName3Test() {
+            var pn = @"
+        [
+            {
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""DisplayName"": ""testdisplayname1"",
+                        ""DataSetFieldId"": ""testdatasetfieldid1"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                ]
+            }
+        ]
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal("testdisplayname1", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
+        }
+
+        [Fact]
+        public async Task PnPlcPubSubPublishedNodeDisplayName4Test() {
+            var pn = @"
+        [
+            {
+                ""DataSetPublishingInterval"": ""1000"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""DataSetFieldId"": ""testdatasetfieldid1"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                ]
+            }
+        ]
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromMilliseconds(2000) });
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Null(jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().PublishedVariableDisplayName);
+        }
+
+        [Fact]
+        public async Task PnPlcHeartbeatInterval2Test() {
+
+            var pn = @"
+        [
+            {
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""HeartbeatInterval"": 2,
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
+            }
+        ]
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -553,23 +658,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcHeartbeatIntervalTimespanTest() {
+        public async Task PnPlcHeartbeatIntervalTimespanTest() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""HeartbeatIntervalTimespan"": ""00:00:01.500""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""HeartbeatIntervalTimespan"": ""00:00:01.500"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -587,23 +696,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcHeartbeatSkipSingleTrueTest() {
+        public async Task PnPlcHeartbeatSkipSingleTrueTest() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""SkipSingle"": true
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""SkipSingle"": true,
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -618,23 +731,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
 
         [Fact]
-        public void PnPlcHeartbeatSkipSingleFalseTest() {
+        public async Task PnPlcHeartbeatSkipSingleFalseTest() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""SkipSingle"": false
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""SkipSingle"": false,
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -646,23 +763,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPublishingInterval2000Test() {
+        public async Task PnPlcPublishingInterval2000Test() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""OpcPublishingInterval"": 2000
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",                        
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -678,22 +798,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcPublishingIntervalCliTest() {
+        public async Task PnPlcPublishingIntervalCliTest() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromSeconds(10) });
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel() { DefaultPublishingInterval = TimeSpan.FromSeconds(10) });
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -709,23 +833,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcSamplingInterval2000Test() {
+        public async Task PnPlcSamplingInterval2000Test() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258"",
-                ""OpcSamplingInterval"": 2000
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,                        
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -743,22 +870,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcExpandedNodeIdTest() {
+        public async Task PnPlcExpandedNodeIdTest() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""ExpandedNodeId"": ""nsu=http://opcfoundation.org/UA/;i=2258""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""ExpandedNodeId"": ""nsu=http://opcfoundation.org/UA/;i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -773,36 +904,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
 
         [Fact]
-        public void PnPlcExpandedNodeId2Test() {
+        public async Task PnPlcExpandedNodeId2Test() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""ExpandedNodeId"": ""nsu=http://opcfoundation.org/UA/;i=2258""
-            }
-        ]
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
-            {
-                ""Id"": ""i=2262""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""ExpandedNodeId"": ""nsu=http://opcfoundation.org/UA/;i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             },
             {
-                ""Id"": ""ns=2;s=AlternatingBoolean""
-            },
-            {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2262"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""ns=2;s=AlternatingBoolean"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -817,28 +958,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
 
         [Fact]
-        public void PnPlcExpandedNodeId3Test() {
+        public async Task PnPlcExpandedNodeId3Test() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
             {
-                ""Id"": ""i=2258""
-            },
-            {
-                ""Id"": ""ns=2;s=DipData""
-            },
-            {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""ns=2;s=DipData"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -853,49 +1002,66 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
 
         [Fact]
-        public void PnPlcExpandedNodeId4Test() {
+        public async Task PnPlcExpandedNodeId4Test() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-                ""Identifier"": ""i=2258""
-        }
-        },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
-        }
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
+        [
+            {
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""NodeId"": {
+                        ""Identifier"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                }
+                },
+            {
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""NodeId"": {
+                    ""Identifier"": ""ns=0;i=2261"",
+                    ""OpcSamplingInterval"": 2000,
+                    ""OpcPublishingInterval"": 2000
+                }
+            },
+            {
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
 
-            {
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
-            }
-        ]
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
-            {
-                ""Id"": ""i=2262""
+                    {
+                        ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             },
             {
-                ""Id"": ""ns=2;s=DipData""
-            },
-            {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2262"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""ns=2;s=DipData"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
@@ -909,49 +1075,66 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcMultiJob1Test() {
+        public async Task PnPlcMultiJob1Test() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost1:50000"",
-        ""NodeId"": {
-                ""Identifier"": ""i=2258""
-        }
-        },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost2:50000"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
-        }
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost3:50000"",
-        ""OpcNodes"": [
+        [
+            {
+                ""EndpointUrl"": ""opc.tcp://localhost1:50000"",
+                ""UseSecurity"": false,
+                ""NodeId"": {
+                        ""Identifier"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                }
+                },
+            {
+                ""EndpointUrl"": ""opc.tcp://localhost2:50000"",
+                ""UseSecurity"": false,
+                ""NodeId"": {
+                    ""Identifier"": ""ns=0;i=2261"",
+                    ""OpcSamplingInterval"": 2000,
+                    ""OpcPublishingInterval"": 2000
+                }
+            },
+            {
+                ""EndpointUrl"": ""opc.tcp://localhost3:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
 
-            {
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
-            }
-        ]
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost4:50000"",
-        ""OpcNodes"": [
-            {
-                ""Id"": ""i=2262""
+                    {
+                        ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             },
             {
-                ""Id"": ""ns=2;s=DipData""
-            },
-            {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+                ""EndpointUrl"": ""opc.tcp://localhost4:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""Id"": ""i=2262"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""ns=2;s=DipData"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    },
+                    {
+                        ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -962,59 +1145,72 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcMultiJob2Test() {
+        public async Task PnPlcMultiJob2Test() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50001"",
-        ""NodeId"": {
-                ""Identifier"": ""i=2258"",
-        }
-        },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50002"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
-        }
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50003"",
-        ""OpcNodes"": [
+        [
             {
-                ""OpcPublishingInterval"": 1000,
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
-            }
-        ]
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50004"",
-        ""OpcNodes"": [
+                ""EndpointUrl"": ""opc.tcp://localhost:50001"",
+                ""UseSecurity"": false,
+                ""NodeId"": {
+                        ""Identifier"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                }
+                },
             {
-                ""OpcPublishingInterval"": 1000,
-                ""Id"": ""i=2262""
+                ""EndpointUrl"": ""opc.tcp://localhost:50002"",
+                ""UseSecurity"": false,
+                ""NodeId"": {
+                    ""Identifier"": ""ns=0;i=2261"",
+                    ""OpcSamplingInterval"": 2000,
+                    ""OpcPublishingInterval"": 2000
+                }
             },
             {
-                ""OpcPublishingInterval"": 1000,
-                ""Id"": ""ns=2;s=DipData""
+                ""EndpointUrl"": ""opc.tcp://localhost:50003"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {                        
+                        ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 1000
+                    }
+                ]
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
-                ""OpcPublishingInterval"": 1000
+                ""EndpointUrl"": ""opc.tcp://localhost:50004"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""OpcPublishingInterval"": 1000,
+                        ""OpcSamplingInterval"": 2000,                        
+                        ""Id"": ""i=2262""
+                    },
+                    {
+                        ""OpcPublishingInterval"": 1000,
+                        ""OpcSamplingInterval"": 2000,                        
+                        ""Id"": ""ns=2;s=DipData""
+                    },
+                    {
+                        ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
+                        ""OpcPublishingInterval"": 1000,
+                        ""OpcSamplingInterval"": 2000,                        
+                    }
+                ]
             }
         ]
-    }
-]
-";
-            var endpointUrls = new string [] { 
-                "opc.tcp://localhost:50001", 
-                "opc.tcp://localhost:50002",
-                "opc.tcp://localhost:50003",
-                "opc.tcp://localhost:50004"
-            };
+        ";
+            var endpointUrls = new string[] {
+                        "opc.tcp://localhost:50001",
+                        "opc.tcp://localhost:50002",
+                        "opc.tcp://localhost:50003",
+                        "opc.tcp://localhost:50004"
+                    };
 
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -1028,57 +1224,70 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcMultiJob3Test() {
+        public async Task PnPlcMultiJob3Test() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-                ""Identifier"": ""i=2258"",
-        }
-        },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
-        }
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50001"",
-        ""OpcNodes"": [
+        [
             {
-                ""OpcPublishingInterval"": 1000,
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
-            }
-        ]
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50001"",
-        ""OpcNodes"": [
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""NodeId"": {
+                        ""Identifier"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                }
+                },
             {
-                ""OpcPublishingInterval"": 1000,
-                ""Id"": ""i=2262""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""NodeId"": {
+                    ""Identifier"": ""ns=0;i=2261"",
+                    ""OpcSamplingInterval"": 2000,
+                    ""OpcPublishingInterval"": 2000
+                }
             },
             {
-                ""OpcPublishingInterval"": 1000,
-                ""Id"": ""ns=2;s=DipData""
+                ""EndpointUrl"": ""opc.tcp://localhost:50001"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""OpcPublishingInterval"": 1000,
+                        ""OpcSamplingInterval"": 2000,                        
+                        ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
+                    }
+                ]
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
-                ""OpcPublishingInterval"": 1000
+                ""EndpointUrl"": ""opc.tcp://localhost:50001"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""OpcPublishingInterval"": 1000,
+                        ""OpcSamplingInterval"": 2000,                        
+                        ""Id"": ""i=2262""
+                    },
+                    {
+                        ""OpcPublishingInterval"": 1000,
+                        ""OpcSamplingInterval"": 2000,                        
+                        ""Id"": ""ns=2;s=DipData""
+                    },
+                    {
+                        ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
+                        ""OpcPublishingInterval"": 1000,
+                        ""OpcSamplingInterval"": 2000,                        
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
             var endpointUrls = new string[] {
-                "opc.tcp://localhost:50000",
-                "opc.tcp://localhost:50001",
-            };
+                        "opc.tcp://localhost:50000",
+                        "opc.tcp://localhost:50001",
+                    };
 
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -1092,55 +1301,68 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcMultiJob4Test() {
+        public async Task PnPlcMultiJob4Test() {
 
             var pn = @"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-                ""Identifier"": ""i=2258"",
-        }
-        },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""NodeId"": {
-            ""Identifier"": ""ns=0;i=2261""
-        }
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50001"",
-        ""OpcNodes"": [
+        [
             {
-                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
-            }
-        ]
-    },
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50001"",
-        ""OpcNodes"": [
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""NodeId"": {
+                        ""Identifier"": ""i=2258"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                }
+                },
             {
-                ""OpcPublishingInterval"": 1000,
-                ""Id"": ""i=2262""
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""NodeId"": {
+                    ""Identifier"": ""ns=0;i=2261"",
+                    ""OpcSamplingInterval"": 2000,
+                    ""OpcPublishingInterval"": 2000
+                }
             },
             {
-                ""OpcPublishingInterval"": 1000,
-                ""Id"": ""ns=2;s=DipData""
+                ""EndpointUrl"": ""opc.tcp://localhost:50001"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean"",
+                        ""OpcSamplingInterval"": 2000,
+                        ""OpcPublishingInterval"": 2000
+                    }
+                ]
             },
             {
-                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
+                ""EndpointUrl"": ""opc.tcp://localhost:50001"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    {
+                        ""OpcPublishingInterval"": 1000,
+                        ""OpcSamplingInterval"": 2000,                        
+                        ""Id"": ""i=2262""
+                    },
+                    {
+                        ""OpcPublishingInterval"": 1000,
+                        ""OpcSamplingInterval"": 2000,                        
+                        ""Id"": ""ns=2;s=DipData""
+                    },
+                    {
+                        ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData"",
+                    }
+                ]
             }
         ]
-    }
-]
-";
+        ";
             var endpointUrls = new string[] {
-                "opc.tcp://localhost:50000",
-                "opc.tcp://localhost:50001",
-            };
+                        "opc.tcp://localhost:50000",
+                        "opc.tcp://localhost:50001",
+                    };
 
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel());
+            var jobs = converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel());
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -1158,29 +1380,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
-        public void PnPlcMultiJobBatching1Test() {
+        public async Task PnPlcMultiJobBatching1Test() {
 
             var pn = new StringBuilder(@"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
-            ");
+        [
+            {
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    ");
 
-            for(var i = 1; i < 10000; i++) {
+            for (var i = 1; i < 10000; i++) {
                 pn.Append("{ \"Id\": \"i=");
                 pn.Append(i);
                 pn.Append("\" },");
             }
 
             pn.Append(@"
-            { ""Id"": ""i=10000"" }
+                    { ""Id"": ""i=10000"" }
+                ]
+            }
         ]
-    }
-]
-");
+        ");
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn.ToString()), new LegacyCliModel()).ToList();
+            var jobs = converter.Read(new StringReader(pn.ToString()), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel()).ToList();
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -1196,19 +1420,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,
                     p => Assert.Null(p.SamplingInterval)));
             Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
-                Assert.Equal(1000, 
+                Assert.Equal(1000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
         }
 
         [Fact]
-        public void PnPlcMultiJobBatching2Test() {
+        public async Task PnPlcMultiJobBatching2Test() {
 
             var pn = new StringBuilder(@"
-[
-    {
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
-        ""OpcNodes"": [
-            ");
+        [
+            {
+                ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+                ""UseSecurity"": false,
+                ""OpcNodes"": [
+                    ");
 
             for (var i = 1; i < 10000; i++) {
                 pn.Append("{ \"Id\": \"i=");
@@ -1219,13 +1444,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             }
 
             pn.Append(@"
-            { ""Id"": ""i=10000"" }
+                    { ""Id"": ""i=10000"" }
+                ]
+            }
         ]
-    }
-]
-");
+        ");
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var jobs = converter.Read(new StringReader(pn.ToString()), new LegacyCliModel()).ToList();
+            var jobs = converter.Read(new StringReader(pn.ToString()), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel()).ToList();
 
             // No jobs
             Assert.NotEmpty(jobs);
@@ -1235,15 +1461,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Equal(10, jobs.Single().WriterGroup.DataSetWriters.Count());
             Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => Assert.Equal("opc.tcp://localhost:50000",
                 dataSetWriter.DataSet.DataSetSource.Connection.Endpoint.Url));
-            Assert.Equal(jobs.Single().WriterGroup.DataSetWriters.Select(dataSetWriter => 
+            Assert.Equal(jobs.Single().WriterGroup.DataSetWriters.Select(dataSetWriter =>
                 dataSetWriter.DataSet.DataSetSource.SubscriptionSettings?.PublishingInterval).ToList(),
-                new TimeSpan?[] { 
-                    TimeSpan.FromMilliseconds(1000),
-                    TimeSpan.FromMilliseconds(1000),
-                    TimeSpan.FromMilliseconds(1000),
-                    TimeSpan.FromMilliseconds(1000),
-                    TimeSpan.FromMilliseconds(1000),
-                    null, null, null, null, null});
+                new TimeSpan?[] {
+                            TimeSpan.FromMilliseconds(1000),
+                            TimeSpan.FromMilliseconds(1000),
+                            TimeSpan.FromMilliseconds(1000),
+                            TimeSpan.FromMilliseconds(1000),
+                            TimeSpan.FromMilliseconds(1000),
+                            null, null, null, null, null});
 
             Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter => Assert.All(
                 dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData,

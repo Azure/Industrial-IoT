@@ -24,6 +24,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public string PublishedNodesFile { get; set; }
 
         /// <summary>
+        /// The published nodes schema file.
+        /// </summary>
+        public string PublishedNodesSchemaFile { get; set; }
+        
+        /// <summary>
         /// The time to wait to connect a session.
         /// </summary>
         public TimeSpan? SessionConnectWait { get; set; }

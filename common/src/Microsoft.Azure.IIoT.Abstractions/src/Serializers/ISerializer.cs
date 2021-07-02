@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Serializers {
     using System;
     using System.Buffers;
+    using System.IO;
     using System.Text;
 
     /// <summary>
@@ -38,8 +39,9 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// </summary>
         /// <param name="type"></param>
         /// <param name="buffer"></param>
+        /// <param name="schemaReader"></param>
         /// <returns></returns>
-        object Deserialize(ReadOnlyMemory<byte> buffer, Type type);
+        object Deserialize(ReadOnlyMemory<byte> buffer, Type type, TextReader schemaReader = null);
 
         /// <summary>
         /// Deserialize to variant value
