@@ -71,17 +71,6 @@ The format produced here does not contain enough information to decode the JSON 
                   "TypeId": "s=EncodeableDictionary",
                   "Encoding": "Json",
                   "Body": {
-                    "_Count": 8,
-                    "_Keys": [
-                      "EventId",
-                      "EventType",
-                      "Message",
-                      "ReceiveTime",
-                      "Severity",
-                      "SourceName",
-                      "SourceNode",
-                      "Time"
-                    ],
                     "EventId": {
                       "Type": "ByteString",
                       "Body": "DYg+y18fTE6jpQNTu9KB7A=="
