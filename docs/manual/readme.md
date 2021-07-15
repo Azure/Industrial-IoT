@@ -179,7 +179,7 @@ The OPC Publisher supports two operational modes:
 - Standalone mode
 - Orchestrated mode
 
-In both modes the OPC Publisher Module is to a container orchestration runtime as IoT Edge or Kubernetes. The modes differentiate how the operation of OPC Publisher is controlled. The mode is controlled by the fact if the OPC Publisher module is configured to read its configuration from a configuration file (see "pf" option below).
+The modes differentiate how the operation of OPC Publisher is controlled. The mode is controlled by the fact if the OPC Publisher module is configured to read its configuration from a configuration file (see "pf" option below).
 
 In standalone mode all configuration is done via command line options when starting the module and via a configuration file, which controls which OPC UA nodes should be published as well as specifying more detailed parameters for the publishing of each node:
 
@@ -597,7 +597,7 @@ References:
 
 Azure Log Analytics workspace is a unique environment for Azure Monitor log data. Each workspace has its own data repository and configuration, and data sources and solutions are configured to store their data in a particular workspace.
 
-We use Azure Log Analytics workspace to collect metrics from Edge modules as well as metrics from micro-services running in AKS cluster. We could also check other metrics of Kubernetes cluster.
+We use Azure Log Analytics workspace to collect metrics from Edge modules as well as metrics from micro-services running in AKS cluster. We could also check other metrics of the Kubernetes cluster.
 
 References:
 
