@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {
-      "commandName": "Project",
-      "commandLineArgs": "--host"
-    }
-  }
-}
