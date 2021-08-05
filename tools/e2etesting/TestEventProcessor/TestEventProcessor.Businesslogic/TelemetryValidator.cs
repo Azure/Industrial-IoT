@@ -164,11 +164,11 @@ namespace TestEventProcessor.BusinessLogic {
         /// Stop monitoring of events.
         /// </summary>
         /// <returns></returns>
-        public async Task<StopResult> StopAsync()
+        public Task<StopResult> StopAsync()
         {
             // Check if already stopped.
             if (_cancellationTokenSource == null) {
-                return new StopResult();
+                return Task.FromResult(new StopResult());
             }
 
             Interlocked.Exchange(ref _shuttingDown, 1);
@@ -218,7 +218,7 @@ namespace TestEventProcessor.BusinessLogic {
                 DuplicateValueCount = incrCheckerResult.DuplicateValueCount,
             };
 
-            return stopResult;
+            return Task.FromResult(stopResult);
         }
 
         /// <summary>
@@ -247,19 +247,19 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         /// <param name="arg"></param>
         /// <returns>Task that run until token is canceled</returns>
-        private async Task Client_ProcessEventAsync(ProcessEventArgs arg)
+        private Task Client_ProcessEventAsync(ProcessEventArgs arg)
         {
             var eventReceivedTimestamp = DateTime.UtcNow;
 
             // Check if already stopped.
             if (_cancellationTokenSource == null) {
                 _logger.LogWarning("Received Events but nothing to do, because already stopped");
-                return;
+                return Task.CompletedTask;
             }
 
             if (!arg.HasEvent) {
                 _logger.LogWarning("Received partition event without content");
-                return;
+                return Task.CompletedTask;
             }
 
             var body = arg.Data.Body.ToArray();
@@ -303,6 +303,7 @@ namespace TestEventProcessor.BusinessLogic {
 
             _logger.LogDebug("Received {NumberOfValueChanges} messages from IoT Hub, partition {PartitionId}.",
                 valueChangesCount, arg.Partition.PartitionId);
+            return Task.CompletedTask;
         }
 
         /// <summary>

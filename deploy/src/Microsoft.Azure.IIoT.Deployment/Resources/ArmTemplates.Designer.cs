@@ -139,6 +139,31 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    &quot;$schema&quot;: &quot;https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#&quot;,
         ///    &quot;contentVersion&quot;: &quot;1.0.0.0&quot;,
         ///    &quot;parameters&quot;: {
+        ///        &quot;aksClusterName&quot;: {
+        ///            &quot;type&quot;: &quot;string&quot;,
+        ///            &quot;metadata&quot;: {
+        ///                &quot;description&quot;: &quot;Name of AKS cluster&quot;
+        ///            }
+        ///        },
+        ///        &quot;aksPublicIpAddress&quot;: {
+        ///            &quot;type&quot;: &quot;string&quot;,
+        ///            &quot;metadata&quot;: {
+        ///                &quot;description&quot;: &quot;Address of AKS cluster Public IP&quot;
+        ///            }
+        ///        },
+        ///        &quot;aksPublic [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string jumpbox_vm_setup {
+            get {
+                return ResourceManager.GetString("jumpbox_vm_setup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///    &quot;$schema&quot;: &quot;https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#&quot;,
+        ///    &quot;contentVersion&quot;: &quot;1.0.0.0&quot;,
+        ///    &quot;parameters&quot;: {
         ///        &quot;iiotServicesName&quot;: {
         ///            &quot;type&quot;: &quot;string&quot;,
         ///            &quot;defaultValue&quot;: &quot;iiotservices&quot;,

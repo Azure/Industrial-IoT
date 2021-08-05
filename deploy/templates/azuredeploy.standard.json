@@ -450,15 +450,15 @@
                 "timeSeriesIdProperties": [
                     {
                         "type": "string",
-                        "name": "publisherId"
+                        "name": "PublisherId"
                     },
                     {
                         "type": "string",
-                        "name": "dataSetWriterId"
+                        "name": "DataSetWriterId"
                     },
                     {
                         "type": "string",
-                        "name": "nodeId"
+                        "name": "NodeId"
                     }
                 ]
             },
@@ -511,7 +511,7 @@
                 "consumerGroupName": "[variables('tsiEventHubConsumerGroup')]",
                 "keyName": "[parameters('tsiEventHubAuthorization')]",
                 "sharedAccessKey": "[listkeys(variables('tsiEventSourceAuthorizationRuleResourceId'), '2017-04-01').primaryKey]",
-                "timestampPropertyName": "TimeStamp"
+                "timestampPropertyName": "Timestamp"
             },
             "dependsOn": [
                 "[variables('tsiEnvironmentResourceId')]",

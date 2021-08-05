@@ -10,7 +10,7 @@ It runs on [Azure IoT Edge](https://azure.microsoft.com/en-us/services/iot-edge/
 
 Please use our released containers for OPC Publisher available in the Microsoft Container Registry, rather than building from sources. The easiest way to deploy OPC Publisher is through the [Azure Marketplace](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft_iot.iotedge-opc-publisher). 
 
-[<img src="image-20201028141833399.png" style="zoom:50%;" />](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft_iot.iotedge-opc-publisher)
+[<img src="../media/image-20201028141833399.png" style="zoom:50%;" />](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft_iot.iotedge-opc-publisher)
 
 Simply click the Get It Now button to log into the [Azure Portal](https://portal.azure.com) and deploy OPC Publisher. The following steps are required:
 

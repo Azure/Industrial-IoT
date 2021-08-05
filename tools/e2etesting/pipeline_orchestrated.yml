@@ -9,6 +9,7 @@ schedules:
     include:
     - main
     - release
+    - releases
   always: true
 
 # Trigger Orchestrated E2E Pipeline post completion of build pipeline.
@@ -19,9 +20,8 @@ resources:
     trigger:
       branches:
         include:
-        - refs/heads/releases/*
+        - refs/heads/releases
         - refs/heads/release/*
-        - refs/heads/master
         - refs/heads/main
 
 pool:

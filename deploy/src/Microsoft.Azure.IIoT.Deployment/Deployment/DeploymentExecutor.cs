@@ -1265,6 +1265,33 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 {"aksRbacGuid", aksRoleGuid.ToString()},
                 {"storageBuiltInRoleType", storageRoleType},
                 {"storageRbacGuid", storageRoleGuid.ToString()},
+            };
+
+            Log.Information("Deploying jumpbox VM resources.");
+
+            var jumpboxDeployment = await _resourceManagementClient
+                .CreateResourceGroupDeploymentAsync(
+                    _resourceGroup,
+                    "jumpbox-vm",
+                    Resources.ArmTemplates.jumpbox_vm,
+                    jumpboxDeploymentParameters,
+                    DeploymentMode.Incremental,
+                    _defaultTagsDict,
+                    cancellationToken
+                );
+
+            var jumpboxDeploymentOutput = ResourceMgmtClient
+                .ExtractDeploymentOutput(jumpboxDeployment);
+
+            // We will wait a minute for role assignments to be applied.
+            await Task.Delay(60_000, cancellationToken);
+
+            var jumpboxSetupDeploymentParameters = new Dictionary<string, object> {
+                {"aksClusterName", aksCluster.Name},
+                {"aksPublicIpAddress", aksPublicIp.IpAddress},
+                {"aksPublicIpDnsLabel", aksPublicIp.DnsSettings.DomainNameLabel},
+                {"virtualMachineName", jumpboxVirtualMachineName},
+                {"aksBuiltInRoleType", aksRoleType},
                 {"scriptFileUris", new List<string> {
                     jumpboxShBlobUri,
                     omsAgentConfBlobUri,
@@ -1287,19 +1314,19 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 {"aiiotServicesHostname", aksPublicIp.DnsSettings.Fqdn}
             };
 
-            var jumpboxDeployment = await _resourceManagementClient
+            Log.Information("Installing Helm charts from jumpbox VM.");
+
+            var jumpboxSetupDeployment = await _resourceManagementClient
                 .CreateResourceGroupDeploymentAsync(
                     _resourceGroup,
-                    "jumpbox-vm",
-                    Resources.ArmTemplates.jumpbox_vm,
-                    jumpboxDeploymentParameters,
+                    "jumpbox-vm-setup",
+                    Resources.ArmTemplates.jumpbox_vm_setup,
+                    jumpboxSetupDeploymentParameters,
                     DeploymentMode.Incremental,
                     _defaultTagsDict,
                     cancellationToken
                 );
 
-            var jumpboxDeploymentOutput = ResourceMgmtClient
-                .ExtractDeploymentOutput(jumpboxDeployment);
 
             // Output jumpbox credentials so that users can login into it.
             OutputJumpboxCredentials(jumpboxUsername, jumpboxPassword);
