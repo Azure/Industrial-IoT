@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Validators;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
@@ -24,6 +25,11 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
     public class NewtonSoftJsonSerializer : IJsonSerializerSettingsProvider,
         IJsonSerializer {
 
+        /// <summary>
+        /// Json schema validator
+        /// </summary>
+        private IJsonSchemaValidator _jsonSchemaValidator;
+
         /// <inheritdoc/>
         public string MimeType => ContentMimeType.Json;
 
@@ -38,9 +44,16 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
         /// <summary>
         /// Create serializer
         /// </summary>
+        /// <param name="jsonSchemaValidator"></param>
         /// <param name="providers"></param>
-        public NewtonSoftJsonSerializer(
-            IEnumerable<IJsonSerializerConverterProvider> providers = null) {
+        public NewtonSoftJsonSerializer(            
+            IEnumerable<IJsonSerializerConverterProvider> providers = null,
+            IJsonSchemaValidator jsonSchemaValidator = null
+            ) {
+            
+            // If no json schema validator is provided use default one.
+            _jsonSchemaValidator = jsonSchemaValidator ?? new JsonSchemaDotNetSchemaValidator();
+
             var settings = new JsonSerializerSettings();
             if (providers != null) {
                 foreach (var provider in providers) {
@@ -70,28 +83,29 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
         /// <inheritdoc/>
         public object Deserialize(ReadOnlyMemory<byte> buffer, Type type, TextReader schemaReader = null) {
             try {
-                // TODO move to .net 3 to use readonly span as stream source
-                var jsonSerializer = JsonSerializer.CreateDefault(Settings);
-                using (var stream = new MemoryStream(buffer.ToArray()))
-                using (var reader = new StreamReader(stream, ContentEncoding)) {
 
-                    // Validate json if schema is provided.
-                    if (schemaReader != null) {
-                        var messages = new List<string>();
-                        using (var jsonSchemaReader = new JsonTextReader(schemaReader)) {
-                            var schema = JSchema.Load(jsonSchemaReader);
-                            using (var validatingReader = new JSchemaValidatingReader(new JsonTextReader(reader))) {
-                                validatingReader.Schema = schema;
-                                validatingReader.ValidationEventHandler += (o, a) => messages.Add(a.Message);
-                                var serializedType = jsonSerializer.Deserialize(validatingReader, type);
+                // TODO move to .net 3 to use readonly span as stream source                
+                var bufferArray = buffer.ToArray();
+                
+                // Validate json if schema is provided.
+                if (schemaReader != null) {
+                    var validationResults = _jsonSchemaValidator.Validate(bufferArray, schemaReader);
 
-                                return messages.Count > 0 ? throw new JsonSerializationException(string.Join(", ", messages.ToArray())) : serializedType;
-                            }
-                        }
+                    // If any item in validation results collection is marked as invalid, consider it as json schema validation failure.
+                    if (validationResults.Any(r => r.IsValid == false)) {
+                        var validationResultsMessage =
+                            string.Join("; ",
+                                validationResults.Select(r =>
+                                    $"Validation failed with error: {r.Message} at schema path: {r.SchemaLocation}, and configuration file location {r.InstanceLocation}"));
+
+                        throw new JsonSerializationException(validationResultsMessage);
                     }
+                } 
 
-                    return jsonSerializer.Deserialize(reader, type);
-                }
+                using (var stream = new MemoryStream(bufferArray))
+                    using (var reader = new StreamReader(stream, ContentEncoding))
+                        return JsonSerializer.CreateDefault(Settings).Deserialize(reader, type);
+
             }
             catch (JsonSerializationException ex) {
                 throw new SerializerException(ex.Message, ex);

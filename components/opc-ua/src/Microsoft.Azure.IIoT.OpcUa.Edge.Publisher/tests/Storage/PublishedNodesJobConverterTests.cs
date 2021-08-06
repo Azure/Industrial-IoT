@@ -20,6 +20,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
     /// <summary>
     /// Test
+    /// 
+    /// The referenced schema file across these test is a linked asset in the 
+    /// project file set to copy to the output build directory so that it can 
+    /// be easily referenced here.
     /// </summary>
     public class PublishedNodesJobConverterTests {
 
@@ -55,7 +59,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             converter.Read(new StringReader(pn), new StringReader(await schemaReader.ReadToEndAsync()), new LegacyCliModel()));
 
             // Verify correct message is provided in exception.
-            Assert.Equal("JSON is valid against no schemas from 'oneOf'. Path '[0]', line 13, position 5.", exception.Message);
+            Assert.Equal(
+                "Validation failed with error: Expected 1 matching subschema but found 0 at schema path: #/items/oneOf, and configuration file location #/0; " + 
+                "Validation failed with error: Required properties [Id] were not present at schema path: #/items/oneOf/0/properties/OpcNodes/items/0/required, and configuration file location #/0/OpcNodes/0; " + 
+                "Validation failed with error: Required properties [ExpandedNodeId] were not present at schema path: #/items/oneOf/1/properties/OpcNodes/items/0/required, and configuration file location #/0/OpcNodes/0; " + 
+                "Validation failed with error: Required properties [NodeId] were not present at schema path: #/items/oneOf/2/required, and configuration file location #/0", 
+                exception.Message);
         }
 
         [Fact]

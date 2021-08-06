@@ -3,8 +3,11 @@
 ### OPC Publisher Command Line Arguments for Version 2.6 and above
 
              --pf, --publishfile=VALUE
-                                       the filename to configure the nodes  to publish.
-                                       If this Option is specified it puts OPC Publisher into standalone  mode.
+                                       the filename to configure the nodes to publish.
+                                       If this option is specified it puts OPC Publisher into standalone mode.
+             --pfs, --publishfileschema=VALUE
+                                       the filename for json schema, to validate the published nodes file.
+                                       If this option is specified it validates published nodes file against json schema specified here otherwise default location is used.
              --lf, --logfile=VALUE
                                        the filename of the logfile to use.
              --ll. --loglevel=VALUE

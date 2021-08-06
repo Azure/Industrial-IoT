@@ -199,18 +199,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         using (var fileReader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
                             IEnumerable<WriterGroupJobModel> jobs = null;
 
-                            using (var fileSchemaReader = new StreamReader(_legacyCliModel.PublishedNodesSchemaFile)) {                                
-                                try {
-                                    jobs = _publishedNodesJobConverter.Read(fileReader, fileSchemaReader, _legacyCliModel);
+                            try {
+                                if (!File.Exists(_legacyCliModel.PublishedNodesSchemaFile)) {
+                                    _logger.Warning("File {PublishedNodesSchemaFile} does not exist, ignoring schema validation of {publishedNodesFile} file...",
+                                    _legacyCliModel.PublishedNodesSchemaFile, _legacyCliModel.PublishedNodesFile);
+
+                                    jobs = _publishedNodesJobConverter.Read(fileReader, null, _legacyCliModel);
                                 }
-                                catch (IOException) {
-                                    throw; //pass it thru, to handle retries
+                                else {
+                                    using (var fileSchemaReader = new StreamReader(_legacyCliModel.PublishedNodesSchemaFile)) {
+                                        jobs = _publishedNodesJobConverter.Read(fileReader, fileSchemaReader, _legacyCliModel);
+                                    }
                                 }
-                                catch (SerializerException ex) {
-                                    _logger.Information(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
-                                    _lastKnownFileHash = string.Empty;
-                                    return;
-                                }
+                            }
+                            catch (IOException) {
+                                throw; //pass it thru, to handle retries
+                            }
+                            catch (SerializerException ex) {
+                                _logger.Information(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
+                                _lastKnownFileHash = string.Empty;
+                                return;
                             }
 
                             foreach (var job in jobs) {
@@ -263,8 +271,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 catch (IOException ex) {
                     retryCount--;
-                    if (retryCount > 0) 
-                        {
+
+                    if (retryCount > 0) {
                         _logger.Error(ex, "Error while loading job from file. Retrying...");
                         Task.Delay(5000).GetAwaiter().GetResult();
                     }

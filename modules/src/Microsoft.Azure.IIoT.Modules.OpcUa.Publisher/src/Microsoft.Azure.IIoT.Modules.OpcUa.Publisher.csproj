@@ -38,7 +38,7 @@
     <None Update="publishednodes.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Schemas\publishednodesschema.json">
+    <None Update="schemas\publishednodesschema.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
