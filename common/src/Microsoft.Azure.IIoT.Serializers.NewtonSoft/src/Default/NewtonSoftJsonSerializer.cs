@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json.Schema;
     using Newtonsoft.Json.Serialization;
     using System;
     using System.Buffers;
