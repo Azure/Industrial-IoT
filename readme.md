@@ -42,7 +42,7 @@ On Linux:
 
 For more information see the [detailed instructions](docs/deploy/howto-deploy-all-in-one.md) and [alternative deployment options](docs/deploy/readme.md).
 
-For detailed documentation of Azure Industrial IoT Platform, please refer to [Operations Manual](https://github.com/Azure/Industrial-IoT/tree/main/docs/manual).
+For detailed documentation of Azure Industrial IoT Platform, please refer to [Operations Manual](docs/manual/readme.md).
 
 ### OPC Publisher - Standalone
 
