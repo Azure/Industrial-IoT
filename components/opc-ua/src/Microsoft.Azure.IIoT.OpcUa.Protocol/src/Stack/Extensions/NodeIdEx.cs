@@ -72,6 +72,9 @@ namespace Opc.Ua.Extensions {
             int index = nodeId.NamespaceIndex;
             if (!string.IsNullOrEmpty(nodeId.NamespaceUri)) {
                 index = namespaces.GetIndex(nodeId.NamespaceUri);
+                if (index < 0) {
+                    throw new IndexOutOfRangeException($"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.");
+                }
             }
             return new NodeId(nodeId.Identifier, (ushort)index);
         }
