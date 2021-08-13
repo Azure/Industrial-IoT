@@ -1427,6 +1427,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     ParseFields(nodeCache, fieldNames, node);
                 }
                 fieldNames = fieldNames
+                    .Distinct()
                     .OrderBy(x => x.Name).ToList();
 
                 var eventFilter = new EventFilter();
