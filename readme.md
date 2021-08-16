@@ -42,6 +42,8 @@ On Linux:
 
 For more information see the [detailed instructions](docs/deploy/howto-deploy-all-in-one.md) and [alternative deployment options](docs/deploy/readme.md).
 
+For detailed documentation of Azure Industrial IoT Platform, please refer to [Operations Manual](docs/manual/readme.md).
+
 ### OPC Publisher - Standalone
 
 To learn how to use OPC Publisher outside the context of Industrial IoT Platform (as container or IoT Edge module) please have a look [here](docs/modules/publisher.md).

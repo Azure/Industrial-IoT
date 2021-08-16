@@ -231,6 +231,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // ... plus controllers
                 builder.RegisterType<ConfigurationSettingsController>()
                     .AsImplementedInterfaces().SingleInstance();
+                builder.RegisterType<PublisherSettingsController>()
+                    .AsImplementedInterfaces().SingleInstance();
                 // Note that they must be singleton so they can
                 // plug as configuration into the orchestrator client.
             }
