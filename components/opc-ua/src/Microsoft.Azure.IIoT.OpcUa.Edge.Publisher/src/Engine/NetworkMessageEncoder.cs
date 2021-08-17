@@ -74,7 +74,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 return Task.FromResult(result);
             }
             catch (Exception e) {
-                return Task.FromException<IEnumerable<NetworkMessageModel>>(e);
+                _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
+                return Task.FromResult(Enumerable.Empty<NetworkMessageModel>());
             }
         }
 
@@ -88,7 +89,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 return Task.FromResult(result);
             }
             catch (Exception e) {
-                return Task.FromException<IEnumerable<NetworkMessageModel>>(e);
+                _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
+                return Task.FromResult(Enumerable.Empty<NetworkMessageModel>());
             }
         }
 
@@ -131,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (notificationSize > maxMessageSize) {
                         // Message too large, drop it.
                         NotificationsDroppedCount += (uint)notificationsPerMessage;
-                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
+                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
                         processing = current.MoveNext();
                     }
                     else {
@@ -209,7 +211,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (notificationSize > maxMessageSize) {
                         // Message too large, drop it.
                         NotificationsDroppedCount += (uint)notificationsPerMessage;
-                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
+                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
                         processing = current.MoveNext();
                     }
                     else {
@@ -282,7 +284,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // Message too large, drop it.
                     NotificationsDroppedCount += (uint)notificationsPerMessage;
-                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
+                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
                     yield break;
                 }
                 NotificationsProcessedCount += (uint)notificationsPerMessage;
@@ -328,7 +330,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (encoded.Body.Length > maxMessageSize) {
                     // Message too large, drop it.
                     NotificationsDroppedCount += (uint)notificationsPerMessage;
-                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values");
+                    _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
                     yield break;
                 }
                 NotificationsProcessedCount += (uint)notificationsPerMessage;
@@ -355,7 +357,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // Declare all notifications in messages as dropped.
                 int totalNotifications = messages.Sum(m => m?.Notifications?.Count() ?? 0);
                 NotificationsDroppedCount += (uint)totalNotifications;
-                _logger.Warning("Namespace is empty, dropped {totalNotifications} values");
+                _logger.Warning("Namespace is empty, dropped {totalNotifications} values", totalNotifications);
                 yield break;
             }
 
@@ -376,13 +378,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     };
                     var notificationQueues = message.Notifications.GroupBy(m => m.NodeId)
                         .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray())).ToArray();
-                    while (notificationQueues.Where(q => q.Any()).Any()) {
+
+                    while (notificationQueues.Any(q => q.Any())) {
                         var payload = notificationQueues
                             .Select(q => q.Any() ? q.Dequeue() : null)
-                                .Where(s => s != null)
-                                    .ToDictionary(
-                                        s => GetPayloadIdentifier(s, message,context),
-                                        s => s.Value);
+                            .Where(s => s != null)
+                            .ToDictionary(
+                                s => GetPayloadIdentifier(s, message, context),
+                                s => s.Value
+                            );
+
                         var dataSetMessage = new DataSetMessage() {
                             DataSetWriterId = message.Writer.DataSetWriterId,
                             MetaDataVersion = new ConfigurationVersionDataType {
@@ -429,30 +434,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (_knownPayloadIdentifiers.TryGetValue(notification.NodeId.ToString(), out var knownPayloadIdentifier)) {
-                if (!string.IsNullOrEmpty(knownPayloadIdentifier)) {
-                    return knownPayloadIdentifier;
-                }
+            if (_knownPayloadIdentifiers.TryGetValue(notification.NodeId.ToString(), out var knownPayloadIdentifier) && !string.IsNullOrEmpty(knownPayloadIdentifier)) {
+                return knownPayloadIdentifier;
             }
-            else { //do the long running lookup as less as possible
-                foreach (var dataSetWriter in message.WriterGroup.DataSetWriters) {
-                    foreach (var publishedVariableData in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
-                        if ((publishedVariableData.PublishedVariableNodeId == notification.NodeId
-                              || publishedVariableData.PublishedVariableNodeId.ToExpandedNodeId(context).AsString(context) == notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context)) &&
-                            publishedVariableData.Id != notification.NodeId) {
-                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = publishedVariableData.Id;
-                            return publishedVariableData.Id;
-                        } else {
-                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = string.Empty;
-                        }
+            else {
+                //do the long running lookup as less as possible
+                var dataSetWriter = message.Writer;
+                foreach (var publishedVariableData in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
+                    if ((publishedVariableData.PublishedVariableNodeId == notification.NodeId
+                            || publishedVariableData.PublishedVariableNodeId.ToExpandedNodeId(context).AsString(context) == notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context)) &&
+                        publishedVariableData.Id != notification.NodeId) {
+                        _knownPayloadIdentifiers[notification.NodeId.ToString()] = publishedVariableData.Id;
+                        return publishedVariableData.Id;
                     }
                 }
             }
 
-            return !string.IsNullOrEmpty(notification.Id)
+            var knownIdentifier = !string.IsNullOrEmpty(notification.Id)
                     ? notification.Id
-                    : notification.NodeId.ToExpandedNodeId(context.NamespaceUris)
-                        .AsString(message.ServiceMessageContext);
+                    : notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(message.ServiceMessageContext);
+            _knownPayloadIdentifiers[notification.NodeId.ToString()] = knownIdentifier;
+
+            return knownIdentifier;
         }
     }
 }
