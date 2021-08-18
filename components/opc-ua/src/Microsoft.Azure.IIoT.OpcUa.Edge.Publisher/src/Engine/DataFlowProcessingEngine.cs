@@ -224,10 +224,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             kDataChangesCount.WithLabels(deviceId, moduleId, Name)
                 .Set(_messageTrigger.DataChangesCount);
             kDataChangesPerSecond.WithLabels(deviceId, moduleId, Name)
+                .Set(dataChangesPerSec);
+            kDataChangesPerSecondLastMin.WithLabels(deviceId, moduleId, Name)
                 .Set(dataChangesPerSecLastMin);
             kValueChangesCount.WithLabels(deviceId, moduleId, Name)
                 .Set(_messageTrigger.ValueChangesCount);
             kValueChangesPerSecond.WithLabels(deviceId, moduleId, Name)
+                .Set(valueChangesPerSec);
+            kValueChangesPerSecondLastMin.WithLabels(deviceId, moduleId, Name)
                 .Set(valueChangesPerSecLastMin);
             kNotificationsProcessedCount.WithLabels(deviceId, moduleId, Name)
                 .Set(_messageEncoder.NotificationsProcessedCount);
@@ -336,12 +340,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kValueChangesPerSecond = Metrics.CreateGauge(
             "iiot_edge_publisher_value_changes_per_second",
             "Opc ValuesChanges/second delivered for processing", kGaugeConfig);
+        private static readonly Gauge kValueChangesPerSecondLastMin = Metrics.CreateGauge(
+            "iiot_edge_publisher_value_changes_per_second_last_min",
+            "Opc ValuesChanges/second delivered for processing in last 60s", kGaugeConfig);
         private static readonly Gauge kDataChangesCount = Metrics.CreateGauge(
             "iiot_edge_publisher_data_changes",
             "Opc DataChanges delivered for processing", kGaugeConfig);
         private static readonly Gauge kDataChangesPerSecond = Metrics.CreateGauge(
             "iiot_edge_publisher_data_changes_per_second",
             "Opc DataChanges/second delivered for processing", kGaugeConfig);
+        private static readonly Gauge kDataChangesPerSecondLastMin = Metrics.CreateGauge(
+            "iiot_edge_publisher_data_changes_per_second_last_min",
+            "Opc DataChanges/second delivered for processing in last 60s", kGaugeConfig);
         private static readonly Gauge kIoTHubQueueBuffer = Metrics.CreateGauge(
             "iiot_edge_publisher_iothub_queue_size",
             "IoT messages queued sending", kGaugeConfig);
