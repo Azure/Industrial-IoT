@@ -136,10 +136,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 _messageTrigger.OnMessage += MessageTriggerMessageReceived;
 
-                if (_batchTriggerInterval > TimeSpan.Zero) {
-                    _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
-                }
-
                 if (_diagnosticInterval > TimeSpan.Zero) {
                     _diagnosticsOutputTimer.Change(_diagnosticInterval, _diagnosticInterval);
                 }
@@ -277,6 +273,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void MessageTriggerMessageReceived(object sender, DataSetMessageModel args) {
             if (_diagnosticStart == DateTime.MinValue) {
                 _diagnosticStart = DateTime.UtcNow;
+
+                if (_batchTriggerInterval > TimeSpan.Zero) {
+                    _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
+                }
             }
 
             if(_sinkBlock.InputCount >= _maxOutgressMessages) {
