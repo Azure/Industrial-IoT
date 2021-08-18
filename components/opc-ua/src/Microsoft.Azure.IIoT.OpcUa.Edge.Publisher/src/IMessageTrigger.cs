@@ -31,10 +31,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         int ValueChangesCount { get; }
 
         /// <summary>
-        /// The number of all dataChange Notifications 
+        /// <see cref="ValueChangesCount"/> from the last minute
+        /// </summary>
+        int ValueChangesCountLastMinute { get; }
+
+        /// <summary>
+        /// The number of all dataChange Notifications
         /// that have been invoked by this message source.
         /// </summary>
         int DataChangesCount { get; }
+
+        /// <summary>
+        /// <see cref="DataChangesCount"/> from the last minute
+        /// </summary>
+        int DataChangesCountLastMinute { get; }
 
         /// <summary>
         /// Writer events

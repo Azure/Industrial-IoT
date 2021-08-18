@@ -164,6 +164,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             double totalDuration = _diagnosticStart != DateTime.MinValue ? (DateTime.UtcNow - _diagnosticStart).TotalSeconds : 0;
             double valueChangesPerSec = _messageTrigger.ValueChangesCount / totalDuration;
             double dataChangesPerSec = _messageTrigger.DataChangesCount / totalDuration;
+            double valueChangesPerSecLastMin = _messageTrigger.ValueChangesCountLastMinute / 60d;
+            double dataChangesPerSecLastMin = _messageTrigger.DataChangesCountLastMinute / 60d;
             double sentMessagesPerSec = totalDuration > 0 ? _messageSink.SentMessagesCount / totalDuration : 0;
             double messageSizeAveragePercent = Math.Round(_messageEncoder.AvgMessageSize / _maxEncodedMessageSize * 100);
             string messageSizeAveragePercentFormatted = $"({messageSizeAveragePercent}%)";
@@ -175,9 +177,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var diagInfo = new StringBuilder();
             diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
             diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
-            string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $"({dataChangesPerSec:0.##}/s)" : "";
+            string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $"(All time ~{dataChangesPerSec:0.##}/s; {_messageTrigger.DataChangesCountLastMinute.ToString("D2")} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)" : "";
             diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
-            string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $"({valueChangesPerSec:0.##}/s)" : "";
+            string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $"(All time ~{valueChangesPerSec:0.##}/s; {_messageTrigger.ValueChangesCountLastMinute.ToString("D2")} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)" : "";
             diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
 
             diagInfo.AppendLine("  # Ingress BatchBlock buffer size     : {batchDataSetMessageBlockOutputCount,14:0}");
@@ -222,11 +224,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             kDataChangesCount.WithLabels(deviceId, moduleId, Name)
                 .Set(_messageTrigger.DataChangesCount);
             kDataChangesPerSecond.WithLabels(deviceId, moduleId, Name)
-                .Set(dataChangesPerSec);
+                .Set(dataChangesPerSecLastMin);
             kValueChangesCount.WithLabels(deviceId, moduleId, Name)
                 .Set(_messageTrigger.ValueChangesCount);
             kValueChangesPerSecond.WithLabels(deviceId, moduleId, Name)
-                .Set(valueChangesPerSec);
+                .Set(valueChangesPerSecLastMin);
             kNotificationsProcessedCount.WithLabels(deviceId, moduleId, Name)
                 .Set(_messageEncoder.NotificationsProcessedCount);
             kNotificationsDroppedCount.WithLabels(deviceId, moduleId, Name)
@@ -275,6 +277,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 if (_batchTriggerInterval > TimeSpan.Zero) {
                     _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
+                }
+
+                // reset diagnostic counter, to be aligned with publishing
+                if (_diagnosticInterval > TimeSpan.Zero) {
+                    _diagnosticsOutputTimer.Change(_diagnosticInterval, _diagnosticInterval);
                 }
             }
 

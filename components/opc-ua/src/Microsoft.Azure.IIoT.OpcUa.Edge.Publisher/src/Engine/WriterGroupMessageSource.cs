@@ -30,11 +30,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public int NumberOfConnectionRetries => _subscriptions?.FirstOrDefault()?.
             Subscription?.NumberOfConnectionRetries ?? 0;
 
+        private IDictionary<DateTime, int> _valueChanges = new Dictionary<DateTime, int>(100);
         /// <inheritdoc/>
-        public int ValueChangesCount { get; private set; } = 0;
+        public int ValueChangesCountLastMinute
+        {
+            get
+            {
+                return _valueChanges.Values.Sum();
+            }
+            private set
+            {
+                var difference = Math.Abs(value);
+                var now = DateTime.UtcNow;
+                var oneMinuteTimespan = TimeSpan.FromMinutes(1);
+                _valueChanges.Add(now, difference);
 
+                var valuesToDelete = _valueChanges.Where(kvp => now - kvp.Key > oneMinuteTimespan).Select(kvp => kvp.Key);
+                foreach (var valueToDelete in valuesToDelete) {
+                    _valueChanges.Remove(valueToDelete);
+                }
+            }
+        }
+
+        private int _valueChangesCount = 0;
         /// <inheritdoc/>
-        public int DataChangesCount { get; private set; } = 0;
+        public int ValueChangesCount { get { return _valueChangesCount; } private set { var difference = (value - _valueChangesCount);  _valueChangesCount = value; ValueChangesCountLastMinute = difference; } }
+
+        private IDictionary<DateTime, int> _dataChanges = new Dictionary<DateTime, int>(100);
+        /// <inheritdoc/>
+        public int DataChangesCountLastMinute {
+            get
+            {
+                return _dataChanges.Values.Sum();
+            }
+            private set
+            {
+                var difference = Math.Abs(value);
+                var now = DateTime.UtcNow;
+                var oneMinuteTimespan = TimeSpan.FromMinutes(1);
+                _dataChanges.Add(now, difference);
+
+                var dataChangesToDelete = _dataChanges.Where(kvp => now - kvp.Key > oneMinuteTimespan).Select(kvp => kvp.Key);
+                foreach (var dataChangeToDelete in dataChangesToDelete) {
+                    _dataChanges.Remove(dataChangeToDelete);
+                }
+            }
+        }
+
+        private int _dataChangesCount = 0;
+        /// <inheritdoc/>
+        public int DataChangesCount { get { return _dataChangesCount; } private set { var difference = (value - _dataChangesCount); _dataChangesCount = value; DataChangesCountLastMinute = difference; } }
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
