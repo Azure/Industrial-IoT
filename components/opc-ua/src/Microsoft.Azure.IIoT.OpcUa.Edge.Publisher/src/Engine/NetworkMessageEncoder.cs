@@ -441,20 +441,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 //do the long running lookup as less as possible
                 var dataSetWriter = message.Writer;
                 foreach (var publishedVariableData in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
-                    if ((publishedVariableData.PublishedVariableNodeId == notification.NodeId
-                            || publishedVariableData.PublishedVariableNodeId.ToExpandedNodeId(context).AsString(context) == notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context)) &&
-                        publishedVariableData.Id != notification.NodeId) {
-                        _knownPayloadIdentifiers[notification.NodeId.ToString()] = publishedVariableData.Id;
-                        return publishedVariableData.Id;
+                    if (publishedVariableData.PublishedVariableNodeId == notification.NodeId
+                        || publishedVariableData.PublishedVariableNodeId.ToExpandedNodeId(context).AsString(context) == notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context)) {
+                        if (publishedVariableData.Id != notification.NodeId) {
+                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = publishedVariableData.Id;
+                            return publishedVariableData.Id;
+                        } else {
+                            var notificationIdentifier = !string.IsNullOrEmpty(notification.Id)
+                                    ? notification.Id
+                                    : notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context);
+                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = notificationIdentifier;
+                            return notificationIdentifier;
+                        }
                     }
                 }
             }
 
+            // Fall back to id of the notification or expanded node id.
             var knownIdentifier = !string.IsNullOrEmpty(notification.Id)
                     ? notification.Id
-                    : notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(message.ServiceMessageContext);
+                    : notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context);
             _knownPayloadIdentifiers[notification.NodeId.ToString()] = knownIdentifier;
-
             return knownIdentifier;
         }
     }
