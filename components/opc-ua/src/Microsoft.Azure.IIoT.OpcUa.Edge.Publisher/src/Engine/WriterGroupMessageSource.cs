@@ -30,56 +30,53 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public int NumberOfConnectionRetries => _subscriptions?.FirstOrDefault()?.
             Subscription?.NumberOfConnectionRetries ?? 0;
 
-        private IDictionary<DateTime, int> _valueChanges = new Dictionary<DateTime, int>(100);
         /// <inheritdoc/>
-        public int ValueChangesCountLastMinute
-        {
-            get
-            {
-                return _valueChanges.Values.Sum();
-            }
-            private set
-            {
-                var difference = Math.Abs(value);
-                var now = DateTime.UtcNow;
-                var oneMinuteTimespan = TimeSpan.FromMinutes(1);
-                _valueChanges.Add(now, difference);
+        public int ValueChangesCountLastMinute {
+            get => _valueChangesBuffer.Sum();
+            private set => IncreaseRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges, _bucketWidth, value);
+        }
 
-                var valuesToDelete = _valueChanges.Where(kvp => now - kvp.Key > oneMinuteTimespan).Select(kvp => kvp.Key);
-                foreach (var valueToDelete in valuesToDelete) {
-                    _valueChanges.Remove(valueToDelete);
-                }
+        /// <inheritdoc/>
+        public int ValueChangesCount {
+            get { return _valueChangesCount; }
+            private set  {
+                var difference = value - _valueChangesCount;
+                _valueChangesCount = value;
+                ValueChangesCountLastMinute = difference;
             }
         }
 
-        private int _valueChangesCount = 0;
-        /// <inheritdoc/>
-        public int ValueChangesCount { get { return _valueChangesCount; } private set { var difference = (value - _valueChangesCount);  _valueChangesCount = value; ValueChangesCountLastMinute = difference; } }
-
-        private IDictionary<DateTime, int> _dataChanges = new Dictionary<DateTime, int>(100);
         /// <inheritdoc/>
         public int DataChangesCountLastMinute {
-            get
-            {
-                return _dataChanges.Values.Sum();
-            }
-            private set
-            {
-                var difference = Math.Abs(value);
-                var now = DateTime.UtcNow;
-                var oneMinuteTimespan = TimeSpan.FromMinutes(1);
-                _dataChanges.Add(now, difference);
+            get => _dataChangesBuffer.Sum();
+            private set => IncreaseRingBuffer(_dataChangesBuffer, ref _lastPointerDataChanges, _bucketWidth, value);
+        }
 
-                var dataChangesToDelete = _dataChanges.Where(kvp => now - kvp.Key > oneMinuteTimespan).Select(kvp => kvp.Key);
-                foreach (var dataChangeToDelete in dataChangesToDelete) {
-                    _dataChanges.Remove(dataChangeToDelete);
-                }
+        /// <inheritdoc/>
+        public int DataChangesCount {
+            get {
+                return _dataChangesCount;
+            }
+            private set {
+                var difference = value - _dataChangesCount;
+                _dataChangesCount = value;
+                DataChangesCountLastMinute = difference;
             }
         }
 
-        private int _dataChangesCount = 0;
-        /// <inheritdoc/>
-        public int DataChangesCount { get { return _dataChangesCount; } private set { var difference = (value - _dataChangesCount); _dataChangesCount = value; DataChangesCountLastMinute = difference; } }
+        /// <summary>
+        /// Helper function to distribute values over array based on time
+        /// </summary>
+        private void IncreaseRingBuffer(int[] array, ref int lastPointer, int bucketWidth, int difference) {
+            var indexPointer = DateTime.UtcNow.Second % bucketWidth;
+            while (lastPointer != indexPointer && lastPointer < array.Length) {
+                lastPointer++;
+                array[indexPointer] = 0;
+            }
+
+            array[indexPointer] += difference;
+            lastPointer = indexPointer;
+        }
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
@@ -87,9 +84,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Create trigger from writer group
         /// </summary>
-        /// <param name="writerGroupConfig"></param>
-        /// <param name="subscriptionManager"></param>
-        /// <param name="logger"></param>
         public WriterGroupMessageTrigger(IWriterGroupConfig writerGroupConfig,
             ISubscriptionManager subscriptionManager, ILogger logger) {
 
@@ -358,5 +352,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly WriterGroupModel _writerGroup;
         private readonly ISubscriptionManager _subscriptionManager;
         private const int kNumberOfInvokedMessagesResetThreshold = int.MaxValue - 10000;
+        private const int _bucketWidth = 60;
+        private readonly int[] _valueChangesBuffer = new int[_bucketWidth];
+        private int _lastPointerValueChanges;
+        private int _valueChangesCount;
+        private readonly int[] _dataChangesBuffer = new int[_bucketWidth];
+        private int _lastPointerDataChanges;
+        private int _dataChangesCount;
+
     }
 }
