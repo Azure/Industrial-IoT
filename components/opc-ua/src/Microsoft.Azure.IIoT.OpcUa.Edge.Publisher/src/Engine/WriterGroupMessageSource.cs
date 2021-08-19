@@ -31,13 +31,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             Subscription?.NumberOfConnectionRetries ?? 0;
 
         /// <inheritdoc/>
-        public int ValueChangesCountLastMinute {
-            get => _valueChangesBuffer.Sum();
+        public ulong ValueChangesCountLastMinute {
+            get => CalculateSumForRingBuffer(_valueChangesBuffer);
             private set => IncreaseRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges, _bucketWidth, value);
         }
 
         /// <inheritdoc/>
-        public int ValueChangesCount {
+        public ulong ValueChangesCount {
             get { return _valueChangesCount; }
             private set  {
                 var difference = value - _valueChangesCount;
@@ -47,13 +47,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public int DataChangesCountLastMinute {
-            get => _dataChangesBuffer.Sum();
+        public ulong DataChangesCountLastMinute {
+            get => CalculateSumForRingBuffer(_dataChangesBuffer);
             private set => IncreaseRingBuffer(_dataChangesBuffer, ref _lastPointerDataChanges, _bucketWidth, value);
         }
 
         /// <inheritdoc/>
-        public int DataChangesCount {
+        public ulong DataChangesCount {
             get {
                 return _dataChangesCount;
             }
@@ -65,9 +65,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <summary>
+        /// Iterates the array and add up all values
+        /// </summary>
+        private static ulong CalculateSumForRingBuffer(ulong[] array) {
+            ulong sum = 0;
+            for(int index = 0; index< array.Length; index++) {
+                sum += array[index];
+            }
+            return sum;
+        }
+
+        /// <summary>
         /// Helper function to distribute values over array based on time
         /// </summary>
-        private void IncreaseRingBuffer(int[] array, ref int lastPointer, int bucketWidth, int difference) {
+        private void IncreaseRingBuffer(ulong[] array, ref int lastPointer, int bucketWidth, ulong difference) {
             var indexPointer = DateTime.UtcNow.Second % bucketWidth;
             while (lastPointer != indexPointer && (lastPointer + 1) < array.Length) {
                 lastPointer++;
@@ -325,7 +336,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             _outer.ValueChangesCount = 0;
                         }
 
-                        _outer.ValueChangesCount += message.Notifications.Count();
+                        _outer.ValueChangesCount += (ulong)message.Notifications.Count();
                         _outer.DataChangesCount++;
                         _outer.OnMessage?.Invoke(sender, message);
                     }
@@ -353,12 +364,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ISubscriptionManager _subscriptionManager;
         private const int kNumberOfInvokedMessagesResetThreshold = int.MaxValue - 10000;
         private const int _bucketWidth = 60;
-        private readonly int[] _valueChangesBuffer = new int[_bucketWidth];
+        private readonly ulong[] _valueChangesBuffer = new ulong[_bucketWidth];
         private int _lastPointerValueChanges;
-        private int _valueChangesCount;
-        private readonly int[] _dataChangesBuffer = new int[_bucketWidth];
+        private ulong _valueChangesCount;
+        private readonly ulong[] _dataChangesBuffer = new ulong[_bucketWidth];
         private int _lastPointerDataChanges;
-        private int _dataChangesCount;
+        private ulong _dataChangesCount;
 
     }
 }
