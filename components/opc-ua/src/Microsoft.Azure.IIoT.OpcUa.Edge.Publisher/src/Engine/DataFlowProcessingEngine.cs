@@ -161,11 +161,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         /// <param name="state"></param>
         private void DiagnosticsOutputTimer_Elapsed(object state) {
-            double totalDuration = _diagnosticStart != DateTime.MinValue ? (DateTime.UtcNow - _diagnosticStart).TotalSeconds : 0;
+            var totalSeconds = (DateTime.UtcNow - _diagnosticStart).TotalSeconds;
+            double totalDuration = _diagnosticStart != DateTime.MinValue ? totalSeconds : 0;
             double valueChangesPerSec = _messageTrigger.ValueChangesCount / totalDuration;
             double dataChangesPerSec = _messageTrigger.DataChangesCount / totalDuration;
-            double valueChangesPerSecLastMin = _messageTrigger.ValueChangesCountLastMinute / 60d;
-            double dataChangesPerSecLastMin = _messageTrigger.DataChangesCountLastMinute / 60d;
+            double valueChangesPerSecLastMin = _messageTrigger.ValueChangesCountLastMinute / Math.Min(totalSeconds, 60d);
+            double dataChangesPerSecLastMin = _messageTrigger.DataChangesCountLastMinute / Math.Min(totalSeconds, 60d);
             double sentMessagesPerSec = totalDuration > 0 ? _messageSink.SentMessagesCount / totalDuration : 0;
             double messageSizeAveragePercent = Math.Round(_messageEncoder.AvgMessageSize / _maxEncodedMessageSize * 100);
             string messageSizeAveragePercentFormatted = $"({messageSizeAveragePercent}%)";
@@ -177,9 +178,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var diagInfo = new StringBuilder();
             diagInfo.AppendLine("\n  DIAGNOSTICS INFORMATION for          : {host}");
             diagInfo.AppendLine("  # Ingestion duration                 : {duration,14:dd\\:hh\\:mm\\:ss} (dd:hh:mm:ss)");
-            string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 && totalDuration > 0 ? $"(All time ~{dataChangesPerSec:0.##}/s; {_messageTrigger.DataChangesCountLastMinute.ToString("D2")} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)" : "";
+            string dataChangesPerSecFormatted = _messageTrigger.DataChangesCount > 0 && totalDuration > 0
+                ? $"(All time ~{dataChangesPerSec:0.##}/s; {_messageTrigger.DataChangesCountLastMinute.ToString("D2")} in last 60s ~{dataChangesPerSecLastMin:0.##}/s)"
+                : "";
             diagInfo.AppendLine("  # Ingress DataChanges (from OPC)     : {dataChangesCount,14:n0} {dataChangesPerSecFormatted}");
-            string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0 ? $"(All time ~{valueChangesPerSec:0.##}/s; {_messageTrigger.ValueChangesCountLastMinute.ToString("D2")} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)" : "";
+            string valueChangesPerSecFormatted = _messageTrigger.ValueChangesCount > 0 && totalDuration > 0
+                ? $"(All time ~{valueChangesPerSec:0.##}/s; {_messageTrigger.ValueChangesCountLastMinute.ToString("D2")} in last 60s ~{valueChangesPerSecLastMin:0.##}/s)"
+                : "";
             diagInfo.AppendLine("  # Ingress ValueChanges (from OPC)    : {valueChangesCount,14:n0} {valueChangesPerSecFormatted}");
 
             diagInfo.AppendLine("  # Ingress BatchBlock buffer size     : {batchDataSetMessageBlockOutputCount,14:0}");
@@ -277,8 +282,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="args"></param>
         private void MessageTriggerMessageReceived(object sender, DataSetMessageModel args) {
             if (_diagnosticStart == DateTime.MinValue) {
-                _diagnosticStart = DateTime.UtcNow;
-
                 if (_batchTriggerInterval > TimeSpan.Zero) {
                     _batchTriggerIntervalTimer.Change(_batchTriggerInterval, Timeout.InfiniteTimeSpan);
                 }
@@ -287,6 +290,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (_diagnosticInterval > TimeSpan.Zero) {
                     _diagnosticsOutputTimer.Change(_diagnosticInterval, _diagnosticInterval);
                 }
+                _diagnosticStart = DateTime.UtcNow;
             }
 
             if(_sinkBlock.InputCount >= _maxOutgressMessages) {
