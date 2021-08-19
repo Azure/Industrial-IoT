@@ -69,9 +69,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// </summary>
         private void IncreaseRingBuffer(int[] array, ref int lastPointer, int bucketWidth, int difference) {
             var indexPointer = DateTime.UtcNow.Second % bucketWidth;
-            while (lastPointer != indexPointer && lastPointer < array.Length) {
+            while (lastPointer != indexPointer && (lastPointer + 1) < array.Length) {
                 lastPointer++;
-                array[indexPointer] = 0;
+                array[lastPointer] = 0;
             }
 
             array[indexPointer] += difference;
