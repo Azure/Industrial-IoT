@@ -345,7 +345,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     _outer.OnJobStarted?.Invoke(this, new JobInfoEventArgs(Job));
 
                     // Start sending heartbeats
-                    _heartbeatTimer.Change(TimeSpan.FromSeconds(1), _outer._heartbeatInterval);
+                    Try.Op(() => _heartbeatTimer.Change(TimeSpan.FromSeconds(1), _outer._heartbeatInterval));
 
                     await _currentProcessingEngine.RunAsync(_currentJobProcessInstruction.ProcessMode.Value,
                         _cancellationTokenSource.Token);
@@ -364,7 +364,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
                 finally {
                     // Stop sending heartbeats
-                    _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                     Try.Op(() => _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan));
                     await CleanupAsync();
                 }
             }
