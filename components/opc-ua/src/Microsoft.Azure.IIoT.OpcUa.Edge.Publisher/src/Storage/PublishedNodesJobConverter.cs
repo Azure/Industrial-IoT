@@ -80,8 +80,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             try {
                 // note: do not remove 'unnecessary' .ToList(),
                 // the grouping of operations improves perf by 30%
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
                 // Group by connection
                 var group = items.GroupBy(
                     item => new ConnectionModel {
@@ -103,8 +101,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     // Comparer for connection information
                     new FuncCompare<ConnectionModel>((x, y) => x.IsSameAs(y))
                 ).ToList();
-                _logger.Information("Created {n} groups in {elapsed}", group.Count, sw.Elapsed);
-                sw.Restart();
                 var opcNodeModelComparer = new OpcNodeModelComparer();
                 var flattenedGroups = group.Select(
                     group => group
@@ -146,8 +142,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         }
                     ).ToList()
                 ).ToList();
-                _logger.Information("Created {n} flattened groups in {elapsed}", flattenedGroups.Count, sw.Elapsed);
-                sw.Restart();
                 var result = flattenedGroups.Select(dataSetSourceBatches => new WriterGroupJobModel {
                     MessagingMode = legacyCliModel.MessagingMode,
                     Engine = _config == null ? null : new EngineConfigurationModel {
@@ -204,15 +198,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         }
                     }
                 });
-                _logger.Information("Created {jobs} jobs in {elapsed}", result.Count(), sw.Elapsed);
 
                 var counter = 0;
                 foreach (var job in result) {
-                    _logger.Verbose("groupId: {group}", job.WriterGroup.WriterGroupId);
-                    foreach (var dataSetWriter in job.WriterGroup.DataSetWriters) {
+                    _logger.Debug("groupId: {group}", job.WriterGroup.WriterGroupId);
+                    foreach (var dataSetWriter in job.WriterGroup?.DataSetWriters) {
                         int count = dataSetWriter.DataSet?.DataSetSource?.PublishedVariables?.PublishedData?.Count ?? 0;
                         counter += count;
-                        _logger.Verbose("writerId: {writer} nodes: {count}", dataSetWriter.DataSetWriterId, count);
+                        _logger.Debug("writerId: {writer} nodes: {count}", dataSetWriter.DataSetWriterId, count);
                     }
                 }
                 _logger.Information("Total count of OpcNodes after job conversion: {count}", counter);
