@@ -197,17 +197,5 @@ namespace System.Linq {
                 .GroupBy(x => x.Item2 / count)
                 .Select(g => g.Select(x => x.Item1));
         }
-
-        /// <summary>
-        /// Distinct with predicate
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="items"></param>
-        /// <param name="comparer"></param>
-        /// <returns></returns>
-        public static IEnumerable<T> Distinct<T>(this IEnumerable<T> items,
-            Func<T, T, bool> comparer) {
-            return items.Distinct(Compare.Using(comparer));
-        }
     }
 }
