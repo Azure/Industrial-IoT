@@ -434,7 +434,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (_knownPayloadIdentifiers.TryGetValue(notification.NodeId.ToString(), out var knownPayloadIdentifier) && !string.IsNullOrEmpty(knownPayloadIdentifier)) {
+            var notificationNodeId = notification.NodeId.ToString();
+            var notificationExpandedNodeId = notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context);
+
+            if (_knownPayloadIdentifiers.TryGetValue(notificationNodeId, out var knownPayloadIdentifier) && !string.IsNullOrEmpty(knownPayloadIdentifier)) {
                 return knownPayloadIdentifier;
             }
             else {
@@ -442,15 +445,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var dataSetWriter = message.Writer;
                 foreach (var publishedVariableData in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
                     if (publishedVariableData.PublishedVariableNodeId == notification.NodeId
-                        || publishedVariableData.PublishedVariableNodeId.ToExpandedNodeId(context).AsString(context) == notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context)) {
+                        || publishedVariableData.PublishedVariableNodeId.ToExpandedNodeId(context).AsString(context) == notificationExpandedNodeId) {
                         if (publishedVariableData.Id != notification.NodeId) {
-                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = publishedVariableData.Id;
+                            _knownPayloadIdentifiers[notificationNodeId] = publishedVariableData.Id;
                             return publishedVariableData.Id;
                         } else {
                             var notificationIdentifier = !string.IsNullOrEmpty(notification.Id)
                                     ? notification.Id
-                                    : notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context);
-                            _knownPayloadIdentifiers[notification.NodeId.ToString()] = notificationIdentifier;
+                                    : notificationExpandedNodeId;
+                            _knownPayloadIdentifiers[notificationNodeId] = notificationIdentifier;
                             return notificationIdentifier;
                         }
                     }
@@ -460,7 +463,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // Fall back to id of the notification or expanded node id.
             var knownIdentifier = !string.IsNullOrEmpty(notification.Id)
                     ? notification.Id
-                    : notification.NodeId.ToExpandedNodeId(context.NamespaceUris).AsString(context);
+                    : notificationExpandedNodeId;
             _knownPayloadIdentifiers[notification.NodeId.ToString()] = knownIdentifier;
             return knownIdentifier;
         }
