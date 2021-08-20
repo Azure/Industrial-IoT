@@ -135,6 +135,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _batchNetworkMessageBlock.LinkTo(_sinkBlock);
 
                 _messageTrigger.OnMessage += MessageTriggerMessageReceived;
+                _messageTrigger.OnCounterReset += MessageTriggerCounterResetReceived;
                 if (_diagnosticInterval > TimeSpan.Zero) {
                     _diagnosticsOutputTimer.Change(_diagnosticInterval, _diagnosticInterval);
                 }
@@ -144,6 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             finally {
                 IsRunning = false;
+                _messageTrigger.OnCounterReset -= MessageTriggerCounterResetReceived;
                 _messageTrigger.OnMessage -= MessageTriggerMessageReceived;
                 _diagnosticsOutputTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 _batchTriggerIntervalTimer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -278,8 +280,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Message received handler
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="args"></param>
         private void MessageTriggerMessageReceived(object sender, DataSetMessageModel args) {
             if (_diagnosticStart == DateTime.MinValue) {
                 if (_batchTriggerInterval > TimeSpan.Zero) {
@@ -299,6 +299,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             else {
                 _batchDataSetMessageBlock.Post(args);
             }
+        }
+
+        private void MessageTriggerCounterResetReceived(object sender, EventArgs e) {
+            _diagnosticStart = DateTime.MinValue;
         }
 
         private readonly int _dataSetMessageBufferSize = 1;
