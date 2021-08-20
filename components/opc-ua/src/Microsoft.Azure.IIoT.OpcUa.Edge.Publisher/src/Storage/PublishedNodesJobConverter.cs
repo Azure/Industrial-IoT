@@ -201,11 +201,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
 
                 var counter = 0;
                 foreach (var job in result) {
-                    _logger.Debug("groupId: {group}", job.WriterGroup.WriterGroupId);
-                    foreach (var dataSetWriter in job.WriterGroup?.DataSetWriters) {
-                        int count = dataSetWriter.DataSet?.DataSetSource?.PublishedVariables?.PublishedData?.Count ?? 0;
-                        counter += count;
-                        _logger.Debug("writerId: {writer} nodes: {count}", dataSetWriter.DataSetWriterId, count);
+                    if (job.WriterGroup != null) {
+                        _logger.Debug("groupId: {group}", job.WriterGroup.WriterGroupId);
+                        foreach (var dataSetWriter in job.WriterGroup.DataSetWriters) {
+                            int count = dataSetWriter.DataSet?.DataSetSource?.PublishedVariables?.PublishedData?.Count ?? 0;
+                            counter += count;
+                            _logger.Debug("writerId: {writer} nodes: {count}", dataSetWriter.DataSetWriterId, count);
+                        }
                     }
                 }
                 _logger.Information("Total count of OpcNodes after job conversion: {count}", counter);
