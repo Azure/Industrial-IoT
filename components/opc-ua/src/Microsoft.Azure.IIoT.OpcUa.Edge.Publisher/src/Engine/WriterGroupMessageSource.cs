@@ -68,11 +68,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Iterates the array and add up all values
         /// </summary>
         private static ulong CalculateSumForRingBuffer(ulong[] array, ref int lastPointer, int bucketWidth, DateTime lastWriteTime) {
-
             // if IncreaseRingBuffer wasn't called for some time, maybe some stale values are included
-            var now = DateTime.UtcNow;
-            var indexPointer = now.Second % bucketWidth;
-            CleanStaleRingBufferBuckets(array, ref lastPointer, bucketWidth, indexPointer, lastWriteTime, now);
+            UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
 
             // with cleaned buffer, we can just accumulate all buckets
             ulong sum = 0;
@@ -86,26 +83,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Helper function to distribute values over array based on time
         /// </summary>
         private static void IncreaseRingBuffer(ulong[] array, ref int lastPointer, int bucketWidth, ulong difference, ref DateTime lastWriteTime) {
-            var now = DateTime.UtcNow;
-            var indexPointer = now.Second % bucketWidth;
-            CleanStaleRingBufferBuckets(array, ref lastPointer, bucketWidth, indexPointer, lastWriteTime, now);
+            var indexPointer = UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
 
             array[indexPointer] += difference;
-            lastPointer = indexPointer;
-            lastWriteTime = now;
         }
 
         /// <summary>
         /// Empty the ring buffer buckets if necessary
         /// </summary>
-        private static void CleanStaleRingBufferBuckets(ulong[] array, ref int lastPointer, int bucketWidth, int indexPointer, DateTime lastWrite, DateTime now) {
+        private static int UpdateRingBufferBuckets(ulong[] array, ref int lastPointer, int bucketWidth, ref DateTime lastWriteTime) {
+            var now = DateTime.UtcNow;
+            var indexPointer = now.Second % bucketWidth;
 
             // if last update was > bucketsize seconds in the past delete whole array
-            if (lastWrite != DateTime.MinValue) {
-                var deleteWholeArray = (now - lastWrite).TotalSeconds > bucketWidth;
+            if (lastWriteTime != DateTime.MinValue) {
+                var deleteWholeArray = (now - lastWriteTime).TotalSeconds >= bucketWidth;
                 if (deleteWholeArray) {
                     Array.Clear(array, 0, array.Length);
-                    return;
+                    lastPointer = indexPointer;
                 }
             }
 
@@ -114,6 +109,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 lastPointer = (lastPointer + 1) % bucketWidth;
                 array[lastPointer] = 0;
             }
+
+            lastWriteTime = now;
+
+            return indexPointer;
         }
 
         /// <inheritdoc/>
