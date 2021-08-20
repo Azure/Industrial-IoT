@@ -135,6 +135,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _batchNetworkMessageBlock.LinkTo(_sinkBlock);
 
                 _messageTrigger.OnMessage += MessageTriggerMessageReceived;
+
                 if (_diagnosticInterval > TimeSpan.Zero) {
                     _diagnosticsOutputTimer.Change(_diagnosticInterval, _diagnosticInterval);
                 }
