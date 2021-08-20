@@ -32,8 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public ulong ValueChangesCountLastMinute {
-            get => CalculateSumForRingBuffer(_valueChangesBuffer);
-            private set => IncreaseRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges, _bucketWidth, value);
+            get => CalculateSumForRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges, _bucketWidth, _lastWriteTimeValueChange);
+            private set => IncreaseRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges, _bucketWidth, value, ref _lastWriteTimeValueChange);
         }
 
         /// <inheritdoc/>
@@ -48,8 +48,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public ulong DataChangesCountLastMinute {
-            get => CalculateSumForRingBuffer(_dataChangesBuffer);
-            private set => IncreaseRingBuffer(_dataChangesBuffer, ref _lastPointerDataChanges, _bucketWidth, value);
+            get => CalculateSumForRingBuffer(_dataChangesBuffer, ref _lastPointerDataChanges, _bucketWidth, _lastWriteTimeDataChange);
+            private set => IncreaseRingBuffer(_dataChangesBuffer, ref _lastPointerDataChanges, _bucketWidth, value, ref _lastWriteTimeDataChange);
         }
 
         /// <inheritdoc/>
@@ -67,7 +67,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Iterates the array and add up all values
         /// </summary>
-        private static ulong CalculateSumForRingBuffer(ulong[] array) {
+        private static ulong CalculateSumForRingBuffer(ulong[] array, ref int lastPointer, int bucketWidth, DateTime lastWriteTime) {
+
+            // if IncreaseRingBuffer wasn't called for some time, maybe some stale values are included
+            var now = DateTime.UtcNow;
+            var indexPointer = now.Second % bucketWidth;
+            CleanStaleRingBufferBuckets(array, ref lastPointer, bucketWidth, indexPointer, lastWriteTime, now);
+
+            // with cleaned buffer, we can just accumulate all buckets
             ulong sum = 0;
             for(int index = 0; index< array.Length; index++) {
                 sum += array[index];
@@ -78,15 +85,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Helper function to distribute values over array based on time
         /// </summary>
-        private void IncreaseRingBuffer(ulong[] array, ref int lastPointer, int bucketWidth, ulong difference) {
-            var indexPointer = DateTime.UtcNow.Second % bucketWidth;
-            while (lastPointer != indexPointer && (lastPointer + 1) < array.Length) {
-                lastPointer++;
-                array[lastPointer] = 0;
-            }
+        private static void IncreaseRingBuffer(ulong[] array, ref int lastPointer, int bucketWidth, ulong difference, ref DateTime lastWriteTime) {
+            var now = DateTime.UtcNow;
+            var indexPointer = now.Second % bucketWidth;
+            CleanStaleRingBufferBuckets(array, ref lastPointer, bucketWidth, indexPointer, lastWriteTime, now);
 
             array[indexPointer] += difference;
             lastPointer = indexPointer;
+            lastWriteTime = now;
+        }
+
+        /// <summary>
+        /// Empty the ring buffer buckets if necessary
+        /// </summary>
+        private static void CleanStaleRingBufferBuckets(ulong[] array, ref int lastPointer, int bucketWidth, int indexPointer, DateTime lastWrite, DateTime now) {
+
+            // if last update was > bucketsize seconds in the past delete whole array
+            if (lastWrite != DateTime.MinValue) {
+                var deleteWholeArray = (now - lastWrite).TotalSeconds > bucketWidth;
+                if (deleteWholeArray) {
+                    Array.Clear(array, 0, array.Length);
+                    return;
+                }
+            }
+
+            // reset all buckets, between last write and now
+            while (lastPointer != indexPointer) {
+                lastPointer = (lastPointer + 1) % bucketWidth;
+                array[lastPointer] = 0;
+            }
         }
 
         /// <inheritdoc/>
@@ -370,6 +397,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ulong[] _dataChangesBuffer = new ulong[_bucketWidth];
         private int _lastPointerDataChanges;
         private ulong _dataChangesCount;
+        private DateTime _lastWriteTimeValueChange = DateTime.MinValue;
+        private DateTime _lastWriteTimeDataChange = DateTime.MinValue;
 
     }
 }
