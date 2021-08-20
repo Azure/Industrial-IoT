@@ -31,10 +31,89 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             Subscription?.NumberOfConnectionRetries ?? 0;
 
         /// <inheritdoc/>
-        public int ValueChangesCount { get; private set; } = 0;
+        public ulong ValueChangesCountLastMinute {
+            get => CalculateSumForRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges, _bucketWidth, _lastWriteTimeValueChange);
+            private set => IncreaseRingBuffer(_valueChangesBuffer, ref _lastPointerValueChanges, _bucketWidth, value, ref _lastWriteTimeValueChange);
+        }
 
         /// <inheritdoc/>
-        public int DataChangesCount { get; private set; } = 0;
+        public ulong ValueChangesCount {
+            get { return _valueChangesCount; }
+            private set  {
+                var difference = value - _valueChangesCount;
+                _valueChangesCount = value;
+                ValueChangesCountLastMinute = difference;
+            }
+        }
+
+        /// <inheritdoc/>
+        public ulong DataChangesCountLastMinute {
+            get => CalculateSumForRingBuffer(_dataChangesBuffer, ref _lastPointerDataChanges, _bucketWidth, _lastWriteTimeDataChange);
+            private set => IncreaseRingBuffer(_dataChangesBuffer, ref _lastPointerDataChanges, _bucketWidth, value, ref _lastWriteTimeDataChange);
+        }
+
+        /// <inheritdoc/>
+        public ulong DataChangesCount {
+            get {
+                return _dataChangesCount;
+            }
+            private set {
+                var difference = value - _dataChangesCount;
+                _dataChangesCount = value;
+                DataChangesCountLastMinute = difference;
+            }
+        }
+
+        /// <summary>
+        /// Iterates the array and add up all values
+        /// </summary>
+        private static ulong CalculateSumForRingBuffer(ulong[] array, ref int lastPointer, int bucketWidth, DateTime lastWriteTime) {
+            // if IncreaseRingBuffer wasn't called for some time, maybe some stale values are included
+            UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
+
+            // with cleaned buffer, we can just accumulate all buckets
+            ulong sum = 0;
+            for(int index = 0; index< array.Length; index++) {
+                sum += array[index];
+            }
+            return sum;
+        }
+
+        /// <summary>
+        /// Helper function to distribute values over array based on time
+        /// </summary>
+        private static void IncreaseRingBuffer(ulong[] array, ref int lastPointer, int bucketWidth, ulong difference, ref DateTime lastWriteTime) {
+            var indexPointer = UpdateRingBufferBuckets(array, ref lastPointer, bucketWidth, ref lastWriteTime);
+
+            array[indexPointer] += difference;
+        }
+
+        /// <summary>
+        /// Empty the ring buffer buckets if necessary
+        /// </summary>
+        private static int UpdateRingBufferBuckets(ulong[] array, ref int lastPointer, int bucketWidth, ref DateTime lastWriteTime) {
+            var now = DateTime.UtcNow;
+            var indexPointer = now.Second % bucketWidth;
+
+            // if last update was > bucketsize seconds in the past delete whole array
+            if (lastWriteTime != DateTime.MinValue) {
+                var deleteWholeArray = (now - lastWriteTime).TotalSeconds >= bucketWidth;
+                if (deleteWholeArray) {
+                    Array.Clear(array, 0, array.Length);
+                    lastPointer = indexPointer;
+                }
+            }
+
+            // reset all buckets, between last write and now
+            while (lastPointer != indexPointer) {
+                lastPointer = (lastPointer + 1) % bucketWidth;
+                array[lastPointer] = 0;
+            }
+
+            lastWriteTime = now;
+
+            return indexPointer;
+        }
 
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
@@ -42,9 +121,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Create trigger from writer group
         /// </summary>
-        /// <param name="writerGroupConfig"></param>
-        /// <param name="subscriptionManager"></param>
-        /// <param name="logger"></param>
         public WriterGroupMessageTrigger(IWriterGroupConfig writerGroupConfig,
             ISubscriptionManager subscriptionManager, ILogger logger) {
 
@@ -286,7 +362,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             _outer.ValueChangesCount = 0;
                         }
 
-                        _outer.ValueChangesCount += message.Notifications.Count();
+                        _outer.ValueChangesCount += (ulong)message.Notifications.Count();
                         _outer.DataChangesCount++;
                         _outer.OnMessage?.Invoke(sender, message);
                     }
@@ -313,5 +389,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly WriterGroupModel _writerGroup;
         private readonly ISubscriptionManager _subscriptionManager;
         private const int kNumberOfInvokedMessagesResetThreshold = int.MaxValue - 10000;
+        private const int _bucketWidth = 60;
+        private readonly ulong[] _valueChangesBuffer = new ulong[_bucketWidth];
+        private int _lastPointerValueChanges;
+        private ulong _valueChangesCount;
+        private readonly ulong[] _dataChangesBuffer = new ulong[_bucketWidth];
+        private int _lastPointerDataChanges;
+        private ulong _dataChangesCount;
+        private DateTime _lastWriteTimeValueChange = DateTime.MinValue;
+        private DateTime _lastWriteTimeDataChange = DateTime.MinValue;
+
     }
 }
