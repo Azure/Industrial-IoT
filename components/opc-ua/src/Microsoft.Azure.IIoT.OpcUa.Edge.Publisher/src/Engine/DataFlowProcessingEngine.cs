@@ -136,6 +136,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 _messageTrigger.OnMessage += MessageTriggerMessageReceived;
                 _messageTrigger.OnCounterReset += MessageTriggerCounterResetReceived;
+
                 if (_diagnosticInterval > TimeSpan.Zero) {
                     _diagnosticsOutputTimer.Change(_diagnosticInterval, _diagnosticInterval);
                 }
