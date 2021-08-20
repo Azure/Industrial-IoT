@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var resultJson = EncodeAsJson(messages, maxMessageSize);
                 var resultUadp = EncodeAsUadp(messages, maxMessageSize);
                 var result = resultJson.Concat(resultUadp);
-                return Task.FromResult(result);
+                return Task.FromResult<IEnumerable<NetworkMessageModel>>(result.ToList());
             }
             catch (Exception e) {
                 _logger.Error(e, "Failed to encode {numOfMessages} messages", messages.Count());
