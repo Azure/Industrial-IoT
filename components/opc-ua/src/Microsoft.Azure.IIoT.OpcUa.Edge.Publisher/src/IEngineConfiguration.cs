@@ -37,5 +37,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
         /// Default: 4096 messages with 256KB ends up in 1 GB memory consumed.
         /// </summary>
         int? MaxOutgressMessages { get; }
+
+        /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        public bool? UseReversibleEncoding { get; }
     }
 }

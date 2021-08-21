@@ -7,6 +7,7 @@
 namespace IIoTPlatform_E2E_Tests.TestExtensions {
     using Config;
     using Extensions;
+    using Microsoft.Azure.Management.Fluent;
     using Microsoft.Extensions.Configuration;
     using System;
     using Xunit.Abstractions;
@@ -96,6 +97,36 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
         /// Helper to work with Azure.Devices.RegistryManager
         /// </summary>
         public RegistryHelper RegistryHelper { get; }
+
+        /// <summary>
+        /// Azure Context for managament api
+        /// </summary>
+        public IAzure? AzureContext { get; set; }
+
+        /// <summary>
+        /// Urls for the dynamic ACI containers
+        /// </summary>
+        public string[] PlcAciDynamicUrls { get; set; }
+
+        /// <summary>
+        /// Azure Storage Name
+        /// </summary>
+        public string AzureStorageName { get; set; }
+
+        /// <summary>
+        /// Azure Storage Key
+        /// </summary>
+        public string AzureStorageKey { get; set; }
+
+        /// <summary>
+        /// Image that are used for PLC ACI
+        /// </summary>
+        public string PLCImage { get; set; }
+
+        /// <summary>
+        /// Testing suffix for this environment
+        /// </summary>
+        public string TestingSuffix { get; set; }
 
         /// <inheritdoc />
         public void Dispose() {
@@ -194,6 +225,20 @@ namespace IIoTPlatform_E2E_Tests.TestExtensions {
 
         string IOpcPlcConfig.Urls => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PLC_SIMULATION_URLS,
             () => throw new Exception("Semicolon separated list of URLs of OPC-PLCs is not provided."));
+
+        string IOpcPlcConfig.TenantId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SP_TENANT_ID,
+            () => throw new Exception("Tenant Id is not provided."));
+
+        string IOpcPlcConfig.ServicePrincipalId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SP_ID,
+            () => throw new Exception("Service Principal Id is not provided."));
+
+        string IOpcPlcConfig.ResourceGroupName => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.RESOURCE_GROUP_NAME,
+            () => throw new Exception("Resource Group Name is not provided."));
+
+        string IOpcPlcConfig.Region => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.REGION,
+            () => throw new Exception("Region is not provided."));
+
+        string IOpcPlcConfig.SubscriptionId => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.SUBSCRIPTION_ID, () => string.Empty);
 
         string ITestEventProcessorConfig.TestEventProcessorBaseUrl => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.TESTEVENTPROCESSOR_BASEURL,
             () => throw new Exception("Test Event Processor BaseUrl is not provided."));

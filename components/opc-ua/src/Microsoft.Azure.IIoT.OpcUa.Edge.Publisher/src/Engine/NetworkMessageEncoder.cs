@@ -4,15 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
-    using Microsoft.Azure.IIoT.OpcUa.Core;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
-    using Opc.Ua.Encoders;
-    using Opc.Ua.Extensions;
-    using Opc.Ua.PubSub;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -21,6 +14,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Text;
     using System.Threading.Tasks;
     using Serilog;
+    using Opc.Ua.PubSub;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core;
+    using Opc.Ua.Encoders;
+    using Opc.Ua.Extensions;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -66,9 +66,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding) {
             try {
-                var resultJson = EncodeAsJson(messages, maxMessageSize);
+                var resultJson = EncodeAsJson(messages, maxMessageSize, useReversibleEncoding);
                 var resultUadp = EncodeAsUadp(messages, maxMessageSize);
                 var result = resultJson.Concat(resultUadp);
                 return Task.FromResult(result);
@@ -80,9 +80,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding) {
             try {
-                var resultJson = EncodeBatchAsJson(messages, maxMessageSize);
+                var resultJson = EncodeBatchAsJson(messages, maxMessageSize, useReversibleEncoding);
                 var resultUadp = EncodeBatchAsUadp(messages, maxMessageSize);
                 var result = resultJson.Concat(resultUadp);
                 return Task.FromResult(result);
@@ -95,16 +95,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// DataSetMessage to NetworkMessage Json batched encoding
         /// </summary>
-        /// <param name="messages"></param>
-        /// <param name="maxMessageSize"></param>
+        /// <param name="messages">Messages to encode</param>
+        /// <param name="maxMessageSize">Maximum size of messages</param>
+        /// <param name="useReversibleEncoding">Flag for reversible encoding</param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeBatchAsJson(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
+            var compressedPayload = messages.Where(x => x.CompressedPayload).Any();
             var notifications = GetNetworkMessages(messages, MessageEncoding.Json, encodingContext);
             if (notifications.Count() == 0) {
                 yield break;
@@ -122,11 +124,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperEncoder = new JsonEncoderEx(helperWriter, encodingContext) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
-                        UseReversibleEncoding = false
+                        UseReversibleEncoding = useReversibleEncoding
                     };
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
-                    var notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
+                    var notificationSize = 0;
+                    if (compressedPayload) {
+                        var stream = new MemoryStream(Encoding.UTF8.GetBytes(helperWriter.ToString()));
+                        try {
+                            notificationSize = Encoding.UTF8.GetByteCount(Convert.ToBase64String(stream.Zip()));
+                        }
+                        finally {
+                            stream.Dispose();
+                        }
+                    }
+                    else {
+                        notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
+                    }
+
                     notificationsPerMessage = notification.Messages.Sum(m => m.Payload.Count);
                     if (notificationSize > maxMessageSize) {
                         // Message too large, drop it.
@@ -150,17 +165,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = true,
                         UseUriEncoding = true,
-                        UseReversibleEncoding = false
+                        UseReversibleEncoding = useReversibleEncoding
                     };
                     foreach (var element in chunk) {
                         encoder.WriteEncodeable(null, element);
                     }
                     encoder.Close();
+
+                    var body = Encoding.UTF8.GetBytes(writer.ToString());
+                    if (compressedPayload) {
+                        var stream = new MemoryStream(body);
+                        try {
+                            body = Encoding.UTF8.GetBytes(Convert.ToBase64String(stream.Zip()));
+                        }
+                        finally {
+                            stream.Dispose();
+                        }
+                    }
+
                     var encoded = new NetworkMessageModel {
-                        Body = Encoding.UTF8.GetBytes(writer.ToString()),
-                        ContentEncoding = "utf-8",
+                        Body = body,
+                        ContentEncoding = compressedPayload ? "gzip" : "utf-8",
                         Timestamp = DateTime.UtcNow,
-                        ContentType = ContentMimeType.UaJson,
+                        ContentType = compressedPayload ? ContentMimeType.Binary : ContentMimeType.UaJson,
                         MessageSchema = MessageSchemaTypes.NetworkMessageJson
                     };
                     AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
@@ -248,11 +275,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <summary>
         /// Perform json encoding
         /// </summary>
-        /// <param name="messages"></param>
-        /// <param name="maxMessageSize"></param>
+        /// <param name="messages">Messages to encode</param>
+        /// <param name="maxMessageSize">Maximum size of messages</param>
+        /// <param name="useReversibleEncoding">Flag for reversible encoding</param>
         /// <returns></returns>
         private IEnumerable<NetworkMessageModel> EncodeAsJson(
-            IEnumerable<DataSetMessageModel> messages, int maxMessageSize) {
+            IEnumerable<DataSetMessageModel> messages, int maxMessageSize, bool useReversibleEncoding) {
 
             // by design all messages are generated in the same session context,
             // therefore it is safe to get the first message's context
@@ -268,7 +296,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var encoder = new JsonEncoderEx(writer, encodingContext) {
                     UseAdvancedEncoding = true,
                     UseUriEncoding = true,
-                    UseReversibleEncoding = false
+                    UseReversibleEncoding = useReversibleEncoding
                 };
                 networkMessage.Encode(encoder);
                 encoder.Close();
@@ -381,6 +409,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             .Select(q => q.Any() ? q.Dequeue() : null)
                                 .Where(s => s != null)
                                     .ToDictionary(
+                                        /*s => !string.IsNullOrEmpty(s.DisplayName) 
+                                            ? s.DisplayName 
+                                            : !string.IsNullOrEmpty(s.Id)
+                                            ? s.Id
+                                            : s.NodeId.ToExpandedNodeId(context.NamespaceUris)
+                                                .AsString(message.ServiceMessageContext),*/
                                         s => GetPayloadIdentifier(s, message,context),
                                         s => s.Value);
                         var dataSetMessage = new DataSetMessage() {

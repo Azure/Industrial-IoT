@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
     using System.Linq;
     using System.Text;
     using Xunit;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
     /// Test
@@ -1251,6 +1252,382 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
                 Assert.Equal(1000,
                     dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData.Count));
+        }
+
+        [Fact]
+        public void PnPlcJobWithAllEventPropertiesTest() {
+            var pn = new StringBuilder(@"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcEvents"": [
+            {
+                ""Id"": ""i=2258"",
+                ""SelectClauses"": [
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""EventId""
+                        ],
+                        ""AttributeId"": ""BrowseName"",
+                        ""IndexRange"": ""5:20""
+                    }
+                ],
+                ""WhereClause"": {
+                    ""Elements"": [
+                        {
+                            ""FilterOperator"": ""OfType"",
+                            ""FilterOperands"": [
+                                {
+                                    ""NodeId"": ""i=2041"",
+                                    ""BrowsePath"": [
+                                        ""EventId""
+                                    ],
+                                    ""AttributeId"": ""BrowseName"",
+                                    ""Value"": ""ns=2;i=235"",
+                                    ""IndexRange"": ""5:20"",
+                                    ""Index"": 10,
+                                    ""Alias"": ""Test"",
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+]
+");
+
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn.ToString()), new LegacyCliModel()).ToList();
+
+            // Check jobs
+            Assert.Single(jobs);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.NotNull(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables);
+            Assert.NotNull(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents);
+            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+
+            // Check model
+            var model = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
+            Assert.Equal("i=2258", model.Id);
+            Assert.Equal("i=2258", model.EventNotifier);
+
+            // Check select clauses
+            Assert.Single(model.SelectClauses);
+            Assert.Equal("i=2041", model.SelectClauses[0].TypeDefinitionId);
+            Assert.Single(model.SelectClauses[0].BrowsePath);
+            Assert.Equal("EventId", model.SelectClauses[0].BrowsePath[0]);
+            Assert.Equal(NodeAttribute.BrowseName, model.SelectClauses[0].AttributeId.Value);
+            Assert.Equal("5:20", model.SelectClauses[0].IndexRange);
+            Assert.NotNull(model.WhereClause);
+            Assert.Single(model.WhereClause.Elements);
+            Assert.Equal(FilterOperatorType.OfType, model.WhereClause.Elements[0].FilterOperator);
+            Assert.Single(model.WhereClause.Elements[0].FilterOperands);
+            Assert.Equal("i=2041", model.WhereClause.Elements[0].FilterOperands[0].NodeId);
+            Assert.Equal("ns=2;i=235", model.WhereClause.Elements[0].FilterOperands[0].Value);
+
+            // Check where clause
+            Assert.Single(model.WhereClause.Elements[0].FilterOperands[0].BrowsePath);
+            Assert.Equal("EventId", model.WhereClause.Elements[0].FilterOperands[0].BrowsePath[0]);
+            Assert.Equal(NodeAttribute.BrowseName, model.WhereClause.Elements[0].FilterOperands[0].AttributeId.Value);
+            Assert.Equal("5:20", model.WhereClause.Elements[0].FilterOperands[0].IndexRange);
+            Assert.NotNull(model.WhereClause.Elements[0].FilterOperands[0].Index);
+            Assert.Equal((uint)10, model.WhereClause.Elements[0].FilterOperands[0].Index.Value);
+            Assert.Equal("Test", model.WhereClause.Elements[0].FilterOperands[0].Alias);
+        }
+
+        [Fact]
+        public void PnPlcMultiJob1TestWithDataItemsAndEvents() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost1:50000"",
+        ""NodeId"": {
+            ""Identifier"": ""i=2258""
+        }
+    },
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost2:50000"",
+        ""NodeId"": {
+            ""Identifier"": ""ns=0;i=2261""
+        }
+    },
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost3:50000"",
+        ""OpcNodes"": [
+            {
+                ""ExpandedNodeId"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean""
+            }
+        ],
+        ""OpcEvents"": [
+            {
+                ""Id"": ""i=2253"",
+                ""OpcPublishingInterval"": 5000,
+                ""SelectClauses"": [
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""EventId""
+                        ]
+                    }
+                ],
+                ""WhereClause"": {
+                    ""Elements"": [
+                        {
+                            ""FilterOperator"": ""OfType"",
+                            ""FilterOperands"": [
+                                {
+                                    ""Value"": ""ns=2;i=235""
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost4:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2262""
+            },
+            {
+                ""Id"": ""ns=2;s=DipData""
+            },
+            {
+                ""Id"": ""nsu=http://microsoft.com/Opc/OpcPlc/;s=NegativeTrendData""
+            }
+        ]
+    }
+]
+";
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel()).ToList();
+
+            Assert.Equal(4, jobs.Count);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
+            Assert.Single(jobs[1].WriterGroup.DataSetWriters);
+            Assert.Equal(2, jobs[2].WriterGroup.DataSetWriters.Count);
+            Assert.Single(jobs[3].WriterGroup.DataSetWriters);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.Single(jobs[1].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Empty(jobs[1].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.Single(jobs[2].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Empty(jobs[2].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.Empty(jobs[2].WriterGroup.DataSetWriters[1].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(jobs[2].WriterGroup.DataSetWriters[1].DataSet.DataSetSource.PublishedEvents.PublishedData);
+            Assert.NotEmpty(jobs[3].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Empty(jobs[3].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+
+            var dataItemModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
+            Assert.Equal("i=2258", dataItemModel.Id);
+            Assert.Equal("i=2258", dataItemModel.PublishedVariableNodeId);
+
+            dataItemModel = jobs[1].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
+            Assert.Equal("ns=0;i=2261", dataItemModel.Id);
+            Assert.Equal("ns=0;i=2261", dataItemModel.PublishedVariableNodeId);
+
+            dataItemModel = jobs[2].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData[0];
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean", dataItemModel.Id);
+            Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=AlternatingBoolean", dataItemModel.PublishedVariableNodeId);
+
+            var eventModel = jobs[2].WriterGroup.DataSetWriters[1].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
+            Assert.Equal("i=2253", eventModel.Id);
+            Assert.Equal("i=2253", eventModel.EventNotifier);
+            Assert.Single(eventModel.SelectClauses);
+            Assert.Equal("i=2041", eventModel.SelectClauses[0].TypeDefinitionId);
+            Assert.Single(eventModel.SelectClauses[0].BrowsePath);
+            Assert.Equal("EventId", eventModel.SelectClauses[0].BrowsePath[0]);
+            Assert.NotNull(eventModel.WhereClause);
+            Assert.Single(eventModel.WhereClause.Elements);
+            Assert.Equal(FilterOperatorType.OfType, eventModel.WhereClause.Elements[0].FilterOperator);
+            Assert.Single(eventModel.WhereClause.Elements[0].FilterOperands);
+            Assert.Equal("ns=2;i=235", eventModel.WhereClause.Elements[0].FilterOperands[0].Value);
+        }
+
+        [Fact]
+        public void PnPlcJobTestWithEvents() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
+        ""UseSecurity"": false,
+        ""OpcEvents"": [
+            {
+                ""Id"": ""i=2253"",
+                ""OpcPublishingInterval"": 5000,
+                ""SelectClauses"": [
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""EventId""
+                        ]
+                    },
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""EventType""
+                        ]
+                    },
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""SourceNode""
+                        ]
+                    },
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""SourceName""
+                        ]
+                    },
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""Time""
+                        ]
+                    },
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""ReceiveTime""
+                        ]
+                    },
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""LocalTime""
+                        ]
+                    },
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""Message""
+                        ]
+                    },
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""Severity""
+                        ]
+                    },
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""2:CycleId""
+                        ]
+                    },
+                    {
+                        ""TypeDefinitionId"": ""i=2041"",
+                        ""BrowsePath"": [
+                            ""2:CurrentStep""
+                        ]
+                    }
+                ],
+                ""WhereClause"": {
+                    ""Elements"": [
+                        {
+                            ""FilterOperator"": ""OfType"",
+                            ""FilterOperands"": [
+                                {
+                                    ""Value"": ""ns=2;i=235""
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+]
+";
+
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel()).ToList();
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
+            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+
+            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
+               Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
+
+            var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
+            Assert.Equal("i=2253", eventModel.Id);
+            Assert.Equal("i=2253", eventModel.EventNotifier);
+            Assert.Equal(11, eventModel.SelectClauses.Count);
+            Assert.All(eventModel.SelectClauses, x => {
+                Assert.Equal("i=2041", x.TypeDefinitionId);
+                Assert.Single(x.BrowsePath);
+            });
+            Assert.Equal(new[] {
+                "EventId",
+                "EventType",
+                "SourceNode",
+                "SourceName",
+                "Time",
+                "ReceiveTime",
+                "LocalTime",
+                "Message",
+                "Severity",
+                "2:CycleId",
+                "2:CurrentStep"
+            }, eventModel.SelectClauses.Select(x => x.BrowsePath[0]));
+        }
+
+        [Fact]
+        public void PnPlcJobTestWithPendingAlarms() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://desktop-fhd2fr4:62563/Quickstarts/SimpleEventsServer"",
+        ""UseSecurity"": false,
+        ""OpcEvents"": [
+            {
+                ""Id"": ""i=2253"",
+                ""OpcPublishingInterval"": 5000,
+                ""TypeDefinitionId"": ""ns=2;i=235"",
+                ""PendingAlarms"": {
+                    ""IsEnabled"": true,
+                    ""UpdateInterval"": 10000,
+                    ""SnapshotInterval"": 20000,
+                    ""CompressedPayload"": false
+                }
+            }
+        ]
+    }
+]
+";
+
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var jobs = converter.Read(new StringReader(pn), new LegacyCliModel()).ToList();
+
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters);
+            Assert.Empty(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedVariables.PublishedData);
+            Assert.Single(jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData);
+
+            Assert.All(jobs.Single().WriterGroup.DataSetWriters, dataSetWriter =>
+               Assert.Single(dataSetWriter.DataSet.DataSetSource.PublishedEvents.PublishedData));
+
+            var eventModel = jobs[0].WriterGroup.DataSetWriters[0].DataSet.DataSetSource.PublishedEvents.PublishedData[0];
+            Assert.Equal("i=2253", eventModel.Id);
+            Assert.Equal("i=2253", eventModel.EventNotifier);
+            Assert.Equal("ns=2;i=235", eventModel.TypeDefinitionId);
+            Assert.NotNull(eventModel.PendingAlarms);
+            Assert.True(eventModel.PendingAlarms.IsEnabled);
+            Assert.Equal(10000, eventModel.PendingAlarms.UpdateInterval);
+            Assert.Equal(20000, eventModel.PendingAlarms.SnapshotInterval);
+            Assert.False(eventModel.PendingAlarms.CompressedPayload);
         }
 
         private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();

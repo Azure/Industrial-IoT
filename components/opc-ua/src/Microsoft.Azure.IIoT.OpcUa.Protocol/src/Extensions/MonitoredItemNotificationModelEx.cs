@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Encoders;
@@ -129,7 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     ? null
                     : eventFieldList.Message.StringTable,
                 IsHeartbeat = false
-                
+
             };
         }
 
@@ -145,6 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             if (eventFields == null) {
                 return new DataValue(StatusCodes.BadNoData);
             }
+
             return new DataValue {
                 ServerPicoseconds = 0,
                 ServerTimestamp = eventFields.GetEventValue<DateTime>(
@@ -154,13 +156,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     BrowseNames.ReceiveTime, monitoredItem),
                 StatusCode = eventFields.GetEventValue<StatusCode>(
                     BrowseNames.StatusCode, monitoredItem),
-                Value = new EncodeableDictionary {
-                    Fields = new KeyValuePairCollection(eventFields.EventFields
-                        .Select((value, i) => new Opc.Ua.KeyValuePair {
-                            Key = monitoredItem.GetFieldName(i),
-                            Value = value
-                        }))
-                }
+                Value = new EncodeableDictionary(eventFields.EventFields
+                    .Select((value, i) => new KeyDataValuePair {
+                        Key = SubscriptionServices.GetFieldDisplayName(monitoredItem, i),
+                        Value = new DataValue(value)
+                    }))
             };
         }
 

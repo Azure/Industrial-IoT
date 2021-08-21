@@ -48,5 +48,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "maxOutgressMessages", Order = 4,
             EmitDefaultValue = false)]
         public int? MaxOutgressMessages { get; set; }
+
+        /// <summary>
+        /// Flag to use reversible encoding for messages
+        /// </summary>
+        [DataMember(Name = "reversibleEncoding", Order = 5,
+            EmitDefaultValue = false)]
+        public bool? UseReversibleEncoding { get; set; }
     }
 }

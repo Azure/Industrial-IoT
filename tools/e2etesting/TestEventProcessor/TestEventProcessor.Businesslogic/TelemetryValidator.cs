@@ -11,6 +11,7 @@ namespace TestEventProcessor.BusinessLogic {
     using Azure.Storage.Blobs;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -23,13 +24,13 @@ namespace TestEventProcessor.BusinessLogic {
     /// <summary>
     /// Validates the value changes within IoT Hub Methods
     /// </summary>
-    public class TelemetryValidator : ITelemetryValidator
-    {
+    public class TelemetryValidator : ITelemetryValidator {
         private CancellationTokenSource _cancellationTokenSource;
         private EventProcessorClient _client = null;
         private DateTime _startTime = DateTime.MinValue;
         private int _totalValueChangesCount = 0;
         private int _shuttingDown;
+        private readonly JArray _jContents = new JArray();
 
         // Checkers
         private MissingTimestampsChecker _missingTimestampsChecker;
@@ -55,8 +56,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// Create instance of TelemetryValidator
         /// </summary>
         /// <param name="logger">Instance to write logs</param>
-        public TelemetryValidator(ILogger<TelemetryValidator> logger)
-        {
+        public TelemetryValidator(ILogger<TelemetryValidator> logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -67,8 +67,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         /// <param name="token">Token to cancel the operation</param>
         /// <returns>Task that run until token is canceled</returns>
-        public async Task<StartResult> StartAsync(ValidatorConfiguration configuration)
-        {
+        public async Task<StartResult> StartAsync(ValidatorConfiguration configuration) {
             // Check if already started.
             if (_cancellationTokenSource != null) {
                 return new StartResult();
@@ -118,6 +117,7 @@ namespace TestEventProcessor.BusinessLogic {
             _client.ProcessEventAsync += Client_ProcessEventAsync;
             _client.ProcessErrorAsync += Client_ProcessErrorAsync;
 
+            _jContents.Clear();
             _logger.LogInformation("Starting monitoring of events...");
             await _client.StartProcessingAsync(_cancellationTokenSource.Token);
 
@@ -194,7 +194,7 @@ namespace TestEventProcessor.BusinessLogic {
 
                 // TODO collect "expected" parameter as groups related to OPC UA nodes
                 allExpectedValueChanges = valueChangesPerNodeId?
-                    .All(kvp => (_totalValueChangesCount / kvp.Value ) ==
+                    .All(kvp => (_totalValueChangesCount / kvp.Value) ==
                         _currentConfiguration.ExpectedValueChangesPerTimestamp
                     ) ?? false;
                 _logger.LogInformation("All expected value changes received: {AllExpectedValueChanges}",
@@ -205,7 +205,7 @@ namespace TestEventProcessor.BusinessLogic {
 
             var incrCheckerResult = _incrementalIntValueChecker.Stop();
 
-            var stopResult =  new StopResult() {
+            var stopResult = new StopResult() {
                 ValueChangesByNodeId = new ReadOnlyDictionary<string, int>(valueChangesPerNodeId ?? new Dictionary<string, int>()),
                 AllExpectedValueChanges = allExpectedValueChanges,
                 TotalValueChangesCount = _totalValueChangesCount,
@@ -222,15 +222,21 @@ namespace TestEventProcessor.BusinessLogic {
         }
 
         /// <summary>
+        /// This function returns the persisted messages as a JSON object
+        /// </summary>
+        /// <returns></returns>
+        public string GetMessages() {
+            return JsonConvert.SerializeObject(_jContents);
+        }
+
+        /// <summary>
         /// Stops the Event Hub Client and deregisters event handlers.
         /// </summary>
         /// <returns></returns>
-        private async Task StopEventProcessorClientAsync()
-        {
+        private async Task StopEventProcessorClientAsync() {
             _logger.LogInformation("Stopping monitoring of events...");
 
-            if (_client != null)
-            {
+            if (_client != null) {
                 var tempClient = _client;
                 _client = null;
                 await tempClient.StopProcessingAsync();
@@ -264,29 +270,59 @@ namespace TestEventProcessor.BusinessLogic {
 
             var body = arg.Data.Body.ToArray();
             var content = Encoding.UTF8.GetString(body);
+            lock (_jContents) {
+                while (_currentConfiguration.MaximalNumberOfMessages > 0 &&
+                    _currentConfiguration.MaximalNumberOfMessages <= _jContents.Count) {
+                    _jContents.RemoveAt(0);
+                }
+                _jContents.Add(JArray.Parse(content));
+            }
             dynamic json = JsonConvert.DeserializeObject(content);
             var valueChangesCount = 0;
 
-            // TODO build variant that works with PubSub
+            DateTime entrySourceTimestamp = default(DateTime);
+            string entryNodeId = null;
+            object entryValue = null;
 
-            foreach (dynamic entry in json)
-            {
-                DateTime entrySourceTimestamp;
-                string entryNodeId = null;
-                object entryValue;
-
-                try
-                {
-                    entrySourceTimestamp = (DateTime)entry.Value.SourceTimestamp;
-                    entryNodeId = entry.NodeId;
-                    entryValue = entry.Value.Value;
+            foreach (dynamic entry in json) {
+                if (entry.Messages != null) {
+                    try {
+                        // pub sub
+                        var dataSetMessages = entry.Messages;
+                        foreach (var dataSetMessage in dataSetMessages) {
+                            foreach (var payload in dataSetMessage.Payload) {
+                                foreach (var message in payload.Value) {
+                                    try {
+                                        entrySourceTimestamp = message.SourceTimestamp;
+                                    }
+                                    catch (Exception) {
+                                    }
+                                    valueChangesCount++;
+                                    Interlocked.Increment(ref _totalValueChangesCount);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex) {
+                        _logger.LogError(ex, "Could not read from message. Please make sure that publisher is running with samples format and with --fm parameter set.");
+                        return Task.CompletedTask;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from " +
-                        "message. Please make sure that publisher is running with samples format and with " +
-                        "--fm parameter set.");
-                    continue;
+                else {
+                    try {
+                        entrySourceTimestamp = (DateTime)entry.Value.SourceTimestamp;
+                        entryNodeId = entry.NodeId;
+                        entryValue = entry.Value.Value;
+                    }
+                    catch (Exception ex) {
+                        _logger.LogError(ex, "Could not read value, nodeId and/or timestamp from " +
+                            "message. Please make sure that publisher is running with samples format and with " +
+                            "--fm parameter set.");
+                        continue;
+                    }
+
+                    Interlocked.Increment(ref _totalValueChangesCount);
+                    valueChangesCount++;
                 }
 
                 // Feed data to checkers.
@@ -295,14 +331,13 @@ namespace TestEventProcessor.BusinessLogic {
                 _messageDeliveryDelayChecker.ProcessEvent(entrySourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime);
                 _valueChangeCounterPerNodeId.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
                 _missingValueChangesChecker.ProcessEvent(entrySourceTimestamp);
-                _incrementalIntValueChecker.ProcessEvent(entryNodeId, entryValue);
+                _incrementalIntValueChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
 
-                Interlocked.Increment(ref _totalValueChangesCount);
-                valueChangesCount++;
             }
 
             _logger.LogDebug("Received {NumberOfValueChanges} messages from IoT Hub, partition {PartitionId}.",
                 valueChangesCount, arg.Partition.PartitionId);
+
             return Task.CompletedTask;
         }
 
@@ -311,8 +346,7 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         /// <param name="arg">Init event args</param>
         /// <returns>Completed Task, no async work needed</returns>
-        private Task Client_PartitionInitializingAsync(PartitionInitializingEventArgs arg)
-        {
+        private Task Client_PartitionInitializingAsync(PartitionInitializingEventArgs arg) {
             _logger.LogInformation("EventProcessorClient initializing, start with latest position for " +
                 "partition {PartitionId}", arg.PartitionId);
             arg.DefaultStartingPosition = EventPosition.Latest;
@@ -324,12 +358,10 @@ namespace TestEventProcessor.BusinessLogic {
         /// </summary>
         /// <param name="arg">Error event args</param>
         /// <returns>Completed Task, no async work needed</returns>
-        private Task Client_ProcessErrorAsync(ProcessErrorEventArgs arg)
-        {
+        private Task Client_ProcessErrorAsync(ProcessErrorEventArgs arg) {
             _logger.LogError(arg.Exception, "Issue reported by EventProcessorClient, partition " +
                 "{PartitionId}, operation {Operation}", arg.PartitionId, arg.Operation);
             return Task.CompletedTask;
         }
-
     }
 }

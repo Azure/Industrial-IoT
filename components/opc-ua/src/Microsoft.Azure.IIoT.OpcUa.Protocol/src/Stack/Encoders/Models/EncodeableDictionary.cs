@@ -5,17 +5,14 @@
 
 namespace Opc.Ua.Encoders {
     using Opc.Ua;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Encodeable dictionary carrying field names and values
     /// </summary>
-    public class EncodeableDictionary : IEncodeable {
-
-        /// <summary>
-        /// Event fields
-        /// </summary>
-        public KeyValuePairCollection Fields { get; set; }
-
+    public class EncodeableDictionary : List<KeyDataValuePair>, IEncodeable {
         /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
             nameof(EncodeableDictionary);
@@ -33,22 +30,48 @@ namespace Opc.Ua.Encoders {
             nameof(EncodeableDictionary) + "_Encoding_DefaultJson";
 
         /// <summary>
-        /// Create
+        /// Initializes the dictionary with default values.
         /// </summary>
-        public EncodeableDictionary() {
-            Fields = new KeyValuePairCollection();
-        }
+        public EncodeableDictionary() { }
+
+        /// <summary>
+        /// Initializes the dictionary with an initial capacity.
+        /// </summary>
+        public EncodeableDictionary(int capacity) : base(capacity) { }
+
+        /// <summary>
+        /// Initializes the dictionary with another collection.
+        /// </summary>
+        public EncodeableDictionary(IEnumerable<KeyDataValuePair> collection) : base(collection) { }
 
         /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder) {
-            //  todo: check if "EventFields" is appropriate
-            encoder.WriteEncodeableArray("EventFields", Fields.ToArray(), typeof(KeyValuePair));
+            // Get valid dictionary for encoding.
+            var dictionary = this
+                .Where(x => !string.IsNullOrEmpty(x.Key))
+                .Where(x => x.Value != null)
+                .Where(x => x.Value.Value != null)
+                .Where(x => !(x.Value.Value is LocalizedText lt) || lt.Locale != null || lt.Text != null)
+                .ToDictionary(x => x.Key, x => x.Value);
+
+            foreach (var keyValuePair in dictionary) {
+                encoder.WriteDataValue(keyValuePair.Key, keyValuePair.Value);
+            }
         }
 
         /// <inheritdoc/>
         public virtual void Decode(IDecoder decoder) {
-            Fields = (KeyValuePairCollection)decoder.ReadEncodeableArray(
-                "EventFields", typeof(KeyValuePair));
+            // Only JSON decoder that can decode a dictionary is supported.
+            if (!(decoder is JsonDecoderEx jsonDecoder)) {
+                throw new Exception($"Cannot decode using the decoder: {decoder.GetType()}.");
+            }
+            var dictionary = jsonDecoder.ReadDataValueDictionary(null);
+            foreach (var keyValuePair in dictionary) {
+                Add(new KeyDataValuePair {
+                    Key = keyValuePair.Key,
+                    Value = keyValuePair.Value
+                });
+            }
         }
 
         /// <inheritdoc/>
@@ -56,10 +79,10 @@ namespace Opc.Ua.Encoders {
             if (this == encodeable) {
                 return true;
             }
-            if (!(encodeable is EncodeableDictionary eventFieldList)) {
+            if (!(encodeable is EncodeableDictionary encodableDictionary)) {
                 return false;
             }
-            if (!Utils.IsEqual(Fields, eventFieldList.Fields)) {
+            if (!Utils.IsEqual(this, encodableDictionary)) {
                 return false;
             }
             return true;
