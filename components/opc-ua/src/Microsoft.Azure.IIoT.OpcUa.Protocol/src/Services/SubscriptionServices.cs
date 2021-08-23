@@ -534,6 +534,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return noErrorFound;
             }
 
+            /// <summary>
+            /// Helper to calculate greatest common divisor for the parameter of keep alive
+            /// count used to allow the trigger of heart beats in a given interval.
+            /// </summary>
             private static uint GreatCommonDivisor(uint a, uint b) {
                 return b == 0 ? a : GreatCommonDivisor(b, a % b);
             }
