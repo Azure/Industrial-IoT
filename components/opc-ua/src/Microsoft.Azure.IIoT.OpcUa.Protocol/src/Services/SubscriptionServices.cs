@@ -565,8 +565,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     .GetValueOrDefault(session.DefaultSubscription.KeepAliveCount);
                 _subscription.MonitoredItems?.ForEach(m => {
                     if (m.HeartbeatInterval != null && m.HeartbeatInterval != TimeSpan.Zero) {
-                        var itemKeepAliveCount = (uint)m.HeartbeatInterval.Value.TotalMilliseconds /
-                            (uint)_subscription.Configuration.PublishingInterval.Value.TotalMilliseconds;
+                        var _publishingInterval = (uint)(_subscription.Configuration.PublishingInterval == TimeSpan.Zero? 
+                                                  TimeSpan.FromSeconds(1) : _subscription.Configuration.PublishingInterval).Value.TotalMilliseconds;
+                        var itemKeepAliveCount = (uint)m.HeartbeatInterval.Value.TotalMilliseconds / _publishingInterval;
                         revisedKeepAliveCount = GreatCommonDivisor(revisedKeepAliveCount, itemKeepAliveCount);
                     }
                 });
