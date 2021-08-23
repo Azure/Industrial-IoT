@@ -52,6 +52,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         event EventHandler<DataSetMessageModel> OnMessage;
 
         /// <summary>
+        /// Called when ValueChangesCount or DataChangesCount are resetted
+        /// </summary>
+        event EventHandler<EventArgs> OnCounterReset;
+
+        /// <summary>
         /// Run the group triggering
         /// </summary>
         /// <param name="ct"></param>
