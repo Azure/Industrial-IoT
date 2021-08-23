@@ -118,6 +118,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public event EventHandler<DataSetMessageModel> OnMessage;
 
+        /// <inheritdoc/>
+        public event EventHandler<EventArgs> OnCounterReset;
+
+        private void FireOnCounterResetEvent() {
+            OnCounterReset?.Invoke(this, EventArgs.Empty);
+        }
+
         /// <summary>
         /// Create trigger from writer group
         /// </summary>
@@ -354,12 +361,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         if (_outer.DataChangesCount >= kNumberOfInvokedMessagesResetThreshold ||
                             _outer.ValueChangesCount >= kNumberOfInvokedMessagesResetThreshold) {
                             // reset both
-                            _outer._logger.Debug("Notifications counter has been reset to prevent overflow. " +
+                            _outer._logger.Information("Notifications counter has been reset to prevent overflow. " +
                                 "So far, {DataChangesCount} data changes and {ValueChangesCount}" +
                                 " value changes were invoked by message source.",
                                 _outer.DataChangesCount, _outer.ValueChangesCount);
                             _outer.DataChangesCount = 0;
                             _outer.ValueChangesCount = 0;
+                            _outer.FireOnCounterResetEvent();
                         }
 
                         _outer.ValueChangesCount += (ulong)message.Notifications.Count();
@@ -388,7 +396,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly List<DataSetWriterSubscription> _subscriptions;
         private readonly WriterGroupModel _writerGroup;
         private readonly ISubscriptionManager _subscriptionManager;
-        private const int kNumberOfInvokedMessagesResetThreshold = int.MaxValue - 10000;
+        private const ulong kNumberOfInvokedMessagesResetThreshold = ulong.MaxValue - 10000;
         private const int _bucketWidth = 60;
         private readonly ulong[] _valueChangesBuffer = new ulong[_bucketWidth];
         private int _lastPointerValueChanges;
