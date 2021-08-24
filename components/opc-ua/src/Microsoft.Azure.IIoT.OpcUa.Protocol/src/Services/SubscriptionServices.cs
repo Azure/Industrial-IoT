@@ -534,6 +534,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return noErrorFound;
             }
 
+            /// <summary>
+            /// Helper to calculate greatest common divisor for the parameter of keep alive
+            /// count used to allow the trigger of heart beats in a given interval.
+            /// </summary>
             private static uint GreatCommonDivisor(uint a, uint b) {
                 return b == 0 ? a : GreatCommonDivisor(b, a % b);
             }
@@ -563,10 +567,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // calculate the KeepAliveCount no matter what, perhaps monitored items were changed
                 var revisedKeepAliveCount = _subscription.Configuration.KeepAliveCount
                     .GetValueOrDefault(session.DefaultSubscription.KeepAliveCount);
+                var publishInterval = (uint)(_subscription.Configuration.PublishingInterval == TimeSpan.Zero ?
+                                      TimeSpan.FromSeconds(1) : _subscription.Configuration.PublishingInterval).Value.TotalMilliseconds;
                 _subscription.MonitoredItems?.ForEach(m => {
                     if (m.HeartbeatInterval != null && m.HeartbeatInterval != TimeSpan.Zero) {
-                        var itemKeepAliveCount = (uint)m.HeartbeatInterval.Value.TotalMilliseconds /
-                            (uint)_subscription.Configuration.PublishingInterval.Value.TotalMilliseconds;
+                        var itemKeepAliveCount = (uint)m.HeartbeatInterval.Value.TotalMilliseconds / publishInterval;
                         revisedKeepAliveCount = GreatCommonDivisor(revisedKeepAliveCount, itemKeepAliveCount);
                     }
                 });

@@ -5,6 +5,14 @@ parameters:
   type: string
 
 steps:
+- task: UseDotNet@2
+  displayName: 'Install .NET Core SDK'
+  inputs:
+    packageType: sdk
+    version: 3.1.x
+    includePreviewVersions: false
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
 - task: AzureCLI@2
   displayName: 'Set Service Principal Environment Variables'
   name: promoteserviceprincipal
