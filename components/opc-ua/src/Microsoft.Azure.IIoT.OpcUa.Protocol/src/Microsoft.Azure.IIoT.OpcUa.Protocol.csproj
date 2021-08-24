@@ -24,11 +24,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.14" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="3.1.14" />
-    <PackageReference Include="System.Private.ServiceModel" Version="4.8.1" />
-    <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
     <PackageReference Include="System.Net.Security" Version="4.3.2" />
     <PackageReference Include="System.Net.WebSockets.Client" Version="4.3.2" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.8.1" />
     <PackageReference Include="System.Text.Encodings.Web" Version="5.0.1" />
     <PackageReference Include="Antlr4" Version="4.6.6" />
   </ItemGroup>

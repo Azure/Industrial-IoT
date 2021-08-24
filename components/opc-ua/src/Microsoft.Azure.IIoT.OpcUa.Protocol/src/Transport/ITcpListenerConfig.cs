@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
-    using System.IdentityModel.Selectors;
+    using Opc.Ua;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         /// <summary>
         /// Certificate validator
         /// </summary>
-        X509CertificateValidator CertificateValidator { get; }
+        ICertificateValidator CertificateValidator { get; }
 
         /// <summary>
         /// Public dns address
