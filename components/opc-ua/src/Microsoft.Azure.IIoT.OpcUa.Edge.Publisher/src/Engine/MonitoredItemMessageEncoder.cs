@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
                 }
-                if (!processing || messageCompleted) {
+                if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var writer = new StringWriter();
                     var encoder = new JsonEncoderEx(writer, encodingContext,
                         JsonEncoderEx.JsonEncoding.Array) {
@@ -196,7 +196,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
                 }
-                if (!processing || messageCompleted) {
+                if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var encoder = new BinaryEncoder(encodingContext);
                     encoder.WriteBoolean(null, true); // is Batch
                     encoder.WriteEncodeableArray(null, chunk);
@@ -255,7 +255,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     // this message is too large to be processed. Drop it
                     // TODO Trace
                     NotificationsDroppedCount++;
-                    yield break;
+                    continue;
                 }
                 NotificationsProcessedCount++;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
@@ -299,7 +299,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     // this message is too large to be processed. Drop it
                     // TODO Trace
                     NotificationsDroppedCount++;
-                    yield break;
+                    continue;
                 }
                 NotificationsProcessedCount++;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
