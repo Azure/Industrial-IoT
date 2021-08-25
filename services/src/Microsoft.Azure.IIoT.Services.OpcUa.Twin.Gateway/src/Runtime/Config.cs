@@ -20,8 +20,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
     using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Extensions.Configuration;
     using System;
-    using System.IdentityModel.Selectors;
     using System.Security.Cryptography.X509Certificates;
+    using Opc.Ua;
 
     /// <summary>
     /// Common web service configuration aggregation
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
         /// <inheritdoc/>
         public X509Certificate2Collection TcpListenerCertificateChain => null;
         /// <inheritdoc/>
-        public X509CertificateValidator CertificateValidator => null;
+        public ICertificateValidator CertificateValidator => null;
         /// <inheritdoc/>
         public string PublicDnsAddress => null;
         /// <inheritdoc/>

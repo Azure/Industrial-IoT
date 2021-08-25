@@ -307,7 +307,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
                 MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.IoTHubMaxMessageSize, 0),
                 ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1),
-                MaxOutgressMessages = GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, 200)
+                MaxOutgressMessages = GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, 4096)
             };
         }
 
