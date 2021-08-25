@@ -17,14 +17,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using System.Linq;
     using Xunit;
 
-    public class NetworkMessageEncoderTests {
+    public class MonitoredItemMessageEncoderTests {
+        private readonly MonitoredItemMessageEncoder _encoder;
 
-        private readonly Mock<ILogger> _loggerMock;
-        private readonly NetworkMessageEncoder _encoder;
-
-        public NetworkMessageEncoderTests() {
-            _loggerMock = new Mock<ILogger>();
-            _encoder = new NetworkMessageEncoder(_loggerMock.Object);
+        public MonitoredItemMessageEncoderTests() {
+            _encoder = new MonitoredItemMessageEncoder();
         }
 
         [Theory]
@@ -35,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var messages = new List<DataSetMessageModel>();
 
             var networkMessages = (encodeBatchFlag
-                ?_encoder.EncodeBatchAsync(messages, maxMessageSize)
+                ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
                 : _encoder.EncodeAsync(messages, maxMessageSize)
             ).ConfigureAwait(false).GetAwaiter().GetResult();
 
@@ -70,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Uadp)]
         public void EncodeTooBigMessageTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 100;
-            var messages = GenerateSampleMessages(3, encoding);
+            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(3, encoding);
 
             var networkMessages = (encodeBatchFlag
                 ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
@@ -90,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Uadp)]
         public void EncodeTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 256 * 1024;
-            var messages = GenerateSampleMessages(20, encoding);
+            var messages = NetworkMessageEncoderTests.GenerateSampleMessages(20, encoding);
 
             var networkMessages = (encodeBatchFlag
                 ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
@@ -105,74 +102,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 Assert.Equal(210, _encoder.AvgNotificationsPerMessage);
             }
             else {
-                Assert.Equal(20, networkMessages.Count);
+                Assert.Equal(210, networkMessages.Count);
                 Assert.Equal((uint)210, _encoder.NotificationsProcessedCount);
                 Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
-                Assert.Equal((uint)20, _encoder.MessagesProcessedCount);
-                Assert.Equal(10.5, _encoder.AvgNotificationsPerMessage);
+                Assert.Equal((uint)210, _encoder.MessagesProcessedCount);
+                Assert.Equal(1, _encoder.AvgNotificationsPerMessage);
             }
-        }
-
-        public static IList<DataSetMessageModel> GenerateSampleMessages(
-            uint numOfMessages,
-            MessageEncoding encoding = MessageEncoding.Json
-        ) {
-            var messages = new List<DataSetMessageModel>();
-
-            for (uint i = 0; i < numOfMessages; i++) {
-                var suffix = $"-{i}";
-
-                var notifications = new List<MonitoredItemNotificationModel>();
-
-                for (uint k = 0; k < i + 1; k++) {
-                    var notificationSuffix = suffix + $"-{k}";
-
-                    var monitoredItemNotification = new MonitoredItemNotification {
-                        ClientHandle = k,
-                        Value = new DataValue(new Variant(k), new StatusCode(0), DateTime.UtcNow),
-                        Message = new NotificationMessage()
-                    };
-
-                    var monitoredItem = new MonitoredItem {
-                        DisplayName = "DisplayName" + notificationSuffix,
-                        StartNodeId = new NodeId("NodeId" + notificationSuffix),
-                        AttributeId = k
-                    };
-
-                    var notification = monitoredItemNotification.ToMonitoredItemNotification(monitoredItem);
-                    notifications.Add(notification);
-                }
-
-                var message = new DataSetMessageModel {
-                    SequenceNumber = i,
-                    PublisherId = "PublisherId" + suffix,
-                    Writer = new DataSetWriterModel {
-                        DataSet = new PublishedDataSetModel {
-                            DataSetSource = new PublishedDataSetSourceModel {
-                                PublishedVariables = new PublishedDataItemsModel {
-                                    PublishedData = new List<PublishedDataSetVariableModel>()
-                                }
-                            }
-                        }
-                    },
-                    WriterGroup = new WriterGroupModel {
-                        MessageSettings = new WriterGroupMessageSettingsModel {
-                            NetworkMessageContentMask = (NetworkMessageContentMask) 0xffff
-                        },
-                        MessageType = encoding
-                    },
-                    TimeStamp = DateTime.UtcNow,
-                    ServiceMessageContext = new ServiceMessageContext { },
-                    Notifications = notifications,
-                    SubscriptionId = "SubscriptionId" + suffix,
-                    EndpointUrl = "EndpointUrl" + suffix,
-                    ApplicationUri = "ApplicationUri" + suffix
-                };
-
-                messages.Add(message);
-            }
-
-            return messages;
         }
     }
 }
