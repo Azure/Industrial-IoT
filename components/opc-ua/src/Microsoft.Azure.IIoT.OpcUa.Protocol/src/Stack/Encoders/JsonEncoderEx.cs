@@ -1321,6 +1321,51 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <summary>
+        /// Write multi dimensional array in structure.
+        /// </summary>
+        private void WriteStructureMatrix(
+            string fieldName,
+            Matrix matrix,
+            int dim,
+            ref int index,
+            TypeInfo typeInfo) {
+            // check the nesting level for avoiding a stack overflow.
+            if (_nestingLevel > Context.MaxEncodingNestingLevels) {
+                throw ServiceResultException.Create(
+                    StatusCodes.BadEncodingLimitsExceeded,
+                    "Maximum nesting level of {0} was exceeded",
+                    Context.MaxEncodingNestingLevels);
+            }
+
+            _nestingLevel++;
+
+            try {
+                var arrayLen = matrix.Dimensions[dim];
+                if (dim == matrix.Dimensions.Length - 1) {
+                    // Create a slice of values for the top dimension
+                    var copy = Array.CreateInstance(
+                        matrix.Elements.GetType().GetElementType(), arrayLen);
+                    Array.Copy(matrix.Elements, index, copy, 0, arrayLen);
+                    // Write slice as value rank
+
+                    WriteVariantContents(copy, 1, typeInfo.BuiltInType);
+                    index += arrayLen;
+                }
+                else {
+                    PushArray(fieldName, arrayLen);
+                    for (var i = 0; i < arrayLen; i++) {
+                        WriteStructureMatrix(null, matrix, dim + 1, ref index, typeInfo);
+                    }
+                    PopArray();
+                }
+            }
+            finally {
+                _nestingLevel--;
+            }
+        }
+
+
+        /// <summary>
         /// Write type
         /// </summary>
         /// <param name="property"></param>
@@ -1387,6 +1432,82 @@ namespace Opc.Ua.Encoders {
             }
             if (serverIndex != 0) {
                 WriteUInt32("ServerIndex", serverIndex);
+            }
+        }
+
+        /// <summary>
+        /// Encode an array according to its valueRank and BuiltInType
+        /// </summary>
+        public void WriteArray(string fieldName, object array, int valueRank, BuiltInType builtInType) {
+            // write array.
+            if (valueRank == ValueRanks.OneDimension) {
+                switch (builtInType) {
+                    case BuiltInType.Boolean: { WriteBooleanArray(fieldName, (bool[])array); return; }
+                    case BuiltInType.SByte: { WriteSByteArray(fieldName, (sbyte[])array); return; }
+                    case BuiltInType.Byte: { WriteByteArray(fieldName, (byte[])array); return; }
+                    case BuiltInType.Int16: { WriteInt16Array(fieldName, (short[])array); return; }
+                    case BuiltInType.UInt16: { WriteUInt16Array(fieldName, (ushort[])array); return; }
+                    case BuiltInType.Int32: { WriteInt32Array(fieldName, (int[])array); return; }
+                    case BuiltInType.UInt32: { WriteUInt32Array(fieldName, (uint[])array); return; }
+                    case BuiltInType.Int64: { WriteInt64Array(fieldName, (long[])array); return; }
+                    case BuiltInType.UInt64: { WriteUInt64Array(fieldName, (ulong[])array); return; }
+                    case BuiltInType.Float: { WriteFloatArray(fieldName, (float[])array); return; }
+                    case BuiltInType.Double: { WriteDoubleArray(fieldName, (double[])array); return; }
+                    case BuiltInType.String: { WriteStringArray(fieldName, (string[])array); return; }
+                    case BuiltInType.DateTime: { WriteDateTimeArray(fieldName, (DateTime[])array); return; }
+                    case BuiltInType.Guid: { WriteGuidArray(fieldName, (Uuid[])array); return; }
+                    case BuiltInType.ByteString: { WriteByteStringArray(fieldName, (byte[][])array); return; }
+                    case BuiltInType.XmlElement: { WriteXmlElementArray(fieldName, (XmlElement[])array); return; }
+                    case BuiltInType.NodeId: { WriteNodeIdArray(fieldName, (NodeId[])array); return; }
+                    case BuiltInType.ExpandedNodeId: { WriteExpandedNodeIdArray(fieldName, (ExpandedNodeId[])array); return; }
+                    case BuiltInType.StatusCode: { WriteStatusCodeArray(fieldName, (StatusCode[])array); return; }
+                    case BuiltInType.QualifiedName: { WriteQualifiedNameArray(fieldName, (QualifiedName[])array); return; }
+                    case BuiltInType.LocalizedText: { WriteLocalizedTextArray(fieldName, (LocalizedText[])array); return; }
+                    case BuiltInType.ExtensionObject: { WriteExtensionObjectArray(fieldName, (ExtensionObject[])array); return; }
+                    case BuiltInType.DataValue: { WriteDataValueArray(fieldName, (DataValue[])array); return; }
+                    case BuiltInType.DiagnosticInfo: { WriteDiagnosticInfoArray(fieldName, (DiagnosticInfo[])array); return; }
+                    case BuiltInType.Enumeration: {
+                            Array enumArray = array as Array;
+                            if (enumArray == null) {
+                                throw ServiceResultException.Create(
+                                    StatusCodes.BadEncodingError,
+                                    "Unexpected non Array type encountered while encoding an array of enumeration.");
+                            }
+                            WriteEnumeratedArray(fieldName, enumArray, enumArray.GetType().GetElementType());
+                            return;
+                        }
+
+                    case BuiltInType.Variant: {
+                            Variant[] variants = array as Variant[];
+
+                            if (variants != null) {
+                                WriteVariantArray(fieldName, variants);
+                                return;
+                            }
+
+                            object[] objects = array as object[];
+
+                            if (objects != null) {
+                                WriteObjectArray(fieldName, objects);
+                                return;
+                            }
+
+                            throw ServiceResultException.Create(
+                                StatusCodes.BadEncodingError,
+                                "Unexpected type encountered while encoding an array of Variants: {0}",
+                                array.GetType());
+                        }
+                }
+            }
+            // write matrix.
+            else if (valueRank > ValueRanks.OneDimension) {
+                Matrix matrix = array as Matrix;
+                if (matrix != null) {
+                    int index = 0;
+                    WriteStructureMatrix(fieldName, matrix, 0, ref index, matrix.TypeInfo);
+
+                    return;
+                }
             }
         }
 
