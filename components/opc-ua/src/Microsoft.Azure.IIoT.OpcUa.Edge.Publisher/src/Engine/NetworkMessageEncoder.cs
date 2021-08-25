@@ -147,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
                 }
-                if (!processing || messageCompleted) {
+                if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var writer = new StringWriter();
                     var encoder = new JsonEncoderEx(writer, encodingContext,
                         JsonEncoderEx.JsonEncoding.Array) {
@@ -226,7 +226,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
                 }
-                if (!processing || messageCompleted) {
+                if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var encoder = new BinaryEncoder(encodingContext);
                     encoder.WriteBoolean(null, true); // is Batch
                     encoder.WriteEncodeableArray(null, chunk);
@@ -287,7 +287,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     // Message too large, drop it.
                     NotificationsDroppedCount += (uint)notificationsPerMessage;
                     _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
-                    yield break;
+                    continue;
                 }
                 NotificationsProcessedCount += (uint)notificationsPerMessage;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
@@ -333,7 +333,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     // Message too large, drop it.
                     NotificationsDroppedCount += (uint)notificationsPerMessage;
                     _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
-                    yield break;
+                    continue;
                 }
                 NotificationsProcessedCount += (uint)notificationsPerMessage;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
