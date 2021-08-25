@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         (MessagesProcessedCount + 1);
                     AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
                         chunk.Count) / (MessagesProcessedCount + 1);
-                        MessagesProcessedCount++;
+                    MessagesProcessedCount++;
                     chunk.Clear();
                     messageSize = 2;
                     yield return encoded;
@@ -321,7 +321,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
             ServiceMessageContext context) {
             if (context?.NamespaceUris == null) {
-                // declare all notifications in messages dropped 
+                // declare all notifications in messages dropped
                 foreach (var message in messages) {
                     NotificationsDroppedCount += (uint)(message?.Notifications?.Count() ?? 0);
                 }
