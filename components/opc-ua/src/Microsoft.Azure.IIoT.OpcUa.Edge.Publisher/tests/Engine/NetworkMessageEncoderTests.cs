@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
     using Xunit;
 
     public class NetworkMessageEncoderTests {
@@ -30,14 +31,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void EmptyMessagesTest(bool encodeBatchFlag) {
+        public async Task EmptyMessagesTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
             var messages = new List<DataSetMessageModel>();
 
-            var networkMessages = (encodeBatchFlag
+            var networkMessages = await (encodeBatchFlag
                 ?_encoder.EncodeBatchAsync(messages, maxMessageSize)
                 : _encoder.EncodeAsync(messages, maxMessageSize)
-            ).ConfigureAwait(false).GetAwaiter().GetResult();
+            );
 
             Assert.Empty(networkMessages);
             Assert.Equal((uint)0, _encoder.NotificationsProcessedCount);
@@ -48,14 +49,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void EmptyDataSetMessageModelTest(bool encodeBatchFlag) {
+        public async Task EmptyDataSetMessageModelTest(bool encodeBatchFlag) {
             var maxMessageSize = 256 * 1024;
             var messages = new[] { new DataSetMessageModel() };
 
-            var networkMessages = (encodeBatchFlag
+            var networkMessages = await (encodeBatchFlag
                 ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
                 : _encoder.EncodeAsync(messages, maxMessageSize)
-            ).ConfigureAwait(false).GetAwaiter().GetResult();
+            );
 
             Assert.Empty(networkMessages);
             Assert.Equal((uint)0, _encoder.NotificationsProcessedCount);
@@ -68,14 +69,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Json)]
         [InlineData(false, MessageEncoding.Uadp)]
         [InlineData(true, MessageEncoding.Uadp)]
-        public void EncodeTooBigMessageTest(bool encodeBatchFlag, MessageEncoding encoding) {
+        public async Task EncodeTooBigMessageTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 100;
             var messages = GenerateSampleMessages(3, encoding);
 
-            var networkMessages = (encodeBatchFlag
+            var networkMessages = await (encodeBatchFlag
                 ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
                 : _encoder.EncodeAsync(messages, maxMessageSize)
-            ).ConfigureAwait(false).GetAwaiter().GetResult().ToList();
+            );
 
             Assert.Empty(networkMessages);
             Assert.Equal((uint)0, _encoder.NotificationsProcessedCount);
@@ -88,24 +89,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData(true, MessageEncoding.Json)]
         [InlineData(false, MessageEncoding.Uadp)]
         [InlineData(true, MessageEncoding.Uadp)]
-        public void EncodeTest(bool encodeBatchFlag, MessageEncoding encoding) {
+        public async Task EncodeTest(bool encodeBatchFlag, MessageEncoding encoding) {
             var maxMessageSize = 256 * 1024;
             var messages = GenerateSampleMessages(20, encoding);
 
-            var networkMessages = (encodeBatchFlag
+            var networkMessages = await (encodeBatchFlag
                 ? _encoder.EncodeBatchAsync(messages, maxMessageSize)
                 : _encoder.EncodeAsync(messages, maxMessageSize)
-            ).ConfigureAwait(false).GetAwaiter().GetResult().ToList();
+            );
 
             if (encodeBatchFlag) {
-                Assert.Equal(1, networkMessages.Count);
+                Assert.Equal(1, networkMessages.Count());
                 Assert.Equal((uint)210, _encoder.NotificationsProcessedCount);
                 Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
                 Assert.Equal((uint)1, _encoder.MessagesProcessedCount);
                 Assert.Equal(210, _encoder.AvgNotificationsPerMessage);
             }
             else {
-                Assert.Equal(20, networkMessages.Count);
+                Assert.Equal(20, networkMessages.Count());
                 Assert.Equal((uint)210, _encoder.NotificationsProcessedCount);
                 Assert.Equal((uint)0, _encoder.NotificationsDroppedCount);
                 Assert.Equal((uint)20, _encoder.MessagesProcessedCount);
