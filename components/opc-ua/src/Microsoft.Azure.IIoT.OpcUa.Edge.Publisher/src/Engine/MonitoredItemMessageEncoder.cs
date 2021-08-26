@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Opc.Ua.Encoders;
     using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -39,6 +40,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
+
+        /// <summary> Logger for reporting. </summary>
+        private readonly ILogger _logger;
+
+        /// <summary>
+        /// Create instance of MonitoredItemMessageEncoder.
+        /// </summary>
+        /// <param name="logger"> Logger to be used for reporting. </param>
+        public MonitoredItemMessageEncoder(ILogger logger) {
+            _logger = logger;
+        }
 
         /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
@@ -253,8 +265,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
-                    // TODO Trace
                     NotificationsDroppedCount++;
+                    _logger.Warning("Message too large, dropped 1 value.");
                     continue;
                 }
                 NotificationsProcessedCount++;
@@ -297,8 +309,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
-                    // TODO Trace
                     NotificationsDroppedCount++;
+                    _logger.Warning("Message too large, dropped 1 value.");
                     continue;
                 }
                 NotificationsProcessedCount++;
