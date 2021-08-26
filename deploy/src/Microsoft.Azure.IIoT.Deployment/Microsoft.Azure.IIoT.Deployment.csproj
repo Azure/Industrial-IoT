@@ -24,7 +24,7 @@
 
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.1" />
 
-    <PackageReference Include="Microsoft.Graph" Version="3.33.0" />
+    <PackageReference Include="Microsoft.Graph" Version="4.3.0" />
     <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.7" />
 
     <PackageReference Include="Microsoft.Identity.Client" Version="4.31.0" />
