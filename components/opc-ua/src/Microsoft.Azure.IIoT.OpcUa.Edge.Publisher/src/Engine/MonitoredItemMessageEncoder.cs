@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Opc.Ua.Encoders;
     using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -39,6 +40,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public double AvgMessageSize { get; private set; }
+
+        /// <summary> Logger for reporting. </summary>
+        private readonly ILogger _logger;
+
+        /// <summary>
+        /// Create instance of MonitoredItemMessageEncoder.
+        /// </summary>
+        /// <param name="logger"> Logger to be used for reporting. </param>
+        public MonitoredItemMessageEncoder(ILogger logger) {
+            _logger = logger;
+        }
 
         /// <inheritdoc/>
         public Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
@@ -119,7 +131,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
                 }
-                if (!processing || messageCompleted) {
+                if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var writer = new StringWriter();
                     var encoder = new JsonEncoderEx(writer, encodingContext,
                         JsonEncoderEx.JsonEncoding.Array) {
@@ -142,7 +154,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         (MessagesProcessedCount + 1);
                     AvgNotificationsPerMessage = (AvgNotificationsPerMessage * MessagesProcessedCount +
                         chunk.Count) / (MessagesProcessedCount + 1);
-                        MessagesProcessedCount++;
+                    MessagesProcessedCount++;
                     chunk.Clear();
                     messageSize = 2;
                     yield return encoded;
@@ -196,7 +208,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
                     }
                 }
-                if (!processing || messageCompleted) {
+                if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var encoder = new BinaryEncoder(encodingContext);
                     encoder.WriteBoolean(null, true); // is Batch
                     encoder.WriteEncodeableArray(null, chunk);
@@ -253,9 +265,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
-                    // TODO Trace
                     NotificationsDroppedCount++;
-                    yield break;
+                    _logger.Warning("Message too large, dropped 1 value.");
+                    continue;
                 }
                 NotificationsProcessedCount++;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
@@ -297,9 +309,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 };
                 if (encoded.Body.Length > maxMessageSize) {
                     // this message is too large to be processed. Drop it
-                    // TODO Trace
                     NotificationsDroppedCount++;
-                    yield break;
+                    _logger.Warning("Message too large, dropped 1 value.");
+                    continue;
                 }
                 NotificationsProcessedCount++;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
@@ -321,7 +333,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
             ServiceMessageContext context) {
             if (context?.NamespaceUris == null) {
-                // declare all notifications in messages dropped 
+                // declare all notifications in messages dropped
                 foreach (var message in messages) {
                     NotificationsDroppedCount += (uint)(message?.Notifications?.Count() ?? 0);
                 }
