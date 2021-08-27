@@ -129,24 +129,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     notification.Encode(helperEncoder);
                     helperEncoder.Close();
                     var notificationSize = Encoding.UTF8.GetByteCount(helperWriter.ToString());
-                    notificationsPerMessage = notification.Messages.Sum(m => m.Payload.Count);
+                    var notificationsInBatch = notification.Messages.Sum(m => m.Payload.Count);
                     if (notificationSize > maxMessageSize) {
                         // Message too large, drop it.
-                        NotificationsDroppedCount += (uint)notificationsPerMessage;
-                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
+                        NotificationsDroppedCount += (uint)notificationsInBatch;
+                        _logger.Warning("Message too large, dropped {notificationsInBatch} values", notificationsInBatch);
                         processing = current.MoveNext();
                     }
                     else {
                         messageCompleted = maxMessageSize < (messageSize + notificationSize);
                         if (!messageCompleted) {
                             chunk.Add(notification);
-                            NotificationsProcessedCount += (uint)notificationsPerMessage;
+                            NotificationsProcessedCount += (uint)notificationsInBatch;
+                            notificationsPerMessage += notificationsInBatch;
                             processing = current.MoveNext();
                             messageSize += notificationSize + (processing ? 1 : 0);
                         }
                     }
                 }
-                if (!processing || messageCompleted) {
+                if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var writer = new StringWriter();
                     var encoder = new JsonEncoderEx(writer, encodingContext,
                         JsonEncoderEx.JsonEncoding.Array) {
@@ -207,24 +208,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var helperEncoder = new BinaryEncoder(encodingContext);
                     helperEncoder.WriteEncodeable(null, notification);
                     var notificationSize = helperEncoder.CloseAndReturnBuffer().Length;
-                    notificationsPerMessage = notification.Messages.Sum(m => m.Payload.Count);
+                    var notificationsInBatch = notification.Messages.Sum(m => m.Payload.Count);
                     if (notificationSize > maxMessageSize) {
                         // Message too large, drop it.
-                        NotificationsDroppedCount += (uint)notificationsPerMessage;
-                        _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
+                        NotificationsDroppedCount += (uint)notificationsInBatch;
+                        _logger.Warning("Message too large, dropped {notificationsInBatch} values", notificationsInBatch);
                         processing = current.MoveNext();
                     }
                     else {
                         messageCompleted = maxMessageSize < (messageSize + notificationSize);
                         if (!messageCompleted) {
                             chunk.Add(notification);
-                            NotificationsProcessedCount += (uint)notificationsPerMessage;
+                            NotificationsProcessedCount += (uint)notificationsInBatch;
+                            notificationsPerMessage += notificationsInBatch;
                             processing = current.MoveNext();
                             messageSize += notificationSize;
                         }
                     }
                 }
-                if (!processing || messageCompleted) {
+                if (messageCompleted || (!processing && chunk.Count > 0)) {
                     var encoder = new BinaryEncoder(encodingContext);
                     encoder.WriteBoolean(null, true); // is Batch
                     encoder.WriteEncodeableArray(null, chunk);
@@ -285,7 +287,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     // Message too large, drop it.
                     NotificationsDroppedCount += (uint)notificationsPerMessage;
                     _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
-                    yield break;
+                    continue;
                 }
                 NotificationsProcessedCount += (uint)notificationsPerMessage;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
@@ -331,7 +333,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     // Message too large, drop it.
                     NotificationsDroppedCount += (uint)notificationsPerMessage;
                     _logger.Warning("Message too large, dropped {notificationsPerMessage} values", notificationsPerMessage);
-                    yield break;
+                    continue;
                 }
                 NotificationsProcessedCount += (uint)notificationsPerMessage;
                 AvgMessageSize = (AvgMessageSize * MessagesProcessedCount + encoded.Body.Length) /
