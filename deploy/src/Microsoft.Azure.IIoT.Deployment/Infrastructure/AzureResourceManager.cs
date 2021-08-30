@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -211,16 +212,28 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         }
 
         /// <summary>
-        /// Returns the list of available Kubernetes versions available for the given Azure region.
+        /// Get list of Kubernetes versions available for the given Azure region.
         /// </summary>
-        /// <returns></returns>
-        public async Task<ISet<string>> ListKubernetesVersionsAsync(
+        public async Task<List<string>> ListKubernetesVersionsAsync(
             Region region,
             CancellationToken cancellationToken = default
         ) {
-            var kubernetesVersions = await _azure
+            // This is the resource type that should be used to get versions of AKS clusters.
+            const string aksResourceType = "managedClusters";
+
+            var result = await _azure
                 .KubernetesClusters
-                .ListKubernetesVersionsAsync(region, cancellationToken);
+                .Manager
+                .Inner
+                .ContainerServices
+                .ListOrchestratorsWithHttpMessagesAsync(
+                    region.ToString(),
+                    aksResourceType,
+                    cancellationToken: cancellationToken
+                );
+
+            var kubernetesVersions = result.Body.Orchestrators
+                .Select(orch => orch.OrchestratorVersion).ToList();
 
             return kubernetesVersions;
         }
