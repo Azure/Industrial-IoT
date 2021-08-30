@@ -93,7 +93,11 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var testPlc = _context.SimulatedPublishedNodes[_context.ConsumedOpcUaNodes.First().Key];
-            _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes.Skip(250).ToArray();
+
+            // We will filter out bad fast and slow nodes as they to drop messages by design.
+            _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes
+                .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                .Skip(250).ToArray();
 
             var body = new {
                 NodesToAdd = _context.ConsumedOpcUaNodes.First().Value.OpcNodes.Select(node => new {
@@ -139,7 +143,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
             TestHelper.StartMonitoringIncomingMessagesAsync(_context, 50, 1000, 90_000_000, cts.Token).GetAwaiter().GetResult();
-            
+
             // Wait some time to generate events to process
             // On VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
             var delay = TestConstants.DefaultTimeoutInMilliseconds * 2;
