@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             else {
                 //avoid double events from FileSystemWatcher
                 DateTime lastWriteTime = File.GetLastWriteTime(_legacyCliModel.PublishedNodesFile);
-                if (lastWriteTime.Ticks - _lastRead.Ticks > _interval10ms) {
+                if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10)) {
                     RefreshJobFromFile();
                     _lastRead = lastWriteTime;
                 }
@@ -296,6 +296,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private string _lastKnownFileHash;
         private readonly SemaphoreSlim _lock;
         private DateTime _lastRead = DateTime.MinValue;
-        private readonly int _interval10ms = 100000;
     }
 }
