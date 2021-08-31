@@ -94,7 +94,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var testPlc = _context.SimulatedPublishedNodes[_context.ConsumedOpcUaNodes.First().Key];
 
-            // We will filter out bad fast and slow nodes as they to drop messages by design.
+            // We will filter out bad fast and slow nodes as they drop messages by design.
             _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes
                 .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
                 .Skip(250).ToArray();
@@ -187,7 +187,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
             var testPlc = _context.SimulatedPublishedNodes[_context.ConsumedOpcUaNodes.First().Key];
 
-            // We will filter out bad fast and slow nodes as they to drop messages by design.
+            // We will filter out bad fast and slow nodes as they drop messages by design.
             _context.ConsumedOpcUaNodes.First().Value.OpcNodes = testPlc.OpcNodes
                 .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
                 .Skip(250).ToArray();
