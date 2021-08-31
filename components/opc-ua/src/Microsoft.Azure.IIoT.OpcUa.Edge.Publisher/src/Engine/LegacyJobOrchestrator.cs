@@ -171,7 +171,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
             else {
-                RefreshJobFromFile();
+                //avoid double events from FileSystemWatcher
+                DateTime lastWriteTime = File.GetLastWriteTime(_legacyCliModel.PublishedNodesFile);
+                if (lastWriteTime.Ticks - _lastRead.Ticks > _interval10ms) {
+                    RefreshJobFromFile();
+                    _lastRead = lastWriteTime;
+                }
             }
         }
 
@@ -290,5 +295,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private string _lastKnownFileHash;
         private readonly SemaphoreSlim _lock;
+        private DateTime _lastRead = DateTime.MinValue;
+        private readonly int _interval10ms = 100000;
     }
 }
