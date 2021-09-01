@@ -5,7 +5,7 @@ image:
   # image.registry is URL of Docker registry from where images will be pulled.
   registry: mcr.microsoft.com
   # image.tag defines which version of Docker images to pull.
-  tag: 2.8
+  tag: 2.8.0
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
