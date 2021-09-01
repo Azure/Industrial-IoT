@@ -9,7 +9,7 @@ image:
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
-  # Use standard shceme of imagePullSecrets as shown bellow:
+  # Use standard scheme of imagePullSecrets as shown bellow:
   # pullSecrets:
   # - name: myRegistryKey
   pullSecrets: []
@@ -83,7 +83,7 @@ azure:
       # Details of Azure Storage Account Container that should be used for data protection feature.
       dataProtection:
         # azure.storageAccount.container.dataProtection.name is the name of Storage Account Container that holds encrypted keys.
-        # NOTE: If azure.storageAccount.container.dataProtection.name is not specifid, then a container named 'dataprotection' will be created.
+        # NOTE: If azure.storageAccount.container.dataProtection.name is not specified, then a container named 'dataprotection' will be created.
         name: dataprotection
 
   # Details of Azure Event Hub Namespace that microservices will use.
@@ -174,7 +174,7 @@ azure:
 
 # externalServiceUrl is URL on which components of Azure Industrial IoT solution will be available externally.
 # This property is required so that Publisher Edge Module can communicate with jobs orchestrator service (edgeJobs) for reporting its status and requesting publisher jobs.
-# NOTE: If this parameter is not set, then Publisher Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within Kubernetes cluster. 
+# NOTE: If this parameter is not set, then Publisher Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within Kubernetes cluster.
 # NOTE: It is still recommended to set externalServiceUrl even if loadConfFromKeyVault is set to true.
 externalServiceUrl: null
 
@@ -630,7 +630,7 @@ deployment:
     #   - myapp.domain.com
     tls: []
 
-# Prometheus metrics values. 
+# Prometheus metrics values.
 prometheus:
   # prometheus.scrape determines whether to add Pod annotations for Prometheus metrics scraping or not.
   scrape: true
