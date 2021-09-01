@@ -34,7 +34,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Net;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
@@ -263,6 +262,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                 ConnectionString.CreateModuleConnectionString("test.test.org",
                     _device.Id, _device.ModuleId, _device.Authentication.PrimaryKey)
                 .ToString();
+
+            /// <inheritdoc/>
+            public string MqttClientConnectionString => ""; // TODO
 
             /// <inheritdoc/>
             public bool BypassCertVerification => true;

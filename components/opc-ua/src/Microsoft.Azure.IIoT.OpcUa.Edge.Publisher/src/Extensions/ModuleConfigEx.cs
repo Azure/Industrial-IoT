@@ -37,6 +37,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public string EdgeHubConnectionString { get; }
             /// <inheritdoc/>
+            public string MqttClientConnectionString { get; }
+            /// <inheritdoc/>
             public bool BypassCertVerification { get; }
             /// <inheritdoc/>
             public bool EnableMetrics { get; }

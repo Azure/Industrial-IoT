@@ -20,6 +20,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <inheritdoc/>
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
         /// <inheritdoc/>
+        public string MqttClientConnectionString => _module.MqttClientConnectionString;
+        /// <inheritdoc/>
         public bool BypassCertVerification => _module.BypassCertVerification;
         /// <inheritdoc/>
         public bool EnableMetrics => _module.EnableMetrics;

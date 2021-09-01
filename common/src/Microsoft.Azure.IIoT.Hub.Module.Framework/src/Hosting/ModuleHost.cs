@@ -356,48 +356,50 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             // Process initial setting snapshot from twin
             var twin = await Client.GetTwinAsync();
-            if (!string.IsNullOrEmpty(twin.DeviceId)) {
-                DeviceId = twin.DeviceId;
-            }
-            if (!string.IsNullOrEmpty(twin.ModuleId)) {
-                ModuleId = twin.ModuleId;
-            }
-            _logger.Information("Initialize device twin for {deviceId} - {moduleId}",
-                DeviceId, ModuleId ?? "standalone");
-
-            var desired = new Dictionary<string, VariantValue>();
-            var reported = new Dictionary<string, VariantValue>();
-
-            // Start with reported values which we desire to be re-applied
-            _reported.Clear();
-            foreach (KeyValuePair<string, dynamic> property in twin.Properties.Reported) {
-                var value = (VariantValue)_serializer.FromObject(property.Value);
-                if (value.IsObject &&
-                    value.TryGetProperty("status", out var val) &&
-                    value.PropertyNames.Count() == 1) {
-                    // Clear status properties from twin
-                    _reported.AddOrUpdate(property.Key, null);
-                    continue;
+            if (twin != null) {
+                if (!string.IsNullOrEmpty(twin.DeviceId)) {
+                    DeviceId = twin.DeviceId;
                 }
-                if (!ProcessEdgeHostSettings(property.Key, value)) {
-                    _reported.AddOrUpdate(property.Key, value);
+                if (!string.IsNullOrEmpty(twin.ModuleId)) {
+                    ModuleId = twin.ModuleId;
                 }
-            }
-            // Apply desired values on top.
-            foreach (KeyValuePair<string, dynamic> property in twin.Properties.Desired) {
-                var value = (VariantValue)_serializer.FromObject(property.Value);
-                if (!ProcessEdgeHostSettings(property.Key, value, reported)) {
-                    desired[property.Key] = value;
+                _logger.Information("Initialize device twin for {deviceId} - {moduleId}",
+                    DeviceId, ModuleId ?? "standalone");
+
+                var desired = new Dictionary<string, VariantValue>();
+                var reported = new Dictionary<string, VariantValue>();
+
+                // Start with reported values which we desire to be re-applied
+                _reported.Clear();
+                foreach (KeyValuePair<string, dynamic> property in twin.Properties.Reported) {
+                    var value = (VariantValue)_serializer.FromObject(property.Value);
+                    if (value.IsObject &&
+                        value.TryGetProperty("status", out var val) &&
+                        value.PropertyNames.Count() == 1) {
+                        // Clear status properties from twin
+                        _reported.AddOrUpdate(property.Key, null);
+                        continue;
+                    }
+                    if (!ProcessEdgeHostSettings(property.Key, value)) {
+                        _reported.AddOrUpdate(property.Key, value);
+                    }
                 }
+                // Apply desired values on top.
+                foreach (KeyValuePair<string, dynamic> property in twin.Properties.Desired) {
+                    var value = (VariantValue)_serializer.FromObject(property.Value);
+                    if (!ProcessEdgeHostSettings(property.Key, value, reported)) {
+                        desired[property.Key] = value;
+                    }
+                }
+
+                // Process settings on controllers
+                _logger.Information("Applying initial desired state.");
+                await _settings.ProcessSettingsAsync(desired);
+
+                // Synchronize all controllers with reported
+                _logger.Information("Reporting currently initial state.");
+                await ReportControllerStateAsync(twin, reported);
             }
-
-            // Process settings on controllers
-            _logger.Information("Applying initial desired state.");
-            await _settings.ProcessSettingsAsync(desired);
-
-            // Synchronize all controllers with reported
-            _logger.Information("Reporting currently initial state.");
-            await ReportControllerStateAsync(twin, reported);
         }
 
         /// <summary>

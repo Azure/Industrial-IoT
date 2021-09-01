@@ -138,6 +138,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string EdgeHubConnectionString = ModuleConfig.kEdgeHubConnectionStringKey;
 
         /// <summary>
+        /// Key for the Mqtt client connection string.
+        /// </summary>
+        public const string MqttClientConnectionString = ModuleConfig.kMqttClientConnectionStringKey;
+
+        /// <summary>
         /// Key for the operation timeout in milliseconds.
         /// </summary>
         public const string OpcOperationTimeout = TransportQuotaConfig.OperationTimeoutKey;

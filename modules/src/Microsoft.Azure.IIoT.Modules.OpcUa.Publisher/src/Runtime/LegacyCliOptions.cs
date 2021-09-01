@@ -73,7 +73,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "dc|deviceconnectionstring=", "A device or edge module connection string to use.",
                         dc => this[LegacyCliConfigKeys.EdgeHubConnectionString] = dc },
                     { "ec|edgehubconnectionstring=", "An edge module connection string to use",
-                        dc => this[LegacyCliConfigKeys.EdgeHubConnectionString] = dc },
+                        ec => this[LegacyCliConfigKeys.EdgeHubConnectionString] = ec },
+                    { "mc|mqttclientconnectionstring=", "An mqtt client connection string to use.",
+                        mc => this[LegacyCliConfigKeys.MqttClientConnectionString] = mc },
 
                     { "hb|heartbeatinterval=", "The publisher is using this as default value in seconds " +
                         "for the heartbeat interval setting of nodes without a heartbeat interval setting.",
