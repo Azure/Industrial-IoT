@@ -214,7 +214,7 @@ $ az eventhubs eventhub create --resource-group MyResourceGroup --namespace-name
 
 ##### Azure Event Hub Consumer Groups
 
-Please create a consumer group for the Event Hub. For example, you can call it `telemetry_ux`. 
+Please create a consumer group for the Event Hub. For example, you can call it `telemetry_ux`.
 These can be created with the commands bellow. More details about the command and its
 parameters can be found
 [here](https://docs.microsoft.com/cli/azure/eventhubs/eventhub/consumer-group?view=azure-cli-latest#az-eventhubs-eventhub-consumer-group-create).
