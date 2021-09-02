@@ -171,7 +171,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
             else {
-                    RefreshJobFromFile();
+                RefreshJobFromFile();
             }
         }
 
