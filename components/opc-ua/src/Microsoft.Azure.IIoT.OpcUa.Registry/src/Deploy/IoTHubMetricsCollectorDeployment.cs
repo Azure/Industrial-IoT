@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                                 ""value"": """ + _config.IoTHubResourceId + @"""
                             },
                             ""MetricsEndpointsCSV"": {
-                                ""value"": ""http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://opcpublisher:9702/metrics""
+                                ""value"": ""http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://publisher:9702/metrics""
                             }
                         },
                         ""status"": ""running"",
