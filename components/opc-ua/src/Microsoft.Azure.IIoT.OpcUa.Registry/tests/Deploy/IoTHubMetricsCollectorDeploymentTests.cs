@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Tests.Deploy {
                         module["env"]["LogAnalyticsSharedKey"].Value<string>("value"));
                     Assert.Equal("/subscriptions/SubscriptionId/resourceGroups/ResourceGroupName/providers/Microsoft.Devices/IotHubs/test",
                         module["env"]["ResourceId"].Value<string>("value"));
-                    Assert.Equal("http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://opcpublisher:9702/metrics",
+                    Assert.Equal("http://edgehub:9600/metrics,http://edgeagent:9600/metrics,http://twin:9701/metrics,http://publisher:9702/metrics",
                         module["env"]["MetricsEndpointsCSV"].Value<string>("value"));
                 }
                 {
