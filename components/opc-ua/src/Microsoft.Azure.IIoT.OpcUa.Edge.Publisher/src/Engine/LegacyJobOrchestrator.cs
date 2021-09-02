@@ -185,6 +185,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private void RefreshJobFromFile() {
             var retryCount = 3;
+            var lastWriteTime = File.GetLastWriteTime(_legacyCliModel.PublishedNodesFile);
             while (true) {
                 try {
                     _lock.Wait();
@@ -253,8 +254,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _availableJobs = availableJobs;
                         _assignedJobs.Clear();
                     } else {
-                        _logger.Information("File {publishedNodesFile} has changed and content-hash is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
+                        //avoid double events from FileSystemWatcher
+                        if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10)) {
+                            _logger.Information("File {publishedNodesFile} has changed and content-hash is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
+                        }
                     }
+                    _lastRead = lastWriteTime;
                     break;
                 }
                 catch (IOException ex) {
@@ -290,5 +295,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private string _lastKnownFileHash;
         private readonly SemaphoreSlim _lock;
+        private DateTime _lastRead = DateTime.MinValue;
     }
 }
