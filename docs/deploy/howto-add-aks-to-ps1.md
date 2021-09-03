@@ -313,7 +313,7 @@ Note the following values in the YAML file:
 
 ```yaml
 image:
-  tag: 2.8
+  tag: 2.8.0
 
 loadConfFromKeyVault: true
 
@@ -353,8 +353,8 @@ deployment:
     hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
 
-> **NOTE**: Please note that we have used `2.8` as the value of `image:tag` configuration parameter
-> above. That will result in `2.8` version of microservices and edge modules to be deployed. If you want
+> **NOTE**: Please note that we have used `2.8.0` as the value of `image:tag` configuration parameter
+> above. That will result in `2.8.0` version of microservices and edge modules to be deployed. If you want
 > to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
 #### Passing Azure resource details through YAML file
@@ -395,7 +395,7 @@ Note the following values in the YAML file:
 
 ```yaml
 image:
-  tag: 2.8
+  tag: 2.8.0
 
 azure:
   tenantId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
@@ -418,9 +418,6 @@ azure:
 
   storageAccount:
     connectionString: DefaultEndpointsProtocol=https;AccountName=storageXXXXXX;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==;EndpointSuffix=core.windows.net
-
-  adlsg2:
-    connectionString: DefaultEndpointsProtocol=https;AccountName=datalakeXXXXXX;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==;EndpointSuffix=core.windows.net
 
   eventHubNamespace:
     sharedAccessPolicies:
@@ -487,8 +484,8 @@ deployment:
     hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
 
-> **NOTE**: Please note that we have used `2.8` as the value of `image:tag` configuration parameter
-> above. That will result in `2.8` version of microservices and edge modules to be deployed. If you want
+> **NOTE**: Please note that we have used `2.8.0` as the value of `image:tag` configuration parameter
+> above. That will result in `2.8.0` version of microservices and edge modules to be deployed. If you want
 > to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
 #### Installing `azure-industrial-iot` Helm chart
