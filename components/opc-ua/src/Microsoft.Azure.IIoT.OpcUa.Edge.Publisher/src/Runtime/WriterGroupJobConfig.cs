@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Runtime {
 
         /// <inheritdoc/>
         public string PublisherId { get; set; }
-        
+
         /// <inheritdoc/>
         public int? MaxOutgressMessages { get; set; }
     }

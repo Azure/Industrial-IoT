@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
         ) {
             var azureManagementAuthenticationResult = await authenticationManager
                 .AcquireAzureManagementAuthenticationResultAsync(cancellationToken);
-            
+
             var azureManagementTokenCredentials = authenticationManager
                 .GenerateTokenCredentials(azureManagementAuthenticationResult);
             return azureManagementTokenCredentials;
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Authentication {
         ) {
             var keyVaultAuthenticationResult = await authenticationManager
                 .AcquireKeyVaultAuthenticationResultAsync(cancellationToken);
-            
+
             var keyVaultTokenCredentials = authenticationManager
                 .GenerateTokenCredentials(keyVaultAuthenticationResult);
             return keyVaultTokenCredentials;

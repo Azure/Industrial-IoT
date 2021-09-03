@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the specified published nodes schema filename.
         /// </summary>
         public const string PublisherNodeConfigurationSchemaFilename = "PublishedNodesSchemaFile";
-        
+
         /// <summary>
         /// Key for the session connect time in seconds.
         /// </summary>

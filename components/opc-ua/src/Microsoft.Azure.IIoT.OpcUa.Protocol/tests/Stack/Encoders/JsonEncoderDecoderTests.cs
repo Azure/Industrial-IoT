@@ -169,7 +169,7 @@ namespace Opc.Ua.Encoders {
                 }
                 buffer = stream.ToArray();
             }
-            // convert DataValue timestamps to OpcUa Utc 
+            // convert DataValue timestamps to OpcUa Utc
             var expectedResult = new Dictionary<string, DataValue>();
             foreach (var entry in expected) {
                 expectedResult[entry.Key] = new DataValue(entry.Value).ToOpcUaUniversalTime();

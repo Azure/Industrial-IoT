@@ -1,4 +1,9 @@
-﻿namespace Microsoft.Azure.IIoT.Validators {
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Microsoft.Azure.IIoT.Validators {
     /// <summary>
     /// Json schema validation result.
     /// </summary>
@@ -12,11 +17,11 @@
         /// <param name="schemaLocation"></param>
         /// <param name="instanceLocation"></param>
         public JsonSchemaValidationResult(
-            bool isValid,            
+            bool isValid,
             string message = null,
             string schemaLocation = null,
             string instanceLocation = null) {
-            IsValid = isValid;            
+            IsValid = isValid;
             Message = message;
             SchemaLocation = schemaLocation;
             InstanceLocation = instanceLocation;
@@ -26,7 +31,7 @@
         /// Indicates whether the validation passed or failed.
         /// </summary>
         public bool IsValid { get; }
-        
+
         /// <summary>
         /// The error message, if any.
         /// </summary>

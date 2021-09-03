@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface IClientHost {
 
         /// <summary>
-        /// initializes the client configuration 
+        /// initializes the client configuration
         /// </summary>
         /// <returns></returns>
         Task InitializeAsync();

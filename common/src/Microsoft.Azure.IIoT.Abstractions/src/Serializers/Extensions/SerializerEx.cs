@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Serializers {
-    using Microsoft.Azure.IIoT.Http;    
+    using Microsoft.Azure.IIoT.Http;
     using System;
-    using System.Buffers;    
+    using System.Buffers;
     using System.IO;
 
     /// <summary>

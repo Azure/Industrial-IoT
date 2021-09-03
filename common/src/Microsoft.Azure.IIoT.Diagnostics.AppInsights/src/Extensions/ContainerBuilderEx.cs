@@ -79,7 +79,7 @@ namespace Autofac {
             depModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("localhost");
             depModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("127.0.0.1");
 
-            // Enable known dependency tracking, note that in future versions, we will extend this list. 
+            // Enable known dependency tracking, note that in future versions, we will extend this list.
             // Please check default settings in https://github.com/microsoft/ApplicationInsights-dotnet-server/blob/develop/WEB/Src/DependencyCollector/DependencyCollector/ApplicationInsights.config.install.xdt
 
             depModule.IncludeDiagnosticSourceActivities.Add("Microsoft.Azure.ServiceBus");

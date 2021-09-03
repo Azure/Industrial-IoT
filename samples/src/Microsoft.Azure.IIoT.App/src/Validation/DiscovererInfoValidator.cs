@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.App.Validation {
                 .Must(BeAValidDiscoveryUrl)
                 .WithMessage("Invalid input value for discovery url. Clear and insert a new value");
         }
-       
+
         private bool BeValidAddressRanges(string value) {
             if (utils.ShouldUseDefaultValue(value))
             {
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.App.Validation {
                 return !(value.Contains(null) || value.Contains(string.Empty));
             }
 
-            return true;    
+            return true;
         }
     }
 }

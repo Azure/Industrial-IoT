@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
 
         [Fact]
         public async Task Test_002_IncreaseMaxWorker_Expect_WorkerSpawned() {
-            
+
             using var container = GetAutofacTestConfiguration();
             var agentConfig = new TestAgentConfigProvider();
             var loggerMock = new Mock<ILogger>();
@@ -140,7 +140,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
             var agentConfig = new TestAgentConfigProvider();
             var loggerMock = new Mock<ILogger>();
             loggerMock.Setup(l => l.Error(
-                It.Is<string>(s => s.Contains("MaxWorker")), 
+                It.Is<string>(s => s.Contains("MaxWorker")),
                 It.Is<int>(i => i == kDefaultMaxWorker)))
                 .Verifiable();
 
@@ -155,7 +155,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Tests.Worker {
             const int numberOfWorker = -4;
             agentConfig.SetMaxWorker(numberOfWorker);
 
-            await Task.Delay(kDefaultDelay); 
+            await Task.Delay(kDefaultDelay);
             Assert.Equal(kDefaultMaxWorker, sut.NumberOfWorkers);
             loggerMock.Verify();
 

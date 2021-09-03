@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.App.Models {
     using System;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
-    
+
     public class ListNodeRequested {
 
         public ListNodeRequested(PublishedItemApiModel publishedItem) {

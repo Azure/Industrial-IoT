@@ -39,7 +39,7 @@ namespace Opc.Ua.PubSub {
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// Timestamp assigned by publisher 
+        /// Timestamp assigned by publisher
         /// </summary>
         public DateTime Timestamp { get; set; }
 

@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions {
 
         /// <summary>
         /// Checks whether Azure resource is managed by Microsoft.Azure.IIoT.Deployment application.
-        /// 
+        ///
         /// This will be done by checking value of "managed-by" tag if it is present.
         /// </summary>
         /// <param name="resource"></param>
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure.Extensions {
 
         /// <summary>
         /// Check whether Azure resource part of "industrial-iot" application.
-        /// 
+        ///
         /// This will be done by checking value of "application" tag if it is present.
         /// </summary>
         /// <param name="resource"></param>

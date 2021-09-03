@@ -128,7 +128,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             if (secretBundle.ContentType == CertificateContentType.Pfx) {
                 var certPFX = Convert.FromBase64String(secretBundle.Value);
 
-                // Note: X509KeyStorageFlags.Exportable flag is 
+                // Note: X509KeyStorageFlags.Exportable flag is
                 // necessary if we intend to export private key.
                 var x509Certificate2 = new X509Certificate2(
                     certPFX,

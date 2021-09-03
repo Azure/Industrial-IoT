@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     /// </summary>
     public static class Program {
 
-        /// <summary>   
+        /// <summary>
         /// Main entry point for iot hub device event processor host
         /// </summary>
         /// <param name="args"></param>

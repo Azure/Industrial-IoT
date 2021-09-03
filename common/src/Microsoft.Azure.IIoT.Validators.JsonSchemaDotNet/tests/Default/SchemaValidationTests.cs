@@ -13,17 +13,17 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
     using Xunit;
 
     /// <summary>
-    /// These tests are designed to exercise the generated schema for configuration file 
+    /// These tests are designed to exercise the generated schema for configuration file
     /// validation. Tests can be additionally found in the schema generator tool located
     /// at: https://github.com/WilliamBerryiii/opcpublisherschemavalidator
-    /// 
-    /// The referenced schema file is a linked asset in the project file set to 
+    ///
+    /// The referenced schema file is a linked asset in the project file set to
     /// copy to the output build directory, so that it can be easily referenced here.
     /// </summary>
     public class SchemaValidationTests {
 
-        // Allow training commas in the test parsers as the main serializer for 
-        // this solution supports training commas. 
+        // Allow training commas in the test parsers as the main serializer for
+        // this solution supports training commas.
         private static JsonDocumentOptions parseOptions = new JsonDocumentOptions {
             AllowTrailingCommas = true,
         };
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
         public void IncorrectlyFormattedEndpointUrlsReturnErrors() {
             using var schemaReader = new StreamReader("Default/publishednodesschema.json");
 
-            // Break the EndpointUrl by removing the `.` between `opc` and `tcp` which will 
+            // Break the EndpointUrl by removing the `.` between `opc` and `tcp` which will
             // trigger a validation failure
             var alteredConfig = testConfiguration.Replace("opc.tcp://20.185.195.172:53530/OPCUA/SimulationServer", "opctcp://20.185.195.172:53530/OPCUA/SimulationServer");
             var validator = new JsonSchemaDotNetSchemaValidator();
@@ -117,7 +117,7 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
             var longNodeList = new List<string>();
 
             // Add 10000 nodes into the temp config and make a broken replacement
-            // of `Id` with `ID` to trigger schema failures. 
+            // of `Id` with `ID` to trigger schema failures.
             for (int i = 0; i < 10000; i++) {
                 longNodeList.Add(@"
       {

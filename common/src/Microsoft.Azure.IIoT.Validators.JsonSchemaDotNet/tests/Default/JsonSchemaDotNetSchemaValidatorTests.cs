@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests {
 
     /// <summary>
     /// These tests are designed to exercise the JSON Schema
-    /// validation functions. 
+    /// validation functions.
     /// </summary>
     public class JsonSchemaDotNetValidatorTests {
 
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests {
             Assert.Equal(3, results.Count);
             Assert.True(results.All(r => !r.IsValid));
 
-            // Ensure that the return error messages are what we expect from the 
+            // Ensure that the return error messages are what we expect from the
             // schema validation library
             Assert.Equal(1, results.Where(r =>
                 !r.IsValid &&

@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Storage {
     public class DatabaseOptions {
 
         /// <summary>
-        /// Database Consistency 
+        /// Database Consistency
         /// </summary>
         public OperationConsistency? Consistency { get; set; }
     }

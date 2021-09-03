@@ -45,11 +45,11 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
         /// </summary>
         /// <param name="jsonSchemaValidator"></param>
         /// <param name="providers"></param>
-        public NewtonSoftJsonSerializer(            
+        public NewtonSoftJsonSerializer(
             IEnumerable<IJsonSerializerConverterProvider> providers = null,
             IJsonSchemaValidator jsonSchemaValidator = null
             ) {
-            
+
             // If no json schema validator is provided use default one.
             _jsonSchemaValidator = jsonSchemaValidator ?? new JsonSchemaDotNetSchemaValidator();
 
@@ -83,9 +83,9 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
         public object Deserialize(ReadOnlyMemory<byte> buffer, Type type, TextReader schemaReader = null) {
             try {
 
-                // TODO move to .net 3 to use readonly span as stream source                
+                // TODO move to .net 3 to use readonly span as stream source
                 var bufferArray = buffer.ToArray();
-                
+
                 // Validate json if schema is provided.
                 if (schemaReader != null) {
                     var validationResults = _jsonSchemaValidator.Validate(bufferArray, schemaReader);
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
 
                         throw new JsonSerializationException(validationResultsMessage);
                     }
-                } 
+                }
 
                 using (var stream = new MemoryStream(bufferArray))
                     using (var reader = new StreamReader(stream, ContentEncoding))
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             catch (JsonReaderException ex) {
                 throw new SerializerException(ex.Message, ex);
             }
-        }      
+        }
 
         /// <inheritdoc/>
         public void Serialize(IBufferWriter<byte> buffer, object o, SerializeOption format) {
