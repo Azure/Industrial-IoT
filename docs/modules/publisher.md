@@ -296,7 +296,7 @@ To measure the performance of OPC Publisher, the `di` parameter can be used to p
 
 ## Local metrics dashboard for OPC Publisher
 
-To learn more about how to create a local metrics dashboard for OPC Publisher V2.7, please refer to the tutorial [here](./docs/tutorials/tut-publisher-local-metrics-dashboard/MetricsDashboard.md).
+To learn more about how to create a local metrics dashboard for OPC Publisher V2.7, please refer to the tutorial [here](../tutorials/tut-publisher-local-metrics-dashboard/MetricsDashboard.md).
 
 ## Next steps
 
