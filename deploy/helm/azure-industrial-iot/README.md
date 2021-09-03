@@ -214,7 +214,7 @@ $ az eventhubs eventhub create --resource-group MyResourceGroup --namespace-name
 
 ##### Azure Event Hub Consumer Groups
 
-Please create a consumer group for the Event Hub. For example, you can call it `telemetry_ux`. 
+Please create a consumer group for the Event Hub. For example, you can call it `telemetry_ux`.
 These can be created with the commands bellow. More details about the command and its
 parameters can be found
 [here](https://docs.microsoft.com/cli/azure/eventhubs/eventhub/consumer-group?view=azure-cli-latest#az-eventhubs-eventhub-consumer-group-create).
@@ -457,7 +457,7 @@ The following details of the Azure Log Analytics Workspace would be required:
 
 ## Installing the Chart
 
-This chart installs `2.8` version of components by default.
+This chart installs `2.8.0` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
@@ -519,7 +519,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.8`               |
+| `image.tag`         | Image tag                                | `2.8.0`             |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
@@ -597,7 +597,7 @@ A few notes about `loadConfFromKeyVault`:
   result in an error. This is because for loading configuration from Azure Key Vault we require both
   `azure.auth.servicesApp.appId` and `azure.auth.servicesApp.secret`.
 * You should use `loadConfFromKeyVault` only when Azure environment has been created for the same version
-  (major and minor) of Azure Industrial IoT components. That is, you should use it to install the chart that
+  (major and minor) of Azure Industrial IoT components. That is, you should not use it to install the chart that
   deploys `2.8.x` or `2.7.x` version of components to the environment that has been created for `2.6.x` version of
   components.
 
