@@ -1,6 +1,6 @@
-# Helm Chart Release Steps
+# How to release Helm chart
 
-* [Helm Chart Release Steps](#helm-chart-release-steps)
+* [How to release Helm chart](#how-to-release-helm-chart)
   * [Update the Helm Chart](#update-the-helm-chart)
   * [Test the Helm Chart](#test-the-helm-chart)
   * [Release the Helm Chart](#release-the-helm-chart)
@@ -9,6 +9,10 @@
     * [Create a Helm Chart Package](#create-a-helm-chart-package)
     * [Publish to `https://azureiiot.blob.core.windows.net/helm` Repository](#publish-to-httpsazureiiotblobcorewindowsnethelm-repository)
     * [Publish to `https://microsoft.github.io/charts/repo` Repository](#publish-to-httpsmicrosoftgithubiochartsrepo-repository)
+
+This is a reference guide that lists the steps that should be performed to release a new version of
+`azure-industrial-iot` Helm chart. It talks specifically about releasing the chart for `2.8.0` version of
+Industrial IoT platform. The steps for other upcoming versions would be similar.
 
 A sample execution of those steps can be traced by following changes that were applied on top of `release/2.7.206`
 branch to create `helm/0.3.2` and then `helm/0.3.2_pub` branches.
