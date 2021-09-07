@@ -68,7 +68,7 @@ The format produced here does not contain enough information to decode the JSON 
               "Value": {
                 "Type": "ExtensionObject",
                 "Body": {
-                  "TypeId": "s=EncodeableDictionary",
+                  "TypeId": "http://microsoft.com/Industrial-IoT/OpcPublisher#i=1",
                   "Encoding": "Json",
                   "Body": {
                     "EventId": {
@@ -125,6 +125,20 @@ The format produced here does not contain enough information to decode the JSON 
 }
 ```
 This JSON contains enough metadata information to decode it properly.
+
+The output is contained within an *EncodeableDictionary* object, as indicated by the the type identifier: *http://microsoft.com/Industrial-IoT/OpcPublisher#i=1*. At this point, the best way to consume the type is by getting a copy of the [*EncodeableDictionary*](../components/opc-ua/src/Microsoft.Azure.IIoT.OpcUa.Protocol/src/Stack/Encoders/Models/EncodeableDictionary.cs) class and registering it in the *ServiceMessageContext*. Then, the *JsonDecoderEx* can properly decode the EncodeableDictionary:
+
+```cs
+var serviceMessageContext = new ServiceMessageContext();
+serviceMessageContext.Factory.AddEncodeableType(typeof(EncodeableDictionary));
+
+using (var stream = new MemoryStream(buffer)) {
+    using var decoder = new JsonDecoderEx(stream, serviceMessageContext);
+    var data = new EncodeableDictionary();
+    data.Decode(decoder);
+
+    ...
+```
 
 The OPC Publisher also support the Pending Alarms view when listening for events, as described in the user guide for configuration of events. When this feature is enabled, it will listen to all ConditionType derived events and cache all of them that has the Retain property set to true. It will then periodically generate output with an array of all these cached events. When running against the Alarms & Conditions sample the output will look like this:
 ```json

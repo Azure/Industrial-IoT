@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
                 var typeId = body.GetProperty("TypeId").GetString();
                 var encoding = body.GetProperty("Encoding").GetString();
                 body = body.GetProperty("Body");
-                Assert.Equal("s=EncodeableDictionary", typeId);
+                Assert.Equal("http://microsoft.com/Industrial-IoT/OpcPublisher#i=1", typeId);
                 Assert.Equal("Json", encoding);
 
                 var eventId = body.GetProperty(kEventId);
