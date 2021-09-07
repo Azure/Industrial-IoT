@@ -14,8 +14,8 @@ namespace Opc.Ua.Encoders {
     /// </summary>
     public class EncodeableDictionary : List<KeyDataValuePair>, IEncodeable {
         /// <inheritdoc/>
-        public ExpandedNodeId TypeId =>
-            nameof(EncodeableDictionary);
+        public ExpandedNodeId TypeId => 
+            ExpandedNodeId.Parse("nsu=http://microsoft.com/Industrial-IoT/OpcPublisher;i=1");
 
         /// <inheritdoc/>
         public ExpandedNodeId BinaryEncodingId =>
