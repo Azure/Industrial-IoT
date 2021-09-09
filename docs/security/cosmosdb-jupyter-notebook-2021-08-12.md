@@ -4,7 +4,8 @@ This document describes the mitigation of a security issue described [here](http
 
 # Prerequisite
 The Industrial-IoT Platform has been deployed as described in the [Industrial-IoT github repository](https://github.com/Azure/Industrial-IoT/blob/main/docs/deploy/readme.md).
-The steps below refers to a new full installation of the Industrial-IoT Platform.
+The steps below refers to a new full installation of the Industrial-IoT Platform with the simulation and Engineering Tool deployed.
+You can also use your own OPC UA server to validate proper operation if the simulation has not been deployed. In case the Engineering Tool has not been deployed, you need to use the OpenAPI (swagger) description of the Industrial-IoT Platform to validate proper operation.
 
 # Validate proper operation
 - Open the "Engineering Tool" of the Industrial-IoT Platform of the deployment.
@@ -61,6 +62,6 @@ The value of "Current time" in the UI is changing.
 # Validate proper operation
 - Open the "Engineering Tool" of the Industrial-IoT Platform of the deployment and sign in.
 
-- Goto "Browse" and select "opc.tcp://10.1.8.5:51200/" in the "Engineering Tool" and browse to "/ Root/Objects/Server/ServerStatus" and "Turn on" publishing of "CurrentTime"
+- Goto "Browse" and select "opc.tcp://10.1.8.5:51200/" in the "Engineering Tool" and browse to "/Root/Objects/Server/ServerStatus" and "Turn on" publishing of "CurrentTime"
 Should result in:
 The value of "Current time" in the UI is changing.
