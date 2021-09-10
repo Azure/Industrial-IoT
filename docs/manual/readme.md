@@ -939,9 +939,10 @@ In the following sections, one can find the configuration environment variables 
 
 Configuration for sending log data to Application Insights.
 
-| Environment Variable Names           | Modality | Default Value | Description                                  |
-|--------------------------------------|----------|---------------|----------------------------------------------|
-| PCS_APPINSIGHTS_INSTRUMENTATIONKEY   | optional | (empty)       | Instrumentation Key for Application Insights |
+| Environment Variable Names           | Modality | Default Value | Description                                                                                                |
+|--------------------------------------|----------|---------------|------------------------------------------------------------------------------------------------------------|
+| PCS_APPINSIGHTS_INSTRUMENTATIONKEY   | optional | (empty)       | Instrumentation Key for Application Insights                                                               |
+| PCS_APPINSIGHTS_LOGLEVEL             | optional | Information   | Minimimal logging level<br>Possible values: _Verbose_, _Debug_, _Information_, _Warning_, _Error_, _Fatal_ |
 
 ##### Cors Configuration
 
