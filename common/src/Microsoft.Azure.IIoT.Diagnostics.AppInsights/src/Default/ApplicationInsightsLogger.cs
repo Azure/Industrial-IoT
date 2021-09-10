@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
     using Serilog;
+    using Serilog.Events;
+    using System;
 
     /// <summary>
     /// Application Insights logger
@@ -22,9 +24,18 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
         /// <param name="addConsole"></param>
         public ApplicationInsightsLogger(IDiagnosticsConfig config,
             LoggerConfiguration log = null, bool addConsole = true) {
+
+            LogEventLevel logEventLevel;
+
+            if (config?.LogLevel != null && Enum.IsDefined(typeof(LogEventLevel), config.LogLevel))
+                logEventLevel = (LogEventLevel)Enum.Parse(typeof(LogEventLevel), config.LogLevel);
+            else
+                logEventLevel = LogEventLevel.Information;
+
             Logger = (log ?? new LoggerConfiguration()).Configure((c, m) => c
                 .WriteTo.ApplicationInsights(config?.InstrumentationKey,
-                    TelemetryConverter.Traces), addConsole)
+                    TelemetryConverter.Traces,
+                    logEventLevel), addConsole)
                 .CreateLogger();
         }
     }
