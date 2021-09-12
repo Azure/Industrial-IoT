@@ -91,6 +91,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Instrumentation key </summary>
         public const string PCS_APPINSIGHTS_INSTRUMENTATIONKEY =
             "PCS_APPINSIGHTS_INSTRUMENTATIONKEY";
+        /// <summary> LogLevel for Application Insights </summary>
+        public const string PCS_APPINSIGHTS_LOGLEVEL =
+            "PCS_APPINSIGHTS_LOGLEVEL";
         /// <summary> Keyvault client application id </summary>
         public const string PCS_KEYVAULT_APPID =
             "PCS_KEYVAULT_APPID";
