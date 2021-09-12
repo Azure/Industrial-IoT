@@ -1,11 +1,11 @@
 
 # Content
-This document describes the mitigation of a security issue described [here](https://msrc-blog.microsoft.com/2021/08/27/update-on-vulnerability-in-the-azure-cosmos-db-jupyter-notebook-feature/).
+This document describes the mitigation of a [security issue in the Azure CosmosDB account's Jupyter notebooks feature](https://msrc-blog.microsoft.com/2021/08/27/update-on-vulnerability-in-the-azure-cosmos-db-jupyter-notebook-feature/).
 
 # Prerequisite
 The Industrial-IoT Platform has been deployed as described in the [Industrial-IoT github repository](https://github.com/Azure/Industrial-IoT/blob/main/docs/deploy/readme.md).
-The steps below refers to a new full installation of the Industrial-IoT Platform with the simulation and Engineering Tool deployed.
-You can also use your own OPC UA server to validate proper operation if the simulation has not been deployed. In case the Engineering Tool has not been deployed, you need to use the OpenAPI (swagger) description of the Industrial-IoT Platform to validate proper operation.
+The steps below refer to a new full installation of the Industrial-IoT Platform with the simulation and Engineering Tool deployed. 
+If the simulation has not been deployed it is possible to use an existing OPC UA server to validate proper operation. In case the Engineering Tool has not been deployed, the OpenAPI (swagger) description of the Industrial-IoT Platform can be used to validate proper operation.
 
 # Validate proper operation
 - Open the "Engineering Tool" of the Industrial-IoT Platform of the deployment.
@@ -27,11 +27,11 @@ The value of "Current time" in the UI is changing.
 # Change the Azure Cosmos DB accounts Primary Read-write key
 - Log into the Azure Portal
 
-- Goto the "Azure Cosmos DB account" resource of the resource group into which the Industrial-IoT Platform has been deployed. 
+- Goto the "Azure Cosmos DB account" resource of the Industrial-IoT Platform
 
 - Goto "Keys" "Read-write Keys" and "Regenerate Primary Key". Fetch the new "Primary Connection String"
 
-- Goto the "Key vault" of the resource group into which the Industrial-IoT Platform has been deployed.
+- Goto the "Key Vault" of the Industrial-IoT Platform
 
 - Goto "Secrets" and select "pcs-cosmosdb-connstring" and add a "New Version" of the secret with:
     - Upload options: Manual
@@ -47,8 +47,8 @@ The value of "Current time" in the UI is changing.
 - As the next step the Industrial-IoT Platform needs to be restarted. Depending on the deployment method this can be achieve by:
 
     - Full deployment via deploy.sh:
-        - Goto "App service" resource of the resource group into which the Industrial-IoT Platform has been deployed.
-        - "Restart" the app.
+        - Goto "App service" resource of the Industrial-IoT Platform
+        - "Restart" the app
 
     - Deployment in an Azure Kubernetes Service (AKS) cluster via helm chart differentiats between two different restart mechanisms depending on the value of "loadConfFromKeyVault" in values.yaml
         - If "loadConfFromKeyVault" was set to "true", then pods running the following microservices needs to be restarted:
