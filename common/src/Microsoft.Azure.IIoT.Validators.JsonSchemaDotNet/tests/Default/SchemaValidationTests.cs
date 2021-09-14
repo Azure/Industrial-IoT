@@ -76,6 +76,30 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
         }
 
         [Fact]
+        // There are nuances to the use of "items" schema for arrays in JSON Schema.
+        // Particualrly the difference between "items: [{ ... }]" and "items: { ... }"
+        // The first checks ONLY the schema of the array element in in a given array index position,
+        // whereas just object notation for "items" (e.g. '{}') will ensure that all elements are
+        // checked against a given schema.
+        // See: https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-validation-01#section-6.4.1
+        public void MultipleIntNodeIdsThatAreNotIntsReturnExpectedErrors() {
+            using var schemaReader = new StreamReader("Default/publishednodesschema.json");
+
+            // Break the id of the second Node to ensure an error is thrown
+            var alteredConfig = testConfiguration.Replace("i=1002", "'i=12345f'");
+            //Break the id of the second to last Node (#8) to ensure an error is thrown
+            alteredConfig = alteredConfig.Replace("i=12345", "'i=12345g'");
+            var validator = new JsonSchemaDotNetSchemaValidator();
+            var results = validator.Validate(Encoding.UTF8.GetBytes(alteredConfig), schemaReader);
+
+            Assert.NotEmpty(results);
+            // Ensure that we failed the regex NodeID check on the 2nd node
+            Assert.Equal("The string value was not a match for the indicated regular expression", results.ElementAt(1).Message);
+            // Ensure that we failed the regex NodeID check on the 9th node. 
+            Assert.Equal("The string value was not a match for the indicated regular expression", results.ElementAt(8).Message);
+        }
+
+        [Fact]
         public void IncorrectlyFormattedNsuBasedNodeIdsReturnErrors() {
             using var schemaReader = new StreamReader("Default/publishednodesschema.json");
 
@@ -138,9 +162,8 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
             // Ensure that we failed on all four primary schema checks correctly
             Assert.Equal("Expected 1 matching subschema but found 0", results.ElementAt(0).Message);
             Assert.Equal("Required properties [Id] were not present", results.ElementAt(1).Message);
-            Assert.Equal("Required properties [ExpandedNodeId] were not present", results.ElementAt(2).Message);
-            Assert.Equal("Required properties [NodeId] were not present", results.ElementAt(3).Message);
-
+            Assert.Equal("Required properties [Id] were not present", results.ElementAt(4).Message);
+            Assert.Equal("Required properties [Id] were not present", results.ElementAt(3).Message);
         }
 
         private string testConfiguration = @"
