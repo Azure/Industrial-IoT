@@ -1,8 +1,15 @@
 # Published Nodes Validation - Design documentation
 
-## Regex Design
-
 The design approaches for the regular expressions included in the schema require explation.
+
+## Regex Design for Endpoint URLs
+
+In the generated schema, the Endpoint URLs are format checked against the Json-Schema URL
+type as well as a regex pattern that enforces a `opc.tcp` prefix, e.g. `opc.tcp://{well formed url}`.
+The regular expression is as follows: `opc.tcp://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`.
+
+## Regex Design for Node ID
+
 There are three (3) styles of NodeID address formats, each paired with four (4) distinct types
 of NodeID.
 
