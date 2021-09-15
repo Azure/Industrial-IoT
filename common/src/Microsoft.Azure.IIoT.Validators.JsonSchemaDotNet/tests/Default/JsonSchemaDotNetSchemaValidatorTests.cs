@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests {
     using Microsoft.Azure.IIoT.Validators;
-    using System;
     using System.IO;
     using System.Linq;
     using System.Text;

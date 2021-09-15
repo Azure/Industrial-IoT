@@ -37,6 +37,12 @@
     <Folder Include="Utils\" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Engine\pn_assets_with_optional_fields.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Engine\publishednodeswithoptionalfields.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Engine\publishednodes.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

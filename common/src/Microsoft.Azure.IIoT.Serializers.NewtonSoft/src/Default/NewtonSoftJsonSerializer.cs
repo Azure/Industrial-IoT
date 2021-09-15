@@ -90,13 +90,13 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
                 if (schemaReader != null) {
                     var validationResults = _jsonSchemaValidator.Validate(bufferArray, schemaReader);
 
-                    // If any item in validation results collection is marked as invalid, consider it as json schema validation failure.
-                    if (validationResults.Any(r => r.IsValid == false)) {
-                        var validationResultsMessage =
-                            string.Join("; ",
-                                validationResults.Select(r =>
-                                    $"Validation failed with error: {r.Message} at schema path: {r.SchemaLocation}, and configuration file location {r.InstanceLocation}"));
+                    var validationResultsMessage =
+                        string.Join("; ",
+                            validationResults
+                            .Where(r => !r.IsValid)
+                            .Select(r => $"Validation failed with error: {r.Message} at schema path: {r.SchemaLocation}, and configuration file location {r.InstanceLocation}"));
 
+                    if (!string.IsNullOrWhiteSpace(validationResultsMessage)) {
                         throw new JsonSerializationException(validationResultsMessage);
                     }
                 }
@@ -104,7 +104,6 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
                 using (var stream = new MemoryStream(bufferArray))
                     using (var reader = new StreamReader(stream, ContentEncoding))
                         return JsonSerializer.CreateDefault(Settings).Deserialize(reader, type);
-
             }
             catch (JsonSerializationException ex) {
                 throw new SerializerException(ex.Message, ex);

@@ -22,12 +22,6 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
     /// </summary>
     public class SchemaValidationTests {
 
-        // Allow training commas in the test parsers as the main serializer for
-        // this solution supports training commas.
-        private static JsonDocumentOptions parseOptions = new JsonDocumentOptions {
-            AllowTrailingCommas = true,
-        };
-
         [Fact]
         public void EnsureTestConfigurationPassesSchemaValidation() {
             using var schemaReader = new StreamReader("Default/publishednodesschema.json");
@@ -93,10 +87,10 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
             var results = validator.Validate(Encoding.UTF8.GetBytes(alteredConfig), schemaReader);
 
             Assert.NotEmpty(results);
-            // Ensure that we failed the regex NodeID check on the 2nd node
+            // Ensure that we failed the regex Id check on the 2nd node
             Assert.Equal("The string value was not a match for the indicated regular expression", results.ElementAt(1).Message);
-            // Ensure that we failed the regex NodeID check on the 9th node. 
-            Assert.Equal("The string value was not a match for the indicated regular expression", results.ElementAt(8).Message);
+            // Ensure that we failed the regex ExpandedNodeId check on the 9th node.
+            Assert.Equal("Required properties [ExpandedNodeId] were not present", results.ElementAt(8).Message);
         }
 
         [Fact]
@@ -156,14 +150,14 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
             var validator = new JsonSchemaDotNetSchemaValidator();
             var results = validator.Validate(Encoding.UTF8.GetBytes(longBadConfig), schemaReader);
 
-            // ensure that we only get 4 errors back
-            Assert.Equal(4, results.Count);
+            // Ensure that we get all 20002 errors back.
+            Assert.Equal(20002, results.Count);
 
-            // Ensure that we failed on all four primary schema checks correctly
-            Assert.Equal("Expected 1 matching subschema but found 0", results.ElementAt(0).Message);
-            Assert.Equal("Required properties [Id] were not present", results.ElementAt(1).Message);
-            Assert.Equal("Required properties [Id] were not present", results.ElementAt(4).Message);
-            Assert.Equal("Required properties [Id] were not present", results.ElementAt(3).Message);
+            // Ensure that we failed on schema checks correctly.
+            Assert.Equal(1, results.Count(r => r.Message.Equals("Expected 1 matching subschema but found 0")));
+            Assert.Equal(1, results.Count(r => r.Message.Equals("Required properties [NodeId] were not present")));
+            Assert.Equal(10000, results.Count(r => r.Message.Equals("Required properties [Id] were not present")));
+            Assert.Equal(10000, results.Count(r => r.Message.Equals("Required properties [ExpandedNodeId] were not present")));
         }
 
         private string testConfiguration = @"

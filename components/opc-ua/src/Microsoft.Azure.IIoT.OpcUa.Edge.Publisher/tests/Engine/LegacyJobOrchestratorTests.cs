@@ -23,8 +23,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     /// </summary>
     public class LegacyJobOrchestratorTests {
 
-        [Fact]
-        public async Task GetAvailableJobAsyncMulithreading() {
+        [Theory]
+        [InlineData("Engine/publishednodes.json")]
+        [InlineData("Engine/publishednodeswithoptionalfields.json")]
+        public async Task GetAvailableJobAsyncMulithreading(string publishedNodesFile) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var identityMock = new Mock<IIdentity>();
@@ -32,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/publishednodes.json", PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = publishedNodesFile, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
@@ -53,8 +55,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             Assert.Equal(2, distinctConfigurations.Count());
         }
 
-        [Fact]
-        public void Test_PnJson_With_Multiple_Jobs_Expect_DifferentJobIds() {
+        [Theory]
+        [InlineData("Engine/pn_assets.json")]
+        [InlineData("Engine/pn_assets_with_optional_fields.json")]
+        public void Test_PnJson_With_Multiple_Jobs_Expect_DifferentJobIds(string publishedNodesFile) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var identityMock = new Mock<IIdentity>();
@@ -62,7 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/pn_assets.json", PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = publishedNodesFile, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
