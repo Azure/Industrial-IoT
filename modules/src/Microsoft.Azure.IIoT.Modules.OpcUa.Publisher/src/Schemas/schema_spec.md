@@ -1,6 +1,6 @@
 # Published Nodes Validation - Design documentation
 
-The design approaches for the regular expressions included in the schema require explation.
+The design approaches for the regular expressions included in the schema require explanation.
 
 ## Regex Design for Endpoint URLs
 
@@ -16,10 +16,10 @@ of NodeID.
 The NodeID address formats are as follows:
 
 - `{nodeId type}={nodeId}`
-- `nsu={url/urn resourece path}/;{nodeId type}={nodeId}`
+- `nsu={url/urn resource path}/;{nodeId type}={nodeId}`
 - `ns={namespace index based on OPC UA IM}/;{nodeId type}={nodeId}`
 
-The `nsu={url/urn resourece path}/;{nodeId type}={nodeId}` format is the encouraged option as
+The `nsu={url/urn resource path}/;{nodeId type}={nodeId}` format is the encouraged option as
 `{nodeId type}={nodeId}` and `ns={namespace index based on OPC UA IM}/;{nodeId type}={nodeId}`
 can cause collisions where nodeIds are the same across namespace or potentially collect the
 wrong data if the namespace array index position changes during an information model rebuild.
@@ -34,7 +34,7 @@ The NodeId types allowable by the OPC UA Information Model are as follows:
 - `s` - string based NodeIds -  (RegEx matches UTF-8 character set)
 
 Each of these NodeId types has a discrete regular expression to ensure a well formed document.
-Note that the `string` type NodeId regular expression encludes all UTF-8 characters, only
+Note that the `string` type NodeId regular expression includes all UTF-8 characters, only
 excluding a few common control characters; it is likely that this check is NOT comprehensive
 and edge cases should be submitted as issues against this repository.
 

@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
             var validator = new JsonSchemaDotNetSchemaValidator();
             var results = validator.Validate(Encoding.UTF8.GetBytes(alteredConfig), schemaReader);
 
-            // Wnsure that we failed the regex NodeID check
+            // Ensure that we failed the regex NodeID check
             Assert.Equal("The string value was not a match for the indicated regular expression", results.ElementAt(1).Message);
         }
 
@@ -71,8 +71,8 @@ namespace Microsoft.Azure.IIoT.Validators.JsonSchemaDotNet.Tests.Default {
 
         [Fact]
         // There are nuances to the use of "items" schema for arrays in JSON Schema.
-        // Particualrly the difference between "items: [{ ... }]" and "items: { ... }"
-        // The first checks ONLY the schema of the array element in in a given array index position,
+        // Particularly the difference between "items: [{ ... }]" and "items: { ... }"
+        // The first checks ONLY the schema of the array element in a given array index position,
         // whereas just object notation for "items" (e.g. '{}') will ensure that all elements are
         // checked against a given schema.
         // See: https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-validation-01#section-6.4.1
