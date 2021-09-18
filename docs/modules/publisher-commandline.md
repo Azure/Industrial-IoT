@@ -5,9 +5,6 @@
              --pf, --publishfile=VALUE
                                        the filename to configure the nodes to publish.
                                        If this option is specified it puts OPC Publisher into standalone mode.
-             --pfs, --publishfileschema=VALUE
-                                       the filename for json schema, to validate the published nodes file.
-                                       If this option is specified it validates published nodes file against json schema specified here otherwise default location is used.
              --lf, --logfile=VALUE
                                        the filename of the logfile to use.
              --ll. --loglevel=VALUE
@@ -71,6 +68,12 @@
                                        a skip first event setting.
                                        Default: False
                                        
+### OPC Publisher Command Line Arguments Introduced After Version 2.8.0
+
+             --pfs, --publishfileschema=VALUE
+                                       the filename for json schema, to validate the published nodes file.
+                                       If this option is specified it validates published nodes file against json schema specified here otherwise default location is used.
+
 ### OPC Publisher Command Line Arguments for Version 2.5 and below
 
     Usage: opcpublisher.exe <applicationname> [<iothubconnectionstring>] [<options>]
@@ -149,7 +152,7 @@
                                    the loglevel to use (allowed: fatal, error, warn,
                                    info, debug, verbose).
                                    Default: info
-           --ih, --iothubprotocol=VALUE
+          --ih, --iothubprotocol=VALUE
                                     the protocol to use for communication with IoTHub (
                                     allowed values: Amqp, Http1, Amqp_WebSocket_Only,
                                      Amqp_Tcp_Only, Mqtt, Mqtt_WebSocket_Only, Mqtt_
@@ -178,7 +181,7 @@
                                    applicationname> manually and pass in the
                                    connectionstring of this device.
                                    Default: none
-      -c, --connectionstring=VALUE
+          -c, --connectionstring=VALUE
                                    the IoTHub owner connectionstring.
                                    Default: none
           --hb, --heartbeatinterval=VALUE
@@ -382,4 +385,3 @@
                                    ignored.
                                    the trusted issuer cert store always
                                    resides in a directory.
-
