@@ -52,9 +52,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             var options = new Mono.Options.OptionSet {
                     // Publisher configuration options
                     { "pf|publishfile=", "The filename to configure the nodes to publish.",
-                        s => this[LegacyCliConfigKeys.PublisherNodesConfigurationFilename] = s },
+                        s => this[LegacyCliConfigKeys.PublishedNodesConfigurationFilename] = s },
                     { "pfs|publishfileschema=", "The validation schema filename for publish file.",
-                        s => this[LegacyCliConfigKeys.PublisherNodesConfigurationSchemaFilename] = s },
+                        s => this[LegacyCliConfigKeys.PublishedNodesConfigurationSchemaFilename] = s },
                     { "s|site=", "The site OPC Publisher is working in.",
                         s => this[LegacyCliConfigKeys.PublisherSite] = s },
 
@@ -200,7 +200,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// check if we're running in standalone mode - default publishednodes.json file accessible
         /// </summary>
-        public bool RunInLegacyMode => TryGetValue(LegacyCliConfigKeys.PublisherNodesConfigurationFilename, out _) ||
+        public bool RunInLegacyMode => TryGetValue(LegacyCliConfigKeys.PublishedNodesConfigurationFilename, out _) ||
              System.IO.File.Exists(LegacyCliConfigKeys.DefaultPublishedNodesFilename);
 
         /// <summary>
@@ -272,8 +272,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         private LegacyCliModel ToLegacyCliModel() {
             return new LegacyCliModel {
                 Site = GetValueOrDefault(LegacyCliConfigKeys.PublisherSite, string.Empty),
-                PublishedNodesFile = GetValueOrDefault(LegacyCliConfigKeys.PublisherNodesConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename),
-                PublishedNodesSchemaFile = GetValueOrDefault(LegacyCliConfigKeys.PublisherNodesConfigurationSchemaFilename, LegacyCliConfigKeys.DefaultPublishedNodesSchemaFilename),
+                PublishedNodesFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename),
+                PublishedNodesSchemaFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationSchemaFilename, LegacyCliConfigKeys.DefaultPublishedNodesSchemaFilename),
                 SessionConnectWait = GetValueOrDefault(LegacyCliConfigKeys.SessionConnectWaitSec, TimeSpan.FromSeconds(15)),
                 DefaultHeartbeatInterval = GetValueOrDefault(LegacyCliConfigKeys.HeartbeatIntervalDefault, TimeSpan.Zero),
                 DefaultSkipFirst = GetValueOrDefault(LegacyCliConfigKeys.SkipFirstDefault, false),
