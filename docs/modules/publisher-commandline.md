@@ -1,6 +1,6 @@
 [Home](../../readme.md)
 
-### OPC Publisher Command Line Arguments for Version 2.8.0 and above
+### OPC Publisher Command Line Arguments for Version 2.6 and above
 
              --pf, --publishfile=VALUE
                                        the filename to configure the nodes to publish.
