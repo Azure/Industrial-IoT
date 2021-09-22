@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
+
     /// <summary>
     /// Represents Helm chart settings that are configurable.
     /// </summary>
