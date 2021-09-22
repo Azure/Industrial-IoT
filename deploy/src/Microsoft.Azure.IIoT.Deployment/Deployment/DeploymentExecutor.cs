@@ -1234,12 +1234,20 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             var helmSettings = _configurationProvider.GetHelmSettings();
             // azure-industrial-iot Helm chart details
-            var helmRepoUrl = helmSettings?.RepoUrl ?? HelmSettings._defaultRepoUrl;
-            var helmChartVersion = helmSettings?.ChartVersion ?? HelmSettings._defaultChartVersion;
+            var helmRepoUrl = string.IsNullOrEmpty(helmSettings?.RepoUrl)
+                ? HelmSettings._defaultRepoUrl
+                : helmSettings?.RepoUrl;
+            var helmChartVersion = string.IsNullOrEmpty(helmSettings?.ChartVersion)
+                ? HelmSettings._defaultChartVersion
+                : helmSettings?.ChartVersion;
             // azure-industrial-iot Helm chart values
-            var aiiotImageTag = helmSettings?.ImageTag ?? HelmSettings._defaultImageTag;
+            var aiiotImageTag = string.IsNullOrEmpty(helmSettings?.ImageTag)
+                ? HelmSettings._defaultImageTag
+                : helmSettings?.ImageTag;
             var aiiotImageNamespace = helmSettings?.ImageNamespace ?? HelmSettings._defaultImageNamespace;
-            var aiiotContainerRegistryServer = helmSettings?.ContainerRegistryServer ?? HelmSettings._defaultContainerRegistryServer;
+            var aiiotContainerRegistryServer = string.IsNullOrEmpty(helmSettings?.ContainerRegistryServer)
+                ? HelmSettings._defaultContainerRegistryServer
+                : helmSettings?.ContainerRegistryServer;
             var aiiotContainerRegistryUsername = helmSettings?.ContainerRegistryUsername ?? HelmSettings._defaultContainerRegistryUsername;
             var aiiotContainerRegistryPassword = helmSettings?.ContainerRegistryPassword ?? HelmSettings._defaultContainerRegistryPassword;
 

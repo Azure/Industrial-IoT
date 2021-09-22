@@ -418,7 +418,8 @@ You can read more about configuration in .Net Core [here](https://docs.microsoft
 ### JSON File Configuration Provider
 
 Deployment application will be looking for `appsettings.json` file in the current working directory of the
-application to load configuration from it.
+application to load configuration from it. Please note that if a value in `appsettings.json` should be set
+to `null`, then please delete the whole line instead or comment it out.
 
 ### Environment Variables Configuration Provider
 
