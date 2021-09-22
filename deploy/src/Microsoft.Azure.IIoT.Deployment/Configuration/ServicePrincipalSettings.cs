@@ -5,6 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
+    using System;
+    using Microsoft.Graph;
+
     class ServicePrincipalSettings {
 
         public Guid Id { get; set; }

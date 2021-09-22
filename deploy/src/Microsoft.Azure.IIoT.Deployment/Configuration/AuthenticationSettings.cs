@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
+    using System;
+
     class AuthenticationSettings {
         public AzureEnvironmentType? AzureEnvironment { get; set; }
         public Guid? TenantId { get; set; }

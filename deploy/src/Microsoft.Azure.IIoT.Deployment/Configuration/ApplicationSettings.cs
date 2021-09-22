@@ -5,6 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
+    using Microsoft.Graph;
+
     class ApplicationSettings {
 
         public Guid Id { get; set; }
