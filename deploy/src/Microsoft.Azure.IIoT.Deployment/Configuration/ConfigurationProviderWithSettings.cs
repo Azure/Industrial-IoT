@@ -5,14 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
-    using System;
-    using System.Collections.Generic;
     using Microsoft.Azure.IIoT.Deployment.Deployment;
-    using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 
     /// <summary>
-    /// Abstract class of IConfigurationProvider interface that has AppSettings. 
+    /// Abstract class of IConfigurationProvider interface that has AppSettings.
     /// </summary>
     abstract class ConfigurationProviderWithSettings : IConfigurationProvider {
 

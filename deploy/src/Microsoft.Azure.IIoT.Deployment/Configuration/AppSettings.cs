@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
-    using System;
     using Microsoft.Azure.IIoT.Deployment.Deployment;
 
     class AppSettings {
