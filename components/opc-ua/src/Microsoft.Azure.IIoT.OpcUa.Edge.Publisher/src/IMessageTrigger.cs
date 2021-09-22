@@ -28,18 +28,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// The number of all monitored items value changes
         /// that have been invoked by this message source.
         /// </summary>
-        int ValueChangesCount { get; }
+        ulong ValueChangesCount { get; }
 
         /// <summary>
-        /// The number of all dataChange Notifications 
+        /// <see cref="ValueChangesCount"/> from the last minute
+        /// </summary>
+        ulong ValueChangesCountLastMinute { get; }
+
+        /// <summary>
+        /// The number of all dataChange Notifications
         /// that have been invoked by this message source.
         /// </summary>
-        int DataChangesCount { get; }
+        ulong DataChangesCount { get; }
+
+        /// <summary>
+        /// <see cref="DataChangesCount"/> from the last minute
+        /// </summary>
+        ulong DataChangesCountLastMinute { get; }
 
         /// <summary>
         /// Writer events
         /// </summary>
         event EventHandler<DataSetMessageModel> OnMessage;
+
+        /// <summary>
+        /// Called when ValueChangesCount or DataChangesCount are resetted
+        /// </summary>
+        event EventHandler<EventArgs> OnCounterReset;
 
         /// <summary>
         /// Run the group triggering

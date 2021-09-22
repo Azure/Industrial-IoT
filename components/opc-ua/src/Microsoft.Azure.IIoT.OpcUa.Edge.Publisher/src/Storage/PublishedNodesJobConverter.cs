@@ -71,43 +71,50 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// </summary>
         /// <param name="items"></param>
         /// <param name="legacyCliModel">The legacy command line arguments</param>
-        /// <returns></returns>
         private IEnumerable<WriterGroupJobModel> ToWriterGroupJobs(
-            IEnumerable<PublishedNodesEntryModel> items, LegacyCliModel legacyCliModel) {
+            IEnumerable<PublishedNodesEntryModel> items,
+            LegacyCliModel legacyCliModel) {
             if (items == null) {
                 return Enumerable.Empty<WriterGroupJobModel>();
             }
             try {
-                var result = items
-                    // Group by connection
-                    .GroupBy(item => new ConnectionModel {
+                // note: do not remove 'unnecessary' .ToList(),
+                // the grouping of operations improves perf by 30%
+                // Group by connection
+                var group = items.GroupBy(
+                    item => new ConnectionModel {
                         OperationTimeout = legacyCliModel.OperationTimeout,
                         Id = item.DataSetWriterId,
                         Group = item.DataSetWriterGroup,
                         Endpoint = new EndpointModel {
                             Url = item.EndpointUrl.OriginalString,
                             SecurityMode = item.UseSecurity == false &&
-                                item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
-                                    SecurityMode.None : SecurityMode.Best
+                            item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
+                            SecurityMode.None : SecurityMode.Best
                         },
                         User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
-                                null : ToUserNamePasswordCredentialAsync(item).Result,
-                        
+                        null : ToUserNamePasswordCredentialAsync(item).Result,
+
                     },
-                        // Select and batch nodes into published data set sources
-                        item => GetNodeModels(item, legacyCliModel.ScaleTestCount.GetValueOrDefault(1)),
-                        // Comparer for connection information
-                        new FuncCompare<ConnectionModel>((x, y) => x.IsSameAs(y)))
-                    .Select(group => group
-                        // Flatten all nodes for the same connection and group by publishing interval
-                        // then batch in chunks for max 1000 nodes and create data sets from those.
-                        .Flatten()
-                        .GroupBy(n => n.OpcPublishingInterval)
-                        .SelectMany(n => n
-                            .Distinct((a, b) => a.Id == b.Id && a.DisplayName == b.DisplayName && a.DataSetFieldId == b.DataSetFieldId &&
-                                        a.OpcSamplingInterval == b.OpcSamplingInterval)
-                            .Batch(1000))
-                        .Select(opcNodes => new PublishedDataSetSourceModel {
+                    // Select and batch nodes into published data set sources
+                    item => GetNodeModels(item, legacyCliModel.ScaleTestCount.GetValueOrDefault(1)),
+                    // Comparer for connection information
+                    new FuncCompare<ConnectionModel>((x, y) => x.IsSameAs(y))
+                ).ToList();
+                var opcNodeModelComparer = new OpcNodeModelComparer();
+                var flattenedGroups = group.Select(
+                    group => group
+                    // Flatten all nodes for the same connection and group by publishing interval
+                    // then batch in chunks for max 1000 nodes and create data sets from those.
+                    .Flatten()
+                    .GroupBy(n => n.OpcPublishingInterval)
+                    .SelectMany(
+                        n => n
+                        .Distinct(opcNodeModelComparer)
+                        .Batch(1000)
+                    ).ToList()
+                    .Select(
+                        opcNodes => new PublishedDataSetSourceModel {
                             Connection = group.Key.Clone(),
                             SubscriptionSettings = new PublishedDataSetSettingsModel {
                                 PublishingInterval = GetPublishingIntervalFromNodes(opcNodes, legacyCliModel),
@@ -115,86 +122,121 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             },
                             PublishedVariables = new PublishedDataItemsModel {
                                 PublishedData = opcNodes
-                                    .Select(node => new PublishedDataSetVariableModel {
-                                        // this is the monitored item id, not the nodeId!
-                                        // Use the display name if any otherwise the nodeId
-                                        Id = string.IsNullOrEmpty(node.DisplayName) ? 
-                                                string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
-                                        PublishedVariableNodeId = node.Id,
-                                        PublishedVariableDisplayName = node.DisplayName,
-                                        SamplingInterval = node.OpcSamplingIntervalTimespan ??
-                                            legacyCliModel.DefaultSamplingInterval,
-                                        HeartbeatInterval = node.HeartbeatIntervalTimespan.HasValue ?
-                                            node.HeartbeatIntervalTimespan.Value :
-                                            legacyCliModel.DefaultHeartbeatInterval,
-                                        QueueSize = legacyCliModel.DefaultQueueSize,
-                                        // TODO: skip first?
-                                        // SkipFirst = opcNode.SkipFirst,
-                                    }).ToList()
-                            }
-                        }))
-                    .Select(dataSetSourceBatches => new WriterGroupJobModel {
-                        MessagingMode = legacyCliModel.MessagingMode,
-                        Engine = _config == null ? null : new EngineConfigurationModel {
-                            BatchSize = _config.BatchSize,
-                            BatchTriggerInterval = _config.BatchTriggerInterval,
-                            DiagnosticsInterval = _config.DiagnosticsInterval,
-                            MaxMessageSize = _config.MaxMessageSize,
-                            MaxOutgressMessages = _config.MaxOutgressMessages
-                        },
-                        WriterGroup = new WriterGroupModel {
-                            MessageType = legacyCliModel.MessageEncoding,
-                            WriterGroupId = !string.IsNullOrEmpty(dataSetSourceBatches.First().Connection.Group)
-                                ? $"{dataSetSourceBatches.First().Connection.Group}"
-                                : $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
-                                    $"{new ConnectionIdentifier(dataSetSourceBatches.First().Connection)}",
-                            DataSetWriters = dataSetSourceBatches.Select(dataSetSource => new DataSetWriterModel {
-                                DataSetWriterId = !string.IsNullOrEmpty(dataSetSource.Connection.Id)
-                                    ? $"{dataSetSource.Connection.Id}"
-                                    : $"{dataSetSource.Connection.Endpoint.Url}_" +
-                                        $"{dataSetSource.GetHashSafe()}",
-                                DataSet = new PublishedDataSetModel {
-                                    DataSetSource = dataSetSource.Clone(),
-                                },
-                                DataSetFieldContentMask =
-                                        DataSetFieldContentMask.StatusCode |
-                                        DataSetFieldContentMask.SourceTimestamp |
-                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ServerTimestamp : 0) |
-                                        DataSetFieldContentMask.NodeId |
-                                        DataSetFieldContentMask.DisplayName |
-                                        DataSetFieldContentMask.ApplicationUri |
-                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.EndpointUrl : 0) |
-                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ExtensionFields : 0),
-                                MessageSettings = new DataSetWriterMessageSettingsModel() {
-                                    DataSetMessageContentMask =
-                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Timestamp : 0) |
-                                            DataSetContentMask.MetaDataVersion |
-                                            DataSetContentMask.DataSetWriterId |
-                                            DataSetContentMask.MajorVersion |
-                                            DataSetContentMask.MinorVersion |
-                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.SequenceNumber : 0)
-                                }
-                            }).ToList(),
-                            MessageSettings = new WriterGroupMessageSettingsModel() {
-                                NetworkMessageContentMask =
-                                        NetworkMessageContentMask.PublisherId |
-                                        NetworkMessageContentMask.WriterGroupId |
-                                        NetworkMessageContentMask.NetworkMessageNumber |
-                                        NetworkMessageContentMask.SequenceNumber |
-                                        NetworkMessageContentMask.PayloadHeader |
-                                        NetworkMessageContentMask.Timestamp |
-                                        NetworkMessageContentMask.DataSetClassId |
-                                        NetworkMessageContentMask.NetworkMessageHeader |
-                                        NetworkMessageContentMask.DataSetMessageHeader
+                                .Select(node => new PublishedDataSetVariableModel {
+                                    // this is the monitored item id, not the nodeId!
+                                    // Use the display name if any otherwise the nodeId
+                                    Id = string.IsNullOrEmpty(node.DisplayName) ?
+                                            string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
+                                    PublishedVariableNodeId = node.Id,
+                                    PublishedVariableDisplayName = node.DisplayName,
+                                    SamplingInterval = node.OpcSamplingIntervalTimespan ??
+                                        legacyCliModel.DefaultSamplingInterval,
+                                    HeartbeatInterval = node.HeartbeatIntervalTimespan.HasValue ?
+                                        node.HeartbeatIntervalTimespan.Value :
+                                        legacyCliModel.DefaultHeartbeatInterval,
+                                    QueueSize = legacyCliModel.DefaultQueueSize,
+                                    // TODO: skip first?
+                                    // SkipFirst = opcNode.SkipFirst,
+                                }).ToList()
                             }
                         }
-                    }).ToList();
+                    ).ToList()
+                ).ToList();
+                var result = flattenedGroups.Select(dataSetSourceBatches => new WriterGroupJobModel {
+                    MessagingMode = legacyCliModel.MessagingMode,
+                    Engine = _config == null ? null : new EngineConfigurationModel {
+                        BatchSize = _config.BatchSize,
+                        BatchTriggerInterval = _config.BatchTriggerInterval,
+                        DiagnosticsInterval = _config.DiagnosticsInterval,
+                        MaxMessageSize = _config.MaxMessageSize,
+                        MaxOutgressMessages = _config.MaxOutgressMessages
+                    },
+                    WriterGroup = new WriterGroupModel {
+                        MessageType = legacyCliModel.MessageEncoding,
+                        WriterGroupId = !string.IsNullOrEmpty(dataSetSourceBatches.First().Connection.Group)
+                            ? $"{dataSetSourceBatches.First().Connection.Group}"
+                            : $"{dataSetSourceBatches.First().Connection.Endpoint.Url}_" +
+                                $"{new ConnectionIdentifier(dataSetSourceBatches.First().Connection)}",
+                        DataSetWriters = dataSetSourceBatches.Select(dataSetSource => new DataSetWriterModel {
+                            DataSetWriterId = !string.IsNullOrEmpty(dataSetSource.Connection.Id)
+                                ? $"{dataSetSource.Connection.Id}"
+                                : $"{dataSetSource.Connection.Endpoint.Url}_" +
+                                    $"{dataSetSource.GetHashSafe()}",
+                            DataSet = new PublishedDataSetModel {
+                                DataSetSource = dataSetSource.Clone(),
+                            },
+                            DataSetFieldContentMask =
+                                    DataSetFieldContentMask.StatusCode |
+                                    DataSetFieldContentMask.SourceTimestamp |
+                                    (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ServerTimestamp : 0) |
+                                    DataSetFieldContentMask.NodeId |
+                                    DataSetFieldContentMask.DisplayName |
+                                    DataSetFieldContentMask.ApplicationUri |
+                                    (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.EndpointUrl : 0) |
+                                    (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ExtensionFields : 0),
+                            MessageSettings = new DataSetWriterMessageSettingsModel() {
+                                DataSetMessageContentMask =
+                                        (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Timestamp : 0) |
+                                        DataSetContentMask.MetaDataVersion |
+                                        DataSetContentMask.DataSetWriterId |
+                                        DataSetContentMask.MajorVersion |
+                                        DataSetContentMask.MinorVersion |
+                                        (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.SequenceNumber : 0)
+                            }
+                        }).ToList(),
+                        MessageSettings = new WriterGroupMessageSettingsModel() {
+                            NetworkMessageContentMask =
+                                    NetworkMessageContentMask.PublisherId |
+                                    NetworkMessageContentMask.WriterGroupId |
+                                    NetworkMessageContentMask.NetworkMessageNumber |
+                                    NetworkMessageContentMask.SequenceNumber |
+                                    NetworkMessageContentMask.PayloadHeader |
+                                    NetworkMessageContentMask.Timestamp |
+                                    NetworkMessageContentMask.DataSetClassId |
+                                    NetworkMessageContentMask.NetworkMessageHeader |
+                                    NetworkMessageContentMask.DataSetMessageHeader
+                        }
+                    }
+                });
+
+                var counter = 0;
+                foreach (var job in result) {
+                    if (job.WriterGroup != null) {
+                        _logger.Debug("groupId: {group}", job.WriterGroup.WriterGroupId);
+                        foreach (var dataSetWriter in job.WriterGroup.DataSetWriters) {
+                            int count = dataSetWriter.DataSet?.DataSetSource?.PublishedVariables?.PublishedData?.Count ?? 0;
+                            counter += count;
+                            _logger.Debug("writerId: {writer} nodes: {count}", dataSetWriter.DataSetWriterId, count);
+                        }
+                    }
+                }
+                _logger.Information("Total count of OpcNodes after job conversion: {count}", counter);
+
                 return result;
             }
-            catch (Exception ex){
+            catch (Exception ex) {
                 _logger.Error(ex, "failed to convert the published nodes.");
             }
-            return  Enumerable.Empty<WriterGroupJobModel>();
+            return Enumerable.Empty<WriterGroupJobModel>();
+        }
+
+        /// <summary>
+        /// Equality Comparer to eliminate duplicates in job converter.
+        /// </summary>
+        private class OpcNodeModelComparer : IEqualityComparer<OpcNodeModel> {
+
+            /// <inheritdoc/>
+            public bool Equals(OpcNodeModel a, OpcNodeModel b) {
+                return string.Compare(a.Id, b.Id, StringComparison.OrdinalIgnoreCase) == 0 &&
+                    string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase) == 0 &&
+                    string.Compare(a.DataSetFieldId, b.DataSetFieldId, StringComparison.OrdinalIgnoreCase) == 0 &&
+                    a.OpcSamplingInterval == b.OpcSamplingInterval;
+            }
+
+            /// <inheritdoc/>
+            public int GetHashCode(OpcNodeModel obj) {
+                return HashCode.Combine(obj.Id, obj.DisplayName, obj.DataSetFieldId, obj.OpcSamplingInterval);
+            }
         }
 
         /// <summary>

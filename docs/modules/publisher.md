@@ -109,7 +109,7 @@ To persist the security configuration of OPC Publisher across restarts, the cert
 
 ### Configuration via Configuration File
 
-The simplest way to configure OPC Publisher is via a configuration file. An example configuration file is provided via the file [`publishednodes.json`](https://raw.githubusercontent.com/Azure/iot-edge-opc-publisher/main/opcpublisher/publishednodes.json).
+The simplest way to configure OPC Publisher is via a configuration file. An example configuration file is provided via the file [`publishednodes.json`](publishednodes.json).
 Configuration file syntax has changed over time and OPC Publisher still can read old formats, but converts them into the latest format when persisting the configuration, done regularly in an automated fashion.
 
 A basic configuration file looks like this:
@@ -296,7 +296,7 @@ To measure the performance of OPC Publisher, the `di` parameter can be used to p
 
 ## Local metrics dashboard for OPC Publisher
 
-To learn more about how to create a local metrics dashboard for OPC Publisher V2.7, please refer to the tutorial [here](./docs/prometheus-metrics/MetricsDashboard.md).
+To learn more about how to create a local metrics dashboard for OPC Publisher V2.7, please refer to the tutorial [here](../tutorials/tut-publisher-local-metrics-dashboard/MetricsDashboard.md).
 
 ## Next steps
 

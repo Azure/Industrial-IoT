@@ -584,6 +584,138 @@ namespace Opc.Ua.Encoders {
             return null;
         }
 
+        /// <summary>
+        /// Reads an array with the specified valueRank and the specified BuiltInType
+        /// </summary>
+        public object ReadArray(string fieldName, int valueRank, BuiltInType builtInType, ExpandedNodeId nodeId) {
+            if (valueRank == ValueRanks.OneDimension) {
+                switch (builtInType) {
+                    case BuiltInType.Boolean:
+                        return ReadBooleanArray(fieldName).ToArray();
+                    case BuiltInType.SByte:
+                        return ReadSByteArray(fieldName).ToArray();
+                    case BuiltInType.Byte:
+                        return ReadByteArray(fieldName).ToArray();
+                    case BuiltInType.Int16:
+                        return ReadInt16Array(fieldName).ToArray();
+                    case BuiltInType.UInt16:
+                        return ReadUInt16Array(fieldName).ToArray();
+                    case BuiltInType.Int32:
+                        return ReadInt32Array(fieldName).ToArray();
+                    case BuiltInType.UInt32:
+                        return ReadUInt32Array(fieldName).ToArray();
+                    case BuiltInType.Int64:
+                        return ReadInt64Array(fieldName).ToArray();
+                    case BuiltInType.UInt64:
+                        return ReadUInt64Array(fieldName).ToArray();
+                    case BuiltInType.Float:
+                        return ReadFloatArray(fieldName).ToArray();
+                    case BuiltInType.Double:
+                        return ReadDoubleArray(fieldName).ToArray();
+                    case BuiltInType.String:
+                        return ReadStringArray(fieldName).ToArray();
+                    case BuiltInType.DateTime:
+                        return ReadDateTimeArray(fieldName).ToArray();
+                    case BuiltInType.Guid:
+                        return ReadGuidArray(fieldName).ToArray();
+                    case BuiltInType.ByteString:
+                        return ReadByteStringArray(fieldName).ToArray();
+                    case BuiltInType.XmlElement:
+                        return ReadXmlElementArray(fieldName).ToArray();
+                    case BuiltInType.NodeId:
+                        return ReadNodeIdArray(fieldName).ToArray();
+                    case BuiltInType.ExpandedNodeId:
+                        return ReadExpandedNodeIdArray(fieldName).ToArray();
+                    case BuiltInType.StatusCode:
+                        return ReadStatusCodeArray(fieldName).ToArray();
+                    case BuiltInType.QualifiedName:
+                        return ReadQualifiedNameArray(fieldName).ToArray();
+                    case BuiltInType.LocalizedText:
+                        return ReadLocalizedTextArray(fieldName).ToArray();
+                    case BuiltInType.DataValue:
+                        return ReadDataValueArray(fieldName).ToArray();
+                    case BuiltInType.Enumeration:
+                        return ReadInt32Array(fieldName).ToArray();
+                    case BuiltInType.Variant:
+                        return ReadVariantArray(fieldName).ToArray();
+                    case BuiltInType.ExtensionObject:
+                        return ReadExtensionObjectArray(fieldName).ToArray();
+                    case BuiltInType.DiagnosticInfo:
+                        return ReadDiagnosticInfoArray(fieldName).ToArray();
+                    default: {
+                            throw new ServiceResultException(
+                                StatusCodes.BadDecodingError,
+                                Utils.Format("Cannot decode unknown type in Array object with BuiltInType: {0}.", builtInType));
+                        }
+                }
+            }
+            else if (valueRank > ValueRanks.OneDimension) {
+                List<object> array;
+                if (!ReadArrayField(fieldName, out array)) {
+                    return null;
+                }
+                List<object> elements = new List<object>();
+                List<int> dimensions = new List<int>();
+                ReadMatrixPart(fieldName, array, builtInType, ref elements, ref dimensions, 0);
+
+                switch (builtInType) {
+                    case BuiltInType.Boolean:
+                        return new Matrix(elements.Cast<bool>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.SByte:
+                        return new Matrix(elements.Cast<sbyte>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.Byte:
+                        return new Matrix(elements.Cast<byte>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.Int16:
+                        return new Matrix(elements.Cast<Int16>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.UInt16:
+                        return new Matrix(elements.Cast<UInt16>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.Int32:
+                        return new Matrix(elements.Cast<Int32>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.UInt32:
+                        return new Matrix(elements.Cast<UInt32>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.Int64:
+                        return new Matrix(elements.Cast<Int64>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.UInt64:
+                        return new Matrix(elements.Cast<UInt64>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.Float:
+                        return new Matrix(elements.Cast<float>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.Double:
+                        return new Matrix(elements.Cast<double>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.String:
+                        return new Matrix(elements.Cast<string>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.DateTime:
+                        return new Matrix(elements.Cast<DateTime>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.Guid:
+                        return new Matrix(elements.Cast<Uuid>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.ByteString:
+                        return new Matrix(elements.Cast<byte[]>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.XmlElement:
+                        return new Matrix(elements.Cast<XmlElement>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.NodeId:
+                        return new Matrix(elements.Cast<NodeId>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.ExpandedNodeId:
+                        return new Matrix(elements.Cast<ExpandedNodeId>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.StatusCode:
+                        return new Matrix(elements.Cast<StatusCode>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.QualifiedName:
+                        return new Matrix(elements.Cast<QualifiedName>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.LocalizedText:
+                        return new Matrix(elements.Cast<LocalizedText>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.DataValue:
+                        return new Matrix(elements.Cast<DataValue>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.Enumeration:
+                        return new Matrix(elements.Cast<Int32>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.Variant:
+                        return new Matrix(elements.Cast<Variant>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.ExtensionObject:
+                        return new Matrix(elements.Cast<ExtensionObject>().ToArray(), builtInType, dimensions.ToArray());
+                    case BuiltInType.DiagnosticInfo:
+                        return new Matrix(elements.Cast<DiagnosticInfo>().ToArray(), builtInType, dimensions.ToArray());
+                }
+            }
+            return null;
+        }
+
         /// <inheritdoc/>
         public BooleanCollection ReadBooleanArray(string property) {
             return ReadArray(property, () => ReadBoolean(null));
@@ -1711,6 +1843,91 @@ namespace Opc.Ua.Encoders {
                     LineInfoHandling = LineInfoHandling.Ignore
                 });
             return root as JObject;
+        }
+
+        /// <summary>
+        /// Read a decoded JSON field.
+        /// </summary>
+        /// <param name="fieldName">The name of the field.</param>
+        /// <param name="token">The returned object token of the field.</param>
+        private bool ReadField(string fieldName, out object token) {
+            token = null;
+
+            if (String.IsNullOrEmpty(fieldName)) {
+                token = this._stack.Peek();
+                return true;
+            }
+
+            var context = _stack.Peek().ToObject<Dictionary<string, object>>();
+            if (context == null || !context.TryGetValue(fieldName, out token)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ReadArrayField(string fieldName, out List<object> array) {
+            array = null;
+            object token;
+
+            if (!ReadField(fieldName, out token)) {
+                return false;
+            }
+
+            array = token as List<object>;
+
+            if (array == null) {
+                return false;
+            }
+
+            if (Context.MaxArrayLength > 0 && Context.MaxArrayLength < array.Count) {
+                throw new ServiceResultException(StatusCodes.BadEncodingLimitsExceeded);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Read the Matrix part (simple array or array of arrays)
+        /// </summary>
+        private void ReadMatrixPart(string fieldName, List<object> currentArray, BuiltInType builtInType, ref List<object> elements, ref List<int> dimensions, int level) {
+            try {
+                if (currentArray?.Count > 0) {
+                    var hasInnerArray = false;
+                    for (var ii = 0; ii < currentArray.Count; ii++) {
+                        if (ii == 0 && dimensions.Count <= level) {
+                            // remember dimension length
+                            dimensions.Add(currentArray.Count);
+                        }
+                        if (currentArray[ii] is List<object>) {
+                            hasInnerArray = true;
+
+                            if (!TryGetToken(fieldName, out var token)) {
+                                return;
+                            }
+                            _stack.Push(token);
+                            ReadMatrixPart(null, currentArray[ii] as List<object>, builtInType, ref elements, ref dimensions, level + 1);
+                            _stack.Pop();
+                        }
+                        else {
+                            break; // do not continue reading array of array
+                        }
+                    }
+                    if (!hasInnerArray) {
+                        // read array from one dimension
+                        var part = ReadArray(null, ValueRanks.OneDimension, builtInType, null) as System.Collections.IList;
+                        if (part != null && part.Count > 0) {
+                            // add part elements to final list 
+                            foreach (var item in part) {
+                                elements.Add(item);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex) {
+                throw new ServiceResultException(ex.Message);
+            }
         }
 
         /// <summary>

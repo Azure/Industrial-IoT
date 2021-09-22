@@ -479,6 +479,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (StatusCode.IsGood(wrapper.ReportedStatus)) {
                         if (wrapper.Session.Connected &&
                             !wrapper.Session.KeepAliveStopped) {
+                            // Fetch namespaces in case, there was some new Uris added to the server
+                            wrapper.Session.FetchNamespaceTables();
                             foreach (var subscription in wrapper._subscriptions.Values) {
                                 if (!ct.IsCancellationRequested) {
                                     await subscription.ActivateAsync(wrapper.Session).ConfigureAwait(false);

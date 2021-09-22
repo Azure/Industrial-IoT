@@ -54,12 +54,6 @@ spec:
           serviceName: {{ template "azure-industrial-iot.history.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.history.service.port }}
 {{- end }}
-{{- if and .Values.deployment.microServices.gateway.enabled .Values.deployment.ingress.paths.gateway }}
-      - path: {{ .Values.deployment.ingress.paths.gateway }}
-        backend:
-          serviceName: {{ template "azure-industrial-iot.gateway.fullname" . }}
-          servicePort: {{ .Values.deployment.microServices.gateway.service.port }}
-{{- end }}
 {{- if and .Values.deployment.microServices.publisher.enabled .Values.deployment.ingress.paths.publisher }}
       - path: {{ .Values.deployment.ingress.paths.publisher }}
         backend:

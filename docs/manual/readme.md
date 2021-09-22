@@ -179,7 +179,7 @@ The OPC Publisher supports two operational modes:
 - Standalone mode
 - Orchestrated mode
 
-In both modes the OPC Publisher Module is to a container orchestration runtime as IoT Edge or Kubernetes. The modes differentiate how the operation of OPC Publisher is controlled. The mode is controlled by the fact if the OPC Publisher module is configured to read its configuration from a configuration file (see "pf" option below).
+The modes differentiate how the operation of OPC Publisher is controlled. The mode is controlled by the fact if the OPC Publisher module is configured to read its configuration from a configuration file (see "pf" option below).
 
 In standalone mode all configuration is done via command line options when starting the module and via a configuration file, which controls which OPC UA nodes should be published as well as specifying more detailed parameters for the publishing of each node:
 
@@ -597,7 +597,7 @@ References:
 
 Azure Log Analytics workspace is a unique environment for Azure Monitor log data. Each workspace has its own data repository and configuration, and data sources and solutions are configured to store their data in a particular workspace.
 
-We use Azure Log Analytics workspace to collect metrics from Edge modules as well as metrics from micro-services running in AKS cluster. We could also check other metrics of Kubernetes cluster.
+We use Azure Log Analytics workspace to collect metrics from Edge modules as well as metrics from micro-services running in AKS cluster. We could also check other metrics of the Kubernetes cluster.
 
 References:
 
@@ -924,7 +924,7 @@ The deployment script automatically configures all components to work with each 
 - `IoT Hub -> IoT Edge -> <DEVICE> -> Set Modules -> OpcPublisher` (for standalone OPC Publisher operation only)
 
 <table><thead><tr class="header"><th>Configuration Option<br />
-(shorthand|full name)</th><th>Description</th></tr></thead><tbody><tr class="odd"><td>pf|publishfile</td><td>the filename to configure the nodes to publish. If this Option is specified it puts OPC Publisher into stadalone mode.</td></tr><tr class="even"><td>lf|logfile</td><td>the filename of the logfile to use.</td></tr><tr class="odd"><td>ll|loglevel</td><td>the log level to use (allowed: fatal, error, warn, info, debug, verbose).</td></tr><tr class="even"><td>me|messageencoding</td><td>The messaging encoding for outgoing messages allowed values: Json, Uadp</td></tr><tr class="odd"><td>mm|messagingmode</td><td>The messaging mode for outgoing messages allowed values: PubSub, Samples</td></tr><tr class="even"><td>fm|fullfeaturedmessage</td><td>The full featured mode for messages (all fields filled in). Default is 'true', for legacy compatibility use 'false'</td></tr><tr class="odd"><td>aa|autoaccept</td><td>The publisher trusted all servers it is establishing a connection to</td></tr><tr class="even"><td>bs|batchsize</td><td>The number of OPC UA data-change messages to be cached for batching.</td></tr><tr class="odd"><td>si|iothubsendinterval</td><td>The trigger batching interval in seconds.</td></tr><tr class="even"><td>ms|iothubmessagesize</td><td>The maximum size of the (IoT D2C) message.</td></tr><tr class="odd"><td>om|maxoutgressmessages</td><td>The maximum size of the (IoT D2C) message egress buffer.</td></tr><tr class="even"><td>di|diagnosticsinterval</td><td>Shows publisher diagnostic info at the specified interval in seconds (need log level info).<br />
+(shorthand|full name)</th><th>Description</th></tr></thead><tbody><tr class="odd"><td>pf|publishfile</td><td>the filename to configure the nodes to publish. If this Option is specified it puts OPC Publisher into standalone mode.</td></tr><tr class="even"><td>lf|logfile</td><td>the filename of the logfile to use.</td></tr><tr class="odd"><td>ll|loglevel</td><td>the log level to use (allowed: fatal, error, warn, info, debug, verbose).</td></tr><tr class="even"><td>me|messageencoding</td><td>The messaging encoding for outgoing messages allowed values: Json, Uadp</td></tr><tr class="odd"><td>mm|messagingmode</td><td>The messaging mode for outgoing messages allowed values: PubSub, Samples</td></tr><tr class="even"><td>fm|fullfeaturedmessage</td><td>The full featured mode for messages (all fields filled in). Default is 'true', for legacy compatibility use 'false'</td></tr><tr class="odd"><td>aa|autoaccept</td><td>The publisher trusted all servers it is establishing a connection to</td></tr><tr class="even"><td>bs|batchsize</td><td>The number of OPC UA data-change messages to be cached for batching.</td></tr><tr class="odd"><td>si|iothubsendinterval</td><td>The trigger batching interval in seconds.</td></tr><tr class="even"><td>ms|iothubmessagesize</td><td>The maximum size of the (IoT D2C) message.</td></tr><tr class="odd"><td>om|maxoutgressmessages</td><td>The maximum size of the (IoT D2C) message egress buffer.</td></tr><tr class="even"><td>di|diagnosticsinterval</td><td>Shows publisher diagnostic info at the specified interval in seconds (need log level info).<br />
 -1 disables remote diagnostic log and diagnostic output</td></tr><tr class="odd"><td>lt|logflugtimespan</td><td>The timespan in seconds when the logfile should be flushed.</td></tr><tr class="even"><td>ih|iothubprotocol</td><td>Protocol to use for communication with the hub. Allowed values: AmqpOverTcp, AmqpOverWebsocket, MqttOverTcp, MqttOverWebsocket, Amqp, Mqtt, Tcp, Websocket, Any</td></tr><tr class="odd"><td>hb|heartbeatinterval</td><td>The publisher is using this as default value in seconds for the heartbeat interval setting of nodes without a heartbeat interval setting.</td></tr><tr class="even"><td>ot|operationtimeout</td><td>The operation timeout of the publisher OPC UA client in ms.</td></tr><tr class="odd"><td>ol|opcmaxstringlen</td><td>The max length of a string opc can transmit/receive.</td></tr><tr class="even"><td>oi|opcsamplinginterval</td><td>Default value in milliseconds to request the servers to sample values</td></tr><tr class="odd"><td>op|opcpublishinginterval</td><td>Default value in milliseconds for the publishing interval setting of the subscriptions against the OPC UA server.</td></tr><tr class="even"><td>ct|createsessiontimeout</td><td>The interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.</td></tr><tr class="odd"><td>kt|keepalivethresholt</td><td>Specify the number of keep alive packets a server can miss, before the session is disconnected.</td></tr><tr class="even"><td>tm|trustmyself</td><td>The publisher certificate is put into the trusted store automatically.</td></tr><tr class="odd"><td>at|appcertstoretype</td><td>The own application cert store type (allowed: Directory, X509Store).</td></tr></tbody></table>
 
 Reference: [OPC Publisher Edge Module](../modules/publisher-commandline.md)
@@ -939,9 +939,10 @@ In the following sections, one can find the configuration environment variables 
 
 Configuration for sending log data to Application Insights.
 
-| Environment Variable Names           | Modality | Default Value | Description                                  |
-|--------------------------------------|----------|---------------|----------------------------------------------|
-| PCS_APPINSIGHTS_INSTRUMENTATIONKEY   | optional | (empty)       | Instrumentation Key for Application Insights |
+| Environment Variable Names           | Modality | Default Value | Description                                                                                                |
+|--------------------------------------|----------|---------------|------------------------------------------------------------------------------------------------------------|
+| PCS_APPINSIGHTS_INSTRUMENTATIONKEY   | optional | (empty)       | Instrumentation Key for Application Insights                                                               |
+| PCS_APPINSIGHTS_LOGLEVEL             | optional | Information   | Minimimal logging level<br>Possible values: _Verbose_, _Debug_, _Information_, _Warning_, _Error_, _Fatal_ |
 
 ##### Cors Configuration
 
