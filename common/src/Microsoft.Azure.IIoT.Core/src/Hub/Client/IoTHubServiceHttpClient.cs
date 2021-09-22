@@ -90,8 +90,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     // Continue onward
                     // Update the deviceScope if the twin provided is for leaf iot device
                     //  (not iotedge device or iotedge module)
-                    if (!(twin.Capabilities?.IotEdge).GetValueOrDefault(false) && 
-                        string.IsNullOrEmpty(twin.ModuleId) && 
+                    if (!(twin.Capabilities?.IotEdge).GetValueOrDefault(false) &&
+                        string.IsNullOrEmpty(twin.ModuleId) &&
                         !string.IsNullOrEmpty(twin.DeviceScope)) {
                         try {
                             var update = NewRequest($"/devices/{twin.Id}");

@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                 var context = new ServiceMessageContext();
                 var decoder = new BinaryDecoder(new MemoryStream(payload), context);
                 var messages = decoder.ReadBoolean(null) // is Batch?
-                    ? decoder.ReadEncodeableArray(null, typeof(MonitoredItemMessage)) 
+                    ? decoder.ReadEncodeableArray(null, typeof(MonitoredItemMessage))
                         as MonitoredItemMessage[]
                      : (decoder.ReadEncodeable(null, typeof(MonitoredItemMessage))
                         as MonitoredItemMessage).YieldReturn();

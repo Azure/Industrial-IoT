@@ -39,7 +39,7 @@ namespace Opc.Ua.Extensions {
                 return OpcUaDateTimeMaxValue;
             }
             else {
-                return dateTime.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK", 
+                return dateTime.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK",
                     CultureInfo.InvariantCulture);
             }
         }
@@ -55,11 +55,11 @@ namespace Opc.Ua.Extensions {
 
         /// <summary>
         /// Converter from OpcUa encoded Utc to DateTime.
-        /// The result is DateTime.MinValue, DateTime.MaxValue or 
+        /// The result is DateTime.MinValue, DateTime.MaxValue or
         /// the Utc kind.
         /// </summary>
         public static DateTime ToOpcUaUniversalTime(this DateTime dateTime) {
-            if (dateTime <= DateTime.MinValue) {        
+            if (dateTime <= DateTime.MinValue) {
                 return DateTime.MinValue;
             }
             else if (dateTime >= kDateTimeMaxJsonValue) {

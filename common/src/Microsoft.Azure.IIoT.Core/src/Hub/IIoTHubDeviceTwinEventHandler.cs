@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Hub {
 
         /// <summary>
         /// Handles twin change events. Each handler is
-        /// called in sequence.  Since the event is 
+        /// called in sequence.  Since the event is
         /// mutable the next handler can process an
         /// updated version of it.
         /// </summary>

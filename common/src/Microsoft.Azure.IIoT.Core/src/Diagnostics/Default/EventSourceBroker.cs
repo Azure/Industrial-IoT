@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             if (string.IsNullOrEmpty(eventSource)) {
                 throw new ArgumentNullException(nameof(eventSource));
             }
-            var source = _subscribers.GetOrAdd(eventSource, 
+            var source = _subscribers.GetOrAdd(eventSource,
                 name => new EventSourceWrapper(this));
             return source.Add(subscriber);
         }
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             /// </summary>
             /// <param name="listener"></param>
             /// <param name="eventSource"></param>
-            internal EventSourceWrapper(EventSourceBroker listener, 
+            internal EventSourceWrapper(EventSourceBroker listener,
                 EventSource eventSource = null) {
                 EventSource = eventSource;
                 _listener = listener;
@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             internal void UpdateEventLevel() {
                 if (EventSource != null) {
                     lock (_subscriptions) {
-                        var level = _subscriptions.Any() ? 
+                        var level = _subscriptions.Any() ?
                             _subscriptions.Max(s => s.Level) : EventLevel.LogAlways;
                         if (level != _enabledLevel) {
                             _enabledLevel = level;
@@ -151,7 +151,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
 
             private EventLevel _enabledLevel = EventLevel.LogAlways;
             private readonly EventSourceBroker _listener;
-            private readonly List<EventSourceSubscriber> _subscriptions = 
+            private readonly List<EventSourceSubscriber> _subscriptions =
                 new List<EventSourceSubscriber>();
         }
 

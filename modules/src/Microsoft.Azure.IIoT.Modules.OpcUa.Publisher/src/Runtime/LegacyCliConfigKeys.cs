@@ -18,6 +18,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string DefaultPublishedNodesFilename = "publishednodes.json";
 
         /// <summary>
+        /// Key for default published nodes schema file.
+        /// </summary>
+        public const string DefaultPublishedNodesSchemaFilename = "schemas/publishednodesschema.json";
+
+        /// <summary>
         /// Key for the publisher site.
         /// </summary>
         public const string PublisherSite = "Site";
@@ -25,7 +30,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the specified published nodes filename.
         /// </summary>
-        public const string PublisherNodeConfigurationFilename = "PublishedNodesFile";
+        public const string PublishedNodesConfigurationFilename = "PublishedNodesFile";
+
+        /// <summary>
+        /// Key for the specified published nodes schema filename.
+        /// </summary>
+        public const string PublishedNodesConfigurationSchemaFilename = "PublishedNodesSchemaFile";
 
         /// <summary>
         /// Key for the session connect time in seconds.

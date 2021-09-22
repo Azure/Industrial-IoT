@@ -49,7 +49,7 @@ namespace Opc.Ua.Encoders {
             _wrapped.Context;
 
         /// <inheritdoc />
-        public bool UseReversibleEncoding => 
+        public bool UseReversibleEncoding =>
             _wrapped.UseReversibleEncoding;
 
         /// <inheritdoc />

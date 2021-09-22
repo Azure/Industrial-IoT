@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
     public class RevocationInfo {
 
         /// <summary>
-        /// Revocation date 
+        /// Revocation date
         /// </summary>
         public DateTime? Date { get; set; }
     }

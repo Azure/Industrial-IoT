@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         }
 
         private readonly TestServerFixture _server;
-        private readonly IPHostEntry _hostEntry; 
+        private readonly IPHostEntry _hostEntry;
 
         [Fact]
         public async Task NodeBrowseInRootTest1Async() {

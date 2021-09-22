@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         protected string GetRoleDefinitionId(
             string roleId
         ) {
-            var networkContributorRoleDefinitionId = 
+            var networkContributorRoleDefinitionId =
                 $"/subscriptions/{_subscriptionId}/providers" +
                 $"/Microsoft.Authorization/roleDefinitions/{roleId}";
 

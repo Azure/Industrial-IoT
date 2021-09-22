@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     logger.Error(e, "Unable to start metric server. For more info, please check troubleshooting guide for edge metrics collection");
                 }
 
-            } 
+            }
             else {
                 logger.Information("Metrics Collection is disabled. Not starting prometheus metric server.");
             }

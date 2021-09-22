@@ -4,12 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Crypto;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
@@ -19,7 +20,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Published nodes
@@ -46,14 +46,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Read monitored item job from reader
         /// </summary>
         /// <param name="publishedNodesFile"></param>
+        /// <param name="publishedNodesSchemaFile"></param>
         /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
         public IEnumerable<WriterGroupJobModel> Read(TextReader publishedNodesFile,
+            TextReader publishedNodesSchemaFile,
             LegacyCliModel legacyCliModel) {
             var sw = Stopwatch.StartNew();
-            _logger.Debug("Reading published nodes file ({elapsed}", sw.Elapsed);
-            var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(
-                publishedNodesFile);
+            _logger.Debug("Reading and validating published nodes file ({elapsed}", sw.Elapsed);
+
+            var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesFile, publishedNodesSchemaFile);
+
             if (items == null) {
                 throw new SerializerException("Published nodes files, missformed");
             }
