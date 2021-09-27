@@ -20,9 +20,6 @@
 
  .PARAMETER Debug
     Build debug and include debugger into images (where applicable)
-
- .PARAMETER Fast
-    Only build images that are absolutely needed (tagged with buildAlways:true)
 #>
 
 Param(
@@ -30,7 +27,6 @@ Param(
     [string] $Registry,
     [string] $Subscription,
     [switch] $Build,
-    [switch] $Fast,
     [switch] $Debug
 )
 
@@ -47,12 +43,6 @@ Get-ChildItem $BuildRoot -Recurse -Include "container.json" `
     # Get root
     $dockerFolder = $_.DirectoryName.Replace($BuildRoot, "").Substring(1)
     $metadata = Get-Content -Raw -Path $_.FullName | ConvertFrom-Json
-
-    if ($Fast.IsPresent) {
-        if (!$metadata.buildAlways) {
-            return
-        }
-    }
 
     try {
         $jobName = "$($metadata.name)"
