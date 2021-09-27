@@ -151,7 +151,7 @@ namespace OpcPublisher
                 pkcsStore.Save(pfxData, passcode.ToCharArray(), random);
 
                 // create X509Certificate2 object from PKCS12 file
-                certificate = CertificateFactory.CreateCertificateFromPKCS12(pfxData.ToArray(), passcode);
+                certificate = X509Utils.CreateCertificateFromPKCS12(pfxData.ToArray(), passcode);
 
                 // handle each store type differently
                 switch (storeType)
