@@ -97,7 +97,7 @@ namespace OpcPublisher
             Match match = _patternRegex.Match(stringToParse);
             if (match.Groups[0].Success)
             {
-                foreach (var group in match.Groups.Skip(1))
+                foreach (var group in match.Groups.Values.Skip(1))
                 {
                     result += group.Value;
                 }
