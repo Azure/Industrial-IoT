@@ -33,7 +33,8 @@
     <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.38.0" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.366.38" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.4.366.38" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.4.366.38" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
