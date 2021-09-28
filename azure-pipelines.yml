@@ -7,7 +7,7 @@ trigger:
   batch: true
   branches:
     include:
-    - master
+    - main
     - release/*
 stages:
 - stage: build
@@ -15,26 +15,6 @@ stages:
   jobs:
   - template: tools/templates/ci.yml
   - template: tools/templates/sdl.yml
-- stage: pack
-  displayName: 'Package and Sign Nuget'
-  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-  dependsOn:
-  - build
-  jobs:
-  - template: tools/templates/nuget.yml
-    parameters:
-      sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
-- stage: iiot_deployment
-  displayName: 'Build Installer'
-  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-  dependsOn:
-  - build
-  jobs:
-  - template: tools/templates/iiot_deployment_win.yml
-    parameters:
-      sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
-  - template: tools/templates/iiot_deployment_linux.yml
-  - template: tools/templates/iiot_deployment_mac.yml
 - stage: images
   displayName: 'Build Images'
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))

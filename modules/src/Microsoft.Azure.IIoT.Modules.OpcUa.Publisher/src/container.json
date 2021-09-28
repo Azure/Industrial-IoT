@@ -1,3 +1,5 @@
 {
-    "name": "iotedge/opc-publisher"
+    "name": "iotedge/opc-publisher",
+    "buildAlways": true,
+    "iotedge": true
 }

@@ -1,4 +1,0 @@
-{
-    "name": "iot/opc-twin-service",
-    "exposes": [9042]
-}

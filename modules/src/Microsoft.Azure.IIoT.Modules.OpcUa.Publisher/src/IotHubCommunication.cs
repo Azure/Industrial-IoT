@@ -131,20 +131,9 @@
                 }
             }
 
-            // save the device connectionstring, if we have one
-            if (!string.IsNullOrEmpty(DeviceConnectionString))
-            {
-                Logger.Information($"Adding device connectionstring to secure store.");
-                SecureIoTHubToken.WriteAsync(ApplicationName, DeviceConnectionString, IotDeviceCertStoreType, IotDeviceCertStorePath).Wait();
-            }
-
-            // try to read connection string from secure store and open IoTHub client
-            Logger.Information($"Attempting to read device connection string from cert store using subject name: {ApplicationName}");
-            DeviceConnectionString = SecureIoTHubToken.ReadAsync(ApplicationName, IotDeviceCertStoreType, IotDeviceCertStorePath).Result;
-
             if (string.IsNullOrEmpty(DeviceConnectionString))
             {
-                string errorMessage = $"Device connection string not found in secure store. Please pass it in at least once via command line option. Can not connect to IoTHub. Exiting...";
+                string errorMessage = $"Device connection string not provided via command line option. Can not connect to IoTHub. Exiting...";
                 Logger.Fatal(errorMessage);
                 throw new ArgumentException(errorMessage);
             }
