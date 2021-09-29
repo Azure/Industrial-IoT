@@ -12,17 +12,17 @@ schedules:
     - releases
   always: true
 
-# Trigger Orchestrated E2E Pipeline post completion of build pipeline.
-resources:
-  pipelines:
-  - pipeline: Orchestrated-E2E-CD-Pipeline
-    source: Custom\Azure_IOT\Industrial\Components\Azure.Industrial-IoT
-    trigger:
-      branches:
-        include:
-        - refs/heads/releases
-        - refs/heads/release/*
-        - refs/heads/main
+# # Trigger Orchestrated E2E Pipeline post completion of build pipeline.
+# resources:
+#   pipelines:
+#   - pipeline: Orchestrated-E2E-CD-Pipeline
+#     source: Custom\Azure_IOT\Industrial\Components\Azure.Industrial-IoT
+#     trigger:
+#       branches:
+#         include:
+#         - refs/heads/releases
+#         - refs/heads/release/*
+#         - refs/heads/main
 
 pool:
   name: '$(AgentPool)'
