@@ -18,7 +18,7 @@ namespace Opc.Ua.Encoders {
         public EncodingType EncodingType => _wrapped.EncodingType;
 
         /// <inheritdoc />
-        public ServiceMessageContext Context => _wrapped.Context;
+        public IServiceMessageContext Context => _wrapped.Context;
 
         /// <summary>
         /// Create wrapper
@@ -27,7 +27,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="contentType"></param>
         /// <param name="context"></param>
         public ModelDecoder(Stream stream, string contentType,
-            ServiceMessageContext context = null) :
+            IServiceMessageContext context = null) :
             this(CreateDecoder(contentType, stream, context)) {
         }
 
@@ -345,7 +345,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="context"></param>
         /// <returns></returns>
         private static IDecoder CreateDecoder(string contentType, Stream stream,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (stream == null) {
                 throw new ArgumentNullException(nameof(stream));
             }

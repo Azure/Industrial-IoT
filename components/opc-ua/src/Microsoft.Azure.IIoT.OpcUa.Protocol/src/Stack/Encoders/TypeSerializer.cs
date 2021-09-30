@@ -19,7 +19,7 @@ namespace Opc.Ua.Encoders {
         /// Create codec
         /// </summary>
         /// <param name="context"></param>
-        public TypeSerializer(ServiceMessageContext context = null) {
+        public TypeSerializer(IServiceMessageContext context = null) {
             _context = context ?? ServiceMessageContext.GlobalContext;
         }
 
@@ -116,6 +116,6 @@ namespace Opc.Ua.Encoders {
             }
         }
 
-        private readonly ServiceMessageContext _context;
+        private readonly IServiceMessageContext _context;
     }
 }

@@ -19,7 +19,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <param name="noRelativeUriAllowed"></param>
         /// <returns></returns>
-        public static string AsString(this QualifiedName qn, ServiceMessageContext context,
+        public static string AsString(this QualifiedName qn, IServiceMessageContext context,
             bool noRelativeUriAllowed = false) {
             if (qn == null || qn == QualifiedName.Null) {
                 return string.Empty;
@@ -45,7 +45,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="value"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static QualifiedName ToQualifiedName(this string value, ServiceMessageContext context) {
+        public static QualifiedName ToQualifiedName(this string value, IServiceMessageContext context) {
             if (string.IsNullOrEmpty(value)) {
                 return QualifiedName.Null;
             }

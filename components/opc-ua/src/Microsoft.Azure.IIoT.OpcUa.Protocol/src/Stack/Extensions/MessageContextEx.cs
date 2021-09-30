@@ -16,14 +16,16 @@ namespace Opc.Ua.Extensions {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="session"></param>
-        public static void UpdateFromSession(this ServiceMessageContext context,
+        public static void UpdateFromSession(this IServiceMessageContext context,
             Session session) {
             if (session.TransportChannel?.MessageContext != null) {
                 context.UpdateFromContext(session.TransportChannel.MessageContext);
             }
-            context.Factory = session.Factory;
-            context.NamespaceUris = session.NamespaceUris;
-            context.ServerUris = session.ServerUris;
+            if (context is ServiceMessageContext serviceMessageContext) {
+                serviceMessageContext.Factory = session.Factory;
+                serviceMessageContext.NamespaceUris = session.NamespaceUris;
+                serviceMessageContext.ServerUris = session.ServerUris;
+            }
         }
 
         /// <summary>
@@ -31,15 +33,17 @@ namespace Opc.Ua.Extensions {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="update"></param>
-        public static void UpdateFromContext(this ServiceMessageContext context,
-            ServiceMessageContext update) {
-            context.Factory = update.Factory;
-            context.NamespaceUris = update.NamespaceUris;
-            context.ServerUris = update.ServerUris;
-            context.MaxStringLength = update.MaxStringLength;
-            context.MaxArrayLength = update.MaxArrayLength;
-            context.MaxByteStringLength = update.MaxByteStringLength;
-            context.MaxMessageSize = update.MaxMessageSize;
+        public static void UpdateFromContext(this IServiceMessageContext context,
+            IServiceMessageContext update) {
+            if (context is ServiceMessageContext serviceMessageContext) {
+                serviceMessageContext.Factory = update.Factory;
+                serviceMessageContext.NamespaceUris = update.NamespaceUris;
+                serviceMessageContext.ServerUris = update.ServerUris;
+                serviceMessageContext.MaxStringLength = update.MaxStringLength;
+                serviceMessageContext.MaxArrayLength = update.MaxArrayLength;
+                serviceMessageContext.MaxByteStringLength = update.MaxByteStringLength;
+                serviceMessageContext.MaxMessageSize = update.MaxMessageSize;
+            }
         }
 
         /// <summary>
@@ -58,7 +62,7 @@ namespace Opc.Ua.Extensions {
         /// Convert to system context
         /// </summary>
         /// <param name="context"></param>
-        public static ISystemContext ToSystemContext(this ServiceMessageContext context) {
+        public static ISystemContext ToSystemContext(this IServiceMessageContext context) {
             if (context == null) {
                 return null;
             }
@@ -73,7 +77,7 @@ namespace Opc.Ua.Extensions {
         /// Convert to message context
         /// </summary>
         /// <param name="context"></param>
-        public static ServiceMessageContext ToMessageContext(this ISystemContext context) {
+        public static IServiceMessageContext ToMessageContext(this ISystemContext context) {
             if (context == null) {
                 return null;
             }

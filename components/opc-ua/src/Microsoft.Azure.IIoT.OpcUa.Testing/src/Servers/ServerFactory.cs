@@ -247,7 +247,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                 IServerInternal server, ApplicationConfiguration configuration) {
                 _logger.Information("Creating the Node Managers.");
                 var nodeManagers = _nodes
-                    .Select(n => n.CreateNodeManager(server, configuration));
+                    .Select(n => n.Create(server, configuration));
                 return new MasterNodeManager(server, configuration, null,
                     nodeManagers.ToArray());
             }

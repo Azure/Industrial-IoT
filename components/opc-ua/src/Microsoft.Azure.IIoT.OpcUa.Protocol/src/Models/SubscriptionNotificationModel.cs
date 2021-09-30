@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <summary>
         /// Service message context
         /// </summary>
-        public ServiceMessageContext ServiceMessageContext { get; set; }
+        public IServiceMessageContext ServiceMessageContext { get; set; }
 
         /// <summary>
         /// Notification
