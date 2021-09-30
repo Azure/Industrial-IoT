@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.36.1" />
-    <PackageReference Include="Microsoft.Azure.Management.IotHub" Version="4.0.0" />
+    <PackageReference Include="Microsoft.Azure.Management.IotHub" Version="4.1.0" />
     <PackageReference Include="Microsoft.Azure.Management.OperationalInsights" Version="0.23.0-preview" />
     <PackageReference Include="Microsoft.Azure.Management.ApplicationInsights" Version="0.3.0-preview" />
     <PackageReference Include="Microsoft.Azure.Management.Authorization" Version="2.12.0-preview" />
