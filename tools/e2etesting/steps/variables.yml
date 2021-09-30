@@ -3,7 +3,6 @@ variables:
   ClientCredentialsKeyVaultName: automatedtesting
   AzureSubscription: IOT-OPC-WALLS-SP # Use Services-Connection with Service-Principal-Authentication as subscription
   AgentPool: Azure-IoT-Manufacturing
-  AgentName: iiot-win-opcplc1
   IAILocalFilename: Microsoft.Azure.IIoT.Deployment.exe
   TestPath: $(System.DefaultWorkingDirectory)\e2e-tests\IIoTPlatform-E2E-Tests
   Runtime: 'win-x64'

@@ -27,7 +27,7 @@ schedules:
 pool:
   name: '$(AgentPool)'
   demands:
-  - agent.name -equals $(AgentName)
+  - agent.os -equals Windows_NT
 
 variables:
 - template: steps/variables.yml
