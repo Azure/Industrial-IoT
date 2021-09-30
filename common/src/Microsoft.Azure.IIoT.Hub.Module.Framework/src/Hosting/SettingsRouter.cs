@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         }
                     }
                     catch (Exception ex) {
-                        _logger.Error(ex, "Error processing setting {key}/{value}", 
+                        _logger.Error(ex, "Error processing setting {key}/{value}",
                             setting.Key, setting.Value.ToJson());
                     }
                 }

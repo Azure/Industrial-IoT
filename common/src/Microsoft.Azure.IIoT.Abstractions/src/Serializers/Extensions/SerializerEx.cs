@@ -135,12 +135,14 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// <param name="serializer"></param>
         /// <param name="str"></param>
         /// <param name="type"></param>
+        /// <param name="schemaReader"></param>
         /// <returns></returns>
         public static object Deserialize(this ISerializer serializer,
-            string str, Type type) {
+            string str, Type type, TextReader schemaReader = null) {
             var buffer = serializer.ContentEncoding?.GetBytes(str)
                 ?? Convert.FromBase64String(str);
-            return serializer.Deserialize(buffer, type);
+
+            return serializer.Deserialize(buffer, type, schemaReader);
         }
 
         /// <summary>
@@ -168,15 +170,33 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
 
         /// <summary>
+        /// Deserialize from validating reader
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="serializer"></param>
+        /// <param name="reader"></param>
+        /// <param name="schemaReader"></param>
+        /// <returns></returns>
+        public static T Deserialize<T>(this ISerializer serializer,
+            TextReader reader,
+            TextReader schemaReader) {
+
+            // Desrialize and validate json content in a single read cycle.
+            return serializer.Deserialize<T>(reader.ReadToEnd(), schemaReader);
+        }
+
+        /// <summary>
         /// Deserialize from string
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="serializer"></param>
         /// <param name="json"></param>
+        /// <param name="schemaReader"></param>
         /// <returns></returns>
         public static T Deserialize<T>(this ISerializer serializer,
-            string json) {
-            var typed = serializer.Deserialize(json, typeof(T));
+            string json,
+            TextReader schemaReader = null) {
+            var typed = serializer.Deserialize(json, typeof(T), schemaReader);
             return typed == null ? default : (T)typed;
         }
 

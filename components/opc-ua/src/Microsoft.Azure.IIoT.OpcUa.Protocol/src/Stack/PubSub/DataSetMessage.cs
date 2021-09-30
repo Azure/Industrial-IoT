@@ -166,7 +166,7 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.SequenceNumber) != 0) {
                 encoder.WriteUInt32(nameof(UadpDataSetMessageContentMask.SequenceNumber), SequenceNumber);
             }
-            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.MajorVersion) != 0){ 
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.MajorVersion) != 0){
                 encoder.WriteUInt32(nameof(UadpDataSetMessageContentMask.MajorVersion), MetaDataVersion.MajorVersion);
             }
             if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.MinorVersion) != 0) {

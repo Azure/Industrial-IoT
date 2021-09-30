@@ -289,6 +289,12 @@ namespace TestEventProcessor.BusinessLogic {
                     continue;
                 }
 
+                // OPC PLC contains bad fast and slow nodes that drop messages by design.
+                // We will ignore entries that do not have a value.
+                if (entryValue is null) {
+                    continue;
+                }
+
                 // Feed data to checkers.
                 _missingTimestampsChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
                 _messageProcessingDelayChecker.ProcessEvent(entrySourceTimestamp, eventReceivedTimestamp);

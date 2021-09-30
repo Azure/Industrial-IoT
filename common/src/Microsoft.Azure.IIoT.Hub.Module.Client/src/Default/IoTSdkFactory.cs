@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
 
         /// <inheritdoc/>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5359:Do Not Disable Certificate Validation", 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA5359:Do Not Disable Certificate Validation",
             Justification = "<Pending>")]
         public async Task<IClient> CreateAsync(string product, IProcessControl ctrl) {
 

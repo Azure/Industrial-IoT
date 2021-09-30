@@ -53,6 +53,10 @@ To learn how to use OPC Publisher outside the context of Industrial IoT Platform
 - [Documentation and tutorials](https://azure.github.io/Industrial-IoT/).
 - [Releases of the platform](https://github.com/Azure/Industrial-IoT/releases).
 
+## Mitigations for known vulnerabilities
+
+To mitigate known vulnerabilities external to the Industrial-IoT Platform please review [this](docs/security/readme.md) documentation.
+
 ## Get support
 
 Please report any security related issues by following our [security process](security.md).
