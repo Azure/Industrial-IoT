@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         public static ViewDescription ToStackModel(this BrowseViewModel viewModel,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (viewModel == null) {
                 return null;
             }
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         public static BrowseViewModel ToServiceModel(this ViewDescription view,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (view == null) {
                 return null;
             }
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         public static RolePermissionType ToStackModel(this RolePermissionModel model,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (model == null) {
                 return null;
             }
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         public static RolePermissionModel ToServiceModel(this RolePermissionType type,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (type == null) {
                 return null;
             }
@@ -169,7 +169,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         public static AggregateFilter ToStackModel(this AggregateFilterModel model,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (model == null) {
                 return null;
             }
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         public static AggregateFilterModel ToServiceModel(this AggregateFilter model,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (model == null) {
                 return null;
             }
@@ -252,7 +252,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         public static SimpleAttributeOperand ToStackModel(this SimpleAttributeOperandModel model,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (model == null) {
                 return null;
             }
@@ -273,7 +273,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="context"></param>
         /// <returns></returns>
         public static SimpleAttributeOperandModel ToServiceModel(this SimpleAttributeOperand model,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (model == null) {
                 return null;
             }

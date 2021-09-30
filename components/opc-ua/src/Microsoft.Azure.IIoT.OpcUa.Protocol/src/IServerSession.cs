@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Session scope message context
         /// </summary>
-        ServiceMessageContext MessageContext { get; }
+        IServiceMessageContext MessageContext { get; }
 
         /// <summary>
         /// Validate request

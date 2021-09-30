@@ -24,7 +24,7 @@ namespace Opc.Ua.Encoders {
         public EncodingType EncodingType => EncodingType.Json;
 
         /// <inheritdoc/>
-        public ServiceMessageContext Context { get; }
+        public IServiceMessageContext Context { get; }
 
         /// <summary>
         /// Whether to use reversible encoding or not
@@ -85,7 +85,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="encoding"></param>
         /// <param name="formatting"></param>
         public JsonEncoderEx(Stream stream,
-            ServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object,
+            IServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object,
             Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None) :
             this(new StreamWriter(stream, new UTF8Encoding(false)),
                 context, encoding, formatting) {
@@ -99,7 +99,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="encoding"></param>
         /// <param name="formatting"></param>
         public JsonEncoderEx(TextWriter writer,
-            ServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object,
+            IServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object,
             Newtonsoft.Json.Formatting formatting = Newtonsoft.Json.Formatting.None) :
             this(new JsonTextWriter(writer) {
                 AutoCompleteOnClose = true,
@@ -116,7 +116,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="context"></param>
         /// <param name="encoding"></param>
         public JsonEncoderEx(JsonWriter writer,
-            ServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object) {
+            IServiceMessageContext context = null, JsonEncoding encoding = JsonEncoding.Object) {
             _namespaces = new Stack<string>();
             Context = context ?? new ServiceMessageContext();
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));

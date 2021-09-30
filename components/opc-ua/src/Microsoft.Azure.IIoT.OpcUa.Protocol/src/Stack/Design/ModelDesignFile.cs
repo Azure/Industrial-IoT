@@ -66,7 +66,7 @@ namespace Opc.Ua.Design {
         /// <param name="resolver"></param>
         /// <param name="context"></param>
         internal ModelDesignFile(ModelDesign model, INodeIdAssigner assigner,
-            INodeResolver resolver, ServiceMessageContext context = null) {
+            INodeResolver resolver, IServiceMessageContext context = null) {
 
             _resolver = resolver ?? assigner as INodeResolver;
             _assigner = assigner ?? resolver as INodeIdAssigner;
@@ -2906,6 +2906,6 @@ namespace Opc.Ua.Design {
         private readonly INodeResolver _resolver;
         private readonly INodeIdAssigner _assigner;
         private readonly ModelDesign _model;
-        private readonly ServiceMessageContext _context;
+        private readonly IServiceMessageContext _context;
     }
 }

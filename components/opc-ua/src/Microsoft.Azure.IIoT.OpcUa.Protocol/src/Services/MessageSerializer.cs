@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Create codec
         /// </summary>
         /// <param name="context"></param>
-        public MessageSerializer(ServiceMessageContext context = null) {
+        public MessageSerializer(IServiceMessageContext context = null) {
             _context = context ?? ServiceMessageContext.ThreadContext;
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Encodes a message in a stream.
         /// </summary>
         private static void EncodeBinaryMessage(IEncodeable message, Stream stream,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (message == null) {
                 throw new ArgumentNullException(nameof(message));
             }
@@ -117,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// Decodes a message from a buffer.
         /// </summary>
         private static IEncodeable DecodeBinaryMessage(Stream stream,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (stream == null) {
                 throw new ArgumentNullException(nameof(stream));
             }
@@ -158,6 +158,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
 
-        private readonly ServiceMessageContext _context;
+        private readonly IServiceMessageContext _context;
     }
 }

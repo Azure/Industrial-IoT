@@ -71,7 +71,7 @@ namespace Opc.Ua.PubSub {
         }
 
         /// <inheritdoc/>
-        public static DataSetMetadata Decode(ServiceMessageContext context, StreamReader reader) {
+        public static DataSetMetadata Decode(IServiceMessageContext context, StreamReader reader) {
             var json = reader.ReadToEnd();
 
             var output = new DataSetMetadata();
