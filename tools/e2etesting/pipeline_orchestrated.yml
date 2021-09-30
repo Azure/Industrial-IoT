@@ -26,6 +26,8 @@ schedules:
 
 pool:
   name: '$(AgentPool)'
+  demands:
+  - agent.name -equals $(AgentName)
 
 variables:
 - template: steps/variables.yml
