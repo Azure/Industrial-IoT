@@ -3,7 +3,7 @@
 #
 parameters:
   runtime: linux-x64
-  poolName: 'Hosted Ubuntu 1604'
+  poolName: 'Hosted Ubuntu 1804'
 
 jobs:
 - job: iiot_deployment_linux
