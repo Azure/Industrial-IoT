@@ -1178,7 +1178,7 @@ namespace Opc.Ua.Nodeset {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private ServiceMessageContext ToMessageContext(ISystemContext context) {
+        private IServiceMessageContext ToMessageContext(ISystemContext context) {
             var messageContext = new ServiceMessageContext {
                 NamespaceUris = context.NamespaceUris ?? new NamespaceTable(),
                 ServerUris = context.ServerUris ?? new StringTable(),

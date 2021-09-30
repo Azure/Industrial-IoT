@@ -263,7 +263,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             public NodeId Id { get; }
 
             /// <inheritdoc/>
-            public ServiceMessageContext MessageContext { get; }
+            public IServiceMessageContext MessageContext { get; }
 
             /// <inheritdoc/>
             public EndpointDescription Endpoint { get; private set; }

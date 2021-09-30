@@ -35,7 +35,7 @@ namespace Vehicles {
     public class VehiclesServer : INodeManagerFactory {
 
         /// <inheritdoc/>
-        public INodeManager CreateNodeManager(IServerInternal server,
+        public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
             return new VehiclesNodeManager(server, configuration);
         }

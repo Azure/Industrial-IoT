@@ -354,7 +354,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <returns></returns>
         private IEnumerable<NetworkMessage> GetNetworkMessages(
             IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (context?.NamespaceUris == null) {
                 // Declare all notifications in messages as dropped.
                 int totalNotifications = messages.Sum(m => m?.Notifications?.Count() ?? 0);
@@ -423,7 +423,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="message">subscription notification message, containing notifications</param>
         /// <param name="context">service context</param>
         /// <returns>identifier of payload element</returns>
-        private string GetPayloadIdentifier(MonitoredItemNotificationModel notification, DataSetMessageModel message, ServiceMessageContext context) {
+        private string GetPayloadIdentifier(MonitoredItemNotificationModel notification, DataSetMessageModel message, IServiceMessageContext context) {
             if (notification is null) {
                 throw new ArgumentNullException(nameof(notification));
             }

@@ -331,7 +331,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="context"></param>
         private IEnumerable<MonitoredItemMessage> GetMonitoredItemMessages(
             IEnumerable<DataSetMessageModel> messages, MessageEncoding encoding,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (context?.NamespaceUris == null) {
                 // declare all notifications in messages dropped
                 foreach (var message in messages) {

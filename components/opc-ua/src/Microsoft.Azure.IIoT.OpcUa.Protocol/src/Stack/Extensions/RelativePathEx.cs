@@ -20,7 +20,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         public static RelativePath ToRelativePath(this string[] path,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (path == null) {
                 return new RelativePath();
             }
@@ -38,7 +38,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         public static string[] AsString(this RelativePath path,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (path == null) {
                 return null;
             }
@@ -54,7 +54,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         private static RelativePathElement ParsePathElement(string element,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             if (string.IsNullOrEmpty(element)) {
                 throw new ArgumentNullException(nameof(element));
             }
@@ -160,7 +160,7 @@ namespace Opc.Ua.Extensions {
         /// <param name="context"></param>
         /// <returns></returns>
         private static string FormatRelativePathElement(RelativePathElement element,
-            ServiceMessageContext context) {
+            IServiceMessageContext context) {
             var value = "";
             var writeReference = false;
             if (element.ReferenceTypeId == ReferenceTypeIds.HierarchicalReferences) {

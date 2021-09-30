@@ -36,7 +36,7 @@ namespace MemoryBuffer {
     public class MemoryBufferServer : INodeManagerFactory {
 
         /// <inheritdoc/>
-        public INodeManager CreateNodeManager(IServerInternal server,
+        public INodeManager Create(IServerInternal server,
             ApplicationConfiguration configuration) {
             return new MemoryBufferNodeManager(server, configuration);
         }

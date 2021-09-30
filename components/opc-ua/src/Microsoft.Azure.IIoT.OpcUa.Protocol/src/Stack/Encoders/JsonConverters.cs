@@ -26,7 +26,7 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="permissive"></param>
-        public JsonConverters(ServiceMessageContext context = null,
+        public JsonConverters(IServiceMessageContext context = null,
             bool permissive = false) : base(permissive) {
             _context = context;
         }
@@ -38,6 +38,6 @@ namespace Opc.Ua.Encoders {
             return converters;
         }
 
-        private readonly ServiceMessageContext _context;
+        private readonly IServiceMessageContext _context;
     }
 }

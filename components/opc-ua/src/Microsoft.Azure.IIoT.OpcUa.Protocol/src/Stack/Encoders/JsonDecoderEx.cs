@@ -23,14 +23,14 @@ namespace Opc.Ua.Encoders {
         public EncodingType EncodingType => EncodingType.Json;
 
         /// <inheritdoc/>
-        public ServiceMessageContext Context { get; }
+        public IServiceMessageContext Context { get; }
 
         /// <summary>
         /// Create decoder
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="context"></param>
-        public JsonDecoderEx(Stream stream, ServiceMessageContext context = null) :
+        public JsonDecoderEx(Stream stream, IServiceMessageContext context = null) :
             this(new JsonTextReader(new StreamReader(stream)) {
                 FloatParseHandling = FloatParseHandling.Double
             }, context) {
@@ -41,7 +41,7 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="reader"></param>
         /// <param name="context"></param>
-        public JsonDecoderEx(JsonReader reader, ServiceMessageContext context = null) :
+        public JsonDecoderEx(JsonReader reader, IServiceMessageContext context = null) :
             this(reader, context, false) {
         }
 
@@ -50,7 +50,7 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="root"></param>
         /// <param name="context"></param>
-        public JsonDecoderEx(JObject root, ServiceMessageContext context = null) {
+        public JsonDecoderEx(JObject root, IServiceMessageContext context = null) {
             Context = context ?? new ServiceMessageContext();
             _reader = null;
             _stack.Push(root ?? throw new ArgumentException(nameof(root)));
@@ -62,7 +62,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="reader"></param>
         /// <param name="context"></param>
         /// <param name="useReaderAsIs"></param>
-        internal JsonDecoderEx(JsonReader reader, ServiceMessageContext context,
+        internal JsonDecoderEx(JsonReader reader, IServiceMessageContext context,
             bool useReaderAsIs) {
             Context = context ?? new ServiceMessageContext();
             _reader = useReaderAsIs ? reader : new JsonLoader(
