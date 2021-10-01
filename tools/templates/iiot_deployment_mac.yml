@@ -3,13 +3,13 @@
 #
 parameters:
   runtime: 'osx-x64'
-  poolName: 'Hosted macOS'
+  vmImage: macOS-10.15
 
 jobs:
 - job: iiot_deployment_mac
   displayName: Generate MacOS Executables
   pool:
-    name: ${{ parameters.poolName }}
+    vmImage: ${{ parameters.vmImage }}
   steps:
   - template: build_iiot_deployment.yml
     parameters:
