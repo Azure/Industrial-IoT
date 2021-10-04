@@ -7,6 +7,7 @@
 parameters:
   e2eOrchestratedPipelineId: 20
   e2eStandalonePipelineId: 21
+  branchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
 
 # variables:
 # - name: branchName
@@ -25,7 +26,7 @@ jobs:
       method: 'POST'
       urlSuffix: ${{ parameters.e2eOrchestratedPipelineId }}/runs?api-version=6.0-preview.1
       headers: '{ "Content-Type": "application/json" }'
-      body: '{ "resources": { "repositories": { "self": { "refName": "$( replace(variables['Build.SourceBranch'], 'refs/heads/', '') )" }}}}'
+      body: '{ "resources": { "repositories": { "self": { "refName": "${{ parameters.branchName }}" }}}}'
       waitForCompletion: 'false'
   - task: InvokeRESTAPI@1
     displayName: 'Trigger Azure.Industrial-IoT-E2ETesting-Standalone'
@@ -35,5 +36,5 @@ jobs:
       method: 'POST'
       urlSuffix: ${{ parameters.e2eStandalonePipelineId }}/runs?api-version=6.0-preview.1
       headers: '{ "Content-Type": "application/json" }'
-      body: '{ "resources": { "repositories": { "self": { "refName": "$( replace(variables['Build.SourceBranch'], 'refs/heads/', '') )" }}}}'
+      body: '{ "resources": { "repositories": { "self": { "refName": "${{ parameters.branchName }}" }}}}'
       waitForCompletion: 'false'
