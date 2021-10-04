@@ -57,6 +57,10 @@ stages:
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   dependsOn:
   - build
+  - pack
+  - iiot_deployment
+  - images
+  - coverage
   jobs:
   - template: tools/templates/e2e_tests.yml
     parameters:
