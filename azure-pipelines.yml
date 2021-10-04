@@ -59,3 +59,5 @@ stages:
   - build
   jobs:
   - template: tools/templates/e2e_tests.yml
+    parameters:
+      branchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}

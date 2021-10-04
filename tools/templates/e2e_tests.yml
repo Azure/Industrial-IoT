@@ -7,7 +7,7 @@
 parameters:
   e2eOrchestratedPipelineId: 20
   e2eStandalonePipelineId: 21
-  branchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
+  branchName: main
 
 # variables:
 # - name: branchName
