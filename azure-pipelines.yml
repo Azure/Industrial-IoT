@@ -52,3 +52,10 @@ stages:
   - build
   jobs:
   - template: tools/templates/cc.yml
+- stage: e2e_tests
+  displayName: 'Triggering E2E tests'
+  # condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  dependsOn:
+  - build
+  jobs:
+  - template: tools/templates/e2e_tests.yml

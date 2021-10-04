@@ -13,6 +13,9 @@ schedules:
     - releases
   always: true
 
+# # Pipeline completion triggers work only for pipelines within the same organization.
+# # We will trigger this pipeline via a REST API call from the main pipeline.
+#
 # # Trigger Stand Alone E2E Pipeline post completion of build pipeline.
 # resources:
 #   pipelines:
