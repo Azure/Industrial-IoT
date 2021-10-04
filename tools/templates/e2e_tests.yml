@@ -14,7 +14,7 @@ jobs:
       serviceConnection: iotcat-Azure.Industrial-IoT-E2ETesting-Orchestrated # Required when connectionType == ConnectedServiceName
       method: 'POST'
       urlSuffix: /runs?api-version=6.0-preview.1
-      headers: '{Content-Type:application/json}'
+      headers: '{ "Content-Type": "application/json" }'
       body: '{ "resources": { "repositories": { "self": { "refName": "kakostan/iotcat" }}}}'
       waitForCompletion: 'false' # Options: true, false
       #successCriteria: # Optional
