@@ -9,10 +9,6 @@ parameters:
   e2eStandalonePipelineId: 21
   branchName: main
 
-# variables:
-# - name: branchName
-#   value: $[ replace(variables['Build.SourceBranch'], 'refs/heads/', '') ]
-
 jobs:
 - job: buildprep
   displayName: Triggering E2E tests
