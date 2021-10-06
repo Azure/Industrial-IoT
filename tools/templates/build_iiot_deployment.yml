@@ -1,5 +1,5 @@
 parameters:
-  runtime: 'win-x64' 
+  runtime: 'win-x64'
 
 steps:
 - task: UseDotNet@2
