@@ -3,13 +3,13 @@
 #
 parameters:
   runtime: linux-x64
-  poolName: 'Hosted Ubuntu 1604'
+  vmImage: ubuntu-18.04
 
 jobs:
 - job: iiot_deployment_linux
   displayName: Generate Linux Executables
   pool:
-    name: ${{ parameters.poolName }}
+    vmImage: ${{ parameters.vmImage }}
   steps:
   - template: build_iiot_deployment.yml
     parameters:

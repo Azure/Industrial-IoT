@@ -4,13 +4,13 @@
 parameters:
   sign: 'False'
   runtime: win-x64
-  poolName: 'Hosted Windows 2019 with VS2019'
+  vmImage: windows-2019
 
 jobs:
 - job: iiot_deployment_win
   displayName: Generate Windows Executables
   pool:
-    name: ${{ parameters.poolName }}
+    vmImage: ${{ parameters.vmImage }}
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK for signing'
