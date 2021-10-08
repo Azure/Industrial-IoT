@@ -87,7 +87,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var json = TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(_context, cts.Token, new List<string> { _context.OpcServerUrl }).GetAwaiter().GetResult();
             Assert.NotNull(json);
-            
+
             var result = json.items[0].registration;
             var endpointId = (string)result.id;
             Assert.NotEmpty(endpointId);
@@ -153,7 +153,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             }
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
-            var simulatedOpcServer = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();            
+            var simulatedOpcServer = TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token).GetAwaiter().GetResult();
             var route = TestConstants.APIRoutes.PublisherJobs;
             var response = TestHelper.CallRestApi(_context, Method.GET, route, ct: cts.Token);
             dynamic json = JsonConvert.DeserializeObject(response.Content);
@@ -181,7 +181,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).GetAwaiter().GetResult();
+            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, ct: cts.Token).GetAwaiter().GetResult();
 
             // Wait some time to generate events to process
             Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult();
@@ -209,10 +209,10 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // Wait untill the publishing has stopped
-            Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult(); 
+            Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult();
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).GetAwaiter().GetResult();
+            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, ct: cts.Token).GetAwaiter().GetResult();
 
             // Wait some time to generate events to process
             Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult();

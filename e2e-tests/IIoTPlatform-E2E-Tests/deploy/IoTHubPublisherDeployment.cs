@@ -12,10 +12,16 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
     public sealed class IoTHubPublisherDeployment : DeploymentConfiguration {
 
         /// <summary>
+        /// MessagingMode that will be used for configuration of OPC Publisher.
+        /// </summary>
+        public readonly MessagingMode MessagingMode;
+
+        /// <summary>
         /// Create deployment
         /// </summary>
         /// <param name="context"></param>
-        public IoTHubPublisherDeployment(IIoTPlatformTestContext context) : base(context) {
+        public IoTHubPublisherDeployment(IIoTPlatformTestContext context, MessagingMode messagingMode) : base(context) {
+            MessagingMode = messagingMode;
         }
 
         /// <inheritdoc />
@@ -51,7 +57,8 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                 Cmd = new[] {
                 "PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
                 "--aa",
-                "--pf=" + TestConstants.PublishedNodesFullName
+                "--pf=" + TestConstants.PublishedNodesFullName,
+                "--mm=" + MessagingMode.ToString()
             },
                 HostConfig = new {
                     Binds = new[] {
