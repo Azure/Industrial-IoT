@@ -33,15 +33,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
 
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(4, eventFilter.SelectClauses.Count);
+            Assert.Equal(2, eventFilter.SelectClauses.Count);
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[0].TypeDefinitionId);
             Assert.Equal(BrowseNames.Message, eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[1].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Time, eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[2].TypeDefinitionId);
-            Assert.Equal(BrowseNames.ReceiveTime, eventFilter.SelectClauses[2].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[3].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[3].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
 
             Assert.NotNull(eventFilter.WhereClause);
             Assert.NotNull(eventFilter.WhereClause.Elements);
@@ -74,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
 
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(9, eventFilter.SelectClauses.Count);
+            Assert.Equal(7, eventFilter.SelectClauses.Count);
             Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[0].AttributeId);
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[0].TypeDefinitionId);
             Assert.Empty(eventFilter.SelectClauses[0].BrowsePath);
@@ -90,11 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[5].TypeDefinitionId);
             Assert.Equal(BrowseNames.Message, eventFilter.SelectClauses[5].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[6].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Time, eventFilter.SelectClauses[6].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[7].TypeDefinitionId);
-            Assert.Equal(BrowseNames.ReceiveTime, eventFilter.SelectClauses[7].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[8].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[8].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[6].BrowsePath.ElementAtOrDefault(0));
 
             Assert.NotNull(eventFilter.WhereClause);
             Assert.NotNull(eventFilter.WhereClause.Elements);
@@ -130,7 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
 
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(10, eventFilter.SelectClauses.Count);
+            Assert.Equal(8, eventFilter.SelectClauses.Count);
             Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[0].AttributeId);
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[0].TypeDefinitionId);
             Assert.Empty(eventFilter.SelectClauses[0].BrowsePath);
@@ -146,13 +138,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[5].TypeDefinitionId);
             Assert.Equal(BrowseNames.Message, eventFilter.SelectClauses[5].BrowsePath.ElementAtOrDefault(0));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[6].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Time, eventFilter.SelectClauses[6].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[7].TypeDefinitionId);
-            Assert.Equal(BrowseNames.ReceiveTime, eventFilter.SelectClauses[7].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[8].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[8].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[9].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Retain, eventFilter.SelectClauses[9].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[6].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[7].TypeDefinitionId);
+            Assert.Equal(BrowseNames.Retain, eventFilter.SelectClauses[7].BrowsePath.ElementAtOrDefault(0));
 
             Assert.NotNull(eventFilter.WhereClause);
             Assert.NotNull(eventFilter.WhereClause.Elements);

@@ -124,25 +124,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         [Fact]
-        public void AddTimestampSelectClausesWhenBaseTemplateIsEventTemplate() {
-            var template = new EventMonitoredItemModel();
-            var monitoredItemWrapper = GetMonitoredItemWrapper(template);
-
-            Assert.NotNull(monitoredItemWrapper.Item.Filter);
-            Assert.IsType<EventFilter>(monitoredItemWrapper.Item.Filter);
-
-            var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
-            Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(3, eventFilter.SelectClauses.Count);
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[0].TypeDefinitionId);
-            Assert.Equal(BrowseNames.Time, eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[1].TypeDefinitionId);
-            Assert.Equal(BrowseNames.ReceiveTime, eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[2].TypeDefinitionId);
-            Assert.Equal(BrowseNames.EventType, eventFilter.SelectClauses[2].BrowsePath.ElementAtOrDefault(0));
-        }
-
-        [Fact]
         public void AddConditionTypeSelectClausesWhenPendingAlarmsIsSetInEventTemplate() {
             var template = new EventMonitoredItemModel {
                 PendingAlarms = new PendingAlarmsOptionsModel {
@@ -156,13 +137,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             var eventFilter = (EventFilter)monitoredItemWrapper.Item.Filter;
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(5, eventFilter.SelectClauses.Count);
-            Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[3].AttributeId);
-            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[3].TypeDefinitionId);
-            Assert.Empty(eventFilter.SelectClauses[3].BrowsePath);
-            Assert.Equal(Attributes.Value, eventFilter.SelectClauses[4].AttributeId);
-            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[4].TypeDefinitionId);
-            Assert.Equal("Retain", eventFilter.SelectClauses[4].BrowsePath.FirstOrDefault());
+            Assert.Equal(3, eventFilter.SelectClauses.Count);
+            Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[1].AttributeId);
+            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[1].TypeDefinitionId);
+            Assert.Empty(eventFilter.SelectClauses[1].BrowsePath);
+            Assert.Equal(Attributes.Value, eventFilter.SelectClauses[2].AttributeId);
+            Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[2].TypeDefinitionId);
+            Assert.Equal("Retain", eventFilter.SelectClauses[2].BrowsePath.FirstOrDefault());
         }
 
         [Fact]

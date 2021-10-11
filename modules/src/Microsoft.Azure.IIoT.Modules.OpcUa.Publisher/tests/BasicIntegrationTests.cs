@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             // Assert
             Assert.Single(messages);
             Assert.Equal("i=2253", messages[0].RootElement[0].GetProperty("NodeId").GetString());
-            Assert.NotEmpty(messages[0].RootElement[0].GetProperty("Value").GetProperty("Value").GetProperty("EventId").GetString());
+            Assert.NotEmpty(messages[0].RootElement[0].GetProperty("Value").GetProperty("EventId").GetString());
         }
 
         [Theory]

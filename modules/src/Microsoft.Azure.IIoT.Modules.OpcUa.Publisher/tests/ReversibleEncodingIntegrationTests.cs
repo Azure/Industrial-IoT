@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
             // Assert
             Assert.All(messages, m => {
-                var value = m.GetProperty("Payload").GetProperty("SimpleEvents").GetProperty("Value");
+                var value = m.GetProperty("Payload").GetProperty("SimpleEvents");
                 var eventId = value.GetProperty(kEventId);
                 var message = value.GetProperty(kMessage);
                 var cycleId = value.GetProperty(kCycleId);
@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
 
             // Assert
             Assert.All(messages, m => {
-                var value = m.GetProperty("Payload").GetProperty("SimpleEvents").GetProperty("Value");
+                var value = m.GetProperty("Payload").GetProperty("SimpleEvents");
                 var type = value.GetProperty("Type").GetString();
                 var body = value.GetProperty("Body");
                 Assert.Equal("ExtensionObject", type);
@@ -112,7 +112,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Tests {
             Assert.All(messages, m => {
                 var json = m.GetProperty("Payload")
                     .GetProperty("SimpleEvents")
-                    .GetProperty("Value")
                     .GetProperty("Body")
                     .GetProperty("Body")
                     .GetRawText();
