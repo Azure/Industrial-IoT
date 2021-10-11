@@ -1183,18 +1183,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                     // let's keep track of the internal fields we add so that they don't show up in the output
                     var internalSelectClauses = new List<SimpleAttributeOperand>();
-
-                    // Add SourceTimestamp and ServerTimestamp select clauses.
-                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.Time)) {
-                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.Time);
-                        eventFilter.SelectClauses.Add(selectClause);
-                        internalSelectClauses.Add(selectClause);
-                    }
-                    if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.ReceiveTime)) {
-                        var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.ReceiveTime);
-                        eventFilter.SelectClauses.Add(selectClause);
-                        internalSelectClauses.Add(selectClause);
-                    }
                     if (!eventFilter.SelectClauses.Any(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType)) {
                         var selectClause = new SimpleAttributeOperand(ObjectTypeIds.BaseEventType, BrowseNames.EventType);
                         eventFilter.SelectClauses.Add(selectClause);
