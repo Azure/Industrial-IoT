@@ -118,7 +118,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, messagingMode, cts.Token);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
 
             // Wait some time to generate events to process.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
@@ -140,7 +140,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
-            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, messagingMode, cts.Token);
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
 
             // Wait some time to generate events to process
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);

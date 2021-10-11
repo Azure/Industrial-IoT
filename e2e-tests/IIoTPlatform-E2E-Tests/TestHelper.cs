@@ -400,7 +400,6 @@ namespace IIoTPlatform_E2E_Tests {
             int expectedValuesChangesPerTimestamp,
             int expectedIntervalOfValueChanges,
             int expectedMaximalDuration,
-            MessagingMode messagingMode = MessagingMode.Samples,
             CancellationToken ct = default
         ) {
             var runtimeUrl = context.TestEventProcessorConfig.TestEventProcessorBaseUrl.TrimEnd('/') + "/Runtime";
@@ -419,7 +418,6 @@ namespace IIoTPlatform_E2E_Tests {
                     ExpectedValueChangesPerTimestamp = expectedValuesChangesPerTimestamp,
                     ExpectedIntervalOfValueChanges = expectedIntervalOfValueChanges,
                     ExpectedMaximalDuration = expectedMaximalDuration,
-                    MessagingMode = messagingMode.ToString(),
                 }
             };
 

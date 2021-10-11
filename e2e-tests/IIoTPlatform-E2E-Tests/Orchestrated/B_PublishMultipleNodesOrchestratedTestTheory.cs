@@ -142,7 +142,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 50, 1000, 90_000_000, ct: cts.Token).GetAwaiter().GetResult();
+            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 50, 1000, 90_000_000, cts.Token).GetAwaiter().GetResult();
 
             // Wait some time to generate events to process
             // On VM in the cloud 90 seconds were not sufficient to publish data for 250 slow nodes
@@ -205,7 +205,7 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult(); //wait till the publishing has stopped
             //use test event processor to verify data send to IoT Hub (expected* set to zero as data gap analysis is not part of this test case)
-            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, ct: cts.Token).GetAwaiter().GetResult();
+            TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token).GetAwaiter().GetResult();
             // wait some time to generate events to process
             Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token).GetAwaiter().GetResult();
             var json = TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token).GetAwaiter().GetResult();
