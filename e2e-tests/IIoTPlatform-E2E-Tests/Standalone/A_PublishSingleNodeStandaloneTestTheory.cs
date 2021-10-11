@@ -44,6 +44,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
+            // Make sure that there is no active monitoring.
+            await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+
             // Clean publishednodes.json.
             await TestHelper.PublishNodesAsync(Array.Empty<PublishedNodesEntryModel>(), _context);
 
