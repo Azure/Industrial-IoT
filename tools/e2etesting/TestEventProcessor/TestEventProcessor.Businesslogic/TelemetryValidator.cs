@@ -11,6 +11,7 @@ namespace TestEventProcessor.BusinessLogic {
     using Azure.Storage.Blobs;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -18,6 +19,7 @@ namespace TestEventProcessor.BusinessLogic {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using TestEventProcessor.Businesslogic;
     using TestEventProcessor.BusinessLogic.Checkers;
 
     /// <summary>
@@ -262,54 +264,76 @@ namespace TestEventProcessor.BusinessLogic {
                 return Task.CompletedTask;
             }
 
+            var properties = arg.Data.Properties;
+            var hasPubSubJsonHeader = properties.TryGetValue("$$ContentType", out var schema) ? schema.ToString() == MessageSchemaTypes.NetworkMessageJson : false;
+
             var body = arg.Data.Body.ToArray();
             var content = Encoding.UTF8.GetString(body);
             dynamic json = JsonConvert.DeserializeObject(content);
             var valueChangesCount = 0;
 
-            // TODO build variant that works with PubSub
+            foreach (dynamic entry in json){
 
-            foreach (dynamic entry in json)
-            {
-                DateTime entrySourceTimestamp;
-                string entryNodeId = null;
-                object entryValue;
+                try {
+                    // validate if the message has an OPC UA PubSub message type signature
+                    if (entry.MessageType == "ua-data") {
+                        if (!hasPubSubJsonHeader) {
+                            _logger.LogInformation("Received event with \"ua-data\" signature but invalid content type header");
+                        }
 
-                try
-                {
-                    entrySourceTimestamp = (DateTime)entry.Value.SourceTimestamp;
-                    entryNodeId = entry.NodeId;
-                    entryValue = entry.Value.Value;
+                        foreach (dynamic message in entry.Messages) {
+                            var payload = message.Payload as JObject;
+                            foreach (JProperty property in payload.Properties()) {
+                                dynamic propertyValue = property.Value.ToObject<dynamic>();
+                                FeedDataCheckers((string)property.Name, (DateTime)propertyValue.SourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime, eventReceivedTimestamp, propertyValue.Value);
+                                valueChangesCount++;
+                            }
+                        }
+                    }
+                    else {
+                        FeedDataCheckers((string)entry.NodeId, (DateTime)entry.Value.SourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime, eventReceivedTimestamp, entry.Value.Value);
+                        valueChangesCount++;
+                    }
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex){
                     _logger.LogError(ex, "Could not read sequence number, nodeId and/or timestamp from " +
                         "message. Please make sure that publisher is running with samples format and with " +
                         "--fm parameter set.");
                     continue;
                 }
-
-                // OPC PLC contains bad fast and slow nodes that drop messages by design.
-                // We will ignore entries that do not have a value.
-                if (entryValue is null) {
-                    continue;
-                }
-
-                // Feed data to checkers.
-                _missingTimestampsChecker.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
-                _messageProcessingDelayChecker.ProcessEvent(entrySourceTimestamp, eventReceivedTimestamp);
-                _messageDeliveryDelayChecker.ProcessEvent(entrySourceTimestamp, arg.Data.EnqueuedTime.UtcDateTime);
-                _valueChangeCounterPerNodeId.ProcessEvent(entryNodeId, entrySourceTimestamp, entryValue);
-                _missingValueChangesChecker.ProcessEvent(entrySourceTimestamp);
-                _incrementalIntValueChecker.ProcessEvent(entryNodeId, entryValue);
-
-                Interlocked.Increment(ref _totalValueChangesCount);
-                valueChangesCount++;
             }
 
             _logger.LogDebug("Received {NumberOfValueChanges} messages from IoT Hub, partition {PartitionId}.",
                 valueChangesCount, arg.Partition.PartitionId);
             return Task.CompletedTask;
+        }
+
+
+        /// <summary>
+        /// Feed the checkers for the Data Change within the reveived event
+        /// </summary>
+        /// <param name="nodeId">Identifeir of the data source</param>
+        /// <param name="sourceTimestamp">Timestamp at the Data Source </param>
+        /// <param name="enqueuedTimestamp">IoT Hub message enqueue timestamp.</param>
+        /// <param name="receivedTimestamp">Timestamp of arrival in the telemetry processor.</param>
+        /// <param name="value">the actual value of the data change</param>
+        private void FeedDataCheckers(string nodeId, DateTime sourceTimestamp, DateTime enqueuedTimestamp, DateTime receivedTimestamp, object value) {
+
+            // OPC PLC contains bad fast and slow nodes that drop messages by design.
+            // We will ignore entries that do not have a value.
+            if (value is null) {
+                return;
+            }
+
+            // Feed data to checkers.
+            _missingTimestampsChecker.ProcessEvent(nodeId, sourceTimestamp, value);
+            _messageProcessingDelayChecker.ProcessEvent(sourceTimestamp, receivedTimestamp);
+            _messageDeliveryDelayChecker.ProcessEvent(sourceTimestamp, enqueuedTimestamp);
+            _valueChangeCounterPerNodeId.ProcessEvent(nodeId, sourceTimestamp, value);
+            _missingValueChangesChecker.ProcessEvent(sourceTimestamp);
+            _incrementalIntValueChecker.ProcessEvent(nodeId, value);
+
+            Interlocked.Increment(ref _totalValueChangesCount);
         }
 
         /// <summary>
