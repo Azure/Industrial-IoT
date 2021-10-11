@@ -37,7 +37,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         [Theory]
         [InlineData(MessagingMode.Samples)]
-        //[InlineData(MessagingMode.PubSub)]
+        [InlineData(MessagingMode.PubSub)]
         async Task SubscribeUnsubscribeTest(MessagingMode messagingMode) {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
