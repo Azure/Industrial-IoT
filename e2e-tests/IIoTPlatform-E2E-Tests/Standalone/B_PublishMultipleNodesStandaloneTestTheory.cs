@@ -104,7 +104,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 _context.ConsumedOpcUaNodes.Add(opcPlcIp, nodesToPublish);
             }
 
-            cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             TestHelper.PublishNodesAsync(new[] { nodesToPublish }, _context).GetAwaiter().GetResult();
 
             // We will wait for module to be deployed.
