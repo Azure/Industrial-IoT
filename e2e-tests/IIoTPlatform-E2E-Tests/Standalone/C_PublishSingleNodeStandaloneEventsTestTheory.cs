@@ -39,7 +39,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 .FirstAsync(_timeoutToken);
 
             var payload = firstMessage.Messages["SimpleEvents"];
-            var data = payload.Value;
+            var data = payload;
             Assert.NotEmpty(data.EventId);
             Assert.StartsWith("The system cycle '", data.Message);
             Assert.EndsWith("' has started.", data.Message);
@@ -66,9 +66,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 TestConstants.PublishedNodesConfigurations.SimpleEventFilter());
             await TestHelper.SwitchToStandaloneModeAndPublishNodesAsync(pnJson, _context, _timeoutToken);
 
-            const int nMessages = 6; 
+            const int nMessages = 6;
             var payloads = await messages
-                .Select(e => e.Messages["i=2253"].Value)
+                .Select(e => e.Messages["i=2253"])
                 .Skip(nMessages) // First batch of alarms are from a ConditionRefresh, therefore not in order
                 .SkipWhile(c => !c.Message.Contains("LAST EVENT IN LOOP"))
                 .Skip(1)

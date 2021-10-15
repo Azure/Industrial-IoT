@@ -97,10 +97,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 .First()
                     .Children()
                         .First()
-                            .Children()
-                                .First()
-                                    .Children()
-                                        .First();
+                            .Children();
             Assert.NotNull(fields);
             Assert.Equal(8, fields.Count());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventId")).Any());
@@ -119,10 +116,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 .First()
                     .Children()
                         .First()
-                            .Children()
-                                .First()
-                                    .Children()
-                                        .First();
+                            .Children();
             Assert.NotNull(fields);
             Assert.Equal(4, fields.Count());
             Assert.True(fields.Where(x => x.Path.EndsWith("EventId")).Any());
