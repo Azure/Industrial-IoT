@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (bool b) => this[LegacyCliConfigKeys.SkipFirstDefault] = b.ToString() },
 
                     { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." +
-                        "Default is 'true', for legacy compatibility use 'false'",
+                        "Default is 'false' for legacy compatibility.",
                         (bool b) => this[LegacyCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
                     // Client settings
@@ -192,6 +192,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "vc|verboseconsole=", "Legacy - do not use.", _ => {} },
                     { "as|autotrustservercerts=", "Legacy - do not use.", _ => {} }
                 };
+            
             options.Parse(args);
 
             Config = ToAgentConfigModel();
@@ -311,7 +312,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             };
         }
 
-        private AgentConfigModel ToAgentConfigModel() {
+        private static AgentConfigModel ToAgentConfigModel() {
             return new AgentConfigModel {
                 AgentId = "StandalonePublisher",
                 Capabilities = new Dictionary<string, string>(),
@@ -330,6 +331,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             return (T)converter.ConvertFrom(this[key]);
         }
 
-        private LegacyCliModel _legacyCliModel = null;
+        private LegacyCliModel _legacyCliModel;
     }
 }
