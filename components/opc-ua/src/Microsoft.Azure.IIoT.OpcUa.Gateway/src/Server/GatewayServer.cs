@@ -111,9 +111,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
 
             Sessions.ValidateUser += ValidateUserIdentityToken;
             _requestState = new RequestState();
+            _endpoints = new EndpointDescriptionCollection();
             InitAsync().Wait(); // Initialize configuration and start underlying server
             _serverState = ServerState.Running;
-            _endpoints = new EndpointDescriptionCollection();
         }
 
         /// <inheritdoc/>
