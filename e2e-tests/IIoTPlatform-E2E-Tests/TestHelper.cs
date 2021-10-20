@@ -75,7 +75,7 @@ namespace IIoTPlatform_E2E_Tests {
             var request = new RestRequest(Method.POST);
             request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
             request.AddParameter("grant_type", "client_credentials");
-            request.AddParameter("scope", $"https://{tenantId}/{applicationName}-service/.default");
+            request.AddParameter("scope", $"api://{tenantId}/{applicationName}-service/.default");
 
             var response = await client.ExecuteAsync(request, ct);
             Assert.True(response.IsSuccessful, $"Request OAuth2.0 failed, Status {response.StatusCode}, ErrorMessage: {response.ErrorMessage}");
