@@ -104,7 +104,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         }
 
         private static void VerifyPayloads(PubSubMessages<SystemCycleStatusEventTypePayload> payloads) {
-            foreach (var payload in payloads.Select(x => x.Value.Value)) {
+            foreach (var payload in payloads.Select(x => x.Value)) {
                 payload.Message.Should().Match("The system cycle '*' has started.");
                 payload.CycleId.Should().MatchRegex("^\\d+$");
             }

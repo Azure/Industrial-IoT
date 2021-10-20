@@ -35,7 +35,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
             // Arrange
             await TestHelper.CreateSimulationContainerAsync(_context,
-                new List<string> {"/bin/sh", "-c", $"./opcplc --autoaccept --ei={eventInstances} --er={eventIntervalPerInstanceMs} --pn=50000"},
+                new List<string> { "/bin/sh", "-c", $"./opcplc --autoaccept --ei={eventInstances} --er={eventIntervalPerInstanceMs} --pn=50000" },
                 _timeoutToken,
                 numInstances: instances);
 
@@ -53,21 +53,21 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 .ConsumeDuring(_context, FromSeconds(nSecondsTotal))
 
                 // Get time of event attached Server node
-                .Select(e => (e.EnqueuedTime, e.Messages["i=2253"].SourceTimestamp))
+                .Select(e => (e.EnqueuedTime, e.Messages["i=2253"].ReceiveTime))
                 .ToListAsync(_timeoutToken);
-            
+
             // Assert throughput
 
             // Trim first few and last seconds of data, since Publisher polls PLCs
             // at different times
-            var intervalStart = fullData.Select(d => d.SourceTimestamp).Min() + FromSeconds(nSecondSkipFirst);
-            var intervalEnd = fullData.Select(d => d.SourceTimestamp).Max() - FromSeconds(nSecondSkipLast);
+            var intervalStart = fullData.Select(d => d.ReceiveTime.Value).Min() + FromSeconds(nSecondSkipFirst);
+            var intervalEnd = fullData.Select(d => d.ReceiveTime.Value).Max() - FromSeconds(nSecondSkipLast);
             var intervalDuration = intervalEnd - intervalStart;
-            var eventData = fullData.Where(d => d.SourceTimestamp > intervalStart && d.SourceTimestamp < intervalEnd).ToList();
-            
+            var eventData = fullData.Where(d => d.ReceiveTime > intervalStart && d.ReceiveTime < intervalEnd).ToList();
+
             // Bin events by 1-second interval to compute event rate histogram
             var eventRatesBySecond = eventData
-                .GroupBy(s => s.SourceTimestamp.Truncate(FromSeconds(1)))
+                .GroupBy(s => s.ReceiveTime.Value.Truncate(FromSeconds(1)))
                 .Select(g => g.Count())
                 .ToList();
 
@@ -83,7 +83,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 expectedEventsPerSecond,
                 expectedEventsPerSecond / 10d,
                 "Publisher should match PLC event rate");
-            
+
             var (average, stDev) = DescriptiveStats(eventRatesBySecond);
 
             average.Should().BeApproximately(
@@ -92,10 +92,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 "Publisher should match PLC event rate");
 
             stDev.Should().BeLessThan(expectedEventsPerSecond / 3d, "Publisher should sustain PLC event rate");
-            
+
             // Assert latency
             var end2EndLatency = eventData
-                .Select(v => v.EnqueuedTime - v.SourceTimestamp)
+                .Select(v => v.EnqueuedTime - v.ReceiveTime.Value)
                 .ToList();
             end2EndLatency.Min().Should().BePositive();
             end2EndLatency.Average(v => v.TotalMilliseconds).Should().BeLessThan(8000);
