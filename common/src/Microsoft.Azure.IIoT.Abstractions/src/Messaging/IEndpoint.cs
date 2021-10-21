@@ -16,11 +16,5 @@ namespace Microsoft.Azure.IIoT.Messaging {
         /// Resource name
         /// </summary>
         string Resource { get; }
-
-        /// <summary>
-        /// Get client endpoint
-        /// </summary>
-        /// <returns>Client endpoint</returns>
-        Uri EndpointUrl { get; }
     }
 }
