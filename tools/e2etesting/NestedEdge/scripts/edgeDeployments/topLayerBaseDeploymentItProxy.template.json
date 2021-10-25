@@ -49,11 +49,9 @@
               "https_proxy": {
                 "value": "http://10.16.8.4:3128"
               },
-              "env": {
-                "SslProtocols": {
-                  "value": "tls1.2"
-                }
-              }  
+              "SslProtocols": {
+                "value": "tls1.2"
+              }
             }
           }
         },
