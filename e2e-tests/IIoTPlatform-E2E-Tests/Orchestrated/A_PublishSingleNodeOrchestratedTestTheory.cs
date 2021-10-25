@@ -85,6 +85,12 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
 
         [Fact, PriorityOrder(5)]
         public async Task Test_GetEndpoints_Expect_OneWithMultipleAuthentication() {
+            // used if running test cases separately (during development)
+            if (string.IsNullOrWhiteSpace(_context.OpcServerUrl)) {
+                await Test_RegisterOPCServer_Expect_Success();
+                Assert.False(string.IsNullOrWhiteSpace(_context.OpcServerUrl));
+            }
+
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             var json = await TestHelper.Discovery.WaitForEndpointDiscoveryToBeCompleted(
                 _context, cts.Token, new List<string> { _context.OpcServerUrl });
