@@ -134,7 +134,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var route = string.Format(TestConstants.APIRoutes.PublisherStartFormat, _context.OpcUaEndpointId);
             var body = new {
                 item = new {
-                    nodeId = simulatedOpcServer.Values.First().OpcNodes.First().Id,
+                    nodeId = simulatedOpcServer.Values.First().OpcNodes
+                    .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                    .Skip(2).First().Id,
                     samplingInterval = "00:00:00.250",
                     publishingInterval = "00:00:00.500",
                 }
@@ -173,7 +175,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             Assert.Equal(1, (int)dataSet.dataSetSource.publishedVariables.publishedData.Count);
             Assert.NotEmpty((string)dataSet.dataSetSource.publishedVariables.publishedData[0].publishedVariableNodeId);
             var publishedNodeId = (string)dataSet.dataSetSource.publishedVariables.publishedData[0].publishedVariableNodeId;
-            Assert.Equal(simulatedOpcServer.Values.First().OpcNodes.First().Id, publishedNodeId);
+            Assert.Equal(simulatedOpcServer.Values.First().OpcNodes
+                .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                .Skip(2).First().Id, publishedNodeId);
         }
 
         [Fact, PriorityOrder(10)]
