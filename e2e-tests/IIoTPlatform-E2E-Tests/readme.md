@@ -62,4 +62,4 @@ Follow these steps:
 * Don't forget to clean up by executing the pipeline with these variables set:
   * `Cleanup = false`
   * `UseExisting = true`
-  * `ResourceGroupName = <your_resource_group_name>`
+  * `ResourceGroupName = $[format('<your_resource_group_name>')]`

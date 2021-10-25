@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             var hub = _hub;
             try {
                 if (hub == null) {
-                    hub = await _serviceManager.CreateHubContextAsync(Resource);
+                    hub = await _serviceManager.CreateHubContextAsync(Resource, ct);
                 }
                 await hub.Clients.All.SendCoreAsync("ping", new object[0], ct);
                 return HealthCheckResult.Healthy();
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
                 }
                 else {
                     _logger.Debug("Starting SignalR service host...");
-                    _hub = await _serviceManager.CreateHubContextAsync(Resource);
+                    _hub = await _serviceManager.CreateHubContextAsync(Resource, default);
                     _logger.Information("SignalR service host started.");
                 }
                 // (re)start the timer no matter what
@@ -203,7 +203,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         private async void RenewHubTimer_ElapesedAsync(object sender) {
             var hub = _hub;
             try {
-                _hub = await _serviceManager.CreateHubContextAsync(Resource);
+                _hub = await _serviceManager.CreateHubContextAsync(Resource, default);
             }
             finally {
                 if (hub != _hub) {
