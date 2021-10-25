@@ -175,7 +175,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             Assert.Equal(1, (int)dataSet.dataSetSource.publishedVariables.publishedData.Count);
             Assert.NotEmpty((string)dataSet.dataSetSource.publishedVariables.publishedData[0].publishedVariableNodeId);
             var publishedNodeId = (string)dataSet.dataSetSource.publishedVariables.publishedData[0].publishedVariableNodeId;
-            Assert.Equal(simulatedOpcServer.Values.First().OpcNodes.Skip(2).First().Id, publishedNodeId);
+            Assert.Equal(simulatedOpcServer.Values.First().OpcNodes
+                .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                .Skip(2).First().Id, publishedNodeId);
         }
 
         [Fact, PriorityOrder(10)]
