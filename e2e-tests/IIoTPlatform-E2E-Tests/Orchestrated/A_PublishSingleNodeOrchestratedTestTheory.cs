@@ -134,7 +134,9 @@ namespace IIoTPlatform_E2E_Tests.Orchestrated
             var route = string.Format(TestConstants.APIRoutes.PublisherStartFormat, _context.OpcUaEndpointId);
             var body = new {
                 item = new {
-                    nodeId = simulatedOpcServer.Values.First().OpcNodes.Skip(2).First().Id,
+                    nodeId = simulatedOpcServer.Values.First().OpcNodes
+                    .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                    .Skip(2).First().Id,
                     samplingInterval = "00:00:00.250",
                     publishingInterval = "00:00:00.500",
                 }
