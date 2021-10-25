@@ -47,7 +47,12 @@
               },
               "httpSettings:enabled": {
                 "value": true
-              }
+              },
+              "env": {
+                "SslProtocols": {
+                  "value": "tls1.2"
+                }
+              }  
             }
           }
         },
