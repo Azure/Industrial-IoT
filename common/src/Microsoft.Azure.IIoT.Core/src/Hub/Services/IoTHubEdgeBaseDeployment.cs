@@ -99,6 +99,11 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                     ""settings"": {
                         ""image"": ""mcr.microsoft.com/azureiotedge-hub:" + version + @""",
                         ""createOptions"": ""{\""HostConfig\"":{\""PortBindings\"":{\""443/tcp\"":[{\""HostPort\"":\""443\""}],\""5671/tcp\"":[{\""HostPort\"":\""5671\""}],\""8883/tcp\"":[{\""HostPort\"":\""8883\""}]}},\""ExposedPorts\"":{\""5671/tcp\"":{},\""8883/tcp\"":{}}}""
+                    },
+                    ""env"": {
+                        ""SslProtocols"": {
+                            ""value"": ""tls1.2""
+                        }
                     }
                 }
             },
