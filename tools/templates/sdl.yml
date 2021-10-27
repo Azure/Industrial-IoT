@@ -109,6 +109,7 @@ jobs:
       codeBaseName: 'Industrial_IoT_$(MY_BRANCH)'
       instanceUrlForTsaV2: MSAZURE
       projectNameMSAZURE: One
+      areaPath: 'One\IoT\Platform and Devices\IoT Devices\Industrial\Community'
       uploadAPIScan: true
       uploadBinSkim: true
       uploadCredScan: true
