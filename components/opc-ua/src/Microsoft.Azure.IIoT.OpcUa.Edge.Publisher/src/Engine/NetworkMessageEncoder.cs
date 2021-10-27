@@ -448,7 +448,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 foreach (var publishedVariableData in dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData) {
                     if (publishedVariableData.PublishedVariableNodeId == notification.NodeId
                         || publishedVariableData.PublishedVariableNodeId.ToExpandedNodeId(context).AsString(context) == notificationExpandedNodeId) {
-                        if (publishedVariableData.Id != notification.NodeId) {
+                        if (!string.IsNullOrEmpty(publishedVariableData.Id) && publishedVariableData.Id != notification.NodeId) {
                             _knownPayloadIdentifiers[notificationNodeId] = publishedVariableData.Id;
                             return publishedVariableData.Id;
                         } else {
