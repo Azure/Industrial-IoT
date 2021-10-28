@@ -45,7 +45,7 @@ if (!$blobObjects) {
     Write-Error "Could not get blob contents in storage account '$($IAIStorageAccountName), container '$($IAIStorageAccountContainerName)', exiting.'"
 }
 
-$blobObjects = $blobObjects | ?{ $_.Name.StartsWith("master") -and $_.Name.EndsWith(".exe") }
+$blobObjects = $blobObjects | ?{ $_.Name.StartsWith("main") -and $_.Name.EndsWith(".exe") }
 
 if ($IAIVersion -eq "latest") {
     $blobObject = $blobObjects | sort -Descending Name | select -First 1
