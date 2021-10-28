@@ -180,7 +180,7 @@ _Hint: The samples applications are not actively maintained and may be outdated.
 
 **Please note: This feature is only available in version 2.6 and above of OPC Publisher.**
 
-A cloud-based, companion microservice with a REST interface is described and available [here](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/publisher.md). It can be used to configure OPC Publisher via an OpenAPI-compatible interface, for example through Swagger.
+A cloud-based, companion microservice with a REST interface is described and available [here](https://github.com/Azure/Industrial-IoT/blob/main/docs/services/publisher.md). It can be used to configure OPC Publisher via an OpenAPI-compatible interface, for example through Swagger.
 
 ## OPC Publisher Telemetry Format
 

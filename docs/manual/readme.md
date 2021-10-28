@@ -721,7 +721,7 @@ For production deployments that require staging, rollback, scaling and resilienc
 
 References:
 
-- [Deploying Azure Industrial IoT Platform](https://github.com/Azure/Industrial-IoT/tree/master/docs/deploy)
+- [Deploying Azure Industrial IoT Platform](https://github.com/Azure/Industrial-IoT/tree/main/docs/deploy)
 
 - [How to deploy all-in-one](../deploy/howto-deploy-all-in-one.md)
 
@@ -2293,7 +2293,7 @@ Please note that it usually takes several minutes (up to 10 minutes) before the 
 
 Please note that deployment via scripts is recommended only for demos/POC case as all-in-one service cannot scale to handle data throughput levels required for production deployments.
 
-When components of the Azure Industrial IoT platform are deployed using [deploy.cmd](https://github.com/Azure/Industrial-IoT/blob/master/deploy.cmd) or [these](https://github.com/Azure/Industrial-IoT/blob/master/deploy.sh) scripts, back-end microservices are hosted in two instances of App Service. Those two App Service instances will be hosting the following components:
+When components of the Azure Industrial IoT platform are deployed using [deploy.cmd](https://github.com/Azure/Industrial-IoT/blob/main/deploy.cmd) or [these](https://github.com/Azure/Industrial-IoT/blob/main/deploy.sh) scripts, back-end microservices are hosted in two instances of App Service. Those two App Service instances will be hosting the following components:
 
 - All-in-one service: The all-in-one service host combines all micro services and agents into a single process that hosts each individual web API on its named resource endpoint. It is an easy way to host the entire platform in a single container or on a single web application instance in the cloud. Docker container for this is `mcr.microsoft.com/iot/industrial-iot-services-all`.
 
