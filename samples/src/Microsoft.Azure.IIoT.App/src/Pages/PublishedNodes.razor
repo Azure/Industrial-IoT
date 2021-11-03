@@ -65,14 +65,14 @@
                 <td class="hover-text width-small">
                     <div>
                         @(node.PublishedItem.PublishingInterval.HasValue && node.PublishedItem.PublishingInterval.Value != TimeSpan.MinValue
-                            ? node.PublishedItem.PublishingInterval.Value.Milliseconds.ToString()
+                            ? node.PublishedItem.PublishingInterval.Value.TotalMilliseconds.ToString()
                             : CommonHelper.None)
                     </div>
                 </td>
                 <td class="hover-text width-small">
                     <div>
                         @(node.PublishedItem.SamplingInterval.HasValue && node.PublishedItem.SamplingInterval.Value != TimeSpan.MinValue
-                            ? node.PublishedItem.SamplingInterval.Value.Milliseconds.ToString()
+                            ? node.PublishedItem.SamplingInterval.Value.TotalMilliseconds.ToString()
                             : CommonHelper.None)
                     </div>
                 </td>
