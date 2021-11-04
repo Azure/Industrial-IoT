@@ -22,9 +22,10 @@ branch to create `helm/0.3.2` and then `helm/0.3.2_pub` branches.
 After we have a `2.8.0` release of the platform the following files should be updated:
 
 * `deploy/helm/azure-industrial-iot/values.yaml`:
-  * Value of `image:tag` should be updated to so that the chart consumes latest release (`2.8.0`).
+  * Value of `image:tag` should be updated so that the chart consumes latest release (`2.8.0`).
+* `deploy/helm/azure-industrial-iot/Chart.yaml`:
+  * Value of `appVersion` should be changed to align with value of `image:tag` of `values.yaml` (`2.8.0`).
   * Value of `version` should be checked to reflect intended version of next release. For `2.8.0` this should be `0.4.0`.
-* `deploy/helm/azure-industrial-iot/Chart.yaml`: value of `appVersion` should be changed to align with value of `image:tag` of `values.yaml` (`2.8.0`).
 * `deploy/helm/azure-industrial-iot/README.md`: version of components deployed by the chart is references a few times in this file.
   Those should be changes to align with value of `image:tag` of `values.yaml`.
 * `docs/deploy/howto-deploy-helm.md`: new entries should be added for the version of that Helm chart that will be released.
