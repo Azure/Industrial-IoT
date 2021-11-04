@@ -29,7 +29,7 @@ Kubernetes cluster:
 - For `0.3.1` version of the Chart: [Azure Industrial IoT Helm Chart v0.3.1](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.1/deploy/helm/azure-industrial-iot/README.md)
 - For `0.3.2` version of the Chart: [Azure Industrial IoT Helm Chart v0.3.2](https://github.com/Azure/Industrial-IoT/blob/helm_0.3.2/deploy/helm/azure-industrial-iot/README.md)
 - For `0.4.0` version of the Chart: [Azure Industrial IoT Helm Chart v0.4.0](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.0/deploy/helm/azure-industrial-iot/README.md)
-- For `0.4.1` version of the Chart: [Azure Industrial IoT Helm Chart v0.4.0](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.1/deploy/helm/azure-industrial-iot/README.md)
+- For `0.4.1` version of the Chart: [Azure Industrial IoT Helm Chart v0.4.1](https://github.com/Azure/Industrial-IoT/blob/helm_0.4.1/deploy/helm/azure-industrial-iot/README.md)
 
 For latest documentation and chart sources please check [deploy/helm/azure-industrial-iot/](../../deploy/helm/azure-industrial-iot/)
 directory on `main` branch.
