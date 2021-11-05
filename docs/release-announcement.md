@@ -4,7 +4,7 @@
 We are pleased to announce the release of version 2.8.1 of our Industrial IoT Platform components as the first patch update of the 2.8 Long-Term Support (LTS) release. This release contains important security updates, bugfixes and performance optimizations.
 
 > IMPORTANT
-> Please note that OPC Publisher 2.8.1 is not backwards compatible with version 2.5.x. This will be addressed in the next patch release.
+> Please note that OPC Publisher 2.8.1 is not backwards compatible with version 2.5.x.
 
 ## Azure Industrial IoT Platform Release 2.8
 
