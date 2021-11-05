@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Controllers {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    
+
     /// <summary>
     /// Discovery settings controller
     /// </summary>

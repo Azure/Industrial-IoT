@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         public const string POWERBI_ROOT_FOLDER = "IIoTDataFlow";
 
-        private const string kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT = 
+        private const string kSTORAGE_ACCOUNT_CONECTION_STRING_FORMAT =
             "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}";
         private const string kDATA_LAKE_ENDPOINT_SUFFIX_FORMAT = "dfs.{0}";
 

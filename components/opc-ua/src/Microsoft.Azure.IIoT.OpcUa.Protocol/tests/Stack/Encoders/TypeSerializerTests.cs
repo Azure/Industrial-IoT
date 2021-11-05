@@ -530,7 +530,7 @@ namespace Opc.Ua.Encoders {
 
         [Theory]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
-        // ulong is encoded with surrounding "", but UInt16 expects a number 
+        // ulong is encoded with surrounding "", but UInt16 expects a number
         //[InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
         //[InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]

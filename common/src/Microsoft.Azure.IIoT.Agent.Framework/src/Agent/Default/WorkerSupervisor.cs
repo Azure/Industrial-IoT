@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             if (_instances.Count >= maxWorkers) {
                 throw new MaxWorkersReachedException(maxWorkers);
             }
-            
+
             var childScope = _lifetimeScope.BeginLifetimeScope();
             var worker = childScope.Resolve<IWorker>(new NamedParameter("workerInstance", _instances.Count));
             _instances[worker] = childScope;
@@ -87,11 +87,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// </summary>
         /// <returns>awaitable task</returns>
         private async Task StopWorker() {
-            // sort workers, so that a worker in state Stopped, Stopping or WaitingForJob will terminate first 
+            // sort workers, so that a worker in state Stopped, Stopping or WaitingForJob will terminate first
             var worker = _instances.OrderBy(kvp => kvp.Key.Status).First();
             var workerId = worker.Key.WorkerId;
             _logger.Information("Stopping worker with id {WorkerId}", workerId);
-            
+
             await worker.Key.StopAsync();
             worker.Value.Dispose();
             _instances.Remove(worker.Key);

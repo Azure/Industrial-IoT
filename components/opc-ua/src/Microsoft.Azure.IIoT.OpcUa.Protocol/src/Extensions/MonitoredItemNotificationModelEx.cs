@@ -129,7 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     ? null
                     : eventFieldList.Message.StringTable,
                 IsHeartbeat = false
-                
+
             };
         }
 

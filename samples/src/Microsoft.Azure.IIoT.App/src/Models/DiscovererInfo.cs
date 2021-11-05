@@ -131,7 +131,7 @@ namespace Microsoft.Azure.IIoT.App.Models {
                     TimeSpan.Parse(input.RequestedNetworkProbeTimeout);
 
                 Patch.MaxNetworkProbes = DiscovererModel.RequestedConfig.MaxNetworkProbes =
-                    string.IsNullOrWhiteSpace(input.RequestedMaxNetworkProbes) ? -1 : 
+                    string.IsNullOrWhiteSpace(input.RequestedMaxNetworkProbes) ? -1 :
                     int.Parse(input.RequestedMaxNetworkProbes);
 
                 Patch.PortProbeTimeout = DiscovererModel.RequestedConfig.PortProbeTimeout =
@@ -151,13 +151,13 @@ namespace Microsoft.Azure.IIoT.App.Models {
                     input.RequestedAddressRangesToScan;
 
                 Patch.PortRangesToScan = DiscovererModel.RequestedConfig.PortRangesToScan =
-                    string.IsNullOrWhiteSpace(input.RequestedPortRangesToScan) ? string.Empty : 
+                    string.IsNullOrWhiteSpace(input.RequestedPortRangesToScan) ? string.Empty :
                     input.RequestedPortRangesToScan;
 
-                Patch.DiscoveryUrls = DiscovererModel.RequestedConfig.DiscoveryUrls = 
+                Patch.DiscoveryUrls = DiscovererModel.RequestedConfig.DiscoveryUrls =
                     input.RequestedDiscoveryUrls ?? new List<string>();
 
-                Patch.Locales = DiscovererModel.RequestedConfig.Locales = 
+                Patch.Locales = DiscovererModel.RequestedConfig.Locales =
                     input.RequestedDiscoveryUrls ?? new List<string>();
 
                 return true;

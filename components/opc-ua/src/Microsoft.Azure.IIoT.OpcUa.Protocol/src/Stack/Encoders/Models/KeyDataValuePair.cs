@@ -9,7 +9,7 @@ namespace Opc.Ua {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Encodable Key DataValue Pair 
+    /// Encodable Key DataValue Pair
     /// </summary>
     public class KeyDataValuePair : IEncodeable {
 

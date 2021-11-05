@@ -8,7 +8,7 @@ It runs on [Azure IoT Edge](https://azure.microsoft.com/en-us/services/iot-edge/
 
 ## Getting Started
 
-Please use our released containers for OPC Publisher available in the Microsoft Container Registry, rather than building from sources. The easiest way to deploy OPC Publisher is through the [Azure Marketplace](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft_iot.iotedge-opc-publisher). 
+Please use our released containers for OPC Publisher available in the Microsoft Container Registry, rather than building from sources. The easiest way to deploy OPC Publisher is through the [Azure Marketplace](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft_iot.iotedge-opc-publisher).
 
 [<img src="../media/image-20201028141833399.png" style="zoom:50%;" />](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/microsoft_iot.iotedge-opc-publisher)
 
@@ -71,7 +71,7 @@ A typical set of IoT Edge Module Container Create Options for OPC Publisher runn
 
 ```
 
-With these options specified, OPC Publisher will read the configuration file `./published_nodes.json`. The OPC Publisher's working directory is set to `/mount` at startup and thus OPC Publisher will read the file `/mount/publishednodes.json` inside its container. 
+With these options specified, OPC Publisher will read the configuration file `./published_nodes.json`. The OPC Publisher's working directory is set to `/mount` at startup and thus OPC Publisher will read the file `/mount/publishednodes.json` inside its container.
 OPC Publisher's log file will be written to `/mount` and the `CertificateStores` directory (used for OPC UA certificates) will also be created in this directory. To make these files available in the IoT Edge host file system, the container configuration requires a bind mount volume. The **Mounts** section will  map the directory `/mount` to the host directory `/opcpublisher` (which will be created by the IoT Edge runtime if it doesn't exist). 
 
 **Without this bind mount volume, all OPC Publisher configuration files will be lost when the container is restarted.**
@@ -109,8 +109,8 @@ To persist the security configuration of OPC Publisher across restarts, the cert
 
 ### Configuration via Configuration File
 
-The simplest way to configure OPC Publisher is via a configuration file. An example configuration file is provided via the file [`publishednodes.json`](publishednodes.json).
-Configuration file syntax has changed over time and OPC Publisher still can read old formats, but converts them into the latest format when persisting the configuration, done regularly in an automated fashion.
+The simplest way to configure OPC Publisher is via a configuration file. An example configuration file is provided via the file [`publishednodes.json`](https://raw.githubusercontent.com/Azure/iot-edge-opc-publisher/main/opcpublisher/publishednodes.json).
+Configuration file syntax has changed over time and OPC Publisher still can read old formats, but converts them into the latest format when persisting the configuration, done regularly in an automated fashion. Additionally, the configuration file can be schema validated before publisher loads it, a reference schema file is available [here](https://raw.githubusercontent.com/Azure/Industrial-IoT/main/modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src/schemas/publishednodesschema.json). Please refer to OPC Publisher manual for schema validation details [here](https://github.com/Azure/Industrial-IoT/blob/main/docs/manual/readme.md).
 
 A basic configuration file looks like this:
 ```

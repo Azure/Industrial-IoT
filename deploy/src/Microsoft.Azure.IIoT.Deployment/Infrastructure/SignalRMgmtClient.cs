@@ -329,7 +329,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
             var errorMessage = $"Failed to generate unique SignalR service name " +
                 $"after {NUM_OF_MAX_NAME_AVAILABILITY_CHECKS} retries";
-            
+
             Log.Error(errorMessage);
             throw new Exception(errorMessage);
         }

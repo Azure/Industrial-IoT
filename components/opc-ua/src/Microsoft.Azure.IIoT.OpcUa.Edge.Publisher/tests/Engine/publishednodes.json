@@ -1,19 +1,19 @@
 [
   {
-    "EndpointUrl": "opc.tcp://server1:49580",
+    "EndpointUrl": "opc.tcp://server1:49580",    
     "OpcNodes": [
       {
         "Id": "ns=2;s=Node-Server1",
-        "DisplayName": "Node-Server1"
+        "DisplayName": "Node-Server1"        
       }
     ]
   },
   {
-    "EndpointUrl": "opc.tcp://server2:49580",
+    "EndpointUrl": "opc.tcp://server2:49580",    
     "OpcNodes": [
       {
         "Id": "ns=2;s=Node-Server2",
-        "DisplayName": "Node-Server2"
+        "DisplayName": "Node-Server2"        
       }
     ]
   }

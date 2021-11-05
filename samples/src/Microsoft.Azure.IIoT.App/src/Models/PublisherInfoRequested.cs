@@ -24,10 +24,10 @@ namespace Microsoft.Azure.IIoT.App.Models {
         public string RequestedMaxWorkers {
             get => (_requestedMaxWorkers != null ?
                 _requestedMaxWorkers.Value.ToString() : null);
-            set => _requestedMaxWorkers = string.IsNullOrWhiteSpace(value) ? 
+            set => _requestedMaxWorkers = string.IsNullOrWhiteSpace(value) ?
                 (int?)null : int.Parse(value);
         }
-        
+
         /// <summary>
         /// HeartbeatInterval
         /// </summary>

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -90,11 +90,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 return Task.FromResult(job);
             }
-            catch(OperationCanceledException) {
+            catch (OperationCanceledException) {
                 _logger.Information("Operation GetAvailableJobAsync was canceled");
                 throw;
             }
-            catch(Exception e) {
+            catch (Exception e) {
                 _logger.Error(e, "Error while looking for available jobs, for {Worker}", workerId);
                 throw;
             }
@@ -191,16 +191,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _lock.Wait();
                     var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);
                     var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
-                    if (currentFileHash != _lastKnownFileHash) {
+                    if (currentFileHash != _lastKnownFileHash || retryCount < 3) {
                         _logger.Information("File {publishedNodesFile} has changed, last known hash {LastHash}, new hash {NewHash}, reloading...",
                             _legacyCliModel.PublishedNodesFile,
                             _lastKnownFileHash,
                             currentFileHash);
                         _lastKnownFileHash = currentFileHash;
-                        using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
+                        using (var fileReader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
                             IEnumerable<WriterGroupJobModel> jobs = null;
+
                             try {
-                                jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
+                                if (!File.Exists(_legacyCliModel.PublishedNodesSchemaFile)) {
+                                    _logger.Warning("File {PublishedNodesSchemaFile} does not exist, ignoring schema validation of {publishedNodesFile} file...",
+                                    _legacyCliModel.PublishedNodesSchemaFile, _legacyCliModel.PublishedNodesFile);
+
+                                    jobs = _publishedNodesJobConverter.Read(fileReader, null, _legacyCliModel);
+                                }
+                                else {
+                                    using (var fileSchemaReader = new StreamReader(_legacyCliModel.PublishedNodesSchemaFile)) {
+                                        jobs = _publishedNodesJobConverter.Read(fileReader, fileSchemaReader, _legacyCliModel);
+                                    }
+                                }
                             }
                             catch (IOException) {
                                 throw; //pass it thru, to handle retries
@@ -264,7 +275,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 catch (IOException ex) {
                     retryCount--;
+
                     if (retryCount > 0) {
+                        _logger.Error(ex, "Error while loading job from file. Retrying...");
                         Task.Delay(5000).GetAwaiter().GetResult();
                     }
                     else {
