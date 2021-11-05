@@ -222,7 +222,7 @@ fi
 az aks install-cli
 
 # Install Helm
-az acr helm install-cli --client-version "3.3.4" -y
+az acr helm install-cli --client-version "3.7.1" -y
 
 ################################################################################
 # Login to az using manaed identity
