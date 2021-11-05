@@ -335,6 +335,7 @@ if [ "$is_private_repo" = true ] ; then
         --set azure.auth.servicesApp.appId=$AIIOT_SERVICES_APP_ID \
         --set azure.auth.servicesApp.secret=$AIIOT_SERVICES_APP_SECRET \
         --set externalServiceUrl="https://$AIIOT_SERVICES_HOSTNAME" \
+        --set deployment.microServices.engineeringTool.enabled=true \
         --set deployment.ingress.enabled=true \
         --set deployment.ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
         --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/affinity"=cookie \
@@ -347,8 +348,6 @@ if [ "$is_private_repo" = true ] ; then
         --set deployment.ingress.tls[0].hosts[0]=$AIIOT_SERVICES_HOSTNAME \
         --set deployment.ingress.tls[0].secretName=tls-secret \
         --set deployment.ingress.hostName=$AIIOT_SERVICES_HOSTNAME \
-        --set deployment.microServices.engineeringTool.enabled=true \
-        --set deployment.microServices.telemetryCdmProcessor.enabled=true \
         $setsvc
 else
     # Install aiiot/azure-industrial-iot Helm chart
@@ -361,7 +360,6 @@ else
         --set azure.auth.servicesApp.secret=$AIIOT_SERVICES_APP_SECRET \
         --set externalServiceUrl="https://$AIIOT_SERVICES_HOSTNAME" \
         --set deployment.microServices.engineeringTool.enabled=true \
-        --set deployment.microServices.telemetryCdmProcessor.enabled=true \
         --set deployment.ingress.enabled=true \
         --set deployment.ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
         --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/affinity"=cookie \
