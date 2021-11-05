@@ -141,7 +141,4 @@
   <data name="VALUE_MANAGED_BY_IIOT" xml:space="preserve">
     <value>Microsoft.Azure.IIoT.Deployment</value>
   </data>
-  <data name="VALUE_VERSION_IIOT" xml:space="preserve">
-    <value>2.7.206</value>
-  </data>
 </root>

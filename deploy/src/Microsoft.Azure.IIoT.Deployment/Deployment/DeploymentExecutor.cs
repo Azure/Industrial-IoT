@@ -237,21 +237,26 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
         /// </summary>
         /// <param name="owner"></param>
         protected void InitializeDefaultTags(string owner = null) {
+            var helmSettings = _configurationProvider.GetHelmSettings();
+            var versionIIoT = string.IsNullOrEmpty(helmSettings?.ImageTag)
+                    ? HelmSettings._defaultImageTag
+                    : helmSettings?.ImageTag;
+
             var valueIotSuiteType =
                 $"{Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT}-" +
-                $"{Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT}-" +
+                $"{versionIIoT}-" +
                 $"{Resources.IIoTDeploymentTags.VALUE_IOT_SUITE_TYPE_SUF}";
 
             _defaultTagsList = new List<string> {
                 Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT,
-                Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT,
+                versionIIoT,
                 Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT,
                 valueIotSuiteType
             };
 
             _defaultTagsDict = new Dictionary<string, string> {
                 { Resources.IIoTDeploymentTags.KEY_APPLICATION, Resources.IIoTDeploymentTags.VALUE_APPLICATION_IIOT },
-                { Resources.IIoTDeploymentTags.KEY_VERSION, Resources.IIoTDeploymentTags.VALUE_VERSION_IIOT},
+                { Resources.IIoTDeploymentTags.KEY_VERSION, versionIIoT},
                 { Resources.IIoTDeploymentTags.KEY_MANAGED_BY, Resources.IIoTDeploymentTags.VALUE_MANAGED_BY_IIOT},
                 { Resources.IIoTDeploymentTags.KEY_IOT_SUITE_TYPE, valueIotSuiteType}
             };
