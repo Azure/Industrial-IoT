@@ -131,14 +131,5 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
                 return ResourceManager.GetString("VALUE_MANAGED_BY_IIOT", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to 2.7.206.
-        /// </summary>
-        internal static string VALUE_VERSION_IIOT {
-            get {
-                return ResourceManager.GetString("VALUE_VERSION_IIOT", resourceCulture);
-            }
-        }
     }
 }
