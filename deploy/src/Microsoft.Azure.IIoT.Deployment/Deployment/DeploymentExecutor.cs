@@ -477,15 +477,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                             _applicationsManager.GetAKSApplicationSP(),
                             cancellationToken
                         );
-
-                    // ToDo: Remove role assignment after telemetryCdmProcessor uses connection string.
-                    // Assign Service Principal of Service Application
-                    // "Storage Blob Data Contributor" IAM role for Subscription.
-                    await _authorizationManagementClient
-                        .AssignStorageBlobDataContributorRoleForSubscriptionAsync(
-                            _applicationsManager.GetServiceApplicationSP(),
-                            cancellationToken
-                        );
                 }
             }
             else if (RunMode.ResourceDeployment == runMode) {
