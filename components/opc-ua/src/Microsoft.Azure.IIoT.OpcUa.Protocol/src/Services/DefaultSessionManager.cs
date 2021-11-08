@@ -50,7 +50,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public int GetNumberOfConnectionRetries(ConnectionModel connection) {
-
             var key = new ConnectionIdentifier(connection);
             _lock.Wait();
             try {
@@ -58,6 +57,51 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     return 0;
                 }
                 return wrapper.NumberOfConnectRetries;
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public bool IsConnectionOk(ConnectionModel connection) {
+            var key = new ConnectionIdentifier(connection);
+            _lock.Wait();
+            try {
+                if (!_sessions.TryGetValue(key, out var wrapper)) {
+                    return false;
+                }
+                return wrapper.State == SessionState.Running;
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public int GetNumberOfGoodNodes(ConnectionModel connection) {
+            var key = new ConnectionIdentifier(connection);
+            _lock.Wait();
+            try {
+                if (!_sessions.TryGetValue(key, out var wrapper)) {
+                    return 0;
+                }
+                return wrapper._subscriptions.Sum(x => x.Value.NumberOfGoodNodes);
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public int GetNumberOfBadNodes(ConnectionModel connection) {
+            var key = new ConnectionIdentifier(connection);
+            _lock.Wait();
+            try {
+                if (!_sessions.TryGetValue(key, out var wrapper)) {
+                    return 0;
+                }
+                return wrapper._subscriptions.Sum(x => x.Value.NumberOfBadNodes);
             }
             finally {
                 _lock.Release();

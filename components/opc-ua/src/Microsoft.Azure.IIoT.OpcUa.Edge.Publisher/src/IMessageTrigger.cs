@@ -25,6 +25,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         int NumberOfConnectionRetries { get; }
 
         /// <summary>
+        /// Is connection ok?
+        /// </summary>
+        bool IsConnectionOk { get; }
+
+        /// <summary>
+        /// Number of nodes currently connected and returning data
+        /// </summary>
+        int NumberOfGoodNodes { get; }
+
+        /// <summary>
+        /// Number of nodes currently not connected
+        /// </summary>
+        int NumberOfBadNodes { get; }
+
+        /// <summary>
         /// The number of all monitored items value changes
         /// that have been invoked by this message source.
         /// </summary>

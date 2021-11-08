@@ -19,11 +19,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         int SessionCount { get; }
 
         /// <summary>
-        /// gets the number of retiries for a speciffic session
+        /// gets the number of retiries for a specific session
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
         int GetNumberOfConnectionRetries(ConnectionModel connection);
+
+        /// <summary>
+        /// Returns whether the connection is up and running or not
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        public bool IsConnectionOk(ConnectionModel connection);
+
+        /// <summary>
+        /// Gets the number nodes connected and receiving data
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        int GetNumberOfGoodNodes(ConnectionModel connection);
+
+        /// <summary>
+        /// Gets the number nodes disconnected
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        int GetNumberOfBadNodes(ConnectionModel connection);
 
         /// <summary>
         /// Get or create session for subscription
