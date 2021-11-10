@@ -248,18 +248,16 @@ helm repo update
 kubectl create namespace ingress-nginx
 
 # Install ingress-nginx/ingress-nginx Helm chart
-helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 3.12.0 --timeout 30m0s \
+helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 4.0.6 --timeout 30m0s \
     --set controller.replicaCount=2 \
-    --set controller.nodeSelector."beta\.kubernetes\.io\/os"=linux \
     --set controller.service.loadBalancerIP=$LOAD_BALANCER_IP \
     --set controller.service.annotations."service\.beta\.kubernetes\.io\/azure-dns-label-name"=$PUBLIC_IP_DNS_LABEL \
-    --set controller.config.compute-full-forward-for='"true"' \
-    --set controller.config.use-forward-headers='"true"' \
+    --set controller.config.compute-full-forwarded-for='true' \
+    --set controller.config.use-forwarded-headers='true' \
     --set controller.config.proxy-buffer-size='"32k"' \
     --set controller.config.client-header-buffer-size='"32k"' \
     --set controller.metrics.enabled=true \
-    --set defaultBackend.enabled=true \
-    --set defaultBackend.nodeSelector."beta\.kubernetes\.io\/os"=linux
+    --set defaultBackend.enabled=true
 
 # Create cert-manager namespace
 kubectl create namespace cert-manager
