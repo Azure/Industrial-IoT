@@ -222,7 +222,7 @@ fi
 az aks install-cli
 
 # Install Helm
-az acr helm install-cli --client-version "3.3.4" -y
+az acr helm install-cli --client-version "3.7.1" -y
 
 ################################################################################
 # Login to az using manaed identity
@@ -248,24 +248,22 @@ helm repo update
 kubectl create namespace ingress-nginx
 
 # Install ingress-nginx/ingress-nginx Helm chart
-helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 3.12.0 --timeout 30m0s \
+helm install --atomic ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 4.0.6 --timeout 30m0s \
     --set controller.replicaCount=2 \
-    --set controller.nodeSelector."beta\.kubernetes\.io\/os"=linux \
     --set controller.service.loadBalancerIP=$LOAD_BALANCER_IP \
     --set controller.service.annotations."service\.beta\.kubernetes\.io\/azure-dns-label-name"=$PUBLIC_IP_DNS_LABEL \
-    --set controller.config.compute-full-forward-for='"true"' \
-    --set controller.config.use-forward-headers='"true"' \
+    --set controller.config.compute-full-forwarded-for='true' \
+    --set controller.config.use-forwarded-headers='true' \
     --set controller.config.proxy-buffer-size='"32k"' \
     --set controller.config.client-header-buffer-size='"32k"' \
     --set controller.metrics.enabled=true \
-    --set defaultBackend.enabled=true \
-    --set defaultBackend.nodeSelector."beta\.kubernetes\.io\/os"=linux
+    --set defaultBackend.enabled=true
 
 # Create cert-manager namespace
 kubectl create namespace cert-manager
 
 # Install jetstack/cert-manager Helm chart
-helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v1.1.0 --timeout 30m0s \
+helm install --atomic cert-manager jetstack/cert-manager --namespace cert-manager --version v1.6.1 --timeout 30m0s \
     --set installCRDs=true
 
 # Create Let's Encrypt ClusterIssuer
@@ -335,6 +333,7 @@ if [ "$is_private_repo" = true ] ; then
         --set azure.auth.servicesApp.appId=$AIIOT_SERVICES_APP_ID \
         --set azure.auth.servicesApp.secret=$AIIOT_SERVICES_APP_SECRET \
         --set externalServiceUrl="https://$AIIOT_SERVICES_HOSTNAME" \
+        --set deployment.microServices.engineeringTool.enabled=true \
         --set deployment.ingress.enabled=true \
         --set deployment.ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
         --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/affinity"=cookie \
@@ -347,8 +346,6 @@ if [ "$is_private_repo" = true ] ; then
         --set deployment.ingress.tls[0].hosts[0]=$AIIOT_SERVICES_HOSTNAME \
         --set deployment.ingress.tls[0].secretName=tls-secret \
         --set deployment.ingress.hostName=$AIIOT_SERVICES_HOSTNAME \
-        --set deployment.microServices.engineeringTool.enabled=true \
-        --set deployment.microServices.telemetryCdmProcessor.enabled=true \
         $setsvc
 else
     # Install aiiot/azure-industrial-iot Helm chart
@@ -361,7 +358,6 @@ else
         --set azure.auth.servicesApp.secret=$AIIOT_SERVICES_APP_SECRET \
         --set externalServiceUrl="https://$AIIOT_SERVICES_HOSTNAME" \
         --set deployment.microServices.engineeringTool.enabled=true \
-        --set deployment.microServices.telemetryCdmProcessor.enabled=true \
         --set deployment.ingress.enabled=true \
         --set deployment.ingress.annotations."kubernetes\.io\/ingress\.class"=nginx \
         --set deployment.ingress.annotations."nginx\.ingress\.kubernetes\.io\/affinity"=cookie \
