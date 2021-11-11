@@ -739,9 +739,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 if (item.ValidateHeartbeat(publishTime)) {
                                     var defaultNotification =
                                         new MonitoredItemNotificationModel {
-                                            Id = item.Item.DisplayName,
+                                            Id = item?.Template?.Id,
                                             DisplayName = item.Item.DisplayName,
-                                            NodeId = item.Item.StartNodeId,
+                                            NodeId = item?.Template?.StartNodeId,
                                             AttributeId = item.Item.AttributeId,
                                             ClientHandle = item.Item.ClientHandle,
                                             Value = new DataValue(Variant.Null,
@@ -833,7 +833,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Monitored item
         /// </summary>
-        private class MonitoredItemWrapper {
+        internal class MonitoredItemWrapper {
 
             /// <summary>
             /// Assigned monitored item id on server

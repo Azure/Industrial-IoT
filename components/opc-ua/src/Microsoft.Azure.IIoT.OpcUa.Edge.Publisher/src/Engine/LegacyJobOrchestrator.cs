@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (_assignedJobs.TryGetValue(workerId, out var job)) {
                     return Task.FromResult(job);
                 }
-                if (_availableJobs.Count > 0 && _availableJobs.TryDequeue(out job)) {
+                if (!_availableJobs.IsEmpty && _availableJobs.TryDequeue(out job)) {
                     _assignedJobs.AddOrUpdate(workerId, job);
                 }
 

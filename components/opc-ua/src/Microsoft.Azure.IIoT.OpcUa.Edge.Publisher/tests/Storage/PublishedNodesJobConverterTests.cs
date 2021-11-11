@@ -231,7 +231,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Equal("testfieldid1", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.First().Id);
-            Assert.Equal("i=2259", jobs
+            Assert.Equal(null, jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().Id);
             Assert.Equal("testgroup", jobs
@@ -406,7 +406,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal("i=2258", jobs
+            Assert.Equal(null, jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
         }
@@ -434,7 +434,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
-            Assert.Equal("testdisplayname1", jobs
+            Assert.Equal("testdatasetfieldid1", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Single().Id);
         }

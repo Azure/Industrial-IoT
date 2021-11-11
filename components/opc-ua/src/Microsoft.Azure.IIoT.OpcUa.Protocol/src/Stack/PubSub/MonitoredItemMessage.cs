@@ -19,9 +19,9 @@ namespace Opc.Ua.PubSub {
         public uint MessageContentMask { get; set; }
 
         /// <summary>
-        /// Node id
+        /// Node Id in string format as configured
         /// </summary>
-        public ExpandedNodeId NodeId { get; set; }
+        public string NodeId { get; set; }
 
         /// <summary>
         /// Endpoint url
@@ -187,7 +187,7 @@ namespace Opc.Ua.PubSub {
 
             MessageContentMask = decoder.ReadUInt32("ContentMask");
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) != 0) {
-                NodeId = decoder.ReadExpandedNodeId(nameof(MonitoredItemMessageContentMask.NodeId));
+                NodeId = decoder.ReadString(nameof(MonitoredItemMessageContentMask.NodeId));
             }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.EndpointUrl) != 0) {
                 EndpointUrl = decoder.ReadString(nameof(MonitoredItemMessageContentMask.EndpointUrl));
@@ -215,7 +215,7 @@ namespace Opc.Ua.PubSub {
         }
 
         private void DecodeJson(IDecoder decoder) {
-            NodeId = decoder.ReadExpandedNodeId(nameof(MonitoredItemMessageContentMask.NodeId));
+            NodeId = decoder.ReadString(nameof(MonitoredItemMessageContentMask.NodeId));
             if (NodeId != null) {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.NodeId;
             }
@@ -267,7 +267,7 @@ namespace Opc.Ua.PubSub {
 
             encoder.WriteUInt32("ContentMask", MessageContentMask);
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) != 0) {
-                encoder.WriteExpandedNodeId(nameof(MonitoredItemMessageContentMask.NodeId), NodeId);
+                encoder.WriteString(nameof(MonitoredItemMessageContentMask.NodeId), NodeId);
             }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.EndpointUrl) != 0) {
                 encoder.WriteString(nameof(MonitoredItemMessageContentMask.EndpointUrl), EndpointUrl);
@@ -302,7 +302,7 @@ namespace Opc.Ua.PubSub {
         private void EncodeJson(IEncoder encoder) {
 
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) != 0) {
-                encoder.WriteExpandedNodeId(nameof(MonitoredItemMessageContentMask.NodeId), NodeId);
+                encoder.WriteString(nameof(MonitoredItemMessageContentMask.NodeId), NodeId);
             }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.EndpointUrl) != 0) {
                 encoder.WriteString(nameof(MonitoredItemMessageContentMask.EndpointUrl), EndpointUrl);
