@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for default published nodes schema file.
         /// </summary>
-        public const string DefaultPublishedNodesSchemaFilename = "schemas/publishednodesschema.json";
+        public const string DefaultPublishedNodesSchemaFilename = "";
 
         /// <summary>
         /// Key for the publisher site.
