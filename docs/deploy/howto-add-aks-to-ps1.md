@@ -74,7 +74,7 @@ that application if you are starting from scratch:
   Alternatively, you can run the following command to install `helm` using Azure CLI:
 
   ```bash
-  az acr helm install-cli --client-version "3.2.0"
+  az acr helm install-cli --client-version "3.7.1"
   ```
 
 ## Deployment Steps
@@ -162,29 +162,25 @@ Apply the following changes:
 ```yaml
 controller:
   replicaCount: 2
-  nodeSelector:
-    beta.kubernetes.io/os: linux
   service:
     loadBalancerIP: 20.50.19.169
     annotations:
       service.beta.kubernetes.io/azure-dns-label-name: aks-cluster-ip
   config:
-    compute-full-forward-for: "true"
-    use-forward-headers: "true"
+    compute-full-forwarded-for: true
+    use-forwarded-headers: true
     proxy-buffer-size: "32k"
     client-header-buffer-size: "32k"
   metrics:
     enabled: true
 defaultBackend:
   enabled: true
-  nodeSelector:
-    beta.kubernetes.io/os: linux
 ```
 
 Install `ingress-nginx/ingress-nginx` Helm chart using `ingress-nginx.yaml` file created above.
 
 ```bash
-helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 3.12.0 -f ingress-nginx.yaml
+helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --version 4.0.6 -f ingress-nginx.yaml
 ```
 
 Documentation for `ingress-nginx/ingress-nginx` Helm chart can be found [here](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx).
@@ -207,7 +203,7 @@ helm repo update
 Install `jetstack/cert-manager` Helm chart:
 
 ```bash
-helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.1.0 --set installCRDs=true
+helm install cert-manager jetstack/cert-manager --namespace cert-manager --version v1.6.1 --set installCRDs=true
 ```
 
 Documentation for `jetstack/cert-manager` Helm chart can be found [here](https://artifacthub.io/packages/helm/jetstack/cert-manager).
@@ -313,7 +309,7 @@ Note the following values in the YAML file:
 
 ```yaml
 image:
-  tag: 2.8.0
+  tag: 2.8.1
 
 loadConfFromKeyVault: true
 
@@ -353,8 +349,8 @@ deployment:
     hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
 
-> **NOTE**: Please note that we have used `2.8.0` as the value of `image:tag` configuration parameter
-> above. That will result in `2.8.0` version of microservices and edge modules to be deployed. If you want
+> **NOTE**: Please note that we have used `2.8.1` as the value of `image:tag` configuration parameter
+> above. That will result in `2.8.1` version of microservices and edge modules to be deployed. If you want
 > to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
 #### Passing Azure resource details through YAML file
@@ -395,7 +391,7 @@ Note the following values in the YAML file:
 
 ```yaml
 image:
-  tag: 2.8.0
+  tag: 2.8.1
 
 azure:
   tenantId: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
@@ -484,8 +480,8 @@ deployment:
     hostName: aks-cluster-ip.westeurope.cloudapp.azure.com
 ```
 
-> **NOTE**: Please note that we have used `2.8.0` as the value of `image:tag` configuration parameter
-> above. That will result in `2.8.0` version of microservices and edge modules to be deployed. If you want
+> **NOTE**: Please note that we have used `2.8.1` as the value of `image:tag` configuration parameter
+> above. That will result in `2.8.1` version of microservices and edge modules to be deployed. If you want
 > to deploy a different version of the platform, please specify it as the value of `image:tag` parameter.
 
 #### Installing `azure-industrial-iot` Helm chart
@@ -502,7 +498,7 @@ For installing the chart, please use `aiiot.yaml` that you created above and run
 helm install aiiot --namespace aiiot .\deploy\helm\azure-industrial-iot\ -f aiiot.yaml
 ```
 
-`aiiot.yaml` that we created above is for `0.4.0` or `0.3.2` versions of the Helm chart. Please modify it
+`aiiot.yaml` that we created above is for `0.4.x` or `0.3.2` versions of the Helm chart. Please modify it
 accordingly if you want to install a different version of the chart. Please check documentation of each
 version for a list of applicable values for that specific version. Documentation links of different versions
 of the chart can be found in [Deploying Azure Industrial IoT Platform Microservices Using Helm](howto-deploy-helm.md).
