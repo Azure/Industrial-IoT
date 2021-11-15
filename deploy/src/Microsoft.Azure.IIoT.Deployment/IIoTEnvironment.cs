@@ -54,6 +54,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
         // Log Analytics Workspace
         public readonly string PCS_WORKSPACE_ID;
         public readonly string PCS_WORKSPACE_KEY;
+        public readonly string PCS_SUBSCRIPTION_ID;
+        public readonly string PCS_RESOURCE_GROUP;
 
         // Service URLs
         public readonly string PCS_SERVICE_URL;
@@ -106,6 +108,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
         public IIoTEnvironment(
             AzureEnvironment azureEnvironment,
             Guid tenantId,
+            string subscriptionId,
+            string resourceGroupName,
             // IoT Hub
             IotHubDescription iotHub,
             string iotHubOwnerConnectionString,
@@ -178,6 +182,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             // Log Analytics Workspace
             PCS_WORKSPACE_ID = workspace.Id;
             PCS_WORKSPACE_KEY = workspaceKey;
+            PCS_SUBSCRIPTION_ID = subscriptionId;
+            PCS_RESOURCE_GROUP = resourceGroupName;
 
             // Service URLs
             PCS_SERVICE_URL = serviceURL;
@@ -262,6 +268,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 // Log Analytics Workspace
                 { $"{nameof(PCS_WORKSPACE_ID)}", PCS_WORKSPACE_ID },
                 { $"{nameof(PCS_WORKSPACE_KEY)}", PCS_WORKSPACE_KEY },
+                { $"{nameof(PCS_SUBSCRIPTION_ID)}", PCS_SUBSCRIPTION_ID },
+                { $"{nameof(PCS_RESOURCE_GROUP)}", PCS_RESOURCE_GROUP },
 
                 // Service URLs
                 { $"{nameof(PCS_SERVICE_URL)}", PCS_SERVICE_URL },
