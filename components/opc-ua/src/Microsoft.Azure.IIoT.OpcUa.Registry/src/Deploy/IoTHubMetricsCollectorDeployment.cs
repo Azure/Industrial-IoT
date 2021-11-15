@@ -36,7 +36,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
 
         /// <inheritdoc/>
         public async Task StartAsync() {
-            if (string.IsNullOrEmpty(_config.LogWorkspaceId) || string.IsNullOrEmpty(_config.LogWorkspaceKey)) {
+            if (string.IsNullOrEmpty(_config.LogWorkspaceId) || string.IsNullOrEmpty(_config.LogWorkspaceKey)
+                    || string.IsNullOrEmpty(_config.IoTHubResourceId)) {
                 _logger.Warning("Azure Log Analytics Workspace configuration is not set." +
                     " Cannot proceed with metricscollector deployment.");
                 return;

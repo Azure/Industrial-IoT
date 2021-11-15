@@ -1053,6 +1053,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             var iiotEnvironment = new IIoTEnvironment(
                 _authConf.AzureEnvironment,
                 _authConf.TenantId,
+                _subscription.SubscriptionId,
+                _resourceGroup.Name,
                 // IoT Hub
                 iotHub,
                 iotHubOwnerConnectionString,
