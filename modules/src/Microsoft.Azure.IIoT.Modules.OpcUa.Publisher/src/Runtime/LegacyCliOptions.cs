@@ -53,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     // Publisher configuration options
                     { "pf|publishfile=", "The filename to configure the nodes to publish.",
                         s => this[LegacyCliConfigKeys.PublishedNodesConfigurationFilename] = s },
-                    { "pfs|publishfileschema=", "The validation schema filename for publish file.",
+                    { "pfs|publishfileschema=", "The validation schema filename for publish file. Disabled by default.",
                         s => this[LegacyCliConfigKeys.PublishedNodesConfigurationSchemaFilename] = s },
                     { "s|site=", "The site OPC Publisher is working in.",
                         s => this[LegacyCliConfigKeys.PublisherSite] = s },

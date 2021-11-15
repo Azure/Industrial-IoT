@@ -202,7 +202,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                             try {
                                 if (!File.Exists(_legacyCliModel.PublishedNodesSchemaFile)) {
-                                    _logger.Warning("File {PublishedNodesSchemaFile} does not exist, ignoring schema validation of {publishedNodesFile} file...",
+                                    _logger.Information("Validation schema file {PublishedNodesSchemaFile} does not exist or is disabled, ignoring validation of {publishedNodesFile} file...",
                                     _legacyCliModel.PublishedNodesSchemaFile, _legacyCliModel.PublishedNodesFile);
 
                                     jobs = _publishedNodesJobConverter.Read(fileReader, null, _legacyCliModel);
