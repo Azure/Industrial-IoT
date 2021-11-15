@@ -124,21 +124,27 @@ if ($projFile) {
             runtimeId = "linux-arm"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-arm32v7"
-            runtimeOnly = "RUN chmod +x $($assemblyName)"
+            runtimeOnly = "RUN chmod +x $($assemblyName)
+                RUN useradd -ms /bin/bash moduleuser
+                USER moduleuser"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/arm64" = @{
             runtimeId = "linux-musl-arm64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine-arm64v8"
             platformTag = "linux-arm64v8"
-            runtimeOnly = "RUN chmod +x $($assemblyName)"
+            runtimeOnly = "RUN chmod +x $($assemblyName)
+                RUN adduser -Ds /bin/bash moduleuser
+                USER moduleuser"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "linux/amd64" = @{
             runtimeId = "linux-musl-x64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1-alpine"
             platformTag = "linux-amd64"
-            runtimeOnly = "RUN chmod +x $($assemblyName)"
+            runtimeOnly = "RUN chmod +x $($assemblyName)
+                RUN adduser -Ds /bin/bash moduleuser
+                USER moduleuser"
             entryPoint = "[`"./$($assemblyName)`"]"
         }
         "windows/amd64:10.0.17763.1457" = @{
