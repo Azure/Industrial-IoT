@@ -177,8 +177,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ServerTimestamp : 0) |
                                     DataSetFieldContentMask.NodeId |
                                     DataSetFieldContentMask.DisplayName |
-                                    DataSetFieldContentMask.ApplicationUri |
-                                    (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.EndpointUrl : 0) |
+                                    (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ApplicationUri : 0) |
+                                    DataSetFieldContentMask.EndpointUrl |
                                     (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ExtensionFields : 0),
                             MessageSettings = new DataSetWriterMessageSettingsModel() {
                                 DataSetMessageContentMask =
