@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Hub;
     using Opc.Ua;
-    using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
     using Serilog;
     using System;
@@ -62,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                         DataSetWriterId = (message.ExtensionFields != null &&
                             message.ExtensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
                                 ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
-                        NodeId = message.NodeId.AsString(context),
+                        NodeId = message.NodeId,
                         DisplayName = message.DisplayName,
                         Timestamp = message.Timestamp,
                         SequenceNumber = message.SequenceNumber,

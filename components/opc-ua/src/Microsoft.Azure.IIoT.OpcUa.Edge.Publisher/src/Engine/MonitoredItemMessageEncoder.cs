@@ -94,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
             var current = notifications.GetEnumerator();
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
             var current = notifications.GetEnumerator();
@@ -244,7 +244,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Json, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
             foreach (var networkMessage in notifications) {
@@ -293,7 +293,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var encodingContext = messages.FirstOrDefault(m => m.ServiceMessageContext != null)
                 ?.ServiceMessageContext;
             var notifications = GetMonitoredItemMessages(messages, MessageEncoding.Uadp, encodingContext);
-            if (notifications.Count() == 0) {
+            if (!notifications.Any()) {
                 yield break;
             }
             foreach (var networkMessage in notifications) {
@@ -349,7 +349,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             ApplicationUri = message.ApplicationUri,
                             EndpointUrl = message.EndpointUrl,
                             ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
-                            NodeId = notification.NodeId.ToExpandedNodeId(context.NamespaceUris),
+                            NodeId = notification.NodeId,
                             Timestamp = message.TimeStamp ?? DateTime.UtcNow,
                             Value = notification.Value,
                             DisplayName = notification.DisplayName,

@@ -126,10 +126,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             PublishedVariables = new PublishedDataItemsModel {
                                 PublishedData = opcNodes
                                 .Select(node => new PublishedDataSetVariableModel {
-                                    // this is the monitored item id, not the nodeId!
-                                    // Use the display name if any otherwise the nodeId
-                                    Id = string.IsNullOrEmpty(node.DisplayName) ?
-                                            string.IsNullOrEmpty(node.DataSetFieldId) ? node.Id : node.DataSetFieldId : node.DisplayName,
+                                    //  Identifier to show for notification in payload of IoT Hub method
+                                    //  Prio 1: DataSetFieldId (need to be read from message)
+                                    //  Prio 2: DisplayName - nothing to do, because notification.Id already contains DisplayName
+                                    //  Prio 3: NodeId as configured; Id remains null in this case
+                                    Id = !string.IsNullOrEmpty(node.DataSetFieldId) ?
+                                            node.DataSetFieldId :
+                                            node.DisplayName,
                                     PublishedVariableNodeId = node.Id,
                                     PublishedVariableDisplayName = node.DisplayName,
                                     SamplingInterval = node.OpcSamplingIntervalTimespan ??
@@ -248,7 +251,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <param name="item"></param>
         /// <param name="scaleTestCount"></param>
         /// <returns></returns>
-        private IEnumerable<OpcNodeModel> GetNodeModels(PublishedNodesEntryModel item,
+        private static IEnumerable<OpcNodeModel> GetNodeModels(PublishedNodesEntryModel item,
             int scaleTestCount = 1) {
 
             if (item.OpcNodes != null) {
