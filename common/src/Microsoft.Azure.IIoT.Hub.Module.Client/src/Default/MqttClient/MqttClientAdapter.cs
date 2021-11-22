@@ -214,7 +214,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 cancellationTokenSource.CancelAfter(_timeout);
 
                 // Signal that the response should be saved by setting the key.
-                var requestId = Guid.NewGuid();
+                var requestId = Guid.NewGuid().ToString();
                 _responses[requestId] = null;
 
                 Twin result = null;
@@ -400,7 +400,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// <returns></returns>
             private void OnResponseReceived(MqttApplicationMessageReceivedEventArgs eventArgs) {
                 // Only store the response if a thread is waiting for it (indicated by key added).
-                var requestId = Guid.Parse(eventArgs.ApplicationMessage.Topic.AsSpan("$iothub/twin/res/200/?$rid=".Length, 36));
+                var requestId = eventArgs.ApplicationMessage.Topic.Substring("$iothub/twin/res/200/?$rid=".Length);
                 if (_responses.ContainsKey(requestId)) {
                     _responses[requestId] = eventArgs.ApplicationMessage;
                 }
@@ -503,7 +503,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             private readonly uint? _messageExpiryInterval;
             private ManualResetEvent _responseHandle = new ManualResetEvent(false);
             private ManualResetEvent _connectedHandle = new ManualResetEvent(false);
-            private ConcurrentDictionary<Guid, MqttApplicationMessage> _responses = new ConcurrentDictionary<Guid, MqttApplicationMessage>();
+            private ConcurrentDictionary<string, MqttApplicationMessage> _responses = new ConcurrentDictionary<string, MqttApplicationMessage>();
             private DesiredPropertyUpdateCallback _desiredPropertyUpdateCallback;
             private object _desiredPropertyUpdateCallbackUserContext;
             private MethodCallback _defaultMethodCallback;
