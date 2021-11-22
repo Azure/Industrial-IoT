@@ -19,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using Microsoft.Azure.IIoT.Hub.Module.Client.Default.MqttClient;
     using Newtonsoft.Json;
     using System.Text;
-    using System.Collections.ObjectModel;
     using Microsoft.Azure.Devices.Client.Common;
     using MQTTnet.Client;
     using MQTTnet.Client.Disconnecting;
@@ -32,6 +31,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
     using MQTTnet.Formatter;
     using System.Runtime.InteropServices;
     using MQTTnet.Protocol;
+    using System.Net;
 
     /// <summary>
     /// Injectable factory that creates clients
@@ -186,13 +186,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
             /// <inheritdoc />
             public Task SetMethodHandlerAsync(string methodName, MethodCallback methodHandler, object userContext) {
-                _logger.Warning($"Unsupported method called in MQTT client: {nameof(SetMethodHandlerAsync)}");
+                _methodCallbacks[methodName] = (methodHandler, userContext);
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc />
             public Task SetMethodDefaultHandlerAsync(MethodCallback methodHandler, object userContext) {
-                _logger.Warning($"Unsupported method called in MQTT client: {nameof(SetMethodDefaultHandlerAsync)}");
+                _defaultMethodCallback = methodHandler;
+                _defaultMethodCallbackUserContext = userContext;
                 return Task.CompletedTask;
             }
 
@@ -298,7 +299,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                         // http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718067
                         var topicFilters = new MqttTopicFilter[] {
                             new MqttTopicFilter { Topic = "$iothub/twin/res/#" },
-                            new MqttTopicFilter { Topic = "$iothub/twin/PATCH/properties/desired/#" }
+                            new MqttTopicFilter { Topic = "$iothub/twin/PATCH/properties/desired/#" },
+                            new MqttTopicFilter { Topic = "$iothub/methods/POST/#" }
                         };
                         await _client.InternalClient.SubscribeAsync(topicFilters);
                         await _client.SubscribeAsync(topicFilters);
@@ -392,6 +394,71 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
 
             /// <summary>
+            /// Handler for when a response is received.
+            /// </summary>
+            /// <param name="eventArgs">Event arguments.</param>
+            /// <returns></returns>
+            private void OnResponseReceived(MqttApplicationMessageReceivedEventArgs eventArgs) {
+                // Only store the response if a thread is waiting for it (indicated by key added).
+                var requestId = Guid.Parse(eventArgs.ApplicationMessage.Topic.AsSpan("$iothub/twin/res/200/?$rid=".Length, 36));
+                if (_responses.ContainsKey(requestId)) {
+                    _responses[requestId] = eventArgs.ApplicationMessage;
+                }
+
+                // Unblock all threads waiting for responses.
+                _responseHandle.Set();
+            }
+
+            /// <summary>
+            /// Handler for when desired properties are updated.
+            /// </summary>
+            /// <param name="eventArgs">Event arguments.</param>
+            /// <returns></returns>
+            private void OnDesiredPropertiesUpdated(MqttApplicationMessageReceivedEventArgs eventArgs) {
+                var twinCollection = JsonConvert.DeserializeObject<TwinCollection>(Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload));
+                _desiredPropertyUpdateCallback?.Invoke(twinCollection, _desiredPropertyUpdateCallbackUserContext);
+            }
+
+            /// <summary>
+            /// Handler for when a method is called.
+            /// </summary>
+            /// <param name="eventArgs">Event arguments.</param>
+            /// <returns></returns>
+            private async void OnMethodCalled(MqttApplicationMessageReceivedEventArgs eventArgs) {
+                // Parse topic.
+                var components = eventArgs.ApplicationMessage.Topic.Split('/');
+                var methodName = components[components.Length - 2];
+                var requestId = components[components.Length - 1].Substring("?$rid=".Length);
+
+                // Get callback and user context.
+                var callback = _defaultMethodCallback;
+                var userContext = _defaultMethodCallbackUserContext;
+                if (_methodCallbacks.ContainsKey(methodName)) {
+                    callback = _methodCallbacks[methodName].methodCallback;
+                    userContext = _methodCallbacks[methodName].userContext;
+                }
+
+                if (callback == null) {
+                    return;
+                }
+
+                // Invoke callback.
+                var methodRequest = new MethodRequest(methodName, eventArgs.ApplicationMessage.Payload);
+                try {
+                    var methodResponse = await callback.Invoke(methodRequest, _defaultMethodCallbackUserContext);
+                    MemoryStream payload = null;
+                    if (methodResponse.Result != null && methodResponse.Result.Any()) {
+                        payload = new MemoryStream(methodResponse.Result);
+                    }
+                    await InternalSendEventAsync($"$iothub/methods/res/{methodResponse.Status}/?$rid={requestId}", payload);
+                }
+                catch (Exception ex) {
+                    _logger.Error($"Failed to call method \"{methodName}\": {ex.Message}");
+                    await InternalSendEventAsync($"$iothub/methods/res/{(int)HttpStatusCode.InternalServerError}/?$rid={requestId}");
+                }
+            }
+
+            /// <summary>
             /// Handler for when the MQTT client receives an application message.
             /// </summary>
             /// <param name="eventArgs">Event arguments.</param>
@@ -404,18 +471,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
                 try {
                     if (eventArgs.ApplicationMessage.Topic.StartsWith("$iothub/twin/res/200/?$rid=", StringComparison.OrdinalIgnoreCase)) {
-                        // Only store the response if a thread is waiting for it (indicated by key added).
-                        var requestId = Guid.Parse(eventArgs.ApplicationMessage.Topic.AsSpan("$iothub/twin/res/200/?$rid=".Length, 36));
-                        if (_responses.ContainsKey(requestId)) {
-                            _responses[requestId] = eventArgs.ApplicationMessage;
-                        }
-
-                        // Unblock all threads waiting for responses.
-                        _responseHandle.Set();
+                        OnResponseReceived(eventArgs);
                     }
                     else if (eventArgs.ApplicationMessage.Topic.StartsWith("$iothub/twin/PATCH/properties/desired/?$version=", StringComparison.OrdinalIgnoreCase)) {
-                        var twinCollection = JsonConvert.DeserializeObject<TwinCollection>(Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload));
-                        _desiredPropertyUpdateCallback?.Invoke(twinCollection, _desiredPropertyUpdateCallbackUserContext);
+                        OnDesiredPropertiesUpdated(eventArgs);
+                    }
+                    else if (eventArgs.ApplicationMessage.Topic.StartsWith("$iothub/methods/POST/", StringComparison.OrdinalIgnoreCase)) {
+                        OnMethodCalled(eventArgs);
                     }
                 }
                 catch (Exception ex) {
@@ -444,6 +506,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             private ConcurrentDictionary<Guid, MqttApplicationMessage> _responses = new ConcurrentDictionary<Guid, MqttApplicationMessage>();
             private DesiredPropertyUpdateCallback _desiredPropertyUpdateCallback;
             private object _desiredPropertyUpdateCallbackUserContext;
+            private MethodCallback _defaultMethodCallback;
+            private object _defaultMethodCallbackUserContext;
+            private readonly Dictionary<string, (MethodCallback methodCallback, object userContext)> _methodCallbacks = new Dictionary<string, (MethodCallback methodCallback, object methodCallbackUserContext)>();
 
             private int _reconnectCounter;
             private static readonly Gauge kReconnectionStatus = Metrics
