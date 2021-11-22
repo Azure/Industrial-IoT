@@ -41,7 +41,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
         /// MQTT client adapter implementation
         /// </summary>
         public sealed class MqttClientAdapter : IClient {
-
             /// <summary>
             /// Whether the client is closed
             /// </summary>
@@ -95,7 +94,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                             tcpOptions.BufferSize = 64 * 1024;
                         }
                     });
-
 
                 if (!string.IsNullOrWhiteSpace(cs.Username) && !string.IsNullOrWhiteSpace(cs.Password)) {
                     options = options.WithCredentials(cs.Username, cs.Password);
@@ -163,27 +161,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     return Task.CompletedTask;
                 }
 
-                var cancellationTokenSource = new CancellationTokenSource();
-                cancellationTokenSource.CancelAfter(_timeout);
-
-                try {
-                    var mqttApplicationMessageBuilder = new MqttApplicationMessageBuilder()
-                        .WithQualityOfServiceLevel(_qualityOfServiceLevel)
-                        .WithContentType(message.ContentType)
-                        .WithTopic(PopulateMessagePropertiesFromMessage($"devices/{_deviceId}/messages/events/", message))
-                        .WithPayload(message.BodyStream)
-                        .WithRetainFlag(true);
-
-                    if (_messageExpiryInterval != null) {
-                        mqttApplicationMessageBuilder = mqttApplicationMessageBuilder.WithMessageExpiryInterval(_messageExpiryInterval.Value);
-                    }
-
-                    return _client.PublishAsync(mqttApplicationMessageBuilder.Build(), cancellationTokenSource.Token);
+                // Build merged dictionary of properties to serialize in topic.
+                var properties = new Dictionary<string, string>(message.Properties);
+                if (!string.IsNullOrWhiteSpace(message.ContentType)) {
+                    properties[kContentTypePropertyName] = message.ContentType;
                 }
-                catch (Exception ex) {
-                    _logger.Error($"Failed to send MQTT message: {ex.Message}");
+                if (!string.IsNullOrWhiteSpace(message.ContentEncoding)) {
+                    properties[kContentEncodingPropertyName] = message.ContentEncoding;
                 }
-                return Task.CompletedTask;
+                var topic = $"devices/{_deviceId}/messages/events/";
+                if (properties.Any()) {
+                    topic += UrlEncodedDictionarySerializer.Serialize(properties) + kSegmentSeparator;
+                }
+                return InternalSendEventAsync(topic, message.BodyStream);
             }
 
             /// <inheritdoc />
@@ -224,22 +214,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 var cancellationTokenSource = new CancellationTokenSource();
                 cancellationTokenSource.CancelAfter(_timeout);
 
-                var requestId = Guid.NewGuid();
-                var mqttMessage = new MqttApplicationMessageBuilder()
-                    .WithQualityOfServiceLevel(_qualityOfServiceLevel)
-                    .WithContentType(kContentType)
-                    .WithTopic($"$iothub/twin/GET/?$rid={requestId}")
-                    .WithRetainFlag(true)
-                    .Build();
-
                 // Signal that the response should be saved by setting the key.
+                var requestId = Guid.NewGuid();
                 _responses[requestId] = null;
 
                 Twin result = null;
                 try {
                     // Publish message and wait for response to come back. The thread may be unblocked by other 
                     // simultaneous calls, so wait again if needed.
-                    await _client.PublishAsync(mqttMessage, cancellationTokenSource.Token);
+                    await InternalSendEventAsync($"$iothub/twin/GET/?$rid={requestId}", cancellationToken: cancellationTokenSource.Token);
                     while (!cancellationTokenSource.Token.IsCancellationRequested) {
                         _responseHandle.WaitOne(_timeout);
                         _responseHandle.Reset();
@@ -261,7 +244,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 catch (Exception ex) {
                     _logger.Error($"Failed to get twin: {ex.Message}");
                 }
-
                 _responses.Remove(requestId, out _);
                 return result;
             }
@@ -349,6 +331,51 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
 
             /// <summary>
+            /// Send event as MQTT message with configured properties for the client.
+            /// </summary>
+            /// <param name="topic">Topic for MQTT message.</param>
+            /// <param name="payload">Optional payload for MQTT message.</param>
+            /// <param name="cancellationToken">Optional cancellation token for operation.</param>
+            /// <returns></returns>
+            private Task InternalSendEventAsync(string topic, Stream payload = null, CancellationToken cancellationToken = default) {
+                // Check topic length.
+                var topicLength = Encoding.UTF8.GetByteCount(topic);
+                if (topicLength > kMaxTopicLength) {
+                    throw new MessageTooLargeException(
+                        $"Topic for MQTT message cannot be larger than {kMaxTopicLength} bytes, but current length is {topicLength}. " +
+                        $"The list of message.properties and/or message.systemProperties is likely too long. Please use AMQP or HTTP.");
+                }
+
+                // Create default cancellation token.
+                if (cancellationToken == default) {
+                    var cancellationTokenSource = new CancellationTokenSource();
+                    cancellationTokenSource.CancelAfter(_timeout);
+                    cancellationToken = cancellationTokenSource.Token;
+                }
+
+                try {
+                    // Build MQTT message.
+                    var mqttApplicationMessageBuilder = new MqttApplicationMessageBuilder()
+                        .WithQualityOfServiceLevel(_qualityOfServiceLevel)
+                        .WithContentType(kContentType)
+                        .WithTopic(topic)
+                        .WithRetainFlag(true);
+
+                    if (payload != null) {
+                        mqttApplicationMessageBuilder = mqttApplicationMessageBuilder.WithPayload(payload);
+                    }
+                    if (_messageExpiryInterval != null) {
+                        mqttApplicationMessageBuilder = mqttApplicationMessageBuilder.WithMessageExpiryInterval(_messageExpiryInterval.Value);
+                    }
+                    return _client.PublishAsync(mqttApplicationMessageBuilder.Build(), cancellationToken);
+                }
+                catch (Exception ex) {
+                    _logger.Error($"Failed to publish MQTT message: {ex.Message}");
+                }
+                return Task.CompletedTask;
+            }
+
+            /// <summary>
             /// Handler for when the MQTT client is connected.
             /// </summary>
             /// <param name="eventArgs">Event arguments.</param>
@@ -393,7 +420,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
 
                 if (eventArgs.ApplicationMessage.Topic.StartsWith("$iothub/twin/res/200/?$rid=")) {
                     // Only store the response if a thread is waiting for it (indicated by key added).
-                    var requestId = Guid.Parse(eventArgs.ApplicationMessage.Topic.Substring("$iothub/twin/res/200/?$rid=".Length, 36));
+                    var requestId = Guid.Parse(eventArgs.ApplicationMessage.Topic.AsSpan("$iothub/twin/res/200/?$rid=".Length, 36));
                     if (_responses.ContainsKey(requestId)) {
                         _responses[requestId] = eventArgs.ApplicationMessage;
                     }
@@ -403,53 +430,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                 }
             }
 
-            /// <summary>
-            /// Merge array of dictionaries.
-            /// </summary>
-            /// <param name="dictionaries">Dictionaries to merge.</param>
-            /// <returns>Merged, read-only dictionary</returns>
-            private static IReadOnlyDictionary<TKey, TValue> MergeDictionaries<TKey, TValue>(IDictionary<TKey, TValue>[] dictionaries) {
-                // No item in the array should be null.
-                if (dictionaries == null || dictionaries.Any(item => item == null)) {
-                    throw new ArgumentNullException(nameof(dictionaries), "Provided dictionaries should not be null");
-                }
-
-                var result = dictionaries.SelectMany(dict => dict)
-                    .ToLookup(pair => pair.Key, pair => pair.Value)
-                    .ToDictionary(group => group.Key, group => group.First());
-                return new ReadOnlyDictionary<TKey, TValue>(result);
-            }
-
-            /// <summary>
-            /// Populate message properties from message.
-            /// </summary>
-            /// <param name="topicName">Name of topic.</param>
-            /// <param name="message">Message from which to populate from.</param>
-            /// <returns>Populated message.</returns>
-            private static string PopulateMessagePropertiesFromMessage(string topicName, Message message) {
-                var systemProperties = new Dictionary<string, string>();
-                if (!string.IsNullOrWhiteSpace(message.ContentType))
-                    systemProperties[kContentTypePropertyName] = message.ContentType;
-                if (!string.IsNullOrWhiteSpace(message.ContentEncoding))
-                    systemProperties[kContentEncodingPropertyName] = message.ContentEncoding;
-                string properties = UrlEncodedDictionarySerializer.Serialize(MergeDictionaries(new IDictionary<string, string>[] { systemProperties, message.Properties }));
-
-                string msg = properties.Length != 0
-                    ? topicName.EndsWith(kSegmentSeparator, StringComparison.Ordinal) ? topicName + properties + kSegmentSeparator : topicName + kSegmentSeparator + properties
-                    : topicName;
-                if (Encoding.UTF8.GetByteCount(msg) > kMaxTopicNameLength) {
-                    throw new MessageTooLargeException($"TopicName for MQTT packet cannot be larger than {kMaxTopicNameLength} bytes, " +
-                        $"current length is {Encoding.UTF8.GetByteCount(msg)}." +
-                        $" The probable cause is the list of message.Properties and/or message.systemProperties is too long. " +
-                        $"Please use AMQP or HTTP.");
-                }
-                return msg;
-            }
-
             private readonly IManagedMqttClient _client;
             private readonly MqttQualityOfServiceLevel _qualityOfServiceLevel;
 
-            private const int kMaxTopicNameLength = 0xffff;
+            private const int kMaxTopicLength = 0xffff;
             private const string kSegmentSeparator = "/";
             private const string kContentEncodingPropertyName = "iothub-content-encoding";
             private const string kContentTypePropertyName = "iothub-content-type";
