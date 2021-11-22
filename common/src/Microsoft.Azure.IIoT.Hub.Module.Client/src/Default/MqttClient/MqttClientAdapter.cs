@@ -185,23 +185,21 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
 
             /// <inheritdoc />
-            public Task SetMethodHandlerAsync(string methodName,
-                MethodCallback methodHandler, object userContext) {
+            public Task SetMethodHandlerAsync(string methodName, MethodCallback methodHandler, object userContext) {
                 _logger.Warning($"Unsupported method called in MQTT client: {nameof(SetMethodHandlerAsync)}");
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc />
-            public Task SetMethodDefaultHandlerAsync(
-                MethodCallback methodHandler, object userContext) {
+            public Task SetMethodDefaultHandlerAsync(MethodCallback methodHandler, object userContext) {
                 _logger.Warning($"Unsupported method called in MQTT client: {nameof(SetMethodDefaultHandlerAsync)}");
                 return Task.CompletedTask;
             }
 
             /// <inheritdoc />
-            public Task SetDesiredPropertyUpdateCallbackAsync(
-                DesiredPropertyUpdateCallback callback, object userContext) {
-                _logger.Warning($"Unsupported method called in MQTT client: {nameof(SetDesiredPropertyUpdateCallbackAsync)}");
+            public Task SetDesiredPropertyUpdateCallbackAsync(DesiredPropertyUpdateCallback callback, object userContext) {
+                _desiredPropertyUpdateCallback = callback;
+                _desiredPropertyUpdateCallbackUserContext = userContext;
                 return Task.CompletedTask;
             }
 
@@ -264,14 +262,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             }
 
             /// <inheritdoc />
-            public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) {
+            public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId, MethodRequest methodRequest, CancellationToken cancellationToken) {
                 throw new NotSupportedException("MQTT client does not support methods");
             }
 
             /// <inheritdoc />
-            public Task<MethodResponse> InvokeMethodAsync(string deviceId,
-                MethodRequest methodRequest, CancellationToken cancellationToken) {
+            public Task<MethodResponse> InvokeMethodAsync(string deviceId, MethodRequest methodRequest, CancellationToken cancellationToken) {
                 throw new NotSupportedException("MQTT client does not support methods");
             }
 
@@ -402,19 +398,28 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             /// <returns></returns>
             private void OnApplicationMessageReceivedHandler(MqttApplicationMessageReceivedEventArgs eventArgs) {
                 if (eventArgs.ProcessingFailed) {
-                    _logger.Warning("Failed to process message: {reasonCode}", eventArgs.ReasonCode);
+                    _logger.Warning("Failed to process MQTT message: {reasonCode}", eventArgs.ReasonCode);
                     return;
                 }
 
-                if (eventArgs.ApplicationMessage.Topic.StartsWith("$iothub/twin/res/200/?$rid=")) {
-                    // Only store the response if a thread is waiting for it (indicated by key added).
-                    var requestId = Guid.Parse(eventArgs.ApplicationMessage.Topic.AsSpan("$iothub/twin/res/200/?$rid=".Length, 36));
-                    if (_responses.ContainsKey(requestId)) {
-                        _responses[requestId] = eventArgs.ApplicationMessage;
-                    }
+                try {
+                    if (eventArgs.ApplicationMessage.Topic.StartsWith("$iothub/twin/res/200/?$rid=", StringComparison.OrdinalIgnoreCase)) {
+                        // Only store the response if a thread is waiting for it (indicated by key added).
+                        var requestId = Guid.Parse(eventArgs.ApplicationMessage.Topic.AsSpan("$iothub/twin/res/200/?$rid=".Length, 36));
+                        if (_responses.ContainsKey(requestId)) {
+                            _responses[requestId] = eventArgs.ApplicationMessage;
+                        }
 
-                    // Unblock all threads waiting for responses.
-                    _responseHandle.Set();
+                        // Unblock all threads waiting for responses.
+                        _responseHandle.Set();
+                    }
+                    else if (eventArgs.ApplicationMessage.Topic.StartsWith("$iothub/twin/PATCH/properties/desired/?$version=", StringComparison.OrdinalIgnoreCase)) {
+                        var twinCollection = JsonConvert.DeserializeObject<TwinCollection>(Encoding.UTF8.GetString(eventArgs.ApplicationMessage.Payload));
+                        _desiredPropertyUpdateCallback?.Invoke(twinCollection, _desiredPropertyUpdateCallbackUserContext);
+                    }
+                }
+                catch (Exception ex) {
+                    _logger.Error($"Failed to process MQTT message: {ex.Message}");
                 }
             }
 
@@ -437,6 +442,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
             private ManualResetEvent _responseHandle = new ManualResetEvent(false);
             private ManualResetEvent _connectedHandle = new ManualResetEvent(false);
             private ConcurrentDictionary<Guid, MqttApplicationMessage> _responses = new ConcurrentDictionary<Guid, MqttApplicationMessage>();
+            private DesiredPropertyUpdateCallback _desiredPropertyUpdateCallback;
+            private object _desiredPropertyUpdateCallbackUserContext;
 
             private int _reconnectCounter;
             private static readonly Gauge kReconnectionStatus = Metrics
