@@ -254,20 +254,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client.MqttClient {
                     return Task.CompletedTask;
                 }
 
-                var mqttMessage = new MqttApplicationMessageBuilder()
-                    .WithQualityOfServiceLevel(_qualityOfServiceLevel)
-                    .WithContentType(kContentType)
-                    .WithTopic("$iothub/twin/PATCH/properties/reported/?$rid=patch_temp")
-                    .WithPayload(Encoding.UTF8.GetBytes(reportedProperties.ToJson()))
-                    .WithRetainFlag(true)
-                    .Build();
-
-                try {
-                    return _client.PublishAsync(mqttMessage, CancellationToken.None);
-                }
-                catch (Exception) {
-                    return Task.CompletedTask;
-                }
+                var payload = new MemoryStream(Encoding.UTF8.GetBytes(reportedProperties.ToJson()));
+                return InternalSendEventAsync("$iothub/twin/PATCH/properties/reported/?$rid=patch_temp", payload);
             }
 
             /// <inheritdoc />
