@@ -37,6 +37,7 @@ On Windows:
 On Linux:
 
   ```bash
+  chmod +x deploy.sh
   ./deploy.sh
   ```
 
