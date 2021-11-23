@@ -72,7 +72,7 @@ Function Select-Context() {
     try {
         $azProfile = Connect-AzAccount `
             -Environment $environmentName @tenantIdArg `
-            -ErrorAction Stop
+            -WarningAction Stop
 
         $reply = Read-Host -Prompt "Save credentials in .user file? [y/n]"
         if ($reply -match "[yY]") {
@@ -84,7 +84,26 @@ Function Select-Context() {
         return $context
     }
     catch {
-        throw "The login to the Azure account was not successful."
+        try {
+            # for the case where prompting web browser is not applicable, we will prompt for DeviceAuthentication login.
+            $azProfile = Connect-AzAccount `
+            -UseDeviceAuthentication `
+            -TenantId $script:tenantId `
+            -Environment $environmentName @tenantIdArg `
+            -ErrorAction Stop
+
+            $reply = Read-Host -Prompt "Save credentials in .user file? [y/n]"
+            if ($reply -match "[yY]") {
+                Save-AzContext -Path $contextFile -Profile $connection
+            }
+        
+            $context = $azProfile.Context
+            Write-Host "Using context (Account $($context.Account), Tenant $($context.Tenant.Id))"
+            return $context
+        }
+        catch{
+            throw "The login to the Azure account was not successful."
+        }
     }
 }
 
