@@ -67,8 +67,8 @@ steps:
   displayName: 'Load secrets from Key Vault as variables by default'
   condition: and(eq(variables['ContainerRegistryServer'], ''), eq(variables['ContainerRegistryUsername'], ''), eq(variables['ContainerRegistryPassword'], ''))
   inputs:
-    azureSubscription: 'IOT-OPC-WALLS-SP'
-    KeyVaultName: 'developerPipelineKV'
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: '$(DevAcrCredentialsKeyVaultName)'
     SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
