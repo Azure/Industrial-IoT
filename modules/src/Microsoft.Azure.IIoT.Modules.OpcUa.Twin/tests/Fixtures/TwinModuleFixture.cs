@@ -264,7 +264,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                 .ToString();
 
             /// <inheritdoc/>
-            public string MqttClientConnectionString => ""; // TODO
+            public string MqttClientConnectionString => null;
 
             /// <inheritdoc/>
             public bool BypassCertVerification => true;

@@ -64,9 +64,10 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Tests {
                     x.Storage is ManagedMqttClientStorage)));
             mock.Verify(x => x.SubscribeAsync(
                 It.Is<MqttTopicFilter[]>(x =>
-                    x.Length == 2 &&
+                    x.Length == 3 &&
                     string.Equals(x[0].Topic, "$iothub/twin/res/#") &&
-                    string.Equals(x[1].Topic, "$iothub/twin/PATCH/properties/desired/#"))));
+                    string.Equals(x[1].Topic, "$iothub/twin/PATCH/properties/desired/#") &&
+                    string.Equals(x[2].Topic, "$iothub/methods/POST/#"))));
             mock.Verify(x => x.InternalClient.SubscribeAsync(It.IsAny<MqttClientSubscribeOptions>(), It.IsAny<CancellationToken>()));
             mock.VerifyNoOtherCalls();
         }
