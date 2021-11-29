@@ -58,6 +58,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             var ehubHost = Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_GATEWAYHOSTNAME);
 
             try {
+                if (!string.IsNullOrEmpty(config.MqttClientConnectionString) &&
+                    !string.IsNullOrEmpty(config.EdgeHubConnectionString)) {
+                    throw new InvalidConfigurationException(
+                        "Can't have both a mqtt client connection string and a device connection string.");
+                }
+
                 if (!string.IsNullOrEmpty(config.MqttClientConnectionString)) {
                     _mqttClientCs = MqttClientConnectionStringBuilder.Create(config.MqttClientConnectionString);
 
