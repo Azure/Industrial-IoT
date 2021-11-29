@@ -88,7 +88,6 @@ Function Select-Context() {
             # for the case where prompting web browser is not applicable, we will prompt for DeviceAuthentication login.
             $azProfile = Connect-AzAccount `
             -UseDeviceAuthentication `
-            -TenantId $script:tenantId `
             -Environment $environmentName @tenantIdArg `
             -ErrorAction Stop
 
