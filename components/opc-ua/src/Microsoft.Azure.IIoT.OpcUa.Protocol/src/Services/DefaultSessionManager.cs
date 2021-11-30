@@ -79,36 +79,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <inheritdoc/>
-        public int GetNumberOfGoodNodes(ConnectionModel connection) {
-            var key = new ConnectionIdentifier(connection);
-            _lock.Wait();
-            try {
-                if (!_sessions.TryGetValue(key, out var wrapper)) {
-                    return 0;
-                }
-                return wrapper._subscriptions.Sum(x => x.Value.NumberOfGoodNodes);
-            }
-            finally {
-                _lock.Release();
-            }
-        }
-
-        /// <inheritdoc/>
-        public int GetNumberOfBadNodes(ConnectionModel connection) {
-            var key = new ConnectionIdentifier(connection);
-            _lock.Wait();
-            try {
-                if (!_sessions.TryGetValue(key, out var wrapper)) {
-                    return 0;
-                }
-                return wrapper._subscriptions.Sum(x => x.Value.NumberOfBadNodes);
-            }
-            finally {
-                _lock.Release();
-            }
-        }
-
-        /// <inheritdoc/>
         public Session GetOrCreateSession(ConnectionModel connection,
             bool createIfNotExists) {
 

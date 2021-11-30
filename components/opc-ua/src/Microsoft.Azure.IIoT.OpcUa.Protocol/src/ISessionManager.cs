@@ -33,20 +33,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         public bool IsConnectionOk(ConnectionModel connection);
 
         /// <summary>
-        /// Gets the number nodes connected and receiving data
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        int GetNumberOfGoodNodes(ConnectionModel connection);
-
-        /// <summary>
-        /// Gets the number nodes disconnected
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        int GetNumberOfBadNodes(ConnectionModel connection);
-
-        /// <summary>
         /// Get or create session for subscription
         /// </summary>
         /// <param name="connection"></param>

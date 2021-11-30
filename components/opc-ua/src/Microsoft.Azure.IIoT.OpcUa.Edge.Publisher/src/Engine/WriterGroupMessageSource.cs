@@ -27,20 +27,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public string Id => _writerGroup.WriterGroupId;
 
         /// <inheritdoc/>
-        public int NumberOfConnectionRetries => _subscriptions?.FirstOrDefault()?.
-            Subscription?.NumberOfConnectionRetries ?? 0;
+        public int NumberOfConnectionRetries => _subscriptions?.Sum(x => x.Subscription?.NumberOfConnectionRetries) ?? 0;
 
         /// <inheritdoc/>
-        public bool IsConnectionOk => _subscriptions?.FirstOrDefault()?.
-            Subscription?.IsConnectionOk ?? false;
+        public bool IsConnectionOk => (_subscriptions?.Count == 0 || 
+            _subscriptions?.Where(x => x.Subscription?.IsConnectionOk == true).Count() < _subscriptions?.Count) ? false : true;
 
         /// <inheritdoc/>
-        public int NumberOfGoodNodes => _subscriptions?.FirstOrDefault()?.
-            Subscription?.NumberOfGoodNodes ?? 0;
+        public int NumberOfGoodNodes => _subscriptions?.Sum(x => x.Subscription?.NumberOfGoodNodes) ?? 0;
 
         /// <inheritdoc/>
-        public int NumberOfBadNodes => _subscriptions?.FirstOrDefault()?.
-            Subscription?.NumberOfBadNodes ?? 0;
+        public int NumberOfBadNodes => _subscriptions?.Sum(x => x.Subscription?.NumberOfBadNodes) ?? 0;
 
         /// <inheritdoc/>
         public ulong ValueChangesCountLastMinute {
