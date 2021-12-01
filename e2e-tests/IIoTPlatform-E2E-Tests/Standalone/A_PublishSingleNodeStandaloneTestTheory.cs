@@ -41,6 +41,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         async Task SubscribeUnsubscribeTest(MessagingMode messagingMode) {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
+            var ioTHubLegacyPublisherDeployment = new IoTHubLegacyPublisherDeployments(_context, messagingMode);
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -58,6 +59,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             // Create layered edge deployment.
             var layeredDeploymentResult = await ioTHubPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
+            _output.WriteLine("Created/Updated layered deployment for publisher module.");
+
+            // Create layered edge deployment.
+            var layeredDeploymentResult1 = await ioTHubLegacyPublisherDeployment.CreateOrUpdateLayeredDeploymentAsync(cts.Token);
+            Assert.True(layeredDeploymentResult1, "Failed to create/update layered deployment for legac publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
             IDictionary<string, PublishedNodesEntryModel> simulatedPublishedNodesConfiguration =
