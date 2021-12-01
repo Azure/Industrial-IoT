@@ -80,6 +80,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _outer._sessionManager.GetNumberOfConnectionRetries(_subscription.Connection);
 
             /// <inheritdoc/>
+            public bool IsConnectionOk =>
+                _outer._sessionManager.IsConnectionOk(_subscription.Connection);
+
+            /// <inheritdoc/>
+            public int NumberOfGoodNodes {
+                get {
+                    return (IsConnectionOk && _currentlyMonitored != null) ?
+                        _currentlyMonitored
+                            .Where(x => x.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Reporting ||
+                                    x.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Sampling)
+                            .Count() : 0;
+                }
+            }
+
+            /// <inheritdoc/>
+            public int NumberOfBadNodes {
+                get {
+                    return (IsConnectionOk && _currentlyMonitored != null) ?
+                        _currentlyMonitored
+                            .Where(x => x.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
+                            .Count() : 0;
+                }
+            }
+
+            /// <inheritdoc/>
             public ConnectionModel Connection => _subscription.Connection;
 
             /// <inheritdoc/>
@@ -853,7 +878,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Last published time
             /// </summary>
-            public DateTime NextHeartbeat {get; private set; }
+            public DateTime NextHeartbeat { get; private set; }
 
             /// <summary>
             /// validates if a heartbeat is required.
