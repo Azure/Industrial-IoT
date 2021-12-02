@@ -68,10 +68,8 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
             }).Replace("\"", "\\\"");
 
             var server = TestConstants.MicrosoftContainerRegistry;
-            var ns = string.IsNullOrEmpty(_context.ContainerRegistryConfig.ImagesNamespace) ? "" :
-                _context.ContainerRegistryConfig.ImagesNamespace.TrimEnd('/') + "/";
             var version = kVersion;
-            var image = $"{server}/{ns}iotedge/opc-publisher:{version}";
+            var image = $"{server}/iotedge/opc-publisher:{version}";
 
             // Return deployment modules object
             var content = @"
