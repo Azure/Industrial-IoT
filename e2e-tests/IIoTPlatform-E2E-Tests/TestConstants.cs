@@ -57,6 +57,12 @@ namespace IIoTPlatform_E2E_Tests {
             PublishedNodesFolder.TrimEnd('/') + "/" + PublishedNodesFilename;
 
         /// <summary>
+        /// The full name of the publishednodes.json on the Edge
+        /// </summary>
+        public static readonly string PublishedNodesFullNameLegacy =
+            PublishedNodesFolderLegacy.TrimEnd('/') + "/" + PublishedNodesFilename;
+
+        /// <summary>
         /// Default Microsoft Container Registry
         /// </summary>
         public static readonly string MicrosoftContainerRegistry = "mcr.microsoft.com";
