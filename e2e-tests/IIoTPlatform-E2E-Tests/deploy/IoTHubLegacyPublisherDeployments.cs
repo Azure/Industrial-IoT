@@ -37,27 +37,27 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
             var registryCredentials = "";
 
             //should only be provided if the different container registry require username and password
-            if (!string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) &&
-                _context.ContainerRegistryConfig.ContainerRegistryServer != TestConstants.MicrosoftContainerRegistry &&
-                !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryPassword) &&
-                !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryUser)) {
-                var registryId = _context.ContainerRegistryConfig.ContainerRegistryServer.Split('.')[0];
-                registryCredentials = @"
-                    ""properties.desired.runtime.settings.registryCredentials." + registryId + @""": {
-                        ""address"": """ + _context.ContainerRegistryConfig.ContainerRegistryServer + @""",
-                        ""password"": """ + _context.ContainerRegistryConfig.ContainerRegistryPassword + @""",
-                        ""username"": """ + _context.ContainerRegistryConfig.ContainerRegistryUser + @"""
-                    },
-                ";
-            }
+            //if (!string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) &&
+            //    _context.ContainerRegistryConfig.ContainerRegistryServer != TestConstants.MicrosoftContainerRegistry &&
+            //    !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryPassword) &&
+            //    !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryUser)) {
+            //    var registryId = _context.ContainerRegistryConfig.ContainerRegistryServer.Split('.')[0];
+            //    registryCredentials = @"
+            //        ""properties.desired.runtime.settings.registryCredentials." + registryId + @""": {
+            //            ""address"": """ + _context.ContainerRegistryConfig.ContainerRegistryServer + @""",
+            //            ""password"": """ + _context.ContainerRegistryConfig.ContainerRegistryPassword + @""",
+            //            ""username"": """ + _context.ContainerRegistryConfig.ContainerRegistryUser + @"""
+            //        },
+            //    ";
+            //}
 
             // Configure create options per os specified
             var createOptions = JsonConvert.SerializeObject(new {
                 Hostname = kModuleName,
                 Cmd = new[] {
-                "PkiRootPath=" + TestConstants.PublishedNodesFolder + "/pki",
+                "PkiRootPath=" + TestConstants.PublishedNodesFolderLegacy + "/pki",
                 "--aa",
-                "--pf=" + TestConstants.PublishedNodesFullName,
+                "--pf=" + TestConstants.PublishedNodesFullNameLegacy,
                 "--mm=" + MessagingMode.ToString()
             },
                 HostConfig = new {
@@ -67,8 +67,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                 }
             }).Replace("\"", "\\\"");
 
-            var server = string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) ?
-                TestConstants.MicrosoftContainerRegistry : _context.ContainerRegistryConfig.ContainerRegistryServer;
+            var server = TestConstants.MicrosoftContainerRegistry;
             var ns = string.IsNullOrEmpty(_context.ContainerRegistryConfig.ImagesNamespace) ? "" :
                 _context.ContainerRegistryConfig.ImagesNamespace.TrimEnd('/') + "/";
             var version = kVersion;
