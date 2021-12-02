@@ -51,20 +51,33 @@ jobs:
       projects: '$(file)'
       arguments: '--configuration Release'
   - task: DotNetCoreCLI@2
-    displayName: Publish Build
     inputs:
       command: 'publish'
-      arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/$(agent)'
+      arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/$(agent)_Release'
   - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
     displayName: 'Software BOM'
     inputs:
-      BuildDropPath: '$(Build.ArtifactStagingDirectory)/$(agent)'
+      BuildDropPath: '$(System.ArtifactsDirectory)/$(agent)_Release'
+      PackageName: '$(agent)_Release'
+  - publish: $(System.ArtifactsDirectory)/$(agent)_Release
+    artifact: $(agent)_Release
   - task: DotNetCoreCLI@2
     displayName: Debug Build
     inputs:
       command: build
       projects: '$(file)'
       arguments: '--configuration Debug'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'publish'
+      arguments: '--configuration Debug --output $(Build.ArtifactStagingDirectory)/$(agent)_Debug'
+  - task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
+    displayName: 'Software BOM'
+    inputs:
+      BuildDropPath: '$(System.ArtifactsDirectory)/$(agent)_Debug'
+      PackageName: '$(agent)_Debug'
+  - publish: $(System.ArtifactsDirectory)/$(agent)_Debug
+    artifact: $(agent)_Debug
 - job: testprep
   displayName: Prepare Test Jobs
   pool:
