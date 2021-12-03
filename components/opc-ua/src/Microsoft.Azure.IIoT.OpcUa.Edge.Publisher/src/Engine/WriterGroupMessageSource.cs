@@ -27,8 +27,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public string Id => _writerGroup.WriterGroupId;
 
         /// <inheritdoc/>
-        public int NumberOfConnectionRetries => _subscriptions?.FirstOrDefault()?.
-            Subscription?.NumberOfConnectionRetries ?? 0;
+        public int NumberOfConnectionRetries => _subscriptions?.Sum(x => x.Subscription?.NumberOfConnectionRetries) ?? 0;
+
+        /// <inheritdoc/>
+        public bool IsConnectionOk => (_subscriptions?.Count == 0 || 
+            _subscriptions?.Where(x => x.Subscription?.IsConnectionOk == true).Count() < _subscriptions?.Count) ? false : true;
+
+        /// <inheritdoc/>
+        public int NumberOfGoodNodes => _subscriptions?.Sum(x => x.Subscription?.NumberOfGoodNodes) ?? 0;
+
+        /// <inheritdoc/>
+        public int NumberOfBadNodes => _subscriptions?.Sum(x => x.Subscription?.NumberOfBadNodes) ?? 0;
 
         /// <inheritdoc/>
         public ulong ValueChangesCountLastMinute {
@@ -39,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public ulong ValueChangesCount {
             get { return _valueChangesCount; }
-            private set  {
+            private set {
                 var difference = value - _valueChangesCount;
                 _valueChangesCount = value;
                 ValueChangesCountLastMinute = difference;
@@ -73,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             // with cleaned buffer, we can just accumulate all buckets
             ulong sum = 0;
-            for(int index = 0; index< array.Length; index++) {
+            for (int index = 0; index < array.Length; index++) {
                 sum += array[index];
             }
             return sum;
