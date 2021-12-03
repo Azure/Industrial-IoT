@@ -12,11 +12,6 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
     public sealed class IoTHubLegacyPublisherDeployments : DeploymentConfiguration {
 
         /// <summary>
-        /// MessagingMode that will be used for configuration of OPC Publisher.
-        /// </summary>
-        public readonly MessagingMode MessagingMode;
-
-        /// <summary>
         /// Create deployment
         /// </summary>
         /// <param name="context"></param>
