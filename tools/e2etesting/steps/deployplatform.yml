@@ -29,8 +29,8 @@ steps:
   displayName: 'Load secrets from Key Vault as variables by default'
   condition: and(eq(variables['ContainerRegistryServer'], ''), eq(variables['ContainerRegistryUsername'], ''), eq(variables['ContainerRegistryPassword'], ''))
   inputs:
-    azureSubscription: 'IOT-OPC-WALLS-SP'
-    KeyVaultName: 'developerPipelineKV'
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: '$(DevAcrCredentialsKeyVaultName)'
     SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
@@ -38,8 +38,8 @@ steps:
   displayName: 'Load secrets from Release Key Vault as variables on Release Branch'
   condition: startsWith(variables['BranchName'], 'release')
   inputs:
-    azureSubscription: 'IOT-OPC-WALLS-SP'
-    KeyVaultName: 'industrialiotKV'
+    azureSubscription: '$(AzureSubscription)'
+    KeyVaultName: '$(ReleaseAcrCredentialsKeyVaultName)'
     SecretsFilter: 'ContainerRegistryPassword,ContainerRegistryServer,ContainerRegistryUsername'
     RunAsPreJob: true
 
