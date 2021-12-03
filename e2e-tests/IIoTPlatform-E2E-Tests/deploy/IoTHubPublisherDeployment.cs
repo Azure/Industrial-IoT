@@ -25,7 +25,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         }
 
         /// <inheritdoc />
-        protected override int Priority => 1;
+        protected override int Priority => 2;
 
         /// <inheritdoc />
         protected override string DeploymentName => kDeploymentName + $"{DateTime.UtcNow.Ticks}";

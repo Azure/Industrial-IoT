@@ -41,7 +41,6 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         async Task SubscribeUnsubscribeTest(MessagingMode messagingMode) {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
-            var ioTHubLegacyPublisherDeployment = new IoTHubLegacyPublisherDeployments(_context);
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
