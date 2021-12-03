@@ -20,8 +20,7 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         /// Create deployment
         /// </summary>
         /// <param name="context"></param>
-        public IoTHubLegacyPublisherDeployments(IIoTPlatformTestContext context, MessagingMode messagingMode) : base(context) {
-            MessagingMode = messagingMode;
+        public IoTHubLegacyPublisherDeployments(IIoTPlatformTestContext context) : base(context) {
         }
 
         /// <inheritdoc />
@@ -36,29 +35,13 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules() {
             var registryCredentials = "";
 
-            //should only be provided if the different container registry require username and password
-            //if (!string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryServer) &&
-            //    _context.ContainerRegistryConfig.ContainerRegistryServer != TestConstants.MicrosoftContainerRegistry &&
-            //    !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryPassword) &&
-            //    !string.IsNullOrEmpty(_context.ContainerRegistryConfig.ContainerRegistryUser)) {
-            //    var registryId = _context.ContainerRegistryConfig.ContainerRegistryServer.Split('.')[0];
-            //    registryCredentials = @"
-            //        ""properties.desired.runtime.settings.registryCredentials." + registryId + @""": {
-            //            ""address"": """ + _context.ContainerRegistryConfig.ContainerRegistryServer + @""",
-            //            ""password"": """ + _context.ContainerRegistryConfig.ContainerRegistryPassword + @""",
-            //            ""username"": """ + _context.ContainerRegistryConfig.ContainerRegistryUser + @"""
-            //        },
-            //    ";
-            //}
-
             // Configure create options per os specified
             var createOptions = JsonConvert.SerializeObject(new {
                 Hostname = kModuleName,
                 Cmd = new[] {
                 "PkiRootPath=" + TestConstants.PublishedNodesFolderLegacy + "/pki",
                 "--aa",
-                "--pf=" + TestConstants.PublishedNodesFullNameLegacy,
-                "--mm=" + MessagingMode.ToString()
+                "--pf=" + TestConstants.PublishedNodesFullNameLegacy
             },
                 HostConfig = new {
                     Binds = new[] {
