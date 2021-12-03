@@ -2,9 +2,7 @@
 
 # Microsoft OPC Publisher - Standalone Mode
 
-OPC Publisher is a fully supported Microsoft product, developed in the open, that bridges the gap between industrial assets and the Microsoft Azure cloud. It does so by connecting to OPC UA-enabled assets or industrial connectivity software and publishes telemetry data to [Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/) in various formats, including IEC62541 OPC UA PubSub standard format (from version 2.6 onwards).
-
-It runs on [Azure IoT Edge](https://azure.microsoft.com/en-us/services/iot-edge/) as a Module or on any Open Container Initiative compatible run-time like Docker as a container. Since it leverages the [.Net cross-platform runtime](https://docs.microsoft.com/en-us/dotnet/core/introduction), it also runs natively on Linux and Windows 10.
+OPC Publisher is a module that runs on [Azure IoT Edge](https://azure.microsoft.com/en-us/services/iot-edge/) and bridges the gap between industrial assets and the Microsoft Azure cloud. It does so by connecting to OPC UA-enabled assets or industrial connectivity software and publishes telemetry data to [Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/) in various formats, including IEC62541 OPC UA PubSub standard format (*not supported in version 2.5.5*).
 
 ## Getting Started
 
@@ -18,17 +16,6 @@ Simply click the Get It Now button to log into the [Azure Portal](https://portal
 4. Click Create. The "Set modules on Device" page for the selected IoT Edge device opens.
 5. Click on "OPCPublisher" to open the OPC Publisher's "Update IoT Edge Module" page and then select "Container Create Options".
 6. Specify additional container create options based on your usage of OPC Publisher, see next section below.
-
-##### Accessing the Microsoft Container Registry Docker containers for OPC Publisher manually
-
-The latest released version of OPC Publisher can be run manually via:
-
-```
-docker run mcr.microsoft.com/iotedge/opc-publisher:latest <name>
-```
-
-Where "name" is the name for the container.
-
 
 ### Specifying Container Create Options in the Azure Portal
 When deploying OPC Publisher through the Azure Portal, container create options can be specified in the Update IoT Edge Module page of OPC Publisher. These create options must be in JSON format. The OPC Publisher command line arguments can be specified via the Cmd key, e.g.:
@@ -143,7 +130,7 @@ An OPC UA always send the current value of a data item when OPC Publisher first 
 There are several command line arguments that can be used to set global settings for OPC Publisher. They are described [here](publisher-commandline.md).
 
 ### Configuration via the built-in OPC UA Server Interface
-**Please note: This feature is only available in version 2.5 and below of OPC Publisher.**
+**Please note: This feature right now is only available in version 2.5 and below.**
 
 OPC Publisher has a built-in OPC UA server, running on port 62222. It implements three OPC UA methods:
 
@@ -155,7 +142,7 @@ This interface can be accessed using an OPC UA client application, for example [
 
 ### Configuration via IoT Hub Direct Methods
 
-**Please note: This feature is only available in version 2.5 and below of OPC Publisher.**
+**Please note: This feature right now is only available in version 2.5 and below.**
 
 OPC Publisher implements the following [IoT Hub Direct Methods](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-direct-methods) which can be called from an application (from anywhere in the world) leveraging the [IoT Hub Device SDK](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-sdks):
 
@@ -176,7 +163,7 @@ _Hint: The samples applications are not actively maintained and may be outdated.
 
 ### Configuration via Cloud-based, Companion REST Microservice
 
-**Please note: This feature is only available in version 2.6 and above of OPC Publisher.**
+**Please note: This feature is not available in version 2.5 or below.**
 
 A cloud-based, companion microservice with a REST interface is described and available [here](https://github.com/Azure/Industrial-IoT/blob/main/docs/services/publisher.md). It can be used to configure OPC Publisher via an OpenAPI-compatible interface, for example through Swagger.
 
