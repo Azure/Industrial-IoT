@@ -763,7 +763,7 @@ To install the chart first ensure that you have added either one of two Helm rep
     To add the repository run the following command:
 
     ```bash
-    helm repo add microsoft <https://microsoft.github.io/charts/repo>
+    helm repo add microsoft https://microsoft.github.io/charts/repo
     ```
 
 - <https://azureiiot.blob.core.windows.net/helm>
@@ -771,7 +771,15 @@ To install the chart first ensure that you have added either one of two Helm rep
     To add the repository run the following command:
 
     ```bash
-    helm repo add azure-iiot <https://azureiiot.blob.core.windows.net/helm>
+    helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
+    ```
+
+- <https://azure.github.io/Industrial-IoT/helm>
+
+    To add the repository run the following command:
+
+    ```bash
+    helm repo add industrial-iot https://azure.github.io/Industrial-IoT/helm
     ```
 
 We will use first repository for the installation of the chart.

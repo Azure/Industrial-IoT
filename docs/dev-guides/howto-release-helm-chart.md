@@ -8,6 +8,7 @@
   * [Publish the Helm Chart](#publish-the-helm-chart)
     * [Create a Helm Chart Package](#create-a-helm-chart-package)
     * [Publish to `https://azureiiot.blob.core.windows.net/helm` Repository](#publish-to-httpsazureiiotblobcorewindowsnethelm-repository)
+    * [Publish to `https://azure.github.io/Industrial-IoT/helm` Repository](#publish-to-httpsazuregithubioindustrial-iothelm-repository)
     * [Publish to `https://microsoft.github.io/charts/repo` Repository](#publish-to-httpsmicrosoftgithubiochartsrepo-repository)
 
 This is a reference guide that lists the steps that should be performed to release a new version of
@@ -93,8 +94,33 @@ helm repo index . --url https://azureiiot.blob.core.windows.net/helm/ --merge '<
 
 Documentation of `helm repo index` command can be found [here](https://helm.sh/docs/helm/helm_repo_index/).
 
-Now `azure-industrial-iot-0.4.0.tgz` file and updated `index.yaml` file can be uploaded to `helm` container of
+Now `azure-industrial-iot-0.4.0.tgz` and updated `index.yaml` files can be uploaded to `helm` container of
 `azureiiot` storage account.
+
+### Publish to `https://azure.github.io/Industrial-IoT/helm` Repository
+
+This Helm chart repository is hosted on our GitHub Page. So all we need to do is add our new package in `docs/helm`
+directory and update `index.yaml` file there to contain an entry for it. Once those changes are in `main` branch,
+new chart will be available for consumption.
+
+We need to create an updated `index.yaml` file with a additional entry for `0.4.0` version and replace `index.yaml`
+in `docs/helm` directory with it:
+
+```bash
+helm repo index . --url https://azure.github.io/Industrial-IoT/helm/ --merge ../../docs/helm/index.yaml
+rm ../../docs/helm/index.yaml
+cp ./index.yaml ../../docs/helm/
+```
+
+Now let's copy new package:
+
+```bash
+cp ./azure-industrial-iot-0.4.0.tgz ../../docs/helm/
+```
+
+Now `azure-industrial-iot-0.4.0.tgz` and updated `index.yaml` files should be committed and a new PR should be created
+to merge those changes into `main` branch. Once the PR is merged, our GitHub Page will be updated and new chart will
+be available.
 
 ### Publish to `https://microsoft.github.io/charts/repo` Repository
 

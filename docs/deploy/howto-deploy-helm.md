@@ -54,6 +54,14 @@ You can find `azure-industrial-iot` Helm chart in the following [Helm Repositori
   helm repo add microsoft https://microsoft.github.io/charts/repo
   ```
 
+- `https://azure.github.io/Industrial-IoT/helm`
+
+  To add the repository:
+
+  ```bash
+  helm repo add industrial-iot https://azure.github.io/Industrial-IoT/helm
+  ```
+
 ## Helm Hub
 
 You also can find `azure-industrial-iot` Helm chart on [Helm Hub](https://hub.helm.sh/charts/microsoft/azure-industrial-iot).
