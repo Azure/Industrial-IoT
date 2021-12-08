@@ -65,18 +65,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
             _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
             _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
-            _agentConfigProvider.OnConfigUpdated += (s, e) => {
-                _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
-                _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
-                if (!_cts.IsCancellationRequested) {
-                    if (_jobProcess != null) {
-                        _jobProcess.ResetHeartbeat();
-                    }
-                    else {
-                        _reset?.TrySetResult(true);
-                    }
-                }
-            };
 
             _lock = new SemaphoreSlim(1, 1);
             _heartbeatTimer = new Timer(HeartbeatTimer_ElapsedAsync);
@@ -91,6 +79,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     return;
                 }
 
+                _agentConfigProvider.OnConfigUpdated += ConfigUpdate_Triggered;
                 _cts = new CancellationTokenSource();
                 _heartbeatTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
 
@@ -112,6 +101,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
 
                 _logger.Information("Stopping worker...");
+                _agentConfigProvider.OnConfigUpdated -= ConfigUpdate_Triggered;
                 _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
                 // Inform services, that this worker has stopped working, so orchestrator can reassign job
@@ -142,7 +132,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <inheritdoc/>
         public void Dispose() {
             Try.Async(StopAsync).Wait();
-
             System.Diagnostics.Debug.Assert(_jobProcess == null);
             _jobProcess?.Dispose();
 
@@ -152,13 +141,29 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         }
 
         /// <summary>
+        /// Handler for ConfigUpdated event
+        /// </summary>
+        private void ConfigUpdate_Triggered(object sender, EventArgs eventArgs) {
+                _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
+                _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
+                if (!_cts.IsCancellationRequested) {
+                    if (_jobProcess != null) {
+                        _jobProcess.ResetHeartbeat();
+                    }
+                    else {
+                        _reset?.TrySetResult(true);
+                    }
+                }
+            }
+
+        /// <summary>
         /// Heartbeat timer
         /// </summary>
         /// <param name="sender"></param>
         private async void HeartbeatTimer_ElapsedAsync(object sender) {
 
-            await SendHeartbeatWithoutResetTimer().ConfigureAwait(false);
             if (!_cts.IsCancellationRequested) {
+                await SendHeartbeatWithoutResetTimer().ConfigureAwait(false);
                 Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
             }
         }
@@ -300,7 +305,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         private class JobProcess : IDisposable {
 
             /// <inheritdoc/>
-            public JobProcessingInstructionModel JobContinuation { get; set; }
+            public JobProcessingInstructionModel JobContinuation { get; private set; }
 
             /// <inheritdoc/>
             public WorkerStatus Status { get; internal set; } = WorkerStatus.Stopped;

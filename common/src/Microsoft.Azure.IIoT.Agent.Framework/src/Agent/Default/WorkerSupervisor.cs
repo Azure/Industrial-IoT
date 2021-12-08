@@ -41,13 +41,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             _logger = logger;
             _ensureWorkerRunningTimer = new Timer(TimeSpan.FromSeconds(timerDelayInSeconds).TotalMilliseconds);
             _ensureWorkerRunningTimer.Elapsed += EnsureWorkerRunningTimer_ElapsedAsync;
-            _agentConfigProvider.OnConfigUpdated += (s, e) => {
-                EnsureWorkersAsync().GetAwaiter().GetResult();
-            };
         }
 
         /// <inheritdoc/>
         public async Task StartAsync() {
+            _agentConfigProvider.OnConfigUpdated += ConfigUpdate_Triggered;
             await EnsureWorkersAsync();
             _ensureWorkerRunningTimer.Start();
         }
@@ -55,6 +53,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <inheritdoc/>
         public async Task StopAsync() {
             _logger.Information("Stopping worker supervisor");
+            _agentConfigProvider.OnConfigUpdated -= ConfigUpdate_Triggered;
             var stopTasks = new List<Task>();
             _ensureWorkerRunningTimer.Stop();
 
@@ -88,6 +87,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         }
 
         /// <summary>
+        /// Handler for ConfigUpdated event
+        /// </summary>
+        private async void ConfigUpdate_Triggered(object sender, EventArgs eventArgs) {
+            await EnsureWorkersAsync();
+        }
+
+        /// <summary>
         /// Stop a single worker
         /// </summary>
         /// <returns>awaitable task</returns>
@@ -103,6 +109,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
         /// <inheritdoc/>
         public void Dispose() {
+            _ensureWorkerRunningTimer.Elapsed -= EnsureWorkerRunningTimer_ElapsedAsync;
             Try.Async(StopAsync).GetAwaiter().GetResult();
             _ensureWorkerRunningTimer?.Dispose();
         }

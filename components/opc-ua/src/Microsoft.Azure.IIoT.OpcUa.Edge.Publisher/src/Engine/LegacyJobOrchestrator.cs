@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
     /// </summary>
-    public class LegacyJobOrchestrator : IJobOrchestrator, IPublisherConfigServices {
+    public class LegacyJobOrchestrator : IJobOrchestrator, IPublisherConfigServices, IDisposable {
         /// <summary>
         /// Creates a new class of the LegacyJobOrchestrator.
         /// </summary>
@@ -186,6 +186,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             finally {
                 _lock.Release();
             }
+        }
+
+        /// <inheritdoc/>
+        public void Dispose() {
+            if (_fileSystemWatcher != null) {
+                _fileSystemWatcher.EnableRaisingEvents = false;
+                _fileSystemWatcher.Changed -= _fileSystemWatcher_Changed;
+                _fileSystemWatcher.Created -= _fileSystemWatcher_Created;
+                _fileSystemWatcher.Renamed -= _fileSystemWatcher_Renamed;
+                _fileSystemWatcher.Deleted -= _fileSystemWatcher_Deleted;
+                _fileSystemWatcher?.Dispose();
+            }
+            _lock?.Dispose();
         }
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
@@ -360,6 +373,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request) {
+            // TODO incomplete!!!
             await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 _logger.Information("PublishNodes method triggered");
