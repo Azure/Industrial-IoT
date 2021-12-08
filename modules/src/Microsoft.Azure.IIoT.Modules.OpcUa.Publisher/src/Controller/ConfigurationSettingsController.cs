@@ -97,6 +97,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <inheritdoc/>
         public event ConfigUpdatedEventHandler OnConfigUpdated;
 
+        /// <inheritdoc/>
+        public void TriggerConfigUpdate(object sender, EventArgs eventArgs) {
+            OnConfigUpdated?.Invoke(sender, eventArgs);
+        }
+
         /// <summary>
         /// Create controller with service
         /// </summary>

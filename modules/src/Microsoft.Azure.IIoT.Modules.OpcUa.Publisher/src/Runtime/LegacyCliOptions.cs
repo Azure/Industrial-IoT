@@ -209,12 +209,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         public AgentConfigModel Config { get; }
 
-        /// <summary>
-        /// OnConfigUpdated-Event - never called as command line arguments don't change while runtime.
-        /// </summary>
-#pragma warning disable 67
+        /// <inheritdoc/>
         public event ConfigUpdatedEventHandler OnConfigUpdated;
-#pragma warning restore 67
+
+        /// <inheritdoc/>
+        public void TriggerConfigUpdate(object sender, EventArgs eventArgs) {
+            OnConfigUpdated?.Invoke(sender, eventArgs);
+        }
 
         /// <summary>
         /// The batch size

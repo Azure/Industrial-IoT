@@ -9,8 +9,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
     using Autofac;
     using Serilog;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
@@ -39,6 +41,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             _logger = logger;
             _ensureWorkerRunningTimer = new Timer(TimeSpan.FromSeconds(timerDelayInSeconds).TotalMilliseconds);
             _ensureWorkerRunningTimer.Elapsed += EnsureWorkerRunningTimer_ElapsedAsync;
+            _agentConfigProvider.OnConfigUpdated += (s, e) => {
+                EnsureWorkersAsync().GetAwaiter().GetResult();
+            };
         }
 
         /// <inheritdoc/>
@@ -73,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             if (_instances.Count >= maxWorkers) {
                 throw new MaxWorkersReachedException(maxWorkers);
             }
-
+            
             var childScope = _lifetimeScope.BeginLifetimeScope();
             var worker = childScope.Resolve<IWorker>(new NamedParameter("workerInstance", _instances.Count));
             _instances[worker] = childScope;
@@ -87,19 +92,18 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// </summary>
         /// <returns>awaitable task</returns>
         private async Task StopWorker() {
-            // sort workers, so that a worker in state Stopped, Stopping or WaitingForJob will terminate first
+            // sort workers, so that a worker in state Stopped, Stopping or WaitingForJob will terminate first 
             var worker = _instances.OrderBy(kvp => kvp.Key.Status).First();
             var workerId = worker.Key.WorkerId;
             _logger.Information("Stopping worker with id {WorkerId}", workerId);
-
+            _instances.TryRemove(worker.Key, out _);
             await worker.Key.StopAsync();
-            worker.Value.Dispose();
-            _instances.Remove(worker.Key);
+            worker.Value?.Dispose();
         }
 
         /// <inheritdoc/>
         public void Dispose() {
-            Try.Async(StopAsync).Wait();
+            Try.Async(StopAsync).GetAwaiter().GetResult();
             _ensureWorkerRunningTimer?.Dispose();
         }
 
@@ -132,6 +136,15 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             var workers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
             var delta = workers - _instances.Count;
 
+            if (delta > 0) {
+                ThreadPool.GetMinThreads(out var workerThreads, out var asyncThreads);
+                if (workers > workerThreads || workers > asyncThreads) {
+                    var result = ThreadPool.SetMinThreads(workers, workers);
+                    _logger.Information("Thread pool changed to: worker {worker}, async {async} threads {succeeded}",
+                        workers, workers, result ? "succeeded" : "failed");
+                }
+            }
+
             // start new worker if necessary
             while (delta > 0) {
                 var worker = await CreateWorker();
@@ -144,7 +157,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 delta++;
             }
 
-            //restart stopped worker if necessary
+            // restart stopped worker if necessary
             var workerStartTasks = new List<Task>();
             foreach (var stoppedWorker in _instances.Keys.Where(s => s.Status == WorkerStatus.Stopped)) {
                 _logger.Information("Starting worker '{workerId}'...", stoppedWorker.WorkerId);
@@ -156,7 +169,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         private const int kDefaultWorkers = 5; // TODO - single listener, dynamic workers.
         private readonly IAgentConfigProvider _agentConfigProvider;
         private readonly Timer _ensureWorkerRunningTimer;
-        private readonly Dictionary<IWorker, ILifetimeScope> _instances = new Dictionary<IWorker, ILifetimeScope>();
+        private readonly ConcurrentDictionary<IWorker, ILifetimeScope> _instances = new ConcurrentDictionary<IWorker, ILifetimeScope>();
         private readonly ILifetimeScope _lifetimeScope;
         private readonly ILogger _logger;
     }

@@ -14,15 +14,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     public class OpcNodeModel {
 
         /// <summary> Node Identifier </summary>
-        [DataMember(EmitDefaultValue = false)]
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string Id { get; set; }
 
         /// <summary> Expanded Node identifier </summary>
-        [DataMember(EmitDefaultValue = false)]
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string ExpandedNodeId { get; set; }
 
         /// <summary> Sampling interval </summary>
-        [DataMember(EmitDefaultValue = false)]
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? OpcSamplingInterval { get; set; }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         }
 
         /// <summary> Publishing interval </summary>
-        [DataMember(EmitDefaultValue = false)]
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? OpcPublishingInterval { get; set; }
 
         /// <summary>
@@ -52,15 +52,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         }
 
         /// <summary> DataSetFieldId </summary>
-        [DataMember(EmitDefaultValue = false)]
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DataSetFieldId { get; set; }
 
         /// <summary> Display name </summary>
-        [DataMember(EmitDefaultValue = false)]
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DisplayName { get; set; }
 
         /// <summary> Heartbeat </summary>
-        [DataMember(EmitDefaultValue = false)]
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? HeartbeatInterval {
             get => HeartbeatIntervalTimespan.HasValue ? (int)HeartbeatIntervalTimespan.Value.TotalSeconds : default(int?);
             set => HeartbeatIntervalTimespan = value.HasValue ? TimeSpan.FromSeconds(value.Value) : default(TimeSpan?);
@@ -69,11 +69,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary>
         /// Heartbeat interval as TimeSpan.
         /// </summary>
-        [DataMember(EmitDefaultValue = false)]
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public TimeSpan? HeartbeatIntervalTimespan { get; set; }
 
         /// <summary> Skip first value </summary>
-        [DataMember(EmitDefaultValue = false)]
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public bool? SkipFirst { get; set; }
     }
 }

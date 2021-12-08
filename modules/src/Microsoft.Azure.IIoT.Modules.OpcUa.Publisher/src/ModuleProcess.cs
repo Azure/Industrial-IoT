@@ -217,6 +217,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // Create jobs from published nodes file
                 builder.RegisterType<PublishedNodesJobConverter>()
                     .SingleInstance();
+                builder.RegisterType<PublisherMethodsController>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
             }
             else {
                 builder.AddDiagnostics(config);
@@ -240,12 +242,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
-
-            // Register device methods config services
-            builder.RegisterType<PublisherConfigServices>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<PublisherMethodsController>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()
