@@ -14,7 +14,7 @@ trigger:
     - release/*
 
 variables:
-  iaiStorageAccount: azureiiotbak
+  iaiStorageAccount: azureiiot
   iaiStorageAccountSubscription: azureiiotbak-storage
 
 stages:
