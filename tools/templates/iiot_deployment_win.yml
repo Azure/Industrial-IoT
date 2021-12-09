@@ -98,14 +98,14 @@ jobs:
     displayName: 'Copy to Blob'
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/'))
     inputs:
-      azureSubscription: azureiiot-storage
+      azureSubscription: '$(iaiStorageAccountSubscription)'
       scriptType: pscore
       workingDirectory: $(Build.ArtifactStagingDirectory)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment
       scriptLocation: inlineScript
       inlineScript: |
-        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.exe --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.exe
-        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.pdb --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.pdb
-        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.md5 --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.md5
-        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.exe --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.exe
-        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.pdb --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.pdb
-        az storage blob upload --account-name azureiiot --container-name binaries -f Microsoft.Azure.IIoT.Deployment.md5 --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.md5
+        az storage blob upload --account-name $(iaiStorageAccount) --container-name binaries -f Microsoft.Azure.IIoT.Deployment.exe --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.exe
+        az storage blob upload --account-name $(iaiStorageAccount) --container-name binaries -f Microsoft.Azure.IIoT.Deployment.pdb --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.pdb
+        az storage blob upload --account-name $(iaiStorageAccount) --container-name binaries -f Microsoft.Azure.IIoT.Deployment.md5 --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/$(setVersionInfo.Version_Prefix)$(setVersionInfo.Version_Prerelease)/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.md5
+        az storage blob upload --account-name $(iaiStorageAccount) --container-name binaries -f Microsoft.Azure.IIoT.Deployment.exe --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.exe
+        az storage blob upload --account-name $(iaiStorageAccount) --container-name binaries -f Microsoft.Azure.IIoT.Deployment.pdb --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.pdb
+        az storage blob upload --account-name $(iaiStorageAccount) --container-name binaries -f Microsoft.Azure.IIoT.Deployment.md5 --name ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}/preview/${{ parameters.runtime }}/Microsoft.Azure.IIoT.Deployment.md5
