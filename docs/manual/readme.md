@@ -758,29 +758,35 @@ Documentation of the chart lists all required Azure resources and provides steps
 
 To install the chart first ensure that you have added either one of two Helm repositories where we publish azure-industrial-iot Helm chart. It can be found in:
 
-- <https://microsoft.github.io/charts/repo>
+- <https://azure.github.io/Industrial-IoT/helm>
 
-    To add the repository run the following command:
+  > NOTE: This is the recommended Helm chart repository to use.
 
-    ```bash
-    helm repo add microsoft https://microsoft.github.io/charts/repo
-    ```
+  To add the repository run the following command:
+
+  ```bash
+  helm repo add industrial-iot https://azure.github.io/Industrial-IoT/helm
+  ```
 
 - <https://azureiiot.blob.core.windows.net/helm>
 
-    To add the repository run the following command:
+  > NOTE: This is a legacy Helm chart repository. We will keep updating it, but we recommend using `https://azure.github.io/Industrial-IoT/helm`.
 
-    ```bash
-    helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
-    ```
+  To add the repository run the following command:
 
-- <https://azure.github.io/Industrial-IoT/helm>
+  ```bash
+  helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
+  ```
 
-    To add the repository run the following command:
+- <https://microsoft.github.io/charts/repo>
 
-    ```bash
-    helm repo add industrial-iot https://azure.github.io/Industrial-IoT/helm
-    ```
+  > NOTE: This is a legacy Helm chart repository. We will keep updating it, but we recommend using `https://azure.github.io/Industrial-IoT/helm`.
+
+  To add the repository run the following command:
+
+  ```bash
+  helm repo add microsoft https://microsoft.github.io/charts/repo
+  ```
 
 We will use first repository for the installation of the chart.
 

@@ -462,7 +462,7 @@ This chart installs `2.8.1` version of components by default.
 To install the chart first ensure that you have added `azure-iiot` repository:
 
 ```bash
-$ helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
+$ helm repo add azure-iiot https://azure.github.io/Industrial-IoT/helm
 ```
 
 After that make sure to create the namespace were you will deploy the chart:
