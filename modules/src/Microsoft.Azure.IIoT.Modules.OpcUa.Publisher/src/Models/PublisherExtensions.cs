@@ -29,7 +29,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 OpcAuthenticationMode = (OpcAuthenticationMode)model.OpcAuthenticationMode,
                 OpcAuthenticationPassword = model.Password,
                 OpcAuthenticationUsername = model.UserName,
-                OpcNodes = model.OpcNodes.Select(n => n.ToServiceModel()).ToList()
+                OpcNodes = model.OpcNodes.Select(n => n.ToServiceModel()).ToList(),
+                DataSetWriterGroup = model.DataSetWriterGroup,
+                DataSetWriterId = model.DataSetWriterId,
+                DataSetPublishingInterval = model.DataSetPublishingInterval,
             };
         }
 
@@ -47,9 +50,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DisplayName = model.DisplayName,
                 ExpandedNodeId = model.ExpandedNodeId,
                 HeartbeatInterval = model.HeartbeatInterval,
-                OpcPublishingInterval = model.OpcPublishingInterval,
+                OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
                 OpcSamplingInterval = model.OpcSamplingInterval,
-                SkipFirst = model.SkipFirst
+                SkipFirst = model.SkipFirst,
+                QueueSize = model.QueueSize,
             };
         }
 

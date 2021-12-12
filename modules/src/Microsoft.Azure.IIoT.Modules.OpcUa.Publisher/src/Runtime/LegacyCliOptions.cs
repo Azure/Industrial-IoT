@@ -8,7 +8,6 @@ using Microsoft.Azure.IIoT.Agent.Framework.Models;
 using Microsoft.Azure.IIoT.Diagnostics;
 using Microsoft.Azure.IIoT.Module.Framework;
 using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-using Microsoft.Azure.IIoT.OpcUa.Protocol;
 using Microsoft.Azure.IIoT.OpcUa.Publisher;
 using Microsoft.Extensions.Configuration;
 using Mono.Options;
@@ -272,45 +271,28 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         private LegacyCliModel ToLegacyCliModel() {
-            return new LegacyCliModel {
-                Site = GetValueOrDefault(LegacyCliConfigKeys.PublisherSite, string.Empty),
-                PublishedNodesFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename),
-                PublishedNodesSchemaFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationSchemaFilename, LegacyCliConfigKeys.DefaultPublishedNodesSchemaFilename),
-                SessionConnectWait = GetValueOrDefault(LegacyCliConfigKeys.SessionConnectWaitSec, TimeSpan.FromSeconds(15)),
-                DefaultHeartbeatInterval = GetValueOrDefault(LegacyCliConfigKeys.HeartbeatIntervalDefault, TimeSpan.Zero),
-                DefaultSkipFirst = GetValueOrDefault(LegacyCliConfigKeys.SkipFirstDefault, false),
-                DefaultSamplingInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcSamplingInterval, TimeSpan.FromSeconds(1)),
-                DefaultPublishingInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcPublishingInterval, TimeSpan.FromSeconds(1)),
-                FetchOpcNodeDisplayName = GetValueOrDefault(LegacyCliConfigKeys.FetchOpcNodeDisplayName, false),
-                DefaultQueueSize = GetValueOrDefault<uint>(LegacyCliConfigKeys.DefaultQueueSize, 1),
-                DiagnosticsInterval = GetValueOrDefault(LegacyCliConfigKeys.DiagnosticsInterval, TimeSpan.FromSeconds(60)),
-                LogFileFlushTimeSpan = GetValueOrDefault(LegacyCliConfigKeys.LogFileFlushTimeSpanSec, TimeSpan.FromSeconds(30)),
-                LogFilename = GetValueOrDefault<string>(LegacyCliConfigKeys.LogFileName, null),
-                Transport = GetValueOrDefault(LegacyCliConfigKeys.HubTransport, TransportType.Amqp.ToString()),
-                MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, MessagingMode.Samples),
-                MessageEncoding = GetValueOrDefault(LegacyCliConfigKeys.MessageEncoding, MessageEncoding.Json),
-                FullFeaturedMessage = GetValueOrDefault(LegacyCliConfigKeys.FullFeaturedMessage, false),
-                EdgeHubConnectionString = GetValueOrDefault<string>(LegacyCliConfigKeys.EdgeHubConnectionString, null),
-                OperationTimeout = GetValueOrDefault(LegacyCliConfigKeys.OpcOperationTimeout, TimeSpan.FromSeconds(15)),
-                MaxStringLength = GetValueOrDefault(LegacyCliConfigKeys.OpcMaxStringLength, TransportQuotaConfigEx.DefaultMaxStringLength),
-                SessionCreationTimeout = GetValueOrDefault(LegacyCliConfigKeys.OpcSessionCreationTimeout, TimeSpan.FromSeconds(1)),
-                KeepAliveInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcKeepAliveIntervalInSec, TimeSpan.FromSeconds(10)),
-                MaxKeepAliveCount = GetValueOrDefault(LegacyCliConfigKeys.OpcKeepAliveDisconnectThreshold, 50),
-                TrustSelf = GetValueOrDefault(LegacyCliConfigKeys.TrustMyself, true),
-                AutoAcceptUntrustedCertificates = GetValueOrDefault(LegacyCliConfigKeys.AutoAcceptCerts, false),
-                ApplicationCertificateStoreType = GetValueOrDefault(LegacyCliConfigKeys.OpcOwnCertStoreType, "Directory"),
-                ApplicationCertificateStorePath = GetValueOrDefault(LegacyCliConfigKeys.OpcOwnCertStorePath, "pki/own"),
-                ApplicationCertificateSubjectName = GetValueOrDefault(LegacyCliConfigKeys.OpcApplicationCertificateSubjectName, "CN=Microsoft.Azure.IIoT, C=DE, S=Bav, O=Microsoft, DC=localhost"),
-                ApplicationName = GetValueOrDefault(LegacyCliConfigKeys.OpcApplicationName, "Microsoft.Azure.IIoT"),
-                TrustedPeerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcTrustedCertStorePath, "pki/trusted"),
-                RejectedCertificateStorePath = GetValueOrDefault(LegacyCliConfigKeys.OpcRejectedCertStorePath, "pki/rejected"),
-                TrustedIssuerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcIssuerCertStorePath, "pki/issuer"),
-                BatchSize = GetValueOrDefault(LegacyCliConfigKeys.BatchSize, 50),
-                BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
-                MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.IoTHubMaxMessageSize, 0),
-                ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1),
-                MaxOutgressMessages = GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, 4096)
-            };
+            var model = new LegacyCliModel();
+            model.PublishedNodesFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename);
+            model.PublishedNodesSchemaFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationSchemaFilename, LegacyCliConfigKeys.DefaultPublishedNodesSchemaFilename);
+            model.DefaultHeartbeatInterval = GetValueOrDefault(LegacyCliConfigKeys.HeartbeatIntervalDefault, model.DefaultHeartbeatInterval);
+            model.DefaultSkipFirst = GetValueOrDefault(LegacyCliConfigKeys.SkipFirstDefault, model.DefaultSkipFirst);
+            model.DefaultSamplingInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcSamplingInterval, model.DefaultSamplingInterval);
+            model.DefaultPublishingInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcPublishingInterval, model.DefaultPublishingInterval);
+            model.FetchOpcNodeDisplayName = GetValueOrDefault(LegacyCliConfigKeys.FetchOpcNodeDisplayName, model.FetchOpcNodeDisplayName);
+            model.DefaultQueueSize = GetValueOrDefault(LegacyCliConfigKeys.DefaultQueueSize, model.DefaultQueueSize);
+            model.DiagnosticsInterval = GetValueOrDefault(LegacyCliConfigKeys.DiagnosticsInterval, model.DiagnosticsInterval);
+            model.LogFileFlushTimeSpan = GetValueOrDefault(LegacyCliConfigKeys.LogFileFlushTimeSpanSec, model.LogFileFlushTimeSpan);
+            model.LogFilename = GetValueOrDefault(LegacyCliConfigKeys.LogFileName, model.LogFilename);
+            model.MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, model.MessagingMode);
+            model.MessageEncoding = GetValueOrDefault(LegacyCliConfigKeys.MessageEncoding, model.MessageEncoding);
+            model.FullFeaturedMessage = GetValueOrDefault(LegacyCliConfigKeys.FullFeaturedMessage, model.FullFeaturedMessage);
+            model.OperationTimeout = GetValueOrDefault(LegacyCliConfigKeys.OpcOperationTimeout, model.OperationTimeout);
+            model.BatchSize = GetValueOrDefault(LegacyCliConfigKeys.BatchSize, model.BatchSize);
+            model.BatchTriggerInterval = GetValueOrDefault(LegacyCliConfigKeys.BatchTriggerInterval, model.BatchTriggerInterval);
+            model.MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.IoTHubMaxMessageSize, model.MaxMessageSize);
+            model.ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, model.ScaleTestCount);
+            model.MaxOutgressMessages = GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, model.MaxOutgressMessages);
+            return model;
         }
 
         private static AgentConfigModel ToAgentConfigModel() {
@@ -320,7 +302,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 HeartbeatInterval = TimeSpan.FromSeconds(30), // heartbeat is needed even though in standalone mode to be notified about config file changes
                 JobCheckInterval = TimeSpan.FromSeconds(30),
                 JobOrchestratorUrl = "standalone", //we have to set a value so that the (legacy) job orchestrator is called
-                MaxWorkers = 1
+                MaxWorkers = 1,
             };
         }
 

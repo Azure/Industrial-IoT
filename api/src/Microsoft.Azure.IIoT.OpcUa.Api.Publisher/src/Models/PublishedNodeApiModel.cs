@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public TimeSpan? HeartbeatIntervalTimespan {
             get => HeartbeatInterval.HasValue ?
-                TimeSpan.FromMilliseconds(HeartbeatInterval.Value) : (TimeSpan?)null;
+                TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
             set => HeartbeatInterval = value != null ?
                 (int)value.Value.TotalSeconds : (int?)null;
         }
@@ -89,5 +89,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "skipFirst", Order = 10,
             EmitDefaultValue = false)]
         public bool? SkipFirst { get; set; }
+
+        /// <summary> Skip first value </summary>
+        [DataMember(Name = "queueSize", Order = 11,
+            EmitDefaultValue = false)]
+        public uint? QueueSize { get; set; }
     }
 }

@@ -75,5 +75,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// <summary> Skip first value </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public bool? SkipFirst { get; set; }
+
+        /// <summary> Queue Size for the monitored item </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public uint? QueueSize { get; set; }
     }
 }
