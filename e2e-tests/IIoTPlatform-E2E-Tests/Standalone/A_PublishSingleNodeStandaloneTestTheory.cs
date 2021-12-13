@@ -60,47 +60,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
-            IDictionary<string, PublishedNodesEntryModel> simulatedPublishedNodesConfiguration =
-                new Dictionary<string, PublishedNodesEntryModel>(0);
-
-            // With the nested edge test servers don't have public IP addresses and cannot be accessed in this way
-            if (_context.IoTEdgeConfig.NestedEdgeFlag != "Enable") {
-                simulatedPublishedNodesConfiguration =
-                    await TestHelper.GetSimulatedPublishedNodesConfigurationAsync(_context, cts.Token);
-            }
-
-            PublishedNodesEntryModel model;
-            if (simulatedPublishedNodesConfiguration.Count > 0) {
-                model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
-            }
-            else {
-                var opcPlcIp = _context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[0];
-                model = new PublishedNodesEntryModel {
-                    EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
-                    UseSecurity = false,
-                    OpcNodes = new OpcUaNodesModel[] {
-                        new OpcUaNodesModel {
-                            Id = "ns=2;s=SlowUInt1",
-                            OpcPublishingInterval = 10000
-                        }
-                    }
-                };
-            }
-
-            // We want to take one of the slow nodes that updates each 10 seconds.
-            // To make sure that we will not have missing values because of timing issues,
-            // we will set publishing and sampling intervals to a lower value than the publishing
-            // interval of the simulated OPC PLC. This will eliminate false-positives.
-            model.OpcNodes = model.OpcNodes
-                .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
-                .Where(opcNode => opcNode.Id.Contains("SlowUInt"))
-                .Take(1).Select(opcNode => {
-                    var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
-                    opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
-                    opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
-                    return opcNode;
-                })
-                .ToArray();
+            var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts);
 
             await TestHelper.PublishNodesAsync(new[] { model }, _context);
             await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);

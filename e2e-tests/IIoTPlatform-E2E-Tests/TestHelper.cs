@@ -546,6 +546,112 @@ namespace IIoTPlatform_E2E_Tests {
         }
 
         /// <summary>
+        /// Create a single node model with opcplc node
+        /// </summary>
+        /// <param name="IIoTMultipleNodesTestContext">context</param>
+        /// <param name="CancellationTokenSource">cancellation token</param>
+        public static async Task<PublishedNodesEntryModel> CreateSingleNodeModelAsync(IIoTMultipleNodesTestContext context, CancellationTokenSource cts) {
+            IDictionary<string, PublishedNodesEntryModel> simulatedPublishedNodesConfiguration =
+                new Dictionary<string, PublishedNodesEntryModel>(0);
+
+            // With the nested edge test servers don't have public IP addresses and cannot be accessed in this way
+            if (context.IoTEdgeConfig.NestedEdgeFlag != "Enable") {
+                simulatedPublishedNodesConfiguration =
+                    await GetSimulatedPublishedNodesConfigurationAsync(context, cts.Token);
+            }
+
+            PublishedNodesEntryModel model;
+            if (simulatedPublishedNodesConfiguration.Count > 0) {
+                model = simulatedPublishedNodesConfiguration[simulatedPublishedNodesConfiguration.Keys.First()];
+            }
+            else {
+                var opcPlcIp = context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[0];
+                model = new PublishedNodesEntryModel {
+                    EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
+                    UseSecurity = false,
+                    OpcNodes = new OpcUaNodesModel[] {
+                        new OpcUaNodesModel {
+                            Id = "ns=2;s=SlowUInt1",
+                            OpcPublishingInterval = 10000
+                        }
+                    }
+                };
+            }
+
+            // We want to take one of the slow nodes that updates each 10 seconds.
+            // To make sure that we will not have missing values because of timing issues,
+            // we will set publishing and sampling intervals to a lower value than the publishing
+            // interval of the simulated OPC PLC. This will eliminate false-positives.
+            model.OpcNodes = model.OpcNodes
+                .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                .Where(opcNode => opcNode.Id.Contains("SlowUInt"))
+                .Take(1).Select(opcNode => {
+                    var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
+                    opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
+                    opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
+                    return opcNode;
+                })
+                .ToArray();
+
+            return model;
+        }
+
+        /// <summary>
+        /// Create a multiple nodes model with opcplc nodes
+        /// </summary>
+        /// <param name="IIoTMultipleNodesTestContext">context</param>
+        /// <param name="CancellationTokenSource">cancellation token</param>
+        public static async Task<PublishedNodesEntryModel> CreateMultipleNodesModelAsync(IIoTMultipleNodesTestContext context, CancellationTokenSource cts) {
+            await context.LoadSimulatedPublishedNodes(cts.Token);
+
+            PublishedNodesEntryModel nodesToPublish;
+            if (context.SimulatedPublishedNodes.Count > 1) {
+                var testPlc = context.SimulatedPublishedNodes.Skip(2).First().Value;
+                nodesToPublish = context.GetEntryModelWithoutNodes(testPlc);
+
+                // We want to take several slow and fast nodes.
+                // To make sure that we will not have missing values because of timing issues,
+                // we will set publishing and sampling intervals to a lower value than the publishing
+                // interval of the simulated OPC PLC. This will eliminate false-positives.
+                nodesToPublish.OpcNodes = testPlc.OpcNodes
+                    .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
+                    .Where(node => node.Id.Contains("slow", StringComparison.OrdinalIgnoreCase)
+                        || node.Id.Contains("fast", StringComparison.OrdinalIgnoreCase))
+                    .Take(250)
+                    .Select(opcNode => {
+                        var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
+                        opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
+                        opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
+                        return opcNode;
+                    })
+                    .ToArray();
+
+                context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, nodesToPublish);
+            }
+            else {
+                var opcPlcIp = context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[2];
+                nodesToPublish = new PublishedNodesEntryModel {
+                    EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
+                    UseSecurity = false
+                };
+
+                var nodes = new List<OpcUaNodesModel>();
+                for (int i = 0; i < 250; i++) {
+                    nodes.Add(new OpcUaNodesModel {
+                        Id = $"ns=2;s=SlowUInt{i + 1}",
+                        OpcPublishingInterval = 10000 / 2,
+                        OpcSamplingInterval = 10000 / 4
+                    });
+                }
+
+                nodesToPublish.OpcNodes = nodes.ToArray();
+                context.ConsumedOpcUaNodes.Add(opcPlcIp, nodesToPublish);
+            }
+
+            return nodesToPublish;
+        }
+
+        /// <summary>
         /// Gets endpoints from registry
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
