@@ -54,14 +54,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             LegacyCliModel legacyCliModel) {
             var sw = Stopwatch.StartNew();
             _logger.Debug("Reading and validating published nodes file...");
+            try {
+                var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesContent, publishedNodesSchemaFile);
 
-            var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesContent, publishedNodesSchemaFile);
+                if (items == null) {
+                    throw new SerializerException("Published nodes files, missformed");
+                }
 
-            if (items == null) {
-                throw new SerializerException("Published nodes files, missformed");
+                _logger.Information("Read {count} entry modles from published nodes file in {elapsed}", items.Count, sw.Elapsed);
+                return items;
             }
-            _logger.Information("Read {count} entry modles from published nodes file in {elapsed}", items.Count, sw.Elapsed);
-            return items;
+            finally {
+                sw.Stop();
+            }
         }
 
         /// <summary>
@@ -228,7 +233,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             var result = model.Connection.Id;
             var subset = set.Where(x => x.Connection.Id == model.Connection.Id).ToList();
             if (subset.Count > 1) {
-                result += $"_{model.SubscriptionSettings.PublishingInterval.Value.TotalMilliseconds}";
+                result += $"_{model.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds}";
                 if (subset.Where(x => x.SubscriptionSettings.PublishingInterval == model.SubscriptionSettings.PublishingInterval).Count() > 1) {
                     result += $"_{model.PublishedVariables.PublishedData.First().PublishedVariableNodeId}";
                 }
@@ -269,7 +274,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
                             OpcPublishingInterval = item.DataSetPublishingInterval.GetValueOrDefault(
                                      node.OpcPublishingInterval.GetValueOrDefault(
-                                         (int)legacyCliModel.DefaultPublishingInterval.Value.TotalMilliseconds)),
+                                         (int)legacyCliModel.DefaultPublishingInterval.GetValueOrDefault().TotalMilliseconds)),
                             OpcSamplingInterval = node.OpcSamplingInterval,
                             SkipFirst = node.SkipFirst,
                             QueueSize = node.QueueSize,
@@ -289,7 +294,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                 HeartbeatIntervalTimespan = node.HeartbeatIntervalTimespan,
                                 OpcPublishingInterval = item.DataSetPublishingInterval.GetValueOrDefault(
                                     node.OpcPublishingInterval.GetValueOrDefault(
-                                        (int)legacyCliModel.DefaultPublishingInterval.Value.TotalMilliseconds)),
+                                        (int)legacyCliModel.DefaultPublishingInterval.GetValueOrDefault().TotalMilliseconds)),
                                 OpcSamplingInterval = node.OpcSamplingInterval,
                                 SkipFirst = node.SkipFirst,
                                 QueueSize = node.QueueSize,
@@ -302,7 +307,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 yield return (item.DataSetWriterId, new OpcNodeModel {
                     Id = item.NodeId.Identifier,
                     OpcPublishingInterval = item.DataSetPublishingInterval.GetValueOrDefault(
-                                (int)legacyCliModel.DefaultPublishingInterval.Value.TotalMilliseconds),
+                                (int)legacyCliModel.DefaultPublishingInterval.GetValueOrDefault().TotalMilliseconds),
                 });
             }
         }

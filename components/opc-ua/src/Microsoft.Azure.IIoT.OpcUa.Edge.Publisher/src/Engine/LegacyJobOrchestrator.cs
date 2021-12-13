@@ -117,12 +117,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="ct"></param>
         /// <returns></returns>
         public async Task<HeartbeatResultModel> SendHeartbeatAsync(HeartbeatModel heartbeat, CancellationToken ct = default) {
+            if (heartbeat == null || heartbeat.Worker == null) {
+                throw new ArgumentNullException(nameof(heartbeat));
+            }
             await _lock.WaitAsync();
             try {
                 ct.ThrowIfCancellationRequested();
                 HeartbeatResultModel heartbeatResultModel;
                 JobProcessingInstructionModel job = null;
-                if (heartbeat?.Job != null) {
+                if (heartbeat.Job != null) {
                     if (_assignedJobs.TryGetValue(heartbeat.Worker.WorkerId, out job)) {
                         if (job.Job.GetHashSafe() == heartbeat.Job.JobHash) {
                             // JobProcess should keep working
@@ -181,7 +184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             catch (Exception e) {
                 _logger.Error(e, "Exception on heartbeat for worker {worker} with job {jobId}",
-                    heartbeat?.Worker?.WorkerId,
+                    heartbeat.Worker.WorkerId,
                     heartbeat?.Job?.JobId);
                 throw;
             }
@@ -421,6 +424,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _availableJobs.Enqueue(newJob);
                     }
                 }
+                // fire config update so that the worker supervisor pickes up the changes ASAP
+                _agentConfig.TriggerConfigUpdate(this, new EventArgs());
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -497,6 +502,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 else {
                     throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Endpoint not found");
                 }
+                // fire config update so that the worker supervisor pickes up the changes ASAP
+                _agentConfig.TriggerConfigUpdate(this, new EventArgs());
             }
             catch (MethodCallStatusException){
                 throw;

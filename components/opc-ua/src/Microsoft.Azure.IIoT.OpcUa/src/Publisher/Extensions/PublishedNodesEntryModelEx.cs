@@ -16,6 +16,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         /// </summary>
         public static bool HasSameGroup(this PublishedNodesEntryModel model, PublishedNodesEntryModel that) {
 
+            if (model == null || that == null) {
+                return false;
+            }
+
             if (string.Compare(model.DataSetWriterGroup, that.DataSetWriterGroup, StringComparison.InvariantCulture) != 0) {
                 return false;
             }
@@ -30,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
             if (string.Compare(model.EndpointUrl.OriginalString, that.EndpointUrl.OriginalString, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
-            if (model.UseSecurity != model.UseSecurity) {
+            if (model.UseSecurity != that.UseSecurity) {
                 return false;
             }
 

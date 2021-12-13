@@ -109,7 +109,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _ensureWorkerRunningTimer.Elapsed -= EnsureWorkerRunningTimer_ElapsedAsync;
+            if (_ensureWorkerRunningTimer != null) {
+                _ensureWorkerRunningTimer.Stop();
+                _ensureWorkerRunningTimer.Elapsed -= EnsureWorkerRunningTimer_ElapsedAsync;
+            }
             Try.Async(StopAsync).GetAwaiter().GetResult();
             _ensureWorkerRunningTimer?.Dispose();
         }
