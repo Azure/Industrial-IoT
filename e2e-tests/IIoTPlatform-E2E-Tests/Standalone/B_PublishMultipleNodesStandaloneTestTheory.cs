@@ -63,7 +63,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
-            var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts);
+            var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token);
 
             TestHelper.PublishNodesAsync(new[] { nodesToPublish }, _context).GetAwaiter().GetResult();
 

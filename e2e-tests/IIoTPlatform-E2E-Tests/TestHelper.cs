@@ -550,14 +550,14 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="IIoTMultipleNodesTestContext">context</param>
         /// <param name="CancellationTokenSource">cancellation token</param>
-        public static async Task<PublishedNodesEntryModel> CreateSingleNodeModelAsync(IIoTMultipleNodesTestContext context, CancellationTokenSource cts) {
+        public static async Task<PublishedNodesEntryModel> CreateSingleNodeModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct) {
             IDictionary<string, PublishedNodesEntryModel> simulatedPublishedNodesConfiguration =
                 new Dictionary<string, PublishedNodesEntryModel>(0);
 
             // With the nested edge test servers don't have public IP addresses and cannot be accessed in this way
             if (context.IoTEdgeConfig.NestedEdgeFlag != "Enable") {
                 simulatedPublishedNodesConfiguration =
-                    await GetSimulatedPublishedNodesConfigurationAsync(context, cts.Token);
+                    await GetSimulatedPublishedNodesConfigurationAsync(context, ct);
             }
 
             PublishedNodesEntryModel model;
@@ -601,8 +601,8 @@ namespace IIoTPlatform_E2E_Tests {
         /// </summary>
         /// <param name="IIoTMultipleNodesTestContext">context</param>
         /// <param name="CancellationTokenSource">cancellation token</param>
-        public static async Task<PublishedNodesEntryModel> CreateMultipleNodesModelAsync(IIoTMultipleNodesTestContext context, CancellationTokenSource cts) {
-            await context.LoadSimulatedPublishedNodes(cts.Token);
+        public static async Task<PublishedNodesEntryModel> CreateMultipleNodesModelAsync(IIoTMultipleNodesTestContext context, CancellationToken ct) {
+            await context.LoadSimulatedPublishedNodes(ct);
 
             PublishedNodesEntryModel nodesToPublish;
             if (context.SimulatedPublishedNodes.Count > 1) {
