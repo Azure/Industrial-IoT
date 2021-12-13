@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
@@ -23,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -366,8 +368,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 d.DataSet.ExtensionFields["PublisherId"] = jobId;
                 d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterId;
             });
-            var endpoints = string.Join(", ", job.WriterGroup.DataSetWriters.Select(w => w.DataSet.DataSetSource.Connection.Endpoint.Url));
-            _logger.Information($"Job {jobId} loaded. DataSetWriters endpoints: {endpoints}");
+            var dataSetWriters = string.Join(", ", job.WriterGroup.DataSetWriters.Select(w => w.DataSetWriterId));
+            _logger.Information("Job {jobId} loaded with dataSetGroup {group} with dataSetWriters {dataSetWriters}", jobId, dataSetWriters);
             var serializedJob = _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);
 
             return new JobProcessingInstructionModel {
@@ -477,7 +479,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     foreach (var job in jobs) {
                         var newJob = ToJobProcessingInstructionModel(job);
                         if (newJob == null) {
-                            var entryJobId = request.GetGroupId();
+                            // compute a jobId for the empty job from the request's entry model
+                            var entryJobId = _publishedNodesJobConverter.
+                                ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
                             foreach (var assignedJob in _assignedJobs) {
                                 if (entryJobId == assignedJob.Value.Job.Id) {
                                     _assignedJobs.Remove(assignedJob.Key, out _);

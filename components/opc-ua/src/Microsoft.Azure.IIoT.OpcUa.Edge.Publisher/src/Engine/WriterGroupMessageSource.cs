@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
@@ -24,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// </summary>
     public class WriterGroupMessageTrigger : IMessageTrigger, IDisposable {
         /// <inheritdoc/>
-        public string Id => _writerGroup.WriterGroupId;
+        public string Id => _subscriptions?.First()?.Subscription?.Connection?.CreateConnectionId() ?? _writerGroup.WriterGroupId;
 
         /// <inheritdoc/>
         public int NumberOfConnectionRetries => _subscriptions?.Sum(x => x.Subscription?.NumberOfConnectionRetries) ?? 0;
@@ -146,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _writerGroup = writerGroupConfig?.WriterGroup?.Clone() ??
                 throw new ArgumentNullException(nameof(writerGroupConfig.WriterGroup));
             _subscriptions = _writerGroup.DataSetWriters?
-                .Select(g => new DataSetWriterSubscription(this, g))
+                .Select(g => new DataSetWriterSubscription(this, g, writerGroupConfig))
                 .ToList();
             _publisherId = writerGroupConfig.PublisherId ?? Guid.NewGuid().ToString();
         }
@@ -185,14 +186,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="dataSetWriter"></param>
+            /// <param name="writerGroup"></param>
             public DataSetWriterSubscription(WriterGroupMessageTrigger outer,
-                DataSetWriterModel dataSetWriter) {
+                DataSetWriterModel dataSetWriter, IWriterGroupConfig writerGroup) {
 
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
                 _dataSetWriter = dataSetWriter.Clone() ??
                     throw new ArgumentNullException(nameof(dataSetWriter));
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel();
-
+                _subscriptionInfo.Connection.Group = writerGroup.WriterGroup.WriterGroupId;
                 if (dataSetWriter.KeyFrameInterval.HasValue &&
                    dataSetWriter.KeyFrameInterval.Value > TimeSpan.Zero) {
                     _keyframeTimer = new Timer(

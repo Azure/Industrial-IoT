@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
-    using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 

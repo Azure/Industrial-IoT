@@ -86,18 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 // the grouping of operations improves perf by 30%
                 // Group by connection
                 var group = items.GroupBy(
-                    item => new ConnectionModel {
-                        OperationTimeout = legacyCliModel.OperationTimeout,
-                        Group = item.GetGroupId(),
-                        // Do not add the Id = item.DataSetWriterId so grouping is possible per DataSetGroup
-                        Endpoint = new EndpointModel {
-                            Url = item.EndpointUrl.OriginalString,
-                            SecurityMode = item.UseSecurity.GetValueOrDefault(false) ?
-                                 SecurityMode.Best : SecurityMode.None,
-                        },
-                        User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
-                            null : ToUserNamePasswordCredentialAsync(item).Result,
-                    },
+                    item => ToConnectionModel(item, legacyCliModel),
                     // Select and batch nodes into published data set sources
                     item => GetNodeModels(item, legacyCliModel),
                     // Comparer for connection information
@@ -119,9 +108,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         opcNodes => new PublishedDataSetSourceModel {
                             Connection = new ConnectionModel {
                                 Endpoint = group.Key.Endpoint.Clone(),
-                                User = group.Key.User,
+                                User = group.Key.User.Clone(),
+                                Diagnostics = group.Key.Diagnostics.Clone(),
                                 Group = group.Key.Group,
-                                Id = opcNodes.First().Item1 ?? "Default",
+                                // add DataSetWriterId for further use
+                                Id = opcNodes.First().Item1,
+                                OperationTimeout = group.Key.OperationTimeout,
                             },
                             SubscriptionSettings = new PublishedDataSetSettingsModel {
                                 PublishingInterval = GetPublishingIntervalFromNodes(opcNodes, legacyCliModel),
@@ -163,7 +155,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         DataSetWriters = dataSetSourceBatches.Select(dataSetSource => new DataSetWriterModel {
                             DataSetWriterId = GetUniqueWriterId(dataSetSourceBatches, dataSetSource),
                             DataSet = new PublishedDataSetModel {
-                                DataSetSource = dataSetSource.Clone(),
+                                DataSetSource = new PublishedDataSetSourceModel {
+                                    Connection = new ConnectionModel {
+                                        Endpoint = dataSetSource.Connection.Endpoint.Clone(),
+                                        User = dataSetSource.Connection.User.Clone(),
+                                        Diagnostics = dataSetSource.Connection.Diagnostics.Clone(),
+                                        OperationTimeout = dataSetSource.Connection.OperationTimeout,
+                                        Group = dataSetSource.Connection.Group,
+                                        Id = GetUniqueWriterId(dataSetSourceBatches, dataSetSource),
+                                    },
+                                    PublishedEvents = dataSetSource.PublishedEvents.Clone(),
+                                    PublishedVariables = dataSetSource.PublishedVariables.Clone(),
+                                    SubscriptionSettings = dataSetSource.SubscriptionSettings.Clone(),
+                                },
                             },
                             DataSetFieldContentMask =
                                     DataSetFieldContentMask.StatusCode |
@@ -226,14 +230,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         }
 
         /// <summary>
+        /// transforms a published nodes model connection header to a Connection Model object
+        /// </summary>
+        public ConnectionModel ToConnectionModel(PublishedNodesEntryModel model,
+            LegacyCliModel legacyCliModel) {
+            
+            return new ConnectionModel {
+                OperationTimeout = legacyCliModel.OperationTimeout,
+                Group = model.DataSetWriterGroup,
+                // Exclude the DataSetWriterId since it is not part of the connection model
+                Endpoint = new EndpointModel {
+                    Url = model.EndpointUrl.OriginalString,
+                    SecurityMode = model.UseSecurity.GetValueOrDefault(false) ?
+                                 SecurityMode.Best : SecurityMode.None,
+                },
+                User = model.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
+                            null : ToUserNamePasswordCredentialAsync(model).GetAwaiter().GetResult(),
+            };
+        }
+
+        /// <summary>
         /// Returns an uniquie identifier for the DataSetWriterId from a set of writers belonging to a group
         /// </summary>
         private static string GetUniqueWriterId(IEnumerable<PublishedDataSetSourceModel> set, PublishedDataSetSourceModel model) {
-
             var result = model.Connection.Id;
             var subset = set.Where(x => x.Connection.Id == model.Connection.Id).ToList();
             if (subset.Count > 1) {
-                result += $"_{model.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds}";
+                result += !string.IsNullOrEmpty(result) ? "_" : string.Empty;
+                result += $"{model.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds}";
                 if (subset.Where(x => x.SubscriptionSettings.PublishingInterval == model.SubscriptionSettings.PublishingInterval).Count() > 1) {
                     result += $"_{model.PublishedVariables.PublishedData.First().PublishedVariableNodeId}";
                 }

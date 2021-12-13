@@ -40,9 +40,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 [
     {
         ""DataSetWriterId"": ""testid"",
-        ""EndpointUrl"": ""opc.tcp://localhost:50000"",        
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
         ""OpcNodes"": [
-            {                
+            {
                 ""HeartbeatInterval"": 2,
                 ""OpcSamplingInterval"": 2000,
                 ""OpcPublishingInterval"": 2000
@@ -106,7 +106,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Single(jobs);
             Assert.Equal("testid", jobs
                 .Single().WriterGroup.DataSetWriters
+                .Single().DataSetWriterId);
+            Assert.Equal("testid", jobs
+                .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Id);
+
         }
 
         [Fact]
@@ -134,6 +138,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 
             Assert.NotEmpty(jobs);
             Assert.Single(jobs);
+            Assert.Equal("testgroup", jobs
+                .Single().WriterGroup.WriterGroupId);
             Assert.Equal("testgroup", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Group);
@@ -253,8 +259,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.PublishedVariables.PublishedData.Last().PublishedVariableNodeId);
             Assert.Equal("testgroup", jobs
+                .Single().WriterGroup.WriterGroupId);
+            Assert.Equal("testgroup", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Group);
+            Assert.Equal("testwriterid", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSetWriterId);
             Assert.Equal("testwriterid", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Id);

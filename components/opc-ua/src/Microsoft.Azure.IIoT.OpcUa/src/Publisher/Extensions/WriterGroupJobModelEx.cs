@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Linq;
 
     /// <summary>
@@ -15,7 +16,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Returns the job Id
         /// </summary>
         public static string GetJobId(this WriterGroupJobModel model) {
-            return model?.WriterGroup?.WriterGroupId;
+            var connection = model?.WriterGroup?.DataSetWriters?.First()?.DataSet?.DataSetSource?.Connection;
+            if (connection == null) {
+                return null;
+            }
+
+            return connection.CreateConnectionId();
         }
     }
 }
