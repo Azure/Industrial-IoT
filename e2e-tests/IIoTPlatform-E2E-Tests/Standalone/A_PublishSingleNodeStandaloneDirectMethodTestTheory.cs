@@ -36,6 +36,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
+            _iotHubConnectionString = _context.IoTHubConfig.IoTHubConnectionString;
+            _iotHubPublisherDeviceName = _context.DeviceConfig.DeviceId;
         }
 
         // the test case for now are just empty container that deploy publisher resource
@@ -47,8 +49,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode) {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
-            _iotHubConnectionString = _context.IoTHubConfig.IoTHubConnectionString;
-            _iotHubPublisherDeviceName = _context.DeviceConfig.DeviceId;
+
             _iotHubPublisherModuleName = "publisher_standalone";
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
@@ -133,8 +134,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         async Task SubscribeUnsubscribeDirectMethodLegacyPublisherTest() {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubLegacyPublisherDeployment = new IoTHubLegacyPublisherDeployments(_context);
-            _iotHubConnectionString = _context.IoTHubConfig.IoTHubConnectionString;
-            _iotHubPublisherDeviceName = _context.DeviceConfig.DeviceId;
+            
             _iotHubPublisherModuleName = "publisher_standalone_legacy";
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
