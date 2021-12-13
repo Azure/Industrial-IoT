@@ -49,9 +49,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 DataSetFieldId = model.DataSetFieldId,
                 DisplayName = model.DisplayName,
                 ExpandedNodeId = model.ExpandedNodeId,
-                HeartbeatInterval = model.HeartbeatInterval,
-                OpcPublishingIntervalTimespan = model.OpcPublishingIntervalTimespan,
+                OpcPublishingInterval = model.OpcPublishingInterval,
                 OpcSamplingInterval = model.OpcSamplingInterval,
+                HeartbeatIntervalTimespan = model.HeartbeatIntervalTimespan,
                 SkipFirst = model.SkipFirst,
                 QueueSize = model.QueueSize,
             };
