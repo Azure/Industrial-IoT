@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public bool? SkipFirst { get; set; }
 
-        /// <summary> Skip first value </summary>
+        /// <summary> Queue size for monitored items </summary>
         [DataMember(Name = "queueSize", Order = 11,
             EmitDefaultValue = false)]
         public uint? QueueSize { get; set; }
