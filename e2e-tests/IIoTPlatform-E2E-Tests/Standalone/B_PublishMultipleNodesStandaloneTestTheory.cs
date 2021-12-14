@@ -63,51 +63,7 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
-            await _context.LoadSimulatedPublishedNodes(cts.Token);
-
-            PublishedNodesEntryModel nodesToPublish;
-            if (_context.SimulatedPublishedNodes.Count > 1) {
-                var testPlc = _context.SimulatedPublishedNodes.Skip(2).First().Value;
-                nodesToPublish = _context.GetEntryModelWithoutNodes(testPlc);
-
-                // We want to take several slow and fast nodes.
-                // To make sure that we will not have missing values because of timing issues,
-                // we will set publishing and sampling intervals to a lower value than the publishing
-                // interval of the simulated OPC PLC. This will eliminate false-positives.
-                nodesToPublish.OpcNodes = testPlc.OpcNodes
-                    .Where(node => !node.Id.Contains("bad", StringComparison.OrdinalIgnoreCase))
-                    .Where(node => node.Id.Contains("slow", StringComparison.OrdinalIgnoreCase)
-                        || node.Id.Contains("fast", StringComparison.OrdinalIgnoreCase))
-                    .Take(250)
-                    .Select(opcNode => {
-                        var opcPlcPublishingInterval = opcNode.OpcPublishingInterval;
-                        opcNode.OpcPublishingInterval = opcPlcPublishingInterval / 2;
-                        opcNode.OpcSamplingInterval = opcPlcPublishingInterval / 4;
-                        return opcNode;
-                    })
-                    .ToArray();
-
-                _context.ConsumedOpcUaNodes.Add(testPlc.EndpointUrl, nodesToPublish);
-            }
-            else {
-                var opcPlcIp = _context.OpcPlcConfig.Urls.Split(TestConstants.SimulationUrlsSeparator)[2];
-                nodesToPublish = new PublishedNodesEntryModel {
-                    EndpointUrl = $"opc.tcp://{opcPlcIp}:50000",
-                    UseSecurity = false
-                };
-
-                var nodes = new List<OpcUaNodesModel>();
-                for (int i = 0; i < 250; i++) {
-                    nodes.Add(new OpcUaNodesModel {
-                        Id = $"ns=2;s=SlowUInt{i+1}",
-                        OpcPublishingInterval = 10000/2,
-                        OpcSamplingInterval = 10000/4
-                    });
-                }
-
-                nodesToPublish.OpcNodes = nodes.ToArray();
-                _context.ConsumedOpcUaNodes.Add(opcPlcIp, nodesToPublish);
-            }
+            var nodesToPublish = await TestHelper.CreateMultipleNodesModelAsync(_context, cts.Token);
 
             TestHelper.PublishNodesAsync(new[] { nodesToPublish }, _context).GetAwaiter().GetResult();
 

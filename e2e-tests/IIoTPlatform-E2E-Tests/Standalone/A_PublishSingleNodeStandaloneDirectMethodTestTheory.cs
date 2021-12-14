@@ -25,6 +25,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         private readonly ITestOutputHelper _output;
         private readonly IIoTMultipleNodesTestContext _context;
+        private string _iotHubConnectionString;
+        private string _iotHubPublisherDeviceName;
+        private string _iotHubPublisherModuleName;
 
         public A_PublishSingleNodeStandaloneDirectMethodTestTheory(
             ITestOutputHelper output,
@@ -33,6 +36,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _output = output ?? throw new ArgumentNullException(nameof(output));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _context.OutputHelper = _output;
+            _iotHubConnectionString = _context.IoTHubConfig.IoTHubConnectionString;
+            _iotHubPublisherDeviceName = _context.DeviceConfig.DeviceId;
         }
 
         // the test case for now are just empty container that deploy publisher resource
@@ -44,6 +49,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         async Task SubscribeUnsubscribeDirectMethodTest(MessagingMode messagingMode) {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubPublisherDeployment = new IoTHubPublisherDeployment(_context, messagingMode);
+
+            _iotHubPublisherModuleName = "publisher_standalone";
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -60,8 +67,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(layeredDeploymentResult, "Failed to create/update layered deployment for publisher module.");
             _output.WriteLine("Created/Updated layered deployment for publisher module.");
 
-            // Wait some time till the updated pn.json is reflected.
-            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds);
+            var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token);
+
+            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
 
             // We will wait for module to be deployed.
             var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
@@ -70,6 +78,55 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 new string[] { "publisher_standalone" }
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
+
+            //Todo
+            //Here instantiate _directMethod class and call the Publish direct method
+            //This is just a sample call
+            //_directMethods = new DirectMethodsAPIClient(_iotHubConnectionString, _iotHubPublisherDeviceName, _iotHubPublisherModuleName);
+
+            //var publishingResult = await _directMethods.PublishNodesAsync(
+            //            model.EndpointUrl,
+            //            model.OpcNodes,
+            //            ct: cts.Token
+            //        ).ConfigureAwait(false);
+
+            // Use test event processor to verify data send to IoT Hub (expected* set to zero
+            // as data gap analysis is not part of this test case).
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+
+            // Wait some time to generate events to process.
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Stop monitoring and get the result.
+            var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            Assert.True((int)publishingMonitoringResultJson.totalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True((uint)publishingMonitoringResultJson.droppedValueCount == 0,
+                $"Dropped messages detected: {(uint)publishingMonitoringResultJson.droppedValueCount}");
+            Assert.True((uint)publishingMonitoringResultJson.duplicateValueCount == 0,
+                $"Duplicate values detected: {(uint)publishingMonitoringResultJson.duplicateValueCount}");
+
+            //Todo
+            //Here call the Unpublish direct method. This is just a sample call
+            //publishingResult = await _directMethods.UnPublishNodesAsync(
+            //            model.EndpointUrl,
+            //            model.OpcNodes,
+            //            ct: cts.Token
+            //        ).ConfigureAwait(false);
+
+            // Wait till the publishing has stopped.
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Use test event processor to verify data send to IoT Hub (expected* set to zero
+            // as data gap analysis is not part of this test case).
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+
+            // Wait some time to generate events to process
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Stop monitoring and get the result.
+            var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            Assert.True((int)unpublishingMonitoringResultJson.totalValueChangesCount == 0,
+                $"Messages received at IoT Hub: {(int)unpublishingMonitoringResultJson.totalValueChangesCount}");
         }
 
 
@@ -77,6 +134,8 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         async Task SubscribeUnsubscribeDirectMethodLegacyPublisherTest() {
             var ioTHubEdgeBaseDeployment = new IoTHubEdgeBaseDeployment(_context);
             var ioTHubLegacyPublisherDeployment = new IoTHubLegacyPublisherDeployments(_context);
+            
+            _iotHubPublisherModuleName = "publisher_standalone_legacy";
 
             var cts = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
 
@@ -93,6 +152,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True(layeredDeploymentResult1, "Failed to create/update layered deployment for legacy publisher module.");
             _output.WriteLine("Created/Updated layered deployment for legacy publisher module.");
 
+            var model = await TestHelper.CreateSingleNodeModelAsync(_context, cts.Token);
+
+            await TestHelper.SwitchToStandaloneModeAsync(_context, cts.Token);
+
             // We will wait for module to be deployed.
             var exception = Record.Exception(() => _context.RegistryHelper.WaitForIIoTModulesConnectedAsync(
                 _context.DeviceConfig.DeviceId,
@@ -100,6 +163,55 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
                 new string[] { "publisher_standalone_legacy" }
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
+
+            //Todo
+            //Here instantiate _directMethod class and call the Publish direct method
+            //This is just a sample call
+            //_directMethods = new DirectMethodsAPIClient(_iotHubConnectionString, _iotHubPublisherDeviceName, _iotHubPublisherModuleName);
+
+            //var publishingResult = await _directMethods.PublishNodesAsync(
+            //            model.EndpointUrl,
+            //            model.OpcNodes,
+            //            ct: cts.Token
+            //        ).ConfigureAwait(false);
+
+            // Use test event processor to verify data send to IoT Hub (expected* set to zero
+            // as data gap analysis is not part of this test case).
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+
+            // Wait some time to generate events to process.
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Stop monitoring and get the result.
+            var publishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            Assert.True((int)publishingMonitoringResultJson.totalValueChangesCount > 0, "No messages received at IoT Hub");
+            Assert.True((uint)publishingMonitoringResultJson.droppedValueCount == 0,
+                $"Dropped messages detected: {(uint)publishingMonitoringResultJson.droppedValueCount}");
+            Assert.True((uint)publishingMonitoringResultJson.duplicateValueCount == 0,
+                $"Duplicate values detected: {(uint)publishingMonitoringResultJson.duplicateValueCount}");
+
+            //Todo
+            //Here call the Unpublish direct method. This is just a sample call
+            //publishingResult = await _directMethods.UnPublishNodesAsync(
+            //            model.EndpointUrl,
+            //            model.OpcNodes,
+            //            ct: cts.Token
+            //        ).ConfigureAwait(false);
+
+            // Wait till the publishing has stopped.
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Use test event processor to verify data send to IoT Hub (expected* set to zero
+            // as data gap analysis is not part of this test case).
+            await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
+
+            // Wait some time to generate events to process
+            await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
+
+            // Stop monitoring and get the result.
+            var unpublishingMonitoringResultJson = await TestHelper.StopMonitoringIncomingMessagesAsync(_context, cts.Token);
+            Assert.True((int)unpublishingMonitoringResultJson.totalValueChangesCount == 0,
+                $"Messages received at IoT Hub: {(int)unpublishingMonitoringResultJson.totalValueChangesCount}");
         }
 
     }
