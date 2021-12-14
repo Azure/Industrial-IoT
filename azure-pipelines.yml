@@ -12,6 +12,11 @@ trigger:
     - releases
     - dev/*
     - release/*
+
+variables:
+  iaiStorageAccount: azureiiot
+  iaiStorageAccountSubscription: azureiiotbak-storage
+
 stages:
 - stage: build
   displayName: 'Build and Test Code'

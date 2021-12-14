@@ -206,6 +206,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             string sentMessagesPerSecFormatted = _messageSink.SentMessagesCount > 0 && totalDuration > 0 ? $"({sentMessagesPerSec:0.##}/s)" : "";
             diagInfo.AppendLine("  # Outgress IoT message count         : {messageSinkSentMessagesCount,14:n0} {sentMessagesPerSecFormatted}");
             diagInfo.AppendLine("  # Connection retries                 : {connectionRetries,14:0}");
+            diagInfo.AppendLine("  # Opc endpoint connected?            : {isConnectionOk,14:0}");
+            diagInfo.AppendLine("  # Monitored Opc nodes succeeded count: {goodNodes,14:0}");
+            diagInfo.AppendLine("  # Monitored Opc nodes failed count   : {badNodes,14:0}");
 
             _logger.Information(diagInfo.ToString(),
                 Name,
@@ -225,7 +228,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _sinkBlock.InputCount,
                 _sinkBlockInputDroppedCount,
                 _messageSink.SentMessagesCount, sentMessagesPerSecFormatted,
-                _messageTrigger.NumberOfConnectionRetries);
+                _messageTrigger.NumberOfConnectionRetries,
+                _messageTrigger.IsConnectionOk,
+                _messageTrigger.NumberOfGoodNodes,
+                _messageTrigger.NumberOfBadNodes);
 
             string deviceId = _identity.DeviceId ?? "";
             string moduleId = _identity.ModuleId ?? "";
@@ -261,6 +267,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 .Set(sentMessagesPerSec);
             kNumberOfConnectionRetries.WithLabels(deviceId, moduleId, Name)
                 .Set(_messageTrigger.NumberOfConnectionRetries);
+            kIsConnectionOk.WithLabels(deviceId, moduleId, Name)
+                .Set(_messageTrigger.IsConnectionOk ? 1 : 0);
+            kNumberOfGoodNodes.WithLabels(deviceId, moduleId, Name)
+                .Set(_messageTrigger.NumberOfGoodNodes);
+            kNumberOfBadNodes.WithLabels(deviceId, moduleId, Name)
+                .Set(_messageTrigger.NumberOfBadNodes);
             kChunkSizeAvg.WithLabels(deviceId, moduleId, Name)
                 .Set(chunkSizeAverage);
             kEstimatedMsgChunksPerday.WithLabels(deviceId, moduleId, Name)
@@ -376,6 +388,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private static readonly Gauge kNumberOfConnectionRetries = Metrics.CreateGauge(
             "iiot_edge_publisher_connection_retries",
             "OPC UA connect retries", kGaugeConfig);
+        private static readonly Gauge kIsConnectionOk = Metrics.CreateGauge(
+            "iiot_edge_publisher_is_connection_ok",
+            "OPC UA connection success flag", kGaugeConfig);
+        private static readonly Gauge kNumberOfGoodNodes = Metrics.CreateGauge(
+            "iiot_edge_publisher_good_nodes",
+            "OPC UA connected nodes", kGaugeConfig);
+        private static readonly Gauge kNumberOfBadNodes = Metrics.CreateGauge(
+            "iiot_edge_publisher_bad_nodes",
+            "OPC UA disconnected nodes", kGaugeConfig);
 
         private static readonly Gauge kNotificationsProcessedCount = Metrics.CreateGauge(
             "iiot_edge_publisher_encoded_notifications",

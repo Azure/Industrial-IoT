@@ -56,7 +56,7 @@ jobs:
       outputfile: thirdpartynotices.txt
     continueOnError: true
   - task: BinSkim@3
-    displayName: 'BinSkim '
+    displayName: 'BinSkim'
     inputs:
       InputType: Basic
       AnalyzeTarget: '*.IIoT.*.dll;*.IIoT.*.exe'
