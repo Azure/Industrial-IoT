@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Agent.Framework;
     using Agent.Framework.Models;
     using Diagnostics;
+    using FluentAssertions;
     using Models;
     using Module;
     using Moq;
@@ -109,7 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             foreach (var request in publishNodesRequest) {
                 var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                Assert.Equal("Succeded", publishNodesResult.First());
+                publishNodesResult.First().Should().Be("Succeeded");
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -119,12 +120,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             await Task.WhenAll(tasks);
 
-            Assert.Equal(2, tasks.Count(t => t.Result != null));
+            tasks.Count(t => t.Result != null).Should().Be(publishNodesRequest.Count);
             var distinctConfigurations = tasks
                 .Where(t => t.Result != null)
                 .Select(t => t.Result.Job.JobConfiguration)
                 .Distinct();
-            Assert.Equal(2, distinctConfigurations.Count());
+            distinctConfigurations.Count().Should().Be(publishNodesRequest.Count);
         }
 
 
@@ -151,8 +152,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var unpublishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(await payloads.ReadToEndAsync());
 
             foreach (var request in unpublishNodesRequest) {
-                var publishNodesResult = await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false);
-                Assert.Equal("Succeded", publishNodesResult.First());
+                var unpublishNodesResult = await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false);
+                unpublishNodesResult.First().Should().Be("Succeeded");
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -161,8 +162,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             }
 
             await Task.WhenAll(tasks);
-
-            Assert.Equal(0, tasks.Count(t => t.Result != null));
+            tasks.Count(t => t.Result != null).Should().Be(0);
         }
     }
 }

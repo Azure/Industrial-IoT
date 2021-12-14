@@ -56,10 +56,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesContent, publishedNodesSchemaFile);
 
                 if (items == null) {
-                    throw new SerializerException("Published nodes files, missformed");
+                    throw new SerializerException("Published nodes files, malformed.");
                 }
 
-                _logger.Information("Read {count} entry modles from published nodes file in {elapsed}", items.Count, sw.Elapsed);
+                _logger.Information("Read {count} entry models from published nodes file in {elapsed}", items.Count, sw.Elapsed);
                 return items;
             }
             finally {

@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     return;
                 }
 
-                _agentConfigProvider.OnConfigUpdated += ConfigUpdate_Triggered;
+                _agentConfigProvider.OnConfigUpdated += ConfigUpdate_Handler;
                 _cts = new CancellationTokenSource();
                 _heartbeatTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan);
 
@@ -101,13 +101,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
 
                 _logger.Information("Stopping worker...");
-                _agentConfigProvider.OnConfigUpdated -= ConfigUpdate_Triggered;
+                _agentConfigProvider.OnConfigUpdated -= ConfigUpdate_Handler;
                 _heartbeatTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
                 // Inform services, that this worker has stopped working, so orchestrator can reassign job
                 if (_jobProcess != null) {
                     _jobProcess.Status = WorkerStatus.Stopped;
-                    await SendHeartbeatWithoutResetTimer().ConfigureAwait(false); // need to be send before cancel the CancellationToken
+                    await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false); // need to be send before cancel the CancellationToken
                 }
 
                 // Stop worker
@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <summary>
         /// Handler for ConfigUpdated event
         /// </summary>
-        private void ConfigUpdate_Triggered(object sender, EventArgs eventArgs) {
+        private void ConfigUpdate_Handler(object sender, EventArgs eventArgs) {
                 _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
                 _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
                 if (!_cts.IsCancellationRequested) {
@@ -163,12 +163,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         private async void HeartbeatTimer_ElapsedAsync(object sender) {
 
             if (!_cts.IsCancellationRequested) {
-                await SendHeartbeatWithoutResetTimer().ConfigureAwait(false);
+                await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
                 Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
             }
         }
 
-        private async Task SendHeartbeatWithoutResetTimer() {
+        private async Task SendHeartbeatWithoutResetTimerAsync() {
             try {
                 _logger.Debug("Sending heartbeat...");
 
@@ -261,7 +261,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     // Check if the job is to be continued with new configuration settings
                     if (_jobProcess.JobContinuation == null) {
                         _jobProcess.Status = WorkerStatus.Stopped;
-                        await SendHeartbeatWithoutResetTimer().ConfigureAwait(false);
+                        await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
                         _jobProcess = null;
                         break;
                     }
@@ -272,7 +272,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                         _logger.Information("Job continuation invalid, continue listening...");
                         if (_jobProcess != null) {
                             _jobProcess.Status = WorkerStatus.Stopped;
-                            await SendHeartbeatWithoutResetTimer().ConfigureAwait(false);
+                            await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
                         }
 
                         _jobProcess = null;
@@ -285,7 +285,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 _logger.Information("Processing cancellation received ...");
                 if (_jobProcess != null) {
                     _jobProcess.Status = WorkerStatus.Stopped;
-                    await SendHeartbeatWithoutResetTimer().ConfigureAwait(false);
+                    await SendHeartbeatWithoutResetTimerAsync().ConfigureAwait(false);
                 }
 
                 _jobProcess = null;

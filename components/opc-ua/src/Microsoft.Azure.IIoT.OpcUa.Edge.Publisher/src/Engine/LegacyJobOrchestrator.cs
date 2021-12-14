@@ -172,21 +172,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         UpdatedJob = null,
                     };
                 }
-                _logger.Debug("SendHeartbeatAsync updated worker {worker} with {heartbeatInstruction} instruction for job {jobId}.",
-                    heartbeat.Worker.WorkerId,
-                    heartbeatResultModel?.HeartbeatInstruction,
-                    job?.Job?.Id);
+                _logger.Debug("Worker update with {heartbeatInstruction} instruction for job {jobId}.",
+                    heartbeatResultModel?.HeartbeatInstruction, job?.Job?.Id);
 
                 return heartbeatResultModel;
             }
             catch (OperationCanceledException) {
-                _logger.Information("Operation SendHeartbeatAsync was canceled");
+                _logger.Information("Operation SendHeartbeatAsync was canceled.");
                 throw;
             }
             catch (Exception e) {
-                _logger.Error(e, "Exception on heartbeat for worker {worker} with job {jobId}",
-                    heartbeat.Worker.WorkerId,
-                    heartbeat?.Job?.JobId);
+                _logger.Error(e, "Exception while handling worker heartbeat.");
                 throw;
             }
             finally {
@@ -383,9 +379,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         JobConfigurationType = jobConfigurationType,
                         LifetimeData = new JobLifetimeDataModel(),
                         Name = jobId,
-                        RedundancyConfig = new RedundancyConfigModel { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 }
+                        RedundancyConfig = new RedundancyConfigModel { DesiredActiveAgents = 1, DesiredPassiveAgents = 0 },
                     },
-                    ProcessMode = ProcessMode.Active
+                    ProcessMode = ProcessMode.Active,
                 };
         }
 
@@ -401,9 +397,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
+            _logger.Information("{nameof} method triggered", nameof(PublishNodesAsync));
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
-                _logger.Information("PublishNodes method triggered");
+               
                 var existingGroup = new List<PublishedNodesEntryModel>();
                 foreach (var entry in _publishedNodesEntrys) {
                     if (entry.HasSameGroup(request)) {
@@ -458,14 +455,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _lock.Release();
             }
 
-            return new List<string> { "Succeded" };
+            return new List<string> { "Succeeded" };
         }
 
         /// <inheritdoc/>
         public async Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
+            _logger.Information("{nameof} method triggered", nameof(UnpublishNodesAsync));
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
-                _logger.Information("UnpublishNodes method triggered");
                 var nodeFound = false;
                 var existingGroup = new List<PublishedNodesEntryModel>();
                 foreach (var entry in _publishedNodesEntrys.ToList()) {
@@ -555,14 +552,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _lock.Release();
             }
 
-            return new List<string> { "Succeded" };
+            return new List<string> { "Succeeded" };
         }
 
         /// <inheritdoc/>
         public async Task UnpublishAllNodesAsync(CancellationToken ct) {
+            _logger.Information("{nameof} method triggered", nameof(UnpublishAllNodesAsync));
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
-                _logger.Information("UnpublishAllNodes method triggered");
                 throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
             }
             finally {
@@ -572,9 +569,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task GetConfiguredEndpointsAsync(CancellationToken ct = default) {
+            _logger.Information("{nameof} method triggered", nameof(GetConfiguredEndpointsAsync));
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
-                _logger.Information("GetConfiguredEndpointsAsync method triggered");
                 throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
             }
             finally {
@@ -584,9 +581,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task GetConfiguredNodesOnEndpointAsync(CancellationToken ct = default) {
+            _logger.Information("{nameof} method triggered", nameof(GetConfiguredNodesOnEndpointAsync));
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
-                _logger.Information("GetConfiguredNodesOnEndpointAsync method triggered");
                 throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
             }
             finally {
