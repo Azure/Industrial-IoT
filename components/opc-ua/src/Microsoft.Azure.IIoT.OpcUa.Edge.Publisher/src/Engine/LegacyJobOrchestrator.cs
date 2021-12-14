@@ -281,7 +281,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 catch (SerializerException ex) {
                                     _logger.Warning(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
                                     _lastKnownFileHash = lastValidFileHash;
-                                    return;
+                                    break;
                                 }
 
                                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _legacyCliModel);
@@ -347,6 +347,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _availableJobs.Clear();
                     _assignedJobs.Clear();
                     _lastKnownFileHash = string.Empty;
+                    break;
                 }
                 finally {
                     _lock.Release();
@@ -602,7 +603,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly List<PublishedNodesEntryModel> _publishedNodesEntrys;
         private ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private ConcurrentDictionary<string, JobProcessingInstructionModel> _availableJobs;
-        private string _lastKnownFileHash;
+        private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
     }
 }
