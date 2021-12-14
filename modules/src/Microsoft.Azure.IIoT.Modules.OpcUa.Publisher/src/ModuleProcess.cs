@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Serializers;

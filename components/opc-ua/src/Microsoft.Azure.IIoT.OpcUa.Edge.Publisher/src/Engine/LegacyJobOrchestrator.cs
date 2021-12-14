@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 directory = Environment.CurrentDirectory;
             }
 
-            _availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
+            _availableJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
             _assignedJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
 
             _lock = new SemaphoreSlim(1, 1);
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 if (_assignedJobs.TryGetValue(workerId, out var job)) {
                     return job;
                 }
-                if (!_availableJobs.IsEmpty && _availableJobs.TryDequeue(out job)) {
+                if (!_availableJobs.IsEmpty && _availableJobs.TryRemove(_availableJobs.First().Key, out job)) {
                     _assignedJobs.AddOrUpdate(workerId, job);
                 }
 
@@ -121,7 +121,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (heartbeat == null || heartbeat.Worker == null) {
                 throw new ArgumentNullException(nameof(heartbeat));
             }
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 ct.ThrowIfCancellationRequested();
                 HeartbeatResultModel heartbeatResultModel;
@@ -263,7 +263,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                             _lastKnownFileHash = currentFileHash;
                             if (!string.IsNullOrEmpty(content)) {
-                                var availableJobs = new ConcurrentQueue<JobProcessingInstructionModel>();
+                                var availableJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
                                 var assignedJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
                                 IEnumerable<PublishedNodesEntryModel> entries = null;
 
@@ -271,11 +271,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     if (!File.Exists(_legacyCliModel.PublishedNodesSchemaFile)) {
                                         _logger.Information("Validation schema file {PublishedNodesSchemaFile} does not exist or is disabled, ignoring validation of {publishedNodesFile} file...",
                                         _legacyCliModel.PublishedNodesSchemaFile, _legacyCliModel.PublishedNodesFile);
-                                        entries = _publishedNodesJobConverter.Read(content, null, _legacyCliModel);
+                                        entries = _publishedNodesJobConverter.Read(content, null);
                                     }
                                     else {
                                         using (var fileSchemaReader = new StreamReader(_legacyCliModel.PublishedNodesSchemaFile)) {
-                                            entries = _publishedNodesJobConverter.Read(content, fileSchemaReader, _legacyCliModel);
+                                            entries = _publishedNodesJobConverter.Read(content, fileSchemaReader);
                                         }
                                     }
                                 }
@@ -292,17 +292,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 if (jobs.Any()) {
                                     foreach (var job in jobs) {
                                         var newJob = ToJobProcessingInstructionModel(job);
+                                        if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                                            continue;
+                                        }
                                         var found = false;
                                         foreach (var assignedJob in _assignedJobs) {
-                                            if (newJob?.Job?.Id != null && assignedJob.Value?.Job?.Id != null &&
-                                                newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                            if (newJob.Job.Id == assignedJob.Value.Job.Id) {
                                                 assignedJobs[assignedJob.Key] = newJob;
                                                 found = true;
                                                 break;
                                             }
                                         }
                                         if (!found) {
-                                            availableJobs.Enqueue(newJob);
+                                            availableJobs.TryAdd(newJob.Job.Id, newJob);
                                         }
                                     }
                                 }
@@ -317,10 +319,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 _assignedJobs.Clear();
                             }
 
-                            if (_agentConfig.Config.MaxWorkers < _availableJobs.Count + _assignedJobs.Count) {
-                                _agentConfig.Config.MaxWorkers = _availableJobs.Count + _availableJobs.Count;
-                            }
-                            _agentConfig.TriggerConfigUpdate(this, new EventArgs());
+                            TriggerAgentConfigUpdate();
                         }
                         else {
                             //avoid double events from FileSystemWatcher
@@ -360,6 +359,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         private JobProcessingInstructionModel ToJobProcessingInstructionModel (WriterGroupJobModel job){
+            if (job == null) {
+                return null;
+            }
+
             var jobId = job.GetJobId();
 
             job.WriterGroup.DataSetWriters.ForEach(d => {
@@ -386,10 +389,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 };
         }
 
+        /// <summary>
+        /// Notify the worker supervisor about a configuration change
+        /// </summary>
+        private void TriggerAgentConfigUpdate() {
+            if (_agentConfig.Config.MaxWorkers < _availableJobs.Count + _assignedJobs.Count) {
+                _agentConfig.Config.MaxWorkers = _availableJobs.Count + _assignedJobs.Count;
+            }
+            _agentConfig.TriggerConfigUpdate(this, new EventArgs());
+        }
+
         /// <inheritdoc/>
-        public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request) {
-            // TODO handle available jobs
-            await _lock.WaitAsync().ConfigureAwait(false);
+        public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 _logger.Information("PublishNodes method triggered");
                 var existingGroup = new List<PublishedNodesEntryModel>();
@@ -408,26 +420,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     _publishedNodesEntrys.Add(request);
                 }
 
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroup, _legacyCliModel);
                 var found = false;
-                foreach (var job in jobs) {
-                    var newJob = ToJobProcessingInstructionModel(job);
-                    if (newJob == null) {
-                        break;
-                    }
-                    foreach (var assignedJob in _assignedJobs) {
-                        if (newJob.Job.Id == assignedJob.Value.Job.Id) {
-                            _assignedJobs[assignedJob.Key] = newJob;
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroup, _legacyCliModel);
+                if (jobs.Any()) {
+                    foreach (var job in jobs) {
+                        var newJob = ToJobProcessingInstructionModel(job);
+                        if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                            continue;
+                        }
+                        foreach (var assignedJob in _assignedJobs) {
+                            if (newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                _assignedJobs[assignedJob.Key] = newJob;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _availableJobs.AddOrUpdate(newJob.Job.Id, newJob);
                             found = true;
-                            break;
                         }
                     }
-                    if (!found) {
-                        _availableJobs.Enqueue(newJob);
-                    }
                 }
+                if (!found) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Endpoint not found.");
+                }
+
                 // fire config update so that the worker supervisor pickes up the changes ASAP
-                _agentConfig.TriggerConfigUpdate(this, new EventArgs());
+                TriggerAgentConfigUpdate();
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -443,12 +462,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request) {
-            // TODO handle available jobs
-            await _lock.WaitAsync().ConfigureAwait(false);
+        public async Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 _logger.Information("UnpublishNodes method triggered");
-
+                var nodeFound = false;
                 var existingGroup = new List<PublishedNodesEntryModel>();
                 foreach (var entry in _publishedNodesEntrys.ToList()) {
                     if (entry.HasSameGroup(request)) {
@@ -458,6 +476,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 foreach (var entryNode in entry.OpcNodes) {
                                     if (requestNode.IsSame(entryNode)) {
                                         entry.OpcNodes.Remove(entryNode);
+                                        nodeFound = true;
                                         break;
                                     }
                                 }
@@ -467,49 +486,66 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                 }
 
+                if (!existingGroup.Any()) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Endpoint not found.");
+                }
+
+                if (!nodeFound) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Node not found in endpoint.");
+                }
+
                 foreach (var entry in existingGroup) {
                     if (!entry.OpcNodes.Any()) {
                         _publishedNodesEntrys.Remove(entry);
                     }
                 }
 
-                if (existingGroup.Any()) {
-                    var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroup, _legacyCliModel);
-                    var found = false;
+                var found = false;
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroup, _legacyCliModel);
+                if (jobs.Any()) {
                     foreach (var job in jobs) {
                         var newJob = ToJobProcessingInstructionModel(job);
-                        if (newJob == null) {
-                            // compute a jobId for the empty job from the request's entry model
-                            var entryJobId = _publishedNodesJobConverter.
-                                ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
-                            foreach (var assignedJob in _assignedJobs) {
-                                if (entryJobId == assignedJob.Value.Job.Id) {
-                                    _assignedJobs.Remove(assignedJob.Key, out _);
-                                    break;
-                                }
-                            }
+                        if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                            continue;
                         }
-                        else {
-                            foreach (var assignedJob in _assignedJobs) {
-                                if (newJob.Job.Id == assignedJob.Value.Job.Id) {
-                                    _assignedJobs[assignedJob.Key] = newJob;
-                                    found = true;
-                                    break;
-                                }
+                        foreach (var assignedJob in _assignedJobs) {
+                            if (newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                _assignedJobs[assignedJob.Key] = newJob;
+                                found = true;
+                                break;
                             }
                         }
                         if (!found) {
-                            throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Endpoint not found");
+                            if (_availableJobs.ContainsKey(newJob.Job.Id)) {
+                                _availableJobs[newJob.Job.Id] = newJob;
+                                found = true;
+                            }
                         }
                     }
                 }
-                else {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Endpoint not found");
+
+                if (!found) {
+                    var entryJobId = _publishedNodesJobConverter.
+                        ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
+                    foreach (var assignedJob in _assignedJobs) {
+                        if (entryJobId == assignedJob.Value.Job.Id) {
+                            found = _assignedJobs.TryRemove(assignedJob.Key, out _);
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        found = _availableJobs.TryRemove(entryJobId, out _);
+                    }
                 }
+
+                if (!found) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Endpoint not found.");
+                }
+
                 // fire config update so that the worker supervisor pickes up the changes ASAP
-                _agentConfig.TriggerConfigUpdate(this, new EventArgs());
+                TriggerAgentConfigUpdate();
             }
-            catch (MethodCallStatusException){
+            catch (MethodCallStatusException) {
                 throw;
             }
             catch (Exception e) {
@@ -523,8 +559,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task UnpublishAllNodesAsync() {
-            await _lock.WaitAsync().ConfigureAwait(false);
+        public async Task UnpublishAllNodesAsync(CancellationToken ct) {
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 _logger.Information("UnpublishAllNodes method triggered");
                 throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
@@ -535,8 +571,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task GetConfiguredEndpointsAsync() {
-            await _lock.WaitAsync().ConfigureAwait(false);
+        public async Task GetConfiguredEndpointsAsync(CancellationToken ct = default) {
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 _logger.Information("GetConfiguredEndpointsAsync method triggered");
                 throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
@@ -547,8 +583,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task GetConfiguredNodesOnEndpointAsync() {
-            await _lock.WaitAsync().ConfigureAwait(false);
+        public async Task GetConfiguredNodesOnEndpointAsync(CancellationToken ct = default) {
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 _logger.Information("GetConfiguredNodesOnEndpointAsync method triggered");
                 throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
@@ -568,7 +604,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly SemaphoreSlim _lock;
         private readonly List<PublishedNodesEntryModel> _publishedNodesEntrys;
         private ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
-        private ConcurrentQueue<JobProcessingInstructionModel> _availableJobs;
+        private ConcurrentDictionary<string, JobProcessingInstructionModel> _availableJobs;
         private string _lastKnownFileHash;
         private DateTime _lastRead = DateTime.MinValue;
     }

@@ -47,11 +47,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// </summary>
         /// <param name="publishedNodesContent"></param>
         /// <param name="publishedNodesSchemaFile"></param>
-        /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
         public IEnumerable<PublishedNodesEntryModel> Read(string publishedNodesContent,
-            TextReader publishedNodesSchemaFile,
-            LegacyCliModel legacyCliModel) {
+            TextReader publishedNodesSchemaFile) {
             var sw = Stopwatch.StartNew();
             _logger.Debug("Reading and validating published nodes file...");
             try {
@@ -140,7 +138,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         }
                     ).ToList()
                 ).ToList();
-                var result = flattenedGroups.Select(dataSetSourceBatches => new WriterGroupJobModel {
+                
+                if (!flattenedGroups.Any()) {
+                    _logger.Information("No OpcNodes after job conversion.");
+                    return Enumerable.Empty<WriterGroupJobModel>();
+                }
+
+                var result = flattenedGroups.Select(dataSetSourceBatches => dataSetSourceBatches.Any() ? new WriterGroupJobModel {
                     MessagingMode = legacyCliModel.MessagingMode,
                     Engine = _config == null ? null : new EngineConfigurationModel {
                         BatchSize = _config.BatchSize,
@@ -201,12 +205,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     NetworkMessageContentMask.DataSetMessageHeader
                         }
                     }
-                });
+                } : null);
 
                 var counter = 0;
-                if (result.Any())
+                if (result.Any()) {
                     foreach (var job in result) {
-                        if (job.WriterGroup != null) {
+                        if (job?.WriterGroup != null) {
                             _logger.Debug("groupId: {group}", job.WriterGroup.WriterGroupId);
                             foreach (var dataSetWriter in job.WriterGroup.DataSetWriters) {
                                 int count = dataSetWriter.DataSet?.DataSetSource?.PublishedVariables?.PublishedData?.Count ?? 0;
@@ -215,6 +219,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                             }
                         }
                     }
+                }
                 _logger.Information("Total count of OpcNodes after job conversion: {count}", counter);
 
                 return result;

@@ -11,7 +11,7 @@
     "OpcNodes": [
       {
         "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
-        "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp"        
+        "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp"
       }
     ]
   },
@@ -27,7 +27,7 @@
     "OpcNodes": [
       {
         "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
-        "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"        
+        "DataSetFieldId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"
       }
     ]
   }

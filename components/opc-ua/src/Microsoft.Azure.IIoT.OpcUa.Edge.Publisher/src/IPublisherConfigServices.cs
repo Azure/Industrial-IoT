@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
-
 
     /// <summary>
     /// Enables remote configuration of the publisher
@@ -17,29 +17,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Add nodes to be published to the configuration
         /// </summary>
-        Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request);
+        Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Remove node from the actual configuration
         /// </summary>
-        Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request);
+        Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct= default);
 
         /// <summary>
         /// resets the configuration
         /// </summary>
         /// <returns></returns>
-        Task UnpublishAllNodesAsync();
+        Task UnpublishAllNodesAsync(CancellationToken ct);
 
         /// <summary>
         /// returns the endpoints currently part of the configuration
         /// </summary>
         /// <returns></returns>
-        Task GetConfiguredEndpointsAsync();
+        Task GetConfiguredEndpointsAsync(CancellationToken ct);
 
         /// <summary>
         /// Get the configuration nodes for an endpoint
         /// </summary>
         /// <returns></returns>
-        Task GetConfiguredNodesOnEndpointAsync();
+        Task GetConfiguredNodesOnEndpointAsync(CancellationToken ct);
     }
 }
