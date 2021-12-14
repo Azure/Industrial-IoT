@@ -106,6 +106,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                         CapAdd = new[] { "NET_ADMIN" },
                         Binds = new[] {
                             "/mount:/mount"
+                        },
+                        CapDrop = new[] {
+                            "CHOWN",
+                            "SETUID"
                         }
                     }
                 });

@@ -94,6 +94,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     HostConfig = new {
                         Binds = new[] {
                             "/mount:/mount"
+                        },
+                        CapDrop = new[] {
+                            "CHOWN",
+                            "SETUID"
                         }
                     }
                 });
