@@ -71,7 +71,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Heartbeat interval as TimeSpan.
         /// </summary>
-        [DataMember(Name = "heartbeatIntervalTimespan", Order = 8,
+        [DataMember(Name = "heartbeatInterval", Order = 8,
             EmitDefaultValue = false)]
         public int? HeartbeatInterval {
             get => HeartbeatIntervalTimespan.HasValue ?
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         }
 
         /// <summary> Heartbeat </summary>
-        [DataMember(Name = "heartbeatInterval", Order = 9,
+        [DataMember(Name = "heartbeatIntervalTimespan", Order = 9,
             EmitDefaultValue = false)]
         public TimeSpan? HeartbeatIntervalTimespan { get; set; }
 

@@ -24,7 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -87,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="ct"></param>
         /// <returns></returns>
         public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
-            await _lock.WaitAsync(ct);
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 ct.ThrowIfCancellationRequested();
                 if (_assignedJobs.TryGetValue(workerId, out var job)) {
@@ -122,7 +121,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (heartbeat == null || heartbeat.Worker == null) {
                 throw new ArgumentNullException(nameof(heartbeat));
             }
-            await _lock.WaitAsync();
+            await _lock.WaitAsync().ConfigureAwait(false);
             try {
                 ct.ThrowIfCancellationRequested();
                 HeartbeatResultModel heartbeatResultModel;
