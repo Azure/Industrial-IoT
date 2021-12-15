@@ -21,9 +21,9 @@
     "DataSetPublishingInterval": 10000,
     "EndpointUrl": "opc.tcp://opcplc:50000",
     "UseSecurity": false,
-    "OpcAuthenticationMode": "Anonymous",
-    "OpcAuthenticationUsername": "",
-    "OpcAuthenticationPassword": "",
+    "OpcAuthenticationMode": "UsernamePassword",
+    "OpcAuthenticationUsername": "usr",
+    "OpcAuthenticationPassword": "pwd",
     "OpcNodes": [
       {
         "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1",
