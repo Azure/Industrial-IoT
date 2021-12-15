@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     .SelectMany(
                         n => n
                         .Distinct(opcNodeModelComparer)
-                        .Batch(1000)
+                        .Batch(legacyCliModel.DefaultMaxNodesPerDataSet.GetValueOrDefault(1000))
                     ).ToList()
                     .Select(
                         opcNodes => new PublishedDataSetSourceModel {
