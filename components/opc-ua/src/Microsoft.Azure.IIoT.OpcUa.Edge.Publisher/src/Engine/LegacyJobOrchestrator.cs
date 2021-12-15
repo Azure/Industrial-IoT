@@ -401,7 +401,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger.Information("{nameof} method triggered", nameof(PublishNodesAsync));
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
-               
+                // ToDo: Implement here merging of request and .
+                // When writin to published_node.json watcher should be disabled as next parts will take care of in-memory updates.
+
+                if (request.NodeId != null) {
+                    // Let's throw an arument exception telling people to use OpcNodes instead.
+                }
+
+                // Note: do not include EncryptedAuthUsername and EncryptedAuthPassword in the comparison of PublishedNodesEntryModel objects.
+
+                // Use new FuncCompare<ConnectionModel>((x, y) => x.IsSameAs(y)) for comparison.
+
+                // Tentatively, this part will be updating in-memory job definitions.
                 var existingGroup = new List<PublishedNodesEntryModel>();
                 foreach (var entry in _publishedNodesEntrys) {
                     if (entry.HasSameGroup(request)) {
