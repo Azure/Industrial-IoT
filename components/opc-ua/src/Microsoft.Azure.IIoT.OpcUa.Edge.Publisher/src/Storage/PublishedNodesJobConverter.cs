@@ -239,7 +239,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// </summary>
         public ConnectionModel ToConnectionModel(PublishedNodesEntryModel model,
             LegacyCliModel legacyCliModel) {
-            
+
             return new ConnectionModel {
                 OperationTimeout = legacyCliModel.OperationTimeout,
                 Group = model.DataSetWriterGroup,

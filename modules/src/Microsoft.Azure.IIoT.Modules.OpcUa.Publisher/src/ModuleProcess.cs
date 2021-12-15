@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Http.HealthChecks;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
 
     /// <summary>
     /// Publisher module
@@ -215,6 +215,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // we want to reuse the Client from the ModuleHost in sub-scopes.
                 builder.RegisterType<ModuleHost>()
                     .AsImplementedInterfaces().SingleInstance();
+                // Published nodes file provider
+                builder.RegisterType<PublishedNodesProvider>()
+                    .SingleInstance();
                 // Local orchestrator
                 builder.RegisterType<LegacyJobOrchestrator>()
                     .AsImplementedInterfaces().SingleInstance();
