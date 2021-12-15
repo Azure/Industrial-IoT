@@ -71,23 +71,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Heartbeat interval as TimeSpan.
         /// </summary>
-        [DataMember(Name = "heartbeatIntervalTimespan", Order = 8,
+        [DataMember(Name = "heartbeatInterval", Order = 8,
             EmitDefaultValue = false)]
-        public TimeSpan? HeartbeatIntervalTimespan {
-            get => HeartbeatInterval.HasValue ?
-                TimeSpan.FromMilliseconds(HeartbeatInterval.Value) : (TimeSpan?)null;
-            set => HeartbeatInterval = value != null ?
-                (int)value.Value.TotalSeconds : (int?)null;
+        public int? HeartbeatInterval {
+            get => HeartbeatIntervalTimespan.HasValue ?
+                (int)HeartbeatIntervalTimespan.Value.TotalSeconds : default(int?);
+            set => HeartbeatIntervalTimespan = value.HasValue ?
+                TimeSpan.FromSeconds(value.Value) : default(TimeSpan?);
         }
 
         /// <summary> Heartbeat </summary>
-        [DataMember(Name = "heartbeatInterval", Order = 9,
+        [DataMember(Name = "heartbeatIntervalTimespan", Order = 9,
             EmitDefaultValue = false)]
-        public int? HeartbeatInterval { get; set; }
+        public TimeSpan? HeartbeatIntervalTimespan { get; set; }
 
         /// <summary> Skip first value </summary>
         [DataMember(Name = "skipFirst", Order = 10,
             EmitDefaultValue = false)]
         public bool? SkipFirst { get; set; }
+
+        /// <summary> Queue size for monitored items </summary>
+        [DataMember(Name = "queueSize", Order = 11,
+            EmitDefaultValue = false)]
+        public uint? QueueSize { get; set; }
     }
 }

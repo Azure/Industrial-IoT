@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Serializers;
@@ -217,6 +216,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // Create jobs from published nodes file
                 builder.RegisterType<PublishedNodesJobConverter>()
                     .SingleInstance();
+                builder.RegisterType<PublisherMethodsController>()
+                    .AsImplementedInterfaces().InstancePerLifetimeScope();
             }
             else {
                 builder.AddDiagnostics(config);
@@ -240,12 +241,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
-
-            // Register device methods config services
-            builder.RegisterType<PublisherConfigServices>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<PublisherMethodsController>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Opc specific parts
             builder.RegisterType<DefaultSessionManager>()
