@@ -509,7 +509,7 @@ You can also install `azure-industrial-iot` Helm charts from one of Helm reposit
 For that you would first add Helm repository and then install the chart from there as shown bellow.
 
 ```bash
-helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
+helm repo add azure-iiot https://azure.github.io/Industrial-IoT/helm
 helm repo update
 helm install aiiot azure-iiot/azure-industrial-iot --namespace aiiot --version 0.3.2 -f aiiot.yaml
 ```
