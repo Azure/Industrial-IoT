@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
+    using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
@@ -31,10 +32,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for PublishNodes direct method
         /// </summary>
-        public async Task<PublishedNodesResponseApiModel> PublishNodesAsync(
+        public async Task<MethodResponse> PublishNodesAsync(
             PublishNodesRequestApiModel request) {
             var response = await _configServices.PublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return response.ToApiModel();
+            return response;
         }
 
         /// <summary>

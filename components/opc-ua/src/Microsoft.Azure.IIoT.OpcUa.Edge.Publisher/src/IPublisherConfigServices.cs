@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
+    using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using System.Collections.Generic;
     using System.Threading;
@@ -17,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Add nodes to be published to the configuration
         /// </summary>
-        Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
+        Task<MethodResponse> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Remove node from the actual configuration

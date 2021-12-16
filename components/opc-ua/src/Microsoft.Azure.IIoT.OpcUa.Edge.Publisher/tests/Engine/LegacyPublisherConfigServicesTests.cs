@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using System.Collections.Generic;
     using System.Linq;
     using System.IO;
+    using System.Net;
     using System.Threading.Tasks;
     using Agent.Framework;
     using Agent.Framework.Models;
@@ -52,9 +53,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             foreach (var request in publishNodesRequest) {
                 var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.First()
+                publishNodesResult.Status
                     .Should()
-                    .Be("Succeeded");
+                    .Be((int)HttpStatusCode.OK);
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -100,9 +101,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             foreach (var request in publishNodesRequest) {
                 var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.First()
+                publishNodesResult.Status
                     .Should()
-                    .Be("Succeeded");
+                    .Be((int)HttpStatusCode.OK);
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -149,9 +150,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             foreach (var request in publishNodesRequest) {
                 var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.First()
+                publishNodesResult.Status
                     .Should()
-                    .Be("Succeeded");
+                    .Be((int)HttpStatusCode.OK);
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
