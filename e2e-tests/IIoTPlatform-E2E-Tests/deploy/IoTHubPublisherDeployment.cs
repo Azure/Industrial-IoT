@@ -63,6 +63,10 @@ namespace IIoTPlatform_E2E_Tests.Deploy {
                 HostConfig = new {
                     Binds = new[] {
                     TestConstants.PublishedNodesFolder + "/:" + TestConstants.PublishedNodesFolder
+                    },
+                    CapDrop = new[] {
+                        "CHOWN",
+                        "SETUID"
                     }
                 }
             }).Replace("\"", "\\\"");
