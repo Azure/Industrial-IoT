@@ -5,6 +5,7 @@
 
 namespace IIoTPlatform_E2E_Tests.Standalone {
     using IIoTPlatform_E2E_Tests.Deploy;
+    using Microsoft.Azure.Devices;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -25,9 +26,10 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         private readonly ITestOutputHelper _output;
         private readonly IIoTMultipleNodesTestContext _context;
+        private readonly ServiceClient _iotHubClient;
         private string _iotHubConnectionString;
         private string _iotHubPublisherDeviceName;
-        private string _iotHubPublisherModuleName;
+        private string _iotHubPublisherModuleName; 
 
         public A_PublishSingleNodeStandaloneDirectMethodTestTheory(
             ITestOutputHelper output,
@@ -38,6 +40,12 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _context.OutputHelper = _output;
             _iotHubConnectionString = _context.IoTHubConfig.IoTHubConnectionString;
             _iotHubPublisherDeviceName = _context.DeviceConfig.DeviceId;
+
+            // Initialize DeviceServiceClient from IoT Hub connection string.
+            _iotHubClient = TestHelper.DeviceServiceClient(
+                _iotHubConnectionString,
+                TransportType.Amqp_WebSocket_Only
+            );
         }
 
         // the test case for now are just empty container that deploy publisher resource

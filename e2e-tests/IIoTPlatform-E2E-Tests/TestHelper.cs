@@ -24,6 +24,7 @@ namespace IIoTPlatform_E2E_Tests {
     using Xunit;
     using Xunit.Abstractions;
     using System.Text.RegularExpressions;
+    using Microsoft.Azure.Devices;
 
     internal static partial class TestHelper {
 
@@ -651,6 +652,28 @@ namespace IIoTPlatform_E2E_Tests {
             return nodesToPublish;
         }
 
+
+        /// <summary>
+        /// Initialize DeviceServiceClient from IoT Hub connection string.
+        /// </summary>
+        /// <param name="iotHubConnectionString"></param>
+        /// <param name="transportType"></param>
+        public static ServiceClient DeviceServiceClient(
+            string iotHubConnectionString,
+            TransportType transportType = TransportType.Amqp_WebSocket_Only
+        ) {
+            ServiceClient iotHubClient;
+
+            if (string.IsNullOrWhiteSpace(iotHubConnectionString)) {
+                throw new ArgumentNullException(nameof(iotHubConnectionString));
+            }
+
+            return iotHubClient = ServiceClient.CreateFromConnectionString(
+                iotHubConnectionString,
+                transportType
+            );
+        }
+
         /// <summary>
         /// Gets endpoints from registry
         /// </summary>
@@ -676,13 +699,13 @@ namespace IIoTPlatform_E2E_Tests {
             return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
         }
 
-        /// <summary>
+        /// <summary>            if (outputHelper == null) return;
+
         /// Prints the exception message and stacktrace for exception (and all inner exceptions) in test output
         /// </summary>
         /// <param name="e">Exception to be printed</param>
         /// <param name="outputHelper">XUnit Test OutputHelper instance or null (no print in this case)</param>
         private static void PrettyPrintException(Exception e, ITestOutputHelper outputHelper) {
-            if (outputHelper == null) return;
 
             var exception = e;
             while (exception != null) {
