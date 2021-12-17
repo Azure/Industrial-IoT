@@ -348,7 +348,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
 
                 // Remove entries without nodes.
-                entries = entries.Where(entry => entry.OpcNodes.Count == 0).ToList();
+                entries = entries.Where(entry => entry.OpcNodes.Count != 0).ToList();
 
                 // Check if there were nodes that we were not able to find.
                 if (nodesToRemoveSet.Count != 0) {
@@ -543,6 +543,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
             }
+            catch (MethodCallStatusException) {
+                throw;
+            }
             catch (Exception e) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
@@ -571,7 +574,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // Report error if there were entries that we were not able to find.
                 if (entriesNotFound.Count != 0) {
                     var entriesNotFoundJson = JsonSerializer.Serialize(entriesNotFound);
-                    throw new MethodCallStatusException(entriesNotFoundJson, (int)HttpStatusCode.NotFound, "Nodes not found.");
+                    throw new MethodCallStatusException(entriesNotFoundJson, (int)HttpStatusCode.NotFound, "Nodes not found");
                 }
 
                 // Update published nodes file.
@@ -583,6 +586,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
+            }
+            catch (MethodCallStatusException) {
+                throw;
             }
             catch (Exception e) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);

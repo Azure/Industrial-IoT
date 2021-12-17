@@ -34,6 +34,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
+    using Microsoft.Azure.IIoT.Http.HealthChecks;
 
     /// <summary>
     /// Publisher module
