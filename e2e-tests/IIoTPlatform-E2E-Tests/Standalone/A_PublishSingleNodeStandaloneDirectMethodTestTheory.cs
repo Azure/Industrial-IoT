@@ -15,6 +15,14 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
     using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using Autofac;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Hub.Models;
+    //using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
+    using System.Net;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -27,6 +35,9 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
         private readonly ITestOutputHelper _output;
         private readonly IIoTMultipleNodesTestContext _context;
         private readonly ServiceClient _iotHubClient;
+        private readonly IIoTHubTwinServices _iotHubClient1;
+        private readonly IContainer _container;
+        private readonly IJsonSerializer _serializer;
         private string _iotHubConnectionString;
         private string _iotHubPublisherDeviceName;
         private string _iotHubPublisherModuleName; 
@@ -40,12 +51,15 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _context.OutputHelper = _output;
             _iotHubConnectionString = _context.IoTHubConfig.IoTHubConnectionString;
             _iotHubPublisherDeviceName = _context.DeviceConfig.DeviceId;
+            _serializer = new NewtonSoftJsonSerializer();
 
             // Initialize DeviceServiceClient from IoT Hub connection string.
             _iotHubClient = TestHelper.DeviceServiceClient(
                 _iotHubConnectionString,
                 TransportType.Amqp_WebSocket_Only
             );
+
+            _iotHubClient1 = _container.Resolve<IIoTHubTwinServices>();
         }
 
         // the test case for now are just empty container that deploy publisher resource
@@ -98,6 +112,23 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             //            ct: cts.Token
             //        ).ConfigureAwait(false);
 
+            //var request = new PublishNodesRequestApiModel {
+            //    EndpointUrl = model.EndpointUrl,
+            //    UseSecurity = false,
+            //    UserName = null,
+            //    Password = null,
+            //    OpcNodes = model.OpcNodes
+            //};
+
+            var request = model.ToApiModel();
+
+            var response = await _iotHubClient1.CallMethodAsync(_iotHubPublisherDeviceName, new MethodParameterModel {
+                Name = "PublishNodes_V1",
+                JsonPayload = _serializer.SerializeToString(request)
+            }, cts.Token);
+
+            Assert.Equal((int)HttpStatusCode.OK, response.Status);
+
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
             await TestHelper.StartMonitoringIncomingMessagesAsync(_context, 0, 0, 0, cts.Token);
@@ -120,6 +151,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             //            model.OpcNodes,
             //            ct: cts.Token
             //        ).ConfigureAwait(false);
+
+            response = await _iotHubClient1.CallMethodAsync(_iotHubPublisherDeviceName, new MethodParameterModel {
+                Name = "UnPublishNodes_V1",
+                JsonPayload = _serializer.SerializeToString(request)
+            }, cts.Token);
+
+            Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);

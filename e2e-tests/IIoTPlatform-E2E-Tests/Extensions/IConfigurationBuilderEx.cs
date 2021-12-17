@@ -18,26 +18,26 @@ namespace IIoTPlatform_E2E_Tests.Extensions {
     /// </summary>
     public static class IConfigurationBuilderEx {
 
-        /// <summary>
-        /// Add environment variables from a specific environment variable target.
-        /// </summary>
-        /// <param name="configurationBuilder"></param>
-        /// <param name="environmentVariableTarget"></param>
-        /// <returns></returns>
-        public static IConfigurationBuilder AddEnvironmentVariables(
-            this IConfigurationBuilder configurationBuilder,
-            EnvironmentVariableTarget environmentVariableTarget
-        ) {
-            var envVarDict = Environment.GetEnvironmentVariables(environmentVariableTarget);
+        ///// <summary>
+        ///// Add environment variables from a specific environment variable target.
+        ///// </summary>
+        ///// <param name="configurationBuilder"></param>
+        ///// <param name="environmentVariableTarget"></param>
+        ///// <returns></returns>
+        //public static IConfigurationBuilder AddEnvironmentVariables(
+        //    this IConfigurationBuilder configurationBuilder,
+        //    EnvironmentVariableTarget environmentVariableTarget
+        //) {
+        //    var envVarDict = Environment.GetEnvironmentVariables(environmentVariableTarget);
 
-            var envVarList = new List<KeyValuePair<string, string>>();
-            foreach (var key in envVarDict.Keys) {
-                envVarList.Add(new KeyValuePair<string, string>((string)key, (string)envVarDict[key]));
-            }
+        //    var envVarList = new List<KeyValuePair<string, string>>();
+        //    foreach (var key in envVarDict.Keys) {
+        //        envVarList.Add(new KeyValuePair<string, string>((string)key, (string)envVarDict[key]));
+        //    }
 
-            configurationBuilder.AddInMemoryCollection(envVarList);
-            return configurationBuilder;
-        }
+        //    configurationBuilder.AddInMemoryCollection(envVarList);
+        //    return configurationBuilder;
+        //}
 
         /// <summary>
         /// Add environment variables of all profiles from launchSettings.json.
