@@ -107,9 +107,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (uint u) => this[LegacyCliConfigKeys.OpcKeepAliveDisconnectThreshold] = u.ToString() },
                     { "fd|fetchdisplayname=", "Fetches the displayname for the monitored items subscribed.",
                         (bool b) => this[LegacyCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
-                    { "sw|sessionconnectwait=", "Wait time in seconds publisher is trying to connect " +
-                        "to disconnected endpoints and starts monitoring unmonitored items.",
-                        (int s) => this[LegacyCliConfigKeys.SessionConnectWaitSec] = TimeSpan.FromSeconds(s).ToString() },
                     { "mq|monitoreditemqueuecapacity=", "Default queue size for monitored items.",
                         (uint u) => this[LegacyCliConfigKeys.DefaultQueueSize] = u.ToString() },
 
@@ -275,7 +272,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 Site = GetValueOrDefault(LegacyCliConfigKeys.PublisherSite, string.Empty),
                 PublishedNodesFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename),
                 PublishedNodesSchemaFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationSchemaFilename, LegacyCliConfigKeys.DefaultPublishedNodesSchemaFilename),
-                SessionConnectWait = GetValueOrDefault(LegacyCliConfigKeys.SessionConnectWaitSec, TimeSpan.FromSeconds(15)),
                 DefaultHeartbeatInterval = GetValueOrDefault(LegacyCliConfigKeys.HeartbeatIntervalDefault, TimeSpan.Zero),
                 DefaultSkipFirst = GetValueOrDefault(LegacyCliConfigKeys.SkipFirstDefault, false),
                 DefaultSamplingInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcSamplingInterval, TimeSpan.FromSeconds(1)),
