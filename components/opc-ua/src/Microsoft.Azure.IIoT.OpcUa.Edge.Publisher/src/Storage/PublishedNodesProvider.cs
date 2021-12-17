@@ -83,10 +83,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
         /// <summary>
         /// Write new content to published nodes file
         /// </summary>
-        /// <param name="content"></param>
-        public void WriteContent(string content) {
+        /// <param name="content"> Content to be written. </param>
+        /// <param name="disableRaisingEvents"> If set FileSystemWatcher notifications will be disabled while updating the file.</param>
+        public void WriteContent(string content, bool disableRaisingEvents = false) {
             _lock.Wait();
             try {
+                // Store current state.
+                var eventState = FileSystemWatcher.EnableRaisingEvents;
+
+                if (disableRaisingEvents) {
+                    FileSystemWatcher.EnableRaisingEvents = false;
+                }
+
                 using (var fileStream = new FileStream(
                     _legacyCliModel.PublishedNodesFile,
                     FileMode.Open,
@@ -94,6 +102,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
                     FileShare.None
                  )) {
                     fileStream.Write(Encoding.UTF8.GetBytes(content));
+                }
+
+                // Retore state.
+                if (disableRaisingEvents) {
+                    FileSystemWatcher.EnableRaisingEvents = eventState;
                 }
             }
             finally {
