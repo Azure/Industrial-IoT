@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
     using System.Threading.Tasks;
     using System.Timers;
     using Timer = System.Timers.Timer;
+    using Microsoft.Azure.IIoT.Http.HealthChecks;
 
     /// <summary>
     /// Default worker supervisor = agent.
@@ -28,9 +29,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <param name="lifetimeScope"></param>
         /// <param name="agentConfigProvider"></param>
         /// <param name="logger"></param>
+        /// <param name="healthCheckManager">The health check manager to report to</param>
         /// <param name="timerDelayInSeconds">The time the supervisor is waiting before ensure worker</param>
         public WorkerSupervisor(ILifetimeScope lifetimeScope,
-            IAgentConfigProvider agentConfigProvider, ILogger logger, int timerDelayInSeconds = 10) {
+            IAgentConfigProvider agentConfigProvider, ILogger logger,
+            IHealthCheckManager healthCheckManager, int timerDelayInSeconds = 10) {
 
             if (timerDelayInSeconds <= 0) {
                 timerDelayInSeconds = 10;
@@ -39,6 +42,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             _lifetimeScope = lifetimeScope;
             _agentConfigProvider = agentConfigProvider;
             _logger = logger;
+            _healthCheckManager = healthCheckManager;
             _ensureWorkerRunningTimer = new Timer(TimeSpan.FromSeconds(timerDelayInSeconds).TotalMilliseconds);
             _ensureWorkerRunningTimer.Elapsed += EnsureWorkerRunningTimer_ElapsedAsync;
         }
@@ -126,6 +130,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             try {
                 _ensureWorkerRunningTimer.Enabled = false;
                 await EnsureWorkersAsync();
+                _healthCheckManager.IsReady = _instances.Count >= (_agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers);
             }
             finally {
                 _ensureWorkerRunningTimer.Enabled = true;
@@ -182,5 +187,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         private readonly ConcurrentDictionary<IWorker, ILifetimeScope> _instances = new ConcurrentDictionary<IWorker, ILifetimeScope>();
         private readonly ILifetimeScope _lifetimeScope;
         private readonly ILogger _logger;
+        private readonly IHealthCheckManager _healthCheckManager;
     }
 }

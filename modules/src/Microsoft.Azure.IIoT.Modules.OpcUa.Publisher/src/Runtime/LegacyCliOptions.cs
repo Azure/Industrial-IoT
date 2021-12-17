@@ -38,8 +38,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             Config = ToAgentConfigModel();
         }
 
-        // TODO: Figure out which are actually supported in the new publisher implementation
-
         /// <summary>
         /// Parse arguments and set values in the environment the way the new configuration expects it.
         /// </summary>
@@ -149,16 +147,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (int i) => this[LegacyCliConfigKeys.IoTHubMaxMessageSize] = i.ToString() },
                     { "om|maxoutgressmessages=", "The maximum size of the (IoT D2C) message outgress buffer",
                         (int i) => this[LegacyCliConfigKeys.MaxOutgressMessages] = i.ToString() },
-
-                    // testing purposes
-                    { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
-                        (int i) => this[LegacyCliConfigKeys.ScaleTestCount] = i.ToString() },
                     { "mm|messagingmode=", "The messaging mode for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
                         (MessagingMode m) => this[LegacyCliConfigKeys.MessagingMode] = m.ToString() },
                     { "me|messageencoding=", "The message encoding for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessageEncoding)))}).",
                         (MessageEncoding m) => this[LegacyCliConfigKeys.MessageEncoding] = m.ToString() },
+
+                    // testing purposes
+                    { "sc|scaletestcount=", "The number of monitored item clones in scale tests.",
+                        (int i) => this[LegacyCliConfigKeys.ScaleTestCount] = i.ToString() },
 
                     // Legacy unsupported
                     { "tc|telemetryconfigfile=", "Legacy - do not use.", _ => {} },
@@ -241,6 +239,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public int? MaxOutgressMessages => LegacyCliModel.MaxOutgressMessages;
 
         /// <summary>
+        /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured
+        /// for a dataSetWriter, they will be added in a different DataSet/Subscription.
+        /// </summary>
+        public int? MaxNodesPerDataSet => LegacyCliModel.DefaultMaxNodesPerDataSet;
+
+        /// <summary>
         /// The model of the CLI arguments.
         /// </summary>
         public LegacyCliModel LegacyCliModel {
@@ -291,6 +295,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.IoTHubMaxMessageSize, model.MaxMessageSize);
             model.ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, model.ScaleTestCount);
             model.MaxOutgressMessages = GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, model.MaxOutgressMessages);
+            model.DefaultMaxNodesPerDataSet = GetValueOrDefault(LegacyCliConfigKeys.DefaultMaxNodesPerDataSet, model.DefaultMaxNodesPerDataSet);
             return model;
         }
 

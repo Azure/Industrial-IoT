@@ -114,5 +114,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// Define the maximum amount of the IoT D2C messages
         /// </summary>
         public int? MaxOutgressMessages { get; set; } = 4096;
+
+        /// <summary>
+        /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured
+        /// for a dataSetWriter, they will be added in a different DataSet/Subscription.
+        /// </summary>
+        public int? DefaultMaxNodesPerDataSet { get; set; } = 1000;
     }
 }
