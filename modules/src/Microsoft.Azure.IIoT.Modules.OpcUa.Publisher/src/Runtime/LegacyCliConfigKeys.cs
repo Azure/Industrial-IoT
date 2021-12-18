@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for the publisher site.
         /// </summary>
-        public const string PublisherSite = "Site";
+        public const string PublisherSite = "site";
 
         /// <summary>
         /// Key for the specified published nodes filename.

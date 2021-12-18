@@ -54,7 +54,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary> List of the OpcNodes to be monitored </summary>
         [DataMember(Name = "opcNodes", Order = 8,
             EmitDefaultValue = false)]
-        [Required]
         public List<PublishedNodeApiModel> OpcNodes { get; set; }
     }
 }

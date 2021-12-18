@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Diagnostics;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -398,26 +399,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
-            _logger.Information("{nameof} method triggered", nameof(PublishNodesAsync));
+            _logger.Information("{nameof} method triggered ... ", nameof(PublishNodesAsync));
+            var sw = Stopwatch.StartNew();
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
-               
+                var nodeFound = false;
                 var existingGroup = new List<PublishedNodesEntryModel>();
                 foreach (var entry in _publishedNodesEntrys) {
                     if (entry.HasSameGroup(request)) {
                         if (request.DataSetWriterId == entry.DataSetWriterId &&
                             request.DataSetPublishingInterval == entry.DataSetPublishingInterval) {
                             entry.OpcNodes.AddRange(request.OpcNodes);
+                            nodeFound = true;
                         }
                         existingGroup.Add(entry);
                     }
                 }
 
-                if (!existingGroup.Any()) {
+                if (!nodeFound) {
                     existingGroup.Add(request);
                     _publishedNodesEntrys.Add(request);
                 }
-
+                
                 var found = false;
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroup, _legacyCliModel);
                 if (jobs.Any()) {
@@ -453,6 +456,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(PublishNodesAsync), sw.Elapsed);
+                sw.Stop();
                 _lock.Release();
             }
 
@@ -461,7 +466,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
-            _logger.Information("{nameof} method triggered", nameof(UnpublishNodesAsync));
+            _logger.Information("{nameof} method triggered ...", nameof(UnpublishNodesAsync));
+            var sw = Stopwatch.StartNew();
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 var nodeFound = false;
@@ -472,7 +478,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             request.DataSetPublishingInterval == entry.DataSetPublishingInterval) {
                             foreach (var requestNode in request.OpcNodes) {
                                 foreach (var entryNode in entry.OpcNodes) {
-                                    if (requestNode.IsSame(entryNode)) {
+                                    if (requestNode.IsSame(entryNode, request.DataSetPublishingInterval)) {
                                         entry.OpcNodes.Remove(entryNode);
                                         nodeFound = true;
                                         break;
@@ -550,6 +556,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(PublishNodesAsync), sw.Elapsed);
+                sw.Stop();
                 _lock.Release();
             }
 
