@@ -336,7 +336,7 @@ namespace OpcPublisher
         public void Emit(LogEvent logEvent)
         {
             string message = FormatMessage(logEvent);
-            Diag.WriteLog(message);
+            Diag?.WriteLog(message);
             // enable below for testing
             //Console.ForegroundColor = ConsoleColor.Red;
             //Console.WriteLine(message);
@@ -348,7 +348,7 @@ namespace OpcPublisher
                 List<string> exceptionLog = FormatException(logEvent);
                 foreach (var log in exceptionLog)
                 {
-                    Diag.WriteLog(log);
+                    Diag?.WriteLog(log);
                 }
             }
         }
