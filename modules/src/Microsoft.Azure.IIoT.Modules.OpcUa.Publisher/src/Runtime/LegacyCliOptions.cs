@@ -103,9 +103,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (uint u) => this[LegacyCliConfigKeys.OpcKeepAliveDisconnectThreshold] = u.ToString() },
                     { "fd|fetchdisplayname=", "Fetches the displayname for the monitored items subscribed.",
                         (bool b) => this[LegacyCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
-                    { "sw|sessionconnectwait=", "Wait time in seconds publisher is trying to connect " +
-                        "to disconnected endpoints and starts monitoring unmonitored items.",
-                        (int s) => this[LegacyCliConfigKeys.SessionConnectWaitSec] = TimeSpan.FromSeconds(s).ToString() },
                     { "mq|monitoreditemqueuecapacity=", "Default queue size for monitored items.",
                         (uint u) => this[LegacyCliConfigKeys.DefaultQueueSize] = u.ToString() },
 
@@ -297,6 +294,44 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             model.MaxOutgressMessages = GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, model.MaxOutgressMessages);
             model.DefaultMaxNodesPerDataSet = GetValueOrDefault(LegacyCliConfigKeys.DefaultMaxNodesPerDataSet, model.DefaultMaxNodesPerDataSet);
             return model;
+            return new LegacyCliModel {
+                Site = GetValueOrDefault(LegacyCliConfigKeys.PublisherSite, string.Empty),
+                PublishedNodesFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename),
+                PublishedNodesSchemaFile = GetValueOrDefault(LegacyCliConfigKeys.PublishedNodesConfigurationSchemaFilename, LegacyCliConfigKeys.DefaultPublishedNodesSchemaFilename),
+                DefaultHeartbeatInterval = GetValueOrDefault(LegacyCliConfigKeys.HeartbeatIntervalDefault, TimeSpan.Zero),
+                DefaultSkipFirst = GetValueOrDefault(LegacyCliConfigKeys.SkipFirstDefault, false),
+                DefaultSamplingInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcSamplingInterval, TimeSpan.FromSeconds(1)),
+                DefaultPublishingInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcPublishingInterval, TimeSpan.FromSeconds(1)),
+                FetchOpcNodeDisplayName = GetValueOrDefault(LegacyCliConfigKeys.FetchOpcNodeDisplayName, false),
+                DefaultQueueSize = GetValueOrDefault<uint>(LegacyCliConfigKeys.DefaultQueueSize, 1),
+                DiagnosticsInterval = GetValueOrDefault(LegacyCliConfigKeys.DiagnosticsInterval, TimeSpan.FromSeconds(60)),
+                LogFileFlushTimeSpan = GetValueOrDefault(LegacyCliConfigKeys.LogFileFlushTimeSpanSec, TimeSpan.FromSeconds(30)),
+                LogFilename = GetValueOrDefault<string>(LegacyCliConfigKeys.LogFileName, null),
+                Transport = GetValueOrDefault(LegacyCliConfigKeys.HubTransport, TransportType.Amqp.ToString()),
+                MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, MessagingMode.Samples),
+                MessageEncoding = GetValueOrDefault(LegacyCliConfigKeys.MessageEncoding, MessageEncoding.Json),
+                FullFeaturedMessage = GetValueOrDefault(LegacyCliConfigKeys.FullFeaturedMessage, false),
+                EdgeHubConnectionString = GetValueOrDefault<string>(LegacyCliConfigKeys.EdgeHubConnectionString, null),
+                OperationTimeout = GetValueOrDefault(LegacyCliConfigKeys.OpcOperationTimeout, TimeSpan.FromSeconds(15)),
+                MaxStringLength = GetValueOrDefault(LegacyCliConfigKeys.OpcMaxStringLength, TransportQuotaConfigEx.DefaultMaxStringLength),
+                SessionCreationTimeout = GetValueOrDefault(LegacyCliConfigKeys.OpcSessionCreationTimeout, TimeSpan.FromSeconds(1)),
+                KeepAliveInterval = GetValueOrDefault(LegacyCliConfigKeys.OpcKeepAliveIntervalInSec, TimeSpan.FromSeconds(10)),
+                MaxKeepAliveCount = GetValueOrDefault(LegacyCliConfigKeys.OpcKeepAliveDisconnectThreshold, 50),
+                TrustSelf = GetValueOrDefault(LegacyCliConfigKeys.TrustMyself, true),
+                AutoAcceptUntrustedCertificates = GetValueOrDefault(LegacyCliConfigKeys.AutoAcceptCerts, false),
+                ApplicationCertificateStoreType = GetValueOrDefault(LegacyCliConfigKeys.OpcOwnCertStoreType, "Directory"),
+                ApplicationCertificateStorePath = GetValueOrDefault(LegacyCliConfigKeys.OpcOwnCertStorePath, "pki/own"),
+                ApplicationCertificateSubjectName = GetValueOrDefault(LegacyCliConfigKeys.OpcApplicationCertificateSubjectName, "CN=Microsoft.Azure.IIoT, C=DE, S=Bav, O=Microsoft, DC=localhost"),
+                ApplicationName = GetValueOrDefault(LegacyCliConfigKeys.OpcApplicationName, "Microsoft.Azure.IIoT"),
+                TrustedPeerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcTrustedCertStorePath, "pki/trusted"),
+                RejectedCertificateStorePath = GetValueOrDefault(LegacyCliConfigKeys.OpcRejectedCertStorePath, "pki/rejected"),
+                TrustedIssuerCertificatesPath = GetValueOrDefault(LegacyCliConfigKeys.OpcIssuerCertStorePath, "pki/issuer"),
+                BatchSize = GetValueOrDefault(LegacyCliConfigKeys.BatchSize, 50),
+                BatchTriggerInterval = GetValueOrDefault<TimeSpan>(LegacyCliConfigKeys.BatchTriggerInterval, TimeSpan.FromSeconds(10)),
+                MaxMessageSize = GetValueOrDefault(LegacyCliConfigKeys.IoTHubMaxMessageSize, 0),
+                ScaleTestCount = GetValueOrDefault(LegacyCliConfigKeys.ScaleTestCount, 1),
+                MaxOutgressMessages = GetValueOrDefault(LegacyCliConfigKeys.MaxOutgressMessages, 4096)
+            };
         }
 
         private static AgentConfigModel ToAgentConfigModel() {

@@ -50,6 +50,10 @@ A typical set of IoT Edge Module Container Create Options for OPC Publisher runn
                 "Source": "/opcpublisher", 
                 "Target": "/mount" 
             } 
+        ],
+        "CapDrop": [
+            "CHOWN", 
+            "SETUID"
         ] 
     } 
 }
@@ -58,6 +62,7 @@ A typical set of IoT Edge Module Container Create Options for OPC Publisher runn
 
 With these options specified, OPC Publisher will read the configuration file `./published_nodes.json`. The OPC Publisher's working directory is set to `/mount` at startup and thus OPC Publisher will read the file `/mount/publishednodes.json` inside its container.
 OPC Publisher's log file will be written to `/mount` and the `CertificateStores` directory (used for OPC UA certificates) will also be created in this directory. To make these files available in the IoT Edge host file system, the container configuration requires a bind mount volume. The **Mounts** section will  map the directory `/mount` to the host directory `/opcpublisher` (which will be created by the IoT Edge runtime if it doesn't exist). 
+The `CapDrop` option will drops the CHOWN (user cannot makes arbitrary changes to file UIDs and GIDs) and SETUID (user cannot makes arbitrary manipulations of process UIDs) capabilities for security reason.  
 
 **Without this bind mount volume, all OPC Publisher configuration files will be lost when the container is restarted.**
 

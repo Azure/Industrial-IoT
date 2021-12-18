@@ -38,11 +38,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string PublishedNodesConfigurationSchemaFilename = "PublishedNodesSchemaFile";
 
         /// <summary>
-        /// Key for the session connect time in seconds.
-        /// </summary>
-        public const string SessionConnectWaitSec = "SessionConnectWait";
-
-        /// <summary>
         /// Key for the default heartbeat interval in seconds.
         /// </summary>
         public const string HeartbeatIntervalDefault = "DefaultHeartbeatInterval";
