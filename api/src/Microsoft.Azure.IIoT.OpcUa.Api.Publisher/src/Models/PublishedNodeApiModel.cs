@@ -75,9 +75,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             EmitDefaultValue = false)]
         public int? HeartbeatInterval {
             get => HeartbeatIntervalTimespan.HasValue ?
-                (int)HeartbeatIntervalTimespan.Value.TotalSeconds : default;
+                (int)HeartbeatIntervalTimespan.Value.TotalSeconds : (int?)null;
             set => HeartbeatIntervalTimespan = value.HasValue ?
-                TimeSpan.FromSeconds(value.Value) : default;
+                TimeSpan.FromSeconds(value.Value) : (TimeSpan?)null;
         }
 
         /// <summary> Heartbeat </summary>
