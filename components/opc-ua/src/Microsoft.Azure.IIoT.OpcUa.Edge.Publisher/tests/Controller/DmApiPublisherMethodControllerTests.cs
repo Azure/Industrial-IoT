@@ -39,15 +39,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/empty_pn.json", PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/empty_pn.json", 
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var orchestrator = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object, jobSerializer, TraceLogger.Create(), identityMock.Object);
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                TraceLogger.Create(),
+                identityMock.Object);
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>(await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>(
+                await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
                 var initialNode = request.OpcNodes.First();
@@ -88,25 +96,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .Should()
                 .Be(2);
 
-            using var unpublishPayloads = new StreamReader(publishedNodesFile);
-            var unpublishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>(await unpublishPayloads.ReadToEndAsync().ConfigureAwait(false));
-            foreach (var request in unpublishNodesRequest) {
-                var initialNode = request.OpcNodes.First();
-                for (int i = 0; i < 10000; i++) {
-                    request.OpcNodes.Add(new PublishedNodeApiModel {
-                        Id = initialNode.Id + i.ToString(),
-                        DataSetFieldId = initialNode.DataSetFieldId,
-                        DisplayName = initialNode.DisplayName,
-                        ExpandedNodeId = initialNode.ExpandedNodeId,
-                        HeartbeatIntervalTimespan = initialNode.HeartbeatIntervalTimespan,
-                        OpcPublishingInterval = initialNode.OpcPublishingInterval,
-                        OpcSamplingInterval = initialNode.OpcSamplingInterval,
-                        QueueSize = initialNode.QueueSize,
-                        SkipFirst = initialNode.SkipFirst
-                    });
-                }
+            foreach (var request in publishNodesRequest) {
                 var publishNodesResult = await FluentActions
-                    .Invoking(async () => await methodsController.UnpublishNodesAsync(request).ConfigureAwait(false))
+                    .Invoking(async () => await methodsController
+                    .UnpublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
@@ -135,20 +128,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/empty_pn.json", PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/empty_pn.json",
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var orchestrator = new LegacyJobOrchestrator(publishedNodesJobConverter, legacyCliModelProviderMock.Object, agentConfigProviderMock.Object, jobSerializer, TraceLogger.Create(), identityMock.Object);
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                TraceLogger.Create(),
+                identityMock.Object);
             var methodsController = new PublisherMethodsController(orchestrator);
 
             using var publishPayloads = new StreamReader(publishedNodesFile);
-            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>(await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+            var publishNodesRequests = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>
+                (await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequests) {
 
                 var publishNodesResult = await FluentActions
-                    .Invoking(async () => await methodsController.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Invoking(async () => await methodsController
+                    .PublishNodesAsync(request).ConfigureAwait(false))
                     .Should()
                     .NotThrowAsync()
                     .ConfigureAwait(false);
@@ -170,7 +172,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .Should()
                 .Be(2);
 
-            var jobModel = jobSerializer.DeserializeJobConfiguration(job.First().JobConfiguration, job.First().JobConfigurationType) as WriterGroupJobModel;
+            var jobModel = jobSerializer.DeserializeJobConfiguration(
+                job.First().JobConfiguration, job.First().JobConfigurationType) as WriterGroupJobModel;
 
             jobModel.WriterGroup.DataSetWriters.Count.Should().Be(4);
             foreach (var datasetWriter in jobModel.WriterGroup.DataSetWriters) {

@@ -270,11 +270,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             var assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
                             IEnumerable<PublishedNodesEntryModel> entries = null;
                             if (!string.IsNullOrEmpty(content)) {
-
                                 try {
                                     if (!File.Exists(_legacyCliModel.PublishedNodesSchemaFile)) {
-                                        _logger.Information("Validation schema file {PublishedNodesSchemaFile} does not exist or is disabled, ignoring validation of {publishedNodesFile} file...",
-                                        _legacyCliModel.PublishedNodesSchemaFile, _legacyCliModel.PublishedNodesFile);
+                                        _logger.Information("Validation schema file {PublishedNodesSchemaFile} does not " +
+                                            "exist or is disabled, ignoring validation of {publishedNodesFile} file...",
+                                        _legacyCliModel.PublishedNodesSchemaFile,
+                                        _legacyCliModel.PublishedNodesFile);
                                         entries = _publishedNodesJobConverter.Read(content, null);
                                     }
                                     else {
@@ -287,46 +288,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     throw; //pass it thru, to handle retries
                                 }
                                 catch (SerializerException ex) {
-                                    _logger.Warning(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
+                                    _logger.Warning(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", 
+                                        _legacyCliModel.PublishedNodesFile);
                                     _lastKnownFileHash = lastValidFileHash;
                                     break;
                                 }
 
                                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _legacyCliModel);
-                                if (jobs.Any()) {
-                                    foreach (var job in jobs) {
-                                        var newJob = ToJobProcessingInstructionModel(job);
-                                        if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
-                                            continue;
-                                        }
-                                        var found = false;
-                                        foreach (var assignedJob in _assignedJobs) {
-                                            if (newJob.Job.Id == assignedJob.Value.Job.Id) {
-                                                assignedJobs[assignedJob.Key] = newJob;
-                                                found = true;
-                                                break;
+
+                                _lockJobs.Wait();
+                                try {
+                                    if (jobs.Any()) {
+                                        foreach (var job in jobs) {
+                                            var newJob = ToJobProcessingInstructionModel(job);
+                                            if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                                                continue;
+                                            }
+                                            var found = false;
+                                            foreach (var assignedJob in _assignedJobs) {
+                                                if (newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                                    assignedJobs[assignedJob.Key] = newJob;
+                                                    found = true;
+                                                    break;
+                                                }
+                                            }
+                                            if (!found) {
+                                                availableJobs.TryAdd(newJob.Job.Id, newJob);
                                             }
                                         }
-                                        if (!found) {
-                                            availableJobs.TryAdd(newJob.Job.Id, newJob);
-                                        }
                                     }
+                                    _availableJobs = availableJobs;
+                                    _assignedJobs = assignedJobs;
                                 }
-                            }
+                                finally {
+                                    _lockJobs.Release();
+                                }
 
-                            _publishedNodesEntrys.Clear();
-                            if (entries != null) {
+                                _publishedNodesEntrys.Clear();
+                                if (entries != null) {
+                                    _publishedNodesEntrys.AddRange(entries);
+                                }
 
-                                _publishedNodesEntrys.AddRange(entries);
                             }
+                            else {
+                                _lockJobs.Wait();
+                                try {
+                                    _availableJobs.Clear();
+                                    _assignedJobs.Clear();
+                                }
+                                finally {
+                                    _lockJobs.Release();
+                                }
 
-                            _lockJobs.Wait();
-                            try {
-                                _availableJobs = availableJobs;
-                                _assignedJobs = assignedJobs;
-                            }
-                            finally {
-                                _lockJobs.Release();
+                                _publishedNodesEntrys.Clear();
                             }
 
                             TriggerAgentConfigUpdate();
@@ -334,7 +348,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         else {
                             //avoid double events from FileSystemWatcher
                             if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10)) {
-                                _logger.Information("File {publishedNodesFile} has changed and content-hash is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
+                                _logger.Information("File {publishedNodesFile} has changed and content-hash" +
+                                    " is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
                             }
                         }
                         _lastRead = lastWriteTime;
@@ -357,7 +372,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     break;
                 }
                 catch (Exception e) {
-                    _logger.Error(e, "Error while reloading {PublishedNodesFile}. Reseting the configuration.", _legacyCliModel.PublishedNodesFile);
+                    _logger.Error(e, "Error while reloading {PublishedNodesFile}. Reseting the configuration.",
+                        _legacyCliModel.PublishedNodesFile);
                     _lockJobs.Wait();
                     try {
                         _availableJobs.Clear();
