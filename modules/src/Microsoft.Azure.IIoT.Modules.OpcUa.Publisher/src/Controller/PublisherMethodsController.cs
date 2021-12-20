@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Net;
 
@@ -49,15 +50,22 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for UnpublishAllNodes DM
         /// </summary>
-        public async Task UnpublishAllNodesAsync() {
-            await Task.Delay(0);
-            throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+        public async Task<PublishedNodesResponseApiModel> UnpublishAllNodesAsync(
+            PublishNodesRequestApiModel request) {
+
+            if (request.OpcNodes != null) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "OpcNodes is set.");
+            }
+
+            var response = await _configServices.UnpublishAllNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
+            return response.ToApiModel();
         }
 
         /// <summary>
         /// Handler for GetConfiguredEndpoints DM
         /// </summary>
-        public async Task GetConfiguredEndpointsAsync() {
+        public async Task<List<PublishedNodesResponseApiModel>> GetConfiguredEndpointsAsync() {
+
             await Task.Delay(0);
             throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
         }
@@ -65,7 +73,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for GetConfiguredNodesOnEndpoint DM
         /// </summary>
-        public async Task GetConfiguredNodesOnEndpointAsync() {
+        public async Task GetConfiguredNodesOnEndpointAsync(PublishNodesRequestApiModel request) {
+            if (request.OpcNodes != null) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "OpcNodes is set.");
+            }
             await Task.Delay(0);
             throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
         }
@@ -73,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for GetDiagnosticInfo DM
         /// </summary>
-        public async Task GetDiagnosticInfoAsync() {
+        public async Task GetDiagnosticInfoAsync(PublishNodesRequestApiModel request) {
             await Task.Delay(0);
             throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
         }
@@ -83,7 +94,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// </summary>
         public async Task GetInfoAsync() {
             await Task.Delay(0).ConfigureAwait(false);
-            throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+            throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Discontinued");
         }
 
         /// <summary>
