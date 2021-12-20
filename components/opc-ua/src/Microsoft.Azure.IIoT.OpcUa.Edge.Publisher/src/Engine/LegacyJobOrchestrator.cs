@@ -319,6 +319,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                     }
                                     _availableJobs = availableJobs;
                                     _assignedJobs = assignedJobs;
+                                    AdjustMaxWorkersAgentConfig();
                                 }
                                 finally {
                                     _lockJobs.Release();
@@ -424,12 +425,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <summary>
-        /// Notify the worker supervisor about a configuration change
+        /// Adjust the configuration of max workers in the Agent's config
         /// </summary>
-        private void TriggerAgentConfigUpdate() {
+        private void AdjustMaxWorkersAgentConfig() {
             if (_agentConfig.Config.MaxWorkers < _availableJobs.Count + _assignedJobs.Count) {
                 _agentConfig.Config.MaxWorkers = _availableJobs.Count + _assignedJobs.Count;
             }
+        }
+
+        /// <summary>
+        /// Notify the worker supervisor about a configuration change
+        /// </summary>
+        private void TriggerAgentConfigUpdate() {
             _agentConfig.TriggerConfigUpdate(this, new EventArgs());
         }
 
@@ -478,6 +485,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 _availableJobs.AddOrUpdate(newJob.Job.Id, newJob);
                                 found = true;
                             }
+                        }
+                        if (found) {
+                            AdjustMaxWorkersAgentConfig();
                         }
                     }
                     finally {
