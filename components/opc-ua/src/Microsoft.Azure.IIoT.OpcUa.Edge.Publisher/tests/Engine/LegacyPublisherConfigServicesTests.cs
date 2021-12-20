@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using System.Text;
+    using System;
 
     /// <summary>
     /// Tests the Direct methods configuration for the LegacyJobOrchestrator class
@@ -366,6 +367,154 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             distinctConfigurations.Count()
                 .Should()
                 .Be(2);
+
+            // Remove temporary published nodes file.
+            File.Delete(tempPublishedNodesFile);
+        }
+
+        [Fact]
+        public async Task PublishNodesStressTest() {
+            var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
+            var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+
+            string tempPublishedNodesFile = Path.GetTempFileName();
+            using (var fileStream = new FileStream(tempPublishedNodesFile, FileMode.Open, FileAccess.Write)) {
+                fileStream.Write(Encoding.UTF8.GetBytes("[]"));
+            }
+
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = tempPublishedNodesFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+            legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
+            agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
+
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel);
+
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                TraceLogger.Create(),
+                publishedNodesProvider
+            );
+
+            var numberOfEndpoints = 100;
+            var numberOfNodes = 1000;
+
+            var payload = new List<PublishedNodesEntryModel>();
+            for (int endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
+                var model = new PublishedNodesEntryModel {
+                    EndpointUrl = new Uri($"opc.tcp://server{endpointIndex}:49580"),
+                };
+
+                model.OpcNodes = new List<OpcNodeModel>();
+                for (var nodeIndex = 0; nodeIndex < numberOfNodes; ++nodeIndex) {
+                    model.OpcNodes.Add(new OpcNodeModel {
+                        Id = $"ns=2;s=Node-Server-{nodeIndex}",
+                    });
+                }
+
+                payload.Add(model);
+            }
+
+            foreach (var request in payload) {
+                var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
+                publishNodesResult.First()
+                    .Should()
+                    .Be("Succeeded");
+            }
+
+            // Check
+            var tasks = new List<Task<JobProcessingInstructionModel>>();
+            for (var i = 0; i < numberOfEndpoints; i++) {
+                tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            tasks.Count(t => t.Result != null)
+                .Should()
+                .Be(numberOfEndpoints);
+
+            var distinctConfigurations = tasks
+                .Where(t => t.Result != null)
+                .Select(t => t.Result.Job.JobConfiguration)
+                .Distinct();
+            distinctConfigurations.Count()
+                .Should()
+                .Be(numberOfEndpoints);
+
+            // Add one more node to each endpoint.
+            var payloadDiff = new List<PublishedNodesEntryModel>();
+            for (int endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
+                var model = new PublishedNodesEntryModel {
+                    EndpointUrl = new Uri($"opc.tcp://server{endpointIndex}:49580"),
+                    OpcNodes = new List<OpcNodeModel> {
+                        new OpcNodeModel {
+                            Id = $"ns=2;s=Node-Server-{numberOfNodes}",
+                        }
+                    }
+                };
+
+                payloadDiff.Add(model);
+            }
+
+            foreach (var request in payloadDiff) {
+                var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
+                publishNodesResult.First()
+                    .Should()
+                    .Be("Succeeded");
+            }
+
+            // Check
+            tasks = new List<Task<JobProcessingInstructionModel>>();
+            for (var i = 0; i < numberOfEndpoints; i++) {
+                tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            tasks.Count(t => t.Result != null)
+                .Should()
+                .Be(numberOfEndpoints);
+
+            distinctConfigurations = tasks
+                .Where(t => t.Result != null)
+                .Select(t => t.Result.Job.JobConfiguration)
+                .Distinct();
+            distinctConfigurations.Count()
+                .Should()
+                .Be(numberOfEndpoints);
+
+            // Unpublish new nodes for each endpoint.
+            foreach (var request in payloadDiff) {
+                var publishNodesResult = await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false);
+                publishNodesResult.First()
+                    .Should()
+                    .Be("Succeeded");
+            }
+
+            // Check
+            tasks = new List<Task<JobProcessingInstructionModel>>();
+            for (var i = 0; i < numberOfEndpoints; i++) {
+                tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+            tasks.Count(t => t.Result != null)
+                .Should()
+                .Be(numberOfEndpoints);
+
+            distinctConfigurations = tasks
+                .Where(t => t.Result != null)
+                .Select(t => t.Result.Job.JobConfiguration)
+                .Distinct();
+            distinctConfigurations.Count()
+                .Should()
+                .Be(numberOfEndpoints);
 
             // Remove temporary published nodes file.
             File.Delete(tempPublishedNodesFile);
