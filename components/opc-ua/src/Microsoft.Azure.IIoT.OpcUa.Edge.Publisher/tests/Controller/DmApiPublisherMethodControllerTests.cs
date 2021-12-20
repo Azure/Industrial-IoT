@@ -86,14 +86,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .Select(t => t.Result.Job.JobConfiguration)
                 .Distinct().Count()
                 .Should()
-                .Be(1);
+                .Be(2);
 
             using var unpublishPayloads = new StreamReader(publishedNodesFile);
             var unpublishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>(await unpublishPayloads.ReadToEndAsync().ConfigureAwait(false));
             foreach (var request in unpublishNodesRequest) {
                 var initialNode = request.OpcNodes.First();
                 for (int i = 0; i < 10000; i++) {
-                    //request.OpcNodes.ForEach(n => n.Id += i.ToString());
                     request.OpcNodes.Add(new PublishedNodeApiModel {
                         Id = initialNode.Id + i.ToString(),
                         DataSetFieldId = initialNode.DataSetFieldId,
@@ -169,12 +168,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 .Distinct();
             job.Count()
                 .Should()
-                .Be(1);
+                .Be(2);
 
-            
             var jobModel = jobSerializer.DeserializeJobConfiguration(job.First().JobConfiguration, job.First().JobConfigurationType) as WriterGroupJobModel;
 
-            jobModel.WriterGroup.DataSetWriters.Count.Should().Be(publishNodesRequests.Count - 1);
+            jobModel.WriterGroup.DataSetWriters.Count.Should().Be(4);
             foreach (var datasetWriter in jobModel.WriterGroup.DataSetWriters) {
                 datasetWriter.DataSet.DataSetSource.Connection.Endpoint.Url
                     .Should()

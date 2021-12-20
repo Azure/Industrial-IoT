@@ -113,5 +113,25 @@
                 "QueueSize": 1
             }
         ]
+    },
+    {
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp"
+            },
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "opc.tcp://opcplc:50000",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"
+            }
+        ]
     }
+
 ]

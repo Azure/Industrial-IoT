@@ -39,7 +39,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
             var checkTrust = true;
             var withServer = false;
             var verbose = false;
-            string deviceId = null, moduleId = null;
+            string deviceId = "crpogace", moduleId = null;
+            //string deviceId = null, moduleId = null;
             Console.WriteLine("Publisher module command line interface.");
             var configuration = new ConfigurationBuilder()
                 .AddFromDotEnvFile()
