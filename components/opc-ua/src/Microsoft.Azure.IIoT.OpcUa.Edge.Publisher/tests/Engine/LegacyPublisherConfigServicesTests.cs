@@ -25,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
     using System.Text;
     using System;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Tests the Direct methods configuration for the LegacyJobOrchestrator class
@@ -422,6 +423,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 payload.Add(model);
             }
 
+            // Publish all nodes
             foreach (var request in payload) {
                 var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
                 publishNodesResult.First()
@@ -429,26 +431,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .Be("Succeeded");
             }
 
-            // Check
-            var tasks = new List<Task<JobProcessingInstructionModel>>();
-            for (var i = 0; i < numberOfEndpoints; i++) {
-                tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
+            async Task CheckEndpointsAndNodes(
+                int expectedNumberOfEndpoints,
+                int expectedNumberOfNodes
+            ) {
+                var tasks = new List<Task<JobProcessingInstructionModel>>();
+                for (var i = 0; i < expectedNumberOfEndpoints; i++) {
+                    tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+                tasks.Count(t => t.Result != null)
+                    .Should()
+                    .Be(expectedNumberOfEndpoints);
+
+                var distinctConfigurations = tasks
+                    .Where(t => t.Result != null)
+                    .Select(t => t.Result.Job.JobConfiguration)
+                    .Distinct();
+                distinctConfigurations.Count()
+                    .Should()
+                    .Be(expectedNumberOfEndpoints);
+
+                var writerGroups = tasks.Select(t => jobSerializer.DeserializeJobConfiguration(
+                    t.Result.Job.JobConfiguration, t.Result.Job.JobConfigurationType) as WriterGroupJobModel);
+                writerGroups.Select(
+                        jobModel => jobModel.WriterGroup.DataSetWriters
+                        .Select(writer => writer.DataSet.DataSetSource.PublishedVariables.PublishedData.Count())
+                        .Sum()
+                     ).Count(v => v == expectedNumberOfNodes)
+                     .Should()
+                     .Be(expectedNumberOfEndpoints);
             }
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-            tasks.Count(t => t.Result != null)
-                .Should()
-                .Be(numberOfEndpoints);
+            // Check
+            await CheckEndpointsAndNodes(numberOfEndpoints, numberOfNodes).ConfigureAwait(false);
 
-            var distinctConfigurations = tasks
-                .Where(t => t.Result != null)
-                .Select(t => t.Result.Job.JobConfiguration)
-                .Distinct();
-            distinctConfigurations.Count()
-                .Should()
-                .Be(numberOfEndpoints);
-
-            // Add one more node to each endpoint.
+            // Publish one more node for each endpoint.
             var payloadDiff = new List<PublishedNodesEntryModel>();
             for (int endpointIndex = 0; endpointIndex < numberOfEndpoints; ++endpointIndex) {
                 var model = new PublishedNodesEntryModel {
@@ -471,23 +490,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             }
 
             // Check
-            tasks = new List<Task<JobProcessingInstructionModel>>();
-            for (var i = 0; i < numberOfEndpoints; i++) {
-                tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-            tasks.Count(t => t.Result != null)
-                .Should()
-                .Be(numberOfEndpoints);
-
-            distinctConfigurations = tasks
-                .Where(t => t.Result != null)
-                .Select(t => t.Result.Job.JobConfiguration)
-                .Distinct();
-            distinctConfigurations.Count()
-                .Should()
-                .Be(numberOfEndpoints);
+            await CheckEndpointsAndNodes(numberOfEndpoints, numberOfNodes + 1).ConfigureAwait(false);
 
             // Unpublish new nodes for each endpoint.
             foreach (var request in payloadDiff) {
@@ -498,23 +501,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             }
 
             // Check
-            tasks = new List<Task<JobProcessingInstructionModel>>();
-            for (var i = 0; i < numberOfEndpoints; i++) {
-                tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-            tasks.Count(t => t.Result != null)
-                .Should()
-                .Be(numberOfEndpoints);
-
-            distinctConfigurations = tasks
-                .Where(t => t.Result != null)
-                .Select(t => t.Result.Job.JobConfiguration)
-                .Distinct();
-            distinctConfigurations.Count()
-                .Should()
-                .Be(numberOfEndpoints);
+            await CheckEndpointsAndNodes(numberOfEndpoints, numberOfNodes).ConfigureAwait(false);
 
             // Remove temporary published nodes file.
             File.Delete(tempPublishedNodesFile);
