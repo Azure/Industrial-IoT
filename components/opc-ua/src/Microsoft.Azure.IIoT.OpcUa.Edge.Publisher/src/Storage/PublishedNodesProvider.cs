@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+using Serilog;
 using System;
 using System.IO;
 using System.Text;
@@ -17,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
     public class PublishedNodesProvider: IPublishedNodesProvider, IDisposable {
 
         private readonly LegacyCliModel _legacyCliModel;
+        private readonly ILogger _logger;
         private readonly SemaphoreSlim _lock;
 
         /// <summary>
@@ -28,9 +30,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
         /// <summary>
         /// Provider of utilities for published nodes file.
         /// </summary>
-        /// <param name="legacyCliModel"></param>
-        public PublishedNodesProvider(LegacyCliModel legacyCliModel) {
-            _legacyCliModel = legacyCliModel;
+        /// <param name="legacyCliModel"> LegacyCliModel that will define location of published nodes file. </param>
+        /// <param name="logger"> Logger </param>
+        public PublishedNodesProvider(
+            LegacyCliModel legacyCliModel,
+            ILogger logger
+        ) {
+            _legacyCliModel = legacyCliModel ?? throw new ArgumentNullException(nameof(legacyCliModel));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var directory = Path.GetDirectoryName(_legacyCliModel.PublishedNodesFile);
 
@@ -74,6 +81,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
                     return fileStream.ReadAsString(Encoding.UTF8);
                 }
             }
+            catch (Exception e) {
+                _logger.Error(e, "Failed to read content of published nodes file from \"{path}\"",
+                    _legacyCliModel.PublishedNodesFile);
+                throw;
+            }
             finally {
                 _lock.Release();
             }
@@ -95,13 +107,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
                     FileSystemWatcher.EnableRaisingEvents = false;
                 }
 
-                using (var fileStream = new FileStream(
-                    _legacyCliModel.PublishedNodesFile,
-                    FileMode.Open,
-                    FileAccess.Write,
-                    FileShare.None
-                 )) {
-                    fileStream.Write(Encoding.UTF8.GetBytes(content));
+                try {
+                    using (var fileStream = new FileStream(
+                        _legacyCliModel.PublishedNodesFile,
+                        FileMode.Open,
+                        FileAccess.Write,
+                        // We will require that there is no other process using the file.
+                        FileShare.None
+                     )) {
+                        fileStream.Write(Encoding.UTF8.GetBytes(content));
+                    }
+                }
+                catch (IOException e) {
+
+                    // We will fall back to writing with ReadWrite access.
+                    try {
+                        using (var fileStream = new FileStream(
+                            _legacyCliModel.PublishedNodesFile,
+                            FileMode.Open,
+                            FileAccess.Write,
+                            // Relaxing requirements.
+                            FileShare.ReadWrite
+                         )) {
+                            fileStream.Write(Encoding.UTF8.GetBytes(content));
+                        }
+                    }
+                    catch (Exception) {
+                        // Report and raise original exception if fallback also failed.
+                        _logger.Error(e, "Failed to update published nodes file at \"{path}\"",
+                            _legacyCliModel.PublishedNodesFile);
+
+                        throw e;
+                    }
                 }
 
                 // Retore state.

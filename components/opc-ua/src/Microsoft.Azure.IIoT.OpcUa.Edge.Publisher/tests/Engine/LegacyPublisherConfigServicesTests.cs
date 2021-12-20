@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             string content = GetFileContent(path);
 
             string tempFilePath = Path.GetTempFileName();
-            using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Write)) {
+            using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite)) {
                 fileStream.Write(Encoding.UTF8.GetBytes(content));
             }
 
