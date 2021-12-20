@@ -25,6 +25,7 @@ namespace IIoTPlatform_E2E_Tests {
     using Xunit.Abstractions;
     using System.Text.RegularExpressions;
     using Microsoft.Azure.Devices;
+    using Microsoft.Azure.IIoT.Hub.Models;
 
     internal static partial class TestHelper {
 
@@ -699,8 +700,7 @@ namespace IIoTPlatform_E2E_Tests {
             return JsonConvert.DeserializeObject<ExpandoObject>(response.Content, new ExpandoObjectConverter());
         }
 
-        /// <summary>            if (outputHelper == null) return;
-
+        /// <summary>
         /// Prints the exception message and stacktrace for exception (and all inner exceptions) in test output
         /// </summary>
         /// <param name="e">Exception to be printed</param>
@@ -713,6 +713,34 @@ namespace IIoTPlatform_E2E_Tests {
                 outputHelper.WriteLine(exception.StackTrace);
                 outputHelper.WriteLine("");
                 exception = exception.InnerException;
+            }
+        }
+
+        /// <summary>
+        /// Call a direct method
+        /// </summary>
+        /// <param name="serviceClient">Device service client</param>
+        /// <param name="deviceId">Device Id</param>
+        /// <param name="moduleId">Module Id</param>
+        /// <param name="parameters">Method parameter </param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        public static async Task<MethodResultModel> CallMethodAsync(ServiceClient serviceClient, string deviceId, string moduleId,
+            MethodParameterModel parameters, IIoTPlatformTestContext context, CancellationToken ct) {
+            try {
+                var methodInfo = new CloudToDeviceMethod(parameters.Name);
+                methodInfo.SetPayloadJson(parameters.JsonPayload);
+                var result = await (string.IsNullOrEmpty(moduleId) ?
+                     serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
+                     serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct));
+                return new MethodResultModel {
+                    JsonPayload = result.GetPayloadAsJson(),
+                    Status = result.Status
+                };
+            }
+            catch (Exception e) {
+                PrettyPrintException(e, context.OutputHelper);
+                return null;
             }
         }
     }

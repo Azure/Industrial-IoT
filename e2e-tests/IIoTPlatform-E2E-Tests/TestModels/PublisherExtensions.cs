@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
     public static class PublisherExtensions {
 
         /// <summary>
-        /// Create service model for an api model
+        /// Create an api model
         /// </summary>
         public static PublishNodesRequestApiModel ToApiModel(
             this PublishedNodesEntryModel model) {
@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
             }
             return new PublishNodesRequestApiModel {
 
+                DataSetWriterId = model.DataSetWriterId,
                 EndpointUrl = model.EndpointUrl,
                 UseSecurity = model.UseSecurity,
                 Password = model.OpcAuthenticationPassword,
@@ -33,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
 
 
         /// <summary>
-        /// Create service model for an api model
+        /// Create an api model
         /// </summary>
         public static PublishedNodeApiModel ToApiModel(
             this OpcUaNodesModel model) {
@@ -44,9 +45,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 Id = model.Id,
                 DisplayName = model.DisplayName,
                 ExpandedNodeId = model.ExpandedNodeId,
-                OpcPublishingInterval = (int)model.OpcSamplingInterval,
-                OpcSamplingInterval = (int)model.OpcSamplingInterval,
-                HeartbeatInterval = (int)model.HeartbeatInterval,
+                OpcPublishingInterval = (int?)model.OpcSamplingInterval,
+                OpcSamplingInterval = (int?)model.OpcSamplingInterval,
+                HeartbeatInterval = (int?)model.HeartbeatInterval,
                 SkipFirst = model.SkipFirst
             };
         }

@@ -260,7 +260,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         private static string GetUniqueWriterId(IEnumerable<PublishedDataSetSourceModel> set, PublishedDataSetSourceModel model) {
             var result = model.Connection.Id;
             var subset = set.Where(x => x.Connection.Id == model.Connection.Id).ToList();
-            if (subset.Count > 1) {
+            if (subset.Count > 0) {
                 result += !string.IsNullOrEmpty(result) ? "_" : string.Empty;
                 result += $"{model.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds}";
                 if (subset.Where(x => x.SubscriptionSettings.PublishingInterval == model.SubscriptionSettings.PublishingInterval).Count() > 1) {

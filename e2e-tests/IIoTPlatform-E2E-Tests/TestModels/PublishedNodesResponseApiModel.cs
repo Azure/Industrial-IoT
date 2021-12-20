@@ -17,8 +17,6 @@ namespace IIoTPlatform_E2E_Tests.TestModels {
         /// <summary>
         /// Endpoint URL for the OPC Nodes to monitor
         /// </summary>
-        [DataMember(Name = "statusMessage", Order = 0)]
-        [Required]
         public List<string> StatusMessage { get; set; }
 
     }
