@@ -76,12 +76,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
 
             if (Host.IsContainer) {
                 // Set timer to kill the entire process after 5 minutes.
-#pragma warning disable IDE0067 // Dispose objects before losing scope
                 var _ = new Timer(o => {
                     Log.Logger.Fatal("Killing non responsive module process!");
                     Process.GetCurrentProcess().Kill();
                 }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
-#pragma warning restore IDE0067 // Dispose objects before losing scope
             }
         }
 

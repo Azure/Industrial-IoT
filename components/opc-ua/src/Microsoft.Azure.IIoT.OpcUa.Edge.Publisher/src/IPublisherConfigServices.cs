@@ -22,24 +22,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Remove node from the actual configuration
         /// </summary>
-        Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct= default);
+        Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
 
         /// <summary>
-        /// resets the configuration
+        /// Resets the configuration for an endpoint
         /// </summary>
-        /// <returns></returns>
-        Task UnpublishAllNodesAsync(CancellationToken ct);
+        Task<List<string>> UnpublishAllNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
 
         /// <summary>
         /// returns the endpoints currently part of the configuration
         /// </summary>
-        /// <returns></returns>
-        Task GetConfiguredEndpointsAsync(CancellationToken ct);
+        Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Get the configuration nodes for an endpoint
         /// </summary>
-        /// <returns></returns>
-        Task GetConfiguredNodesOnEndpointAsync(CancellationToken ct);
+        Task<PublishedNodesEntryModel> GetConfiguredNodesOnEndpointAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
+
+
+        /// <summary>
+        /// Gets the diagnostic information for a specific endpoint
+        /// </summary>
+        Task<PublishedNodesEntryModel> GetDiagnosticInfoAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
     }
 }

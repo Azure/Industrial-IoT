@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
-    using Microsoft.Azure.IIoT.Serializers;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
     using System.Linq;
     using System.IO;
@@ -54,14 +54,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/publishednodeswithoptionalfields.json")]
         [InlineData("Engine/pn_assets.json")]
         [InlineData("Engine/pn_assets_with_optional_fields.json")]
-        public async Task DmApiPublishNodesOnEmptyConfiguration(string publishedNodesFile) {
+        public async Task PublishNodesOnEmptyConfiguration(string publishedNodesFile) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var identityMock = new Mock<IIdentity>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
-
             var legacyCliModel = new LegacyCliModel { PublishedNodesFile = "Engine/empty_pn.json", PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
@@ -72,8 +71,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(await payloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
-                var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.First()
+                var publishNodesResult = await FluentActions
+                    .Invoking(async () => await orchestrator.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+                publishNodesResult.Subject.First()
                     .Should()
                     .Be("Succeeded");
             }
@@ -102,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/publishednodeswithoptionalfields.json", "Engine/publishednodes.json")]
         [InlineData("Engine/pn_assets.json", "Engine/pn_assets_with_optional_fields.json")]
         [InlineData("Engine/pn_assets_with_optional_fields.json", "Engine/pn_assets.json")]
-        public async Task DmApiPublishNodesOnExistingConfiguration(string existingConfig, string newConfig) {
+        public async Task PublishNodesOnExistingConfiguration(string existingConfig, string newConfig) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var identityMock = new Mock<IIdentity>();
@@ -120,8 +124,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(await payloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
-                var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.First()
+                var publishNodesResult = await FluentActions
+                    .Invoking(async () => await orchestrator.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+                publishNodesResult.Subject.First()
                     .Should()
                     .Be("Succeeded");
             }
@@ -151,7 +160,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/publishednodeswithoptionalfields.json", "Engine/pn_assets_with_optional_fields.json")]
         [InlineData("Engine/pn_assets.json", "Engine/publishednodes.json")]
         [InlineData("Engine/pn_assets_with_optional_fields.json", "Engine/publishednodeswithoptionalfields.json")]
-        public async Task DmApiPublishNodesOnNewConfiguration(string existingConfig, string newConfig) {
+        public async Task PublishNodesOnNewConfiguration(string existingConfig, string newConfig) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var identityMock = new Mock<IIdentity>();
@@ -169,8 +178,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(await payloads.ReadToEndAsync().ConfigureAwait(false));
 
             foreach (var request in publishNodesRequest) {
-                var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.First()
+                var publishNodesResult = await FluentActions
+                    .Invoking(async () => await orchestrator.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+                publishNodesResult.Subject.First()
                     .Should()
                     .Be("Succeeded");
             }
@@ -199,7 +213,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/publishednodeswithoptionalfields.json")]
         [InlineData("Engine/pn_assets.json")]
         [InlineData("Engine/pn_assets_with_optional_fields.json")]
-        public async Task DmApiUnpublishNodesOnExistingConfiguration(string publishedNodesFile) {
+        public async Task UnpublishNodesOnExistingConfiguration(string publishedNodesFile) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var identityMock = new Mock<IIdentity>();
@@ -244,7 +258,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         [InlineData("Engine/publishednodeswithoptionalfields.json", "Engine/pn_assets_with_optional_fields.json")]
         [InlineData("Engine/pn_assets.json", "Engine/publishednodes.json")]
         [InlineData("Engine/pn_assets_with_optional_fields.json", "Engine/publishednodeswithoptionalfields.json")]
-        public async Task DmApiUnpublishNodesOnNonExistingConfiguration(string existingConfig, string newConfig) {
+        public async Task UnpublishNodesOnNonExistingConfiguration(string existingConfig, string newConfig) {
             var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var identityMock = new Mock<IIdentity>();
