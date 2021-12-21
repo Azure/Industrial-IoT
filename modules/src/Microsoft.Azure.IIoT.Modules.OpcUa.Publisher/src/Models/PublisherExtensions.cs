@@ -70,6 +70,5 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 StatusMessage = model
             };
         }
-
     }
 }
