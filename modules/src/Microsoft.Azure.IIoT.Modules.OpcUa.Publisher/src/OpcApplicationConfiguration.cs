@@ -3,7 +3,9 @@ using System;
 
 namespace OpcPublisher
 {
+    using Opc.Ua.Configuration;
     using System.Globalization;
+    using System.Text;
     using System.Threading.Tasks;
     using static Program;
 
@@ -104,76 +106,96 @@ namespace OpcPublisher
         /// </summary>
         public async Task<ApplicationConfiguration> ConfigureAsync()
         {
-            // instead of using a configuration XML file, we configure everything programmatically
-
-            // passed in as command line argument
-            ApplicationConfiguration = new ApplicationConfiguration();
-            ApplicationConfiguration.ApplicationName = ApplicationName;
-            ApplicationConfiguration.ApplicationUri = ApplicationUri;
-            ApplicationConfiguration.ProductUri = ProductUri;
-            ApplicationConfiguration.ApplicationType = ApplicationType.ClientAndServer;
-
-            // configure OPC stack tracing
-            ApplicationConfiguration.TraceConfiguration = new TraceConfiguration();
-            ApplicationConfiguration.TraceConfiguration.TraceMasks = OpcStackTraceMask;
-            ApplicationConfiguration.TraceConfiguration.ApplySettings();
-            Utils.Tracing.TraceEventHandler += new EventHandler<TraceEventArgs>(LoggerOpcUaTraceHandler);
-            Logger.Information($"opcstacktracemask set to: 0x{OpcStackTraceMask:X}");
+            // instead of using a configuration XML file, configure everything programmatically
+            var application = new ApplicationInstance() {
+                ApplicationName = ApplicationName,
+                ApplicationType = ApplicationType.ClientAndServer
+            };
 
             // configure transport settings
-            ApplicationConfiguration.TransportQuotas = new TransportQuotas();
-            ApplicationConfiguration.TransportQuotas.MaxStringLength = OpcMaxStringLength;
-            ApplicationConfiguration.TransportQuotas.MaxMessageSize = 4 * 1024 * 1024;
-
-            // the OperationTimeout should be twice the minimum value for PublishingInterval * KeepAliveCount, so set to 120s
-            ApplicationConfiguration.TransportQuotas.OperationTimeout = OpcOperationTimeout;
-            Logger.Information($"OperationTimeout set to {ApplicationConfiguration.TransportQuotas.OperationTimeout}");
+            Logger.Information($"OperationTimeout set to {OpcOperationTimeout}");
+            var transportQuotas = new TransportQuotas {
+                MaxStringLength = OpcMaxStringLength,
+                MaxMessageSize = 4 * 1024 * 1024,
+                // the OperationTimeout should be twice the minimum value for PublishingInterval * KeepAliveCount, so set to 120s
+                OperationTimeout = OpcOperationTimeout
+            };
 
             // configure OPC UA server
-            ApplicationConfiguration.ServerConfiguration = new ServerConfiguration();
+            var serverBuilder = application.Build(ApplicationUri, ProductUri)
+                .SetTransportQuotas(transportQuotas)
+                .AsServer(new string[] { $"opc.tcp://{Hostname}:{ServerPort}{ServerPath}" })
+                .AddSignAndEncryptPolicies()
+                .AddSignPolicies();
 
-            // configure server base addresses
-            if (ApplicationConfiguration.ServerConfiguration.BaseAddresses.Count == 0)
+            // use backdoor to access app config used by builder
+            ApplicationConfiguration = application.ApplicationConfiguration;
+
+            if (EnableUnsecureTransport)
             {
-                // we do not use the localhost replacement mechanism of the configuration loading, to immediately show the base address here
-                ApplicationConfiguration.ServerConfiguration.BaseAddresses.Add($"opc.tcp://{Hostname}:{ServerPort}{ServerPath}");
+                serverBuilder.AddUnsecurePolicyNone();
             }
+
+            // LDS registration interval
+            serverBuilder.SetMaxRegistrationInterval(LdsRegistrationInterval);
+
             foreach (var endpoint in ApplicationConfiguration.ServerConfiguration.BaseAddresses)
             {
                 Logger.Information($"OPC UA server base address: {endpoint}");
             }
 
-            // by default use high secure transport
-            ServerSecurityPolicy newPolicy = new ServerSecurityPolicy
+            foreach (var policy in ApplicationConfiguration.ServerConfiguration.SecurityPolicies)
             {
-                SecurityMode = MessageSecurityMode.SignAndEncrypt,
-                SecurityPolicyUri = SecurityPolicies.Basic256Sha256
-            };
-            ApplicationConfiguration.ServerConfiguration.SecurityPolicies.Add(newPolicy);
-            Logger.Information($"Security policy {newPolicy.SecurityPolicyUri} with mode {newPolicy.SecurityMode} added");
-
-            // add none secure transport on request
-            if (EnableUnsecureTransport)
-            {
-                newPolicy = new ServerSecurityPolicy
+                Logger.Information($"Security policy {policy.SecurityPolicyUri} with mode {policy.SecurityMode} added");
+                if (policy.SecurityMode == MessageSecurityMode.None)
                 {
-                    SecurityMode = MessageSecurityMode.None,
-                    SecurityPolicyUri = SecurityPolicies.None
-                };
-                ApplicationConfiguration.ServerConfiguration.SecurityPolicies.Add(newPolicy);
-                Logger.Information($"Unsecure security policy {newPolicy.SecurityPolicyUri} with mode {newPolicy.SecurityMode} added");
-                Logger.Warning($"Note: This is a security risk and needs to be disabled for production use");
+                    Logger.Warning($"Note: This is a security risk and needs to be disabled for production use");
+                }
             }
 
+            Logger.Information($"LDS(-ME) registration intervall set to {LdsRegistrationInterval} ms (0 means no registration)");
+
             // add default client configuration
-            ApplicationConfiguration.ClientConfiguration = new ClientConfiguration();
+            var securityBuilder = serverBuilder.AsClient();
 
             // security configuration
-            await InitApplicationSecurityAsync().ConfigureAwait(false);
+            ApplicationConfiguration = await InitApplicationSecurityAsync(securityBuilder).ConfigureAwait(false);
 
-            // set LDS registration interval
-            ApplicationConfiguration.ServerConfiguration.MaxRegistrationInterval = LdsRegistrationInterval;
-            Logger.Information($"LDS(-ME) registration intervall set to {LdsRegistrationInterval} ms (0 means no registration)");
+            // configure OPC stack tracing
+            Utils.SetTraceMask(OpcStackTraceMask);
+            Utils.Tracing.TraceEventHandler += LoggerOpcUaTraceHandler;
+            Logger.Information($"opcstacktracemask set to: 0x{OpcStackTraceMask:X}");
+
+            var certificate = ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.Certificate;
+            if (certificate == null)
+            {
+                Logger.Information($"No existing Application certificate found. Create a self-signed Application certificate valid from yesterday for {CertificateFactory.DefaultLifeTime} months,");
+                Logger.Information($"with a {CertificateFactory.DefaultKeySize} bit key and {CertificateFactory.DefaultHashSize} bit hash.");
+            }
+            else
+            {
+                Logger.Information($"Application certificate with thumbprint '{certificate.Thumbprint}' found in the application certificate store.");
+            }
+
+            bool certOk = await application.CheckApplicationInstanceCertificate(true, CertificateFactory.DefaultKeySize, CertificateFactory.DefaultLifeTime).ConfigureAwait(false);
+            if (!certOk)
+            {
+                throw new Exception("Application certificate invalid.");
+            }
+
+            if (certificate == null)
+            {
+                certificate = ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.Certificate;
+                Logger.Information($"Application certificate with thumbprint '{certificate.Thumbprint}' created.");
+            }
+
+            Logger.Information($"Application certificate is for ApplicationUri '{ApplicationConfiguration.ApplicationUri}', ApplicationName '{ApplicationConfiguration.ApplicationName}' and Subject is '{ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.Certificate.Subject}'");
+
+            // show CreateSigningRequest data
+            if (ShowCreateSigningRequestInfo)
+            {
+                await ShowCreateSigningRequestInformationAsync(ApplicationConfiguration.SecurityConfiguration.ApplicationCertificate.Certificate).ConfigureAwait(false);
+            }
 
             // show certificate store information
             await ShowCertificateStoreInformationAsync().ConfigureAwait(false);
@@ -192,12 +214,17 @@ namespace OpcPublisher
                 return;
             }
 
-            // e.Exception and e.Message are always null
+            // e.Exception and e.Message are special
+            if (e.Exception != null)
+            {
+                Logger.Error(e.Exception, e.Format, e.Arguments);
+                return;
+            }
 
             // format the trace message
-            string message = string.Empty;
-            message = string.Format(CultureInfo.InvariantCulture, e.Format, e.Arguments).Trim();
-            message = "OPC: " + message;
+            var builder = new StringBuilder("OPC: ");
+            builder.AppendFormat(CultureInfo.InvariantCulture, e.Format, e.Arguments);
+            var message = builder.ToString().Trim();
 
             // map logging level
             if ((e.TraceMask & OpcTraceToLoggerVerbose) != 0)

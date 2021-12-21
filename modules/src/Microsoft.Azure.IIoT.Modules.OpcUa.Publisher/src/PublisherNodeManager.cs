@@ -690,7 +690,7 @@ namespace OpcPublisher
                 }
 
                 string methodRequest = string.Empty;
-                if ((inputArguments[1] as string) != null)
+                if (inputArguments[1] is string)
                 {
                     methodRequest = inputArguments[1] as string;
                 }
