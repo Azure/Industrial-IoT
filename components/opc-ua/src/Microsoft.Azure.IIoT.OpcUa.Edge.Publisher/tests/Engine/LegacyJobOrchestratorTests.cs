@@ -32,20 +32,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
             var legacyCliModel = new LegacyCliModel { PublishedNodesFile = publishedNodesFile, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
 
             var converter = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
-                TraceLogger.Create(),
+                logger,
                 publishedNodesProvider
             );
 
@@ -72,13 +73,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
             var legacyCliModel = new LegacyCliModel { PublishedNodesFile = publishedNodesFile, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
 
             var converter = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
