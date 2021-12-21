@@ -15,15 +15,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class PublishNodesRequestApiModel {
 
         /// <summary> The Group the stream belongs to - DataSetWriterGroup. </summary>
-        [DataMember(Name = "dataSetWriterGroup", Order = 0)]
+        [DataMember(Name = "dataSetWriterGroup", Order = 0,
+            EmitDefaultValue = false)]
         public string DataSetWriterGroup { get; set; }
 
         /// <summary> Id Identifier of the DataFlow - DataSetWriterId. </summary>
-        [DataMember(Name = "dataSetWriterId", Order = 1)]
+        [DataMember(Name = "dataSetWriterId", Order = 1,
+            EmitDefaultValue = false)]
         public string DataSetWriterId { get; set; }
 
         /// <summary> The Publishing interval for a dataset writer </summary>
-        [DataMember(Name = "dataSetPublishingInterval", Order = 2)]
+        [DataMember(Name = "dataSetPublishingInterval", Order = 2,
+            EmitDefaultValue = false)]
         public int? DataSetPublishingInterval { get; set; }
 
         /// <summary> Endpoint URL for the OPC Nodes to monitor </summary>
@@ -54,7 +57,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary> List of the OpcNodes to be monitored </summary>
         [DataMember(Name = "opcNodes", Order = 8,
             EmitDefaultValue = false)]
-        [Required]
         public List<PublishedNodeApiModel> OpcNodes { get; set; }
     }
 }

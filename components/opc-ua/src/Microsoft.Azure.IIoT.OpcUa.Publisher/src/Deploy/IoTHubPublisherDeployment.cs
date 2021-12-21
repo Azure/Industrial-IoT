@@ -95,6 +95,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                     HostConfig = new {
                         Binds = new [] {
                             "/mount:/mount"
+                        },
+                        CapDrop = new[] {
+                            "CHOWN",
+                            "SETUID"
                         }
                     }
                 }).Replace("\"", "\\\"");
