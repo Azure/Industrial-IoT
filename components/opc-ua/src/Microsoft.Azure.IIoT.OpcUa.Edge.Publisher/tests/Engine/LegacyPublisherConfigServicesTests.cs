@@ -30,7 +30,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     /// <summary>
     /// Tests the Direct methods configuration for the LegacyJobOrchestrator class
     /// </summary>
-    public class LegacyPublisherConfigServicesTests {
+    public class LegacyPublisherConfigServicesTests : IDisposable {
+
+        private readonly string _tempPublishedNodesFile;
+
+        public LegacyPublisherConfigServicesTests() {
+            _tempPublishedNodesFile = Path.GetTempFileName();
+        }
+
+        public void Dispose() {
+            try {
+                // Remove temporary published nodes file if one was created.
+                if (File.Exists(_tempPublishedNodesFile)) {
+                    File.Delete(_tempPublishedNodesFile);
+                }
+            }
+            catch (Exception) {
+                // Nothign to do.
+            }
+        }
 
         /// <summary>
         /// Get content of file as string.
@@ -47,15 +65,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        private static string CopyContentToTempFile(string path) {
+        private string CopyContentToTempFile(string path) {
             string content = GetFileContent(path);
 
-            string tempFilePath = Path.GetTempFileName();
-            using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.Write, FileShare.ReadWrite)) {
+            using (var fileStream = new FileStream(_tempPublishedNodesFile, FileMode.Open, FileAccess.Write, FileShare.ReadWrite)) {
                 fileStream.Write(Encoding.UTF8.GetBytes(content));
             }
 
-            return tempFilePath;
+            return _tempPublishedNodesFile;
         }
 
         [Theory]
@@ -68,7 +85,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
             var tempPublishedNodesFile = CopyContentToTempFile("Engine/empty_pn.json");
             var legacyCliModel = new LegacyCliModel {
@@ -78,14 +96,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
-                TraceLogger.Create(),
+                logger,
                 publishedNodesProvider
             );
 
@@ -116,9 +134,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             distinctConfigurations.Count()
                 .Should()
                 .Be(2);
-
-            // Remove temporary published nodes file.
-            File.Delete(tempPublishedNodesFile);
         }
 
         [Theory]
@@ -131,7 +146,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
             var tempPublishedNodesFile = CopyContentToTempFile(existingConfig);
             var legacyCliModel = new LegacyCliModel {
@@ -141,14 +157,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
-                TraceLogger.Create(),
+                logger,
                 publishedNodesProvider
             );
 
@@ -180,9 +196,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             distinctConfigurations.Count()
                 .Should()
                 .Be(2);
-
-            // Remove temporary published nodes file.
-            File.Delete(tempPublishedNodesFile);
         }
 
         [Theory]
@@ -195,7 +208,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
             var tempPublishedNodesFile = CopyContentToTempFile(existingConfig);
             var legacyCliModel = new LegacyCliModel {
@@ -205,14 +219,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
-                TraceLogger.Create(),
+                logger,
                 publishedNodesProvider
             );
 
@@ -243,9 +257,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             distinctConfigurations.Count()
                 .Should()
                 .Be(4);
-
-            // Remove temporary published nodes file.
-            File.Delete(tempPublishedNodesFile);
         }
 
         [Theory]
@@ -258,7 +269,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
             var tempPublishedNodesFile = CopyContentToTempFile(publishedNodesFile);
             var legacyCliModel = new LegacyCliModel {
@@ -268,14 +280,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
-                TraceLogger.Create(),
+                logger,
                 publishedNodesProvider
             );
 
@@ -303,9 +315,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             tasks.Count(t => t.Result != null)
                 .Should()
                 .Be(0);
-
-            // Remove temporary published nodes file.
-            File.Delete(tempPublishedNodesFile);
         }
 
         [Theory]
@@ -318,7 +327,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
             var tempPublishedNodesFile = CopyContentToTempFile(existingConfig);
             var legacyCliModel = new LegacyCliModel {
@@ -328,14 +338,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
-                TraceLogger.Create(),
+                logger,
                 publishedNodesProvider
             );
 
@@ -368,9 +378,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             distinctConfigurations.Count()
                 .Should()
                 .Be(2);
-
-            // Remove temporary published nodes file.
-            File.Delete(tempPublishedNodesFile);
         }
 
         [Fact]
@@ -379,28 +386,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
             var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
-            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var logger = TraceLogger.Create();
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            string tempPublishedNodesFile = Path.GetTempFileName();
-            using (var fileStream = new FileStream(tempPublishedNodesFile, FileMode.Open, FileAccess.Write)) {
+            using (var fileStream = new FileStream(_tempPublishedNodesFile, FileMode.Open, FileAccess.Write)) {
                 fileStream.Write(Encoding.UTF8.GetBytes("[]"));
             }
 
             var legacyCliModel = new LegacyCliModel {
-                PublishedNodesFile = tempPublishedNodesFile,
+                PublishedNodesFile = _tempPublishedNodesFile,
                 PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
             };
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
-            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel);
+            var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
 
             var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
-                TraceLogger.Create(),
+                logger,
                 publishedNodesProvider
             );
 
@@ -423,7 +430,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 payload.Add(model);
             }
 
-            // Publish all nodes
+            // Publish all nodes.
             foreach (var request in payload) {
                 var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
                 publishNodesResult.First()
@@ -436,7 +443,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 int expectedNumberOfNodes
             ) {
                 var tasks = new List<Task<JobProcessingInstructionModel>>();
-                for (var i = 0; i < expectedNumberOfEndpoints; i++) {
+                for (var i = 0; i < expectedNumberOfEndpoints + 1; i++) {
                     tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
                 }
 
@@ -453,8 +460,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .Should()
                     .Be(expectedNumberOfEndpoints);
 
-                var writerGroups = tasks.Select(t => jobSerializer.DeserializeJobConfiguration(
-                    t.Result.Job.JobConfiguration, t.Result.Job.JobConfigurationType) as WriterGroupJobModel);
+                var writerGroups = tasks
+                    .Where(t => t.Result != null)
+                    .Select(t => jobSerializer.DeserializeJobConfiguration(
+                        t.Result.Job.JobConfiguration, t.Result.Job.JobConfigurationType) as WriterGroupJobModel);
                 writerGroups.Select(
                         jobModel => jobModel.WriterGroup.DataSetWriters
                         .Select(writer => writer.DataSet.DataSetSource.PublishedVariables.PublishedData.Count())
@@ -502,9 +511,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             // Check
             await CheckEndpointsAndNodes(numberOfEndpoints, numberOfNodes).ConfigureAwait(false);
-
-            // Remove temporary published nodes file.
-            File.Delete(tempPublishedNodesFile);
         }
     }
 }
