@@ -364,6 +364,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var availableJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
             var assignedJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
 
+            // Create JobId to WorkerId dictionary for fast lookup.
+            var jobIdDict = _assignedJobs
+                .Select(kvp => Tuple.Create(kvp.Value.Job.Id, kvp.Key))
+                .ToDictionary(tuple => tuple.Item1);
+
             var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _legacyCliModel);
             if (jobs.Any()) {
                 foreach (var job in jobs) {
@@ -371,16 +376,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
                         continue;
                     }
-                    var found = false;
-                    foreach (var assignedJob in _assignedJobs) {
-                        if (newJob.Job.Id == assignedJob.Value.Job.Id) {
-                            assignedJobs[assignedJob.Key] = newJob;
-                            found = true;
-                            break;
-                        }
+
+                    var newJobId = newJob.Job.Id;
+                    if (jobIdDict.ContainsKey(newJobId)) {
+                        assignedJobs[jobIdDict[newJobId].Item2] = newJob;
                     }
-                    if (!found) {
-                        availableJobs.TryAdd(newJob.Job.Id, newJob);
+                    else {
+                        availableJobs.TryAdd(newJobId, newJob);
                     }
                 }
             }
