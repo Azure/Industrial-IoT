@@ -259,10 +259,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// </summary>
         private static string GetUniqueWriterId(IEnumerable<PublishedDataSetSourceModel> set, PublishedDataSetSourceModel model) {
             var result = model.Connection.Id;
-            if (string.IsNullOrEmpty(model.Connection.Id)) {
-                result += $"{model.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds}";
-            }
-            
             var subset = set.Where(x => x.Connection.Id == model.Connection.Id).ToList();
             if (subset.Count > 1) {
                 result += !string.IsNullOrEmpty(result) ? "_" : string.Empty;
@@ -270,6 +266,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 if (subset.Where(x => x.SubscriptionSettings.PublishingInterval == model.SubscriptionSettings.PublishingInterval).Count() > 1) {
                     result += $"_{model.PublishedVariables.PublishedData.First().PublishedVariableNodeId}";
                 }
+            }
+            else {
+                result ??= model.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds.ToString();
             }
             return result;
         }

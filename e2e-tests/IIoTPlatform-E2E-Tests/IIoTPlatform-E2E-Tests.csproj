@@ -16,7 +16,6 @@
   <ItemGroup>
     <PackageReference Include="Autofac" Version="6.3.0" />
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.28.1" />
-    <PackageReference Include="Microsoft.Azure.IIoT.Core" Version="2.7.170" />
     <PackageReference Include="Microsoft.Azure.IIoT.Serializers.NewtonSoft" Version="2.7.170" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.28.1" />
