@@ -26,7 +26,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading;
     using System.Threading.Tasks;
 
-
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
     /// </summary>
