@@ -26,6 +26,7 @@ namespace IIoTPlatform_E2E_Tests {
     using System.Text.RegularExpressions;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
 
     internal static partial class TestHelper {
 
