@@ -80,6 +80,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 _outer._sessionManager.GetNumberOfConnectionRetries(_subscription.Connection);
 
             /// <inheritdoc/>
+            public bool IsConnectionOk =>
+                _outer._sessionManager.IsConnectionOk(_subscription.Connection);
+
+            /// <inheritdoc/>
+            public int NumberOfGoodNodes {
+                get {
+                    return (IsConnectionOk && _currentlyMonitored != null) ?
+                        _currentlyMonitored
+                            .Where(x => x.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Reporting ||
+                                    x.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Sampling)
+                            .Count() : 0;
+                }
+            }
+
+            /// <inheritdoc/>
+            public int NumberOfBadNodes {
+                get {
+                    return (IsConnectionOk && _currentlyMonitored != null) ?
+                        _currentlyMonitored
+                            .Where(x => x.Item.Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
+                            .Count() : 0;
+                }
+            }
+
+            /// <inheritdoc/>
             public ConnectionModel Connection => _subscription.Connection;
 
             /// <inheritdoc/>
@@ -739,9 +764,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                 if (item.ValidateHeartbeat(publishTime)) {
                                     var defaultNotification =
                                         new MonitoredItemNotificationModel {
-                                            Id = item.Item.DisplayName,
+                                            Id = item?.Template?.Id,
                                             DisplayName = item.Item.DisplayName,
-                                            NodeId = item.Item.StartNodeId,
+                                            NodeId = item?.Template?.StartNodeId,
                                             AttributeId = item.Item.AttributeId,
                                             ClientHandle = item.Item.ClientHandle,
                                             Value = new DataValue(Variant.Null,
@@ -833,7 +858,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <summary>
         /// Monitored item
         /// </summary>
-        private class MonitoredItemWrapper {
+        internal class MonitoredItemWrapper {
 
             /// <summary>
             /// Assigned monitored item id on server
@@ -853,7 +878,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Last published time
             /// </summary>
-            public DateTime NextHeartbeat {get; private set; }
+            public DateTime NextHeartbeat { get; private set; }
 
             /// <summary>
             /// validates if a heartbeat is required.

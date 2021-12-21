@@ -14,11 +14,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     public class LegacyCliModel {
 
         /// <summary>
-        /// The site of the publisher.
-        /// </summary>
-        public string Site { get; set; }
-
-        /// <summary>
         /// The published nodes file.
         /// </summary>
         public string PublishedNodesFile { get; set; }
@@ -29,92 +24,52 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public string PublishedNodesSchemaFile { get; set; }
 
         /// <summary>
-        /// The time to wait to connect a session.
-        /// </summary>
-        public TimeSpan? SessionConnectWait { get; set; }
-
-        /// <summary>
         /// The default interval for heartbeats if not set on
         /// node level.
         /// </summary>
-        public TimeSpan? DefaultHeartbeatInterval { get; set; }
+        public TimeSpan? DefaultHeartbeatInterval { get; set; } = TimeSpan.Zero;
 
         /// <summary>
         /// The default flag whether to skip the first value if
         /// not set on node level.
         /// </summary>
-        public bool DefaultSkipFirst { get; set; }
+        public bool DefaultSkipFirst { get; set; } = false;
 
         /// <summary>
         /// The default sampling interval.
         /// </summary>
-        public TimeSpan? DefaultSamplingInterval { get; set; }
+        public TimeSpan? DefaultSamplingInterval { get; set; } = TimeSpan.FromSeconds(1);
 
         /// <summary>
         /// The default publishing interval.
         /// </summary>
-        public TimeSpan? DefaultPublishingInterval { get; set; }
+        public TimeSpan? DefaultPublishingInterval { get; set; } = TimeSpan.FromSeconds(1);
 
         /// <summary>
         /// Flag wether to grab the display name of nodes form
         /// the OPC UA Server.
         /// </summary>
-        public bool FetchOpcNodeDisplayName { get; set; }
+        public bool FetchOpcNodeDisplayName { get; set; } = false;
 
         /// <summary>
         /// set the default queue size for monitored items
         /// </summary>
-        public uint DefaultQueueSize { get; set; }
+        public uint DefaultQueueSize { get; set; } = 1;
 
         /// <summary>
         /// The interval to show diagnostics information.
         /// </summary>
-        public TimeSpan? DiagnosticsInterval { get; set; }
-
-        /// <summary>
-        /// The size of the message batching buffer
-        /// </summary>
-        public int? BatchSize { get; set; }
-
-        /// <summary>
-        /// The interval to trigger batching
-        /// </summary>
-        public TimeSpan? BatchTriggerInterval { get; set; }
-
-        /// <summary>
-        /// The maximum size of the (IoT D2C ) message
-        /// </summary>
-        public int? MaxMessageSize { get; set; }
-
-        /// <summary>
-        /// Define the maximum amount of the IoT D2C messages
-        /// </summary>
-        public int? MaxOutgressMessages { get; set; }
+        public TimeSpan? DiagnosticsInterval { get; set; } = TimeSpan.FromSeconds(60);
 
         /// <summary>
         /// The time to flush the log file to the disc.
         /// </summary>
-        public TimeSpan? LogFileFlushTimeSpan { get; set; }
+        public TimeSpan? LogFileFlushTimeSpan { get; set; } = TimeSpan.FromSeconds(30);
 
         /// <summary>
         /// The filename of the logfile.
         /// </summary>
         public string LogFilename { get; set; }
-
-        /// <summary>
-        /// The transport mode.
-        /// </summary>
-        public string Transport { get; set; }
-
-        /// <summary>
-        /// The EdgeHub connection string.
-        /// </summary>
-        public string EdgeHubConnectionString { get; set; }
-
-        /// <summary>
-        /// The operation timeout.
-        /// </summary>
-        public TimeSpan? OperationTimeout { get; set; }
 
         /// <summary>
         /// The messaging mode for outgoing messages.
@@ -129,76 +84,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// Flag to demand full featured message creation from publisher
         /// </summary>
-        public bool FullFeaturedMessage { get; set; }
+        public bool FullFeaturedMessage { get; set; } = false;
 
         /// <summary>
-        /// The maximum string length.
+        /// The operation timeout.
         /// </summary>
-        public int? MaxStringLength { get; set; }
+        public TimeSpan? OperationTimeout { get; set; } = TimeSpan.FromSeconds(15);
+        /// <summary>
+        /// The size of the message batching buffer
+        /// </summary>
+        public int? BatchSize { get; set; } = 50;
 
         /// <summary>
-        /// The session creation timeout.
+        /// The interval to trigger batching
         /// </summary>
-        public TimeSpan? SessionCreationTimeout { get; set; }
+        public TimeSpan? BatchTriggerInterval { get; set; } = TimeSpan.FromSeconds(10);
 
         /// <summary>
-        /// The KeepAlive interval.
+        /// The maximum size of the (IoT D2C ) message
         /// </summary>
-        public TimeSpan? KeepAliveInterval { get; set; }
-
-        /// <summary>
-        /// The maximum keep alive count till disconnect.
-        /// </summary>
-        public int? MaxKeepAliveCount { get; set; }
-
-        /// <summary>
-        /// Flag to trust own certificate.
-        /// </summary>
-        public bool TrustSelf { get; set; }
-
-        /// <summary>
-        /// Flag if all certificates should be trusted.
-        /// </summary>
-        public bool AutoAcceptUntrustedCertificates { get; set; }
-
-        /// <summary>
-        /// Certificate store configuration
-        /// </summary>
-        public string ApplicationCertificateStoreType { get; set; }
-
-        /// <summary>
-        /// Certificate store path
-        /// </summary>
-        public string ApplicationCertificateStorePath { get; set; }
-
-        /// <summary>
-        /// App cert subject name
-        /// </summary>
-        public string ApplicationCertificateSubjectName { get; set; }
-
-        /// <summary>
-        /// App  name
-        /// </summary>
-        public string ApplicationName { get; set; }
-
-        /// <summary>
-        /// Peer cert path
-        /// </summary>
-        public string TrustedPeerCertificatesPath { get; set; }
-
-        /// <summary>
-        /// Rejected cert path
-        /// </summary>
-        public string RejectedCertificateStorePath { get; set; }
-
-        /// <summary>
-        /// Trusted issuer cert path
-        /// </summary>
-        public string TrustedIssuerCertificatesPath { get; set; }
+        public int? MaxMessageSize { get; set; } = 0;
 
         /// <summary>
         /// force mass monitored item clones
         /// </summary>
-        public int? ScaleTestCount { get; set; }
+        public int? ScaleTestCount { get; set; } = 1;
+
+        /// <summary>
+        /// Define the maximum amount of the IoT D2C messages
+        /// </summary>
+        public int? MaxOutgressMessages { get; set; } = 4096;
+
+        /// <summary>
+        /// Maximum number of nodes within a DataSet/Subscription. When more nodes are configured
+        /// for a dataSetWriter, they will be added in a different DataSet/Subscription.
+        /// </summary>
+        public int? DefaultMaxNodesPerDataSet { get; set; } = 1000;
     }
 }

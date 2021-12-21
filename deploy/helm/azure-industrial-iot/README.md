@@ -457,12 +457,12 @@ The following details of the Azure Log Analytics Workspace would be required:
 
 ## Installing the Chart
 
-This chart installs `2.8.0` version of components by default.
+This chart installs `2.8.1` version of components by default.
 
 To install the chart first ensure that you have added `azure-iiot` repository:
 
 ```bash
-$ helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
+$ helm repo add azure-iiot https://azure.github.io/Industrial-IoT/helm
 ```
 
 After that make sure to create the namespace were you will deploy the chart:
@@ -519,7 +519,7 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.8.0`             |
+| `image.tag`         | Image tag                                | `2.8.1`             |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 

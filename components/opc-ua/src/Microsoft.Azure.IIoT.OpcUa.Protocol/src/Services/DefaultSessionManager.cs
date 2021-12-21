@@ -50,7 +50,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
         /// <inheritdoc/>
         public int GetNumberOfConnectionRetries(ConnectionModel connection) {
-
             var key = new ConnectionIdentifier(connection);
             _lock.Wait();
             try {
@@ -58,6 +57,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     return 0;
                 }
                 return wrapper.NumberOfConnectRetries;
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public bool IsConnectionOk(ConnectionModel connection) {
+            var key = new ConnectionIdentifier(connection);
+            _lock.Wait();
+            try {
+                if (!_sessions.TryGetValue(key, out var wrapper)) {
+                    return false;
+                }
+                return wrapper.State == SessionState.Running;
             }
             finally {
                 _lock.Release();

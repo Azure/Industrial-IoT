@@ -177,7 +177,8 @@
             "settings": {
                 "fileUris": [
                     "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]"
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/TLSSettings.ps1')]"
                 ]
             },
             "protectedSettings": {

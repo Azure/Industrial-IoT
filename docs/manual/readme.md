@@ -758,21 +758,35 @@ Documentation of the chart lists all required Azure resources and provides steps
 
 To install the chart first ensure that you have added either one of two Helm repositories where we publish azure-industrial-iot Helm chart. It can be found in:
 
-- <https://microsoft.github.io/charts/repo>
+- <https://azure.github.io/Industrial-IoT/helm>
 
-    To add the repository run the following command:
+  > NOTE: This is the recommended Helm chart repository to use.
 
-    ```bash
-    helm repo add microsoft <https://microsoft.github.io/charts/repo>
-    ```
+  To add the repository run the following command:
+
+  ```bash
+  helm repo add industrial-iot https://azure.github.io/Industrial-IoT/helm
+  ```
 
 - <https://azureiiot.blob.core.windows.net/helm>
 
-    To add the repository run the following command:
+  > NOTE: This is a legacy Helm chart repository. We will keep updating it, but we recommend using `https://azure.github.io/Industrial-IoT/helm`.
 
-    ```bash
-    helm repo add azure-iiot <https://azureiiot.blob.core.windows.net/helm>
-    ```
+  To add the repository run the following command:
+
+  ```bash
+  helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
+  ```
+
+- <https://microsoft.github.io/charts/repo>
+
+  > NOTE: This is a legacy Helm chart repository. We will keep updating it, but we recommend using `https://azure.github.io/Industrial-IoT/helm`.
+
+  To add the repository run the following command:
+
+  ```bash
+  helm repo add microsoft https://microsoft.github.io/charts/repo
+  ```
 
 We will use first repository for the installation of the chart.
 
@@ -1531,6 +1545,9 @@ Several metrics are provided by default to give an overview of the health of the
 | iiot_edge_publisher_encoded_message_size_average      | deviceid, module, triggerid                      | Encoded IoT message body size average                                                   | gauge     |
 | iiot_edge_publisher_chunk_size_average                 | deviceid, module, triggerid                      | IoT Hub chunk size average                                                              | gauge     |
 | iiot_edge_publisher_estimated_message_chunks_per_day | deviceid, module, triggerid                      | Estimated IoT Hub chunks charged per day                                                | gauge     |
+| iiot_edge_publisher_is_connection_ok                 | deviceid, module, triggerid                      | Is the endpoint connection ok?                                                          | gauge     |
+| iiot_edge_publisher_good_nodes                       | deviceid, module, triggerid                      | How many nodes are receiving data for this endpoint?                                    | gauge     |
+| iiot_edge_publisher_bad_nodes                        | deviceid, module, triggerid                      | How many nodes are misconfigured for this endpoint?                                     | gauge     |
 
 Cloud Microservices Metrics are described below:
 

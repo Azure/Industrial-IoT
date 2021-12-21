@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
@@ -24,11 +25,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     /// </summary>
     public class WriterGroupMessageTrigger : IMessageTrigger, IDisposable {
         /// <inheritdoc/>
-        public string Id => _writerGroup.WriterGroupId;
+        public string Id => _subscriptions?.First()?.Subscription?.Connection?.CreateConnectionId() ?? _writerGroup.WriterGroupId;
 
         /// <inheritdoc/>
-        public int NumberOfConnectionRetries => _subscriptions?.FirstOrDefault()?.
-            Subscription?.NumberOfConnectionRetries ?? 0;
+        public int NumberOfConnectionRetries => _subscriptions?.Sum(x => x.Subscription?.NumberOfConnectionRetries) ?? 0;
+
+        /// <inheritdoc/>
+        public bool IsConnectionOk => (_subscriptions?.Count == 0 || 
+            _subscriptions?.Where(x => x.Subscription?.IsConnectionOk == true).Count() < _subscriptions?.Count) ? false : true;
+
+        /// <inheritdoc/>
+        public int NumberOfGoodNodes => _subscriptions?.Sum(x => x.Subscription?.NumberOfGoodNodes) ?? 0;
+
+        /// <inheritdoc/>
+        public int NumberOfBadNodes => _subscriptions?.Sum(x => x.Subscription?.NumberOfBadNodes) ?? 0;
 
         /// <inheritdoc/>
         public ulong ValueChangesCountLastMinute {
@@ -39,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <inheritdoc/>
         public ulong ValueChangesCount {
             get { return _valueChangesCount; }
-            private set  {
+            private set {
                 var difference = value - _valueChangesCount;
                 _valueChangesCount = value;
                 ValueChangesCountLastMinute = difference;
@@ -73,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             // with cleaned buffer, we can just accumulate all buckets
             ulong sum = 0;
-            for(int index = 0; index< array.Length; index++) {
+            for (int index = 0; index < array.Length; index++) {
                 sum += array[index];
             }
             return sum;
@@ -137,7 +147,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _writerGroup = writerGroupConfig?.WriterGroup?.Clone() ??
                 throw new ArgumentNullException(nameof(writerGroupConfig.WriterGroup));
             _subscriptions = _writerGroup.DataSetWriters?
-                .Select(g => new DataSetWriterSubscription(this, g))
+                .Select(g => new DataSetWriterSubscription(this, g, writerGroupConfig))
                 .ToList();
             _publisherId = writerGroupConfig.PublisherId ?? Guid.NewGuid().ToString();
         }
@@ -176,14 +186,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="dataSetWriter"></param>
+            /// <param name="writerGroup"></param>
             public DataSetWriterSubscription(WriterGroupMessageTrigger outer,
-                DataSetWriterModel dataSetWriter) {
+                DataSetWriterModel dataSetWriter, IWriterGroupConfig writerGroup) {
 
                 _outer = outer ?? throw new ArgumentNullException(nameof(outer));
                 _dataSetWriter = dataSetWriter.Clone() ??
                     throw new ArgumentNullException(nameof(dataSetWriter));
                 _subscriptionInfo = _dataSetWriter.ToSubscriptionModel();
-
+                _subscriptionInfo.Connection.Group = writerGroup.WriterGroup.WriterGroupId;
                 if (dataSetWriter.KeyFrameInterval.HasValue &&
                    dataSetWriter.KeyFrameInterval.Value > TimeSpan.Zero) {
                     _keyframeTimer = new Timer(

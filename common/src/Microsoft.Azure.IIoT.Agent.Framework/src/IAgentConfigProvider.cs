@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="eventArgs"></param>
-
     public delegate void ConfigUpdatedEventHandler(object sender, EventArgs eventArgs);
 
     /// <summary>
@@ -29,5 +28,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// Configuration change events
         /// </summary>
         event ConfigUpdatedEventHandler OnConfigUpdated;
+
+        /// <summary>
+        /// Triggers OnConfigUpdated
+        /// </summary>
+        void TriggerConfigUpdate(object sender, EventArgs eventArgs);
     }
 }

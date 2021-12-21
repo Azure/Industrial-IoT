@@ -20,12 +20,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <summary>
         /// Key for default published nodes schema file.
         /// </summary>
-        public const string DefaultPublishedNodesSchemaFilename = "schemas/publishednodesschema.json";
+        public const string DefaultPublishedNodesSchemaFilename = "";
 
         /// <summary>
         /// Key for the publisher site.
         /// </summary>
-        public const string PublisherSite = "Site";
+        public const string PublisherSite = "site";
 
         /// <summary>
         /// Key for the specified published nodes filename.
@@ -36,11 +36,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for the specified published nodes schema filename.
         /// </summary>
         public const string PublishedNodesConfigurationSchemaFilename = "PublishedNodesSchemaFile";
-
-        /// <summary>
-        /// Key for the session connect time in seconds.
-        /// </summary>
-        public const string SessionConnectWaitSec = "SessionConnectWait";
 
         /// <summary>
         /// Key for the default heartbeat interval in seconds.
@@ -112,6 +107,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// </summary>
         public const string MaxOutgressMessages = "MaxOutgressMessages";
 
+        /// <summary>
+        /// Key for the maximum number of nodes per DataSet/Subscription
+        /// </summary>
+        public const string DefaultMaxNodesPerDataSet = "DefaultMaxNodesPerDataSet";
         /// <summary>
         /// Key for the scale test monitored items clones count .
         /// </summary>

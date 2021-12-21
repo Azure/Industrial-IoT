@@ -46,10 +46,21 @@ namespace IIoTPlatform_E2E_Tests {
         public const string PublishedNodesFolder = "/mount";
 
         /// <summary>
+        /// Folder to store published_nodes.json file for legacy publisher
+        /// </summary>
+        public const string PublishedNodesFolderLegacy = "/mountLegacy";
+
+        /// <summary>
         /// The full name of the publishednodes.json on the Edge
         /// </summary>
         public static readonly string PublishedNodesFullName =
             PublishedNodesFolder.TrimEnd('/') + "/" + PublishedNodesFilename;
+
+        /// <summary>
+        /// The full name of the publishednodes.json on the Edge
+        /// </summary>
+        public static readonly string PublishedNodesFullNameLegacy =
+            PublishedNodesFolderLegacy.TrimEnd('/') + "/" + PublishedNodesFilename;
 
         /// <summary>
         /// Default Microsoft Container Registry
