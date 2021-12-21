@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class PublishedNodesResponseApiModel {
 
         /// <summary>
-        /// Status responses
+        /// Status messages
         /// </summary>
         [DataMember(Name = "statusMessage", Order = 0)]
         [Required]

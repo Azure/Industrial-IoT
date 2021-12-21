@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
-    using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Module;
-    using Newtonsoft.Json;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
@@ -399,45 +398,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _agentConfig.TriggerConfigUpdate(this, new EventArgs());
         }
 
-        private static void AdjustResponse(ref List<string> statusResponse) {
-            byte[] result;
-            int maxIndex = statusResponse.Count();
-            string resultString = string.Empty;
-            while (true) {
-                resultString = JsonConvert.SerializeObject(statusResponse.GetRange(0, maxIndex));
-                result = Encoding.UTF8.GetBytes(resultString);
-                if (result.Length > MaxResponsePayloadLength) {
-                    maxIndex /= 2;
-                    continue;
-                }
-                else {
-                    break;
-                }
-            }
-            if (maxIndex != statusResponse.Count()) {
-                statusResponse.RemoveRange(maxIndex, statusResponse.Count() - maxIndex);
-                statusResponse.Add("Results have been cropped due to package size limitations.");
-            }
-        }
-        private MethodResponse BuildResponse(List<string> statusResponse, HttpStatusCode statusCode, string prefix) {
-            AdjustResponse(ref statusResponse);
-            string resultString = JsonConvert.SerializeObject(statusResponse);
-            byte[] result = Encoding.UTF8.GetBytes(resultString);
-            if (result.Length > MaxResponsePayloadLength) {
-                _logger.Error($"{prefix} Response size is too long");
-                Array.Resize(ref result, result.Length > MaxResponsePayloadLength ? MaxResponsePayloadLength : result.Length);
-            }
-            MethodResponse methodResponse = new MethodResponse(result, (int)statusCode);
-            _logger.Information($"{prefix} completed with result {statusCode}");
-            return methodResponse;
-        }
-
         /// <inheritdoc/>
-        public async Task<MethodResponse> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
+        public async Task<PublishedNodesResponseApiModel> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(PublishNodesAsync));
-            HttpStatusCode statusCode = HttpStatusCode.OK;
-            List<string> statusResponse = new List<string>();
-            string statusMessage = string.Empty;
+            var response = new PublishedNodesResponseApiModel();
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try {
                 var existingGroup = new List<PublishedNodesEntryModel>();
@@ -478,30 +442,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                 }
                 if (!found) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Endpoint not found.");
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, $"Endpoint: {request.EndpointUrl} not found.");
                 }
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
-                statusResponse.Add($"{nameof(PublishNodesAsync)}# Publishing successful for EndpointUrl: {request.EndpointUrl}");
+                response.StatusMessage.Add($"{nameof(PublishNodesAsync)}# Publishing succeeded for EndpointUrl: {request.EndpointUrl}");
             }
-            catch (MethodCallStatusException e) {
-                statusMessage = $"{nameof(PublishNodesAsync)}# EndpointUrl: {request.EndpointUrl} Exception: {e.ResponsePayload}";
-                _logger.Error(statusMessage);
-                statusResponse.Add(statusMessage);
-                statusCode = (HttpStatusCode) e.Result;
+            catch (MethodCallStatusException) {
+                throw;
             }
             catch (Exception e) {
-                statusMessage = $"{nameof(PublishNodesAsync)}# EndpointUrl: {request.EndpointUrl} Exception: {e.Message}";
-                _logger.Error(statusMessage);
-                statusResponse.Add(statusMessage);
-                statusCode = HttpStatusCode.BadRequest;
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
                 _lock.Release();
             }
 
-            return BuildResponse(statusResponse, statusCode, nameof(PublishNodesAsync));
+            return response;
         }
 
         /// <inheritdoc/>
@@ -650,6 +608,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private ConcurrentDictionary<string, JobProcessingInstructionModel> _availableJobs;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
-        private static int MaxResponsePayloadLength = (128 * 1024) - 256;
     }
 }
