@@ -445,8 +445,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         public async Task<PublishedNodesResponseApiModel> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered ... ", nameof(PublishNodesAsync));
             var sw = Stopwatch.StartNew();
-            var response = new PublishedNodesResponseApiModel();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            var response = new PublishedNodesResponseApiModel {
+                StatusMessage = new List<string>()
+            };
             try {
                 var nodeFound = false;
                 var existingGroup = new List<PublishedNodesEntryModel>();
