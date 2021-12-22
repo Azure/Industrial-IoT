@@ -7,7 +7,6 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\api\src\Microsoft.Azure.IIoT.OpcUa.Api.Publisher\src\Microsoft.Azure.IIoT.OpcUa.Api.Publisher.csproj" />
     <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Agent.Framework\src\Microsoft.Azure.IIoT.Agent.Framework.csproj" />
     <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Module.Framework\src\Microsoft.Azure.IIoT.Hub.Module.Framework.csproj" />
   </ItemGroup>

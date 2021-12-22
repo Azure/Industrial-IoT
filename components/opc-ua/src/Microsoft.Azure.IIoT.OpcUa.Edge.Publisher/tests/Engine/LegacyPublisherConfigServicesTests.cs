@@ -77,7 +77,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-                publishNodesResult.Subject.StatusMessage.First()
+                publishNodesResult.Subject.First()
                     .Should()
                     .Contain("succeeded");
             }
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-                publishNodesResult.Subject.StatusMessage.First()
+                publishNodesResult.Subject.First()
                     .Should()
                     .Contain("succeeded");
             }
@@ -184,7 +184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .NotThrowAsync()
                     .ConfigureAwait(false);
 
-                publishNodesResult.Subject.StatusMessage.First()
+                publishNodesResult.Subject.First()
                     .Should()
                     .Contain("succeeded");
             }
@@ -354,7 +354,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             // Publish all nodes.
             foreach (var request in payload) {
                 var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.StatusMessage.First()
+                publishNodesResult.First()
                     .Should()
                     .Contain("succeeded");
             }
@@ -415,7 +415,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             foreach (var request in payloadDiff) {
                 var publishNodesResult = await orchestrator.PublishNodesAsync(request).ConfigureAwait(false);
-                publishNodesResult.StatusMessage.First()
+                publishNodesResult.First()
                     .Should()
                     .Contain("succeeded");
             }

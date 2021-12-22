@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         public async Task<PublishedNodesResponseApiModel> PublishNodesAsync(
             PublishNodesRequestApiModel request) {
             var response = await _configServices.PublishNodesAsync(request.ToServiceModel()).ConfigureAwait(false);
-            return response;
+            return response.ToApiModel();
         }
 
         /// <summary>

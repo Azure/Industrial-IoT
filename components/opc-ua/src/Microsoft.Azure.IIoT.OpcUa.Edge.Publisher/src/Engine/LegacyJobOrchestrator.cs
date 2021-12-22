@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
@@ -442,13 +441,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodesResponseApiModel> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
+        public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered ... ", nameof(PublishNodesAsync));
             var sw = Stopwatch.StartNew();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
-            var response = new PublishedNodesResponseApiModel {
-                StatusMessage = new List<string>()
-            };
+            var response = new List<string>();
             try {
                 var nodeFound = false;
                 var existingGroup = new List<PublishedNodesEntryModel>();
@@ -504,7 +501,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
-                response.StatusMessage.Add($"{nameof(PublishNodesAsync)}# Publishing succeeded for EndpointUrl: {request.EndpointUrl}");
+                response.Add($"{nameof(PublishNodesAsync)}# Publishing succeeded for EndpointUrl: {request.EndpointUrl}");
             }
             catch (MethodCallStatusException) {
                 throw;
