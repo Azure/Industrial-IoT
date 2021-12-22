@@ -103,9 +103,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                         (uint u) => this[LegacyCliConfigKeys.OpcKeepAliveDisconnectThreshold] = u.ToString() },
                     { "fd|fetchdisplayname=", "Fetches the displayname for the monitored items subscribed.",
                         (bool b) => this[LegacyCliConfigKeys.FetchOpcNodeDisplayName] = b.ToString() },
-                    { "sw|sessionconnectwait=", "Wait time in seconds publisher is trying to connect " +
-                        "to disconnected endpoints and starts monitoring unmonitored items.",
-                        (int s) => this[LegacyCliConfigKeys.SessionConnectWaitSec] = TimeSpan.FromSeconds(s).ToString() },
                     { "mq|monitoreditemqueuecapacity=", "Default queue size for monitored items.",
                         (uint u) => this[LegacyCliConfigKeys.DefaultQueueSize] = u.ToString() },
 

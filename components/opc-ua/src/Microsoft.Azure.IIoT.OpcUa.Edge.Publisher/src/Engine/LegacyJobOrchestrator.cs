@@ -15,8 +15,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Module;
     using Serilog;
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Net;
@@ -54,10 +54,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _publishedNodesProvider = publishedNodesProvider ?? throw new ArgumentNullException(nameof(publishedNodesProvider));
 
-            _availableJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
-            _assignedJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
+            _availableJobs = new Dictionary<string, JobProcessingInstructionModel>();
+            _assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
 
-            _lock = new SemaphoreSlim(1, 1);
+            _lockConfig = new SemaphoreSlim(1, 1);
+            _lockJobs = new SemaphoreSlim(1, 1);
 
             _publishedNodesEntrys = new List<PublishedNodesEntryModel>();
 
@@ -78,13 +79,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="ct"></param>
         /// <returns></returns>
         public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId, JobRequestModel request, CancellationToken ct = default) {
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
+            await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
                 ct.ThrowIfCancellationRequested();
                 if (_assignedJobs.TryGetValue(workerId, out var job)) {
                     return job;
                 }
-                if (!_availableJobs.IsEmpty && _availableJobs.TryRemove(_availableJobs.First().Key, out job)) {
+                if (_availableJobs.Count > 0 && _availableJobs.Remove(_availableJobs.First().Key, out job)) {
                     _assignedJobs.AddOrUpdate(workerId, job);
                     return job;
                 }
@@ -102,7 +103,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw;
             }
             finally {
-                _lock.Release();
+                _lockJobs.Release();
             }
         }
 
@@ -116,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (heartbeat == null || heartbeat.Worker == null) {
                 throw new ArgumentNullException(nameof(heartbeat));
             }
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
+            await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
             try {
                 ct.ThrowIfCancellationRequested();
                 HeartbeatResultModel heartbeatResultModel;
@@ -181,7 +182,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw;
             }
             finally {
-                _lock.Release();
+                _lockJobs.Release();
             }
         }
 
@@ -194,7 +195,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _publishedNodesProvider.FileSystemWatcher.Renamed -= _fileSystemWatcher_Renamed;
                 _publishedNodesProvider.FileSystemWatcher.Deleted -= _fileSystemWatcher_Deleted;
             }
-            _lock?.Dispose();
+            _lockConfig?.Dispose();
+            _lockJobs?.Dispose();
         }
 
         private void _fileSystemWatcher_Changed(object sender, FileSystemEventArgs e) {
@@ -214,14 +216,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private void _fileSystemWatcher_Deleted(object sender, FileSystemEventArgs e) {
             _logger.Debug("File {publishedNodesFile} deleted. Clearing configuration ...", _legacyCliModel.PublishedNodesFile);
-            _lock.Wait();
+            _lockConfig.Wait();
             try {
-                _availableJobs.Clear();
-                _assignedJobs.Clear();
+                _publishedNodesEntrys.Clear();
                 _lastKnownFileHash = string.Empty;
+                _lockJobs.Wait();
+                try {
+                    _availableJobs.Clear();
+                    _assignedJobs.Clear();
+                }
+                finally {
+                    _lockJobs.Release();
+                }
             }
             finally {
-                _lock.Release();
+                _lockConfig.Release();
             }
         }
 
@@ -361,50 +370,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         private void RefreshJobs(IEnumerable<PublishedNodesEntryModel> entries) {
-            var availableJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
-            var assignedJobs = new ConcurrentDictionary<string, JobProcessingInstructionModel>();
+            var availableJobs = new Dictionary<string, JobProcessingInstructionModel>();
+            var assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
 
-            // Create JobId to WorkerId dictionary for fast lookup.
-            var jobIdDict = _assignedJobs
-                .Select(kvp => Tuple.Create(kvp.Value.Job.Id, kvp.Key))
-                .ToDictionary(tuple => tuple.Item1);
+            _lockJobs.Wait();
+            try {
+                // Create JobId to WorkerId dictionary for fast lookup.
+                var jobIdDict = _assignedJobs
+                    .Select(kvp => Tuple.Create(kvp.Value.Job.Id, kvp.Key))
+                    .ToDictionary(tuple => tuple.Item1);
 
-            var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _legacyCliModel);
-            if (jobs.Any()) {
-                foreach (var job in jobs) {
-                    var newJob = ToJobProcessingInstructionModel(job);
-                    if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
-                        continue;
-                    }
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _legacyCliModel);
+                if (jobs.Any()) {
+                    foreach (var job in jobs) {
+                        var newJob = ToJobProcessingInstructionModel(job);
+                        if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                            continue;
+                        }
 
-                    var newJobId = newJob.Job.Id;
-                    if (jobIdDict.ContainsKey(newJobId)) {
-                        assignedJobs[jobIdDict[newJobId].Item2] = newJob;
-                    }
-                    else {
-                        availableJobs.TryAdd(newJobId, newJob);
+                        var newJobId = newJob.Job.Id;
+                        if (jobIdDict.ContainsKey(newJobId)) {
+                            assignedJobs[jobIdDict[newJobId].Item2] = newJob;
+                        }
+                        else {
+                            availableJobs.Add(newJobId, newJob);
+                        }
                     }
                 }
+
+                // Update local state.
+                _availableJobs = availableJobs;
+                _assignedJobs = assignedJobs;
+
+                AdjustMaxWorkersAgentConfig();
+
+                _publishedNodesEntrys.Clear();
+                _publishedNodesEntrys.AddRange(entries);
+
             }
-
-            // Update local state.
-            _availableJobs = availableJobs;
-            _assignedJobs = assignedJobs;
-
-            _publishedNodesEntrys.Clear();
-            _publishedNodesEntrys.AddRange(entries);
+            finally {
+                _lockJobs.Release();
+            }
         }
-
 
         private void RefreshJobFromFile() {
             var retryCount = 3;
             var lastWriteTime = _publishedNodesProvider.GetLastWriteTime();
             while (true) {
-                _lock.Wait();
+                _lockConfig.Wait();
                 try {
                     var content = _publishedNodesProvider.ReadContent();
                     var lastValidFileHash = _lastKnownFileHash;
                     var currentFileHash = GetChecksum(content);
+
                     if (currentFileHash != _lastKnownFileHash) {
                         _logger.Information("File {publishedNodesFile} has changed, last known hash {LastHash}, new hash {NewHash}, reloading...",
                             _legacyCliModel.PublishedNodesFile,
@@ -422,7 +440,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 throw; //pass it thru, to handle retries
                             }
                             catch (SerializerException ex) {
-                                _logger.Warning(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...", _legacyCliModel.PublishedNodesFile);
+                                _logger.Warning(ex, "Failed to deserialize {publishedNodesFile}, aborting reload...",
+                                    _legacyCliModel.PublishedNodesFile);
                                 _lastKnownFileHash = lastValidFileHash;
                                 break;
                             }
@@ -430,8 +449,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             RefreshJobs(entries);
                         }
                         else {
-                            _availableJobs.Clear();
-                            _assignedJobs.Clear();
+                            _lockJobs.Wait();
+                            try {
+                                _availableJobs.Clear();
+                                _assignedJobs.Clear();
+                            }
+                            finally {
+                                _lockJobs.Release();
+                            }
+
+                            _publishedNodesEntrys.Clear();
                         }
 
                         TriggerAgentConfigUpdate();
@@ -439,7 +466,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     else {
                         //avoid double events from FileSystemWatcher
                         if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10)) {
-                            _logger.Information("File {publishedNodesFile} has changed and content-hash is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
+                            _logger.Information("File {publishedNodesFile} has changed and content-hash" +
+                                " is equal to last one, nothing to do", _legacyCliModel.PublishedNodesFile);
                         }
                     }
                     _lastRead = lastWriteTime;
@@ -461,14 +489,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     break;
                 }
                 catch (Exception e) {
-                    _logger.Error(e, "Error while reloading {PublishedNodesFile}", _legacyCliModel.PublishedNodesFile);
-                    _availableJobs.Clear();
-                    _assignedJobs.Clear();
+                    _logger.Error(e, "Error while reloading {PublishedNodesFile}. Reseting the configuration.",
+                        _legacyCliModel.PublishedNodesFile);
+                    _lockJobs.Wait();
+                    try {
+                        _availableJobs.Clear();
+                        _assignedJobs.Clear();
+                    }
+                    finally {
+                        _lockJobs.Release();
+                    }
+                    _publishedNodesEntrys.Clear();
                     _lastKnownFileHash = string.Empty;
                     break;
                 }
                 finally {
-                    _lock.Release();
+                    _lockConfig.Release();
                 }
             }
         }
@@ -505,17 +541,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <summary>
-        /// Notify the worker supervisor about a configuration change
+        /// Adjust the configuration of max workers in the Agent's config
         /// </summary>
-        private void TriggerAgentConfigUpdate() {
+        private void AdjustMaxWorkersAgentConfig() {
             if (_agentConfig.Config.MaxWorkers < _availableJobs.Count + _assignedJobs.Count) {
                 _agentConfig.Config.MaxWorkers = _availableJobs.Count + _assignedJobs.Count;
             }
+        }
+
+        /// <summary>
+        /// Notify the worker supervisor about a configuration change
+        /// </summary>
+        private void TriggerAgentConfigUpdate() {
             _agentConfig.TriggerConfigUpdate(this, new EventArgs());
         }
 
-        private void ValidateRequest(IEnumerable<PublishedNodesEntryModel> request) {
-            var requestJson = JsonSerializer.Serialize(request);
+        private void ValidateRequest(PublishedNodesEntryModel request) {
+            var requestList = new List<PublishedNodesEntryModel> { request };
+            var requestJson = JsonSerializer.Serialize(requestList);
 
             // This will throw SerializerException if values of request fields are not conformant.
             DeserializePublishedNodes(requestJson);
@@ -523,24 +566,84 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
-            _logger.Information("{nameof} method triggered", nameof(PublishNodesAsync));
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
+            _logger.Information("{nameof} method triggered ... ", nameof(PublishNodesAsync));
+            var sw = Stopwatch.StartNew();
+            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
+                // ToDo: Uncomment ValidateRequest() once our test requests pass validation.
                 // This will throw SerializerException if values of request fields are not conformant.
-                var requestList = new List<PublishedNodesEntryModel> { request };
-                //ValidateRequest(requestList);
+                //ValidateRequest(request);
 
-                var updatedPublishedNodesEntries = AddNodes(
-                    _publishedNodesEntrys,
-                    requestList
-                );
+                var dataSetFound = false;
+                var existingGroups = new List<PublishedNodesEntryModel>();
+                foreach (var entry in _publishedNodesEntrys) {
+                    // We may have several entries with the same DataSetGroup definition,
+                    // so we will add nodes only if the whole DataSet definition matches.
+                    if (IsSameDataSet(entry, request)) {
+                        // Create HashSet of nodes for this entry.
+                        var existingNodesSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
+                        existingNodesSet.UnionWith(entry.OpcNodes);
+
+                        foreach (var nodeToAdd in request.OpcNodes) {
+                            if (!existingNodesSet.Contains(nodeToAdd)) {
+                                entry.OpcNodes.Add(nodeToAdd);
+                                existingNodesSet.Add(nodeToAdd);
+                            }
+                            else {
+                                _logger.Debug("Node \"{node}\" is already present for entry with \"{endpoint}\" endpoint.",
+                                    nodeToAdd.Id, entry.EndpointUrl);
+                            }
+                        }
+
+                        dataSetFound = true;
+                        existingGroups.Add(entry);
+                        break;
+                    }
+                }
+
+                if (!dataSetFound) {
+                    existingGroups.Add(request);
+                    _publishedNodesEntrys.Add(request);
+                }
 
                 // Update published nodes file.
-                var updatedContent = JsonSerializer.Serialize(updatedPublishedNodesEntries);
+                var updatedContent = JsonSerializer.Serialize(_publishedNodesEntrys);
                 _publishedNodesProvider.WriteContent(updatedContent, true);
 
-                // Update local state.
-                RefreshJobs(updatedPublishedNodesEntries);
+                var found = false;
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _legacyCliModel);
+                if (jobs.Any()) {
+                    await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
+                    try {
+                        foreach (var job in jobs) {
+                            var newJob = ToJobProcessingInstructionModel(job);
+                            if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                                continue;
+                            }
+
+                            foreach (var assignedJob in _assignedJobs) {
+                                if (newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                    _assignedJobs[assignedJob.Key] = newJob;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                _availableJobs.AddOrUpdate(newJob.Job.Id, newJob);
+                                found = true;
+                            }
+                        }
+                        if (found) {
+                            AdjustMaxWorkersAgentConfig();
+                        }
+                    }
+                    finally {
+                        _lockJobs.Release();
+                    }
+                }
+                if (!found) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Endpoint not found.");
+                }
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
@@ -552,7 +655,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
-                _lock.Release();
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(PublishNodesAsync), sw.Elapsed);
+                sw.Stop();
+                _lockConfig.Release();
             }
 
             return new List<string> { "Succeeded" };
@@ -560,27 +665,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public async Task<List<string>> UnpublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
-            _logger.Information("{nameof} method triggered", nameof(UnpublishNodesAsync));
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
+            _logger.Information("{nameof} method triggered ...", nameof(UnpublishNodesAsync));
+            var sw = Stopwatch.StartNew();
+            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
+                // ToDo: Uncomment ValidateRequest() once our test requests pass validation.
                 // This will throw SerializerException if values of request fields are not conformant.
-                var requestList = new List<PublishedNodesEntryModel> { request };
-                //ValidateRequest(requestList);
+                //ValidateRequest(request);
 
-                var updatedPublishedNodesEntries = RemoveNodes(
-                    _publishedNodesEntrys,
-                    requestList,
-                    out var entriesNotFound
-                );
+                // Create HashSet of nodes to remove.
+                var nodesToRemoveSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
+                nodesToRemoveSet.UnionWith(request.OpcNodes);
+
+                // ToDo: Use clone of _publishedNodesEntrys. -> Need to test.
+                var updatedPublishedNodesEntries = new List<PublishedNodesEntryModel>();
+                updatedPublishedNodesEntries.AddRange(_publishedNodesEntrys);
+
+                var existingGroup = new List<PublishedNodesEntryModel>();
+
+                foreach (var entry in updatedPublishedNodesEntries) {
+                    // We may have several entries with the same DataSetGroup definition,
+                    // so we will remove nodes only if the whole DataSet definition matches.
+                    if (IsSameDataSet(entry, request)) {
+                        var updatedNodes = new List<OpcNodeModel>();
+
+                        foreach (var node in entry.OpcNodes) {
+                            if (nodesToRemoveSet.Contains(node)) {
+                                // Found a node. Remove it from hash set.
+                                nodesToRemoveSet.Remove(node);
+                            }
+                            else {
+                                updatedNodes.Add(node);
+                            }
+                        }
+
+                        entry.OpcNodes = updatedNodes;
+                        existingGroup.Add(entry);
+                    }
+                }
 
                 // Report error if there were entries that we were not able to find.
-                if (entriesNotFound.Count != 0) {
-                    var entriesNotFoundJson = JsonSerializer.Serialize(entriesNotFound);
+                if (nodesToRemoveSet.Count != 0) {
+                    request.OpcNodes = nodesToRemoveSet.ToList();
+                    var entriesNotFoundJson = JsonSerializer.Serialize(request);
                     throw new MethodCallStatusException(entriesNotFoundJson, (int)HttpStatusCode.NotFound, "Nodes not found");
                 }
 
+                updatedPublishedNodesEntries = updatedPublishedNodesEntries.Where(entry => entry.OpcNodes.Count > 0).ToList();
+
+                _publishedNodesEntrys.Clear();
+                _publishedNodesEntrys.AddRange(updatedPublishedNodesEntries);
+
                 // Update published nodes file.
-                var updatedContent = JsonSerializer.Serialize(updatedPublishedNodesEntries);
+                var updatedContent = JsonSerializer.Serialize(_publishedNodesEntrys);
                 _publishedNodesProvider.WriteContent(updatedContent, true);
 
                 // Update local state.
@@ -596,45 +733,67 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
-                _lock.Release();
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(PublishNodesAsync), sw.Elapsed);
+                sw.Stop();
+                _lockConfig.Release();
             }
 
             return new List<string> { "Succeeded" };
         }
 
         /// <inheritdoc/>
-        public async Task UnpublishAllNodesAsync(CancellationToken ct) {
+        public async Task<List<string>> UnpublishAllNodesAsync(
+            PublishedNodesEntryModel request,
+            CancellationToken ct) {
             _logger.Information("{nameof} method triggered", nameof(UnpublishAllNodesAsync));
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
+            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
                 throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
             }
             finally {
-                _lock.Release();
+                _lockConfig.Release();
             }
         }
 
         /// <inheritdoc/>
-        public async Task GetConfiguredEndpointsAsync(CancellationToken ct = default) {
+        public async Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
+            CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredEndpointsAsync));
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
+            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
                 throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
             }
             finally {
-                _lock.Release();
+                _lockConfig.Release();
             }
         }
 
         /// <inheritdoc/>
-        public async Task GetConfiguredNodesOnEndpointAsync(CancellationToken ct = default) {
+        public async Task<PublishedNodesEntryModel> GetConfiguredNodesOnEndpointAsync(
+            PublishedNodesEntryModel request,
+            CancellationToken ct = default) {
+
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredNodesOnEndpointAsync));
-            await _lock.WaitAsync(ct).ConfigureAwait(false);
+            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
             try {
                 throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
             }
             finally {
-                _lock.Release();
+                _lockConfig.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<PublishedNodesEntryModel> GetDiagnosticInfoAsync(
+            PublishedNodesEntryModel request,
+            CancellationToken ct = default) {
+            _logger.Information("{nameof} method triggered", nameof(GetDiagnosticInfoAsync));
+            await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            try {
+                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+            }
+            finally {
+                _lockConfig.Release();
             }
         }
 
@@ -644,10 +803,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ILogger _logger;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private readonly PublishedNodesProvider _publishedNodesProvider;
-        private readonly SemaphoreSlim _lock;
+        private readonly SemaphoreSlim _lockJobs;
+        private readonly SemaphoreSlim _lockConfig;
         private readonly List<PublishedNodesEntryModel> _publishedNodesEntrys;
-        private ConcurrentDictionary<string, JobProcessingInstructionModel> _assignedJobs;
-        private ConcurrentDictionary<string, JobProcessingInstructionModel> _availableJobs;
+        private Dictionary<string, JobProcessingInstructionModel> _assignedJobs;
+        private Dictionary<string, JobProcessingInstructionModel> _availableJobs;
         private string _lastKnownFileHash = string.Empty;
         private DateTime _lastRead = DateTime.MinValue;
     }
