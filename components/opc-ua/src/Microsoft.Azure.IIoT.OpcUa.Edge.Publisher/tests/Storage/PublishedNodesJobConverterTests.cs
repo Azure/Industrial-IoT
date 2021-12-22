@@ -114,6 +114,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         }
 
         [Fact]
+        public async Task PnPlcPubSubDataSetWriterIdIsNullTest() {
+            var pn = @"
+[
+    {
+        ""EndpointUrl"": ""opc.tcp://localhost:50000"",
+        ""OpcNodes"": [
+            {
+                ""Id"": ""i=2258"",
+                ""HeartbeatInterval"": 2
+            }
+        ]
+    }
+]
+";
+            using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
+            var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
+            var legacyCli = new LegacyCliModel();
+            var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
+            var jobs = converter.ToWriterGroupJobs(entries, legacyCli);
+            Assert.NotEmpty(jobs);
+            Assert.Single(jobs);
+            Assert.Equal("1000", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSetWriterId);
+            Assert.Equal("1000", jobs
+                .Single().WriterGroup.DataSetWriters
+                .Single().DataSet.DataSetSource.Connection.Id);
+
+        }
+
+        [Fact]
         public async Task PnPlcPubSubDataSetWriterGroupTest() {
             var pn = @"
 [

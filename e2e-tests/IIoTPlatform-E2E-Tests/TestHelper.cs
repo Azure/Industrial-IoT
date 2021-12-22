@@ -24,6 +24,9 @@ namespace IIoTPlatform_E2E_Tests {
     using Xunit;
     using Xunit.Abstractions;
     using System.Text.RegularExpressions;
+    using Microsoft.Azure.Devices;
+    using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
 
     internal static partial class TestHelper {
 
@@ -651,6 +654,28 @@ namespace IIoTPlatform_E2E_Tests {
             return nodesToPublish;
         }
 
+
+        /// <summary>
+        /// Initialize DeviceServiceClient from IoT Hub connection string.
+        /// </summary>
+        /// <param name="iotHubConnectionString"></param>
+        /// <param name="transportType"></param>
+        public static ServiceClient DeviceServiceClient(
+            string iotHubConnectionString,
+            TransportType transportType = TransportType.Amqp_WebSocket_Only
+        ) {
+            ServiceClient iotHubClient;
+
+            if (string.IsNullOrWhiteSpace(iotHubConnectionString)) {
+                throw new ArgumentNullException(nameof(iotHubConnectionString));
+            }
+
+            return iotHubClient = ServiceClient.CreateFromConnectionString(
+                iotHubConnectionString,
+                transportType
+            );
+        }
+
         /// <summary>
         /// Gets endpoints from registry
         /// </summary>
@@ -682,7 +707,6 @@ namespace IIoTPlatform_E2E_Tests {
         /// <param name="e">Exception to be printed</param>
         /// <param name="outputHelper">XUnit Test OutputHelper instance or null (no print in this case)</param>
         private static void PrettyPrintException(Exception e, ITestOutputHelper outputHelper) {
-            if (outputHelper == null) return;
 
             var exception = e;
             while (exception != null) {
@@ -690,6 +714,34 @@ namespace IIoTPlatform_E2E_Tests {
                 outputHelper.WriteLine(exception.StackTrace);
                 outputHelper.WriteLine("");
                 exception = exception.InnerException;
+            }
+        }
+
+        /// <summary>
+        /// Call a direct method
+        /// </summary>
+        /// <param name="serviceClient">Device service client</param>
+        /// <param name="deviceId">Device Id</param>
+        /// <param name="moduleId">Module Id</param>
+        /// <param name="parameters">Method parameter </param>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="ct">Cancellation token</param>
+        public static async Task<MethodResultModel> CallMethodAsync(ServiceClient serviceClient, string deviceId, string moduleId,
+            MethodParameterModel parameters, IIoTPlatformTestContext context, CancellationToken ct) {
+            try {
+                var methodInfo = new CloudToDeviceMethod(parameters.Name);
+                methodInfo.SetPayloadJson(parameters.JsonPayload);
+                var result = await (string.IsNullOrEmpty(moduleId) ?
+                     serviceClient.InvokeDeviceMethodAsync(deviceId, methodInfo, ct) :
+                     serviceClient.InvokeDeviceMethodAsync(deviceId, moduleId, methodInfo, ct));
+                return new MethodResultModel {
+                    JsonPayload = result.GetPayloadAsJson(),
+                    Status = result.Status
+                };
+            }
+            catch (Exception e) {
+                PrettyPrintException(e, context.OutputHelper);
+                return null;
             }
         }
     }
