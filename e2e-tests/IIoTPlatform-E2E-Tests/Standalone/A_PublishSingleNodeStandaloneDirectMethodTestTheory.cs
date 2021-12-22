@@ -5,15 +5,18 @@
 
 namespace IIoTPlatform_E2E_Tests.Standalone {
     using IIoTPlatform_E2E_Tests.Deploy;
+    using Microsoft.Azure.Devices;
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using TestExtensions;
-    using TestModels;
     using Xunit;
     using Xunit.Abstractions;
+    using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
+    using System.Net;
 
     /// <summary>
     /// The test theory using different (ordered) test cases to go thru all required steps of publishing OPC UA node
@@ -25,9 +28,11 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
 
         private readonly ITestOutputHelper _output;
         private readonly IIoTMultipleNodesTestContext _context;
+        private readonly ServiceClient _iotHubClient;
+        private readonly IJsonSerializer _serializer;
         private string _iotHubConnectionString;
         private string _iotHubPublisherDeviceName;
-        private string _iotHubPublisherModuleName;
+        private string _iotHubPublisherModuleName; 
 
         public A_PublishSingleNodeStandaloneDirectMethodTestTheory(
             ITestOutputHelper output,
@@ -38,6 +43,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             _context.OutputHelper = _output;
             _iotHubConnectionString = _context.IoTHubConfig.IoTHubConnectionString;
             _iotHubPublisherDeviceName = _context.DeviceConfig.DeviceId;
+            _serializer = new NewtonSoftJsonSerializer();
+
+            // Initialize DeviceServiceClient from IoT Hub connection string.
+            _iotHubClient = TestHelper.DeviceServiceClient(
+                _iotHubConnectionString,
+                TransportType.Amqp_WebSocket_Only
+            );
         }
 
         // the test case for now are just empty container that deploy publisher resource
@@ -79,16 +91,15 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
-            //Todo
-            //Here instantiate _directMethod class and call the Publish direct method
-            //This is just a sample call
-            //_directMethods = new DirectMethodsAPIClient(_iotHubConnectionString, _iotHubPublisherDeviceName, _iotHubPublisherModuleName);
+            var request = model.ToApiModel();
 
-            //var publishingResult = await _directMethods.PublishNodesAsync(
-            //            model.EndpointUrl,
-            //            model.OpcNodes,
-            //            ct: cts.Token
-            //        ).ConfigureAwait(false);
+            //Call Publish direct method
+            var response = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
+                Name = "PublishNodes_V1",
+                JsonPayload = _serializer.SerializeToString(request)
+            }, _context, cts.Token).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
@@ -105,13 +116,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True((uint)publishingMonitoringResultJson.duplicateValueCount == 0,
                 $"Duplicate values detected: {(uint)publishingMonitoringResultJson.duplicateValueCount}");
 
-            //Todo
-            //Here call the Unpublish direct method. This is just a sample call
-            //publishingResult = await _directMethods.UnPublishNodesAsync(
-            //            model.EndpointUrl,
-            //            model.OpcNodes,
-            //            ct: cts.Token
-            //        ).ConfigureAwait(false);
+            //Call Unpublish direct method
+            response = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
+                Name = "UnPublishNodes_V1",
+                JsonPayload = _serializer.SerializeToString(request)
+            }, _context, cts.Token).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
@@ -164,16 +175,15 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             ).GetAwaiter().GetResult());
             Assert.Null(exception);
 
-            //Todo
-            //Here instantiate _directMethod class and call the Publish direct method
-            //This is just a sample call
-            //_directMethods = new DirectMethodsAPIClient(_iotHubConnectionString, _iotHubPublisherDeviceName, _iotHubPublisherModuleName);
+            var request = model.ToApiModel();
 
-            //var publishingResult = await _directMethods.PublishNodesAsync(
-            //            model.EndpointUrl,
-            //            model.OpcNodes,
-            //            ct: cts.Token
-            //        ).ConfigureAwait(false);
+            //Call Publish direct method
+            var response = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
+                Name = "PublishNodes",
+                JsonPayload = _serializer.SerializeToString(request)
+            }, _context, cts.Token).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
             // Use test event processor to verify data send to IoT Hub (expected* set to zero
             // as data gap analysis is not part of this test case).
@@ -190,13 +200,13 @@ namespace IIoTPlatform_E2E_Tests.Standalone {
             Assert.True((uint)publishingMonitoringResultJson.duplicateValueCount == 0,
                 $"Duplicate values detected: {(uint)publishingMonitoringResultJson.duplicateValueCount}");
 
-            //Todo
-            //Here call the Unpublish direct method. This is just a sample call
-            //publishingResult = await _directMethods.UnPublishNodesAsync(
-            //            model.EndpointUrl,
-            //            model.OpcNodes,
-            //            ct: cts.Token
-            //        ).ConfigureAwait(false);
+            //Call Unpublish direct method
+            response = await TestHelper.CallMethodAsync(_iotHubClient, _iotHubPublisherDeviceName, _iotHubPublisherModuleName, new MethodParameterModel {
+                Name = "UnpublishNodes",
+                JsonPayload = _serializer.SerializeToString(request)
+            }, _context, cts.Token).ConfigureAwait(false);
+
+            Assert.Equal((int)HttpStatusCode.OK, response.Status);
 
             // Wait till the publishing has stopped.
             await Task.Delay(TestConstants.DefaultTimeoutInMilliseconds, cts.Token);
