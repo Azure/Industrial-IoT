@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     .SelectMany(
                         n => n
                         .Distinct(opcNodeModelComparer)
-                        .Batch(1000)
+                        .Batch(legacyCliModel.DefaultMaxNodesPerDataSet.GetValueOrDefault(1000))
                     ).ToList()
                     .Select(
                         opcNodes => new PublishedDataSetSourceModel {
@@ -266,6 +266,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                 if (subset.Where(x => x.SubscriptionSettings.PublishingInterval == model.SubscriptionSettings.PublishingInterval).Count() > 1) {
                     result += $"_{model.PublishedVariables.PublishedData.First().PublishedVariableNodeId}";
                 }
+            }
+            else {
+                result ??= model.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds.ToString();
             }
             return result;
         }
