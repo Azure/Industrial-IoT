@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _lockConfig = new SemaphoreSlim(1, 1);
             _lockJobs = new SemaphoreSlim(1, 1);
 
-            _publishedNodesEntrys = new List<PublishedNodesEntryModel>();
+            _publishedNodesEntries = new List<PublishedNodesEntryModel>();
 
             RefreshJobFromFile();
             _publishedNodesProvider.FileSystemWatcher.Changed += _fileSystemWatcher_Changed;
@@ -218,7 +218,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger.Debug("File {publishedNodesFile} deleted. Clearing configuration ...", _legacyCliModel.PublishedNodesFile);
             _lockConfig.Wait();
             try {
-                _publishedNodesEntrys.Clear();
+                _publishedNodesEntries.Clear();
                 _lastKnownFileHash = string.Empty;
                 _lockJobs.Wait();
                 try {
@@ -268,107 +268,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 && entry1.DataSetPublishingInterval == entry2.DataSetPublishingInterval;
         }
 
-        private IEnumerable<PublishedNodesEntryModel> AddNodes(
-            IEnumerable<PublishedNodesEntryModel> entries,
-            IEnumerable<PublishedNodesEntryModel> entriesToAdd
-        ) {
-            var existingEntries = entries
-                .Select(entry => {
-                    // Pre-create HashSet of nodes for this entry.
-                    var existingNodesSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
-                    existingNodesSet.UnionWith(entry.OpcNodes);
-
-                    return Tuple.Create(entry, existingNodesSet);
-                })
-                .ToList();
-
-            foreach (var entryToAdd in entriesToAdd) {
-                bool foundMatchingEndpoint = false;
-
-                foreach (var existingEntry in existingEntries) {
-                    if (IsSameDataSet(entryToAdd, existingEntry.Item1)) {
-                        foreach (var nodeToAdd in entryToAdd.OpcNodes) {
-                            if (!existingEntry.Item2.Contains(nodeToAdd)) {
-                                existingEntry.Item1.OpcNodes.Add(nodeToAdd);
-                                existingEntry.Item2.Add(nodeToAdd);
-                            }
-                            else {
-                                _logger.Debug("Node \"{node}\" is already present for entry with \"{endpoint}\" endpoint.",
-                                    nodeToAdd.Id, entryToAdd.EndpointUrl);
-                            }
-                        }
-
-                        foundMatchingEndpoint = true;
-
-                        // We should not continue search for a matching endpoint.
-                        break;
-                    }
-                }
-
-                if (!foundMatchingEndpoint) {
-                    var entryToAddNodesSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
-                    entryToAddNodesSet.UnionWith(entryToAdd.OpcNodes);
-
-                    existingEntries.Add(Tuple.Create(entryToAdd, entryToAddNodesSet));
-                }
-            }
-
-            return existingEntries.ConvertAll(complexItem => complexItem.Item1);
-        }
-
-        private IEnumerable<PublishedNodesEntryModel> RemoveNodes(
-            IEnumerable<PublishedNodesEntryModel> entries,
-            IEnumerable<PublishedNodesEntryModel> entriesToRemove,
-            out List<PublishedNodesEntryModel> entriesNotFound
-        ) {
-            entriesNotFound = new List<PublishedNodesEntryModel>();
-
-            foreach (var entryToRemove in entriesToRemove) {
-                if (entryToRemove.OpcNodes.Count == 0) {
-                    // Nothing to do in this case.
-                    continue;
-                }
-
-                // Pre-create HashSet of nodes for this entry.
-                var nodesToRemoveSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
-                nodesToRemoveSet.UnionWith(entryToRemove.OpcNodes);
-
-                foreach (var entry in entries) {
-                    if (IsSameDataSet(entryToRemove, entry)) {
-                        var updatedNodes = new List<OpcNodeModel>();
-
-                        foreach (var node in entry.OpcNodes) {
-                            if (nodesToRemoveSet.Contains(node)) {
-                                // Found a node. Remove it from hash set.
-                                nodesToRemoveSet.Remove(node);
-                            }
-                            else {
-                                updatedNodes.Add(node);
-                            }
-                        }
-
-                        entry.OpcNodes = updatedNodes;
-                    }
-
-                    if (nodesToRemoveSet.Count == 0) {
-                        // We removed all nodes.
-                        break;
-                    }
-                }
-
-                // Remove entries without nodes.
-                entries = entries.Where(entry => entry.OpcNodes.Count != 0).ToList();
-
-                // Check if there were nodes that we were not able to find.
-                if (nodesToRemoveSet.Count != 0) {
-                    entryToRemove.OpcNodes = nodesToRemoveSet.ToList();
-                    entriesNotFound.Add(entryToRemove);
-                }
-            }
-
-            return entries;
-        }
-
         private void RefreshJobs(IEnumerable<PublishedNodesEntryModel> entries) {
             var availableJobs = new Dictionary<string, JobProcessingInstructionModel>();
             var assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
@@ -404,8 +303,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 AdjustMaxWorkersAgentConfig();
 
-                _publishedNodesEntrys.Clear();
-                _publishedNodesEntrys.AddRange(entries);
+                _publishedNodesEntries.Clear();
+                _publishedNodesEntries.AddRange(entries);
 
             }
             finally {
@@ -458,7 +357,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 _lockJobs.Release();
                             }
 
-                            _publishedNodesEntrys.Clear();
+                            _publishedNodesEntries.Clear();
                         }
 
                         TriggerAgentConfigUpdate();
@@ -499,7 +398,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     finally {
                         _lockJobs.Release();
                     }
-                    _publishedNodesEntrys.Clear();
+                    _publishedNodesEntries.Clear();
                     _lastKnownFileHash = string.Empty;
                     break;
                 }
@@ -564,6 +463,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             DeserializePublishedNodes(requestJson);
         }
 
+        /// <summary>
+        /// Persist _publishedNodesEntries to published nodes file.
+        /// </summary>
+        private void PersistPublishedNodes() {
+            var updatedContent = JsonSerializer.Serialize(_publishedNodesEntries);
+            _publishedNodesProvider.WriteContent(updatedContent, true);
+        }
+
         /// <inheritdoc/>
         public async Task<List<string>> PublishNodesAsync(PublishedNodesEntryModel request, CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered ... ", nameof(PublishNodesAsync));
@@ -576,7 +483,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 var dataSetFound = false;
                 var existingGroups = new List<PublishedNodesEntryModel>();
-                foreach (var entry in _publishedNodesEntrys) {
+                foreach (var entry in _publishedNodesEntries) {
                     if (entry.HasSameGroup(request)) {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will add nodes only if the whole DataSet definition matches.
@@ -607,12 +514,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 if (!dataSetFound) {
                     existingGroups.Add(request);
-                    _publishedNodesEntrys.Add(request);
+                    _publishedNodesEntries.Add(request);
                 }
 
-                // Update published nodes file.
-                var updatedContent = JsonSerializer.Serialize(_publishedNodesEntrys);
-                _publishedNodesProvider.WriteContent(updatedContent, true);
+                PersistPublishedNodes();
 
                 var found = false;
                 var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _legacyCliModel);
@@ -681,9 +586,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var nodesToRemoveSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
                 nodesToRemoveSet.UnionWith(request.OpcNodes);
 
-                // ToDo: Use clone of _publishedNodesEntrys. -> Need to test.
+                // ToDo: Use clone of _publishedNodesEntries. -> Need to test.
                 var updatedPublishedNodesEntries = new List<PublishedNodesEntryModel>();
-                updatedPublishedNodesEntries.AddRange(_publishedNodesEntrys);
+                updatedPublishedNodesEntries.AddRange(_publishedNodesEntries);
 
                 foreach (var entry in updatedPublishedNodesEntries) {
                     // We may have several entries with the same DataSetGroup definition,
@@ -714,12 +619,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 updatedPublishedNodesEntries = updatedPublishedNodesEntries.Where(entry => entry.OpcNodes.Count > 0).ToList();
 
-                _publishedNodesEntrys.Clear();
-                _publishedNodesEntrys.AddRange(updatedPublishedNodesEntries);
+                _publishedNodesEntries.Clear();
+                _publishedNodesEntries.AddRange(updatedPublishedNodesEntries);
 
-                // Update published nodes file.
-                var updatedContent = JsonSerializer.Serialize(_publishedNodesEntrys);
-                _publishedNodesProvider.WriteContent(updatedContent, true);
+                PersistPublishedNodes();
 
                 // Update local state.
                 RefreshJobs(updatedPublishedNodesEntries);
@@ -806,7 +709,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly PublishedNodesProvider _publishedNodesProvider;
         private readonly SemaphoreSlim _lockJobs;
         private readonly SemaphoreSlim _lockConfig;
-        private readonly List<PublishedNodesEntryModel> _publishedNodesEntrys;
+        private readonly List<PublishedNodesEntryModel> _publishedNodesEntries;
         private Dictionary<string, JobProcessingInstructionModel> _assignedJobs;
         private Dictionary<string, JobProcessingInstructionModel> _availableJobs;
         private string _lastKnownFileHash = string.Empty;

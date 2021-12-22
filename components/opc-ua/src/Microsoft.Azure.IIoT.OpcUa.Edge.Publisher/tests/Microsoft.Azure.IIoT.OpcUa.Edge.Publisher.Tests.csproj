@@ -35,9 +35,6 @@
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Utils\" />
-  </ItemGroup>
-  <ItemGroup>
     <None Update="Engine\empty_pn.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

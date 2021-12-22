@@ -138,7 +138,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         }
                     ).ToList()
                 ).ToList();
-                
+
                 if (!flattenedGroups.Any()) {
                     _logger.Information("No OpcNodes after job conversion.");
                     return Enumerable.Empty<WriterGroupJobModel>();

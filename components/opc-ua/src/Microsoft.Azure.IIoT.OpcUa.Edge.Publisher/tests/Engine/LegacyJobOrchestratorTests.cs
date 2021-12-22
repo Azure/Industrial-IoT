@@ -4,17 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
-    using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using Agent.Framework;
     using Agent.Framework.Models;
     using Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Utils;
     using Models;
-    using Module;
     using Moq;
     using Publisher.Engine;
     using Serializers.NewtonSoft;
@@ -24,25 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     /// <summary>
     /// Tests the LegacyJobOrchestrator class
     /// </summary>
-    public class LegacyJobOrchestratorTests {
-
-        private readonly string _tempPublishedNodesFile;
-
-        public LegacyJobOrchestratorTests() {
-            _tempPublishedNodesFile = Path.GetTempFileName();
-        }
-
-        public void Dispose() {
-            try {
-                // Remove temporary published nodes file if one was created.
-                if (File.Exists(_tempPublishedNodesFile)) {
-                    File.Delete(_tempPublishedNodesFile);
-                }
-            }
-            catch (Exception) {
-                // Nothign to do.
-            }
-        }
+    public class LegacyJobOrchestratorTests : TempFileProviderBase {
 
         [Theory]
         [InlineData("Engine/publishednodes.json")]
@@ -55,9 +35,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var logger = TraceLogger.Create();
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            Utils.CopyContent(publishedNodesFile, _tempPublishedNodesFile);
+            Utils.CopyContent(publishedNodesFile, _tempFile);
             var legacyCliModel = new LegacyCliModel {
-                PublishedNodesFile = _tempPublishedNodesFile,
+                PublishedNodesFile = _tempFile,
                 PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
             };
 
@@ -101,9 +81,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var logger = TraceLogger.Create();
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            Utils.CopyContent(publishedNodesFile, _tempPublishedNodesFile);
+            Utils.CopyContent(publishedNodesFile, _tempFile);
             var legacyCliModel = new LegacyCliModel {
-                PublishedNodesFile = _tempPublishedNodesFile,
+                PublishedNodesFile = _tempFile,
                 PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
             };
 
