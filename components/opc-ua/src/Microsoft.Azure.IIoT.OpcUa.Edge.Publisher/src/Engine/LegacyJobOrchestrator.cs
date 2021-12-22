@@ -577,27 +577,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var dataSetFound = false;
                 var existingGroups = new List<PublishedNodesEntryModel>();
                 foreach (var entry in _publishedNodesEntrys) {
-                    // We may have several entries with the same DataSetGroup definition,
-                    // so we will add nodes only if the whole DataSet definition matches.
-                    if (IsSameDataSet(entry, request)) {
-                        // Create HashSet of nodes for this entry.
-                        var existingNodesSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
-                        existingNodesSet.UnionWith(entry.OpcNodes);
+                    if (entry.HasSameGroup(request)) {
+                        // We may have several entries with the same DataSetGroup definition,
+                        // so we will add nodes only if the whole DataSet definition matches.
+                        if (IsSameDataSet(entry, request)) {
+                            // Create HashSet of nodes for this entry.
+                            var existingNodesSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
+                            existingNodesSet.UnionWith(entry.OpcNodes);
 
-                        foreach (var nodeToAdd in request.OpcNodes) {
-                            if (!existingNodesSet.Contains(nodeToAdd)) {
-                                entry.OpcNodes.Add(nodeToAdd);
-                                existingNodesSet.Add(nodeToAdd);
+                            foreach (var nodeToAdd in request.OpcNodes) {
+                                if (!existingNodesSet.Contains(nodeToAdd)) {
+                                    entry.OpcNodes.Add(nodeToAdd);
+                                    existingNodesSet.Add(nodeToAdd);
+                                }
+                                else {
+                                    _logger.Debug("Node \"{node}\" is already present for entry with \"{endpoint}\" endpoint.",
+                                        nodeToAdd.Id, entry.EndpointUrl);
+                                }
                             }
-                            else {
-                                _logger.Debug("Node \"{node}\" is already present for entry with \"{endpoint}\" endpoint.",
-                                    nodeToAdd.Id, entry.EndpointUrl);
-                            }
+
+                            dataSetFound = true;
                         }
 
-                        dataSetFound = true;
+                        // Even if DataSets did not match, we need to add this entry to existingGroups
+                        // so that generated job definition is complete.
                         existingGroups.Add(entry);
-                        break;
                     }
                 }
 
@@ -681,8 +685,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var updatedPublishedNodesEntries = new List<PublishedNodesEntryModel>();
                 updatedPublishedNodesEntries.AddRange(_publishedNodesEntrys);
 
-                var existingGroup = new List<PublishedNodesEntryModel>();
-
                 foreach (var entry in updatedPublishedNodesEntries) {
                     // We may have several entries with the same DataSetGroup definition,
                     // so we will remove nodes only if the whole DataSet definition matches.
@@ -700,7 +702,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         }
 
                         entry.OpcNodes = updatedNodes;
-                        existingGroup.Add(entry);
                     }
                 }
 

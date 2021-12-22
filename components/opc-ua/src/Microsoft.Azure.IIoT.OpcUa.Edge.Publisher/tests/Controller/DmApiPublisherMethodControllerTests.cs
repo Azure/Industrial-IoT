@@ -25,11 +25,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     using Xunit;
     using static Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent.PublisherJobsConfiguration;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
+    using System;
 
     /// <summary>
     /// Tests the Direct Methods API for the pubisher
     /// </summary>
     public class DmApiPublisherControllerTests {
+
+        private readonly string _tempPublishedNodesFile;
+
+        public DmApiPublisherControllerTests() {
+            _tempPublishedNodesFile = Path.GetTempFileName();
+        }
+
+        public void Dispose() {
+            try {
+                // Remove temporary published nodes file if one was created.
+                if (File.Exists(_tempPublishedNodesFile)) {
+                    File.Delete(_tempPublishedNodesFile);
+                }
+            }
+            catch (Exception) {
+                // Nothign to do.
+            }
+        }
 
         [Theory]
         [InlineData("Controller/DmApiPayloadCollection.json")]
@@ -41,10 +60,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
             var logger = TraceLogger.Create();
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
+
+            Utils.CopyContent("Engine/empty_pn.json", _tempPublishedNodesFile);
             var legacyCliModel = new LegacyCliModel {
-                PublishedNodesFile = "Engine/empty_pn.json",
+                PublishedNodesFile = _tempPublishedNodesFile,
                 PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
             };
+
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
@@ -137,8 +159,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var logger = TraceLogger.Create();
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
+            Utils.CopyContent("Engine/empty_pn.json", _tempPublishedNodesFile);
             var legacyCliModel = new LegacyCliModel {
-                PublishedNodesFile = "Engine/empty_pn.json",
+                PublishedNodesFile = _tempPublishedNodesFile,
                 PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
             };
 

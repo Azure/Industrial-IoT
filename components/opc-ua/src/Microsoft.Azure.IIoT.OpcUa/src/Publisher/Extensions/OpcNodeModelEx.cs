@@ -58,6 +58,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
+            if (model.HeartbeatInterval != that.HeartbeatInterval) {
+                return false;
+            }
+
             return true;
         }
 
@@ -74,7 +78,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 defaultPublishing.HasValue ?
                     model.OpcPublishingInterval.GetValueOrDefault(defaultPublishing.Value) :
                     model.OpcPublishingInterval,
-                model.OpcSamplingInterval) ;
+                model.OpcSamplingInterval,
+                model.HeartbeatInterval
+            ) ;
         }
 
         /// <summary>

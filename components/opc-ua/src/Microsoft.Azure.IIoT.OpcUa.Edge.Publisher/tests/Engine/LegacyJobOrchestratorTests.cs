@@ -4,7 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
+    using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using Agent.Framework;
@@ -24,6 +26,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
     /// </summary>
     public class LegacyJobOrchestratorTests {
 
+        private readonly string _tempPublishedNodesFile;
+
+        public LegacyJobOrchestratorTests() {
+            _tempPublishedNodesFile = Path.GetTempFileName();
+        }
+
+        public void Dispose() {
+            try {
+                // Remove temporary published nodes file if one was created.
+                if (File.Exists(_tempPublishedNodesFile)) {
+                    File.Delete(_tempPublishedNodesFile);
+                }
+            }
+            catch (Exception) {
+                // Nothign to do.
+            }
+        }
+
         [Theory]
         [InlineData("Engine/publishednodes.json")]
         [InlineData("Engine/publishednodeswithoptionalfields.json")]
@@ -35,7 +55,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var logger = TraceLogger.Create();
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = publishedNodesFile, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            Utils.CopyContent(publishedNodesFile, _tempPublishedNodesFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempPublishedNodesFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
@@ -76,7 +101,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
             var logger = TraceLogger.Create();
             var publishedNodesJobConverter = new PublishedNodesJobConverter(logger, newtonSoftJsonSerializer);
 
-            var legacyCliModel = new LegacyCliModel { PublishedNodesFile = publishedNodesFile, PublishedNodesSchemaFile = "Storage/publishednodesschema.json" };
+            Utils.CopyContent(publishedNodesFile, _tempPublishedNodesFile);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = _tempPublishedNodesFile,
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+
             legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
             agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
 
