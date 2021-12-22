@@ -266,7 +266,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() { 
+            var legacyCli = new LegacyCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromSeconds(5)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
@@ -713,7 +713,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Equal(2, jobs.Single()
                 .WriterGroup.DataSetWriters.Single()
                 .DataSet.DataSetSource.PublishedVariables.PublishedData.Single()
-                .HeartbeatInterval.Value.TotalSeconds);
+                .HeartbeatInterval.Value.TotalMilliseconds);
         }
 
         [Fact]
@@ -726,7 +726,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         ""OpcNodes"": [
             {
                 ""Id"": ""i=2258"",
-                ""HeartbeatIntervalTimespan"": ""00:00:01.500""
+                ""HeartbeatInterval"": 1500
             }
         ]
     }

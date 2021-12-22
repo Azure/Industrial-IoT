@@ -62,7 +62,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 agentConfigProviderMock.Object,
                 jobSerializer,
                 logger,
-                publishedNodesProvider
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
 
             string payload = Utils.GetFileContent(publishedNodesFile);
@@ -128,7 +129,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 agentConfigProviderMock.Object,
                 jobSerializer,
                 logger,
-                publishedNodesProvider
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
 
             string payload = Utils.GetFileContent(newConfig);
@@ -195,7 +197,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 agentConfigProviderMock.Object,
                 jobSerializer,
                 logger,
-                publishedNodesProvider
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
 
             string payload = Utils.GetFileContent(newConfig);
@@ -261,7 +264,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 agentConfigProviderMock.Object,
                 jobSerializer,
                 logger,
-                publishedNodesProvider
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
 
             string payload = Utils.GetFileContent(publishedNodesFile);
@@ -319,7 +323,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 agentConfigProviderMock.Object,
                 jobSerializer,
                 logger,
-                publishedNodesProvider
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
 
             string payload = Utils.GetFileContent(newConfig);
@@ -381,7 +386,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 agentConfigProviderMock.Object,
                 jobSerializer,
                 logger,
-                publishedNodesProvider
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
 
             var numberOfEndpoints = 100;

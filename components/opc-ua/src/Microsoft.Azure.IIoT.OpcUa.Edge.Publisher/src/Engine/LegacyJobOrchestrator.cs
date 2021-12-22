@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Module;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -25,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
-    using System.Text.Json;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -40,9 +39,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="jobSerializer">The serializer to (de)serialize job information.</param>
         /// <param name="logger">Logger to write log messages.</param>
         /// <param name="publishedNodesProvider">Published nodes provider.</param>
+        /// <param name="jsonSerializer">Json serializer.</param>
         public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter,
             ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigProvider,
-            IJobSerializer jobSerializer, ILogger logger, PublishedNodesProvider publishedNodesProvider) {
+            IJobSerializer jobSerializer, ILogger logger, PublishedNodesProvider publishedNodesProvider,
+            IJsonSerializer jsonSerializer
+        ) {
             _publishedNodesJobConverter = publishedNodesJobConverter
                 ?? throw new ArgumentNullException(nameof(publishedNodesJobConverter));
             _legacyCliModel = legacyCliModelProvider.LegacyCliModel
@@ -53,6 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _jobSerializer = jobSerializer ?? throw new ArgumentNullException(nameof(jobSerializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _publishedNodesProvider = publishedNodesProvider ?? throw new ArgumentNullException(nameof(publishedNodesProvider));
+            _jsonSerializer = jsonSerializer ?? throw new ArgumentNullException(nameof(jsonSerializer));
 
             _availableJobs = new Dictionary<string, JobProcessingInstructionModel>();
             _assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
@@ -457,7 +460,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private void ValidateRequest(PublishedNodesEntryModel request) {
             var requestList = new List<PublishedNodesEntryModel> { request };
-            var requestJson = JsonSerializer.Serialize(requestList);
+            var requestJson = _jsonSerializer.SerializeToString(requestList);
 
             // This will throw SerializerException if values of request fields are not conformant.
             DeserializePublishedNodes(requestJson);
@@ -467,7 +470,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// Persist _publishedNodesEntries to published nodes file.
         /// </summary>
         private void PersistPublishedNodes() {
-            var updatedContent = JsonSerializer.Serialize(_publishedNodesEntries);
+            var updatedContent = _jsonSerializer.SerializeToString(_publishedNodesEntries, SerializeOption.Indented);
             _publishedNodesProvider.WriteContent(updatedContent, true);
         }
 
@@ -613,7 +616,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 // Report error if there were entries that we were not able to find.
                 if (nodesToRemoveSet.Count != 0) {
                     request.OpcNodes = nodesToRemoveSet.ToList();
-                    var entriesNotFoundJson = JsonSerializer.Serialize(request);
+                    var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
                     throw new MethodCallStatusException(entriesNotFoundJson, (int)HttpStatusCode.NotFound, "Nodes not found");
                 }
 
@@ -707,6 +710,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly ILogger _logger;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
         private readonly PublishedNodesProvider _publishedNodesProvider;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly SemaphoreSlim _lockJobs;
         private readonly SemaphoreSlim _lockConfig;
         private readonly List<PublishedNodesEntryModel> _publishedNodesEntries;

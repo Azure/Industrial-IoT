@@ -46,18 +46,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
 
-            var converter = new LegacyJobOrchestrator(
+            var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
                 logger,
-                publishedNodesProvider
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
             for (var i = 0; i < 10; i++) {
-                tasks.Add(converter.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
+                tasks.Add(orchestrator.GetAvailableJobAsync(i.ToString(), new JobRequestModel()));
             }
 
             await Task.WhenAll(tasks);
@@ -92,20 +93,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
             var publishedNodesProvider = new PublishedNodesProvider(legacyCliModel, logger);
 
-            var converter = new LegacyJobOrchestrator(
+            var orchestrator = new LegacyJobOrchestrator(
                 publishedNodesJobConverter,
                 legacyCliModelProviderMock.Object,
                 agentConfigProviderMock.Object,
                 jobSerializer,
                 TraceLogger.Create(),
-                publishedNodesProvider
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
 
-            var job1 = converter.GetAvailableJobAsync(1.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var job1 = orchestrator.GetAvailableJobAsync(1.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.NotNull(job1);
-            var job2 = converter.GetAvailableJobAsync(2.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var job2 = orchestrator.GetAvailableJobAsync(2.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.NotNull(job2);
-            var job3 = converter.GetAvailableJobAsync(3.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
+            var job3 = orchestrator.GetAvailableJobAsync(3.ToString(), new JobRequestModel()).GetAwaiter().GetResult();
             Assert.Null(job3);
 
             Assert.NotEqual(job1.Job.Id, job2.Job.Id);

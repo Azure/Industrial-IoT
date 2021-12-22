@@ -60,7 +60,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 agentConfigProviderMock.Object,
                 jobSerializer,
                 logger,
-                publishedNodesProvider
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
             var methodsController = new PublisherMethodsController(orchestrator);
 
@@ -158,7 +159,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 agentConfigProviderMock.Object,
                 jobSerializer,
                 logger,
-                publishedNodesProvider
+                publishedNodesProvider,
+                newtonSoftJsonSerializer
             );
             var methodsController = new PublisherMethodsController(orchestrator);
 
