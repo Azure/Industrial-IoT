@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Agent.Framework.Exceptions;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -503,6 +504,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             catch (MethodCallStatusException) {
                 throw;
+            }
+            catch (UnknownJobTypeException ex) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, ex.Message);
             }
             catch (Exception e) {
                 throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
