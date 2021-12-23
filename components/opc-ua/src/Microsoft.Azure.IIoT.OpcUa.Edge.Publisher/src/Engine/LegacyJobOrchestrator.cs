@@ -501,7 +501,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
-                response.Add($"{nameof(PublishNodesAsync)}# Publishing succeeded for EndpointUrl: {request.EndpointUrl}");
+                response.Add($"Publishing succeeded for EndpointUrl: {request.EndpointUrl}");
             }
             catch (MethodCallStatusException) {
                 throw;
