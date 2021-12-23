@@ -713,7 +713,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Equal(2, jobs.Single()
                 .WriterGroup.DataSetWriters.Single()
                 .DataSet.DataSetSource.PublishedVariables.PublishedData.Single()
-                .HeartbeatInterval.Value.TotalMilliseconds);
+                .HeartbeatInterval.Value.TotalSeconds);
         }
 
         [Fact]
@@ -726,7 +726,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
         ""OpcNodes"": [
             {
                 ""Id"": ""i=2258"",
-                ""HeartbeatInterval"": 1500
+                ""HeartbeatIntervalTimespan"": ""00:00:01.500""
             }
         ]
     }

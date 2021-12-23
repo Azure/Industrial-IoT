@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -25,9 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? OpcSamplingInterval { get; set; }
 
-        /// <summary>
-        /// OpcSamplingInterval as TimeSpan.
-        /// </summary>
+        /// <summary> OpcSamplingInterval as TimeSpan. </summary>
         [IgnoreDataMember]
         public TimeSpan? OpcSamplingIntervalTimespan {
             get => OpcSamplingInterval.HasValue
@@ -42,9 +40,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? OpcPublishingInterval { get; set; }
 
-        /// <summary>
-        /// OpcPublishingInterval as TimeSpan.
-        /// </summary>
+        /// <summary> OpcPublishingInterval as TimeSpan. </summary>
         [IgnoreDataMember]
         public TimeSpan? OpcPublishingIntervalTimespan {
             get => OpcPublishingInterval.HasValue
@@ -63,22 +59,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DisplayName { get; set; }
 
-        /// <summary> Heartbeat interval in milliseconds </summary>
+        /// <summary> Heartbeat interval in seconds </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
-        public int? HeartbeatInterval { get; set; }
-
-        /// <summary>
-        /// HeartbeatInterval as TimeSpan.
-        /// </summary>
-        [IgnoreDataMember]
-        public TimeSpan? HeartbeatIntervalTimespan {
-            get => HeartbeatInterval.HasValue
-                ? TimeSpan.FromMilliseconds(HeartbeatInterval.Value)
-                : (TimeSpan?)null;
-            set => HeartbeatInterval = value != null
-                ? (int)value.Value.TotalMilliseconds
-                : (int?)null;
+        public int? HeartbeatInterval {
+            get => HeartbeatIntervalTimespan.HasValue
+                ? (int)HeartbeatIntervalTimespan.Value.TotalSeconds
+                : default;
+            set => HeartbeatIntervalTimespan = value.HasValue
+                ? TimeSpan.FromSeconds(value.Value)
+                : default;
         }
+
+        /// <summary> Heartbeat interval as TimeSpan. </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false)]
+        public TimeSpan? HeartbeatIntervalTimespan { get; set; }
 
         /// <summary> Skip first value </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
