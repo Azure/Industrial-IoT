@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage;
@@ -287,6 +288,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var availableJobs = new Dictionary<string, JobProcessingInstructionModel>();
             var assignedJobs = new Dictionary<string, JobProcessingInstructionModel>();
 
+            var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _legacyCliModel);
+
             _lockJobs.Wait();
             try {
                 // Create JobId to WorkerId dictionary for fast lookup.
@@ -294,7 +297,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     .Select(kvp => Tuple.Create(kvp.Value.Job.Id, kvp.Key))
                     .ToDictionary(tuple => tuple.Item1);
 
-                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(entries, _legacyCliModel);
                 if (jobs.Any()) {
                     foreach (var job in jobs) {
                         var newJob = ToJobProcessingInstructionModel(job);
@@ -567,8 +569,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         _lockJobs.Release();
                     }
                 }
+
                 if (!found) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Endpoint not found.");
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                        $"Endpoint not found: {request.EndpointUrl}");
                 }
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
@@ -607,24 +611,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var updatedPublishedNodesEntries = new List<PublishedNodesEntryModel>();
                 updatedPublishedNodesEntries.AddRange(_publishedNodesEntries);
 
+                var existingGroups = new List<PublishedNodesEntryModel>();
                 foreach (var entry in updatedPublishedNodesEntries) {
-                    // We may have several entries with the same DataSetGroup definition,
-                    // so we will remove nodes only if the whole DataSet definition matches.
-                    if (IsSameDataSet(entry, request)) {
-                        var updatedNodes = new List<OpcNodeModel>();
+                    if (entry.HasSameGroup(request)) {
+                        // We may have several entries with the same DataSetGroup definition,
+                        // so we will remove nodes only if the whole DataSet definition matches.
+                        if (IsSameDataSet(entry, request)) {
+                            var updatedNodes = new List<OpcNodeModel>();
 
-                        foreach (var node in entry.OpcNodes) {
-                            if (nodesToRemoveSet.Contains(node)) {
-                                // Found a node. Remove it from hash set.
-                                nodesToRemoveSet.Remove(node);
+                            foreach (var node in entry.OpcNodes) {
+                                if (nodesToRemoveSet.Contains(node)) {
+                                    // Found a node. Remove it from hash set.
+                                    nodesToRemoveSet.Remove(node);
+                                }
+                                else {
+                                    updatedNodes.Add(node);
+                                }
                             }
-                            else {
-                                updatedNodes.Add(node);
-                            }
+
+                            entry.OpcNodes = updatedNodes;
                         }
 
-                        entry.OpcNodes = updatedNodes;
+                        // Even if DataSets did not match, we need to add this entry to existingGroups
+                        // so that generated job definition is complete.
+                        existingGroups.Add(entry);
                     }
+
+                }
+
+                if (existingGroups.Count == 0) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                        $"Endpoint not found: {request.EndpointUrl}");
                 }
 
                 // Report error if there were entries that we were not able to find.
@@ -641,8 +658,54 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 PersistPublishedNodes();
 
-                // Update local state.
-                RefreshJobs(updatedPublishedNodesEntries);
+                var found = false;
+                var jobs = _publishedNodesJobConverter.ToWriterGroupJobs(existingGroups, _legacyCliModel);
+
+                await _lockJobs.WaitAsync(ct).ConfigureAwait(false);
+                try {
+                    if (jobs.Any()) {
+                        foreach (var job in jobs) {
+                            var newJob = ToJobProcessingInstructionModel(job);
+                            if (string.IsNullOrEmpty(newJob?.Job?.Id)) {
+                                continue;
+                            }
+
+                            foreach (var assignedJob in _assignedJobs) {
+                                if (newJob.Job.Id == assignedJob.Value.Job.Id) {
+                                    _assignedJobs[assignedJob.Key] = newJob;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found && _availableJobs.ContainsKey(newJob.Job.Id)) {
+                                _availableJobs[newJob.Job.Id] = newJob;
+                                found = true;
+                            }
+                        }
+                    }
+
+                    if (!found) {
+                        var entryJobId = _publishedNodesJobConverter.
+                            ToConnectionModel(request, _legacyCliModel).CreateConnectionId();
+                        foreach (var assignedJob in _assignedJobs) {
+                            if (entryJobId == assignedJob.Value.Job.Id) {
+                                found = _assignedJobs.Remove(assignedJob.Key, out _);
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            found = _availableJobs.Remove(entryJobId, out _);
+                        }
+                    }
+                }
+                finally {
+                    _lockJobs.Release();
+                }
+
+                if (!found) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                        $"Endpoint not found: {request.EndpointUrl}");
+                }
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();

@@ -207,6 +207,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     }
                 } : null);
 
+                result = result.Where(job => job != null);
+
                 var counter = 0;
                 if (result.Any()) {
                     foreach (var job in result) {
