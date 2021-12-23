@@ -3,14 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-using Serilog;
-using System;
-using System.IO;
-using System.Text;
-using System.Threading;
-
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
+
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Serilog;
+    using System;
+    using System.IO;
+    using System.Text;
+    using System.Threading;
 
     /// <summary>
     /// Utilities provider for published nodes file.
@@ -98,11 +98,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
         /// <param name="content"> Content to be written. </param>
         /// <param name="disableRaisingEvents"> If set FileSystemWatcher notifications will be disabled while updating the file.</param>
         public void WriteContent(string content, bool disableRaisingEvents = false) {
+
+            // Store current state.
+            bool eventState = FileSystemWatcher.EnableRaisingEvents;
+
             _lock.Wait();
             try {
-                // Store current state.
-                var eventState = FileSystemWatcher.EnableRaisingEvents;
-
                 if (disableRaisingEvents) {
                     FileSystemWatcher.EnableRaisingEvents = false;
                 }
@@ -141,12 +142,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
                     }
                 }
 
+            }
+            finally {
                 // Retore state.
                 if (disableRaisingEvents) {
                     FileSystemWatcher.EnableRaisingEvents = eventState;
                 }
-            }
-            finally {
+
                 _lock.Release();
             }
         }
