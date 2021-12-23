@@ -445,6 +445,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger.Information("{nameof} method triggered ... ", nameof(PublishNodesAsync));
             var sw = Stopwatch.StartNew();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            var response = new List<string>();
             try {
                 var nodeFound = false;
                 var existingGroup = new List<PublishedNodesEntryModel>();
@@ -495,11 +496,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }
                 }
                 if (!found) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Endpoint not found.");
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, $"Endpoint: {request.EndpointUrl} not found.");
                 }
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
+                response.Add($"Publishing succeeded for EndpointUrl: {request.EndpointUrl}");
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -513,7 +515,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _lockConfig.Release();
             }
 
-            return new List<string> { "Succeeded" };
+            return response;
         }
 
         /// <inheritdoc/>

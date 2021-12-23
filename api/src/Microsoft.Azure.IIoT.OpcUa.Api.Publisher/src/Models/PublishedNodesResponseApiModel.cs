@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class PublishedNodesResponseApiModel {
 
         /// <summary>
-        /// Endpoint URL for the OPC Nodes to monitor
+        /// Status messages
         /// </summary>
         [DataMember(Name = "statusMessage", Order = 0)]
         [Required]
