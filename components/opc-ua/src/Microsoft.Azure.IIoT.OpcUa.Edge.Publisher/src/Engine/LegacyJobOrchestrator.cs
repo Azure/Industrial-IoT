@@ -252,16 +252,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="content"></param>
         /// <returns></returns>
         private IEnumerable<PublishedNodesEntryModel> DeserializePublishedNodes(string content) {
-            if (!File.Exists(_legacyCliModel.PublishedNodesSchemaFile)) {
-                _logger.Information("Validation schema file {PublishedNodesSchemaFile} does not exist or is disabled, ignoring validation of {publishedNodesFile} file...",
-                _legacyCliModel.PublishedNodesSchemaFile, _legacyCliModel.PublishedNodesFile);
-                return _publishedNodesJobConverter.Read(content, null);
-            }
-            else {
-                using (var fileSchemaReader = new StreamReader(_legacyCliModel.PublishedNodesSchemaFile)) {
-                    return _publishedNodesJobConverter.Read(content, fileSchemaReader);
+            bool ioErrorEncountered = false;
+            if (File.Exists(_legacyCliModel.PublishedNodesSchemaFile)) {
+                try {
+                    using (var fileSchemaReader = new StreamReader(_legacyCliModel.PublishedNodesSchemaFile)) {
+                        return _publishedNodesJobConverter.Read(content, fileSchemaReader);
+                    }
+                }
+                catch (IOException e) {
+                    _logger.Warning(e, "File IO exception when reading published nodes schema file at \"{path}\"." +
+                        "Falling back to deserializing content of published nodes file without schema validation.",
+                        _legacyCliModel.PublishedNodesSchemaFile);
+                    ioErrorEncountered = true;
                 }
             }
+
+            // Deserialize without schema validation.
+            if (!ioErrorEncountered) {
+                _logger.Information("Validation schema file {PublishedNodesSchemaFile} does not exist or is disabled, " +
+                    "ignoring validation of {publishedNodesFile} file.",
+                    _legacyCliModel.PublishedNodesSchemaFile, _legacyCliModel.PublishedNodesFile);
+            }
+
+            return _publishedNodesJobConverter.Read(content, null);
         }
 
         private bool IsSameDataSet(PublishedNodesEntryModel entry1, PublishedNodesEntryModel entry2) {
