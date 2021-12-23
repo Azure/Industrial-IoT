@@ -317,10 +317,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _assignedJobs = assignedJobs;
 
                 AdjustMaxWorkersAgentConfig();
-
-                _publishedNodesEntries.Clear();
-                _publishedNodesEntries.AddRange(entries);
-
             }
             finally {
                 _lockJobs.Release();
@@ -359,6 +355,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                                 _lastKnownFileHash = lastValidFileHash;
                                 break;
                             }
+
+                            _publishedNodesEntries.Clear();
+                            _publishedNodesEntries.AddRange(entries);
 
                             RefreshJobs(entries);
                         }
@@ -484,6 +483,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private void PersistPublishedNodes() {
             var updatedContent = _jsonSerializer.SerializeToString(_publishedNodesEntries, SerializeOption.Indented);
             _publishedNodesProvider.WriteContent(updatedContent, true);
+
+            // Update _lastKnownFileHash
+            _lastKnownFileHash = GetChecksum(updatedContent);
         }
 
         /// <inheritdoc/>
