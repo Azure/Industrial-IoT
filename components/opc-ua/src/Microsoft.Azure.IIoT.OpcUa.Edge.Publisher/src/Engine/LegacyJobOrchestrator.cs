@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="jsonSerializer">Json serializer.</param>
         public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter,
             ILegacyCliModelProvider legacyCliModelProvider, IAgentConfigProvider agentConfigProvider,
-            IJobSerializer jobSerializer, ILogger logger, PublishedNodesProvider publishedNodesProvider,
+            IJobSerializer jobSerializer, ILogger logger, IPublishedNodesProvider publishedNodesProvider,
             IJsonSerializer jsonSerializer
         ) {
             _publishedNodesJobConverter = publishedNodesJobConverter
@@ -66,11 +66,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _publishedNodesEntries = new List<PublishedNodesEntryModel>();
 
             RefreshJobFromFile();
-            _publishedNodesProvider.FileSystemWatcher.Changed += _fileSystemWatcher_Changed;
-            _publishedNodesProvider.FileSystemWatcher.Created += _fileSystemWatcher_Created;
-            _publishedNodesProvider.FileSystemWatcher.Renamed += _fileSystemWatcher_Renamed;
-            _publishedNodesProvider.FileSystemWatcher.Deleted += _fileSystemWatcher_Deleted;
-            _publishedNodesProvider.FileSystemWatcher.EnableRaisingEvents = true;
+            _publishedNodesProvider.Changed += _fileSystemWatcher_Changed;
+            _publishedNodesProvider.Created += _fileSystemWatcher_Created;
+            _publishedNodesProvider.Renamed += _fileSystemWatcher_Renamed;
+            _publishedNodesProvider.Deleted += _fileSystemWatcher_Deleted;
+            _publishedNodesProvider.EnableRaisingEvents = true;
         }
 
         /// <summary>
@@ -191,12 +191,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         /// <inheritdoc/>
         public void Dispose() {
-            if (_publishedNodesProvider.FileSystemWatcher != null) {
-                _publishedNodesProvider.FileSystemWatcher.EnableRaisingEvents = false;
-                _publishedNodesProvider.FileSystemWatcher.Changed -= _fileSystemWatcher_Changed;
-                _publishedNodesProvider.FileSystemWatcher.Created -= _fileSystemWatcher_Created;
-                _publishedNodesProvider.FileSystemWatcher.Renamed -= _fileSystemWatcher_Renamed;
-                _publishedNodesProvider.FileSystemWatcher.Deleted -= _fileSystemWatcher_Deleted;
+            if (_publishedNodesProvider != null) {
+                _publishedNodesProvider.EnableRaisingEvents = false;
+                _publishedNodesProvider.Changed -= _fileSystemWatcher_Changed;
+                _publishedNodesProvider.Created -= _fileSystemWatcher_Created;
+                _publishedNodesProvider.Renamed -= _fileSystemWatcher_Renamed;
+                _publishedNodesProvider.Deleted -= _fileSystemWatcher_Deleted;
             }
             _lockConfig?.Dispose();
             _lockJobs?.Dispose();
@@ -788,7 +788,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly IAgentConfigProvider _agentConfig;
         private readonly ILogger _logger;
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;
-        private readonly PublishedNodesProvider _publishedNodesProvider;
+        private readonly IPublishedNodesProvider _publishedNodesProvider;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly SemaphoreSlim _lockJobs;
         private readonly SemaphoreSlim _lockConfig;

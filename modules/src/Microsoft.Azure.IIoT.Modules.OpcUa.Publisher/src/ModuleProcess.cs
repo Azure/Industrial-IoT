@@ -216,7 +216,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     .AsImplementedInterfaces().SingleInstance();
                 // Published nodes file provider
                 builder.RegisterType<PublishedNodesProvider>()
-                    .SingleInstance();
+                    .AsImplementedInterfaces().SingleInstance();
                 // Local orchestrator
                 builder.RegisterType<LegacyJobOrchestrator>()
                     .AsImplementedInterfaces().SingleInstance();

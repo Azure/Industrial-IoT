@@ -20,12 +20,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
         private readonly LegacyCliModel _legacyCliModel;
         private readonly ILogger _logger;
         private readonly SemaphoreSlim _lock;
+        private readonly FileSystemWatcher _fileSystemWatcher;
 
-        /// <summary>
-        /// Listens to the file system change notifications and raises events when a directory,
-        /// or file in a directory, changes.
-        /// </summary>
-        public readonly FileSystemWatcher FileSystemWatcher;
+        /// <inheritdoc/>
+        public event FileSystemEventHandler Deleted;
+
+        /// <inheritdoc/>
+        public event FileSystemEventHandler Created;
+
+        /// <inheritdoc/>
+        public event FileSystemEventHandler Changed;
+
+        /// <inheritdoc/>
+        public event RenamedEventHandler Renamed;
+
+        /// <inheritdoc/>
+        public bool EnableRaisingEvents {
+            get { return _fileSystemWatcher.EnableRaisingEvents; }
+            set { _fileSystemWatcher.EnableRaisingEvents = value; }
+        }
 
         /// <summary>
         /// Provider of utilities for published nodes file.
@@ -46,15 +59,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
             }
 
             var file = Path.GetFileName(_legacyCliModel.PublishedNodesFile);
-            FileSystemWatcher = new FileSystemWatcher(directory, file);
+            _fileSystemWatcher = new FileSystemWatcher(directory, file);
+            _fileSystemWatcher.Deleted += Deleted;
+            _fileSystemWatcher.Created += Created;
+            _fileSystemWatcher.Changed += Changed;
+            _fileSystemWatcher.Renamed += Renamed;
 
             _lock = new SemaphoreSlim(1, 1);
         }
 
-        /// <summary>
-        /// Get last write time of published nodes file.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public DateTime GetLastWriteTime() {
             _lock.Wait();
             try {
@@ -65,10 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
             }
         }
 
-        /// <summary>
-        /// Read content of published nodes file.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public string ReadContent() {
             _lock.Wait();
             try {
@@ -92,20 +103,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
 
         }
 
-        /// <summary>
-        /// Write new content to published nodes file
-        /// </summary>
-        /// <param name="content"> Content to be written. </param>
-        /// <param name="disableRaisingEvents"> If set FileSystemWatcher notifications will be disabled while updating the file.</param>
+        /// <inheritdoc/>
         public void WriteContent(string content, bool disableRaisingEvents = false) {
 
             // Store current state.
-            bool eventState = FileSystemWatcher.EnableRaisingEvents;
+            bool eventState = _fileSystemWatcher.EnableRaisingEvents;
 
             _lock.Wait();
             try {
                 if (disableRaisingEvents) {
-                    FileSystemWatcher.EnableRaisingEvents = false;
+                    _fileSystemWatcher.EnableRaisingEvents = false;
                 }
 
                 try {
@@ -120,6 +127,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
                     }
                 }
                 catch (IOException e) {
+
+                    _logger.Warning("Failed to update published nodes file at \"{path}\" with restricted share policies. " +
+                        "Please close any other application that uses this file. " +
+                        "Falling back to opening it with more relaxed share policies.",
+                        _legacyCliModel.PublishedNodesFile);
 
                     // We will fall back to writing with ReadWrite access.
                     try {
@@ -146,7 +158,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
             finally {
                 // Retore state.
                 if (disableRaisingEvents) {
-                    FileSystemWatcher.EnableRaisingEvents = eventState;
+                    _fileSystemWatcher.EnableRaisingEvents = eventState;
                 }
 
                 _lock.Release();
@@ -155,7 +167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage {
 
         /// <inheritdoc/>
         public void Dispose() {
-            FileSystemWatcher?.Dispose();
+            _fileSystemWatcher?.Dispose();
         }
     }
 }
