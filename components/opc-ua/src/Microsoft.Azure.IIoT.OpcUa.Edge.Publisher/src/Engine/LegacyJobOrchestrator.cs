@@ -495,6 +495,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             _logger.Information("{nameof} method triggered ... ", nameof(PublishNodesAsync));
             var sw = Stopwatch.StartNew();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            var response = new List<string>();
             try {
                 // ToDo: Uncomment ValidateRequest() once our test requests pass validation.
                 // This will throw SerializerException if values of request fields are not conformant.
@@ -577,6 +578,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
                 // fire config update so that the worker supervisor pickes up the changes ASAP
                 TriggerAgentConfigUpdate();
+                response.Add($"Publishing succeeded for EndpointUrl: {request.EndpointUrl}");
             }
             catch (MethodCallStatusException) {
                 throw;
@@ -590,7 +592,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 _lockConfig.Release();
             }
 
-            return new List<string> { "Succeeded" };
+            return response;
         }
 
         /// <inheritdoc/>
