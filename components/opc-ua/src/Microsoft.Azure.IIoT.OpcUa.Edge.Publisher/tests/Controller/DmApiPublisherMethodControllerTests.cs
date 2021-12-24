@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
                 publishNodesResult.Subject.StatusMessage.First()
                     .Should()
-                    .Be("Succeeded");
+                    .Contain("succeeded");
             }
 
             tasks = new List<Task<JobProcessingInstructionModel>>();
