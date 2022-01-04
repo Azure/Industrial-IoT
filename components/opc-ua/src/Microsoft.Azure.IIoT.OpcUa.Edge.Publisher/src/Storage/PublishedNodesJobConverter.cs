@@ -267,6 +267,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     result += $"_{model.PublishedVariables.PublishedData.First().PublishedVariableNodeId}";
                 }
             }
+            else {
+                result ??= model.SubscriptionSettings.PublishingInterval.GetValueOrDefault().TotalMilliseconds.ToString();
+            }
             return result;
         }
 
