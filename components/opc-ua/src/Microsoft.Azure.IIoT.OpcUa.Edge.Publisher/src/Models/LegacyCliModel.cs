@@ -29,11 +29,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public string PublishedNodesSchemaFile { get; set; }
 
         /// <summary>
-        /// The time to wait to connect a session.
-        /// </summary>
-        public TimeSpan? SessionConnectWait { get; set; }
-
-        /// <summary>
         /// The default interval for heartbeats if not set on
         /// node level.
         /// </summary>

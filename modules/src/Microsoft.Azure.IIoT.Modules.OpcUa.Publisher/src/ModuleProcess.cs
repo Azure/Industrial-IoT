@@ -35,6 +35,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Opc.Ua;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Serilog.Events;
+    using System.Net;
+    using System.Text;
+    using Microsoft.Azure.IIoT.Http.HealthChecks;
 
     /// <summary>
     /// Publisher module
@@ -105,13 +108,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var logger = hostScope.Resolve<ILogger>();
                     var moduleConfig = hostScope.Resolve<IModuleConfig>();
                     var identity = hostScope.Resolve<IIdentity>();
+                    var healthCheckManager = hostScope.Resolve<IHealthCheckManager>();
                     ISessionManager sessionManager = null;
                     var server = new MetricServer(port: kPublisherPrometheusPort);
+
                     try {
                         var version = GetType().Assembly.GetReleaseVersion().ToString();
                         logger.Information("Starting module OpcPublisher version {version}.", version);
                         logger.Information("Initiating prometheus at port {0}/metrics", kPublisherPrometheusPort);
                         server.StartWhenEnabled(moduleConfig, logger);
+                        healthCheckManager.Start();
                         SetStackTraceMask();
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
@@ -133,6 +139,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
+                        healthCheckManager.Stop();
                         await workerSupervisor.StopAsync();
                         await (sessionManager?.StopAsync() ?? Task.CompletedTask);
                         await module.StopAsync();
@@ -249,6 +256,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces();
+
+            builder.RegisterType<HealthCheckManager>()
+                .AsImplementedInterfaces().SingleInstance();
 
             return builder.Build();
         }
