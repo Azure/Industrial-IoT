@@ -280,7 +280,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
 
                 unpublishNodesResult.Subject.First()
                     .Should()
-                    .Be("Succeeded");
+                    .Contain("succeeded");
             }
 
             var tasks = new List<Task<JobProcessingInstructionModel>>();
@@ -485,7 +485,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                 var publishNodesResult = await orchestrator.UnpublishNodesAsync(request).ConfigureAwait(false);
                 publishNodesResult.First()
                     .Should()
-                    .Be("Succeeded");
+                    .Contain("succeeded");
             }
 
             // Check
