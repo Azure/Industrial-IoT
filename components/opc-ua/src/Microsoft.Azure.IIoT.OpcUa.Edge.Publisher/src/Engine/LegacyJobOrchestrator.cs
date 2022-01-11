@@ -610,12 +610,45 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var nodesToRemoveSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
                 nodesToRemoveSet.UnionWith(request.OpcNodes);
 
-                // ToDo: Use clone of _publishedNodesEntries. -> Need to test.
-                var updatedPublishedNodesEntries = new List<PublishedNodesEntryModel>();
-                updatedPublishedNodesEntries.AddRange(_publishedNodesEntries);
+                // Perform first pass to determine if we can find all nodes to remove.
+                var matchingGroups = new List<PublishedNodesEntryModel>();
+                foreach (var entry in _publishedNodesEntries) {
+                    if (entry.HasSameGroup(request)) {
+                        // We may have several entries with the same DataSetGroup definition,
+                        // so we will remove nodes only if the whole DataSet definition matches.
+                        if (IsSameDataSet(entry, request)) {
+                            foreach (var node in entry.OpcNodes) {
+                                if (nodesToRemoveSet.Contains(node)) {
+                                    // Found a node. Remove it from hash set.
+                                    nodesToRemoveSet.Remove(node);
+                                }
+                            }
 
+                            matchingGroups.Add(entry);
+                        }
+                    }
+                }
+
+                // Report error if no matching endpoint was found.
+                if (matchingGroups.Count == 0) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
+                        $"Endpoint not found: {request.EndpointUrl}");
+                }
+
+                // Report error if there were entries that we were not able to find.
+                if (nodesToRemoveSet.Count != 0) {
+                    request.OpcNodes = nodesToRemoveSet.ToList();
+                    var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
+                    throw new MethodCallStatusException(entriesNotFoundJson, (int)HttpStatusCode.NotFound, "Nodes not found");
+                }
+
+                // Create HashSet of nodes to remove again for the second pass.
+                nodesToRemoveSet.Clear();
+                nodesToRemoveSet.UnionWith(request.OpcNodes);
+
+                // Perform second pass and remove entries this time.
                 var existingGroups = new List<PublishedNodesEntryModel>();
-                foreach (var entry in updatedPublishedNodesEntries) {
+                foreach (var entry in _publishedNodesEntries) {
                     if (entry.HasSameGroup(request)) {
                         // We may have several entries with the same DataSetGroup definition,
                         // so we will remove nodes only if the whole DataSet definition matches.
@@ -639,25 +672,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         // so that generated job definition is complete.
                         existingGroups.Add(entry);
                     }
-
                 }
 
-                if (existingGroups.Count == 0) {
-                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound,
-                        $"Endpoint not found: {request.EndpointUrl}");
-                }
-
-                // Report error if there were entries that we were not able to find.
-                if (nodesToRemoveSet.Count != 0) {
-                    request.OpcNodes = nodesToRemoveSet.ToList();
-                    var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
-                    throw new MethodCallStatusException(entriesNotFoundJson, (int)HttpStatusCode.NotFound, "Nodes not found");
-                }
-
-                updatedPublishedNodesEntries = updatedPublishedNodesEntries.Where(entry => entry.OpcNodes.Count > 0).ToList();
-
-                _publishedNodesEntries.Clear();
-                _publishedNodesEntries.AddRange(updatedPublishedNodesEntries);
+                // Remove entries without nodes.
+                _publishedNodesEntries.RemoveAll(entry => entry.OpcNodes.Count == 0);
 
                 PersistPublishedNodes();
 
