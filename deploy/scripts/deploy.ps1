@@ -602,6 +602,9 @@ Function Get-EnvironmentVariables() {
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_APP_URL=$($var)"
     }
+    if (![string]::IsNullOrEmpty($script:version)) {
+        Write-Output "PCS_IMAGES_TAG=$($script:version)"
+    }
 }
 
 #******************************************************************************
