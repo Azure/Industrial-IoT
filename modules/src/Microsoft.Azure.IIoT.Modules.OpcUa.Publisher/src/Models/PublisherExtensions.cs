@@ -70,5 +70,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 StatusMessage = model
             };
         }
+
+        /// <summary>
+        /// Create an api model from service model
+        /// </summary>
+        public static ConfiguredEndpointsResponseApiModel ToConfiguredEndpointsApiModel(
+            this List<ConfiguredEndpointModel> endpoints) {
+            if (endpoints == null) {
+                return null;
+            }
+
+            return new ConfiguredEndpointsResponseApiModel {
+                Endpoints = endpoints
+            };
+        }
     }
 }

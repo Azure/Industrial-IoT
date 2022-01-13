@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// returns the endpoints currently part of the configuration
         /// </summary>
-        Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(CancellationToken ct = default);
+        Task<List<ConfiguredEndpointModel>> GetConfiguredEndpointsAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Get the configuration nodes for an endpoint

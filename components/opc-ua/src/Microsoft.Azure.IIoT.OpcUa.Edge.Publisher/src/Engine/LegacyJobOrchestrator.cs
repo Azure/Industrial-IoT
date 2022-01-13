@@ -641,16 +641,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<List<PublishedNodesEntryModel>> GetConfiguredEndpointsAsync(
+        public async Task<List<ConfiguredEndpointModel>> GetConfiguredEndpointsAsync(
             CancellationToken ct = default) {
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredEndpointsAsync));
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            var endpoints = new List<ConfiguredEndpointModel>();
+
             try {
-                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+                endpoints = _publishedNodesEntrys.Select(model => new ConfiguredEndpointModel {
+                    EndpointUrl = model.EndpointUrl,
+                    UseSecurity = model.UseSecurity,
+                    OpcAuthenticationMode = model.OpcAuthenticationMode,
+                    OpcAuthenticationUsername = model.OpcAuthenticationUsername,
+                    EncryptedAuthUsername = model.EncryptedAuthUsername,
+                    DataSetWriterGroup = model.DataSetWriterGroup,
+                    DataSetWriterId = model.DataSetWriterId,
+                    DataSetPublishingInterval = model.DataSetPublishingInterval,
+                }).ToList();
+            }
+            catch (MethodCallStatusException) {
+                throw;
+            }
+            catch (Exception e) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
                 _lockConfig.Release();
             }
+            return endpoints;
         }
 
         /// <inheritdoc/>

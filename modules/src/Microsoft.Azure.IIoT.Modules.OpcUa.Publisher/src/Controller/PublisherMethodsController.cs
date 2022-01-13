@@ -64,10 +64,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for GetConfiguredEndpoints DM
         /// </summary>
-        public async Task<List<PublishedNodesResponseApiModel>> GetConfiguredEndpointsAsync() {
+        public async Task<ConfiguredEndpointsResponseApiModel> GetConfiguredEndpointsAsync() {
 
-            await Task.Delay(0);
-            throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+            var response = await _configServices.GetConfiguredEndpointsAsync().ConfigureAwait(false);
+            return response.ToConfiguredEndpointsApiModel();
         }
 
         /// <summary>
