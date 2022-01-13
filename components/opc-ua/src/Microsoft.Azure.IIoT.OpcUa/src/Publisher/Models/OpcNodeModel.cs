@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -21,34 +21,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string ExpandedNodeId { get; set; }
 
-        /// <summary> Sampling interval </summary>
+        /// <summary> Sampling interval in milliseconds </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? OpcSamplingInterval { get; set; }
 
-        /// <summary>
-        /// OpcSamplingInterval as TimeSpan.
-        /// </summary>
+        /// <summary> OpcSamplingInterval as TimeSpan. </summary>
         [IgnoreDataMember]
         public TimeSpan? OpcSamplingIntervalTimespan {
-            get => OpcSamplingInterval.HasValue ?
-                TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
-            set => OpcSamplingInterval = value != null ?
-                (int)value.Value.TotalMilliseconds : (int?)null;
+            get => OpcSamplingInterval.HasValue
+                ? TimeSpan.FromMilliseconds(OpcSamplingInterval.Value)
+                : (TimeSpan?)null;
+            set => OpcSamplingInterval = value != null
+                ? (int)value.Value.TotalMilliseconds
+                : (int?)null;
         }
 
-        /// <summary> Publishing interval </summary>
+        /// <summary> Publishing interval in milliseconds </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? OpcPublishingInterval { get; set; }
 
-        /// <summary>
-        /// OpcPublishingInterval as TimeSpan.
-        /// </summary>
+        /// <summary> OpcPublishingInterval as TimeSpan. </summary>
         [IgnoreDataMember]
         public TimeSpan? OpcPublishingIntervalTimespan {
-            get => OpcPublishingInterval.HasValue ?
-                TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
-            set => OpcPublishingInterval = value != null ?
-                (int)value.Value.TotalMilliseconds : (int?)null;
+            get => OpcPublishingInterval.HasValue
+                ? TimeSpan.FromMilliseconds(OpcPublishingInterval.Value)
+                : (TimeSpan?)null;
+            set => OpcPublishingInterval = value != null
+                ? (int)value.Value.TotalMilliseconds
+                : (int?)null;
         }
 
         /// <summary> DataSetFieldId </summary>
@@ -59,18 +59,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public string DisplayName { get; set; }
 
-        /// <summary> Heartbeat </summary>
+        /// <summary> Heartbeat interval in seconds </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public int? HeartbeatInterval {
-            get => HeartbeatIntervalTimespan.HasValue ?
-                (int)HeartbeatIntervalTimespan.Value.TotalSeconds : default;
-            set => HeartbeatIntervalTimespan = value.HasValue ?
-                TimeSpan.FromSeconds(value.Value) : default;
+            get => HeartbeatIntervalTimespan.HasValue
+                ? (int)HeartbeatIntervalTimespan.Value.TotalSeconds
+                : default;
+            set => HeartbeatIntervalTimespan = value.HasValue
+                ? TimeSpan.FromSeconds(value.Value)
+                : default;
         }
 
-        /// <summary>
-        /// Heartbeat interval as TimeSpan.
-        /// </summary>
+        /// <summary> Heartbeat interval as TimeSpan. </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false)]
         public TimeSpan? HeartbeatIntervalTimespan { get; set; }
 
