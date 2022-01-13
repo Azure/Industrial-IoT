@@ -543,7 +543,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (change.Key == null) {
                             continue;
                         }
-                        _logger.Information("Set monitoring to \"{value}\" for {count} items in subscription \"{subscription}\".",
+                        _logger.Information("Set monitoring to '{value}' for {count} items in subscription '{subscription}'.",
                             change.Key.Value, change.Count(), rawSubscription.DisplayName);
 
                         var itemsToChange = change.Select(t => t.Item).ToList();
@@ -554,12 +554,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                             // Check the number of erroneous results and log.
                             if (erroneousResultsCount > 0) {
-                                _logger.Warning("Failed to set monitoring for {count} items in subscription \"{subscription}\".",
+                                _logger.Warning("Failed to set monitoring for {count} items in subscription '{subscription}'.",
                                     erroneousResultsCount, rawSubscription.DisplayName);
 
                                 for (int i = 0; i < results.Count && i < itemsToChange.Count; ++ i) {
                                     if (StatusCode.IsNotGood(results[i].StatusCode)){
-                                        _logger.Warning("Set monitoring for item \"{item}\" in subscription \"{subscription}\" failed with \"{status}\".",
+                                        _logger.Warning("Set monitoring for item '{item}' in subscription '{subscription}' failed with '{status}'.",
                                             itemsToChange[i].StartNodeId, rawSubscription.DisplayName, results[i].StatusCode);
                                     }
                                 }
@@ -800,7 +800,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                                     heartbeatValue.SequenceNumber = sequenceNumber;
                                     heartbeatValue.IsHeartbeat = true;
                                     heartbeatValue.PublishTime = publishTime;
-                                    message.Notifications.Add(heartbeatValue);
+                                    message.Notifications?.Add(heartbeatValue);
                                 }
                                 continue;
                             }
@@ -808,14 +808,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
 
-                    var erroneousNotifications = message.Notifications
+                    var erroneousNotifications = message.Notifications?
                         .Where(n => n.Value.Value == null
                             || StatusCode.IsNotGood(n.Value.StatusCode))
                         .ToList();
 
                     if (erroneousNotifications.Any()) {
-                        _logger.Warning("Found {count} notifications with null value or not good status " +
-                            "code for {} subscription.", erroneousNotifications.Count,
+                        _logger.Debug("Found {count} notifications with null value or not good status " +
+                            "code for '{subscription}' subscription.", erroneousNotifications.Count,
                             subscription.DisplayName);
                     }
 
