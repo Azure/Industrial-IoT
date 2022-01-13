@@ -769,7 +769,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             var endpoints = new List<ConfiguredEndpointModel>();
 
             try {
-                endpoints = _publishedNodesEntrys.Select(model => new ConfiguredEndpointModel {
+                endpoints = _publishedNodesEntries.Select(model => new ConfiguredEndpointModel {
                     EndpointUrl = model.EndpointUrl,
                     UseSecurity = model.UseSecurity,
                     OpcAuthenticationMode = model.OpcAuthenticationMode,
