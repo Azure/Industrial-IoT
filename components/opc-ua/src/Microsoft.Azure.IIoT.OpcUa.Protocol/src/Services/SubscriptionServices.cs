@@ -335,7 +335,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             else {
                                 monitoredItem.DisplayName = null;
                                 _logger.Warning("Failed to read display name for '{monitoredItem}' due to '{statusCode}'",
-                                    monitoredItem.StartNodeId, errors[index]);
+                                    monitoredItem.StartNodeId, errors[index].StatusCode);
                             }
                             index++;
                         }
@@ -543,7 +543,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (change.Key == null) {
                             continue;
                         }
-                        _logger.Information("Set Monitoring to \"{value}\" for {count} nodes in subscription \"{subscription}\".",
+                        _logger.Information("Set monitoring to \"{value}\" for {count} items in subscription \"{subscription}\".",
                             change.Key.Value, change.Count(), rawSubscription.DisplayName);
 
                         var itemsToChange = change.Select(t => t.Item).ToList();
@@ -554,12 +554,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                             // Check the number of erroneous results and log.
                             if (erroneousResultsCount > 0) {
-                                _logger.Warning("Failed to set monitoring for {count} nodes in subscription \"{subscription}\".",
+                                _logger.Warning("Failed to set monitoring for {count} items in subscription \"{subscription}\".",
                                     erroneousResultsCount, rawSubscription.DisplayName);
 
                                 for (int i = 0; i < results.Count && i < itemsToChange.Count; ++ i) {
-                                    _logger.Warning("Node \"{}\" has bad status \"{status}\" in subscription \"{subscription}\".",
-                                        itemsToChange[i].DisplayName, results[i].StatusCode, rawSubscription.DisplayName);
+                                    if (StatusCode.IsNotGood(results[i].StatusCode)){
+                                        _logger.Warning("Set monitoring for item \"{item}\" in subscription \"{subscription}\" failed with \"{status}\".",
+                                            itemsToChange[i].StartNodeId, rawSubscription.DisplayName, results[i].StatusCode);
+                                    }
                                 }
                             }
                         }
