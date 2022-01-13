@@ -266,7 +266,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
 ";
             using var schemaReader = new StreamReader("Storage/publishednodesschema.json");
             var converter = new PublishedNodesJobConverter(TraceLogger.Create(), _serializer);
-            var legacyCli = new LegacyCliModel() { 
+            var legacyCli = new LegacyCliModel() {
                 DefaultPublishingInterval = TimeSpan.FromSeconds(5)
             };
             var entries = converter.Read(pn, new StringReader(await schemaReader.ReadToEndAsync()));
