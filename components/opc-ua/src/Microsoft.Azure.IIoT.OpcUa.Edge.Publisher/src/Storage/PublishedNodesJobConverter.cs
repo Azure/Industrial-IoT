@@ -138,7 +138,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         }
                     ).ToList()
                 ).ToList();
-                
+
                 if (!flattenedGroups.Any()) {
                     _logger.Information("No OpcNodes after job conversion.");
                     return Enumerable.Empty<WriterGroupJobModel>();
@@ -207,6 +207,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     }
                 } : null);
 
+                result = result.Where(job => job != null);
+
                 var counter = 0;
                 if (result.Any()) {
                     foreach (var job in result) {
@@ -239,7 +241,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// </summary>
         public ConnectionModel ToConnectionModel(PublishedNodesEntryModel model,
             LegacyCliModel legacyCliModel) {
-            
+
             return new ConnectionModel {
                 OperationTimeout = legacyCliModel.OperationTimeout,
                 Group = model.DataSetWriterGroup,

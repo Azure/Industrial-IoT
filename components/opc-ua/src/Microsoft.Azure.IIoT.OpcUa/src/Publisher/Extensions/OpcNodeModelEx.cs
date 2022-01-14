@@ -5,11 +5,18 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Dataset source extensions
     /// </summary>
     public static class OpcNodeModelEx {
+
+        /// <summary>
+        /// Get comparer class for OpcNodeModel objects.
+        /// </summary>
+        public static EqualityComparer<OpcNodeModel> Comparer { get; } =
+            new OpcNodeModelComparer();
 
         /// <summary>
         /// Check if nodes are equal
@@ -51,6 +58,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
+            if (model.HeartbeatInterval != that.HeartbeatInterval) {
+                return false;
+            }
+
             return true;
         }
 
@@ -64,10 +75,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 model.DisplayName,
                 model.DataSetFieldId,
                 model.ExpandedNodeId,
-                defaultPublishing.HasValue ? 
+                defaultPublishing.HasValue ?
                     model.OpcPublishingInterval.GetValueOrDefault(defaultPublishing.Value) :
                     model.OpcPublishingInterval,
-                model.OpcSamplingInterval) ;
+                model.OpcSamplingInterval,
+                model.HeartbeatInterval
+            ) ;
+        }
+
+        /// <summary>
+        /// Equality comparer for OpcNodeModel objects.
+        /// </summary>
+        private class OpcNodeModelComparer : EqualityComparer<OpcNodeModel> {
+
+            /// <inheritdoc/>
+            public override bool Equals(OpcNodeModel node1, OpcNodeModel node2) {
+                return node1.IsSame(node2);
+            }
+
+            /// <inheritdoc/>
+            public override int GetHashCode(OpcNodeModel node) {
+                return OpcNodeModelEx.GetHashCode(node);
+            }
         }
     }
 }
