@@ -808,15 +808,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         }
                     }
 
-                    var erroneousNotifications = message.Notifications?
-                        .Where(n => n.Value.Value == null
-                            || StatusCode.IsNotGood(n.Value.StatusCode))
-                        .ToList();
+                    if (_logger.IsEnabled(Serilog.Events.LogEventLevel.Debug)) {
+                        var erroneousNotifications = message.Notifications
+                            .Where(n => n.Value.Value == null
+                                || StatusCode.IsNotGood(n.Value.StatusCode))
+                            .ToList();
 
-                    if (erroneousNotifications.Any()) {
-                        _logger.Debug("Found {count} notifications with null value or not good status " +
-                            "code for '{subscription}' subscription.", erroneousNotifications.Count,
-                            subscription.DisplayName);
+                        if (erroneousNotifications.Count > 0) {
+                            _logger.Debug("Found {count} notifications with null value or not good status " +
+                                "code for '{subscription}' subscription.", erroneousNotifications.Count,
+                                subscription.DisplayName);
+                        }
                     }
 
                     if (message.Notifications?.Any() == true) {
