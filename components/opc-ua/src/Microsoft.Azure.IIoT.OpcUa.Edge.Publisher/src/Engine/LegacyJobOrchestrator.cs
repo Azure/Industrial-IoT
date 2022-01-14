@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Extensions;
 
     /// <summary>
     /// Job orchestrator the represents the legacy publishednodes.json with legacy command line arguments as job.
@@ -654,18 +655,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public async Task<PublishedNodesEntryModel> GetConfiguredNodesOnEndpointAsync(
+        public async Task<List<OpcNodeOnEndpointModel>> GetConfiguredNodesOnEndpointAsync(
             PublishedNodesEntryModel request,
             CancellationToken ct = default) {
 
             _logger.Information("{nameof} method triggered", nameof(GetConfiguredNodesOnEndpointAsync));
+            var sw = Stopwatch.StartNew();
             await _lockConfig.WaitAsync(ct).ConfigureAwait(false);
+            List<OpcNodeOnEndpointModel> response = new List<OpcNodeOnEndpointModel>();
             try {
-                throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+                var nodeFound = false;
+                if (!_publishedNodesEntrys.Any()) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Node not found in endpoint.");
+                }
+                else {
+                    foreach (var entry in _publishedNodesEntrys) {
+                        if (request.EndpointUrl == entry.EndpointUrl) {
+                            nodeFound = true;
+                            response.AddRange(entry.OpcNodes.Select(n => n.ToNodeOnEndpointModel()).ToList());
+                        }
+                    }
+                }
+                if (!nodeFound) {
+                    throw new MethodCallStatusException((int)HttpStatusCode.NotFound, "Node not found in endpoint.");
+                }
+            }
+            catch (MethodCallStatusException) {
+                throw;
+            }
+            catch (Exception e) {
+                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, e.Message);
             }
             finally {
+                _logger.Information("{nameof} method finished in {elapsed}", nameof(GetConfiguredNodesOnEndpointAsync), sw.Elapsed);
+                sw.Stop();
                 _lockConfig.Release();
             }
+            return response;
         }
 
         /// <inheritdoc/>

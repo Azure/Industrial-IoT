@@ -38,6 +38,9 @@
     <Folder Include="Utils\" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Controller\DmApiPayloadTwoEndpoints.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Engine\empty_pn.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -73,12 +73,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller {
         /// <summary>
         /// Handler for GetConfiguredNodesOnEndpoint DM
         /// </summary>
-        public async Task GetConfiguredNodesOnEndpointAsync(PublishNodesRequestApiModel request) {
-            if (request.OpcNodes != null) {
-                throw new MethodCallStatusException((int)HttpStatusCode.BadRequest, "OpcNodes is set.");
-            }
-            await Task.Delay(0);
-            throw new MethodCallStatusException((int)HttpStatusCode.NotImplemented, "Not Implemented");
+        public async Task<GetConfiguredNodesOnEndpointResponseApiModel> GetConfiguredNodesOnEndpointAsync(GetConfiguredNodesOnEndpointsRequestApiModel request) {
+            var response = await _configServices.GetConfiguredNodesOnEndpointAsync(request.ToServiceModel()).ConfigureAwait(false);
+            return response.ToApiModel(request.EndpointUrl);
         }
 
         /// <summary>

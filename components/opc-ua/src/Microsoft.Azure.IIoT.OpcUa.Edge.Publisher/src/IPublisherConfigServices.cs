@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -37,8 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <summary>
         /// Get the configuration nodes for an endpoint
         /// </summary>
-        Task<PublishedNodesEntryModel> GetConfiguredNodesOnEndpointAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
-
+        Task<List<OpcNodeOnEndpointModel>> GetConfiguredNodesOnEndpointAsync(PublishedNodesEntryModel request, CancellationToken ct = default);
 
         /// <summary>
         /// Gets the diagnostic information for a specific endpoint

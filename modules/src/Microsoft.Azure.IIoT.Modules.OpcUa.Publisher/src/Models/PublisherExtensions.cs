@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -58,6 +59,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
         }
 
         /// <summary>
+        /// Create a service model for an api model
+        /// </summary>
+        public static PublishedNodesEntryModel ToServiceModel(
+            this GetConfiguredNodesOnEndpointsRequestApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PublishedNodesEntryModel {
+                EndpointUrl = new Uri(model.EndpointUrl)
+            };
+        }
+
+        /// <summary>
         /// Create an api model from service model
         /// </summary>
         public static PublishedNodesResponseApiModel ToApiModel(
@@ -68,6 +82,20 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
 
             return new PublishedNodesResponseApiModel {
                 StatusMessage = model
+            };
+        }
+
+        /// <summary>
+        /// Create an api model from service model
+        /// </summary>
+        public static GetConfiguredNodesOnEndpointResponseApiModel ToApiModel(
+            this List<OpcNodeOnEndpointModel> model, string EndpointUrl) {
+            if (model == null) {
+                return null;
+            }
+            return new GetConfiguredNodesOnEndpointResponseApiModel {
+                EndpointUrl = EndpointUrl,
+                OpcNodes = model,
             };
         }
     }

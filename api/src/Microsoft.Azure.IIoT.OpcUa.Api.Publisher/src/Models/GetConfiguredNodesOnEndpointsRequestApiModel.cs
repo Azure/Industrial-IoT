@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
@@ -12,16 +11,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     /// Model for a get configured nodes on endpoint request
     /// </summary>
     [DataContract]
-    class GetConfiguredNodesOnEndpointsRequestApiModel {
+    public class GetConfiguredNodesOnEndpointsRequestApiModel {
 
         /// <summary> Endpoint URL for the OPC Nodes to monitor. </summary>
-        [DataMember(Name = "EndpointUrl", Order = 0]
+        [DataMember(Name = "endpointUrl", Order = 0)]
         [Required]
         public string EndpointUrl { get; set; }
-
-        /// <summary> Continuation token returned from previous call to get the rest of the data. </summary>
-        [DataMember(Name = "ContinuationToken", Order = 1,
-            EmitDefaultValue = false)]
-        public ulong ContinuationToken { get; set; }
     }
 }

@@ -199,5 +199,62 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Tests.Engine {
                     .BeTrue();
             }
         }
+
+        [Theory]
+        [InlineData("Controller/DmApiPayloadTwoEndpoints.json")]
+        public async Task DmApiGetConfiguredNodesOnEndpointAsyncTest(string publishedNodesFile) {
+            var legacyCliModelProviderMock = new Mock<ILegacyCliModelProvider>();
+            var agentConfigProviderMock = new Mock<IAgentConfigProvider>();
+            var identityMock = new Mock<IIdentity>();
+            var newtonSoftJsonSerializer = new NewtonSoftJsonSerializer();
+            var jobSerializer = new PublisherJobSerializer(newtonSoftJsonSerializer);
+            var publishedNodesJobConverter = new PublishedNodesJobConverter(TraceLogger.Create(), newtonSoftJsonSerializer);
+            var legacyCliModel = new LegacyCliModel {
+                PublishedNodesFile = "Engine/empty_pn.json",
+                PublishedNodesSchemaFile = "Storage/publishednodesschema.json"
+            };
+            var endpointUrl = "opc.tcp://opcplc:50010";
+            legacyCliModelProviderMock.Setup(p => p.LegacyCliModel).Returns(legacyCliModel);
+            agentConfigProviderMock.Setup(p => p.Config).Returns(new AgentConfigModel());
+
+            var orchestrator = new LegacyJobOrchestrator(
+                publishedNodesJobConverter,
+                legacyCliModelProviderMock.Object,
+                agentConfigProviderMock.Object,
+                jobSerializer,
+                TraceLogger.Create(),
+                identityMock.Object);
+            var methodsController = new PublisherMethodsController(orchestrator);
+
+            using var publishPayloads = new StreamReader(publishedNodesFile);
+            var publishNodesRequest = newtonSoftJsonSerializer.Deserialize<List<PublishNodesRequestApiModel>>(
+                await publishPayloads.ReadToEndAsync().ConfigureAwait(false));
+
+            foreach (var request in publishNodesRequest) {
+                var publishNodesResult = await FluentActions
+                    .Invoking(async () => await methodsController.PublishNodesAsync(request).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+                publishNodesResult.Subject.StatusMessage.First()
+                    .Should()
+                    .Contain("succeeded");
+            }
+
+            var endpointRequest = new GetConfiguredNodesOnEndpointsRequestApiModel();
+            endpointRequest.EndpointUrl = endpointUrl;
+            var response = await FluentActions
+                    .Invoking(async () => await methodsController
+                    .GetConfiguredNodesOnEndpointAsync(endpointRequest).ConfigureAwait(false))
+                    .Should()
+                    .NotThrowAsync()
+                    .ConfigureAwait(false);
+
+            Assert.True(response.Subject.EndpointUrl == endpointUrl);
+            Assert.True(response.Subject.OpcNodes.Count == 2);
+            Assert.True(response.Subject.OpcNodes[0].Id == "ns=2;s=FastUInt1");
+            Assert.True(response.Subject.OpcNodes[1].Id == "ns=2;s=FastUInt2");
+        }
     }
 }

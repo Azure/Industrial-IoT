@@ -1,0 +1,26 @@
+﻿[
+  {
+    "EndpointUrl": "opc.tcp://opcplc:50000",
+    "UseSecurity": false,
+    "OpcNodes": [
+      {
+        "Id": "ns=2;s=SlowUInt1",
+        "OpcPublishingInterval": 1000
+      }
+    ]
+  },
+  {
+    "EndpointUrl": "opc.tcp://opcplc:50010",
+    "UseSecurity": false,
+    "OpcNodes": [
+      {
+        "Id": "ns=2;s=FastUInt1",
+        "OpcPublishingInterval": 1000
+      },
+      {
+        "Id": "ns=2;s=FastUInt2",
+        "OpcPublishingInterval": 1000
+      }
+    ]
+  }
+]

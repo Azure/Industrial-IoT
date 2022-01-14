@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -11,20 +12,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     /// Model class for a get configured nodes on endpoint response.
     /// </summary>
     [DataContract]
-    class GetConfiguredNodesOnEndpointApiResponseModel {
+    public class GetConfiguredNodesOnEndpointResponseApiModel {
 
         /// <summary>
         /// OPC UA Endpoint URL
         /// </summary>
-        [DataMember(Name = "EndpointUrl", Order = 0,
+        [DataMember(Name = "endpointUrl", Order = 0,
             EmitDefaultValue = false)]
         public string EndpointUrl { get; set; }
 
         /// <summary>
         /// OPC UA nodes
         /// </summary>
-        [DataMember(Name = "OpcNodes", Order = 1,
+        [DataMember(Name = "opcNodes", Order = 1,
             EmitDefaultValue = false)]
-        public List<PublishedNodeApiModel> OpcNodes { get; }
+        public List<OpcNodeOnEndpointModel> OpcNodes { get; set; }
     }
 }
