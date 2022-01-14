@@ -809,7 +809,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     if (_logger.IsEnabled(Serilog.Events.LogEventLevel.Debug)) {
-                        var erroneousNotifications = message.Notifications
+                        var erroneousNotifications = message.Notifications?
                             .Where(n => n.Value.Value == null
                                 || StatusCode.IsNotGood(n.Value.StatusCode))
                             .ToList();
