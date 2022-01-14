@@ -24,14 +24,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if (string.Compare(model.DataSetWriterGroup, that.DataSetWriterGroup, StringComparison.InvariantCulture) != 0) {
+            if (string.Compare(model.DataSetWriterGroup, that.DataSetWriterGroup, StringComparison.InvariantCulture) != 0 &&
+                that.DataSetWriterGroup != null) {
                 return false;
             }
 
             if (string.Compare(model.EndpointUrl.OriginalString, that.EndpointUrl.OriginalString, StringComparison.OrdinalIgnoreCase) != 0) {
                 return false;
             }
-            if (model.UseSecurity != that.UseSecurity) {
+            if (model.UseSecurity != that.UseSecurity && that.UseSecurity != null) {
                 return false;
             }
 
@@ -39,56 +40,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Config.Models {
                 return false;
             }
 
-            if (string.Compare(model.OpcAuthenticationUsername, that.OpcAuthenticationUsername, StringComparison.InvariantCulture) != 0) {
+            if (string.Compare(model.OpcAuthenticationUsername, that.OpcAuthenticationUsername, StringComparison.InvariantCulture) != 0 &&
+                that.OpcAuthenticationUsername != null) {
                 return false;
             }
 
-            if (string.Compare(model.OpcAuthenticationPassword, that.OpcAuthenticationPassword, StringComparison.InvariantCulture) != 0) {
+            if (string.Compare(model.OpcAuthenticationPassword, that.OpcAuthenticationPassword, StringComparison.InvariantCulture) != 0 &&
+                that.OpcAuthenticationPassword != null) {
                 return false;
             }
 
-            if (string.Compare(model.EncryptedAuthUsername, that.EncryptedAuthUsername, StringComparison.InvariantCulture) != 0) {
+            if (string.Compare(model.EncryptedAuthUsername, that.EncryptedAuthUsername, StringComparison.InvariantCulture) != 0 &&
+                that.EncryptedAuthUsername != null) {
                 return false;
             }
 
-            if (string.Compare(model.EncryptedAuthPassword, that.EncryptedAuthPassword, StringComparison.InvariantCulture) != 0) {
+            if (string.Compare(model.EncryptedAuthPassword, that.EncryptedAuthPassword, StringComparison.InvariantCulture) != 0 &&
+                that.EncryptedAuthPassword != null) {
                 return false;
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Validates if the entry has same group as the model
-        /// </summary>
-        public static bool IsSelectedNode(this PublishedNodesEntryModel model, PublishedNodesEntryModel that) {
-
-            if (model == that) {
-                return true;
-            }
-
-            if (model == null || that == null) {
-                return false;
-            }
-
-            if (model.EndpointUrl.OriginalString == that.EndpointUrl.OriginalString) { 
-                if (model.DataSetWriterGroup == that.DataSetWriterGroup || that.DataSetWriterGroup == null) {
-                    if (model.DataSetWriterId == that.DataSetWriterId || that.DataSetWriterId == null) {
-                        if (model.DataSetPublishingInterval == that.DataSetPublishingInterval || that.DataSetPublishingInterval == null) {
-                            if (model.UseSecurity == that.UseSecurity || that.UseSecurity == null) {
-                                if (model.OpcAuthenticationMode == that.OpcAuthenticationMode) {
-                                    if (model.OpcAuthenticationUsername == that.OpcAuthenticationUsername || that.OpcAuthenticationUsername == null) {
-                                        if (model.OpcAuthenticationPassword == that.OpcAuthenticationPassword || that.OpcAuthenticationPassword == null) {
-                                            return true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }   
-            return false;
         }
 
         /// <summary>

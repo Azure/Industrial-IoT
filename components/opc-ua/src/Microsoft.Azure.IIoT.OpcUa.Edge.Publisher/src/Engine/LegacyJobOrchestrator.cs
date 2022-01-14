@@ -788,8 +788,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 var nodeFound = false;
                 
                 foreach (var entry in _publishedNodesEntries) {
-                    //if (request.EndpointUrl.OriginalString == entry.EndpointUrl.OriginalString) {
-                    if (entry.IsSelectedNode(request)) {
+                    if (IsSameDataSet(entry,request)) {
                         nodeFound = true;
                         response.AddRange(entry.OpcNodes.Select(n => n.ToNodeOnEndpointModel()).ToList());
                     }
